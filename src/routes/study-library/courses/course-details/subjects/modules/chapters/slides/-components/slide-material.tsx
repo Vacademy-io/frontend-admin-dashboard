@@ -62,9 +62,11 @@ const INSTITUTE_ID = 'your-institute-id'; // Replace with your actual institute 
 export const SlideMaterial = ({
     setGetCurrentEditorHTMLContent,
     setSaveDraft,
+    isLearnerView = false,
 }: {
     setGetCurrentEditorHTMLContent: (fn: () => string) => void;
     setSaveDraft: (fn: (activeItem: Slide) => Promise<void>) => void;
+    isLearnerView?: boolean;
 }) => {
     const { items, activeItem, setActiveItem } = useContentStore();
     const editor = useMemo(() => createYooptaEditor(), []);
@@ -455,11 +457,12 @@ export const SlideMaterial = ({
             const documentType = activeItem.document_slide?.type;
 
             if (documentType === 'PRESENTATION') {
-                // Get the appropriate fileId based on status
-                const fileId =
-                    activeItem.status === 'PUBLISHED'
+                // Get the appropriate fileId based on status and learner view
+                const fileId = isLearnerView
+                    ? activeItem.document_slide?.published_data
+                    : (activeItem.status === 'PUBLISHED'
                         ? activeItem.document_slide?.published_data
-                        : activeItem.document_slide?.data;
+                        : activeItem.document_slide?.data);
 
                 // Create a truly stable key that never changes for this slide
                 // This prevents all unnecessary component rebuilds
@@ -479,7 +482,7 @@ export const SlideMaterial = ({
                             }}
                             fileId={fileId || undefined}
                             onChange={handleExcalidrawChange}
-                            editable={activeItem.status !== 'PUBLISHED'}
+                            editable={!isLearnerView && activeItem.status !== 'PUBLISHED'}
                             isSaving={isSaving}
                             onEditorReady={(state) => {
                                 getCurrentExcalidrawStateRef.current = state;
@@ -504,10 +507,11 @@ export const SlideMaterial = ({
             }
 
             if (documentType === 'PDF') {
-                const data =
-                    activeItem.status === 'PUBLISHED'
+                const data = isLearnerView
+                    ? activeItem.document_slide?.published_data || null
+                    : (activeItem.status === 'PUBLISHED'
                         ? activeItem.document_slide?.published_data || null
-                        : activeItem.document_slide?.data || '';
+                        : activeItem.document_slide?.data || '');
 
                 const url = await getPublicUrl(data || '');
                 setContent(<PDFViewer pdfUrl={url} />);
@@ -516,12 +520,13 @@ export const SlideMaterial = ({
 
             if (documentType === 'JUPYTER') {
                 try {
-                    // Fallback: first check data field, then published_data for published slides
-                    const rawData =
-                        activeItem.status === 'PUBLISHED'
+                    // In learner view, always use published_data, otherwise use existing logic
+                    const rawData = isLearnerView
+                        ? activeItem.document_slide?.published_data || activeItem.document_slide?.data
+                        : (activeItem.status === 'PUBLISHED'
                             ? activeItem.document_slide?.data ||
                               activeItem.document_slide?.published_data
-                            : activeItem.document_slide?.data;
+                            : activeItem.document_slide?.data);
 
                     const notebookData = rawData
                         ? JSON.parse(rawData)
@@ -530,8 +535,11 @@ export const SlideMaterial = ({
                     setContent(
                         <JupyterNotebookSlide
                             notebookData={notebookData}
-                            isEditable={activeItem.status !== 'PUBLISHED'}
+                            isEditable={!isLearnerView && activeItem.status !== 'PUBLISHED'}
                             onDataChange={async (updatedNotebookData) => {
+                                // Only allow data changes if not in learner view
+                                if (isLearnerView) return;
+
                                 // Save the notebook data to backend
                                 try {
                                     await addUpdateDocumentSlide({
@@ -1550,123 +1558,101 @@ export const SlideMaterial = ({
                                 <h3 className="text-h3 font-semibold text-neutral-600">
                                     {heading || 'No content selected'}
                                 </h3>
-                                <PencilSimpleLine
-                                    className="cursor-pointer hover:text-primary-500"
-                                    onClick={() => setIsEditing(true)}
-                                />
+                                {!isLearnerView && (
+                                    <PencilSimpleLine
+                                        className="cursor-pointer hover:text-primary-500"
+                                        onClick={() => setIsEditing(true)}
+                                    />
+                                )}
                             </div>
                         )}
                     </div>
 
-                    <div className="flex items-center gap-6">
+                    {!isLearnerView && (
                         <div className="flex items-center gap-6">
-                            {activeItem.source_type === 'DOCUMENT' &&
-                                activeItem?.document_slide?.type === 'DOC' && (
+                            <div className="flex items-center gap-6">
+                                {activeItem.source_type === 'DOCUMENT' &&
+                                    activeItem?.document_slide?.type === 'DOC' && (
+                                        <MyButton
+                                            layoutVariant="icon"
+                                            onClick={async () => {
+                                                await SaveDraft(activeItem);
+                                                if (activeItem.status === 'PUBLISHED') {
+                                                    await handleConvertAndUpload(
+                                                        activeItem.document_slide?.published_data ||
+                                                            null
+                                                    );
+                                                } else {
+                                                    await handleConvertAndUpload(
+                                                        activeItem.document_slide?.data || null
+                                                    );
+                                                }
+                                            }}
+                                        >
+                                            <DownloadSimple size={30} />
+                                        </MyButton>
+                                    )}
+
+                                <ActivityStatsSidebar />
+
+                                {(activeItem?.document_slide?.type === 'DOC' ||
+                                    activeItem?.document_slide?.type === 'PRESENTATION' ||
+                                    activeItem?.document_slide?.type === 'CODE' ||
+                                    activeItem?.document_slide?.type === 'JUPYTER' ||
+                                    activeItem?.document_slide?.type === 'SCRATCH' ||
+                                    activeItem?.source_type === 'QUESTION' ||
+                                    activeItem?.source_type === 'ASSIGNMENT' ||
+                                    activeItem?.source_type === 'QUIZ' ||
+                                    (activeItem?.source_type === 'VIDEO' &&
+                                        activeItem?.splitScreenMode)) && (
                                     <MyButton
-                                        layoutVariant="icon"
-                                        onClick={async () => {
-                                            await SaveDraft(activeItem);
-                                            if (activeItem.status === 'PUBLISHED') {
-                                                await handleConvertAndUpload(
-                                                    activeItem.document_slide?.published_data ||
-                                                        null
-                                                );
-                                            } else {
-                                                await handleConvertAndUpload(
-                                                    activeItem.document_slide?.data || null
-                                                );
-                                            }
-                                        }}
+                                        buttonType="secondary"
+                                        scale="medium"
+                                        layoutVariant="default"
+                                        onClick={handleSaveDraftClick}
+                                        disabled={isSaving}
+                                        className={cn(isSaving && 'pointer-events-none')}
                                     >
-                                        <DownloadSimple size={30} />
+                                        {isSaving ? (
+                                            <>
+                                                <Loader2 className="size-4 animate-spin text-primary-500 " />
+                                                Saving...
+                                            </>
+                                        ) : (
+                                            'Save Draft'
+                                        )}
                                     </MyButton>
                                 )}
 
-                            <ActivityStatsSidebar />
+                                {/* Single Publish/Unpublish Button */}
+                                {activeItem.status === 'PUBLISHED' ? (
+                                    <MyButton
+                                        buttonType="secondary"
+                                        scale="medium"
+                                        layoutVariant="default"
+                                        onClick={() => setIsUnpublishDialogOpen(true)}
+                                    >
+                                        Unpublish
+                                    </MyButton>
+                                ) : (
+                                    <MyButton
+                                        buttonType="primary"
+                                        scale="medium"
+                                        layoutVariant="default"
+                                        onClick={() => setIsPublishDialogOpen(true)}
+                                    >
+                                        Publish
+                                    </MyButton>
+                                )}
 
-                            {(activeItem?.document_slide?.type === 'DOC' ||
-                                activeItem?.document_slide?.type === 'PRESENTATION' ||
-                                activeItem?.document_slide?.type === 'CODE' ||
-                                activeItem?.document_slide?.type === 'JUPYTER' ||
-                                activeItem?.document_slide?.type === 'SCRATCH' ||
-                                activeItem?.source_type === 'QUESTION' ||
-                                activeItem?.source_type === 'ASSIGNMENT' ||
-                                activeItem?.source_type === 'QUIZ' ||
-                                (activeItem?.source_type === 'VIDEO' &&
-                                    activeItem?.splitScreenMode)) && (
-                                <MyButton
-                                    buttonType="secondary"
-                                    scale="medium"
-                                    layoutVariant="default"
-                                    onClick={handleSaveDraftClick}
-                                    disabled={isSaving}
-                                    className={cn(isSaving && 'pointer-events-none')}
-                                >
-                                    {isSaving ? (
-                                        <>
-                                            <Loader2 className="size-4 animate-spin text-primary-500 " />
-                                            Saving...
-                                        </>
-                                    ) : (
-                                        'Save Draft'
-                                    )}
-                                </MyButton>
-                            )}
-
-                            {/* Single Publish/Unpublish Button */}
-                            {activeItem.status === 'PUBLISHED' ? (
-                                <MyButton
-                                    buttonType="secondary"
-                                    scale="medium"
-                                    layoutVariant="default"
-                                    onClick={() => setIsUnpublishDialogOpen(true)}
-                                >
-                                    Unpublish
-                                </MyButton>
-                            ) : (
-                                <MyButton
-                                    buttonType="primary"
-                                    scale="medium"
-                                    layoutVariant="default"
-                                    onClick={() => setIsPublishDialogOpen(true)}
-                                >
-                                    Publish
-                                </MyButton>
-                            )}
-
-                            {/* Keep dialogs but make them conditional */}
-                            {isUnpublishDialogOpen && (
-                                <UnpublishDialog
-                                    isOpen={isUnpublishDialogOpen}
-                                    setIsOpen={setIsUnpublishDialogOpen}
-                                    handlePublishUnpublishSlide={() =>
-                                        handleUnpublishSlide(
-                                            setIsUnpublishDialogOpen,
-                                            false,
-                                            activeItem,
-                                            addUpdateDocumentSlide,
-                                            addUpdateVideoSlide,
-                                            updateQuestionOrder,
-                                            updateAssignmentOrder,
-                                            addUpdateQuizSlide,
-                                            SaveDraft,
-                                            playerRef
-                                        )
-                                    }
-                                />
-                            )}
-
-                            {isPublishDialogOpen && (
-                                <PublishDialog
-                                    isOpen={isPublishDialogOpen}
-                                    setIsOpen={setIsPublishDialogOpen}
-                                    handlePublishUnpublishSlide={() => {
-                                        if (activeItem?.document_slide?.type === 'PRESENTATION') {
-                                            publishExcalidrawPresentation();
-                                            setIsPublishDialogOpen(false);
-                                        } else {
-                                            handlePublishSlide(
-                                                setIsPublishDialogOpen,
+                                {/* Keep dialogs but make them conditional */}
+                                {isUnpublishDialogOpen && (
+                                    <UnpublishDialog
+                                        isOpen={isUnpublishDialogOpen}
+                                        setIsOpen={setIsUnpublishDialogOpen}
+                                        handlePublishUnpublishSlide={() =>
+                                            handleUnpublishSlide(
+                                                setIsUnpublishDialogOpen,
                                                 false,
                                                 activeItem,
                                                 addUpdateDocumentSlide,
@@ -1676,26 +1662,49 @@ export const SlideMaterial = ({
                                                 addUpdateQuizSlide,
                                                 SaveDraft,
                                                 playerRef
-                                            );
+                                            )
                                         }
-                                    }}
-                                />
-                            )}
+                                    />
+                                )}
+
+                                {isPublishDialogOpen && (
+                                    <PublishDialog
+                                        isOpen={isPublishDialogOpen}
+                                        setIsOpen={setIsPublishDialogOpen}
+                                        handlePublishUnpublishSlide={() => {
+                                            if (activeItem?.document_slide?.type === 'PRESENTATION') {
+                                                publishExcalidrawPresentation();
+                                                setIsPublishDialogOpen(false);
+                                            } else {
+                                                handlePublishSlide(
+                                                    setIsPublishDialogOpen,
+                                                    false,
+                                                    activeItem,
+                                                    addUpdateDocumentSlide,
+                                                    addUpdateVideoSlide,
+                                                    updateQuestionOrder,
+                                                    updateAssignmentOrder,
+                                                    addUpdateQuizSlide,
+                                                    SaveDraft,
+                                                    playerRef
+                                                );
+                                            }
+                                        }}
+                                    />
+                                )}
+                            </div>
+
+                            {/* ✅ Doubt Icon Trigger */}
+                            <MyButton
+                                layoutVariant="icon"
+                                buttonType="secondary"
+                                title="Open Doubt Resolution Sidebar"
+                                onClick={() => setSidebarOpen(true)}
+                            >
+                                <ChatCircleDots className="size-5" />
+                            </MyButton>
                         </div>
-
-                        {/* ✅ Doubt Icon Trigger */}
-                        <MyButton
-                            layoutVariant="icon"
-                            buttonType="secondary"
-                            title="Open Doubt Resolution Sidebar"
-                            onClick={() => setSidebarOpen(true)}
-                        >
-                            <ChatCircleDots size={26} className="text-primary-600" />
-                        </MyButton>
-
-                        {/* Slides Menu Dropdown */}
-                        <SlidesMenuOption />
-                    </div>
+                    )}
                 </div>
             )}
 

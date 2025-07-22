@@ -28,6 +28,8 @@ import { useModulesWithChaptersStore } from '@/stores/study-library/use-modules-
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { useLearnerViewStore } from './-stores/learner-view-store';
+import { Eye, UserGear } from 'phosphor-react';
 
 interface ChapterSearchParams {
     courseId: string;
@@ -137,28 +139,101 @@ function RouteComponent() {
         [chapterName]
     );
 
+    // Learner View Toggle Switch Component
+    const LearnerViewToggle = () => {
+        const { isLearnerView, toggleLearnerView } = useLearnerViewStore();
+
+        return (
+            <div className="flex items-center gap-3">
+                <span className="text-xs font-medium text-neutral-600">
+                    <UserGear className="size-4" />
+                </span>
+
+                <button
+                    onClick={toggleLearnerView}
+                    className={`
+                        relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+                        ${isLearnerView ? 'bg-primary-500' : 'bg-neutral-300'}
+                    `}
+                    title={isLearnerView ? 'Switch to Instructor View' : 'Switch to Learner View'}
+                >
+                    <span
+                        className={`
+                            flex size-4 items-center justify-center rounded-full bg-white shadow-lg transition-transform duration-200 ease-in-out
+                            ${isLearnerView ? 'translate-x-6' : 'translate-x-1'}
+                        `}
+                    >
+                        {isLearnerView ? (
+                            <Eye className="text-primary-600 size-2.5" />
+                        ) : (
+                            <UserGear className="size-2.5 text-neutral-600" />
+                        )}
+                    </span>
+                </button>
+
+                <span className="text-xs font-medium text-neutral-600">
+                    <Eye className="size-4" />
+                </span>
+            </div>
+        );
+    };
+
+    const { isLearnerView } = useLearnerViewStore();
+
     const SidebarComponent = useMemo(
         () => (
-            <div className="flex w-full flex-col items-center">
-                <div className={`flex w-full flex-col gap-6 px-3 pb-3 `}>
-                    <div className="flex flex-wrap items-center gap-1 text-neutral-500">
-                        <p onClick={handleSubjectRoute} className="cursor-pointer ">
-                            {subjectName}
-                        </p>
-                        <ChevronRightIcon className={`size-4 `} />
-                        <p onClick={handleModuleRoute} className="cursor-pointer ">
-                            {moduleName}
-                        </p>
-                        <ChevronRightIcon className={`size-4 `} />
-                        <p className="cursor-pointer text-primary-500">{chapterName}</p>
+            <div className="flex size-full flex-col items-center">
+                {/* Unified Header Section with Learner View Toggle and Breadcrumb */}
+                <div className="to-primary-25 -mt-10 flex w-full flex-col border-b border-primary-100 bg-gradient-to-b from-primary-50 shadow-sm">
+                    {/* Learner View Toggle */}
+                    <div className="flex w-full justify-center px-3 pb-2 pt-3">
+                        <LearnerViewToggle />
                     </div>
+
+                    {/* Enhanced Breadcrumb */}
+                    <div className="flex w-full px-3 pb-3">
+                        <div className="flex w-full flex-wrap items-center gap-2">
+                            <div
+                                onClick={handleSubjectRoute}
+                                className="group flex cursor-pointer items-center"
+                            >
+                                <span className="group-hover:text-primary-600 truncate text-sm font-medium text-neutral-600 transition-colors duration-200">
+                                    {subjectName}
+                                </span>
+                            </div>
+
+                            <ChevronRightIcon className="size-3.5 shrink-0 text-neutral-400" />
+
+                            <div
+                                onClick={handleModuleRoute}
+                                className="group flex cursor-pointer items-center"
+                            >
+                                <span className="group-hover:text-primary-600 truncate text-sm font-medium text-neutral-600 transition-colors duration-200">
+                                    {moduleName}
+                                </span>
+                            </div>
+
+                            <ChevronRightIcon className="size-3.5 shrink-0 text-neutral-400" />
+
+                            <div className="flex items-center">
+                                <span className="text-primary-700 truncate rounded-md bg-primary-100/50 px-2 py-1 text-sm font-semibold">
+                                    {chapterName}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className={`flex w-full flex-1 flex-col gap-4 px-3 pb-3 pt-4`}>
                     <div className="flex w-full flex-col items-center gap-6 pb-10">
                         <ChapterSidebarSlides handleSlideOrderChange={handleSlideOrderChange} />
                     </div>
                 </div>
-                <div className="fixed bottom-0 flex w-[280px] items-center justify-center bg-primary-50 pb-3">
-                    <ChapterSidebarAddButton />
-                </div>
+                {!isLearnerView && (
+                    <div className="fixed bottom-0 flex w-[280px] items-center justify-center bg-primary-50 pb-3">
+                        <ChapterSidebarAddButton />
+                    </div>
+                )}
             </div>
         ),
         [
@@ -168,6 +243,7 @@ function RouteComponent() {
             handleSubjectRoute,
             handleModuleRoute,
             handleSlideOrderChange,
+            isLearnerView,
         ]
     );
 
@@ -197,6 +273,7 @@ function RouteComponent() {
                                     (getCurrentEditorHTMLContentRef.current = fn)
                                 }
                                 setSaveDraft={(fn) => (saveDraftRef.current = fn)}
+                                isLearnerView={isLearnerView}
                             />
                         </SidebarProvider>
                     </ModulesWithChaptersProvider>

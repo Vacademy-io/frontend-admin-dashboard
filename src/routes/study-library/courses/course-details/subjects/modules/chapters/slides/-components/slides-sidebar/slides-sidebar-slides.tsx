@@ -8,7 +8,7 @@ import {
     PlayCircle,
     ClipboardText,
 } from '@phosphor-icons/react';
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useMemo } from 'react';
 import {
     Slide,
     slideOrderPayloadType,
@@ -20,6 +20,7 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { BookOpen, CheckCircle, Code, File, GameController, Question } from 'phosphor-react';
 import { useSaveDraft } from '../../-context/saveDraftContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useLearnerViewStore } from '../../-stores/learner-view-store';
 
 interface FormValues {
     slides: Slide[];
@@ -277,6 +278,7 @@ export const ChapterSidebarSlides = ({
     console.log(`[ChapterSidebarSlides] 🎬 Component rendered at:`, new Date().toISOString());
 
     const { setItems, activeItem, setActiveItem, items } = useContentStore();
+    const { isLearnerView } = useLearnerViewStore();
     const router = useRouter();
     const { chapterId, slideId } = router.state.location.search;
 
@@ -285,6 +287,7 @@ export const ChapterSidebarSlides = ({
         itemsCount: items?.length || 0,
         activeItemId: activeItem?.id || 'none',
         activeItemTitle: activeItem?.title || 'none',
+        isLearnerView,
     });
 
     const { slides, isLoading, refetch } = useSlidesQuery(chapterId || '');
@@ -298,6 +301,18 @@ export const ChapterSidebarSlides = ({
     });
 
     const { getCurrentEditorHTMLContent, saveDraft } = useSaveDraft();
+
+    // Memoize filtered slides to prevent infinite loops
+    const filteredSlides = useMemo(() => {
+        console.log(`[ChapterSidebarSlides] 🔄 Recalculating filteredSlides:`, {
+            isLearnerView,
+            slidesLength: slides?.length || 0,
+        });
+
+        return isLearnerView
+            ? slides?.filter((slide) => slide.status === 'PUBLISHED' || slide.status === 'UNSYNC')
+            : slides;
+    }, [slides, isLearnerView]);
 
     useEffect(() => {
         refetch();
@@ -373,14 +388,16 @@ export const ChapterSidebarSlides = ({
     }, [items]);
 
     useEffect(() => {
-        console.log(`[ChapterSidebarSlides] 📋 useEffect[slides] triggered:`, {
+        console.log(`[ChapterSidebarSlides] 📋 useEffect[filteredSlides] triggered:`, {
             slidesLength: slides?.length || 0,
-            slidesData: slides?.slice(0, 3) || [], // Show first 3 slides for debugging
+            filteredSlidesLength: filteredSlides?.length || 0,
+            filteredSlidesData: filteredSlides?.slice(0, 3) || [], // Show first 3 slides for debugging
             currentStoreItemsCount: items?.length || 0,
+            isLearnerView,
         });
 
         // Debug quiz slides specifically
-        const quizSlides = slides?.filter((slide) => slide.source_type === 'QUIZ') || [];
+        const quizSlides = filteredSlides?.filter((slide) => slide.source_type === 'QUIZ') || [];
         if (quizSlides.length > 0) {
             console.log('[ChapterSidebarSlides] 🧩 Quiz slides found:', {
                 count: quizSlides.length,
@@ -394,17 +411,21 @@ export const ChapterSidebarSlides = ({
             });
         }
 
-        if (slides?.length) {
-            console.log(`[ChapterSidebarSlides] ✅ Processing ${slides.length} slides`);
+        if (filteredSlides?.length) {
+            console.log(
+                `[ChapterSidebarSlides] ✅ Processing ${filteredSlides.length} filtered slides`
+            );
 
-            form.reset({ slides });
-            setItems(slides as Slide[]);
+            form.reset({ slides: filteredSlides });
+            setItems(filteredSlides as Slide[]);
 
-            console.log(`[ChapterSidebarSlides] 🏪 Store updated with ${slides.length} slides`);
+            console.log(
+                `[ChapterSidebarSlides] 🏪 Store updated with ${filteredSlides.length} slides`
+            );
 
             // Check if current active slide still exists in updated slides
             const activeSlideStillExists =
-                activeItem && slides.find((slide) => slide.id === activeItem.id);
+                activeItem && filteredSlides.find((slide) => slide.id === activeItem.id);
 
             if (activeSlideStillExists) {
                 setActiveItem(activeSlideStillExists as Slide);
@@ -413,7 +434,9 @@ export const ChapterSidebarSlides = ({
 
             // Priority 1: Use slideId from URL if available
             if (slideId) {
-                const targetSlide = slides.find((item) => item.id === slideId) as Slide | undefined;
+                const targetSlide = filteredSlides.find((item) => item.id === slideId) as
+                    | Slide
+                    | undefined;
                 if (targetSlide) {
                     setActiveItem(targetSlide);
                     return;
@@ -421,33 +444,38 @@ export const ChapterSidebarSlides = ({
             }
 
             // Priority 2: Always set first slide as active (handles creation/deletion)
-            const firstSlide = slides[0] as Slide;
+            const firstSlide = filteredSlides[0] as Slide;
             setActiveItem(firstSlide);
         } else {
             setItems([]);
             if (slideId === undefined) {
                 setActiveItem(null);
             } else {
-                // Create placeholder slide for URL slideId
-                setActiveItem({
-                    id: slideId,
-                    source_id: '',
-                    source_type: '',
-                    title: '',
-                    image_file_id: '',
-                    description: '',
-                    status: '',
-                    slide_order: 0,
-                    video_slide: null,
-                    document_slide: null,
-                    question_slide: null,
-                    assignment_slide: null,
-                    is_loaded: false,
-                    new_slide: false,
-                });
+                // In learner view, if slideId doesn't exist in published slides, don't create placeholder
+                if (isLearnerView) {
+                    setActiveItem(null);
+                } else {
+                    // Create placeholder slide for URL slideId
+                    setActiveItem({
+                        id: slideId,
+                        source_id: '',
+                        source_type: '',
+                        title: '',
+                        image_file_id: '',
+                        description: '',
+                        status: '',
+                        slide_order: 0,
+                        video_slide: null,
+                        document_slide: null,
+                        question_slide: null,
+                        assignment_slide: null,
+                        is_loaded: false,
+                        new_slide: false,
+                    });
+                }
             }
         }
-    }, [slides, slideId]); // Removed activeItem?.id to prevent circular dependency
+    }, [filteredSlides, slideId]); // Removed isLearnerView from deps as it's already in filteredSlides memo
 
     // ===== RENDER DEBUGGING =====
     console.log(`[ChapterSidebarSlides] 🎯 Pre-render decision state:`, {
@@ -456,6 +484,9 @@ export const ChapterSidebarSlides = ({
         itemsLength: items?.length || 0,
         slidesExists: !!slides,
         slidesLength: slides?.length || 0,
+        filteredSlidesExists: !!filteredSlides,
+        filteredSlidesLength: filteredSlides?.length || 0,
+        isLearnerView,
         renderDecision: isLoading
             ? 'LOADING'
             : !items || items.length === 0

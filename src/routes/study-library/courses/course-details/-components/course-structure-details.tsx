@@ -50,6 +50,7 @@ import {
     fetchChaptersWithSlides,
     ChapterWithSlides,
     Slide,
+    fetchDirectSlides,
 } from '../../-services/getAllSlides';
 import { useAddModule } from '../subjects/modules/-services/add-module';
 import { AddModulesButton } from '../subjects/modules/-components/add-modules.tsx/add-modules-button';
@@ -216,6 +217,7 @@ export const CourseStructureDetails = ({
 
     const [subjectModulesMap, setSubjectModulesMap] = useState<SubjectModulesMap>({});
     const [chapterSlidesMap, setChapterSlidesMap] = useState<{ [chapterId: string]: Slide[] }>({});
+    const [directSlides, setDirectSlides] = useState<Slide[]>([]); // For 2-depth courses
     const [openSubjects, setOpenSubjects] = useState<Set<string>>(new Set());
     const [openModules, setOpenModules] = useState<Set<string>>(new Set());
     const [openChapters, setOpenChapters] = useState<Set<string>>(new Set());
@@ -406,6 +408,24 @@ export const CourseStructureDetails = ({
         }
     }, [subjectModulesMap, packageSessionIds, fetchSlides]);
 
+    // Load direct slides for 2-depth courses
+    useEffect(() => {
+        const loadDirectSlides = async () => {
+            if (courseStructure === 2 && packageSessionIds) {
+                try {
+                    const slides = await fetchDirectSlides(packageSessionIds);
+                    setDirectSlides(Array.isArray(slides) ? slides : []);
+                } catch (error) {
+                    console.error('Failed to fetch direct slides:', error);
+                    setDirectSlides([]);
+                }
+            } else {
+                setDirectSlides([]);
+            }
+        };
+        loadDirectSlides();
+    }, [courseStructure, packageSessionIds]);
+
     const handleAddSubject = async (newSubject: SubjectType) => {
         if (!packageSessionIds) {
             console.error('No package session IDs found');
@@ -514,6 +534,30 @@ export const CourseStructureDetails = ({
             moduleId,
             chapterId,
             slideId,
+            sessionId: selectedSession,
+        };
+
+        router.navigate({
+            to: '/study-library/courses/course-details/subjects/modules/chapters/slides',
+            search: navigationParams,
+        });
+    };
+
+    // Navigation handler for direct slides (2-depth courses)
+    const handleDirectSlideNavigation = (slideId?: string) => {
+        const slide = slideId ? directSlides.find((s) => s.id === slideId) : null;
+        if (slide) {
+            setActiveItem(slide);
+        }
+
+        // For 2-depth courses, we need dummy values for the route structure
+        const navigationParams = {
+            courseId: router.state.location.search.courseId ?? '',
+            levelId: selectedLevel,
+            subjectId: 'direct-course-slides', // Dummy subject ID for 2-depth
+            moduleId: 'direct-course-module', // Dummy module ID for 2-depth
+            chapterId: 'direct-course-chapter', // Dummy chapter ID for 2-depth
+            slideId: slideId || '', // Empty for new slide
             sessionId: selectedSession,
         };
 
@@ -1609,196 +1653,54 @@ export const CourseStructureDetails = ({
                                 );
                             })}
 
-                        {courseStructure === 2 &&
-                            subjects.map((subject) => {
-                                const isSubjectOpen = openSubjects.has(subject.id);
+                        {courseStructure === 2 && (
+                            <div className="space-y-1.5">
+                                <MyButton
+                                    buttonType="text"
+                                    onClick={() => handleDirectSlideNavigation()}
+                                    className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
+                                >
+                                    <Plus
+                                        size={14}
+                                        weight="bold"
+                                        className="text-primary-400 group-hover:text-primary-500"
+                                    />
+                                    <span className="font-medium">
+                                        Add{' '}
+                                        {getTerminology(ContentTerms.Slides, SystemTerms.Slides)}
+                                    </span>
+                                </MyButton>
 
-                                return (
-                                    <Collapsible
-                                        key={subject.id}
-                                        open={isSubjectOpen}
-                                        onOpenChange={() => toggleSubject(subject.id)}
-                                        className="group"
-                                    >
-                                        <CollapsibleContent className="py-1 ">
-                                            <div className="relative space-y-1.5  border-gray-200 ">
-                                                <div className="absolute -left-[13px] top-0 h-full">
-                                                    <div className="sticky top-0 flex h-full flex-col items-center" />
-                                                </div>
-
-                                                {(subjectModulesMap[subject.id] ?? []).map(
-                                                    (mod) => {
-                                                        const isModuleOpen = openModules.has(
-                                                            mod.module.id
-                                                        );
-
-                                                        return (
-                                                            <Collapsible
-                                                                key={mod.module.id}
-                                                                open={isModuleOpen}
-                                                                onOpenChange={() =>
-                                                                    toggleModule(mod.module.id)
-                                                                }
-                                                                className="group/module"
-                                                            >
-                                                                <CollapsibleContent className="py-1">
-                                                                    <div className="relative space-y-1.5 border-gray-200">
-                                                                        {(mod.chapters ?? []).map(
-                                                                            (ch) => {
-                                                                                const isChapterOpen =
-                                                                                    openChapters.has(
-                                                                                        ch.chapter
-                                                                                            .id
-                                                                                    );
-                                                                                return (
-                                                                                    <Collapsible
-                                                                                        key={
-                                                                                            ch
-                                                                                                .chapter
-                                                                                                .id
-                                                                                        }
-                                                                                        open={
-                                                                                            isChapterOpen
-                                                                                        }
-                                                                                        onOpenChange={() =>
-                                                                                            toggleChapter(
-                                                                                                ch
-                                                                                                    .chapter
-                                                                                                    .id
-                                                                                            )
-                                                                                        }
-                                                                                        className="group/chapter"
-                                                                                    >
-                                                                                        <CollapsibleContent className="py-1">
-                                                                                            <div className="relative space-y-1.5  border-gray-200 ">
-                                                                                                <MyButton
-                                                                                                    buttonType="text"
-                                                                                                    onClick={(
-                                                                                                        e
-                                                                                                    ) => {
-                                                                                                        e.stopPropagation();
-                                                                                                        handleChapterNavigation(
-                                                                                                            subject.id,
-                                                                                                            mod
-                                                                                                                .module
-                                                                                                                .id,
-                                                                                                            ch
-                                                                                                                .chapter
-                                                                                                                .id
-                                                                                                        );
-                                                                                                    }}
-                                                                                                    className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
-                                                                                                >
-                                                                                                    <Plus
-                                                                                                        size={
-                                                                                                            14
-                                                                                                        }
-                                                                                                        weight="bold"
-                                                                                                        className="text-primary-400 group-hover:text-primary-500"
-                                                                                                    />
-                                                                                                    <span className="font-medium">
-                                                                                                        Add{' '}
-                                                                                                        {getTerminology(
-                                                                                                            ContentTerms.Modules,
-                                                                                                            SystemTerms.Modules
-                                                                                                        )}
-                                                                                                    </span>
-                                                                                                </MyButton>
-
-                                                                                                {(
-                                                                                                    chapterSlidesMap[
-                                                                                                        ch
-                                                                                                            .chapter
-                                                                                                            .id
-                                                                                                    ] ??
-                                                                                                    []
-                                                                                                )
-                                                                                                    .length ===
-                                                                                                0 ? (
-                                                                                                    <div className="px-2 py-1 text-xs text-gray-400">
-                                                                                                        No{' '}
-                                                                                                        {getTerminology(
-                                                                                                            ContentTerms.Slides,
-                                                                                                            SystemTerms.Slides
-                                                                                                        )}{' '}
-                                                                                                        in
-                                                                                                        this
-                                                                                                        chapter.
-                                                                                                    </div>
-                                                                                                ) : (
-                                                                                                    (
-                                                                                                        chapterSlidesMap[
-                                                                                                            ch
-                                                                                                                .chapter
-                                                                                                                .id
-                                                                                                        ] ??
-                                                                                                        []
-                                                                                                    ).map(
-                                                                                                        (
-                                                                                                            slide,
-                                                                                                            sIdx
-                                                                                                        ) => (
-                                                                                                            <div
-                                                                                                                key={
-                                                                                                                    slide.id
-                                                                                                                }
-                                                                                                                className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
-                                                                                                                onClick={() => {
-                                                                                                                    handleSlideNavigation(
-                                                                                                                        subject.id,
-                                                                                                                        mod
-                                                                                                                            .module
-                                                                                                                            .id,
-                                                                                                                        ch
-                                                                                                                            .chapter
-                                                                                                                            .id,
-                                                                                                                        slide.id
-                                                                                                                    );
-                                                                                                                }}
-                                                                                                            >
-                                                                                                                <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
-                                                                                                                    S
-                                                                                                                    {sIdx +
-                                                                                                                        1}
-                                                                                                                </span>
-                                                                                                                {getIcon(
-                                                                                                                    slide.source_type,
-                                                                                                                    slide
-                                                                                                                        .document_slide
-                                                                                                                        ?.type,
-                                                                                                                    '3'
-                                                                                                                )}
-                                                                                                                <span
-                                                                                                                    className="truncate"
-                                                                                                                    title={
-                                                                                                                        slide.title
-                                                                                                                    }
-                                                                                                                >
-                                                                                                                    {
-                                                                                                                        slide.title
-                                                                                                                    }
-                                                                                                                </span>
-                                                                                                            </div>
-                                                                                                        )
-                                                                                                    )
-                                                                                                )}
-                                                                                            </div>
-                                                                                        </CollapsibleContent>
-                                                                                    </Collapsible>
-                                                                                );
-                                                                            }
-                                                                        )}
-                                                                    </div>
-                                                                </CollapsibleContent>
-                                                            </Collapsible>
-                                                        );
-                                                    }
-                                                )}
-                                            </div>
-                                        </CollapsibleContent>
-                                    </Collapsible>
-                                );
-                            })}
+                                {directSlides.length === 0 ? (
+                                    <div className="px-2 py-1 text-xs text-gray-400">
+                                        No {getTerminology(ContentTerms.Slides, SystemTerms.Slides)}{' '}
+                                        in this course.
+                                    </div>
+                                ) : (
+                                    directSlides.map((slide, sIdx) => (
+                                        <div
+                                            key={slide.id}
+                                            className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
+                                            onClick={() => {
+                                                handleDirectSlideNavigation(slide.id);
+                                            }}
+                                        >
+                                            <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
+                                                S{sIdx + 1}
+                                            </span>
+                                            {getIcon(
+                                                slide.source_type,
+                                                slide.document_slide?.type,
+                                                '3'
+                                            )}
+                                            <span className="truncate" title={slide.title}>
+                                                {slide.title || `Slide ${sIdx + 1}`}
+                                            </span>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -2174,6 +2076,40 @@ export const CourseStructureDetails = ({
                             )
                         )}
 
+                    {/* Show Slides for Course Structure 2 */}
+                    {courseStructure === 2 &&
+                        currentNavigationLevel === 'subjects' &&
+                        directSlides.map((slide: Slide, sIdx: number) => (
+                            <div key={slide.id} className="group relative">
+                                <div
+                                    onClick={() => {
+                                        handleDirectSlideNavigation(slide.id);
+                                    }}
+                                    className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-shadow duration-200 hover:shadow-md"
+                                >
+                                    {/* Slide Icon */}
+                                    <div className="mb-3 flex aspect-square items-center justify-center rounded-lg bg-gradient-to-br from-blue-50 to-blue-100">
+                                        {getIcon(
+                                            slide.source_type,
+                                            slide.document_slide?.type,
+                                            '8'
+                                        )}
+                                    </div>
+
+                                    {/* Slide Title */}
+                                    <h4
+                                        className="mb-1 truncate text-sm font-medium text-gray-800"
+                                        title={slide.title}
+                                    >
+                                        {slide.title || `Slide ${sIdx + 1}`}
+                                    </h4>
+
+                                    {/* Slide Number */}
+                                    <p className="text-xs text-gray-500">Slide {sIdx + 1}</p>
+                                </div>
+                            </div>
+                        ))}
+
                     {/* Add New Folder Buttons */}
                     {courseStructure === 5 && currentNavigationLevel === 'subjects' && (
                         <div className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50">
@@ -2198,12 +2134,29 @@ export const CourseStructureDetails = ({
                             </div>
                         )}
 
+                    {/* Add Module button for course structure 4 at root level */}
+                    {courseStructure === 4 &&
+                        currentNavigationLevel === 'subjects' &&
+                        subjects[0] && (
+                            <div className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50">
+                                <AddModulesButton
+                                    isTextButton={false}
+                                    subjectId={subjects[0].id}
+                                    onAddModuleBySubjectId={(subjectId, module) =>
+                                        handleAddModule(subjectId, module)
+                                    }
+                                />
+                            </div>
+                        )}
+
+                    {/* Add Chapter buttons for various scenarios */}
                     {((courseStructure === 5 &&
                         currentNavigationLevel === 'chapters' &&
                         selectedSubjectId &&
                         selectedModuleId) ||
                         (courseStructure === 4 &&
-                            currentNavigationLevel === 'subjects' &&
+                            currentNavigationLevel === 'chapters' &&
+                            selectedModuleId &&
                             subjects[0]) ||
                         (courseStructure === 3 &&
                             currentNavigationLevel === 'subjects' &&
@@ -2213,8 +2166,8 @@ export const CourseStructureDetails = ({
                                 moduleId={
                                     courseStructure === 5
                                         ? selectedModuleId
-                                        : courseStructure === 4 && subjects[0]
-                                          ? subjectModulesMap[subjects[0].id]?.[0]?.module.id || ''
+                                        : courseStructure === 4
+                                          ? selectedModuleId
                                           : subjects[0]
                                             ? subjectModulesMap[subjects[0].id]?.[0]?.module.id ||
                                               ''
@@ -2229,6 +2182,21 @@ export const CourseStructureDetails = ({
                                 }
                                 isTextButton={false}
                             />
+                        </div>
+                    )}
+
+                    {/* Add Slide button for Course Structure 2 */}
+                    {courseStructure === 2 && currentNavigationLevel === 'subjects' && (
+                        <div className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50">
+                            <div
+                                onClick={() => handleDirectSlideNavigation()}
+                                className="flex flex-col items-center gap-2 text-center"
+                            >
+                                <Plus size={24} className="text-primary-500" />
+                                <span className="text-primary-700 text-sm font-medium">
+                                    Add {getTerminology(ContentTerms.Slides, SystemTerms.Slides)}
+                                </span>
+                            </div>
                         </div>
                     )}
                 </div>
