@@ -540,7 +540,7 @@ export const CourseDetailsPage = () => {
     }, [JSON.stringify(instructors)]);
 
     return (
-        <div className="flex min-h-screen flex-col bg-gray-50">
+        <div className="flex min-h-screen flex-col bg-gray-5 z-0">
             {/* Top Banner - More Compact */}
             <div
                 className={`relative ${
