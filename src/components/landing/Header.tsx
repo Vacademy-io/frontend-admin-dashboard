@@ -15,7 +15,7 @@ function JoinSessionPopover() {
 
     const handleJoinSession = () => {
         if (sessionCode.trim()) {
-            window.open(`https://engage.vacademy.io/${sessionCode.trim()}`, '_blank');
+            window.open(`https://${import.meta.env.VITE_ENGAGE_DOMAIN || 'engage.vacademy.io'}/${sessionCode.trim()}`, '_blank');
         }
     };
 

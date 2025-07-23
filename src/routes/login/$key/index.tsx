@@ -30,10 +30,17 @@ function RouteComponent() {
         mutationFn: (values: FormValues) => loginUser(values.username, values.password),
         onSuccess: (response) => {
             if (response) {
-                queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
+                // Store tokens in cookies first
                 setAuthorizationCookie(TokenKey.accessToken, response.accessToken);
                 setAuthorizationCookie(TokenKey.refreshToken, response.refreshToken);
-                navigate({ to: '/dashboard' });
+
+                // Clear all queries to ensure fresh data fetch
+                queryClient.clear();
+
+                // Add a small delay to ensure tokens are properly set before navigation
+                setTimeout(() => {
+                    navigate({ to: '/dashboard' });
+                }, 100);
             } else {
                 toast.error('Login Error', {
                     description: 'Invalid credentials',

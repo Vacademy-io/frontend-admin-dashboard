@@ -21,6 +21,7 @@
         "build-storybook": "pnpm build:tailwind && storybook build"
     },
     "dependencies": {
+        "@amplitude/analytics-browser": "^2.19.0",
         "@braintree/sanitize-url": "6.0.2",
         "@dnd-kit/core": "^6.2.0",
         "@dnd-kit/modifiers": "^8.0.0",
@@ -298,15 +299,20 @@
         "tailwindcss": "^3.4.10",
         "tsconfig-paths-webpack-plugin": "^4.2.0",
         "typescript": "5.0.4",
-        "vite": "^5.4.1",
+        "vite": "^5.4.19",
         "vite-plugin-checker": "0.7.2",
         "vite-plugin-ejs": "1.7.0",
-        "vite-plugin-pwa": "0.21.1",
+        "vite-plugin-pwa": "^0.21.2",
         "vite-plugin-svgr": "^4.2.0",
         "vite-tsconfig-paths": "^4.3.2",
         "vitest": "^1.6.0",
         "vitest-canvas-mock": "0.3.3",
         "webpack": "^5.99.5"
+    },
+    "pnpm": {
+        "overrides": {
+            "rollup": "4.21.2"
+        }
     },
     "eslintConfig": {
         "extends": [

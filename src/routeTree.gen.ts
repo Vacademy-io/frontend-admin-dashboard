@@ -13,9 +13,11 @@ import { createFileRoute } from "@tanstack/react-router"
 import { Route as rootRouteImport } from "./routes/__root"
 import { Route as StudyLibraryIndexRouteImport } from "./routes/study-library/index"
 import { Route as SignupIndexRouteImport } from "./routes/signup/index"
+import { Route as SettingsIndexRouteImport } from "./routes/settings/index"
 import { Route as ManageStudentsIndexRouteImport } from "./routes/manage-students/index"
 import { Route as ManageInstituteIndexRouteImport } from "./routes/manage-institute/index"
 import { Route as LoginIndexRouteImport } from "./routes/login/index"
+import { Route as LearnerInsightsIndexRouteImport } from "./routes/learner-insights/index"
 import { Route as EvaluatorAiIndexRouteImport } from "./routes/evaluator-ai/index"
 import { Route as EvaluationIndexRouteImport } from "./routes/evaluation/index"
 import { Route as DashboardIndexRouteImport } from "./routes/dashboard/index"
@@ -27,6 +29,7 @@ import { Route as StudyLibraryReportsIndexRouteImport } from "./routes/study-lib
 import { Route as StudyLibraryLiveSessionIndexRouteImport } from "./routes/study-library/live-session/index"
 import { Route as StudyLibraryDoubtManagementIndexRouteImport } from "./routes/study-library/doubt-management/index"
 import { Route as StudyLibraryCoursesIndexRouteImport } from "./routes/study-library/courses/index"
+import { Route as StudyLibraryAttendanceTrackerIndexRouteImport } from "./routes/study-library/attendance-tracker/index"
 import { Route as SignupOnboardingIndexRouteImport } from "./routes/signup/onboarding/index"
 import { Route as ManageStudentsStudentsListIndexRouteImport } from "./routes/manage-students/students-list/index"
 import { Route as ManageStudentsInviteIndexRouteImport } from "./routes/manage-students/invite/index"
@@ -80,6 +83,7 @@ import { Route as HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExa
 import { Route as AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRouteImport } from "./routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/index"
 
 const PricingLazyRouteImport = createFileRoute("/pricing")()
+const LearnerInsightsLazyRouteImport = createFileRoute("/learner-insights")()
 const LandingLazyRouteImport = createFileRoute("/landing")()
 
 const PricingLazyRoute = PricingLazyRouteImport.update({
@@ -87,6 +91,13 @@ const PricingLazyRoute = PricingLazyRouteImport.update({
   path: "/pricing",
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import("./routes/pricing.lazy").then((d) => d.Route))
+const LearnerInsightsLazyRoute = LearnerInsightsLazyRouteImport.update({
+  id: "/learner-insights",
+  path: "/learner-insights",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/learner-insights.lazy").then((d) => d.Route),
+)
 const LandingLazyRoute = LandingLazyRouteImport.update({
   id: "/landing",
   path: "/landing",
@@ -100,6 +111,11 @@ const StudyLibraryIndexRoute = StudyLibraryIndexRouteImport.update({
 const SignupIndexRoute = SignupIndexRouteImport.update({
   id: "/signup/",
   path: "/signup/",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: "/settings/",
+  path: "/settings/",
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManageStudentsIndexRoute = ManageStudentsIndexRouteImport.update({
@@ -116,6 +132,11 @@ const LoginIndexRoute = LoginIndexRouteImport.update({
   id: "/login/",
   path: "/login/",
   getParentRoute: () => rootRouteImport,
+} as any)
+const LearnerInsightsIndexRoute = LearnerInsightsIndexRouteImport.update({
+  id: "/",
+  path: "/",
+  getParentRoute: () => LearnerInsightsLazyRoute,
 } as any)
 const EvaluatorAiIndexRoute = EvaluatorAiIndexRouteImport.update({
   id: "/evaluator-ai/",
@@ -174,6 +195,12 @@ const StudyLibraryCoursesIndexRoute =
   StudyLibraryCoursesIndexRouteImport.update({
     id: "/study-library/courses/",
     path: "/study-library/courses/",
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const StudyLibraryAttendanceTrackerIndexRoute =
+  StudyLibraryAttendanceTrackerIndexRouteImport.update({
+    id: "/study-library/attendance-tracker/",
+    path: "/study-library/attendance-tracker/",
     getParentRoute: () => rootRouteImport,
   } as any)
 const SignupOnboardingIndexRoute = SignupOnboardingIndexRouteImport.update({
@@ -490,6 +517,7 @@ const AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTy
 
 export interface FileRoutesByFullPath {
   "/landing": typeof LandingLazyRoute
+  "/learner-insights": typeof LearnerInsightsLazyRouteWithChildren
   "/pricing": typeof PricingLazyRoute
   "/ai-center": typeof AiCenterIndexRoute
   "/assessment": typeof AssessmentIndexRoute
@@ -497,9 +525,11 @@ export interface FileRoutesByFullPath {
   "/dashboard": typeof DashboardIndexRoute
   "/evaluation": typeof EvaluationIndexRoute
   "/evaluator-ai": typeof EvaluatorAiIndexRoute
+  "/learner-insights/": typeof LearnerInsightsIndexRoute
   "/login": typeof LoginIndexRoute
   "/manage-institute": typeof ManageInstituteIndexRoute
   "/manage-students": typeof ManageStudentsIndexRoute
+  "/settings": typeof SettingsIndexRoute
   "/signup": typeof SignupIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
@@ -525,6 +555,7 @@ export interface FileRoutesByFullPath {
   "/manage-students/invite": typeof ManageStudentsInviteIndexRoute
   "/manage-students/students-list": typeof ManageStudentsStudentsListIndexRoute
   "/signup/onboarding": typeof SignupOnboardingIndexRoute
+  "/study-library/attendance-tracker": typeof StudyLibraryAttendanceTrackerIndexRoute
   "/study-library/courses": typeof StudyLibraryCoursesIndexRoute
   "/study-library/doubt-management": typeof StudyLibraryDoubtManagementIndexRoute
   "/study-library/live-session": typeof StudyLibraryLiveSessionIndexRoute
@@ -568,9 +599,11 @@ export interface FileRoutesByTo {
   "/dashboard": typeof DashboardIndexRoute
   "/evaluation": typeof EvaluationIndexRoute
   "/evaluator-ai": typeof EvaluatorAiIndexRoute
+  "/learner-insights": typeof LearnerInsightsIndexRoute
   "/login": typeof LoginIndexRoute
   "/manage-institute": typeof ManageInstituteIndexRoute
   "/manage-students": typeof ManageStudentsIndexRoute
+  "/settings": typeof SettingsIndexRoute
   "/signup": typeof SignupIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
@@ -596,6 +629,7 @@ export interface FileRoutesByTo {
   "/manage-students/invite": typeof ManageStudentsInviteIndexRoute
   "/manage-students/students-list": typeof ManageStudentsStudentsListIndexRoute
   "/signup/onboarding": typeof SignupOnboardingIndexRoute
+  "/study-library/attendance-tracker": typeof StudyLibraryAttendanceTrackerIndexRoute
   "/study-library/courses": typeof StudyLibraryCoursesIndexRoute
   "/study-library/doubt-management": typeof StudyLibraryDoubtManagementIndexRoute
   "/study-library/live-session": typeof StudyLibraryLiveSessionIndexRoute
@@ -633,6 +667,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   "/landing": typeof LandingLazyRoute
+  "/learner-insights": typeof LearnerInsightsLazyRouteWithChildren
   "/pricing": typeof PricingLazyRoute
   "/ai-center/": typeof AiCenterIndexRoute
   "/assessment/": typeof AssessmentIndexRoute
@@ -640,9 +675,11 @@ export interface FileRoutesById {
   "/dashboard/": typeof DashboardIndexRoute
   "/evaluation/": typeof EvaluationIndexRoute
   "/evaluator-ai/": typeof EvaluatorAiIndexRoute
+  "/learner-insights/": typeof LearnerInsightsIndexRoute
   "/login/": typeof LoginIndexRoute
   "/manage-institute/": typeof ManageInstituteIndexRoute
   "/manage-students/": typeof ManageStudentsIndexRoute
+  "/settings/": typeof SettingsIndexRoute
   "/signup/": typeof SignupIndexRoute
   "/study-library/": typeof StudyLibraryIndexRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
@@ -668,6 +705,7 @@ export interface FileRoutesById {
   "/manage-students/invite/": typeof ManageStudentsInviteIndexRoute
   "/manage-students/students-list/": typeof ManageStudentsStudentsListIndexRoute
   "/signup/onboarding/": typeof SignupOnboardingIndexRoute
+  "/study-library/attendance-tracker/": typeof StudyLibraryAttendanceTrackerIndexRoute
   "/study-library/courses/": typeof StudyLibraryCoursesIndexRoute
   "/study-library/doubt-management/": typeof StudyLibraryDoubtManagementIndexRoute
   "/study-library/live-session/": typeof StudyLibraryLiveSessionIndexRoute
@@ -706,6 +744,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | "/landing"
+    | "/learner-insights"
     | "/pricing"
     | "/ai-center"
     | "/assessment"
@@ -713,9 +752,11 @@ export interface FileRouteTypes {
     | "/dashboard"
     | "/evaluation"
     | "/evaluator-ai"
+    | "/learner-insights/"
     | "/login"
     | "/manage-institute"
     | "/manage-students"
+    | "/settings"
     | "/signup"
     | "/study-library"
     | "/login/oauth/redirect"
@@ -741,6 +782,7 @@ export interface FileRouteTypes {
     | "/manage-students/invite"
     | "/manage-students/students-list"
     | "/signup/onboarding"
+    | "/study-library/attendance-tracker"
     | "/study-library/courses"
     | "/study-library/doubt-management"
     | "/study-library/live-session"
@@ -784,9 +826,11 @@ export interface FileRouteTypes {
     | "/dashboard"
     | "/evaluation"
     | "/evaluator-ai"
+    | "/learner-insights"
     | "/login"
     | "/manage-institute"
     | "/manage-students"
+    | "/settings"
     | "/signup"
     | "/study-library"
     | "/login/oauth/redirect"
@@ -812,6 +856,7 @@ export interface FileRouteTypes {
     | "/manage-students/invite"
     | "/manage-students/students-list"
     | "/signup/onboarding"
+    | "/study-library/attendance-tracker"
     | "/study-library/courses"
     | "/study-library/doubt-management"
     | "/study-library/live-session"
@@ -848,6 +893,7 @@ export interface FileRouteTypes {
   id:
     | "__root__"
     | "/landing"
+    | "/learner-insights"
     | "/pricing"
     | "/ai-center/"
     | "/assessment/"
@@ -855,9 +901,11 @@ export interface FileRouteTypes {
     | "/dashboard/"
     | "/evaluation/"
     | "/evaluator-ai/"
+    | "/learner-insights/"
     | "/login/"
     | "/manage-institute/"
     | "/manage-students/"
+    | "/settings/"
     | "/signup/"
     | "/study-library/"
     | "/login/oauth/redirect"
@@ -883,6 +931,7 @@ export interface FileRouteTypes {
     | "/manage-students/invite/"
     | "/manage-students/students-list/"
     | "/signup/onboarding/"
+    | "/study-library/attendance-tracker/"
     | "/study-library/courses/"
     | "/study-library/doubt-management/"
     | "/study-library/live-session/"
@@ -920,6 +969,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   LandingLazyRoute: typeof LandingLazyRoute
+  LearnerInsightsLazyRoute: typeof LearnerInsightsLazyRouteWithChildren
   PricingLazyRoute: typeof PricingLazyRoute
   AiCenterIndexRoute: typeof AiCenterIndexRoute
   AssessmentIndexRoute: typeof AssessmentIndexRoute
@@ -930,6 +980,7 @@ export interface RootRouteChildren {
   LoginIndexRoute: typeof LoginIndexRoute
   ManageInstituteIndexRoute: typeof ManageInstituteIndexRoute
   ManageStudentsIndexRoute: typeof ManageStudentsIndexRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
   SignupIndexRoute: typeof SignupIndexRoute
   StudyLibraryIndexRoute: typeof StudyLibraryIndexRoute
   LoginOauthRedirectRoute: typeof LoginOauthRedirectRoute
@@ -955,6 +1006,7 @@ export interface RootRouteChildren {
   ManageStudentsInviteIndexRoute: typeof ManageStudentsInviteIndexRoute
   ManageStudentsStudentsListIndexRoute: typeof ManageStudentsStudentsListIndexRoute
   SignupOnboardingIndexRoute: typeof SignupOnboardingIndexRoute
+  StudyLibraryAttendanceTrackerIndexRoute: typeof StudyLibraryAttendanceTrackerIndexRoute
   StudyLibraryCoursesIndexRoute: typeof StudyLibraryCoursesIndexRoute
   StudyLibraryDoubtManagementIndexRoute: typeof StudyLibraryDoubtManagementIndexRoute
   StudyLibraryLiveSessionIndexRoute: typeof StudyLibraryLiveSessionIndexRoute
@@ -999,6 +1051,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof PricingLazyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/learner-insights": {
+      id: "/learner-insights"
+      path: "/learner-insights"
+      fullPath: "/learner-insights"
+      preLoaderRoute: typeof LearnerInsightsLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/landing": {
       id: "/landing"
       path: "/landing"
@@ -1018,6 +1077,13 @@ declare module "@tanstack/react-router" {
       path: "/signup"
       fullPath: "/signup"
       preLoaderRoute: typeof SignupIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/settings/": {
+      id: "/settings/"
+      path: "/settings"
+      fullPath: "/settings"
+      preLoaderRoute: typeof SettingsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/manage-students/": {
@@ -1040,6 +1106,13 @@ declare module "@tanstack/react-router" {
       fullPath: "/login"
       preLoaderRoute: typeof LoginIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    "/learner-insights/": {
+      id: "/learner-insights/"
+      path: "/"
+      fullPath: "/learner-insights/"
+      preLoaderRoute: typeof LearnerInsightsIndexRouteImport
+      parentRoute: typeof LearnerInsightsLazyRoute
     }
     "/evaluator-ai/": {
       id: "/evaluator-ai/"
@@ -1116,6 +1189,13 @@ declare module "@tanstack/react-router" {
       path: "/study-library/courses"
       fullPath: "/study-library/courses"
       preLoaderRoute: typeof StudyLibraryCoursesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/study-library/attendance-tracker/": {
+      id: "/study-library/attendance-tracker/"
+      path: "/study-library/attendance-tracker"
+      fullPath: "/study-library/attendance-tracker"
+      preLoaderRoute: typeof StudyLibraryAttendanceTrackerIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/signup/onboarding/": {
@@ -1478,8 +1558,20 @@ declare module "@tanstack/react-router" {
   }
 }
 
+interface LearnerInsightsLazyRouteChildren {
+  LearnerInsightsIndexRoute: typeof LearnerInsightsIndexRoute
+}
+
+const LearnerInsightsLazyRouteChildren: LearnerInsightsLazyRouteChildren = {
+  LearnerInsightsIndexRoute: LearnerInsightsIndexRoute,
+}
+
+const LearnerInsightsLazyRouteWithChildren =
+  LearnerInsightsLazyRoute._addFileChildren(LearnerInsightsLazyRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   LandingLazyRoute: LandingLazyRoute,
+  LearnerInsightsLazyRoute: LearnerInsightsLazyRouteWithChildren,
   PricingLazyRoute: PricingLazyRoute,
   AiCenterIndexRoute: AiCenterIndexRoute,
   AssessmentIndexRoute: AssessmentIndexRoute,
@@ -1490,6 +1582,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginIndexRoute: LoginIndexRoute,
   ManageInstituteIndexRoute: ManageInstituteIndexRoute,
   ManageStudentsIndexRoute: ManageStudentsIndexRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
   SignupIndexRoute: SignupIndexRoute,
   StudyLibraryIndexRoute: StudyLibraryIndexRoute,
   LoginOauthRedirectRoute: LoginOauthRedirectRoute,
@@ -1518,6 +1611,8 @@ const rootRouteChildren: RootRouteChildren = {
   ManageStudentsInviteIndexRoute: ManageStudentsInviteIndexRoute,
   ManageStudentsStudentsListIndexRoute: ManageStudentsStudentsListIndexRoute,
   SignupOnboardingIndexRoute: SignupOnboardingIndexRoute,
+  StudyLibraryAttendanceTrackerIndexRoute:
+    StudyLibraryAttendanceTrackerIndexRoute,
   StudyLibraryCoursesIndexRoute: StudyLibraryCoursesIndexRoute,
   StudyLibraryDoubtManagementIndexRoute: StudyLibraryDoubtManagementIndexRoute,
   StudyLibraryLiveSessionIndexRoute: StudyLibraryLiveSessionIndexRoute,

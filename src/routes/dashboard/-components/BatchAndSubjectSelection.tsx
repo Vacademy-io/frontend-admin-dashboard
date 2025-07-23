@@ -20,6 +20,8 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { getCourseSubjects } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects';
 import { MultiSelect } from '@/components/design-system/multi-select';
 import type { inviteUsersSchema } from './InviteUsersComponent';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface BatchSubjectFormProps {
     initialBatchId?: string;
@@ -110,7 +112,9 @@ export default function BatchSubjectForm({ initialBatchId }: BatchSubjectFormPro
     return (
         <Card className="w-full">
             <CardHeader className="px-2 py-4">
-                <CardTitle>Select Batch and Subjects</CardTitle>
+                <CardTitle>
+                    Select Batch and {getTerminology(ContentTerms.Subjects, SystemTerms.Subjects)}s
+                </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 p-2">
                 <div className="space-y-4">

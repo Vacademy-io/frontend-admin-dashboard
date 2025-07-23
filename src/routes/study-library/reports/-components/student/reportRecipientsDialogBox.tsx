@@ -19,6 +19,8 @@ import { useMutation } from '@tanstack/react-query';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { toast } from 'sonner';
 import { MultipleInput } from './SettingReportHelperComponent';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 const reportTypes = [
     ReportDurationEnum.DAILY,
@@ -236,7 +238,13 @@ export default function ReportRecipientsDialogBox({ userId }: { userId: string }
                                     </div>
                                 </div>
                                 <div>
-                                    <div>Students&apos;s Mobile Number</div>
+                                    <div>
+                                        {getTerminology(
+                                            RoleTerms.Learner,
+                                            SystemTerms.Learner
+                                        ).toLocaleLowerCase()}
+                                        s&apos;s Mobile Number
+                                    </div>
                                     <MultipleInput
                                         itemsList={convertCommaSeparatedToArray(
                                             settingDetails?.learner_setting

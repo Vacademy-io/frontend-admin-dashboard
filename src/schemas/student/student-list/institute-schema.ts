@@ -70,6 +70,7 @@ const InstituteSchema = z.object({
     levels: z.array(LevelSchema),
     genders: z.array(z.enum(['MALE', 'FEMALE', 'OTHER'])),
     student_statuses: z.array(z.enum(['ACTIVE', 'INACTIVE'])),
+    setting: z.string(),
     subjects: z.array(SubjectSchema),
     session_expiry_days: z.array(z.number()),
     tags: z.array(z.string()),

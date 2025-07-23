@@ -18,6 +18,8 @@ import {
 } from '@/routes/manage-students/students-list/-services/reRegisterStudent';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface ReRegisterDialogProps {
     trigger: ReactNode;
@@ -168,11 +170,22 @@ export const ReRegisterDialog = ({ trigger, open, onOpenChange }: ReRegisterDial
             { requestData: transformedData as unknown as AddSessionDataType },
             {
                 onSuccess: () => {
-                    toast.success('Session added successfully');
+                    toast.success(
+                        ` ${getTerminology(
+                            ContentTerms.Session,
+                            SystemTerms.Session
+                        )} added successfully`
+                    );
                     setIsAddSessionDiaogOpen(false);
                 },
                 onError: (error) => {
-                    toast.error(error.message || 'Failed to add session');
+                    toast.error(
+                        error.message ||
+                            `Failed to add ${getTerminology(
+                                ContentTerms.Session,
+                                SystemTerms.Session
+                            ).toLocaleLowerCase()}`
+                    );
                 },
             }
         );

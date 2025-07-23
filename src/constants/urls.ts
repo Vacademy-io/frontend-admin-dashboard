@@ -1,13 +1,15 @@
-export const BASE_URL = 'https://backend-stage.vacademy.io';
-export const BASE_URL_LEARNER_DASHBOARD = 'https://learner.vacademy.io';
+export const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io';
+export const BASE_URL_LEARNER_DASHBOARD =
+    import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io';
 
+// These hardcoded institute IDs should be removed in multi-org deployment
 export const SSDC_INSTITUTE_ID = '69ca11c6-54e1-4e99-9498-50c9a4272ce6';
 export const SHUBHAM_INSTITUTE_ID = 'd0de8707-f36c-43a0-953c-019ca507c81d';
 export const CODE_CIRCLE_INSTITUTE_ID = 'dd9b9687-56ee-467a-9fc4-8c5835eae7f9';
 export const HOLISTIC_INSTITUTE_ID = 'bd9f2362-84d1-4e01-9762-a5196f9bac80';
 
-export const REQUEST_OTP = `${BASE_URL}/notification-service/v1/send-email-otp`;
-export const LOGIN_OTP = `${BASE_URL}/notification-service/v1/verify-email-otp`;
+export const REQUEST_OTP = `${BASE_URL}/auth-service/v1/request-otp`;
+export const LOGIN_OTP = `${BASE_URL}/auth-service/v1/login-otp`;
 
 // urls
 export const LOGIN_URL = `${BASE_URL}/auth-service/v1/login-root`;
@@ -18,7 +20,7 @@ export const REFRESH_TOKEN_URL = `${BASE_URL}/auth-service/v1/refresh-token`;
 
 export const UPLOAD_DOCS_FILE_URL = `${BASE_URL}/media-service/convert/doc-to-html`;
 export const SUBMIT_RATING_URL = `${BASE_URL}/admin-core-service/rating`;
-export const GET_ALL_USER_RATINGS = `${BASE_URL}/admin-core-service/rating/get-source-ratings`;
+export const GET_ALL_USER_RATINGS = `${BASE_URL}/admin-core-service/rating/get-source-ratings-admin`;
 export const GET_ALL_RATING_SUMMARY = `${BASE_URL}/admin-core-service/rating/summary`;
 
 export const COURSE_CATALOG_URL = `${BASE_URL}/admin-core-service/packages/v1/search`;
@@ -265,3 +267,16 @@ export const START_SESSION_API_URL = `${BASE_URL}/community-service/engage/admin
 export const FINISH_SESSION_API_URL = `${BASE_URL}/community-service/engage/admin/finish`;
 // Note: GET_SINGLE_PRESENTATION_DATA for all slide details will reuse GET_PRESENTATION
 // Ensure GET_PRESENTATION endpoint returns all necessary slide data for live sessions.
+
+// Naming Settings
+export const CREATE_NAMING_SETTINGS = `${BASE_URL}/admin-core-service/institute/setting/v1/create-name-setting`;
+export const UPDATE_NAMING_SETTINGS = `${BASE_URL}/admin-core-service/institute/setting/v1/update-name-setting`;
+
+export const ANALYTICS_USER_ACTIVITY = `${BASE_URL}/auth-service/v1/analytics/user-activity`;
+export const ANALYTICS_ACTIVE_USERS_REALTIME = `${BASE_URL}/auth-service/v1/analytics/active-users/real-time`;
+export const ANALYTICS_ACTIVE_USERS = `${BASE_URL}/auth-service/v1/analytics/active-users`;
+export const ANALYTICS_ACTIVITY_TODAY = `${BASE_URL}/auth-service/v1/analytics/activity/today`;
+export const ANALYTICS_SERVICE_USAGE = `${BASE_URL}/auth-service/v1/analytics/service-usage`;
+export const ANALYTICS_ENGAGEMENT_TRENDS = `${BASE_URL}/auth-service/v1/analytics/engagement/trends`;
+export const ANALYTICS_MOST_ACTIVE_USERS = `${BASE_URL}/auth-service/v1/analytics/users/most-active`;
+export const ANALYTICS_CURRENTLY_ACTIVE_USERS = `${BASE_URL}/auth-service/v1/analytics/users/currently-active`;

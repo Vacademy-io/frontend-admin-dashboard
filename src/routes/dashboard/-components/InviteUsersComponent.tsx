@@ -12,26 +12,14 @@ import { useMutation } from '@tanstack/react-query';
 import { handleInviteUsers } from '../-services/dashboard-services';
 import { useState, useEffect, lazy, Suspense } from 'react'; // Added useEffect
 import { Loader2 } from 'lucide-react';
+import { mapRoleToCustomName } from '@/utils/roleUtils';
 
 const LazyBatchSubjectForm = lazy(() => import('./BatchAndSubjectSelection'));
 
 export const inviteUsersSchema = z.object({
     name: z.string().min(1, 'Full name is required'),
     email: z.string().min(1, 'Email is required').email('Invalid email format'),
-    roleType: z
-        .array(z.string())
-        .min(1, 'At least one role type is required')
-        .refine(
-            (roles) => {
-                if (roles.includes('TEACHER') && roles.length > 1) {
-                    return false;
-                }
-                return true;
-            },
-            {
-                message: 'If Teacher is selected, no other roles can be selected',
-            }
-        ),
+    roleType: z.array(z.string()).min(1, 'At least one role type is required'),
     batch_subject_mappings: z
         .array(
             z.object({
@@ -171,7 +159,7 @@ const InviteUsersComponent = ({ refetchData }: { refetchData: () => void }) => {
                             name="roleType"
                             options={RoleType.map((option, index) => ({
                                 value: option.name,
-                                label: option.name,
+                                label: mapRoleToCustomName(option.name),
                                 _id: index,
                             }))}
                             control={form.control}

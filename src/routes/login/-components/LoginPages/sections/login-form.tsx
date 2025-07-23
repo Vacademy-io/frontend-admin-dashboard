@@ -28,6 +28,7 @@ import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { FcGoogle } from 'react-icons/fc';
 import { EmailLogin } from './EmailOtpForm';
 import { useState } from 'react';
+import { amplitudeEvents, identifyUser, trackEvent } from '@/lib/amplitude';
 
 type FormValues = z.infer<typeof loginSchema>;
 
@@ -59,8 +60,20 @@ export function LoginForm() {
         const ssoLoginSuccess = handleSSOLogin();
 
         if (ssoLoginSuccess) {
-            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
-            navigate({ to: '/dashboard' });
+            // Track SSO login success
+            amplitudeEvents.signIn('sso');
+            trackEvent('Login Success', {
+                login_method: 'sso',
+                timestamp: new Date().toISOString()
+            });
+
+            // Clear all queries to ensure fresh data fetch
+            queryClient.clear();
+
+            // Add a small delay to ensure tokens are properly set before navigation
+            setTimeout(() => {
+                navigate({ to: '/dashboard' });
+            }, 100);
             return;
         }
         const urlParams = new URLSearchParams(window.location.search);
@@ -70,11 +83,24 @@ export function LoginForm() {
         if (accessToken && refreshToken) {
             setAuthorizationCookie(TokenKey.accessToken, accessToken);
             setAuthorizationCookie(TokenKey.refreshToken, refreshToken);
-            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
+
+            // Clear all queries to ensure fresh data fetch
+            queryClient.clear();
+
+            // Track OAuth login success
+            amplitudeEvents.signIn('oauth');
+            trackEvent('Login Success', {
+                login_method: 'oauth',
+                timestamp: new Date().toISOString()
+            });
 
             // Check user roles and redirect accordingly
             const userRoles = getUserRoles(accessToken);
-            handlePostLoginRedirect(userRoles);
+
+            // Add a small delay to ensure tokens are properly set before navigation
+            setTimeout(() => {
+                handlePostLoginRedirect(userRoles);
+            }, 100);
         }
     }, [navigate, queryClient]);
 
@@ -110,14 +136,37 @@ export function LoginForm() {
         mutationFn: (values: FormValues) => loginUser(values.username, values.password),
         onSuccess: (response) => {
             if (response) {
-                queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
+                // Store tokens in cookies first
                 setAuthorizationCookie(TokenKey.accessToken, response.accessToken);
                 setAuthorizationCookie(TokenKey.refreshToken, response.refreshToken);
 
-                // Get user roles and handle redirect
+                // Clear all queries to ensure fresh data fetch
+                queryClient.clear();
+
+                // Track successful login
+                amplitudeEvents.signIn('username_password');
+
+                // Identify user if you have user information
+                // You can add more user properties here based on the response
                 const userRoles = getUserRoles(response.accessToken);
-                handlePostLoginRedirect(userRoles);
+                trackEvent('Login Success', {
+                    login_method: 'username_password',
+                    user_roles: userRoles,
+                    timestamp: new Date().toISOString()
+                });
+
+                // Add a small delay to ensure tokens are properly set before navigation
+                setTimeout(() => {
+                    handlePostLoginRedirect(userRoles);
+                }, 100);
             } else {
+                // Track failed login
+                trackEvent('Login Failed', {
+                    login_method: 'username_password',
+                    error_reason: 'invalid_credentials',
+                    timestamp: new Date().toISOString()
+                });
+
                 toast.error('Login Error', {
                     description: 'Invalid credentials',
                     className: 'error-toast',
@@ -127,6 +176,15 @@ export function LoginForm() {
         },
         onError: (error) => {
             console.error('Login error:', error);
+
+            // Track login error
+            trackEvent('Login Failed', {
+                login_method: 'username_password',
+                error_reason: 'network_error',
+                error_message: error?.message || 'Unknown error',
+                timestamp: new Date().toISOString()
+            });
+
             toast.error('Login Error', {
                 description: 'Invalid username or password',
                 className: 'error-toast',
@@ -167,7 +225,14 @@ export function LoginForm() {
                     <div className="flex w-full max-w-[348px] flex-col gap-4">
                         <button
                             className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50"
-                            onClick={() => handleOAuthLogin('google', { isSignup: false })}
+                            onClick={() => {
+                                trackEvent('OAuth Login Initiated', {
+                                    provider: 'google',
+                                    action: 'login',
+                                    timestamp: new Date().toISOString()
+                                });
+                                handleOAuthLogin('google', { isSignup: false });
+                            }}
                             type="button"
                         >
                             {FcGoogle({ size: 20 })}
@@ -175,7 +240,14 @@ export function LoginForm() {
                         </button>
                         <button
                             className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50"
-                            onClick={() => handleOAuthLogin('github', { isSignup: false })}
+                            onClick={() => {
+                                trackEvent('OAuth Login Initiated', {
+                                    provider: 'github',
+                                    action: 'login',
+                                    timestamp: new Date().toISOString()
+                                });
+                                handleOAuthLogin('github', { isSignup: false });
+                            }}
                             type="button"
                         >
                             <GitHubLogoIcon className="size-5" />

@@ -13,7 +13,20 @@ import { MyButton } from '@/components/design-system/button';
 import { TrashSimple } from 'phosphor-react';
 import { useNavigate } from '@tanstack/react-router';
 import { MyPagination } from '@/components/design-system/pagination';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { Eye, EyeSlash } from '@phosphor-icons/react';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface CourseListPageProps {
     selectedFilters: AllCourseFilters;
@@ -91,7 +104,9 @@ const CourseListPage = ({
                             </div>
                         )}
                     </div>
-                    <div className="mb-1 text-sm font-semibold">Levels</div>
+                    <div className="mb-1 text-sm font-semibold">
+                        {getTerminology(ContentTerms.Level, SystemTerms.Level)}s
+                    </div>
                     <div className="flex flex-col gap-2">
                         {levels.map((level: { id: string; name: string }) => (
                             <label
@@ -137,7 +152,9 @@ const CourseListPage = ({
                     {/* Users Section */}
                     {Array.isArray(accessControlUsers) && accessControlUsers.length > 0 && (
                         <>
-                            <div className="mb-1 mt-4 text-sm font-semibold">Instructors</div>
+                            <div className="mb-1 mt-4 text-sm font-semibold">
+                                {getTerminology(RoleTerms.Teacher, SystemTerms.Teacher)}s
+                            </div>
                             <div className="flex flex-col gap-2">
                                 {(accessControlUsers as UserRolesDataEntry[]).map(
                                     (user: UserRolesDataEntry) => (
@@ -376,37 +393,85 @@ const CourseListPage = ({
                                                         })
                                                     }
                                                 >
-                                                    View Course
-                                                </MyButton>
-                                                <button
-                                                    onClick={() => handleCourseDelete(course.id)}
-                                                    className="flex size-9 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-500 transition-colors hover:border-red-300 hover:bg-red-100 active:scale-95"
-                                                    title="Delete course"
-                                                    disabled={deletingCourseId === course.id}
-                                                >
-                                                    {deletingCourseId === course.id ? (
-                                                        <svg
-                                                            className="animate-spin"
-                                                            width="18"
-                                                            height="18"
-                                                            viewBox="0 0 24 24"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                        >
-                                                            <circle
-                                                                cx="12"
-                                                                cy="12"
-                                                                r="10"
-                                                                stroke="#ef4444"
-                                                                strokeWidth="4"
-                                                                strokeDasharray="60"
-                                                                strokeDashoffset="20"
-                                                            />
-                                                        </svg>
-                                                    ) : (
-                                                        <TrashSimple size={18} />
+                                                    View{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Course,
+                                                        SystemTerms.Course
                                                     )}
-                                                </button>
+                                                </MyButton>
+                                                <AlertDialog
+                                                    open={
+                                                        deletingCourseId === course.id || undefined
+                                                    }
+                                                    onOpenChange={() => {
+                                                        // Only allow closing if not currently deleting
+                                                        if (
+                                                            !deletingCourseId ||
+                                                            deletingCourseId !== course.id
+                                                        ) {
+                                                            // If parent controls dialog open state, call parent handler here if needed
+                                                        }
+                                                    }}
+                                                >
+                                                    <AlertDialogTrigger className="flex size-9 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-500 transition-colors hover:border-red-300 hover:bg-red-100 active:scale-95">
+                                                        <TrashSimple size={18} />
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>
+                                                                Are you sure you want to delete this
+                                                                course?
+                                                            </AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                This action cannot be undone. This
+                                                                will permanently delete your course
+                                                                and remove your course data from our
+                                                                servers.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel
+                                                                disabled={
+                                                                    deletingCourseId === course.id
+                                                                }
+                                                            >
+                                                                Cancel
+                                                            </AlertDialogCancel>
+                                                            <AlertDialogAction
+                                                                onClick={() =>
+                                                                    handleCourseDelete(course.id)
+                                                                }
+                                                                disabled={
+                                                                    deletingCourseId === course.id
+                                                                }
+                                                                className="bg-primary-500 text-white"
+                                                            >
+                                                                {deletingCourseId === course.id ? (
+                                                                    <svg
+                                                                        className="animate-spin"
+                                                                        width="18"
+                                                                        height="18"
+                                                                        viewBox="0 0 24 24"
+                                                                        fill="none"
+                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                    >
+                                                                        <circle
+                                                                            cx="12"
+                                                                            cy="12"
+                                                                            r="10"
+                                                                            stroke="#ef4444"
+                                                                            strokeWidth="4"
+                                                                            strokeDasharray="60"
+                                                                            strokeDashoffset="20"
+                                                                        />
+                                                                    </svg>
+                                                                ) : (
+                                                                    'Confirm'
+                                                                )}
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
                                             </div>
                                         </div>
                                     </div>

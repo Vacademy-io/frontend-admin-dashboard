@@ -10,7 +10,7 @@ interface ContentStore {
     reorderItems: (oldIndex: number, newIndex: number) => void;
     resetChapterSidebarStore: () => void;
     getSlideById: (slideId: string) => Slide | null;
-    updateActiveSlideQuestions: (questions: any[]) => void;
+    updateActiveSlideQuestions: (questions: unknown[]) => void;
 }
 
 export const useContentStore = create<ContentStore>((set, get) => ({
@@ -66,13 +66,14 @@ export const useContentStore = create<ContentStore>((set, get) => ({
         return state.items.find((slide) => slide.id === slideId) || null;
     },
 
-    updateActiveSlideQuestions: (questions: any[]) => {
+    updateActiveSlideQuestions: (questions: unknown[]) => {
         set((state) => {
             if (!state.activeItem) return state;
 
-            const updatedItem = {
+            const updatedItem: Slide = {
                 ...state.activeItem,
-                question_slide: questions as any,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                question_slide: questions as any, // Type assertion for compatibility with existing code
             };
 
             const updatedItems = state.items.map((item) =>
