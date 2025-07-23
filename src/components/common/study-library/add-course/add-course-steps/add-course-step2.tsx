@@ -309,11 +309,17 @@ export const AddCourseStep2 = ({
     // Session management functions
     const addSession = () => {
         if (newSessionName.trim() && newSessionStartDate) {
+            // Assign a random batchId for new session
+            const randomBatchId =
+                typeof crypto !== 'undefined' && crypto.randomUUID
+                    ? crypto.randomUUID()
+                    : Date.now().toString() + Math.random().toString(36).substring(2);
             const newSession: Session = {
                 id: Date.now().toString(),
                 name: newSessionName.trim(),
                 startDate: newSessionStartDate,
                 levels: [],
+                batchId: randomBatchId,
             };
             const updatedSessions = [...sessions, newSession];
             setSessions(updatedSessions);
@@ -326,7 +332,10 @@ export const AddCourseStep2 = ({
 
     const removeSession = (batchId: string) => {
         if (!batchId) return;
-        const updatedSessions = sessions.filter((session) => session.batchId !== batchId);
+        // Remove the session with the given batchId
+        const updatedSessions = sessions.filter(
+            (session) => (session.batchId || session.id) !== batchId
+        );
         setSessions(updatedSessions);
         form.setValue('sessions', updatedSessions);
         setInstructorMappings((prev) =>
