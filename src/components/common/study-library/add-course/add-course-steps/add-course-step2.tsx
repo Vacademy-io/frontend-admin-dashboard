@@ -32,6 +32,7 @@ interface Level {
     name: string;
     userIds: Instructor[];
     batchId: string;
+    newLevel?: boolean;
 }
 
 interface Session {
@@ -40,6 +41,7 @@ interface Session {
     startDate: string;
     levels: Level[];
     batchId?: string;
+    newSession?: boolean;
 }
 
 interface Instructor {
@@ -61,6 +63,7 @@ export const step2Schema = z.object({
                 id: z.string(),
                 name: z.string(),
                 startDate: z.string(),
+                newSession: z.boolean().default(false),
                 levels: z.array(
                     z.object({
                         id: z.string(),
@@ -76,6 +79,7 @@ export const step2Schema = z.object({
                                 })
                             )
                             .default([]),
+                        newLevel: z.boolean().default(false),
                     })
                 ),
             })
@@ -306,24 +310,26 @@ export const AddCourseStep2 = ({
         },
     });
 
+    console.log(form.getValues());
+
     // Session management functions
     const addSession = () => {
         if (newSessionName.trim() && newSessionStartDate) {
-            // Assign a random batchId for new session
             const randomBatchId =
                 typeof crypto !== 'undefined' && crypto.randomUUID
                     ? crypto.randomUUID()
                     : Date.now().toString() + Math.random().toString(36).substring(2);
-            const newSession: Session = {
+            const newSession: Session & { newSession: boolean } = {
                 id: Date.now().toString(),
                 name: newSessionName.trim(),
                 startDate: newSessionStartDate,
                 levels: [],
                 batchId: randomBatchId,
+                newSession: true,
             };
             const updatedSessions = [...sessions, newSession];
             setSessions(updatedSessions);
-            form.setValue('sessions', updatedSessions);
+            form.setValue('sessions', ensureNewSessionAndLevelFlags(updatedSessions));
             setNewSessionName('');
             setNewSessionStartDate('');
             setShowAddSession(false);
@@ -337,7 +343,7 @@ export const AddCourseStep2 = ({
             (session) => (session.batchId || session.id) !== batchId
         );
         setSessions(updatedSessions);
-        form.setValue('sessions', updatedSessions);
+        form.setValue('sessions', ensureNewSessionAndLevelFlags(updatedSessions));
         setInstructorMappings((prev) =>
             prev.map((instructor) => ({
                 ...instructor,
@@ -354,11 +360,12 @@ export const AddCourseStep2 = ({
     const addLevel = (sessionId: string, levelName: string, levelId?: string) => {
         if (levelName.trim()) {
             const id = levelId || Date.now().toString();
-            const newLevel: Level = {
+            const newLevel: Level & { newLevel: boolean } = {
                 id,
                 name: levelName.trim(),
                 userIds: [],
                 batchId: id,
+                newLevel: true,
             };
             const updatedSessions = sessions.map((session) =>
                 session.id === sessionId
@@ -366,7 +373,7 @@ export const AddCourseStep2 = ({
                     : session
             );
             setSessions(updatedSessions);
-            form.setValue('sessions', updatedSessions);
+            form.setValue('sessions', ensureNewSessionAndLevelFlags(updatedSessions));
         }
     };
 
@@ -381,7 +388,7 @@ export const AddCourseStep2 = ({
                 : session
         );
         setSessions(updatedSessions);
-        form.setValue('sessions', updatedSessions);
+        form.setValue('sessions', ensureNewSessionAndLevelFlags(updatedSessions));
         setInstructorMappings((prev) =>
             prev.map((instructor) => ({
                 ...instructor,
@@ -509,6 +516,7 @@ export const AddCourseStep2 = ({
                                     name: '',
                                     userIds: [newInstructor],
                                     batchId: 'DEFAULT',
+                                    newLevel: true,
                                 },
                             ];
                         } else {
@@ -534,6 +542,7 @@ export const AddCourseStep2 = ({
                         });
                     }
                 }
+                form.setValue('sessions', ensureNewSessionAndLevelFlags(updatedSessions));
                 return updatedSessions;
             });
             // ---------------------------------------------------------
@@ -588,21 +597,27 @@ export const AddCourseStep2 = ({
     const addStandaloneLevel = () => {
         if (newLevelName.trim()) {
             const id = Date.now().toString();
-            const dummySession: Session = {
+            const dummySession: Session & { newSession: boolean } = {
                 id: 'standalone',
                 name: 'Standalone',
                 startDate: new Date().toISOString(),
                 levels: [],
+                newSession: true,
             };
-            const newLevel: Level = {
+            const newLevel: Level & { newLevel: boolean } = {
                 id,
                 name: newLevelName.trim(),
                 userIds: [],
                 batchId: id,
+                newLevel: true,
             };
             const standaloneSession = sessions.find((s) => s.id === 'standalone');
             if (!standaloneSession) {
                 setSessions([{ ...dummySession, levels: [newLevel] }]);
+                form.setValue(
+                    'sessions',
+                    ensureNewSessionAndLevelFlags([{ ...dummySession, levels: [newLevel] }])
+                );
             } else {
                 const updatedSessions = sessions.map((session) =>
                     session.id === 'standalone'
@@ -610,6 +625,7 @@ export const AddCourseStep2 = ({
                         : session
                 );
                 setSessions(updatedSessions);
+                form.setValue('sessions', ensureNewSessionAndLevelFlags(updatedSessions));
             }
             setNewLevelName('');
             setShowAddLevel(false);
@@ -628,6 +644,7 @@ export const AddCourseStep2 = ({
                 : session
         );
         setSessions(updatedSessions);
+        form.setValue('sessions', ensureNewSessionAndLevelFlags(updatedSessions));
         setUsedExistingBatchIds((prev) => {
             const newSet = new Set(prev);
             newSet.delete(batchId);
@@ -768,7 +785,7 @@ export const AddCourseStep2 = ({
             }
 
             setSessions(updatedSessions);
-            form.setValue('sessions', updatedSessions);
+            form.setValue('sessions', ensureNewSessionAndLevelFlags(updatedSessions));
             form.setValue('selectedInstructors', selectedInstructors);
 
             // Update instructor mappings
@@ -851,7 +868,7 @@ export const AddCourseStep2 = ({
     useEffect(() => {
         form.setValue('hasLevels', hasLevels);
         form.setValue('hasSessions', hasSessions);
-        form.setValue('sessions', sessions);
+        form.setValue('sessions', ensureNewSessionAndLevelFlags(sessions));
         form.setValue('instructors', instructors);
         form.setValue('publishToCatalogue', publishToCatalogue);
     }, [hasLevels, hasSessions, sessions, instructors, publishToCatalogue, form]);
@@ -879,7 +896,7 @@ export const AddCourseStep2 = ({
 
     // Effect to update form when sessions change
     useEffect(() => {
-        form.setValue('sessions', sessions);
+        form.setValue('sessions', ensureNewSessionAndLevelFlags(sessions));
     }, [sessions, form]);
 
     return (
@@ -1717,6 +1734,8 @@ export const AddCourseStep2 = ({
                                                                                         levels: [],
                                                                                         batchId:
                                                                                             batch.id, // <-- set batchId here
+                                                                                        newSession:
+                                                                                            false,
                                                                                     };
                                                                                     newSessions.push(
                                                                                         session
@@ -1743,6 +1762,8 @@ export const AddCourseStep2 = ({
                                                                                                 [],
                                                                                             batchId:
                                                                                                 batch.id, // <-- set batchId here
+                                                                                            newLevel:
+                                                                                                false,
                                                                                         }
                                                                                     );
                                                                                 }
@@ -1839,6 +1860,8 @@ export const AddCourseStep2 = ({
                                                                                             levels: [],
                                                                                             batchId:
                                                                                                 batch.id, // <-- set batchId here
+                                                                                            newSession:
+                                                                                                false,
                                                                                         }
                                                                                     );
                                                                                 }
@@ -1911,6 +1934,8 @@ export const AddCourseStep2 = ({
                                                                                         userIds: [],
                                                                                         batchId:
                                                                                             batch.id, // <-- set batchId here
+                                                                                        newLevel:
+                                                                                            false,
                                                                                     });
                                                                                 }
                                                                             }
@@ -1941,6 +1966,8 @@ export const AddCourseStep2 = ({
                                                                                     startDate:
                                                                                         new Date().toISOString(),
                                                                                     levels: newLevels,
+                                                                                    newSession:
+                                                                                        true,
                                                                                 },
                                                                             ]);
                                                                         }
@@ -2310,6 +2337,7 @@ export const AddCourseStep2 = ({
                                                                                     userIds: [],
                                                                                     batchId:
                                                                                         batch.id, // <-- set batchId here
+                                                                                    newLevel: false,
                                                                                 });
                                                                             }
                                                                         }
@@ -2339,6 +2367,7 @@ export const AddCourseStep2 = ({
                                                                                 startDate:
                                                                                     new Date().toISOString(),
                                                                                 levels: newLevels,
+                                                                                newSession: true,
                                                                             },
                                                                         ]);
                                                                     }
@@ -2571,6 +2600,7 @@ export const AddCourseStep2 = ({
                                                                                     instructor,
                                                                                 ],
                                                                                 batchId: 'DEFAULT',
+                                                                                newLevel: true,
                                                                             },
                                                                         ];
                                                                     } else {
@@ -2617,6 +2647,12 @@ export const AddCourseStep2 = ({
                                                                 );
                                                             }
                                                         }
+                                                        form.setValue(
+                                                            'sessions',
+                                                            ensureNewSessionAndLevelFlags(
+                                                                updatedSessions
+                                                            )
+                                                        );
                                                         return updatedSessions;
                                                     });
                                                 });
@@ -3768,6 +3804,18 @@ function ensureBatchIdInLevels(sessions: Session[]): Session[] {
         levels: session.levels.map((level) => ({
             ...level,
             batchId: (level as Level).batchId || level.id,
+        })),
+    }));
+}
+
+// Utility to deeply ensure newSession and newLevel are always present and boolean
+function ensureNewSessionAndLevelFlags(sessions: Session[]) {
+    return sessions.map((session) => ({
+        ...session,
+        newSession: session.newSession === true,
+        levels: session.levels.map((level) => ({
+            ...level,
+            newLevel: level.newLevel === true,
         })),
     }));
 }

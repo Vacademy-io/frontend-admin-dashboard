@@ -319,7 +319,7 @@ export const AddCourseForm = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger className="w-full">
+            <DialogTrigger className="flex w-full ">
                 {!isEdit ? (
                     <MyButton
                         type="button"

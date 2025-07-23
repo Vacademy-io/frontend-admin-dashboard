@@ -108,11 +108,12 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
             id: string;
             name: string;
             userIds: { id: string; name: string; email: string; profilePicId: string }[];
+            newLevel: boolean;
         }>
     ): FormattedLevel[] =>
         levels.map((level) => ({
-            id: '',
-            new_level: true,
+            id: level.id,
+            new_level: level.newLevel,
             level_name: level.name,
             duration_in_days: 0,
             thumbnail_file_id: '',
@@ -161,11 +162,11 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
         ];
     } else if (hasSessions) {
         sessions = formData.sessions.map((session) => ({
-            id: '',
+            id: session.id,
             session_name: session.name,
             status: 'ACTIVE',
             start_date: session.startDate,
-            new_session: true,
+            new_session: session.newSession,
             levels: hasLevels
                 ? formatLevels(session.levels)
                 : [
@@ -198,8 +199,8 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
                 start_date: '',
                 new_session: true,
                 levels: standaloneLevels.map((level) => ({
-                    id: '',
-                    new_level: true,
+                    id: level.id,
+                    new_level: level.newLevel,
                     level_name: level.name,
                     duration_in_days: 0,
                     thumbnail_file_id: '',
@@ -262,6 +263,7 @@ export const convertToApiCourseFormatUpdate = (
         id: string;
         name: string;
         userIds: User[];
+        newLevel: boolean;
     };
 
     const formatLevels = (sessionId: string, newLevels: Level[] = [], oldLevels: Level[] = []) => {
@@ -353,8 +355,8 @@ export const convertToApiCourseFormatUpdate = (
             const add_faculty_to_course = [...deletedUsers, ...addedUsers, ...existingUsers];
 
             return {
-                id: isNewLevel ? '' : level?.id || '',
-                new_level: isNewLevel ? true : false,
+                id: level?.id || '',
+                new_level: level?.newLevel ?? false,
                 level_name: level?.name || '',
                 duration_in_days: 0,
                 thumbnail_file_id: '',
@@ -390,7 +392,6 @@ export const convertToApiCourseFormatUpdate = (
         const current = findById(currentSessions, sessionId);
         const previous = findById(previousSessions, sessionId);
 
-        const isNewSession = current && !previous;
         const isDeletedSession = !current && previous;
         const session = current || previous;
 
@@ -401,11 +402,11 @@ export const convertToApiCourseFormatUpdate = (
         );
 
         return {
-            id: isNewSession ? '' : session?.id || '',
+            id: session?.id || '',
             session_name: session?.name || '',
             status: isDeletedSession ? 'DELETED' : 'ACTIVE',
             start_date: session?.startDate || '',
-            new_session: isNewSession ? true : false,
+            new_session: session?.newSession ?? false,
             levels,
         };
     });
@@ -468,6 +469,7 @@ export function transformCourseData(course: CourseDetailsFormValues) {
             id: session.sessionDetails?.id ?? '',
             name: session.sessionDetails?.session_name ?? '',
             startDate: session.sessionDetails?.start_date ?? '',
+            newSession: session.sessionDetails?.newSession ?? false,
             levels: (session.levelDetails ?? []).map((level) => ({
                 id: level.id,
                 name: level.name,
@@ -478,6 +480,7 @@ export function transformCourseData(course: CourseDetailsFormValues) {
                     profilePicId: inst.profilePicId,
                     roles: inst.roles,
                 })),
+                newLevel: level.newLevel ?? false,
             })),
         })),
         selectedInstructors: extractInstructors(sessions),
