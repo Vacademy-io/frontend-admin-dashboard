@@ -113,38 +113,10 @@ const GenerateInviteLinkDialog = ({
             youtubeError: '',
             showYoutubeInput: false,
             showMediaMenu: false,
-            freePlans: [
-                {
-                    id: 'free1',
-                    name: 'Free Basic',
-                    description: 'Access to basic course content.',
-                },
-                {
-                    id: 'free2',
-                    name: 'Free Plus',
-                    description: 'Access to all free resources.',
-                },
-            ],
-            paidPlans: [
-                {
-                    id: 'paid1',
-                    name: 'Premium',
-                    description: 'Full access to all course materials and support.',
-                    price: '$49',
-                },
-                {
-                    id: 'paid2',
-                    name: 'Pro',
-                    description: 'Premium plus 1-on-1 mentorship.',
-                    price: '$99',
-                },
-            ],
+            freePlans: [],
+            paidPlans: [],
             showPlansDialog: false,
-            selectedPlan: {
-                id: 'free1',
-                name: 'Free Basic',
-                description: 'Access to basic course content.',
-            },
+            selectedPlan: {},
             showAddPlanDialog: false,
             showDiscountDialog: false,
             discounts: [
@@ -215,46 +187,7 @@ const GenerateInviteLinkDialog = ({
             ],
             showAddDiscountDialog: false,
             selectedDiscountId: 'none',
-            referralPrograms: [
-                {
-                    id: 'r1',
-                    name: 'Default Referral',
-                    refereeBenefit: '₹200 off',
-                    referrerTiers: [
-                        {
-                            tier: '5 referrals',
-                            reward: 'Gift',
-                            icon: <Gift size={16} className="text-yellow-600" />,
-                        },
-                        {
-                            tier: '10 referrals',
-                            reward: 'Calendar',
-                            icon: <CalendarBlank size={16} className="text-blue-600" />,
-                        },
-                    ],
-                    vestingPeriod: '30 days',
-                    combineOffers: true,
-                },
-                {
-                    id: 'r2',
-                    name: 'Super Saver',
-                    refereeBenefit: '₹300 off',
-                    referrerTiers: [
-                        {
-                            tier: '3 referrals',
-                            reward: 'Gift',
-                            icon: <Gift size={16} className="text-yellow-600" />,
-                        },
-                        {
-                            tier: '8 referrals',
-                            reward: 'Calendar',
-                            icon: <CalendarBlank size={16} className="text-blue-600" />,
-                        },
-                    ],
-                    vestingPeriod: '15 days',
-                    combineOffers: false,
-                },
-            ],
+            referralPrograms: [],
             selectedReferralId: 'r1',
             showReferralDialog: false,
             showAddReferralDialog: false,
@@ -503,7 +436,7 @@ const GenerateInviteLinkDialog = ({
             name: '',
             refereeBenefit: '',
             referrerTiers: [{ tier: '', reward: '' }],
-            vestingPeriod: '',
+            vestingPeriod: 0,
             combineOffers: false,
         },
     });

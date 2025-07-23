@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
     Dialog as ShadDialog,
     DialogContent as ShadDialogContent,
@@ -12,12 +12,27 @@ import { MyButton } from '@/components/design-system/button';
 import { UseFormReturn } from 'react-hook-form';
 import { InviteLinkFormValues } from './GenerateInviteLinkSchema';
 import { Gift, Users, Gear, TrendUp } from 'phosphor-react';
+import { handleGetReferralProgramDetails } from './-services/referral-services';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { convertReferralData, getDefaultMatchingReferralData } from './-utils/helper';
 
 interface ReferralProgramDialogProps {
     form: UseFormReturn<InviteLinkFormValues>;
 }
 
 export function ReferralProgramDialog({ form }: ReferralProgramDialogProps) {
+    const { data: referralProgramDetails } = useSuspenseQuery(handleGetReferralProgramDetails());
+
+    useEffect(() => {
+        form.reset({
+            ...form.getValues(),
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            referralPrograms: convertReferralData(referralProgramDetails),
+            selectedReferralId: getDefaultMatchingReferralData(referralProgramDetails),
+        });
+    }, []);
+
     return (
         <ShadDialog
             open={form.watch('showReferralDialog')}

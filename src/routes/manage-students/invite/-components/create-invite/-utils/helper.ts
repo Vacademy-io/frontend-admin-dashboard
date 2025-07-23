@@ -2,6 +2,21 @@ import { getInstituteId } from '@/constants/helper';
 import { InviteLinkFormValues } from '../GenerateInviteLinkSchema';
 import { CustomField } from '../../../-schema/InviteFormSchema';
 
+export interface ReferralData {
+    id: string;
+    name: string;
+    status: string; // Add more status types if applicable
+    source: string; // Adjust as needed
+    source_id: string;
+    referrer_discount_json: string;
+    referee_discount_json: string;
+    referrer_vesting_days: number;
+    tag: string;
+    description: string;
+    created_at: string; // Consider `Date` if you parse it
+    updated_at: string; // Consider `Date` if you parse it
+}
+
 type ApiCourseData = {
     course: {
         id: string;
@@ -246,4 +261,30 @@ export function getDefaultPlanFromPaymentsData(data: PaymentOption[]) {
 
 export function getMatchingPaymentPlan(data: PaymentOption[], id: string) {
     return data.find((item) => item.id === id);
+}
+
+export function convertReferralData(data: ReferralData[]) {
+    if (!data)
+        return {
+            id: '',
+            name: '',
+            refereeBenefit: '',
+            referrerTiers: [{ tier: '', reward: '' }],
+            vestingPeriod: 0,
+            combineOffers: false,
+        };
+    return data.map((item) => ({
+        id: item.id,
+        name: item.name,
+        refereeBenefit: '',
+        referrerTiers: [{ tier: '', reward: '' }],
+        vestingPeriod: item.referrer_vesting_days,
+        combineOffers: true,
+    }));
+}
+
+export function getDefaultMatchingReferralData(data: ReferralData[]) {
+    const item = data.find((item) => item.tag === 'DEFAULT');
+    if (!item) return '';
+    return item.id;
 }

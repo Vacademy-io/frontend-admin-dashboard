@@ -156,7 +156,7 @@ export const inviteLinkSchema = z.object({
                         icon: z.any().optional(),
                     })
                 ),
-                vestingPeriod: z.string(),
+                vestingPeriod: z.number(),
                 combineOffers: z.boolean(),
             })
         )
@@ -218,7 +218,7 @@ export const addReferralSchema = zod.object({
             })
         )
         .min(1, 'At least one tier is required'),
-    vestingPeriod: zod.string().min(1, 'Vesting period is required'),
+    vestingPeriod: zod.number(),
     combineOffers: zod.boolean(),
 });
 export type AddReferralFormValues = zod.infer<typeof addReferralSchema>;
