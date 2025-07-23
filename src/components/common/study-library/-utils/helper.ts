@@ -325,7 +325,7 @@ export const convertToApiCourseFormatUpdate = (
                         root_user: true,
                     },
                     status: 'ACTIVE',
-                    new_user: true,
+                    new_user: false,
                 }));
 
             const existingUsers = currentUsers

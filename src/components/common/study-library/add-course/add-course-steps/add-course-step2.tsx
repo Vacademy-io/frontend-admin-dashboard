@@ -838,7 +838,12 @@ export const AddCourseStep2 = ({
 
     useEffect(() => {
         if (initialData) {
-            setSelectedInstructors(form.getValues('selectedInstructors'));
+            // Deduplicate selected instructors by id
+            const initialSelectedInstructors = form.getValues('selectedInstructors') || [];
+            const dedupedSelectedInstructors = initialSelectedInstructors.filter(
+                (instructor, idx, arr) => arr.findIndex((i) => i.id === instructor.id) === idx
+            );
+            setSelectedInstructors(dedupedSelectedInstructors);
             // Normalize session id for standalone levels
             const sessionsWithBatchIdLevels =
                 form.getValues('sessions')?.map((session) => ({
@@ -868,7 +873,7 @@ export const AddCourseStep2 = ({
                             (m) => m.id === instructor.id
                         );
                         if (mapping) {
-                            // Only add if not already present
+                            // Only add if not already present (dedupe by sessionId+levelId)
                             if (
                                 !mapping.sessionLevels.some(
                                     (sl) => sl.sessionId === session.id && sl.levelId === level.id
@@ -886,7 +891,25 @@ export const AddCourseStep2 = ({
                     });
                 });
             });
-            setInstructorMappings(instructorMappingsFromSessions);
+            // Merge mappings for instructors with the same id (in case of duplicates)
+            const mergedMappings: InstructorMapping[] = [];
+            instructorMappingsFromSessions.forEach((mapping) => {
+                const existing = mergedMappings.find((m) => m.id === mapping.id);
+                if (existing) {
+                    // Merge and dedupe sessionLevels
+                    const allSessionLevels = [...existing.sessionLevels, ...mapping.sessionLevels];
+                    existing.sessionLevels = allSessionLevels.filter(
+                        (sl, idx, arr) =>
+                            arr.findIndex(
+                                (item) =>
+                                    item.sessionId === sl.sessionId && item.levelId === sl.levelId
+                            ) === idx
+                    );
+                } else {
+                    mergedMappings.push({ ...mapping });
+                }
+            });
+            setInstructorMappings(mergedMappings);
         }
     }, [initialData]);
 
@@ -1645,7 +1668,7 @@ export const AddCourseStep2 = ({
                                                                                                             )
                                                                                                         ) {
                                                                                                             setSelectedExistingBatchIds(
-                                                                                                                selectedExistingBatchIds.filter(
+                                                                                                                selectedExistingLevelBatchIds.filter(
                                                                                                                     (
                                                                                                                         id
                                                                                                                     ) =>
@@ -1654,9 +1677,9 @@ export const AddCourseStep2 = ({
                                                                                                                 )
                                                                                                             );
                                                                                                         } else {
-                                                                                                            setSelectedExistingBatchIds(
+                                                                                                            setSelectedExistingLevelBatchIds(
                                                                                                                 [
-                                                                                                                    ...selectedExistingBatchIds,
+                                                                                                                    ...selectedExistingLevelBatchIds,
                                                                                                                     batch.id,
                                                                                                                 ]
                                                                                                             );
