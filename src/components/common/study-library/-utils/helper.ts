@@ -190,7 +190,7 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
                   ],
         }));
     } else if (hasLevels) {
-        const standaloneLevels = formData.sessions.find((s) => s.id === 'standalone')?.levels || [];
+        const standaloneLevels = formData.sessions.find((s) => s.id === 'DEFAULT')?.levels || [];
         sessions = [
             {
                 id: 'DEFAULT',

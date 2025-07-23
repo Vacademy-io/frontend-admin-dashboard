@@ -204,7 +204,7 @@ function getAllSessionLevelsForInstructor(
             });
         });
     } else if (hasSessions !== 'yes' && hasLevels === 'yes') {
-        const standaloneSession = sessions.find((s: Session) => s.id === 'standalone');
+        const standaloneSession = sessions.find((s: Session) => s.id === 'DEFAULT');
         if (standaloneSession) {
             standaloneSession.levels.forEach((level: Level) => {
                 allSessionLevels.push({
@@ -475,7 +475,7 @@ export const AddCourseStep2 = ({
                     });
                 });
             } else if (hasSessions !== 'yes' && hasLevels === 'yes') {
-                const standaloneSession = sessions.find((s: Session) => s.id === 'standalone');
+                const standaloneSession = sessions.find((s: Session) => s.id === 'DEFAULT');
                 if (standaloneSession) {
                     standaloneSession.levels.forEach((level: Level) => {
                         allSessionLevels.push({
@@ -532,7 +532,7 @@ export const AddCourseStep2 = ({
                     });
                 } else if (hasSessions !== 'yes' && hasLevels === 'yes') {
                     const standaloneSession = updatedSessions.find(
-                        (s: Session) => s.id === 'standalone'
+                        (s: Session) => s.id === 'DEFAULT'
                     );
                     if (standaloneSession) {
                         standaloneSession.levels?.forEach((level: Level) => {
@@ -598,8 +598,8 @@ export const AddCourseStep2 = ({
         if (newLevelName.trim()) {
             const id = Date.now().toString();
             const dummySession: Session & { newSession: boolean } = {
-                id: 'standalone',
-                name: 'Standalone',
+                id: 'DEFAULT',
+                name: 'DEFAULT',
                 startDate: new Date().toISOString(),
                 levels: [],
                 newSession: true,
@@ -611,7 +611,7 @@ export const AddCourseStep2 = ({
                 batchId: id,
                 newLevel: true,
             };
-            const standaloneSession = sessions.find((s) => s.id === 'standalone');
+            const standaloneSession = sessions.find((s) => s.id === 'DEFAULT');
             if (!standaloneSession) {
                 setSessions([{ ...dummySession, levels: [newLevel] }]);
                 form.setValue(
@@ -620,7 +620,7 @@ export const AddCourseStep2 = ({
                 );
             } else {
                 const updatedSessions = sessions.map((session) =>
-                    session.id === 'standalone'
+                    session.id === 'DEFAULT'
                         ? { ...session, levels: [...session.levels, newLevel] }
                         : session
                 );
@@ -636,7 +636,7 @@ export const AddCourseStep2 = ({
     const removeStandaloneLevel = (batchId: string) => {
         if (!batchId) return;
         const updatedSessions = sessions.map((session) =>
-            session.id === 'standalone'
+            session.id === 'DEFAULT'
                 ? {
                       ...session,
                       levels: session.levels.filter((level) => level.batchId !== batchId),
@@ -767,7 +767,7 @@ export const AddCourseStep2 = ({
                     } else if (hasLevels === 'yes') {
                         // Handle levels-only case
                         const standaloneSession = updatedSessions.find(
-                            (s: Session) => s.id === 'standalone'
+                            (s: Session) => s.id === 'DEFAULT'
                         );
                         if (standaloneSession) {
                             const level = standaloneSession.levels.find(
@@ -1917,7 +1917,7 @@ export const AddCourseStep2 = ({
                                                                                         .find(
                                                                                             (s) =>
                                                                                                 s.id ===
-                                                                                                'standalone'
+                                                                                                'DEFAULT'
                                                                                         )
                                                                                         ?.levels.some(
                                                                                             (l) =>
@@ -1948,7 +1948,7 @@ export const AddCourseStep2 = ({
                                                                             sessions.find(
                                                                                 (s) =>
                                                                                     s.id ===
-                                                                                    'standalone'
+                                                                                    'DEFAULT'
                                                                             );
                                                                         if (standaloneSession) {
                                                                             standaloneSession.levels =
@@ -1964,8 +1964,8 @@ export const AddCourseStep2 = ({
                                                                         } else {
                                                                             setSessions([
                                                                                 {
-                                                                                    id: 'standalone',
-                                                                                    name: 'Standalone',
+                                                                                    id: 'DEFAULT',
+                                                                                    name: 'DEFAULT',
                                                                                     startDate:
                                                                                         new Date().toISOString(),
                                                                                     levels: newLevels,
@@ -2321,7 +2321,7 @@ export const AddCourseStep2 = ({
                                                                                     .find(
                                                                                         (s) =>
                                                                                             s.id ===
-                                                                                            'standalone'
+                                                                                            'DEFAULT'
                                                                                     )
                                                                                     ?.levels.some(
                                                                                         (l) =>
@@ -2349,8 +2349,7 @@ export const AddCourseStep2 = ({
                                                                     const standaloneSession =
                                                                         sessions.find(
                                                                             (s) =>
-                                                                                s.id ===
-                                                                                'standalone'
+                                                                                s.id === 'DEFAULT'
                                                                         );
                                                                     if (standaloneSession) {
                                                                         standaloneSession.levels = [
@@ -2365,8 +2364,8 @@ export const AddCourseStep2 = ({
                                                                     } else {
                                                                         setSessions([
                                                                             {
-                                                                                id: 'standalone',
-                                                                                name: 'Standalone',
+                                                                                id: 'DEFAULT',
+                                                                                name: 'DEFAULT',
                                                                                 startDate:
                                                                                     new Date().toISOString(),
                                                                                 levels: newLevels,
@@ -2428,7 +2427,7 @@ export const AddCourseStep2 = ({
 
                                         {/* Level Cards */}
                                         {sessions
-                                            .find((s) => s.id === 'standalone')
+                                            .find((s) => s.id === 'DEFAULT')
                                             ?.levels.map((level) => (
                                                 <div
                                                     key={level.batchId}
@@ -2630,7 +2629,7 @@ export const AddCourseStep2 = ({
                                                             const standaloneSession =
                                                                 updatedSessions.find(
                                                                     (s: Session) =>
-                                                                        s.id === 'standalone'
+                                                                        s.id === 'DEFAULT'
                                                                 );
                                                             if (standaloneSession) {
                                                                 standaloneSession.levels?.forEach(
@@ -3161,7 +3160,7 @@ export const AddCourseStep2 = ({
                                                                                         sessions.find(
                                                                                             (s) =>
                                                                                                 s.id ===
-                                                                                                'standalone'
+                                                                                                'DEFAULT'
                                                                                         );
                                                                                     const levels =
                                                                                         standaloneSession?.levels ||
@@ -3424,8 +3423,8 @@ export const AddCourseStep2 = ({
                                         : hasSessions === 'yes'
                                           ? sessions.length === 0
                                           : hasLevels === 'yes'
-                                            ? !sessions.find((s) => s.id === 'standalone') ||
-                                              sessions.find((s) => s.id === 'standalone')?.levels
+                                            ? !sessions.find((s) => s.id === 'DEFAULT') ||
+                                              sessions.find((s) => s.id === 'DEFAULT')?.levels
                                                   .length === 0
                                             : false)
                                 }
