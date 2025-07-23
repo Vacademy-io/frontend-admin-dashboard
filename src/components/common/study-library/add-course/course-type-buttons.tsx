@@ -3,9 +3,6 @@ import { MyButton } from '@/components/design-system/button';
 import { Card, CardHeader, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
 import { PencilSimpleLine, StarFour, Lightning } from 'phosphor-react';
 import { BrainCircuit } from 'lucide-react';
-import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
-import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
-// import { AddCourseForm } from './add-course-form';
 
 const CourseTypeButtons = () => {
     return (

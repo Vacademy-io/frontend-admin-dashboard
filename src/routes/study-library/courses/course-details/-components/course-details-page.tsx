@@ -623,7 +623,7 @@ export const CourseDetailsPage = () => {
                                             Added to catalog
                                         </MyButton>
                                     )}
-                                    <div className="shrink-0">
+                                    <div className="border-4">
                                         <AddCourseForm
                                             isEdit={true}
                                             initialCourseData={form.getValues()}

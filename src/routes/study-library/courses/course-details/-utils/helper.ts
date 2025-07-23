@@ -31,6 +31,7 @@ export interface Session {
         session_name: string;
         status: string;
         start_date: string;
+        new_session: boolean;
     };
     level_with_details: Array<{
         id: string;
@@ -38,6 +39,7 @@ export interface Session {
         duration_in_days: number;
         instructors: Instructor[];
         subjects: SubjectType[];
+        new_level: boolean;
     }>;
 }
 
@@ -144,6 +146,7 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
                         id: level.id,
                         name: level.name,
                         duration_in_days: level.duration_in_days,
+                        newLevel: level.new_level,
                         instructors: level.instructors.map((inst) => ({
                             id: inst.id,
                             name: inst.full_name,
@@ -168,6 +171,7 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
                     session_name: session.session_dto.session_name,
                     status: session.session_dto.status,
                     start_date: session.session_dto.start_date,
+                    newSession: session.session_dto.new_session,
                 },
             })),
         };
