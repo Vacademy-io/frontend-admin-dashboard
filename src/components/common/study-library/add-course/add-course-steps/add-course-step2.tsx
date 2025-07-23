@@ -297,6 +297,13 @@ export const AddCourseStep2 = ({
         (batch: ExistingBatch) => !usedExistingBatchIds.has(batch.id)
     );
 
+    // Add this before the return statement in AddCourseStep2
+    const standaloneSession = sessions.find((s) => s.id === 'DEFAULT');
+    const standaloneLevelIds = standaloneSession ? standaloneSession.levels.map((l) => l.id) : [];
+    const availableExistingBatchesForStandalone = availableExistingBatches.filter(
+        (batch) => !standaloneLevelIds.includes(batch.level.id)
+    );
+
     const form = useForm<Step2Data>({
         resolver: zodResolver(step2Schema),
         defaultValues: initialData || {
@@ -2201,7 +2208,7 @@ export const AddCourseStep2 = ({
                                                                 )}
                                                                 s
                                                             </Label>
-                                                            {availableExistingBatches.length ===
+                                                            {availableExistingBatchesForStandalone.length ===
                                                             0 ? (
                                                                 <div className="text-sm text-gray-500">
                                                                     No existing{' '}
@@ -2216,22 +2223,22 @@ export const AddCourseStep2 = ({
                                                                     <div className="mb-2 flex items-center">
                                                                         <Checkbox
                                                                             checked={
-                                                                                availableExistingBatches.length >
+                                                                                availableExistingBatchesForStandalone.length >
                                                                                     0 &&
                                                                                 selectedExistingLevelBatchIds.length ===
-                                                                                    availableExistingBatches.length
+                                                                                    availableExistingBatchesForStandalone.length
                                                                             }
                                                                             onCheckedChange={() => {
                                                                                 if (
                                                                                     selectedExistingLevelBatchIds.length ===
-                                                                                    availableExistingBatches.length
+                                                                                    availableExistingBatchesForStandalone.length
                                                                                 ) {
                                                                                     setSelectedExistingLevelBatchIds(
                                                                                         []
                                                                                     );
                                                                                 } else {
                                                                                     setSelectedExistingLevelBatchIds(
-                                                                                        availableExistingBatches.map(
+                                                                                        availableExistingBatchesForStandalone.map(
                                                                                             (
                                                                                                 b: ExistingBatch
                                                                                             ) =>
@@ -2247,7 +2254,7 @@ export const AddCourseStep2 = ({
                                                                         </span>
                                                                     </div>
                                                                     <div className="max-h-48 space-y-1 overflow-y-auto">
-                                                                        {availableExistingBatches.map(
+                                                                        {availableExistingBatchesForStandalone.map(
                                                                             (
                                                                                 batch: ExistingBatch
                                                                             ) => (
