@@ -832,16 +832,20 @@ export const AddCourseStep2 = ({
     useEffect(() => {
         if (initialData) {
             setSelectedInstructors(form.getValues('selectedInstructors'));
-            // Aggregate instructor mappings from session data
-            const instructorMappingsFromSessions: InstructorMapping[] = [];
+            // Normalize session id for standalone levels
             const sessionsWithBatchIdLevels =
                 form.getValues('sessions')?.map((session) => ({
                     ...session,
+                    id: hasSessions !== 'yes' && hasLevels === 'yes' ? 'DEFAULT' : session.id,
+                    name: hasSessions !== 'yes' && hasLevels === 'yes' ? 'DEFAULT' : session.name,
                     levels: session.levels.map((level) => ({
                         ...level,
                         batchId: (level as Level).batchId || level.id,
                     })),
                 })) || [];
+            setSessions(sessionsWithBatchIdLevels);
+            // Aggregate instructor mappings from session data
+            const instructorMappingsFromSessions: InstructorMapping[] = [];
             sessionsWithBatchIdLevels.forEach((session) => {
                 session.levels?.forEach((level) => {
                     level.userIds?.forEach((instructor) => {
