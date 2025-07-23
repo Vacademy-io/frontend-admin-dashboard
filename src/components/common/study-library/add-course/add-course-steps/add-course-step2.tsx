@@ -930,7 +930,7 @@ export const AddCourseStep2 = ({
                                                 ContentTerms.Course,
                                                 SystemTerms.Course
                                             )}{' '}
-                                            the , its structure—including{' '}
+                                            , its structure—including{' '}
                                             {getTerminology(
                                                 ContentTerms.Session,
                                                 SystemTerms.Session
@@ -957,7 +957,7 @@ export const AddCourseStep2 = ({
                                     </div>
                                 )}
 
-                                {instituteId !== CODE_CIRCLE_INSTITUTE_ID && (
+                                {instituteId !== CODE_CIRCLE_INSTITUTE_ID && !isEdit && (
                                     <>
                                         {!isEdit && <Separator className="bg-gray-200" />}
                                         <div className="space-y-2">
@@ -1021,66 +1021,69 @@ export const AddCourseStep2 = ({
                                     </>
                                 )}
 
-                                <Separator className="bg-gray-200" />
+                                {!isEdit && <Separator className="bg-gray-200" />}
 
                                 {/* Contains Levels Radio */}
-                                <div className="space-y-2">
-                                    <Label className="block text-base font-medium text-gray-900">
-                                        Contains{' '}
-                                        {getTerminology(ContentTerms.Level, SystemTerms.Level)}s?
-                                    </Label>
-                                    <p className="text-sm text-gray-600">
-                                        {getTerminology(ContentTerms.Level, SystemTerms.Level)}{' '}
-                                        organize a{' '}
-                                        {getTerminology(
-                                            ContentTerms.Course,
-                                            SystemTerms.Course
-                                        ).toLocaleLowerCase()}{' '}
-                                        into structured learning stages. These stages may represent
-                                        increasing difficulty, different modules, or key milestones
-                                        within the{' '}
-                                        {getTerminology(
-                                            ContentTerms.Course,
-                                            SystemTerms.Course
-                                        ).toLocaleLowerCase()}{' '}
-                                        . For eg: Basic, Advanced
-                                    </p>
-                                    <RadioGroup
-                                        value={hasLevels}
-                                        onValueChange={(value) => {
-                                            setHasLevels(value);
-                                            // Clear levels when switching to 'no'
-                                            if (value === 'no') {
-                                                setSessions(
-                                                    sessions.map((session) => ({
-                                                        ...session,
-                                                        levels: [],
-                                                    }))
-                                                );
-                                            }
-                                        }}
-                                        className="flex gap-6"
-                                    >
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="yes" id="levels-yes" />
-                                            <Label
-                                                htmlFor="levels-yes"
-                                                className="text-sm font-normal"
-                                            >
-                                                Yes
-                                            </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="no" id="levels-no" />
-                                            <Label
-                                                htmlFor="levels-no"
-                                                className="text-sm font-normal"
-                                            >
-                                                No
-                                            </Label>
-                                        </div>
-                                    </RadioGroup>
-                                </div>
+                                {!isEdit && (
+                                    <div className="space-y-2">
+                                        <Label className="block text-base font-medium text-gray-900">
+                                            Contains{' '}
+                                            {getTerminology(ContentTerms.Level, SystemTerms.Level)}
+                                            s?
+                                        </Label>
+                                        <p className="text-sm text-gray-600">
+                                            {getTerminology(ContentTerms.Level, SystemTerms.Level)}{' '}
+                                            organize a{' '}
+                                            {getTerminology(
+                                                ContentTerms.Course,
+                                                SystemTerms.Course
+                                            ).toLocaleLowerCase()}{' '}
+                                            into structured learning stages. These stages may
+                                            represent increasing difficulty, different modules, or
+                                            key milestones within the{' '}
+                                            {getTerminology(
+                                                ContentTerms.Course,
+                                                SystemTerms.Course
+                                            ).toLocaleLowerCase()}{' '}
+                                            . For eg: Basic, Advanced
+                                        </p>
+                                        <RadioGroup
+                                            value={hasLevels}
+                                            onValueChange={(value) => {
+                                                setHasLevels(value);
+                                                // Clear levels when switching to 'no'
+                                                if (value === 'no') {
+                                                    setSessions(
+                                                        sessions.map((session) => ({
+                                                            ...session,
+                                                            levels: [],
+                                                        }))
+                                                    );
+                                                }
+                                            }}
+                                            className="flex gap-6"
+                                        >
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem value="yes" id="levels-yes" />
+                                                <Label
+                                                    htmlFor="levels-yes"
+                                                    className="text-sm font-normal"
+                                                >
+                                                    Yes
+                                                </Label>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem value="no" id="levels-no" />
+                                                <Label
+                                                    htmlFor="levels-no"
+                                                    className="text-sm font-normal"
+                                                >
+                                                    No
+                                                </Label>
+                                            </div>
+                                        </RadioGroup>
+                                    </div>
+                                )}
 
                                 {/* Info message when both are No */}
                                 {hasSessions !== 'yes' && hasLevels !== 'yes' && (
