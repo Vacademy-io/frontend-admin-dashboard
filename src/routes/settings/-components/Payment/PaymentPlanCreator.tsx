@@ -96,7 +96,8 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
             setCurrentStep(1);
             setShowPreview(false);
         }
-    }, [isOpen, editingPlan, featuresGlobal, defaultCurrency]);
+        // Only depend on isOpen and editingPlan!
+    }, [isOpen, editingPlan, defaultCurrency]);
 
     const handleSave = () => {
         if (!planData.name || !planData.type) {
@@ -149,7 +150,6 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
             }
         }
     };
-
     const handlePreviewToggle = () => {
         setShowPreview((prev) => !prev);
         setTimeout(() => {
@@ -165,25 +165,6 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
     const handleBack = () => {
         if (currentStep > 1) {
             setCurrentStep(currentStep - 1);
-        }
-    };
-
-    const getStepTitle = () => {
-        switch (currentStep) {
-            case 1:
-                return 'Choose Payment Plan Type';
-            case 2:
-                if (planData.type === 'donation') {
-                    return 'Configure Donation Settings';
-                }
-                if (planData.type === 'free') {
-                    return 'Configure Free Plan Settings';
-                }
-                return 'Configure Plan Details';
-            case 3:
-                return 'Manage Discounts & Coupons';
-            default:
-                return 'Create Payment Plan';
         }
     };
 
@@ -352,18 +333,14 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-h-[90vh] min-w-[800px] overflow-y-auto">
-                <DialogHeader>
+                <div>
                     <div className="flex items-center justify-between">
                         <DialogTitle className="flex items-center gap-2">
                             <CreditCard className="size-5" />
                             {editingPlan ? 'Edit Payment Plan' : 'Create Payment Plan'}
                         </DialogTitle>
-                        <div className="text-sm text-gray-500">
-                            Step {currentStep} of {getTotalSteps()}
-                        </div>
                     </div>
-                    <div className="mt-2 text-lg font-medium text-gray-700">{getStepTitle()}</div>
-                </DialogHeader>
+                </div>
 
                 <div className="mt-4 space-y-6">
                     {/* Step 1: Payment Type Selection */}
@@ -409,7 +386,8 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                     </div>
                                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                         {/* Free Plan */}
-                                        <div
+                                        <label
+                                            htmlFor="free"
                                             className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${planData.type === 'free' ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'}`}
                                         >
                                             <div className="flex items-start space-x-3">
@@ -439,9 +417,10 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </label>
                                         {/* Optional Donation */}
-                                        <div
+                                        <label
+                                            htmlFor="donation"
                                             className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${planData.type === 'donation' ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'}`}
                                         >
                                             <div className="flex items-start space-x-3">
@@ -472,7 +451,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </label>
                                     </div>
                                 </div>
                                 <div>
@@ -481,7 +460,8 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                     </div>
                                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                         {/* Subscription */}
-                                        <div
+                                        <label
+                                            htmlFor="subscription"
                                             className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${planData.type === 'subscription' ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'}`}
                                         >
                                             <div className="flex items-start space-x-3">
@@ -511,9 +491,9 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </label>
                                         {/* One-Time Payment */}
-                                        <div
+                                        <label
                                             className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${planData.type === 'upfront' ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'}`}
                                         >
                                             <div className="flex items-start space-x-3">
@@ -544,7 +524,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </label>
                                     </div>
                                 </div>
                             </RadioGroup>
@@ -697,7 +677,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                                                         config: {
                                                                             ...planData.config,
                                                                             subscription: {
-                                                                                ...planData.config
+                                                                                ...planData?.config
                                                                                     ?.subscription,
                                                                                 customIntervals,
                                                                             },
@@ -733,7 +713,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                                                         config: {
                                                                             ...planData.config,
                                                                             subscription: {
-                                                                                ...planData.config
+                                                                                ...planData?.config
                                                                                     ?.subscription,
                                                                                 customIntervals,
                                                                             },
@@ -763,7 +743,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                                                         config: {
                                                                             ...planData.config,
                                                                             subscription: {
-                                                                                ...planData.config
+                                                                                ...planData?.config
                                                                                     ?.subscription,
                                                                                 customIntervals,
                                                                             },
@@ -927,6 +907,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                                                 }}
                                                             />
                                                             <Button
+                                                                type="button"
                                                                 className="rounded border hover:bg-gray-200"
                                                                 onClick={() => {
                                                                     const customIntervals = [

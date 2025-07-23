@@ -503,6 +503,7 @@ const PaymentSettings = () => {
             </Card>
 
             <PaymentPlanCreator
+                key={editingPlan?.id}
                 isOpen={showPaymentPlanCreator}
                 onClose={handleClosePaymentPlanCreator}
                 onSave={(plan) => handleSavePaymentPlan(plan, requireApproval)}
