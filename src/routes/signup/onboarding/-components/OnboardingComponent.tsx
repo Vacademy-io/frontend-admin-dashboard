@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { CreateOnboardingSidebar } from './CreateOnboardingSidebar';
 import { OnboardingSteps } from './OnboardingSteps';
 import { Route } from '..';
+import VacademyVoltLogo from '@/components/core/volt-logo';
+import VacademyVSmartLogo from '@/components/core/vsmart-logo';
 // import { handleOAuthCallback } from '@/hooks/signup/oauth-signup'; // ✅ Make sure this path is correct
 // import { toast } from 'sonner';
 
@@ -58,8 +60,8 @@ export function OnboardingComponent() {
                     <div className="grid grid-cols-2 gap-4">
                         {searchParams.assess && <VacademyAssessLogo />}
                         {searchParams.lms && <VacademyLMSLogo />}
-                        {searchParams.volt && <VacademyLMSLogo />}
-                        {searchParams.vsmart && <VacademyLMSLogo />}
+                        {searchParams.volt && <VacademyVoltLogo />}
+                        {searchParams.vsmart && <VacademyVSmartLogo />}
                     </div>
                     <p>Fast-track your access in 3 steps—explore the tool now!</p>
                     <Separator className="my-6" />

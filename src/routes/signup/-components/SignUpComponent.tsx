@@ -19,6 +19,8 @@ import { useEffect } from 'react';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { FcGoogle } from 'react-icons/fc';
 import { handleOAuthSignUp } from '@/hooks/signup/oauth-signup';
+import VacademyVoltLogo from '@/components/core/volt-logo';
+import VacademyVSmartLogo from '@/components/core/vsmart-logo';
 
 const items = [
     { id: 'assess', label: 'Assess', description: 'Smart assessment and evaluation platform' },
@@ -45,6 +47,8 @@ export function SignUpComponent() {
             items: {
                 assess: false,
                 lms: false,
+                volt: false,
+                vsmart: false,
             },
         },
         mode: 'onChange',
@@ -94,7 +98,9 @@ export function SignUpComponent() {
                                     }
                                     disabled={
                                         !form.getValues('items.assess') &&
-                                        !form.getValues('items.lms')
+                                        !form.getValues('items.lms') &&
+                                        !form.getValues('items.volt') &&
+                                        !form.getValues('items.vsmart')
                                     }
                                 >
                                     {FcGoogle({ size: 20 })}
@@ -151,10 +157,10 @@ export function SignUpComponent() {
                                                             <VacademyLMSLogo className="w-[200px]" />
                                                         )}
                                                         {item.label === 'Volt' && (
-                                                            <VacademyLMSLogo className="w-[200px]" />
+                                                            <VacademyVoltLogo />
                                                         )}
                                                         {item.label === 'Vsmart' && (
-                                                            <VacademyLMSLogo className="w-[200px]" />
+                                                            <VacademyVSmartLogo />
                                                         )}
                                                     </FormLabel>
                                                     <FormControl>
