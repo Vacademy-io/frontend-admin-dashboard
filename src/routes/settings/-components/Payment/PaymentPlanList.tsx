@@ -4,18 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { CreditCard, Calendar, DollarSign, Edit, Trash2, Globe, Eye } from 'lucide-react';
-
-interface PaymentPlan {
-    id: string;
-    name: string;
-    type: 'subscription' | 'upfront' | 'donation' | 'free';
-    currency: string;
-    isDefault: boolean;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    config: any;
-    features?: string[];
-    validityDays?: number;
-}
+import { PaymentPlan } from '@/types/payment';
 
 const currencySymbols: { [key: string]: string } = {
     USD: '$',
@@ -47,9 +36,15 @@ const getPlanPriceDetails = (plan: PaymentPlan) => {
     const symbol = getCurrencySymbol(plan.currency);
     const details = [];
 
+    // Handle case where config is undefined
+    if (!plan.config) {
+        details.push('No configuration available');
+        return details;
+    }
+
     switch (plan.type) {
         case 'subscription': {
-            if (plan.config.subscription.customIntervals?.length > 0) {
+            if (plan.config?.subscription?.customIntervals?.length > 0) {
                 plan.config.subscription.customIntervals.forEach(
                     (
                         interval: {
@@ -117,7 +112,7 @@ const getPlanPriceDetails = (plan: PaymentPlan) => {
         }
 
         case 'upfront': {
-            const originalPrice = parseFloat(plan.config.upfront.fullPrice || '0');
+            const originalPrice = parseFloat(plan.config?.upfront?.fullPrice || '0');
             const upfrontDiscount = plan.config?.planDiscounts?.upfront;
 
             if (upfrontDiscount && upfrontDiscount.type !== 'none' && upfrontDiscount.amount) {
@@ -137,7 +132,7 @@ const getPlanPriceDetails = (plan: PaymentPlan) => {
                 }
 
                 details.push(
-                    <div className="flex items-center gap-2">
+                    <div key="upfront-discounted" className="flex items-center gap-2">
                         <span className="text-sm text-gray-600">Full Price:</span>
                         <span className="text-sm font-medium text-gray-400 line-through">
                             {symbol}
@@ -162,12 +157,12 @@ const getPlanPriceDetails = (plan: PaymentPlan) => {
         }
 
         case 'donation': {
-            if (plan.config.donation.suggestedAmounts) {
+            if (plan.config?.donation?.suggestedAmounts) {
                 details.push(
                     `Suggested Amounts: ${symbol}${plan.config.donation.suggestedAmounts}`
                 );
             }
-            if (plan.config.donation.minimumAmount) {
+            if (plan.config?.donation?.minimumAmount) {
                 details.push(`Minimum Amount: ${symbol}${plan.config.donation.minimumAmount}`);
             }
             break;
@@ -192,6 +187,7 @@ interface PaymentPlanListProps {
     onDelete?: (planId: string) => void;
     onSetDefault?: (planId: string) => void;
     onPreview?: (plan: PaymentPlan) => void;
+    deletingPlanId?: string | null;
 }
 
 export const PaymentPlanList: React.FC<PaymentPlanListProps> = ({
@@ -200,8 +196,8 @@ export const PaymentPlanList: React.FC<PaymentPlanListProps> = ({
     onDelete,
     onSetDefault,
     onPreview,
+    deletingPlanId,
 }) => {
-    console.log('plans => ', plans);
     return (
         <Card className="w-full">
             <CardHeader>
@@ -229,7 +225,7 @@ export const PaymentPlanList: React.FC<PaymentPlanListProps> = ({
                                         <div className="flex items-center gap-2">
                                             {getTypeIcon(plan.type)}
                                             <h3 className="text-lg font-medium">{plan.name}</h3>
-                                            {plan.isDefault && (
+                                            {plan.tag === 'DEFAULT' && (
                                                 <Badge
                                                     variant="default"
                                                     className="bg-green-100 text-green-800"
@@ -263,11 +259,13 @@ export const PaymentPlanList: React.FC<PaymentPlanListProps> = ({
                                                     <Edit className="size-4" />
                                                 </Button>
                                             )}
-                                            {onSetDefault && !plan.isDefault && (
+                                            {onSetDefault && plan.tag !== 'DEFAULT' && (
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={() => onSetDefault(plan.id)}
+                                                    onClick={() => {
+                                                        onSetDefault(plan.id);
+                                                    }}
                                                 >
                                                     Make Default
                                                 </Button>
@@ -278,8 +276,13 @@ export const PaymentPlanList: React.FC<PaymentPlanListProps> = ({
                                                     size="sm"
                                                     onClick={() => onDelete(plan.id)}
                                                     className="text-red-600 hover:text-red-700"
+                                                    disabled={deletingPlanId === plan.id}
                                                 >
-                                                    <Trash2 className="size-4" />
+                                                    {deletingPlanId === plan.id ? (
+                                                        <div className="size-4 animate-spin rounded-full border-b-2 border-red-600"></div>
+                                                    ) : (
+                                                        <Trash2 className="size-4" />
+                                                    )}
                                                 </Button>
                                             )}
                                         </div>
