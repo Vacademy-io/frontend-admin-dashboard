@@ -50,8 +50,10 @@ export const sessionFormSchema = z
         title: z.string().min(1, 'Title must be at least 1 characters'),
         subject: z
             .string()
-            .transform((val) => (val === 'none' ? '' : val))
-            .optional(),
+            .min(1, 'Subject is required')
+            .refine((val) => val !== 'none', {
+                message: 'Subject is required',
+            }),
         openWaitingRoomBefore: z.string().optional(),
         sessionType: z.string(),
         sessionPlatform: z.string(),
@@ -78,7 +80,9 @@ export const sessionFormSchema = z
         durationHours: z.string({
             required_error: 'Duration is required',
         }),
-        defaultLink: z.string().url('Invalid URL').optional().or(z.literal('')),
+        defaultLink: z
+            .string({ required_error: 'Live class link is required' })
+            .url('Invalid URL'),
         meetingType: z.nativeEnum(RecurringType),
         recurringSchedule: z.array(weeklyClassSchema).optional(),
     })

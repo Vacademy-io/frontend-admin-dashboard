@@ -599,7 +599,7 @@ export default function ScheduleStep1() {
                     <SelectField
                         label="Subject"
                         name="subject"
-                        labelStyle="font-thin"
+                        labelStyle="text-sm font-medium"
                         options={[
                             { value: 'none', label: 'Select Subject', _id: -1 },
                             ...SubjectFilterData.map((option, index) => ({
@@ -610,12 +610,20 @@ export default function ScheduleStep1() {
                         ]}
                         control={form.control}
                         className="mt-[8px] w-56 font-thin"
+                        required
                     />
                 )}
             </div>
 
             <div className="flex h-[280px] flex-col gap-6">
-                <h1 className="-mb-5 font-thin">Description</h1>
+                <div className="-mb-5 flex flex-col gap-1">
+                    <h1 className="text-sm font-medium">Description</h1>
+                    <p className="text-xs font-normal text-neutral-500">
+                        (Provide a brief overview of your live class. You can include text, emojis,
+                        images, or posters to give participants a quick idea of what the session is
+                        about)
+                    </p>
+                </div>
                 <FormField
                     control={control}
                     name="description"
@@ -663,9 +671,13 @@ export default function ScheduleStep1() {
                     name="startTime"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Start Date & Time</FormLabel>
+                            <FormLabel className="text-sm font-medium">
+                                Start Date & Time
+                                <span className="text-danger-600">*</span>
+                            </FormLabel>
                             <FormControl>
                                 <MyInput
+                                    required
                                     inputType="datetime-local"
                                     input={field.value}
                                     onChangeFunction={field.onChange}
@@ -753,7 +765,7 @@ export default function ScheduleStep1() {
                         name="endDate"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>End Date</FormLabel>
+                                <FormLabel className="text-sm font-medium">End Date</FormLabel>
                                 <FormControl>
                                     <MyInput
                                         inputType="date"
@@ -776,7 +788,10 @@ export default function ScheduleStep1() {
                 name="defaultLink"
                 render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Live Class Link</FormLabel>
+                        <FormLabel className="text-sm font-medium">
+                            Live Class Link
+                            <span className="text-danger-600">*</span>
+                        </FormLabel>
                         <FormControl>
                             <MyInput
                                 inputType="text"
@@ -796,14 +811,14 @@ export default function ScheduleStep1() {
             <SelectField
                 label="Live Stream Platform"
                 name="sessionPlatform"
-                labelStyle="font-thin"
+                labelStyle="text-sm font-medium"
                 options={STREAMING_OPTIONS}
                 control={form.control}
                 className="mt-[8px] w-56 font-thin"
                 onSelect={handleSessionPlatformChange}
             />
             <div className="flex h-full flex-col items-start justify-around gap-2">
-                <div className="text-sm">Type of Live Class</div>
+                <div className="text-sm font-medium">Type of Live Class</div>
                 <FormField
                     control={control}
                     name="sessionType"
@@ -829,7 +844,12 @@ export default function ScheduleStep1() {
         <div className="flex flex-col items-start gap-8">
             <div className="flex flex-row items-end gap-8">
                 <div className="flex h-full flex-col items-start justify-around gap-2">
-                    <div className="text-sm">Live Class Streaming</div>
+                    <div className="text-sm font-medium">
+                        Live Streaming Platform
+                        <span className="ml-1 text-xs font-normal text-neutral-500">
+                            (Do you want the students to view the class in the learner app, or do you want to redirect them to the app that is hosting the live session?)
+                        </span>
+                    </div>
                     <FormField
                         control={control}
                         name="streamingType"
@@ -924,7 +944,7 @@ export default function ScheduleStep1() {
                     <SelectField
                         label="Open Waiting Room Before"
                         name="openWaitingRoomBefore"
-                        labelStyle="font-thin"
+                        labelStyle="text-sm font-medium"
                         options={WAITING_ROOM_OPTIONS}
                         control={form.control}
                         className="mt-[8px] w-56 font-thin"
@@ -1196,7 +1216,7 @@ export default function ScheduleStep1() {
     return (
         <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(onSubmit, onError)} className="flex flex-col gap-8">
-                <div className="m-0 flex items-center justify-between p-0">
+                <div className="m-0 flex items-center justify-between p-0 sticky top-[72px] z-[9] bg-white border-b border-neutral-200 py-2">
                     <h1>Live Session Information</h1>
                     <MyButton type="submit" scale="large" buttonType="primary">
                         Next
