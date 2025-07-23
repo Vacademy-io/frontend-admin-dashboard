@@ -344,10 +344,13 @@ export const AddCourseStep2 = ({
         );
         setSessions(updatedSessions);
         form.setValue('sessions', ensureNewSessionAndLevelFlags(updatedSessions));
+        // Remove all sessionLevels for this session from all instructors
         setInstructorMappings((prev) =>
             prev.map((instructor) => ({
                 ...instructor,
-                sessionLevels: instructor.sessionLevels.filter((sl) => sl.batchId !== batchId),
+                sessionLevels: instructor.sessionLevels.filter(
+                    (sl) => sl.batchId !== batchId && sl.sessionId !== batchId
+                ),
             }))
         );
         setUsedExistingBatchIds((prev) => {
@@ -389,10 +392,13 @@ export const AddCourseStep2 = ({
         );
         setSessions(updatedSessions);
         form.setValue('sessions', ensureNewSessionAndLevelFlags(updatedSessions));
+        // Remove this level from all instructors
         setInstructorMappings((prev) =>
             prev.map((instructor) => ({
                 ...instructor,
-                sessionLevels: instructor.sessionLevels.filter((sl) => sl.batchId !== batchId),
+                sessionLevels: instructor.sessionLevels.filter(
+                    (sl) => sl.batchId !== batchId && sl.levelId !== batchId
+                ),
             }))
         );
         setUsedExistingBatchIds((prev) => {
@@ -645,6 +651,15 @@ export const AddCourseStep2 = ({
         );
         setSessions(updatedSessions);
         form.setValue('sessions', ensureNewSessionAndLevelFlags(updatedSessions));
+        // Remove this level from all instructors
+        setInstructorMappings((prev) =>
+            prev.map((instructor) => ({
+                ...instructor,
+                sessionLevels: instructor.sessionLevels.filter(
+                    (sl) => sl.batchId !== batchId && sl.levelId !== batchId
+                ),
+            }))
+        );
         setUsedExistingBatchIds((prev) => {
             const newSet = new Set(prev);
             newSet.delete(batchId);
