@@ -1,115 +1,131 @@
-import React from 'react';
-import {
-    Dialog as ShadDialog,
-    DialogContent as ShadDialogContent,
-    DialogHeader as ShadDialogHeader,
-    DialogTitle as ShadDialogTitle,
-} from '@/components/ui/dialog';
-import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { MyButton } from '@/components/design-system/button';
+import { Label } from '@/components/ui/label';
+import { savePaymentOption, transformLocalPlanToApiFormat } from '@/services/payment-options';
+import { toast } from 'sonner';
+import { Switch } from '@/components/ui/switch';
+import { getInstituteId } from '@/constants/helper';
+import { PaymentPlan } from '@/types/payment';
+import { InviteLinkFormValues } from './GenerateInviteLinkSchema';
 import { UseFormReturn } from 'react-hook-form';
-import { AddPlanFormValues, InviteLinkFormValues } from './GenerateInviteLinkSchema';
+import { PaymentPlanCreator } from '@/routes/settings/-components/Payment/PaymentPlanCreator';
+import { useEffect, useState } from 'react';
 
-interface AddPaymentPlanDialogProps {
+interface PaymentPlansDialogProps {
     form: UseFormReturn<InviteLinkFormValues>;
-    addPlanForm: UseFormReturn<AddPlanFormValues>;
-    handleAddPlan: (values: AddPlanFormValues) => void;
 }
 
-export function AddPaymentPlanDialog({
-    form,
-    addPlanForm,
-    handleAddPlan,
-}: AddPaymentPlanDialogProps) {
-    return (
-        <ShadDialog
-            open={form.watch('showAddPlanDialog')}
-            onOpenChange={(open) => form.setValue('showAddPlanDialog', open)}
-        >
-            <ShadDialogContent className="max-w-md">
-                <ShadDialogHeader>
-                    <ShadDialogTitle>Add New Payment Plan</ShadDialogTitle>
-                </ShadDialogHeader>
-                <Form {...addPlanForm}>
-                    <form className="space-y-4" onSubmit={addPlanForm.handleSubmit(handleAddPlan)}>
-                        <FormField
-                            control={addPlanForm.control}
-                            name="planType"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Plan Type</FormLabel>
-                                    <FormControl>
-                                        <Select value={field.value} onValueChange={field.onChange}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select plan type" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="free">Free</SelectItem>
-                                                <SelectItem value="paid">Paid</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={addPlanForm.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Plan Name</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Enter plan name" {...field} />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={addPlanForm.control}
-                            name="description"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Plan Description</FormLabel>
-                                    <FormControl>
-                                        <Textarea placeholder="Enter plan description" {...field} />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                        {addPlanForm.watch('planType') === 'paid' && (
-                            <FormField
-                                control={addPlanForm.control}
-                                name="price"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Plan Charges</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Enter plan charges (e.g. $49)"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
-                        )}
-                        <div className="flex justify-end">
-                            <MyButton type="submit" scale="small" buttonType="primary">
-                                Save
-                            </MyButton>
-                        </div>
-                    </form>
-                </Form>
-            </ShadDialogContent>
-        </ShadDialog>
+const AddPaymentPlanDialog = ({ form }: PaymentPlansDialogProps) => {
+    const [editingPlan, setEditingPlan] = useState<PaymentPlan | null>(null);
+    const [showPaymentPlanCreator, setShowPaymentPlanCreator] = useState(
+        form.watch('showAddPlanDialog')
     );
-}
+    const [featuresGlobal, setFeaturesGlobal] = useState<string[]>([]);
+    const [isSaving, setIsSaving] = useState(false);
+    const [requireApproval, setRequireApproval] = useState(false);
+    const instituteId = getInstituteId();
+
+    const handleError = (error: unknown, operation: string) => {
+        console.error(`Error in ${operation}:`, error);
+        toast.error(`Error in ${operation}`);
+    };
+
+    const handleClosePaymentPlanCreator = () => {
+        form.setValue('showAddPlanDialog', false);
+        setShowPaymentPlanCreator(false);
+        setEditingPlan(null);
+        setRequireApproval(false);
+    };
+
+    const handleSavePaymentPlan = async (plan: PaymentPlan, approvalOverride?: boolean) => {
+        setIsSaving(true);
+        try {
+            const apiPlan = transformLocalPlanToApiFormat(plan);
+            const paymentOptionRequest = {
+                id: plan.id, // Use the plan ID directly (either existing or new)
+                name: plan.name,
+                status: 'ACTIVE',
+                source: 'INSTITUTE',
+                source_id: instituteId ?? '',
+                type: plan.type,
+                require_approval: approvalOverride ?? requireApproval,
+                payment_plans: [apiPlan],
+                payment_option_metadata_json: JSON.stringify({
+                    currency: plan.currency,
+                    features: plan.features || [],
+                    config: plan.config,
+                    subscriptionData:
+                        plan.type === 'subscription'
+                            ? {
+                                  customIntervals: plan.config?.subscription?.customIntervals || [],
+                                  planDiscounts: plan.config?.planDiscounts || {},
+                              }
+                            : undefined,
+                    upfrontData:
+                        plan.type === 'upfront'
+                            ? {
+                                  fullPrice: plan.config?.upfront?.fullPrice,
+                                  planDiscounts: plan.config?.planDiscounts || {},
+                              }
+                            : undefined,
+                    donationData:
+                        plan.type === 'donation'
+                            ? {
+                                  suggestedAmounts: plan.config?.donation?.suggestedAmounts,
+                                  minimumAmount: plan.config?.donation?.minimumAmount,
+                                  allowCustomAmount: plan.config?.donation?.allowCustomAmount,
+                              }
+                            : undefined,
+                    freeData:
+                        plan.type === 'free'
+                            ? {
+                                  validityDays: plan.config?.free?.validityDays,
+                              }
+                            : undefined,
+                }),
+            };
+
+            await savePaymentOption(paymentOptionRequest);
+
+            setEditingPlan(null);
+            setShowPaymentPlanCreator(false);
+            setRequireApproval(false);
+        } catch (error) {
+            handleError(error, 'save payment plan');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    useEffect(() => {
+        setShowPaymentPlanCreator(form.watch('showAddPlanDialog'));
+    }, [form.watch('showAddPlanDialog')]);
+
+    return (
+        <>
+            <PaymentPlanCreator
+                key={editingPlan?.id}
+                isOpen={showPaymentPlanCreator}
+                onClose={handleClosePaymentPlanCreator}
+                onSave={(plan) => handleSavePaymentPlan(plan, requireApproval)}
+                editingPlan={editingPlan}
+                featuresGlobal={featuresGlobal}
+                setFeaturesGlobal={setFeaturesGlobal}
+                defaultCurrency={'GBP'}
+                isSaving={isSaving}
+                requireApprovalCheckbox={
+                    !editingPlan && (
+                        <div className="mt-4 flex items-center gap-2">
+                            <Label htmlFor="requireApproval">Send for approval</Label>
+                            <Switch
+                                id="requireApproval"
+                                checked={requireApproval}
+                                onCheckedChange={setRequireApproval}
+                            />
+                        </div>
+                    )
+                }
+            />
+        </>
+    );
+};
+
+export default AddPaymentPlanDialog;

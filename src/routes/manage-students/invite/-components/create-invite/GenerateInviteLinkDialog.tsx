@@ -25,7 +25,7 @@ import {
     inviteLinkSchema,
 } from './GenerateInviteLinkSchema';
 import { PaymentPlansDialog } from './PaymentPlansDialog';
-import { AddPaymentPlanDialog } from './AddPaymentPlanDialog';
+import AddPaymentPlanDialog from './AddPaymentPlanDialog';
 import { DiscountSettingsDialog } from './DiscountSettingsDialog';
 import { AddDiscountDialog } from './AddDiscountDialog';
 import { AddReferralProgramDialog } from './AddReferralProgramDialog';
@@ -758,11 +758,12 @@ const GenerateInviteLinkDialog = ({
             {/* Payment Plans Dialog */}
             <PaymentPlansDialog form={form} />
             {/* Add New Payment Plan Dialog */}
-            <AddPaymentPlanDialog
+            {/* <AddPaymentPlanDialog
                 form={form}
                 addPlanForm={addPlanForm}
                 handleAddPlan={handleAddPlan}
-            />
+            /> */}
+            <AddPaymentPlanDialog form={form} />
             {/* Discount Settings Dialog */}
             <DiscountSettingsDialog form={form} />
             {/* Add New Discount Dialog */}
