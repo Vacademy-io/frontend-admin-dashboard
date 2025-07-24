@@ -30,11 +30,11 @@ const currencySymbols: { [key: string]: string } = {
     CAD: 'C$',
 };
 
-const getCurrencySymbol = (currencyCode: string) => {
+export const getCurrencySymbol = (currencyCode: string) => {
     return currencySymbols[currencyCode] || currencyCode;
 };
 
-const getTypeIcon = (type: string) => {
+export const getPaymentPlanIcon = (type: string) => {
     switch (type) {
         case 'subscription':
             return <Calendar className="size-5" />;
@@ -58,6 +58,8 @@ export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
             selectedPlan: getDefaultPlanFromPaymentsData(paymentsData),
         });
     }, [paymentsData]);
+
+    console.log(form.watch('selectedPlan'));
 
     return (
         <ShadDialog
@@ -86,7 +88,7 @@ export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
                                 >
                                     <div className="flex flex-col items-start gap-3 p-4">
                                         <div className="flex items-center gap-3">
-                                            {getTypeIcon(plan.type || '')}
+                                            {getPaymentPlanIcon(plan.type || '')}
                                             <div className="flex flex-1 flex-col font-semibold">
                                                 <span>{plan.name}</span>
                                             </div>
@@ -99,7 +101,8 @@ export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
                                         {plan.type === 'donation' ? (
                                             <div className="flex flex-col gap-2 pl-8 text-xs text-neutral-600">
                                                 <span>
-                                                    Suggested Amounts: £
+                                                    Suggested Amounts:{' '}
+                                                    {getCurrencySymbol(plan.currency || '')}
                                                     {plan.suggestedAmount?.join(',')}
                                                 </span>
                                                 <span>
@@ -133,7 +136,7 @@ export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
                                 >
                                     <div className="flex flex-col items-start gap-3 p-4">
                                         <div className="flex items-center gap-3">
-                                            {getTypeIcon(plan.type || '')}
+                                            {getPaymentPlanIcon(plan.type || '')}
                                             <div className="flex flex-1 flex-col">
                                                 <span>{plan.name}</span>
                                             </div>
