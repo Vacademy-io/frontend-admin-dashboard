@@ -59,8 +59,6 @@ export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
         });
     }, [paymentsData]);
 
-    console.log(form.watch('selectedPlan'));
-
     return (
         <ShadDialog
             open={form.watch('showPlansDialog')}
