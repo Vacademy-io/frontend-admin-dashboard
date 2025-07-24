@@ -6,7 +6,7 @@ import {
     DialogDescription as ShadDialogDescription,
 } from '@/components/ui/dialog';
 import { Card } from '@/components/ui/card';
-import { Gift } from 'phosphor-react';
+import { Calendar, CreditCard, Globe } from 'phosphor-react';
 import { Badge } from '@/components/ui/badge';
 import { MyButton } from '@/components/design-system/button';
 import { UseFormReturn } from 'react-hook-form';
@@ -15,10 +15,37 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { handleGetPaymentDetails } from './-services/get-payments';
 import { useEffect } from 'react';
 import { getDefaultPlanFromPaymentsData, splitPlansByType } from './-utils/helper';
+import { DollarSign } from 'lucide-react';
 
 interface PaymentPlansDialogProps {
     form: UseFormReturn<InviteLinkFormValues>;
 }
+
+const currencySymbols: { [key: string]: string } = {
+    USD: '$',
+    EUR: '€',
+    GBP: '£',
+    INR: '₹',
+    AUD: 'A$',
+    CAD: 'C$',
+};
+
+const getCurrencySymbol = (currencyCode: string) => {
+    return currencySymbols[currencyCode] || currencyCode;
+};
+
+const getTypeIcon = (type: string) => {
+    switch (type) {
+        case 'subscription':
+            return <Calendar className="size-5" />;
+        case 'upfront':
+            return <DollarSign className="size-5" />;
+        case 'free':
+            return <Globe className="size-5" />;
+        default:
+            return <CreditCard className="size-5" />;
+    }
+};
 
 export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
     const { data: paymentsData } = useSuspenseQuery(handleGetPaymentDetails());
@@ -57,18 +84,35 @@ export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
                                         form.setValue('showPlansDialog', false);
                                     }}
                                 >
-                                    <div className="flex items-center gap-3 p-4">
-                                        <Gift size={18} />
-                                        <div className="flex flex-1 flex-col">
-                                            <span>{plan.name}</span>
-                                            <span className="text-neutral-600">
-                                                {plan.description}
-                                            </span>
+                                    <div className="flex flex-col items-start gap-3 p-4">
+                                        <div className="flex items-center gap-3">
+                                            {getTypeIcon(plan.type || '')}
+                                            <div className="flex flex-1 flex-col font-semibold">
+                                                <span>{plan.name}</span>
+                                            </div>
+                                            {form.watch('selectedPlan')?.id === plan.id && (
+                                                <Badge variant="default" className="ml-auto">
+                                                    Default
+                                                </Badge>
+                                            )}
                                         </div>
-                                        {form.watch('selectedPlan')?.id === plan.id && (
-                                            <Badge variant="default" className="ml-auto">
-                                                Default
-                                            </Badge>
+                                        {plan.type === 'donation' ? (
+                                            <div className="flex flex-col gap-2 pl-8 text-xs text-neutral-600">
+                                                <span>
+                                                    Suggested Amounts: £
+                                                    {plan.suggestedAmount?.join(',')}
+                                                </span>
+                                                <span>
+                                                    Minimum Amount:{' '}
+                                                    {getCurrencySymbol(plan.currency || '')}
+                                                    {plan.minAmount}
+                                                </span>
+                                                <span>Currency: {plan.currency}</span>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col gap-2 pl-8 text-xs text-neutral-600">
+                                                <span>Free for {plan.days} days</span>
+                                            </div>
                                         )}
                                     </div>
                                 </Card>
@@ -87,19 +131,44 @@ export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
                                         form.setValue('showPlansDialog', false);
                                     }}
                                 >
-                                    <div className="flex items-center gap-3 p-4">
-                                        <Gift size={18} />
-                                        <div className="flex flex-1 flex-col">
-                                            <span>{plan.name}</span>
-                                            <span className="text-neutral-600">
-                                                {plan.description}
-                                            </span>
-                                            <span className="text-neutral-600">{plan.price}</span>
+                                    <div className="flex flex-col items-start gap-3 p-4">
+                                        <div className="flex items-center gap-3">
+                                            {getTypeIcon(plan.type || '')}
+                                            <div className="flex flex-1 flex-col">
+                                                <span>{plan.name}</span>
+                                            </div>
+                                            {form.watch('selectedPlan')?.id === plan.id && (
+                                                <Badge variant="default" className="ml-auto">
+                                                    Default
+                                                </Badge>
+                                            )}
                                         </div>
-                                        {form.watch('selectedPlan')?.id === plan.id && (
-                                            <Badge variant="default" className="ml-auto">
-                                                Default
-                                            </Badge>
+                                        {plan.type === 'upfront' ? (
+                                            <div className="flex flex-col gap-2 pl-8 text-xs text-neutral-600">
+                                                <span>
+                                                    Full Price:{' '}
+                                                    {getCurrencySymbol(plan.currency || '')}
+                                                    {plan.price}
+                                                </span>
+                                                <span>Currency: {plan.currency}</span>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col gap-2 pl-8 text-xs text-neutral-600">
+                                                {plan.paymentOption?.map((payment, idx) => {
+                                                    return (
+                                                        <div key={idx} className="flex">
+                                                            <span>
+                                                                {payment.title}:{' '}
+                                                                {getCurrencySymbol(
+                                                                    plan.currency || ''
+                                                                )}
+                                                                {payment.price}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })}
+                                                <span>Currency: {plan.currency}</span>
+                                            </div>
                                         )}
                                     </div>
                                 </Card>

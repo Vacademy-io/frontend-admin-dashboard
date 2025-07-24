@@ -38,14 +38,29 @@ type FreePlan = {
     id: string;
     name: string;
     description: string;
+    days?: number;
+    suggestedAmount?: number[];
+    minAmount?: number;
+    currency?: string;
+    type?: string;
 };
 
-type PaidPlan = {
+interface PaidPlan {
     id: string;
     name: string;
     description: string;
-    price: string;
-};
+    price?: string;
+    type?: string;
+    currency?: string;
+    paymentOption?: {
+        value: number;
+        unit: string;
+        price: string;
+        features: string[];
+        title: string;
+        newFeature: string;
+    }[];
+}
 
 export interface Course {
     id: string;
@@ -221,19 +236,51 @@ export function splitPlansByType(data: PaymentOption[]): {
     const paidPlans: PaidPlan[] = [];
 
     data.forEach((item) => {
-        if (item.type === 'FREE') {
-            freePlans.push({
-                id: item.id,
-                name: item.name,
-                description: 'Access to free plan.',
-            });
+        if (item.type === 'FREE' || item.type === 'free' || item.type === 'donation') {
+            const parsedData = JSON.parse(item.payment_option_metadata_json);
+            if (item.type === 'donation') {
+                freePlans.push({
+                    id: item.id,
+                    name: item.name,
+                    description: 'Access to donation plan.',
+                    suggestedAmount:
+                        parsedData?.donationData?.suggestedAmounts
+                            ?.split(',')
+                            ?.map((x: string) => Number(x.trim())) || [],
+                    minAmount: parsedData?.donationData?.minimumAmount || 0,
+                    currency: parsedData?.currency || '',
+                    type: item.type,
+                });
+            } else {
+                freePlans.push({
+                    id: item.id,
+                    name: item.name,
+                    description: 'Access to free plan.',
+                    days: parsedData?.freeData?.validityDays || 0,
+                    type: item.type,
+                });
+            }
         } else {
-            paidPlans.push({
-                id: item.id,
-                name: item.name,
-                description: 'Access to paid plan.',
-                price: '$XX', // fallback if price is missing
-            });
+            const parsedData = JSON.parse(item.payment_option_metadata_json);
+            if (item.type === 'upfront') {
+                paidPlans.push({
+                    id: item.id,
+                    name: item.name,
+                    description: 'Access to one time payment plan.',
+                    price: parsedData?.upfrontData?.fullPrice || '',
+                    currency: parsedData?.currency || '',
+                    type: item.type,
+                });
+            } else {
+                paidPlans.push({
+                    id: item.id,
+                    name: item.name,
+                    description: 'Access to subscription plan.',
+                    currency: parsedData?.currency || '',
+                    type: item.type,
+                    paymentOption: parsedData?.subscriptionData?.customIntervals || [],
+                });
+            }
         }
     });
 

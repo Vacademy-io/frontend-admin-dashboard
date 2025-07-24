@@ -104,7 +104,11 @@ export const inviteLinkSchema = z.object({
                 id: z.string(),
                 name: z.string(),
                 description: z.string(),
-                price: z.string().optional(),
+                days: z.number().optional(),
+                suggestedAmount: z.array(z.number()).optional(),
+                minAmount: z.number().optional(),
+                currency: z.string().optional(),
+                type: z.string().optional(),
             })
         )
         .default([]),
@@ -115,6 +119,20 @@ export const inviteLinkSchema = z.object({
                 name: z.string(),
                 description: z.string(),
                 price: z.string().optional(),
+                currency: z.string().optional(),
+                paymentOption: z
+                    .array(
+                        z.object({
+                            value: z.number(),
+                            unit: z.string(),
+                            price: z.string(),
+                            features: z.array(z.string()),
+                            title: z.string(),
+                            newFeature: z.string(),
+                        })
+                    )
+                    .optional(),
+                type: z.string().optional(),
             })
         )
         .default([]),
