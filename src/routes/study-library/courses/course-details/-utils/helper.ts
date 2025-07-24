@@ -31,6 +31,7 @@ export interface Session {
         session_name: string;
         status: string;
         start_date: string;
+        new_session: boolean;
     };
     level_with_details: Array<{
         id: string;
@@ -38,6 +39,7 @@ export interface Session {
         duration_in_days: number;
         instructors: Instructor[];
         subjects: SubjectType[];
+        new_level: boolean;
     }>;
 }
 
@@ -83,25 +85,34 @@ function isJson(str: string): boolean {
 export const transformApiDataToCourseData = async (apiData: CourseWithSessionsType) => {
     if (!apiData) return null;
 
+    // Local cache for fileId -> publicUrl
+    const fileUrlCache: Record<string, string> = {};
+    async function getUrlOnce(fileId: string | null | undefined): Promise<string> {
+        if (!fileId) return '';
+        if (fileUrlCache[fileId] !== undefined) return fileUrlCache[fileId] ?? '';
+        const url = (await getPublicUrl(fileId)) ?? '';
+        fileUrlCache[fileId] = url;
+        return url;
+    }
+
     try {
         const courseMediaImage = isJson(apiData.course.course_media_id)
             ? JSON.parse(apiData.course.course_media_id)
             : apiData.course.course_media_id;
 
-        const coursePreviewImageMediaId = await getPublicUrl(
-            apiData.course.course_preview_image_media_id
+        const coursePreviewImageMediaId = await getUrlOnce(
+            apiData.course.course_preview_image_media_id ?? ''
         );
-
-        const courseBannerMediaId = await getPublicUrl(apiData.course.course_banner_media_id);
+        const courseBannerMediaId = await getUrlOnce(apiData.course.course_banner_media_id ?? '');
 
         let courseMediaPreview = '';
         if (isJson(apiData.course.course_media_id) && courseMediaImage.type === 'youtube') {
             courseMediaPreview = courseMediaImage.id;
         } else {
-            courseMediaPreview = await getPublicUrl(
+            courseMediaPreview = await getUrlOnce(
                 isJson(apiData.course.course_media_id)
-                    ? courseMediaImage.id
-                    : apiData.course.course_media_id
+                    ? courseMediaImage.id ?? ''
+                    : apiData.course.course_media_id ?? ''
             );
         }
 
@@ -144,6 +155,7 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
                         id: level.id,
                         name: level.name,
                         duration_in_days: level.duration_in_days,
+                        newLevel: level.new_level,
                         instructors: level.instructors.map((inst) => ({
                             id: inst.id,
                             name: inst.full_name,
@@ -168,6 +180,7 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
                     session_name: session.session_dto.session_name,
                     status: session.session_dto.status,
                     start_date: session.session_dto.start_date,
+                    newSession: session.session_dto.new_session,
                 },
             })),
         };

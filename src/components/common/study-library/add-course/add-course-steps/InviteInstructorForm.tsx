@@ -146,7 +146,7 @@ const InviteInstructorForm = ({ onInviteSuccess, onCancel }: InviteInstructorFor
                                     isLoading ||
                                     !form.watch('name') ||
                                     !form.watch('email') ||
-                                    form.watch('roleType').length == 0
+                                    (form.watch('roleType')?.length ?? 0) == 0
                                 }
                             >
                                 {isLoading ? (

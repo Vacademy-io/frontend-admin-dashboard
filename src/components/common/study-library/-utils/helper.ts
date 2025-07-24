@@ -1,8 +1,6 @@
 import { CourseDetailsFormValues } from '@/routes/study-library/courses/course-details/-components/course-details-schema';
 import { Step1Data, Step2Data } from '../add-course/add-course-form';
 import { Session } from '@/types/course/create-course';
-import { TokenKey } from '@/constants/auth/tokens';
-import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 
 export type CourseFormData = Step1Data & Step2Data;
 interface AddFacultyToCourse {
@@ -81,32 +79,8 @@ type FormattedSession = FormattedCourseData['sessions'][0];
 type FormattedLevel = FormattedSession['levels'][0];
 
 export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCourseData => {
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const tokenData = getTokenDecodedData(accessToken);
     const hasLevels = formData.hasLevels === 'yes';
     const hasSessions = formData.hasSessions === 'yes';
-
-    // 👇 Additional user to be added in every level
-    const additionalUser = {
-        user: {
-            id: tokenData?.user || '',
-            username: '',
-            email: tokenData?.email || '',
-            full_name: tokenData?.fullname || '',
-            address_line: '',
-            city: '',
-            region: '',
-            pin_code: '',
-            mobile_number: '',
-            date_of_birth: '',
-            gender: '',
-            password: '',
-            profile_pic_file_id: '',
-            roles: [],
-            root_user: true,
-        },
-        new_user: false,
-    };
 
     const mapUser = (user: { id: string; name: string; email: string; profilePicId: string }) => ({
         user: {
@@ -134,16 +108,17 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
             id: string;
             name: string;
             userIds: { id: string; name: string; email: string; profilePicId: string }[];
+            newLevel: boolean;
         }>
     ): FormattedLevel[] =>
         levels.map((level) => ({
-            id: '',
-            new_level: true,
+            id: level.id,
+            new_level: level.newLevel,
             level_name: level.name,
             duration_in_days: 0,
             thumbnail_file_id: '',
             package_id: '',
-            add_faculty_to_course: [...(level.userIds?.map(mapUser) ?? []), additionalUser],
+            add_faculty_to_course: [...(level.userIds?.map(mapUser) ?? [])],
             group: {
                 id: '',
                 group_name: '',
@@ -174,7 +149,6 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
                         package_id: '',
                         add_faculty_to_course: [
                             ...(Array.isArray(allUsers) ? allUsers.map(mapUser) : []),
-                            additionalUser,
                         ],
                         group: {
                             id: 'DEFAULT',
@@ -188,11 +162,11 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
         ];
     } else if (hasSessions) {
         sessions = formData.sessions.map((session) => ({
-            id: '',
+            id: session.id,
             session_name: session.name,
             status: 'ACTIVE',
             start_date: session.startDate,
-            new_session: true,
+            new_session: session.newSession,
             levels: hasLevels
                 ? formatLevels(session.levels)
                 : [
@@ -205,7 +179,6 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
                           package_id: '',
                           add_faculty_to_course: [
                               ...(session.levels?.[0]?.userIds?.map(mapUser) ?? []),
-                              additionalUser,
                           ],
                           group: {
                               id: 'DEFAULT',
@@ -217,7 +190,7 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
                   ],
         }));
     } else if (hasLevels) {
-        const standaloneLevels = formData.sessions.find((s) => s.id === 'standalone')?.levels || [];
+        const standaloneLevels = formData.sessions.find((s) => s.id === 'DEFAULT')?.levels || [];
         sessions = [
             {
                 id: 'DEFAULT',
@@ -226,13 +199,13 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
                 start_date: '',
                 new_session: true,
                 levels: standaloneLevels.map((level) => ({
-                    id: '',
-                    new_level: true,
+                    id: level.id,
+                    new_level: level.newLevel,
                     level_name: level.name,
                     duration_in_days: 0,
                     thumbnail_file_id: '',
                     package_id: '',
-                    add_faculty_to_course: [...(level.userIds?.map(mapUser) ?? []), additionalUser],
+                    add_faculty_to_course: [...(level.userIds?.map(mapUser) ?? [])],
                     group: {
                         id: '',
                         group_name: '',
@@ -276,32 +249,6 @@ export const convertToApiCourseFormatUpdate = (
     const hasLevels = formData.hasLevels === 'yes';
     const hasSessions = formData.hasSessions === 'yes';
 
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const tokenData = getTokenDecodedData(accessToken);
-
-    // 👇 Additional user to be added to all levels
-    const additionalUser = {
-        user: {
-            id: tokenData?.user || '',
-            username: '',
-            email: tokenData?.email || '',
-            full_name: tokenData?.fullname || '',
-            address_line: '',
-            city: '',
-            region: '',
-            pin_code: '',
-            mobile_number: '',
-            date_of_birth: '',
-            gender: '',
-            password: '',
-            profile_pic_file_id: '',
-            roles: [],
-            root_user: true,
-        },
-        status: 'ACTIVE',
-        new_user: false,
-    };
-
     const findById = <T extends { id: string }>(list: T[], id: string) =>
         list.find((item) => item.id === id);
 
@@ -316,6 +263,7 @@ export const convertToApiCourseFormatUpdate = (
         id: string;
         name: string;
         userIds: User[];
+        newLevel: boolean;
     };
 
     const formatLevels = (sessionId: string, newLevels: Level[] = [], oldLevels: Level[] = []) => {
@@ -377,7 +325,7 @@ export const convertToApiCourseFormatUpdate = (
                         root_user: true,
                     },
                     status: 'ACTIVE',
-                    new_user: true,
+                    new_user: false,
                 }));
 
             const existingUsers = currentUsers
@@ -404,16 +352,11 @@ export const convertToApiCourseFormatUpdate = (
                     new_user: false,
                 }));
 
-            const add_faculty_to_course = [
-                ...deletedUsers,
-                ...addedUsers,
-                ...existingUsers,
-                additionalUser,
-            ];
+            const add_faculty_to_course = [...deletedUsers, ...addedUsers, ...existingUsers];
 
             return {
-                id: isNewLevel ? '' : level?.id || '',
-                new_level: isNewLevel ? true : false,
+                id: level?.id || '',
+                new_level: level?.newLevel ?? false,
                 level_name: level?.name || '',
                 duration_in_days: 0,
                 thumbnail_file_id: '',
@@ -449,7 +392,6 @@ export const convertToApiCourseFormatUpdate = (
         const current = findById(currentSessions, sessionId);
         const previous = findById(previousSessions, sessionId);
 
-        const isNewSession = current && !previous;
         const isDeletedSession = !current && previous;
         const session = current || previous;
 
@@ -460,11 +402,11 @@ export const convertToApiCourseFormatUpdate = (
         );
 
         return {
-            id: isNewSession ? '' : session?.id || '',
+            id: session?.id || '',
             session_name: session?.name || '',
             status: isDeletedSession ? 'DELETED' : 'ACTIVE',
             start_date: session?.startDate || '',
-            new_session: isNewSession ? true : false,
+            new_session: session?.newSession ?? false,
             levels,
         };
     });
@@ -527,6 +469,7 @@ export function transformCourseData(course: CourseDetailsFormValues) {
             id: session.sessionDetails?.id ?? '',
             name: session.sessionDetails?.session_name ?? '',
             startDate: session.sessionDetails?.start_date ?? '',
+            newSession: session.sessionDetails?.newSession ?? false,
             levels: (session.levelDetails ?? []).map((level) => ({
                 id: level.id,
                 name: level.name,
@@ -537,6 +480,7 @@ export function transformCourseData(course: CourseDetailsFormValues) {
                     profilePicId: inst.profilePicId,
                     roles: inst.roles,
                 })),
+                newLevel: level.newLevel ?? false,
             })),
         })),
         selectedInstructors: extractInstructors(sessions),

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Heart } from 'lucide-react';
+import { currencyOptions } from '../../-constants/payments';
 
 interface DonationPlanPreviewProps {
     currency: string;
@@ -12,15 +13,6 @@ interface DonationPlanPreviewProps {
     allowCustomAmount: boolean;
     onSelectAmount?: (amount: string) => void;
 }
-
-const currencyOptions = [
-    { code: 'USD', name: 'US Dollar', symbol: '$' },
-    { code: 'EUR', name: 'Euro', symbol: '€' },
-    { code: 'GBP', name: 'British Pound', symbol: '£' },
-    { code: 'INR', name: 'Indian Rupee', symbol: '₹' },
-    { code: 'AUD', name: 'Australian Dollar', symbol: 'A$' },
-    { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$' },
-];
 
 export const DonationPlanPreview: React.FC<DonationPlanPreviewProps> = ({
     currency,
@@ -109,7 +101,7 @@ export const DonationPlanPreview: React.FC<DonationPlanPreviewProps> = ({
                             }`}
                         />
                         {minAmount > 0 && (
-                            <p className="text-center text-xs text-gray-500">
+                            <p className="text-center text-xs text-red-500">
                                 Minimum amount: {getCurrencySymbol(currency)}
                                 {minAmount}
                             </p>

@@ -20,7 +20,7 @@ import DraftSessionCard from './draft-session-card';
 import { useSessionDetailsStore } from '../-store/useSessionDetailsStore';
 import { useLiveSessionStore } from '../schedule/-store/sessionIdstore';
 import { CalendarIcon } from '@radix-ui/react-icons';
-import { CaretDown } from 'phosphor-react';
+import { CaretDown, VideoCameraSlash } from 'phosphor-react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
@@ -437,7 +437,26 @@ export default function SessionListPage() {
     ) {
         if (isLoading) return <div>Loading...</div>;
         if (error) return <div>Error loading sessions</div>;
-        if (!sessions.length) return <div className="py-8 text-center">No sessions found</div>;
+        if (!sessions.length) {
+            const tabLabel =
+                tab === SessionStatus.LIVE
+                    ? 'Live'
+                    : tab === SessionStatus.UPCOMING
+                      ? 'Upcoming'
+                      : tab === SessionStatus.PAST
+                        ? 'Past'
+                        : 'Draft';
+
+            return (
+                <div className="flex h-[300px] flex-col items-center justify-center gap-4 text-center">
+                    <VideoCameraSlash size={64} className="text-neutral-300" />
+                    <h2 className="text-2xl font-bold text-neutral-600">No {tabLabel} Sessions</h2>
+                    <p className="max-w-xs text-sm text-neutral-500">
+                        Schedule your first live class to engage with learners in real time.
+                    </p>
+                </div>
+            );
+        }
         const page = currentPages[tab];
         const total = Math.ceil(sessions.length / ITEMS_PER_PAGE);
         const pageItems = paginateArray(sessions, page);
