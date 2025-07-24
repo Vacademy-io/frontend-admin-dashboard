@@ -623,12 +623,10 @@ export const CourseDetailsPage = () => {
                                             Added to catalog
                                         </MyButton>
                                     )}
-                                    <div className="border-4">
-                                        <AddCourseForm
-                                            isEdit={true}
-                                            initialCourseData={form.getValues()}
-                                        />
-                                    </div>
+                                    <AddCourseForm
+                                        isEdit={true}
+                                        initialCourseData={form.getValues()}
+                                    />
                                     {form.getValues('courseData').tags.length > 0 && (
                                         <div className="flex flex-wrap gap-2">
                                             {form.getValues('courseData').tags.map((tag, index) => (
