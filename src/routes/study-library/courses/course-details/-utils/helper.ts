@@ -89,7 +89,7 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
     const fileUrlCache: Record<string, string> = {};
     async function getUrlOnce(fileId: string | null | undefined): Promise<string> {
         if (!fileId) return '';
-        if (fileUrlCache[fileId]) return fileUrlCache[fileId];
+        if (fileUrlCache[fileId] !== undefined) return fileUrlCache[fileId] ?? '';
         const url = (await getPublicUrl(fileId)) ?? '';
         fileUrlCache[fileId] = url;
         return url;
@@ -101,9 +101,9 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
             : apiData.course.course_media_id;
 
         const coursePreviewImageMediaId = await getUrlOnce(
-            apiData.course.course_preview_image_media_id
+            apiData.course.course_preview_image_media_id ?? ''
         );
-        const courseBannerMediaId = await getUrlOnce(apiData.course.course_banner_media_id);
+        const courseBannerMediaId = await getUrlOnce(apiData.course.course_banner_media_id ?? '');
 
         let courseMediaPreview = '';
         if (isJson(apiData.course.course_media_id) && courseMediaImage.type === 'youtube') {
@@ -111,8 +111,8 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
         } else {
             courseMediaPreview = await getUrlOnce(
                 isJson(apiData.course.course_media_id)
-                    ? courseMediaImage.id
-                    : apiData.course.course_media_id
+                    ? courseMediaImage.id ?? ''
+                    : apiData.course.course_media_id ?? ''
             );
         }
 
