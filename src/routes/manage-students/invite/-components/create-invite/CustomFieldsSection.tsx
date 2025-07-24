@@ -242,7 +242,7 @@ export const CustomFieldsSection = ({
                         </MyButton>
                     }
                     onAddField={handleAddCustomField}
-                    customFields={customFields}
+                    customFields={customFields || []}
                 />
             </div>
         </div>

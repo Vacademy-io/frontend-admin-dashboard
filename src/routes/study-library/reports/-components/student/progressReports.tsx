@@ -220,7 +220,7 @@ export default function ProgressReports() {
 
     const subjectWiseData = {
         content: subjectReportData
-            ? transformToSubjectOverview(subjectReportData, watch('student'))
+            ? transformToSubjectOverview(subjectReportData, watch('student') || '')
             : [],
         total_pages: 0,
         page_no: 0,
@@ -385,7 +385,7 @@ export default function ProgressReports() {
                                 </div>
                             </div>
                             <div className="flex flex-row gap-10">
-                                <ReportRecipientsDialogBox userId={selectedStudent} />
+                                <ReportRecipientsDialogBox userId={selectedStudent || ''} />
                                 <MyButton
                                     buttonType="secondary"
                                     onClick={() => {

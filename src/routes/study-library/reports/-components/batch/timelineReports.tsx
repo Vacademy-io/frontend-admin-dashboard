@@ -147,8 +147,8 @@ export default function TimelineReports() {
         leaderboardMutation.mutate(
             {
                 body: {
-                    start_date: startDate,
-                    end_date: endDate,
+                    start_date: startDate || '',
+                    end_date: endDate || '',
                     package_session_id: pacageSessionId,
                 },
                 param: { pageNo: currPage, pageSize: 10 },
@@ -170,8 +170,8 @@ export default function TimelineReports() {
     const getBatchReportDataPDF = useMutation({
         mutationFn: () =>
             exportBatchReport({
-                startDate: startDate,
-                endDate: endDate,
+                startDate: startDate || '',
+                endDate: endDate || '',
                 packageSessionId:
                     getPackageSessionId({
                         courseId: selectedCourse || '',

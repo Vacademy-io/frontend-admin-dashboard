@@ -205,15 +205,15 @@ export default function TimelineReports() {
     const getBatchReportDataPDF = useMutation({
         mutationFn: () =>
             exportLearnersReport({
-                startDate: startDate,
-                endDate: endDate,
+                startDate: startDate || '',
+                endDate: endDate || '',
                 packageSessionId:
                     getPackageSessionId({
                         courseId: selectedCourse || '',
                         sessionId: selectedSession || '',
                         levelId: selectedLevel || '',
                     }) || '',
-                userId: selectedStudent,
+                userId: selectedStudent || '',
             }),
         onSuccess: async (response) => {
             const url = window.URL.createObjectURL(new Blob([response]));
@@ -426,10 +426,10 @@ export default function TimelineReports() {
                             <div className="text-h3 text-primary-500">
                                 {studentList.find((s) => s.user_id === selectedStudent)?.full_name}
                             </div>
-                            <div>{`Date ${startDate} - ${endDate}`}</div>
+                            <div>{`Date ${startDate || ''} - ${endDate || ''}`}</div>
                         </div>
                         <div className="flex flex-row gap-10">
-                            <ReportRecipientsDialogBox userId={selectedStudent} />
+                            <ReportRecipientsDialogBox userId={selectedStudent || ''} />
                             <MyButton
                                 buttonType="secondary"
                                 onClick={() => {
