@@ -89,8 +89,6 @@ export const SlideMaterial = ({
     const searchParams = router.state.location.search;
     const { courseId, levelId, chapterId, slideId, moduleId, subjectId, sessionId } = searchParams;
 
-    console.log('🔍 Raw search params:', searchParams);
-    console.log('🔍 Extracted params:', { courseId, levelId, chapterId, slideId, moduleId, subjectId, sessionId });
     const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
     const [isUnpublishDialogOpen, setIsUnpublishDialogOpen] = useState(false);
     const { getPackageSessionId } = useInstituteDetailsStore();
@@ -414,14 +412,6 @@ export const SlideMaterial = ({
         // ✅ Handle ASSIGNMENT slides (check source_type first)
         if (activeItem.source_type === 'ASSIGNMENT') {
             try {
-                console.log('[Assignment] Loading assignment preview for:', {
-                    slideId: activeItem.id,
-                    title: activeItem.title,
-                    status: activeItem.status,
-                    hasAssignmentSlide: !!activeItem.assignment_slide,
-                    assignmentSlideData: activeItem.assignment_slide,
-                });
-
                 if (!activeItem.assignment_slide) {
                     console.warn('[Assignment] No assignment_slide data found, showing fallback');
                     setContent(
@@ -992,15 +982,8 @@ export const SlideMaterial = ({
     activeItem.source_type?.toUpperCase() === 'QUIZ' ||
     activeItem.id?.startsWith('quiz-')
 ) {
-    console.log('activeItem.source_type:', activeItem.source_type);
-    console.log('activeItem.id:', activeItem.id);
-    console.log('activeItem.status:', activeItem.status);
-    console.log('activeItem.question_slide:', activeItem.question_slide);
-
     try {
         // For question slides, we don't need to parse data as it's already structured
-        console.log('🎯 Loading QuizPreview with question slide');
-        console.log('🔍 Route parameters:', { chapterId, moduleId, subjectId, sessionId });
         setContent(
             <QuizPreview
                 activeItem={activeItem}
@@ -1021,7 +1004,6 @@ export const SlideMaterial = ({
 
         if (
             activeItem.source_type?.toUpperCase() === 'QUESTION') {
-            console.log('activeItem.source_type', activeItem.source_type);
             setContent(<StudyLibraryQuestionsPreview activeItem={activeItem} />);
             return;
         }
@@ -1709,6 +1691,8 @@ export const SlideMaterial = ({
                             >
                                 <ChatCircleDots className="size-5" />
                             </MyButton>
+                            {/* Slides Menu Option */}
+                            <SlidesMenuOption />
                         </div>
                     )}
                 </div>

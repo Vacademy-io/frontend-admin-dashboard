@@ -286,7 +286,7 @@ export const AddCourseForm = ({
 
                             toast.success(
                                 `${getTerminology(ContentTerms.Course, SystemTerms.Course)}` +
-                                    'created successfully'
+                                    ' created successfully'
                             );
                             setIsOpen(false);
                             setStep(1);
