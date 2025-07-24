@@ -144,9 +144,9 @@ export default function TimelineReports() {
     const { data } = useLearnerDetails(
         // const { data, isLoading, error } = useLearnerDetails(
         getPackageSessionId({
-            courseId: selectedCourse,
-            sessionId: selectedSession,
-            levelId: selectedLevel,
+            courseId: selectedCourse || '',
+            sessionId: selectedSession || '',
+            levelId: selectedLevel || '',
         }) || '',
         INSTITUTE_ID || ''
     );
@@ -163,9 +163,9 @@ export default function TimelineReports() {
                 end_date: data.endDate,
                 package_session_id:
                     getPackageSessionId({
-                        courseId: data.course,
-                        sessionId: data.session,
-                        levelId: data.level,
+                        courseId: data.course || '',
+                        sessionId: data.session || '',
+                        levelId: data.level || '',
                     }) || '',
                 user_id: data.student,
             },
@@ -184,9 +184,9 @@ export default function TimelineReports() {
                 end_date: data.endDate,
                 package_session_id:
                     getPackageSessionId({
-                        courseId: data.course,
-                        sessionId: data.session,
-                        levelId: data.level,
+                        courseId: data.course || '',
+                        sessionId: data.session || '',
+                        levelId: data.level || '',
                     }) || '',
                 user_id: data.student,
             },
@@ -209,9 +209,9 @@ export default function TimelineReports() {
                 endDate: endDate,
                 packageSessionId:
                     getPackageSessionId({
-                        courseId: selectedCourse,
-                        sessionId: selectedSession,
-                        levelId: selectedLevel,
+                        courseId: selectedCourse || '',
+                        sessionId: selectedSession || '',
+                        levelId: selectedLevel || '',
                     }) || '',
                 userId: selectedStudent,
             }),

@@ -92,9 +92,9 @@ export default function ProgressReports() {
 
     const { data } = useLearnerDetails(
         getPackageSessionId({
-            courseId: selectedCourse,
-            sessionId: selectedSession,
-            levelId: selectedLevel,
+            courseId: selectedCourse || '',
+            sessionId: selectedSession || '',
+            levelId: selectedLevel || '',
         }) || '',
         INSTITUTE_ID || ''
     );
@@ -136,11 +136,11 @@ export default function ProgressReports() {
             {
                 packageSessionId:
                     getPackageSessionId({
-                        courseId: data.course,
-                        sessionId: data.session,
-                        levelId: data.level,
+                        courseId: data.course || '',
+                        sessionId: data.session || '',
+                        levelId: data.level || '',
                     }) || '',
-                userId: data.student,
+                userId: data.student || '',
             },
             {
                 onSuccess: (data) => {
@@ -156,9 +156,9 @@ export default function ProgressReports() {
         setLevel(levelList.find((course) => (course.id = data.level))?.level_name || '');
         setPacageSessionId(
             getPackageSessionId({
-                courseId: data.course,
-                sessionId: data.session,
-                levelId: data.level,
+                courseId: data.course || '',
+                sessionId: data.session || '',
+                levelId: data.level || '',
             }) || ''
         );
     };
@@ -170,11 +170,11 @@ export default function ProgressReports() {
                 endDate: '',
                 packageSessionId:
                     getPackageSessionId({
-                        courseId: selectedCourse,
-                        sessionId: selectedSession,
-                        levelId: selectedLevel,
+                        courseId: selectedCourse || '',
+                        sessionId: selectedSession || '',
+                        levelId: selectedLevel || '',
                     }) || '',
-                userId: selectedStudent,
+                userId: selectedStudent || '',
             }),
         onSuccess: async (response) => {
             const url = window.URL.createObjectURL(new Blob([response]));

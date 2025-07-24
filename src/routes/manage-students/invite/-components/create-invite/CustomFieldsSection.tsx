@@ -105,7 +105,7 @@ export const CustomFieldsSection = ({
             </Sortable>
             <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3">
                 {!customFields
-                    .filter((field) => field.status === 'ACTIVE')
+                    ?.filter((field) => field.status === 'ACTIVE')
                     ?.some((field) => field.name === 'Gender') && (
                     <MyButton
                         type="button"
@@ -123,7 +123,7 @@ export const CustomFieldsSection = ({
                     </MyButton>
                 )}
                 {!customFields
-                    .filter((field) => field.status === 'ACTIVE')
+                    ?.filter((field) => field.status === 'ACTIVE')
                     ?.some((field) => field.name === 'State') && (
                     <MyButton
                         type="button"
@@ -135,7 +135,7 @@ export const CustomFieldsSection = ({
                     </MyButton>
                 )}
                 {!customFields
-                    .filter((field) => field.status === 'ACTIVE')
+                    ?.filter((field) => field.status === 'ACTIVE')
                     ?.some((field) => field.name === 'City') && (
                     <MyButton
                         type="button"
@@ -147,7 +147,7 @@ export const CustomFieldsSection = ({
                     </MyButton>
                 )}
                 {!customFields
-                    .filter((field) => field.status === 'ACTIVE')
+                    ?.filter((field) => field.status === 'ACTIVE')
                     ?.some((field) => field.name === 'School/College') && (
                     <MyButton
                         type="button"
@@ -161,7 +161,7 @@ export const CustomFieldsSection = ({
                     </MyButton>
                 )}
                 {!customFields
-                    .filter((field) => field.status === 'ACTIVE')
+                    ?.filter((field) => field.status === 'ACTIVE')
                     ?.some((field) => field.name === 'Address') && (
                     <MyButton
                         type="button"
@@ -173,7 +173,7 @@ export const CustomFieldsSection = ({
                     </MyButton>
                 )}
                 {!customFields
-                    .filter((field) => field.status === 'ACTIVE')
+                    ?.filter((field) => field.status === 'ACTIVE')
                     ?.some((field) => field.name === 'Pincode') && (
                     <MyButton
                         type="button"
@@ -185,7 +185,7 @@ export const CustomFieldsSection = ({
                     </MyButton>
                 )}
                 {!customFields
-                    .filter((field) => field.status === 'ACTIVE')
+                    ?.filter((field) => field.status === 'ACTIVE')
                     ?.some((field) => field.name === 'Father Name') && (
                     <MyButton
                         type="button"
@@ -197,7 +197,7 @@ export const CustomFieldsSection = ({
                     </MyButton>
                 )}
                 {!customFields
-                    .filter((field) => field.status === 'ACTIVE')
+                    ?.filter((field) => field.status === 'ACTIVE')
                     ?.some((field) => field.name === 'Mother Name') && (
                     <MyButton
                         type="button"
@@ -209,7 +209,7 @@ export const CustomFieldsSection = ({
                     </MyButton>
                 )}
                 {!customFields
-                    .filter((field) => field.status === 'ACTIVE')
+                    ?.filter((field) => field.status === 'ACTIVE')
                     ?.some((field) => field.name === 'Parent Phone Number') && (
                     <MyButton
                         type="button"
@@ -223,7 +223,7 @@ export const CustomFieldsSection = ({
                     </MyButton>
                 )}
                 {!customFields
-                    .filter((field) => field.status === 'ACTIVE')
+                    ?.filter((field) => field.status === 'ACTIVE')
                     ?.some((field) => field.name === 'Parent Email') && (
                     <MyButton
                         type="button"

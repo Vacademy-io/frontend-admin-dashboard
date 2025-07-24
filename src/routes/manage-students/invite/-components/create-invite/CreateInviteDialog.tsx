@@ -170,8 +170,8 @@ export const CreateInviteDialog = ({
     useEffect(() => {
         if (handleDisableCreateInviteButton) {
             if (
-                watch('batches.preSelectedCourses').length === 0 &&
-                watch('batches.learnerChoiceCourses').length === 0
+                (watch('batches.preSelectedCourses')?.length ?? 0) === 0 &&
+                (watch('batches.learnerChoiceCourses')?.length ?? 0) === 0
             ) {
                 handleDisableCreateInviteButton(true);
             } else {
@@ -181,10 +181,10 @@ export const CreateInviteDialog = ({
     }, [watch('batches.preSelectedCourses'), watch('batches.learnerChoiceCourses')]);
 
     useEffect(() => {
-        const len = watch('batches.learnerChoiceCourses').length;
+        const len = watch('batches.learnerChoiceCourses')?.length ?? 0;
         const maxValue = watch('batches.maxCourses');
-        if (maxValue > len) setValue('batches.maxCourses', len);
-    }, [watch('batches.learnerChoiceCourses').length]);
+        if (maxValue && maxValue > len) setValue('batches.maxCourses', len);
+    }, [watch('batches.learnerChoiceCourses')?.length]);
 
     useIntroJsTour({
         key: IntroKey.inviteFirstTimeVisit,
