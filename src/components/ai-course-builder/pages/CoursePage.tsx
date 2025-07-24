@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-warning-comments */
 import React, { useState, useMemo } from 'react';
 import { applyModifications, Modification } from '../lib/applyModifications';
 import ThreeColumnLayout from '../layout/ThreeColumnLayout';

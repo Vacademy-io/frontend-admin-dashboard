@@ -1,3 +1,4 @@
+/* eslint-disable no-warning-comments */
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckSquare, Square } from 'lucide-react';
 import './TodoList.css';
@@ -111,4 +112,4 @@ const TodoList: React.FC = () => {
   );
 };
 
-export default TodoList; 
+export default TodoList;
