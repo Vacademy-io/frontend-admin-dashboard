@@ -550,14 +550,19 @@ export const CourseStructureDetails = ({
             setActiveItem(slide);
         }
 
-        // For 2-depth courses, we need dummy values for the route structure
+        // Get real subject, module, and chapter IDs for 2-depth
+        const realSubjectId = subjects[0]?.id || '';
+        const moduleWithChapters = subjectModulesMap[realSubjectId]?.[0];
+        const realModuleId = moduleWithChapters?.module.id || '';
+        const realChapterId = moduleWithChapters?.chapters?.[0]?.chapter.id || '';
+
         const navigationParams = {
             courseId: router.state.location.search.courseId ?? '',
             levelId: selectedLevel,
-            subjectId: 'direct-course-slides', // Dummy subject ID for 2-depth
-            moduleId: 'direct-course-module', // Dummy module ID for 2-depth
-            chapterId: 'direct-course-chapter', // Dummy chapter ID for 2-depth
-            slideId: slideId || '', // Empty for new slide
+            subjectId: realSubjectId,
+            moduleId: realModuleId,
+            chapterId: realChapterId,
+            slideId: slideId || '',
             sessionId: selectedSession,
         };
 
@@ -1655,49 +1660,70 @@ export const CourseStructureDetails = ({
 
                         {courseStructure === 2 && (
                             <div className="space-y-1.5">
-                                <MyButton
-                                    buttonType="text"
-                                    onClick={() => handleDirectSlideNavigation()}
-                                    className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
-                                >
-                                    <Plus
-                                        size={14}
-                                        weight="bold"
-                                        className="text-primary-400 group-hover:text-primary-500"
-                                    />
-                                    <span className="font-medium">
-                                        Add{' '}
-                                        {getTerminology(ContentTerms.Slides, SystemTerms.Slides)}
-                                    </span>
-                                </MyButton>
-
-                                {directSlides.length === 0 ? (
-                                    <div className="px-2 py-1 text-xs text-gray-400">
-                                        No {getTerminology(ContentTerms.Slides, SystemTerms.Slides)}{' '}
-                                        in this course.
-                                    </div>
-                                ) : (
-                                    directSlides.map((slide, sIdx) => (
-                                        <div
-                                            key={slide.id}
-                                            className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
-                                            onClick={() => {
-                                                handleDirectSlideNavigation(slide.id);
-                                            }}
-                                        >
-                                            <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
-                                                S{sIdx + 1}
-                                            </span>
-                                            {getIcon(
-                                                slide.source_type,
-                                                slide.document_slide?.type,
-                                                '3'
-                                            )}
-                                            <span className="truncate" title={slide.title}>
-                                                {slide.title || `Slide ${sIdx + 1}`}
-                                            </span>
-                                        </div>
-                                    ))
+                                {Object.entries(subjectModulesMap).flatMap(([subjectId, modules]) =>
+                                    modules.flatMap((mod) =>
+                                        mod.chapters.flatMap((ch) => [
+                                            // Add Slide button for this chapter (now before slides)
+                                            <MyButton
+                                                key={`add-slide-${ch.chapter.id}`}
+                                                buttonType="text"
+                                                onClick={() =>
+                                                    handleSlideNavigation(
+                                                        subjectId,
+                                                        mod.module.id,
+                                                        ch.chapter.id,
+                                                        '' // Empty slideId for new slide
+                                                    )
+                                                }
+                                                className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
+                                            >
+                                                <Plus
+                                                    size={14}
+                                                    weight="bold"
+                                                    className="text-primary-400 group-hover:text-primary-500"
+                                                />
+                                                <span className="font-medium">
+                                                    Add{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Slides,
+                                                        SystemTerms.Slides
+                                                    )}
+                                                </span>
+                                            </MyButton>,
+                                            // Slides for this chapter
+                                            ...(chapterSlidesMap[ch.chapter.id] ?? []).map(
+                                                (slide, sIdx) => (
+                                                    <div
+                                                        key={slide.id}
+                                                        className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
+                                                        onClick={() => {
+                                                            handleSlideNavigation(
+                                                                subjectId,
+                                                                mod.module.id,
+                                                                ch.chapter.id,
+                                                                slide.id
+                                                            );
+                                                        }}
+                                                    >
+                                                        <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
+                                                            S{sIdx + 1}
+                                                        </span>
+                                                        {getIcon(
+                                                            slide.source_type,
+                                                            slide.document_slide?.type,
+                                                            '3'
+                                                        )}
+                                                        <span
+                                                            className="truncate"
+                                                            title={slide.title}
+                                                        >
+                                                            {slide.title || `Slide ${sIdx + 1}`}
+                                                        </span>
+                                                    </div>
+                                                )
+                                            ),
+                                        ])
+                                    )
                                 )}
                             </div>
                         )}
