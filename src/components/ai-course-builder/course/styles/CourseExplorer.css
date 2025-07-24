@@ -149,6 +149,7 @@
   border-left: 1px solid transparent;
   font-size: 11px;
   color: #52525b;
+  animation: none;
 }
 
 .tree-item:hover {
@@ -278,6 +279,7 @@
 
 .tree-item-children {
   position: relative;
+  animation: none;
 }
 
 .module-progress {
@@ -318,14 +320,6 @@
   color: #71717a;
 }
 
-.tree-item {
-  animation: none;
-}
-
-.tree-item-children {
-  animation: none;
-}
-
 .tree-item-add, .tree-item-delete{
   display:inline-flex;
   align-items:center;
@@ -348,21 +342,21 @@
     border-radius: 0;
     font-size: 11px;
   }
-  
+
   .tree-item {
     padding-right: 8px;
     min-height: 24px;
   }
-  
+
   .course-explorer-header {
     padding: 6px 8px;
   }
-  
+
   .course-explorer-search {
     padding: 4px 8px;
   }
-  
+
   .course-explorer-subtitle {
     display: none;
   }
-} 
+}

@@ -1301,20 +1301,6 @@
   margin: 0;
 }
 
-.input-mode-selector {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 8px;
-}
-
-.input-mode-selector .btn {
-  padding: 4px 8px;
-  font-size: 10px;
-  border: 1px solid #d1d5db;
-  background: white;
-  cursor: pointer;
-}
-
 .uploaded-files-preview {
   margin-bottom: 8px;
   padding: 8px;
@@ -1920,9 +1906,4 @@
 }
 
 /* Ensure proper scrolling behavior for chat messages */
-.chat-messages {
-  overflow-y: auto;
-  overflow-x: hidden;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-}
+/* duplicate .chat-messages override removed; base definition already handles scrolling */
