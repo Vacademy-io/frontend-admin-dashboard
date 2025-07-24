@@ -87,10 +87,10 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
 
     // Local cache for fileId -> publicUrl
     const fileUrlCache: Record<string, string> = {};
-    async function getUrlOnce(fileId: string | null | undefined) {
+    async function getUrlOnce(fileId: string | null | undefined): Promise<string> {
         if (!fileId) return '';
         if (fileUrlCache[fileId]) return fileUrlCache[fileId];
-        const url = await getPublicUrl(fileId);
+        const url = (await getPublicUrl(fileId)) ?? '';
         fileUrlCache[fileId] = url;
         return url;
     }
