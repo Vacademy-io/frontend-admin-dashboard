@@ -16,8 +16,6 @@ import { zodResolver as discountZodResolver } from '@hookform/resolvers/zod';
 import {
     AddDiscountFormValues,
     addDiscountSchema,
-    AddPlanFormValues,
-    addPlanSchema,
     AddReferralFormValues,
     addReferralSchema,
     GenerateInviteLinkDialogProps,
@@ -282,43 +280,6 @@ const GenerateInviteLinkDialog = ({
 
     const onInvalid = (err: unknown) => {
         console.error(err);
-    };
-
-    const addPlanForm = useShadForm<AddPlanFormValues>({
-        resolver: shadZodResolver(addPlanSchema),
-        defaultValues: {
-            planType: 'free',
-            name: '',
-            description: '',
-            price: '',
-        },
-    });
-
-    const handleAddPlan = (values: AddPlanFormValues) => {
-        if (values.planType === 'free') {
-            const freePlans = form.getValues('freePlans');
-            form.setValue('freePlans', [
-                ...freePlans,
-                {
-                    id: `free${freePlans.length + 1}`,
-                    name: values.name,
-                    description: values.description,
-                },
-            ]);
-        } else {
-            const paidPlans = form.getValues('paidPlans');
-            form.setValue('paidPlans', [
-                ...paidPlans,
-                {
-                    id: `paid${paidPlans.length + 1}`,
-                    name: values.name,
-                    description: values.description,
-                    price: values.price || '',
-                },
-            ]);
-        }
-        form.setValue('showAddPlanDialog', false);
-        addPlanForm.reset();
     };
 
     const extractYouTubeVideoId = (url: string): string | null => {
@@ -758,11 +719,6 @@ const GenerateInviteLinkDialog = ({
             {/* Payment Plans Dialog */}
             <PaymentPlansDialog form={form} />
             {/* Add New Payment Plan Dialog */}
-            {/* <AddPaymentPlanDialog
-                form={form}
-                addPlanForm={addPlanForm}
-                handleAddPlan={handleAddPlan}
-            /> */}
             <AddPaymentPlanDialog form={form} />
             {/* Discount Settings Dialog */}
             <DiscountSettingsDialog form={form} />
