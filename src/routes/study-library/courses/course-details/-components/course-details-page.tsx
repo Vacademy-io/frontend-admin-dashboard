@@ -44,6 +44,7 @@ import { getTerminology } from '@/components/common/layout-container/sidebar/uti
 import { AddCourseForm } from '@/components/common/study-library/add-course/add-course-form';
 import { MyButton } from '@/components/design-system/button';
 import { getPublicUrl } from '@/services/upload_file';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
 
 type SlideType = {
     id: string;
@@ -501,6 +502,46 @@ export const CourseDetailsPage = () => {
     const instructors: Omit<InstructorWithPicUrl, 'profilePicUrl'>[] =
         form.getValues('courseData').instructors || [];
 
+    // Cache for profilePicId -> url
+    const profilePicUrlCache = useRef<Record<string, string>>({});
+
+    // Determine if we should show the dashboard loader
+    const isLoading = useMemo(() => {
+        // Show loader if study library data is not loaded yet
+        if (!studyLibraryData) {
+            return true;
+        }
+
+        // Show loader if course details data is not found for the current courseId
+        if (!courseDetailsData) {
+            return true;
+        }
+
+        // Show loader if form data hasn't been loaded yet (title is empty)
+        if (!form.getValues('courseData')?.title) {
+            return true;
+        }
+
+        // Show loader if instructor avatars are loading
+        if (loadingInstructors) {
+            return true;
+        }
+
+        // Show loader if slide count query is loading and we have packageSessionIds
+        if (packageSessionIds && slideCountQuery.isLoading) {
+            return true;
+        }
+
+        return false;
+    }, [
+        studyLibraryData,
+        courseDetailsData,
+        form.watch('courseData.title'),
+        loadingInstructors,
+        packageSessionIds,
+        slideCountQuery.isLoading,
+    ]);
+
     useEffect(() => {
         let isMounted = true;
         async function preloadInstructorAvatars() {
@@ -510,13 +551,15 @@ export const CourseDetailsPage = () => {
                     instructors.map((i) => i.profilePicId).filter((id): id is string => Boolean(id))
                 ),
             ];
-            const idToUrl: Record<string, string> = {};
+            // Only fetch URLs for IDs not already in the cache
             await Promise.all(
                 uniqueProfilePicIds.map(async (id) => {
-                    try {
-                        idToUrl[id] = await getPublicUrl(id);
-                    } catch {
-                        idToUrl[id] = '';
+                    if (!(id in profilePicUrlCache.current)) {
+                        try {
+                            profilePicUrlCache.current[id] = await getPublicUrl(id);
+                        } catch {
+                            profilePicUrlCache.current[id] = '';
+                        }
                     }
                 })
             );
@@ -525,8 +568,8 @@ export const CourseDetailsPage = () => {
                     instructors.map((inst) => ({
                         ...inst,
                         profilePicUrl:
-                            inst.profilePicId && idToUrl[inst.profilePicId]
-                                ? idToUrl[inst.profilePicId]
+                            inst.profilePicId && profilePicUrlCache.current[inst.profilePicId]
+                                ? profilePicUrlCache.current[inst.profilePicId]
                                 : '',
                     })) as InstructorWithPicUrl[]
                 );
@@ -538,6 +581,11 @@ export const CourseDetailsPage = () => {
             isMounted = false;
         };
     }, [JSON.stringify(instructors)]);
+
+    // Show dashboard loader while loading
+    if (isLoading) {
+        return <DashboardLoader />;
+    }
 
     return (
         <div className="bg-gray-5 z-0 flex min-h-screen flex-col">
