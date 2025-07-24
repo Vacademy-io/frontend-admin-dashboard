@@ -84,7 +84,14 @@ const AddPaymentPlanDialog = ({ form }: PaymentPlansDialogProps) => {
             };
 
             await savePaymentOption(paymentOptionRequest);
-
+            if (plan.type === 'free') {
+                const freePlans = form.getValues('freePlans');
+                form.setValue('freePlans', [...freePlans, paymentOptionRequest]);
+            } else {
+                const paidPlans = form.getValues('paidPlans');
+                form.setValue('paidPlans', [...paidPlans, paymentOptionRequest]);
+            }
+            form.setValue('showAddPlanDialog', false);
             setEditingPlan(null);
             setShowPaymentPlanCreator(false);
             setRequireApproval(false);
