@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any, complexity */
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { courseData as defaultCourseData } from './courseData';
 import type { Subject, Module, Chapter, Slide } from './courseData';

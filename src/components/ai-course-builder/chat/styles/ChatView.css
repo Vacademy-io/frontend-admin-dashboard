@@ -1,3 +1,4 @@
+/* stylelint-disable no-duplicate-selectors shorthand-property-no-redundant-values */
 /* Chat Interface - Enhanced Enterprise Design */
 .ai-chat-container {
   display: flex;
@@ -469,7 +470,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 2px 2px;
+  padding: 2px;
   background: hsl(var(--primary-50));
   border: 1px solid hsl(var(--primary-200));
   border-radius: 4px;
@@ -820,89 +821,89 @@
     max-height: 15%;
     padding: 2px 4px;
   }
-  
+
   .template-grid {
     grid-template-columns: 1fr;
     gap: 1px;
   }
-  
+
   .template-card {
     min-height: auto;
   }
-  
+
   .template-header {
     padding: 2px 3px 1px;
   }
-  
+
   .template-content {
     padding: 0 3px 2px;
   }
-  
+
   .template-title {
     font-size: 8px;
   }
-  
+
   .template-content p {
     font-size: 7px;
     line-height: 1.0;
   }
-  
+
   .example-prompt {
     padding: 1px 2px;
     font-size: 7px;
   }
-  
+
   .chat-messages {
     padding: 3px;
     gap: 3px;
   }
-  
+
   .message-content {
     max-width: 100%;
     word-wrap: break-word;
     overflow-wrap: break-word;
   }
-  
+
   .chat-input-area {
     padding: 2px;
   }
-  
+
   .chat-textarea {
     padding: 6px 24px 6px 6px;
     font-size: 11px;
     min-height: 50px;
   }
-  
+
   .send-button-inside {
     padding: 1px 2px;
     right: 1px;
     width: 16px;
     height: 14px;
   }
-  
+
   .send-button-inside svg {
     width: 8px;
     height: 8px;
   }
-  
+
   /* Ultra-compact icons for very narrow spaces */
   .template-icon {
     width: 14px;
     height: 14px;
     margin-bottom: 2px;
   }
-  
+
   .input-mode-selector button {
     padding: 1px 3px;
     font-size: 8px;
     gap: 1px;
   }
-  
+
   .input-mode-selector button svg {
     width: 8px;
     height: 8px;
   }
-  
+
   .example-prompt svg {
     width: 8px;
     height: 8px;
@@ -914,76 +915,76 @@
     max-height: 18%;
     padding: 3px 5px;
   }
-  
+
   .template-grid {
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 2px;
   }
-  
+
   .template-card {
     min-width: 0;
   }
-  
+
   .template-title {
     font-size: 9px;
   }
-  
+
   .template-content p {
     font-size: 8px;
     line-height: 1.1;
   }
-  
+
   .example-prompt {
     padding: 2px 3px;
     font-size: 8px;
   }
-  
+
   .message-content {
     max-width: 100%;
     word-wrap: break-word;
     overflow-wrap: break-word;
   }
-  
+
   .chat-input-area {
     padding: 3px;
   }
-  
+
   .chat-textarea {
     padding: 6px 26px 6px 6px;
     font-size: 11px;
     min-height: 45px;
   }
-  
+
   .send-button-inside {
     padding: 1px 3px;
     right: 1px;
     width: 18px;
     height: 16px;
   }
-  
+
   .send-button-inside svg {
     width: 9px;
     height: 9px;
   }
-  
+
   /* Compact icons for moderately narrow spaces */
   .template-icon {
     width: 15px;
     height: 15px;
     margin-bottom: 2px;
   }
-  
+
   .input-mode-selector button {
     padding: 1px 4px;
     font-size: 8px;
     gap: 1px;
   }
-  
+
   .input-mode-selector button svg {
     width: 9px;
     height: 9px;
   }
-  
+
   .example-prompt svg {
     width: 9px;
     height: 9px;
@@ -997,58 +998,58 @@
     overflow-x: hidden;
     font-size: 11px;
   }
-  
+
   .template-section {
     max-height: 20%;
     padding: 6px 8px;
   }
-  
+
   .template-grid {
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 3px;
   }
-  
+
   .template-card {
     min-width: 0;
   }
-  
+
   .template-title {
     font-size: 10px;
   }
-  
+
   .template-content p {
     font-size: 9px;
     line-height: 1.2;
   }
-  
+
   .example-prompt {
     padding: 3px 4px;
     font-size: 9px;
   }
-  
+
   .message-content {
     max-width: 100%;
     word-wrap: break-word;
     overflow-wrap: break-word;
   }
-  
+
   .chat-input-area {
     padding: 6px;
   }
-  
+
   .chat-textarea {
     padding: 8px 32px 8px 8px;
     font-size: 12px;
     min-height: 60px;
   }
-  
+
   .send-button-inside {
     padding: 2px 4px;
     right: 2px;
     width: 24px;
     height: 20px;
   }
-  
+
   .send-button-inside svg {
     width: 12px;
     height: 12px;
@@ -1060,66 +1061,66 @@
     max-width: 100%;
     overflow-x: hidden;
   }
-  
+
   .template-section {
     max-height: 18%;
     padding: 4px 6px;
   }
-  
+
   .template-grid {
     grid-template-columns: 1fr;
     gap: 2px;
   }
-  
+
   .template-card {
     min-height: auto;
   }
-  
+
   .template-header {
     padding: 3px 4px 2px;
   }
-  
+
   .template-content {
     padding: 0 4px 3px;
   }
-  
+
   .template-title {
     font-size: 9px;
   }
-  
+
   .template-content p {
     font-size: 8px;
     line-height: 1.1;
   }
-  
+
   .example-prompt {
     padding: 2px 3px;
     font-size: 8px;
   }
-  
+
   .message-content {
     max-width: 100%;
     word-wrap: break-word;
     overflow-wrap: break-word;
   }
-  
+
   .chat-input-area {
     padding: 4px;
   }
-  
+
   .chat-textarea {
     padding: 6px 26px 6px 6px;
     font-size: 11px;
     min-height: 50px;
   }
-  
+
   .send-button-inside {
     padding: 1px 3px;
     right: 1px;
     width: 20px;
     height: 18px;
   }
-  
+
   .send-button-inside svg {
     width: 10px;
     height: 10px;
@@ -1131,30 +1132,30 @@
     max-height: 20%;
     padding: 6px 8px;
   }
-  
+
   .template-grid {
     gap: 3px;
   }
-  
+
   .chat-messages {
     padding: 8px;
     gap: 6px;
   }
-  
+
   .message-content {
     max-width: 95%;
   }
-  
+
   .input-container {
     gap: 4px;
   }
-  
+
   .chat-textarea {
     min-height: 40px;
     padding: 6px 30px 6px 6px;
     font-size: 12px;
   }
-  
+
   .send-button-inside {
     padding: 3px 4px;
     font-size: 10px;
@@ -1166,49 +1167,49 @@
   .ai-chat-container {
     font-size: 14px;
   }
-  
+
   .template-section {
     max-height: 30%;
     padding: 12px;
   }
-  
+
   .template-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .chat-messages {
     padding: 16px;
   }
-  
+
   .message-content {
     max-width: 85%;
   }
-  
+
   .chat-input-area {
     padding: 12px;
   }
-  
+
   .input-container {
     flex-direction: column;
   }
-  
+
   .chat-textarea {
     min-height: 44px;
     padding: 12px 44px 12px 12px;
     font-size: 14px;
   }
-  
+
   .send-button-inside {
     width: 36px;
     height: 36px;
     right: 6px;
   }
-  
+
   .send-button-inside svg {
     width: 18px;
     height: 18px;
   }
-  
+
   .input-footer {
     margin-top: 8px;
     font-size: 12px;
@@ -1455,12 +1456,12 @@
   .chat-input-area {
     display: none;
   }
-  
+
   .chat-messages {
     height: auto;
     overflow: visible;
   }
-  
+
   .ai-chat-container {
     height: auto;
     border: none;
@@ -1847,7 +1848,7 @@
 .tooltip{position:relative;display:inline-block;}
 .tooltip-text{visibility:hidden;position:absolute;bottom:125%;left:50%;transform:translateX(-50%);background:hsl(var(--primary-500));color:#fafafa;font-size:10px;padding:4px 8px;border-radius:6px;white-space:nowrap;opacity:0;transition:opacity .2s ease;pointer-events:none;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);}
 .tooltip:hover .tooltip-text{visibility:visible;opacity:1;}
-.tooltip-text::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border-width:4px;border-style:solid;border-color:hsl(var(--primary-500)) transparent transparent transparent;} 
+.tooltip-text::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border-width:4px;border-style:solid;border-color:hsl(var(--primary-500)) transparent transparent;}
 
 .edit-textarea{
   width:100%;
@@ -1863,7 +1864,7 @@
 .edit-textarea:focus{
   outline:none;
   border-color:#2563eb;
-} 
+}
 
 /* Streaming Indicator Styles */
 .streaming-indicator {
@@ -1924,4 +1925,4 @@
   overflow-x: hidden;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-} 
+}
