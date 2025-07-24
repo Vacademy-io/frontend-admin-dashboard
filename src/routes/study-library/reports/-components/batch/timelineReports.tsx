@@ -147,8 +147,8 @@ export default function TimelineReports() {
         leaderboardMutation.mutate(
             {
                 body: {
-                    start_date: startDate,
-                    end_date: endDate,
+                    start_date: startDate || '',
+                    end_date: endDate || '',
                     package_session_id: pacageSessionId,
                 },
                 param: { pageNo: currPage, pageSize: 10 },
@@ -170,13 +170,13 @@ export default function TimelineReports() {
     const getBatchReportDataPDF = useMutation({
         mutationFn: () =>
             exportBatchReport({
-                startDate: startDate,
-                endDate: endDate,
+                startDate: startDate || '',
+                endDate: endDate || '',
                 packageSessionId:
                     getPackageSessionId({
-                        courseId: selectedCourse,
-                        sessionId: selectedSession,
-                        levelId: selectedLevel,
+                        courseId: selectedCourse || '',
+                        sessionId: selectedSession || '',
+                        levelId: selectedLevel || '',
                     }) || '',
                 userId: '',
             }),
@@ -209,9 +209,9 @@ export default function TimelineReports() {
                 // package_session_id: "aec81215-33b6-4af7-9b7e-ebee99e9d18b",
                 package_session_id:
                     getPackageSessionId({
-                        courseId: data.course,
-                        sessionId: data.session,
-                        levelId: data.level,
+                        courseId: data.course || '',
+                        sessionId: data.session || '',
+                        levelId: data.level || '',
                     }) || '',
             },
             {
@@ -232,9 +232,9 @@ export default function TimelineReports() {
                     end_date: data.endDate,
                     package_session_id:
                         getPackageSessionId({
-                            courseId: data.course,
-                            sessionId: data.session,
-                            levelId: data.level,
+                            courseId: data.course || '',
+                            sessionId: data.session || '',
+                            levelId: data.level || '',
                         }) || '',
                 },
                 param: {
@@ -256,9 +256,9 @@ export default function TimelineReports() {
         );
         setPacageSessionId(
             getPackageSessionId({
-                courseId: data.course,
-                sessionId: data.session,
-                levelId: data.level,
+                courseId: data.course || '',
+                sessionId: data.session || '',
+                levelId: data.level || '',
             }) || ''
         );
         // api call

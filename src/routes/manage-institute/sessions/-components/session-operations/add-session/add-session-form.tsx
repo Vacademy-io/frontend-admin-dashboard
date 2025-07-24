@@ -176,9 +176,9 @@ export const AddSessionForm = ({
         const startDate = form.watch('start_date');
         const levels = form.watch('levels');
 
-        const hasValidName = sessionName.trim() !== '';
+        const hasValidName = sessionName?.trim() !== '';
         const hasValidDate = startDate !== '';
-        const hasSelectedLevels = levels.length > 0;
+        const hasSelectedLevels = (levels?.length ?? 0) > 0;
 
         setDisableAddButton(!(hasValidName && hasValidDate && hasSelectedLevels));
     }, [form.watch('session_name'), form.watch('start_date'), form.watch('levels')]);

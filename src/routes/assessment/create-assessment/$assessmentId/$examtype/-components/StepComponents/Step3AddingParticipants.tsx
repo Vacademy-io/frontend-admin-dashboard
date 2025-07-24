@@ -1326,7 +1326,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                         </FormItem>
                                     )}
                                 />
-                                {watch('notify_student.before_assessment_goes_live').checked && (
+                                {watch('notify_student.before_assessment_goes_live')?.checked && (
                                     <SelectField
                                         label="Notify Before"
                                         labelStyle="font-thin"

@@ -544,27 +544,27 @@ export const CourseDetailsPage = () => {
             {/* Top Banner - More Compact */}
             <div
                 className={`relative ${
-                    form.watch('courseData').courseBannerMediaId
-                        ? form.getValues('courseData.isCoursePublishedToCatalaouge')
+                    form.watch('courseData')?.courseBannerMediaId
+                        ? form.getValues('courseData')?.isCoursePublishedToCatalaouge
                             ? 'min-h-[280px]'
                             : 'min-h-[240px]'
-                        : form.getValues('courseData.isCoursePublishedToCatalaouge')
+                        : form.getValues('courseData')?.isCoursePublishedToCatalaouge
                           ? 'min-h-[200px]'
                           : 'min-h-[160px]'
                 }`}
             >
                 {/* Transparent black overlay */}
-                {form.watch('courseData').courseBannerMediaId ? (
+                {form.watch('courseData')?.courseBannerMediaId ? (
                     <div className="pointer-events-none absolute inset-0 z-10 bg-black/50" />
                 ) : (
                     <div className="pointer-events-none absolute inset-0 z-10 bg-black/5" />
                 )}
-                {!form.watch('courseData').courseBannerMediaId ? (
+                {!form.watch('courseData')?.courseBannerMediaId ? (
                     <div className="absolute inset-0 z-0 bg-gray-100" />
                 ) : (
                     <div className="absolute inset-0 z-0 opacity-70">
                         <img
-                            src={form.watch('courseData').courseBannerMediaPreview}
+                            src={form.watch('courseData')?.courseBannerMediaPreview}
                             alt="Course Banner"
                             className="size-full object-cover"
                             onError={(e) => {
@@ -577,13 +577,13 @@ export const CourseDetailsPage = () => {
                 {/* Primary color overlay with 70% opacity */}
                 <div
                     className={`container relative z-20 mx-auto px-4 ${
-                        form.watch('courseData').courseBannerMediaId ? 'py-8' : 'py-6'
-                    } ${!form.watch('courseData').courseBannerMediaId ? 'text-black' : 'text-white'}`}
+                        form.watch('courseData')?.courseBannerMediaId ? 'py-8' : 'py-6'
+                    } ${!form.watch('courseData')?.courseBannerMediaId ? 'text-black' : 'text-white'}`}
                 >
                     <div className="flex items-start justify-between gap-6">
                         {/* Left side - Title and Description */}
                         <div className="max-w-2xl flex-1">
-                            {!form.watch('courseData').title ? (
+                            {!form.watch('courseData')?.title ? (
                                 <div className="space-y-3">
                                     <div className="h-6 w-32 animate-pulse rounded bg-white/20" />
                                     <div className="h-8 w-3/4 animate-pulse rounded bg-white/20" />
@@ -595,25 +595,26 @@ export const CourseDetailsPage = () => {
                                     <div className="flex items-start justify-between gap-4">
                                         <h1
                                             className={`font-bold ${
-                                                form.watch('courseData').courseBannerMediaId
+                                                form.watch('courseData')?.courseBannerMediaId
                                                     ? 'mb-3 text-3xl'
                                                     : 'mb-2 text-2xl'
                                             }`}
                                         >
-                                            {form.getValues('courseData').title}
+                                            {form.getValues('courseData')?.title}
                                         </h1>
                                     </div>
                                     <p
                                         className={`opacity-90 ${
-                                            form.watch('courseData').courseBannerMediaId
+                                            form.watch('courseData')?.courseBannerMediaId
                                                 ? 'mb-3 text-base'
                                                 : 'mb-2 text-sm'
                                         }`}
                                         dangerouslySetInnerHTML={{
-                                            __html: form.getValues('courseData').description || '',
+                                            __html: form.getValues('courseData')?.description || '',
                                         }}
                                     />
-                                    {form.getValues('courseData.isCoursePublishedToCatalaouge') && (
+                                    {form.getValues('courseData')
+                                        ?.isCoursePublishedToCatalaouge && (
                                         <MyButton
                                             type="button"
                                             scale="medium"
@@ -623,22 +624,22 @@ export const CourseDetailsPage = () => {
                                             Added to catalog
                                         </MyButton>
                                     )}
-                                    <div className="border-4">
-                                        <AddCourseForm
-                                            isEdit={true}
-                                            initialCourseData={form.getValues()}
-                                        />
-                                    </div>
-                                    {form.getValues('courseData').tags.length > 0 && (
+                                    <AddCourseForm
+                                        isEdit={true}
+                                        initialCourseData={form.getValues()}
+                                    />
+                                    {(form.getValues('courseData')?.tags?.length ?? 0) > 0 && (
                                         <div className="flex flex-wrap gap-2">
-                                            {form.getValues('courseData').tags.map((tag, index) => (
-                                                <span
-                                                    key={index}
-                                                    className="rounded-md border px-2 py-1 text-xs shadow-md"
-                                                >
-                                                    {tag}
-                                                </span>
-                                            ))}
+                                            {form
+                                                .getValues('courseData')
+                                                ?.tags?.map((tag, index) => (
+                                                    <span
+                                                        key={index}
+                                                        className="rounded-md border px-2 py-1 text-xs shadow-md"
+                                                    >
+                                                        {tag}
+                                                    </span>
+                                                ))}
                                         </div>
                                     )}
                                 </>
@@ -646,11 +647,11 @@ export const CourseDetailsPage = () => {
                         </div>
 
                         {/* Right side - Video Player - More Compact */}
-                        {form.watch('courseData').courseMediaId.id &&
-                            (form.watch('courseData').courseMediaId.type === 'youtube' ? (
+                        {form.watch('courseData')?.courseMediaId?.id &&
+                            (form.watch('courseData')?.courseMediaId?.type === 'youtube' ? (
                                 <div
                                     className={`shrink-0 overflow-hidden rounded-lg shadow-lg ${
-                                        form.watch('courseData').courseBannerMediaId
+                                        form.watch('courseData')?.courseBannerMediaId
                                             ? 'w-[320px]'
                                             : 'w-[280px]'
                                     }`}
@@ -659,7 +660,7 @@ export const CourseDetailsPage = () => {
                                         <iframe
                                             width="100%"
                                             height="100%"
-                                            src={`https://www.youtube.com/embed/${extractYouTubeVideoId(form.watch('courseData').courseMediaId.id || '')}`}
+                                            src={`https://www.youtube.com/embed/${extractYouTubeVideoId(form.watch('courseData')?.courseMediaId?.id || '')}`}
                                             title="YouTube video player"
                                             frameBorder="0"
                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -668,17 +669,17 @@ export const CourseDetailsPage = () => {
                                         />
                                     </div>
                                 </div>
-                            ) : form.watch('courseData').courseMediaId.type === 'video' ? (
+                            ) : form.watch('courseData')?.courseMediaId?.type === 'video' ? (
                                 <div
                                     className={`shrink-0 overflow-hidden rounded-lg shadow-lg ${
-                                        form.watch('courseData').courseBannerMediaId
+                                        form.watch('courseData')?.courseBannerMediaId
                                             ? 'w-[320px]'
                                             : 'w-[280px]'
                                     }`}
                                 >
                                     <div className="relative aspect-video bg-black">
                                         <video
-                                            src={form.watch('courseData').courseMediaPreview}
+                                            src={form.watch('courseData')?.courseMediaPreview}
                                             controls
                                             controlsList="nodownload noremoteplayback"
                                             disablePictureInPicture
@@ -698,14 +699,14 @@ export const CourseDetailsPage = () => {
                             ) : (
                                 <div
                                     className={`shrink-0 overflow-hidden rounded-lg shadow-lg ${
-                                        form.watch('courseData').courseBannerMediaId
+                                        form.watch('courseData')?.courseBannerMediaId
                                             ? 'w-[320px]'
                                             : 'w-[280px]'
                                     }`}
                                 >
                                     <div className="relative aspect-video bg-black">
                                         <img
-                                            src={form.watch('courseData').courseMediaPreview}
+                                            src={form.watch('courseData')?.courseMediaPreview}
                                             alt="Course Banner"
                                             className="size-full rounded-lg object-contain"
                                         />
