@@ -11,7 +11,7 @@ import { InviteLink } from '@/routes/manage-students/-components/InviteLink';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useNavigate, useRouter } from '@tanstack/react-router';
-import { ArrowRight, Calendar, Plus } from 'phosphor-react';
+import { ArrowRight, Plus, Users } from 'phosphor-react';
 import { handleFetchInviteLinks, handleMakeInviteLinkDefault } from '../-services/get-invite-links';
 import { MyPagination } from '@/components/design-system/pagination';
 import { usePaginationState } from '@/hooks/pagination';
@@ -19,36 +19,12 @@ import type { InviteLinkDataInterface } from '@/schemas/study-library/invite-lin
 import { Badge } from '@/components/ui/badge';
 import { AxiosError } from 'axios';
 import { toast } from 'sonner';
+import { UseFormReturn } from 'react-hook-form';
+import { CourseDetailsFormValues } from './course-details-schema';
 
-// Inline types to fix linter errors
-interface Instructor {
-    id: string;
-    name: string;
-    email: string;
-    profilePicId: string;
-    roles: string[];
-}
-interface LevelDetail {
-    id: string;
-    name: string;
-    duration_in_days: number;
-    instructors: Instructor[];
-    subjects: unknown[];
-    inviteLink: string;
-}
-interface SessionDetails {
-    id: string;
-    session_name: string;
-    status: string;
-    start_date: string;
-}
-interface SessionData {
-    levelDetails: LevelDetail[];
-    sessionDetails: SessionDetails;
-}
-
-const InviteDetailsComponent = ({ sessionsData }: { sessionsData: SessionData[] }) => {
+const InviteDetailsComponent = ({ form }: { form: UseFormReturn<CourseDetailsFormValues> }) => {
     // Flatten all levels for all sessions to count cards
+    const sessionsData = form.getValues('courseData.sessions');
     const queryClient = useQueryClient();
     const navigate = useNavigate();
     const { getPackageSessionId, getDetailsFromPackageSessionId } = useInstituteDetailsStore();
@@ -179,32 +155,20 @@ const InviteDetailsComponent = ({ sessionsData }: { sessionsData: SessionData[] 
                                     style={{ animationDelay: `${groupIndex * 0.1}s` }}
                                 >
                                     {/* Enhanced header with course info */}
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="flex-1">
-                                            {/* Course, Level, Session info */}
-                                            <div className=" space-y-1.5 text-xs text-neutral-600">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="flex size-3.5 items-center justify-center rounded bg-blue-100">
-                                                        <div className="size-2 rounded bg-blue-500"></div>
-                                                    </div>
-                                                    <span className="font-medium">Level:</span>
-                                                    <span className="text-neutral-700">
-                                                        {getDetailsFromPackageSessionId({
-                                                            packageSessionId,
-                                                        })?.level.level_name || '-'}
-                                                    </span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Calendar className="size-3.5 text-neutral-400" />
-                                                    <span className="font-medium">Session:</span>
-                                                    <span className="text-neutral-700">
-                                                        {getDetailsFromPackageSessionId({
-                                                            packageSessionId,
-                                                        })?.session.session_name || '-'}
-                                                    </span>
-                                                </div>
-                                            </div>
+
+                                    <div className="flex items-center gap-2 font-semibold">
+                                        <div className="rounded-md bg-primary-100 p-1">
+                                            <Users size={18} />
                                         </div>
+                                        <span>
+                                            {form.getValues('courseData.packageName')}{' '}
+                                            {getDetailsFromPackageSessionId({
+                                                packageSessionId,
+                                            })?.session.session_name || '-'}{' '}
+                                            {getDetailsFromPackageSessionId({
+                                                packageSessionId,
+                                            })?.level.level_name || '-'}
+                                        </span>
                                     </div>
 
                                     {/* Invite links section for this package session */}

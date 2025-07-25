@@ -857,11 +857,7 @@ export const CourseDetailsPage = () => {
                                     </div>
                                 )}
                             </div>
-                            <InviteDetailsComponent
-                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                                // @ts-expect-error
-                                sessionsData={form.getValues('courseData.sessions')}
-                            />
+                            <InviteDetailsComponent form={form} />
                         </div>
 
                         <CourseStructureDetails
