@@ -99,11 +99,11 @@ const form = useForm<z.infer<typeof adminProfileSchema>>({
       profilePictureUrl: adminLogo || '',
       profilePictureId: adminDetails?.profile_pic_file_id ?? null,
       name: adminDetails?.full_name || '',
-      roleType: adminDetails.roles.map((role) => role.role_name) || [],
+      roleType: adminDetails?.roles?.map((role) => role.role_name) || [],
       email: adminDetails?.email,
       phone: adminDetails?.mobile_number || '',
     });
-    oldRoles.current = adminDetails.roles.map((role) => role.role_name);
+    oldRoles.current = adminDetails?.roles?.map((role) => role.role_name) || [];
     setRemoveImage(false);
   }, [adminDetails, adminLogo]);
 

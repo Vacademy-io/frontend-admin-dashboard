@@ -63,6 +63,8 @@ import { TeachersList } from '../subjects/-components/teacher-list';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { useFileUpload } from '@/hooks/use-file-upload';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Lock } from 'phosphor-react';
 
 // Interfaces (assuming these are unchanged)
 export interface Chapter {
@@ -158,16 +160,24 @@ export const CourseStructureDetails = ({
     selectedSession,
     selectedLevel,
     courseStructure,
+    courseStatus,
+    isUserAdmin,
 }: {
     selectedSession: string;
     selectedLevel: string;
     courseStructure: number;
+    courseStatus: string;
+    isUserAdmin: boolean;
 }) => {
     const router = useRouter();
     const searchParams = router.state.location.search;
     const { getSessionFromPackage, getPackageSessionId } = useInstituteDetailsStore();
     const { studyLibraryData } = useStudyLibraryStore();
     const { setActiveItem } = useContentStore();
+
+    // Check if editing should be disabled for non-admin users
+    const isEditingDisabled =
+        !isUserAdmin && (courseStatus === 'ACTIVE' || courseStatus === 'IN_REVIEW');
 
     const courseId: string = searchParams.courseId || '';
     const levelId: string = selectedLevel || '';
@@ -645,6 +655,27 @@ export const CourseStructureDetails = ({
     const tabContent: Record<TabType, React.ReactNode> = {
         [TabType.OUTLINE]: (
             <div className="relative">
+                {/* Role-based editing restrictions banner */}
+                {isEditingDisabled && (
+                    <div className="mb-4 border-b border-gray-200 bg-yellow-50 p-4">
+                        <Alert className="border-yellow-200 bg-yellow-50">
+                            <Lock className="size-4 text-yellow-600" />
+                            <AlertDescription className="text-yellow-800">
+                                <div>
+                                    <strong>Editing Restricted:</strong> This course is{' '}
+                                    {courseStatus === 'ACTIVE' ? 'published' : 'under review'}. You
+                                    cannot edit the content directly.
+                                    <br />
+                                    <span className="mt-1 block text-sm">
+                                        Go to <strong>My Courses</strong> to create an editable copy
+                                        if needed.
+                                    </span>
+                                </div>
+                            </AlertDescription>
+                        </Alert>
+                    </div>
+                )}
+
                 {/* Sticky header with expand/collapse buttons */}
                 <div className="sticky top-0 z-10 mb-3 border-b border-gray-200 bg-white px-6 py-3">
                     <div className="flex items-center justify-between">
@@ -673,7 +704,7 @@ export const CourseStructureDetails = ({
                 {/* Scrollable content */}
                 <div className="px-6 pb-2">
                     <div className="max-w-3xl space-y-1 rounded-lg border border-gray-200 px-2">
-                        {courseStructure === 5 && (
+                        {courseStructure === 5 && !isEditingDisabled && (
                             <AddSubjectButton isTextButton onAddSubject={handleAddSubject} />
                         )}
                         {courseStructure === 5 &&
@@ -739,11 +770,13 @@ export const CourseStructureDetails = ({
                                                     <div className="sticky top-0 flex h-full flex-col items-center" />
                                                 </div>
 
-                                                <AddModulesButton
-                                                    isTextButton
-                                                    subjectId={subject.id}
-                                                    onAddModuleBySubjectId={handleAddModule}
-                                                />
+                                                {!isEditingDisabled && (
+                                                    <AddModulesButton
+                                                        isTextButton
+                                                        subjectId={subject.id}
+                                                        onAddModuleBySubjectId={handleAddModule}
+                                                    />
+                                                )}
                                                 {(subjectModulesMap[subject.id] ?? []).map(
                                                     (mod, modIdx) => {
                                                         const isModuleOpen = openModules.has(
@@ -815,15 +848,23 @@ export const CourseStructureDetails = ({
                                                                 </CollapsibleTrigger>
                                                                 <CollapsibleContent className="py-1 pl-10">
                                                                     <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
-                                                                        <AddChapterButton
-                                                                            moduleId={mod.module.id}
-                                                                            sessionId={
-                                                                                selectedSession
-                                                                            }
-                                                                            levelId={selectedLevel}
-                                                                            subjectId={subject.id}
-                                                                            isTextButton
-                                                                        />
+                                                                        {!isEditingDisabled && (
+                                                                            <AddChapterButton
+                                                                                moduleId={
+                                                                                    mod.module.id
+                                                                                }
+                                                                                sessionId={
+                                                                                    selectedSession
+                                                                                }
+                                                                                levelId={
+                                                                                    selectedLevel
+                                                                                }
+                                                                                subjectId={
+                                                                                    subject.id
+                                                                                }
+                                                                                isTextButton
+                                                                            />
+                                                                        )}
                                                                         {(mod.chapters ?? []).map(
                                                                             (ch, chIdx) => {
                                                                                 const isChapterOpen =
@@ -931,40 +972,41 @@ export const CourseStructureDetails = ({
                                                                                         </CollapsibleTrigger>
                                                                                         <CollapsibleContent className="py-1 pl-9">
                                                                                             <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
-                                                                                                <MyButton
-                                                                                                    buttonType="text"
-                                                                                                    onClick={(
-                                                                                                        e
-                                                                                                    ) => {
-                                                                                                        e.stopPropagation();
-                                                                                                        handleChapterNavigation(
-                                                                                                            subject.id,
-                                                                                                            mod
-                                                                                                                .module
-                                                                                                                .id,
-                                                                                                            ch
-                                                                                                                .chapter
-                                                                                                                .id
-                                                                                                        );
-                                                                                                    }}
-                                                                                                    className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
-                                                                                                >
-                                                                                                    <Plus
-                                                                                                        size={
-                                                                                                            14
-                                                                                                        }
-                                                                                                        weight="bold"
-                                                                                                        className="text-primary-400 group-hover:text-primary-500"
-                                                                                                    />
-                                                                                                    <span className="font-medium">
-                                                                                                        Add{' '}
-                                                                                                        {getTerminology(
-                                                                                                            ContentTerms.Slides,
-                                                                                                            SystemTerms.Slides
-                                                                                                        )}
-                                                                                                    </span>
-                                                                                                </MyButton>
-
+                                                                                                {!isEditingDisabled && (
+                                                                                                    <MyButton
+                                                                                                        buttonType="text"
+                                                                                                        onClick={(
+                                                                                                            e
+                                                                                                        ) => {
+                                                                                                            e.stopPropagation();
+                                                                                                            handleChapterNavigation(
+                                                                                                                subject.id,
+                                                                                                                mod
+                                                                                                                    .module
+                                                                                                                    .id,
+                                                                                                                ch
+                                                                                                                    .chapter
+                                                                                                                    .id
+                                                                                                            );
+                                                                                                        }}
+                                                                                                        className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
+                                                                                                    >
+                                                                                                        <Plus
+                                                                                                            size={
+                                                                                                                14
+                                                                                                            }
+                                                                                                            weight="bold"
+                                                                                                            className="text-primary-400 group-hover:text-primary-500"
+                                                                                                        />
+                                                                                                        <span className="font-medium">
+                                                                                                            Add{' '}
+                                                                                                            {getTerminology(
+                                                                                                                ContentTerms.Slides,
+                                                                                                                SystemTerms.Slides
+                                                                                                            )}
+                                                                                                        </span>
+                                                                                                    </MyButton>
+                                                                                                )}
                                                                                                 {(
                                                                                                     chapterSlidesMap[
                                                                                                         ch
@@ -1002,19 +1044,27 @@ export const CourseStructureDetails = ({
                                                                                                                 key={
                                                                                                                     slide.id
                                                                                                                 }
-                                                                                                                className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
-                                                                                                                onClick={() => {
-                                                                                                                    handleSlideNavigation(
-                                                                                                                        subject.id,
-                                                                                                                        mod
-                                                                                                                            .module
-                                                                                                                            .id,
-                                                                                                                        ch
-                                                                                                                            .chapter
-                                                                                                                            .id,
-                                                                                                                        slide.id
-                                                                                                                    );
-                                                                                                                }}
+                                                                                                                className={`flex items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 transition-colors duration-150 ${
+                                                                                                                    isEditingDisabled
+                                                                                                                        ? 'cursor-not-allowed opacity-60'
+                                                                                                                        : 'cursor-pointer hover:bg-gray-100'
+                                                                                                                }`}
+                                                                                                                onClick={
+                                                                                                                    isEditingDisabled
+                                                                                                                        ? undefined
+                                                                                                                        : () => {
+                                                                                                                              handleSlideNavigation(
+                                                                                                                                  subject.id,
+                                                                                                                                  mod
+                                                                                                                                      .module
+                                                                                                                                      .id,
+                                                                                                                                  ch
+                                                                                                                                      .chapter
+                                                                                                                                      .id,
+                                                                                                                                  slide.id
+                                                                                                                              );
+                                                                                                                          }
+                                                                                                                }
                                                                                                             >
                                                                                                                 <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
                                                                                                                     S
@@ -1076,11 +1126,13 @@ export const CourseStructureDetails = ({
                                                     <div className="sticky top-0 flex h-full flex-col items-center" />
                                                 </div>
 
-                                                <AddModulesButton
-                                                    isTextButton
-                                                    subjectId={subject.id}
-                                                    onAddModuleBySubjectId={handleAddModule}
-                                                />
+                                                {!isEditingDisabled && (
+                                                    <AddModulesButton
+                                                        isTextButton
+                                                        subjectId={subject.id}
+                                                        onAddModuleBySubjectId={handleAddModule}
+                                                    />
+                                                )}
                                                 {(subjectModulesMap[subject.id] ?? []).map(
                                                     (mod, modIdx) => {
                                                         const isModuleOpen = openModules.has(
@@ -1130,15 +1182,23 @@ export const CourseStructureDetails = ({
                                                                 </CollapsibleTrigger>
                                                                 <CollapsibleContent className="py-1 pl-10">
                                                                     <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
-                                                                        <AddChapterButton
-                                                                            moduleId={mod.module.id}
-                                                                            sessionId={
-                                                                                selectedSession
-                                                                            }
-                                                                            levelId={selectedLevel}
-                                                                            subjectId={subject.id}
-                                                                            isTextButton
-                                                                        />
+                                                                        {!isEditingDisabled && (
+                                                                            <AddChapterButton
+                                                                                moduleId={
+                                                                                    mod.module.id
+                                                                                }
+                                                                                sessionId={
+                                                                                    selectedSession
+                                                                                }
+                                                                                levelId={
+                                                                                    selectedLevel
+                                                                                }
+                                                                                subjectId={
+                                                                                    subject.id
+                                                                                }
+                                                                                isTextButton
+                                                                            />
+                                                                        )}
                                                                         {(mod.chapters ?? []).map(
                                                                             (ch, chIdx) => {
                                                                                 const isChapterOpen =
@@ -1246,40 +1306,41 @@ export const CourseStructureDetails = ({
                                                                                         </CollapsibleTrigger>
                                                                                         <CollapsibleContent className="py-1 pl-9">
                                                                                             <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
-                                                                                                <MyButton
-                                                                                                    buttonType="text"
-                                                                                                    onClick={(
-                                                                                                        e
-                                                                                                    ) => {
-                                                                                                        e.stopPropagation();
-                                                                                                        handleChapterNavigation(
-                                                                                                            subject.id,
-                                                                                                            mod
-                                                                                                                .module
-                                                                                                                .id,
-                                                                                                            ch
-                                                                                                                .chapter
-                                                                                                                .id
-                                                                                                        );
-                                                                                                    }}
-                                                                                                    className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
-                                                                                                >
-                                                                                                    <Plus
-                                                                                                        size={
-                                                                                                            14
-                                                                                                        }
-                                                                                                        weight="bold"
-                                                                                                        className="text-primary-400 group-hover:text-primary-500"
-                                                                                                    />
-                                                                                                    <span className="font-medium">
-                                                                                                        Add{' '}
-                                                                                                        {getTerminology(
-                                                                                                            ContentTerms.Slides,
-                                                                                                            SystemTerms.Slides
-                                                                                                        )}
-                                                                                                    </span>
-                                                                                                </MyButton>
-
+                                                                                                {!isEditingDisabled && (
+                                                                                                    <MyButton
+                                                                                                        buttonType="text"
+                                                                                                        onClick={(
+                                                                                                            e
+                                                                                                        ) => {
+                                                                                                            e.stopPropagation();
+                                                                                                            handleChapterNavigation(
+                                                                                                                subject.id,
+                                                                                                                mod
+                                                                                                                    .module
+                                                                                                                    .id,
+                                                                                                                ch
+                                                                                                                    .chapter
+                                                                                                                    .id
+                                                                                                            );
+                                                                                                        }}
+                                                                                                        className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
+                                                                                                    >
+                                                                                                        <Plus
+                                                                                                            size={
+                                                                                                                14
+                                                                                                            }
+                                                                                                            weight="bold"
+                                                                                                            className="text-primary-400 group-hover:text-primary-500"
+                                                                                                        />
+                                                                                                        <span className="font-medium">
+                                                                                                            Add{' '}
+                                                                                                            {getTerminology(
+                                                                                                                ContentTerms.Slides,
+                                                                                                                SystemTerms.Slides
+                                                                                                            )}
+                                                                                                        </span>
+                                                                                                    </MyButton>
+                                                                                                )}
                                                                                                 {(
                                                                                                     chapterSlidesMap[
                                                                                                         ch
@@ -1317,19 +1378,27 @@ export const CourseStructureDetails = ({
                                                                                                                 key={
                                                                                                                     slide.id
                                                                                                                 }
-                                                                                                                className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
-                                                                                                                onClick={() => {
-                                                                                                                    handleSlideNavigation(
-                                                                                                                        subject.id,
-                                                                                                                        mod
-                                                                                                                            .module
-                                                                                                                            .id,
-                                                                                                                        ch
-                                                                                                                            .chapter
-                                                                                                                            .id,
-                                                                                                                        slide.id
-                                                                                                                    );
-                                                                                                                }}
+                                                                                                                className={`flex items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 transition-colors duration-150 ${
+                                                                                                                    isEditingDisabled
+                                                                                                                        ? 'cursor-not-allowed opacity-60'
+                                                                                                                        : 'cursor-pointer hover:bg-gray-100'
+                                                                                                                }`}
+                                                                                                                onClick={
+                                                                                                                    isEditingDisabled
+                                                                                                                        ? undefined
+                                                                                                                        : () => {
+                                                                                                                              handleSlideNavigation(
+                                                                                                                                  subject.id,
+                                                                                                                                  mod
+                                                                                                                                      .module
+                                                                                                                                      .id,
+                                                                                                                                  ch
+                                                                                                                                      .chapter
+                                                                                                                                      .id,
+                                                                                                                                  slide.id
+                                                                                                                              );
+                                                                                                                          }
+                                                                                                                }
                                                                                                             >
                                                                                                                 <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
                                                                                                                     S
@@ -1391,6 +1460,13 @@ export const CourseStructureDetails = ({
                                                     <div className="sticky top-0 flex h-full flex-col items-center" />
                                                 </div>
 
+                                                {!isEditingDisabled && (
+                                                    <AddModulesButton
+                                                        isTextButton
+                                                        subjectId={subject.id}
+                                                        onAddModuleBySubjectId={handleAddModule}
+                                                    />
+                                                )}
                                                 {(subjectModulesMap[subject.id] ?? []).map(
                                                     (mod) => {
                                                         const isModuleOpen = openModules.has(
@@ -1408,15 +1484,23 @@ export const CourseStructureDetails = ({
                                                             >
                                                                 <CollapsibleContent className="py-1">
                                                                     <div className="relative space-y-1.5  border-gray-200">
-                                                                        <AddChapterButton
-                                                                            moduleId={mod.module.id}
-                                                                            sessionId={
-                                                                                selectedSession
-                                                                            }
-                                                                            levelId={selectedLevel}
-                                                                            subjectId={subject.id}
-                                                                            isTextButton
-                                                                        />
+                                                                        {!isEditingDisabled && (
+                                                                            <AddChapterButton
+                                                                                moduleId={
+                                                                                    mod.module.id
+                                                                                }
+                                                                                sessionId={
+                                                                                    selectedSession
+                                                                                }
+                                                                                levelId={
+                                                                                    selectedLevel
+                                                                                }
+                                                                                subjectId={
+                                                                                    subject.id
+                                                                                }
+                                                                                isTextButton
+                                                                            />
+                                                                        )}
                                                                         {(mod.chapters ?? []).map(
                                                                             (ch, chIdx) => {
                                                                                 const isChapterOpen =
@@ -1524,40 +1608,41 @@ export const CourseStructureDetails = ({
                                                                                         </CollapsibleTrigger>
                                                                                         <CollapsibleContent className="py-1 pl-9">
                                                                                             <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
-                                                                                                <MyButton
-                                                                                                    buttonType="text"
-                                                                                                    onClick={(
-                                                                                                        e
-                                                                                                    ) => {
-                                                                                                        e.stopPropagation();
-                                                                                                        handleChapterNavigation(
-                                                                                                            subject.id,
-                                                                                                            mod
-                                                                                                                .module
-                                                                                                                .id,
-                                                                                                            ch
-                                                                                                                .chapter
-                                                                                                                .id
-                                                                                                        );
-                                                                                                    }}
-                                                                                                    className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
-                                                                                                >
-                                                                                                    <Plus
-                                                                                                        size={
-                                                                                                            14
-                                                                                                        }
-                                                                                                        weight="bold"
-                                                                                                        className="text-primary-400 group-hover:text-primary-500"
-                                                                                                    />
-                                                                                                    <span className="font-medium">
-                                                                                                        Add{' '}
-                                                                                                        {getTerminology(
-                                                                                                            ContentTerms.Slides,
-                                                                                                            SystemTerms.Slides
-                                                                                                        )}
-                                                                                                    </span>
-                                                                                                </MyButton>
-
+                                                                                                {!isEditingDisabled && (
+                                                                                                    <MyButton
+                                                                                                        buttonType="text"
+                                                                                                        onClick={(
+                                                                                                            e
+                                                                                                        ) => {
+                                                                                                            e.stopPropagation();
+                                                                                                            handleChapterNavigation(
+                                                                                                                subject.id,
+                                                                                                                mod
+                                                                                                                    .module
+                                                                                                                    .id,
+                                                                                                                ch
+                                                                                                                    .chapter
+                                                                                                                    .id
+                                                                                                            );
+                                                                                                        }}
+                                                                                                        className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
+                                                                                                    >
+                                                                                                        <Plus
+                                                                                                            size={
+                                                                                                                14
+                                                                                                            }
+                                                                                                            weight="bold"
+                                                                                                            className="text-primary-400 group-hover:text-primary-500"
+                                                                                                        />
+                                                                                                        <span className="font-medium">
+                                                                                                            Add{' '}
+                                                                                                            {getTerminology(
+                                                                                                                ContentTerms.Slides,
+                                                                                                                SystemTerms.Slides
+                                                                                                            )}
+                                                                                                        </span>
+                                                                                                    </MyButton>
+                                                                                                )}
                                                                                                 {(
                                                                                                     chapterSlidesMap[
                                                                                                         ch
@@ -1595,19 +1680,27 @@ export const CourseStructureDetails = ({
                                                                                                                 key={
                                                                                                                     slide.id
                                                                                                                 }
-                                                                                                                className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
-                                                                                                                onClick={() => {
-                                                                                                                    handleSlideNavigation(
-                                                                                                                        subject.id,
-                                                                                                                        mod
-                                                                                                                            .module
-                                                                                                                            .id,
-                                                                                                                        ch
-                                                                                                                            .chapter
-                                                                                                                            .id,
-                                                                                                                        slide.id
-                                                                                                                    );
-                                                                                                                }}
+                                                                                                                className={`flex items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 transition-colors duration-150 ${
+                                                                                                                    isEditingDisabled
+                                                                                                                        ? 'cursor-not-allowed opacity-60'
+                                                                                                                        : 'cursor-pointer hover:bg-gray-100'
+                                                                                                                }`}
+                                                                                                                onClick={
+                                                                                                                    isEditingDisabled
+                                                                                                                        ? undefined
+                                                                                                                        : () => {
+                                                                                                                              handleSlideNavigation(
+                                                                                                                                  subject.id,
+                                                                                                                                  mod
+                                                                                                                                      .module
+                                                                                                                                      .id,
+                                                                                                                                  ch
+                                                                                                                                      .chapter
+                                                                                                                                      .id,
+                                                                                                                                  slide.id
+                                                                                                                              );
+                                                                                                                          }
+                                                                                                                }
                                                                                                             >
                                                                                                                 <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
                                                                                                                     S
@@ -1653,7 +1746,7 @@ export const CourseStructureDetails = ({
                                 );
                             })}
 
-                        {courseStructure === 2 && (
+                        {courseStructure === 2 && !isEditingDisabled && (
                             <div className="space-y-1.5">
                                 <MyButton
                                     buttonType="text"
@@ -1743,6 +1836,27 @@ export const CourseStructureDetails = ({
         ),
         [TabType.CONTENT_STRUCTURE]: (
             <div className="p-6 py-2">
+                {/* Role-based editing restrictions banner */}
+                {isEditingDisabled && (
+                    <div className="mb-4 border-b border-gray-200 bg-yellow-50 p-4">
+                        <Alert className="border-yellow-200 bg-yellow-50">
+                            <Lock className="size-4 text-yellow-600" />
+                            <AlertDescription className="text-yellow-800">
+                                <div>
+                                    <strong>Editing Restricted:</strong> This course is{' '}
+                                    {courseStatus === 'ACTIVE' ? 'published' : 'under review'}. You
+                                    cannot edit the content directly.
+                                    <br />
+                                    <span className="mt-1 block text-sm">
+                                        Go to <strong>My Courses</strong> to create an editable copy
+                                        if needed.
+                                    </span>
+                                </div>
+                            </AlertDescription>
+                        </Alert>
+                    </div>
+                )}
+
                 <div className="mb-4">
                     <h3 className="mb-2 text-lg font-semibold text-gray-800">Content Structure</h3>
                     <p className="text-sm text-gray-600">
@@ -2111,18 +2225,21 @@ export const CourseStructureDetails = ({
                         ))}
 
                     {/* Add New Folder Buttons */}
-                    {courseStructure === 5 && currentNavigationLevel === 'subjects' && (
-                        <div className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50">
-                            <AddSubjectButton
-                                isTextButton={false}
-                                onAddSubject={handleAddSubject}
-                            />
-                        </div>
-                    )}
+                    {courseStructure === 5 &&
+                        currentNavigationLevel === 'subjects' &&
+                        !isEditingDisabled && (
+                            <div className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50">
+                                <AddSubjectButton
+                                    isTextButton={false}
+                                    onAddSubject={handleAddSubject}
+                                />
+                            </div>
+                        )}
 
                     {courseStructure === 5 &&
                         currentNavigationLevel === 'modules' &&
-                        selectedSubjectId && (
+                        selectedSubjectId &&
+                        !isEditingDisabled && (
                             <div className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50">
                                 <AddModulesButton
                                     isTextButton={false}
@@ -2137,7 +2254,8 @@ export const CourseStructureDetails = ({
                     {/* Add Module button for course structure 4 at root level */}
                     {courseStructure === 4 &&
                         currentNavigationLevel === 'subjects' &&
-                        subjects[0] && (
+                        subjects[0] &&
+                        !isEditingDisabled && (
                             <div className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50">
                                 <AddModulesButton
                                     isTextButton={false}
@@ -2160,45 +2278,49 @@ export const CourseStructureDetails = ({
                             subjects[0]) ||
                         (courseStructure === 3 &&
                             currentNavigationLevel === 'subjects' &&
-                            subjects[0])) && (
-                        <div className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50">
-                            <AddChapterButton
-                                moduleId={
-                                    courseStructure === 5
-                                        ? selectedModuleId
-                                        : courseStructure === 4
-                                          ? selectedModuleId
-                                          : subjects[0]
-                                            ? subjectModulesMap[subjects[0].id]?.[0]?.module.id ||
-                                              ''
-                                            : ''
-                                }
-                                sessionId={selectedSession}
-                                levelId={selectedLevel}
-                                subjectId={
-                                    courseStructure === 5
-                                        ? selectedSubjectId
-                                        : subjects[0]?.id || ''
-                                }
-                                isTextButton={false}
-                            />
-                        </div>
-                    )}
+                            subjects[0])) &&
+                        !isEditingDisabled && (
+                            <div className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50">
+                                <AddChapterButton
+                                    moduleId={
+                                        courseStructure === 5
+                                            ? selectedModuleId
+                                            : courseStructure === 4
+                                              ? selectedModuleId
+                                              : subjects[0]
+                                                ? subjectModulesMap[subjects[0].id]?.[0]?.module
+                                                      .id || ''
+                                                : ''
+                                    }
+                                    sessionId={selectedSession}
+                                    levelId={selectedLevel}
+                                    subjectId={
+                                        courseStructure === 5
+                                            ? selectedSubjectId
+                                            : subjects[0]?.id || ''
+                                    }
+                                    isTextButton={false}
+                                />
+                            </div>
+                        )}
 
                     {/* Add Slide button for Course Structure 2 */}
-                    {courseStructure === 2 && currentNavigationLevel === 'subjects' && (
-                        <div className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50">
-                            <div
-                                onClick={() => handleDirectSlideNavigation()}
-                                className="flex flex-col items-center gap-2 text-center"
-                            >
-                                <Plus size={24} className="text-primary-500" />
-                                <span className="text-primary-700 text-sm font-medium">
-                                    Add {getTerminology(ContentTerms.Slides, SystemTerms.Slides)}
-                                </span>
+                    {courseStructure === 2 &&
+                        currentNavigationLevel === 'subjects' &&
+                        !isEditingDisabled && (
+                            <div className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50">
+                                <div
+                                    onClick={() => handleDirectSlideNavigation()}
+                                    className="flex flex-col items-center gap-2 text-center"
+                                >
+                                    <Plus size={24} className="text-primary-500" />
+                                    <span className="text-primary-700 text-sm font-medium">
+                                        Add{' '}
+                                        {getTerminology(ContentTerms.Slides, SystemTerms.Slides)}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
                 </div>
             </div>
         ),
@@ -2213,7 +2335,7 @@ export const CourseStructureDetails = ({
     return isLoading ? (
         <DashboardLoader />
     ) : (
-        <div className="flex size-full flex-col gap-3 rounded-lg bg-white py-4 text-neutral-700">
+        <div className="flex size-full flex-col gap-2 rounded-lg bg-white py-3 text-neutral-700">
             <Tabs value={selectedTab} onValueChange={handleTabChange} className="w-full">
                 <div className="overflow-x-auto border-b border-gray-200">
                     <TabsList
@@ -2224,7 +2346,7 @@ export const CourseStructureDetails = ({
                             <TabsTrigger
                                 key={tab.value}
                                 value={tab.value}
-                                className={`data-[state=active]:text-primary-600 relative flex rounded-none border-b-2 border-transparent px-4 py-2 text-sm font-medium !shadow-none transition-colors duration-200 hover:bg-gray-100 data-[state=active]:border-primary-500 data-[state=active]:bg-primary-50`}
+                                className={`data-[state=active]:text-primary-600 relative flex rounded-none border-b-2 border-transparent px-3 py-1.5 text-xs font-medium !shadow-none transition-colors duration-200 hover:bg-gray-100 data-[state=active]:border-primary-500 data-[state=active]:bg-primary-50`}
                             >
                                 {tab.label}
                             </TabsTrigger>
@@ -2234,7 +2356,7 @@ export const CourseStructureDetails = ({
                 <TabsContent
                     key={selectedTab}
                     value={selectedTab}
-                    className="mt-4 overflow-hidden rounded-r-md"
+                    className="mt-3 overflow-hidden rounded-r-md"
                 >
                     {tabContent[selectedTab as TabType]}
                 </TabsContent>

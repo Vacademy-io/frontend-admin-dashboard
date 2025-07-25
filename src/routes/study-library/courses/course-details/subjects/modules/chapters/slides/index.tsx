@@ -133,7 +133,7 @@ function RouteComponent() {
                 <div>{`${chapterName || ''} ${getTerminology(
                     ContentTerms.Slides,
                     SystemTerms.Slides
-                )}s`}</div>
+                )}`}</div>
             </div>
         ),
         [chapterName]

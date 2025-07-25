@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { ChapterMenuOptions } from './chapter-menu-options/chapter-menu-options';
 import { SortableDragHandle } from '@/components/ui/sortable';
 import { ChapterWithSlides } from '@/stores/study-library/use-modules-with-chapters-store';
+import { isUserAdmin } from '@/utils/userDetails';
+import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 
 interface ChapterCardProps {
     chapter: ChapterWithSlides;
@@ -17,8 +19,21 @@ export const ChapterCard = ({ chapter, onDelete }: ChapterCardProps) => {
     const router = useRouter();
     const { courseId, levelId, subjectId, moduleId, sessionId } = router.state.location.search;
     const navigate = useNavigate();
+    const { studyLibraryData } = useStudyLibraryStore();
+
+    // Get course data to check status
+    const courseData = studyLibraryData?.find((item) => item.course.id === courseId);
+    const courseStatus = courseData?.course.status || '';
+
+    // Check if editing should be disabled for non-admin users
+    const isEditingDisabled = !isUserAdmin() && (courseStatus === 'ACTIVE' || courseStatus === 'IN_REVIEW');
 
     const navigateToSlidePage = () => {
+        // Don't navigate if editing is disabled
+        if (isEditingDisabled) {
+            return;
+        }
+
         const currentPath = router.state.location.pathname;
 
         navigate({
@@ -47,7 +62,14 @@ export const ChapterCard = ({ chapter, onDelete }: ChapterCardProps) => {
     };
 
     return (
-        <div onClick={handleCardClick} className="w-full cursor-pointer">
+        <div
+            onClick={handleCardClick}
+            className={`w-full ${
+                isEditingDisabled
+                    ? 'cursor-not-allowed opacity-60'
+                    : 'cursor-pointer'
+            }`}
+        >
             <div className="flex w-full flex-col justify-center gap-4 rounded-lg border border-neutral-300 bg-neutral-50 p-6 shadow-md">
                 <div className="flex items-center justify-between text-subtitle font-semibold">
                     <div>{chapter.chapter.chapter_name}</div>

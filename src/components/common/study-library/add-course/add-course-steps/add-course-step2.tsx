@@ -1001,7 +1001,7 @@ export const AddCourseStep2 = ({
                                 <div className="space-y-2">
                                     <Label className="block text-base font-medium text-gray-900">
                                         Contains{' '}
-                                        {getTerminology(ContentTerms.Level, SystemTerms.Level)}s?
+                                        {getTerminology(ContentTerms.Level, SystemTerms.Level)}?
                                     </Label>
                                     <p className="text-sm text-gray-600">
                                         {getTerminology(ContentTerms.Level, SystemTerms.Level)}{' '}

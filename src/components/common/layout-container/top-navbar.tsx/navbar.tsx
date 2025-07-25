@@ -63,6 +63,7 @@ export function Navbar() {
     const { adminLogo, setAdminLogo, resetAdminLogo } = useAdminLogoStore();
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const roles = getUserRoles(accessToken);
+    const isAdmin = roles.includes('ADMIN');
 
     const handleLogout = async (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         event.preventDefault(); // Prevents dropdown from closing immediately
@@ -121,136 +122,52 @@ export function Navbar() {
                             )}
                             {isOpen ? <CaretDown /> : <CaretUp />}
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent className="flex flex-col items-start">
-                            <Sheet>
-                                <SheetTrigger className="w-full p-2 text-left text-sm hover:rounded-sm hover:bg-accent hover:text-accent-foreground">
-                                    View Profile Details
-                                </SheetTrigger>
-                                <SheetContent className="max-h-screen !min-w-[565px] overflow-y-auto !border-l border-gray-200 bg-primary-50 p-8 shadow-none [&>button>svg]:size-6 [&>button>svg]:font-thin [&>button>svg]:text-neutral-600 [&>button]:mt-[19px]">
-                                    <SheetTitle className="text-primary-500">
-                                        Profile Details
-                                    </SheetTitle>
-                                    <div className="flex flex-col gap-8">
-                                        <div className="flex flex-col items-center justify-center gap-4">
-                                            {adminLogo !== '' && (
-                                                <img
-                                                    src={adminLogo}
-                                                    alt="logo"
-                                                    className="size-48 rounded-full"
-                                                />
-                                            )}
-                                            <h1>{adminDetails?.full_name}</h1>
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <h1 className="whitespace-nowrap">Role Type</h1>
-                                                {adminDetails.roles?.map((role, idx) => {
-                                                    const bgColor =
-                                                        roleColors[role.role_name.toUpperCase()] ||
-                                                        '#EDEDED'; // Default color if not mapped
-                                                    return (
-                                                        <Badge
-                                                            key={idx}
-                                                            className={`whitespace-nowrap rounded-lg border border-neutral-300 py-1.5 font-thin shadow-none`}
-                                                            style={{ backgroundColor: bgColor }}
-                                                        >
-                                                            {role.role_name}
-                                                        </Badge>
-                                                    );
-                                                })}
+                        <DropdownMenuContent className="mr-8 min-w-60 p-3">
+                            <AdminProfile />
+                            <Separator className="my-2" />
+                            <DropdownMenuItem className="w-full p-2 text-sm hover:rounded-sm hover:bg-accent hover:text-accent-foreground">
+                                Switch to Learner
+                                <Badge
+                                    variant="outline"
+                                    className="ml-2 border-green-200 bg-green-50 text-xs text-green-700"
+                                >
+                                    New
+                                </Badge>
+                            </DropdownMenuItem>
+                            {isAdmin && (
+                                <Sheet>
+                                    <SheetTrigger className="w-full p-2 text-sm hover:rounded-sm hover:bg-accent hover:text-accent-foreground">
+                                        View Institute Details
+                                    </SheetTrigger>
+                                    <SheetContent className="max-h-screen !min-w-[565px] overflow-y-auto !border-l border-gray-200 bg-primary-50 p-8 shadow-none [&>button>svg]:size-6 [&>button>svg]:font-thin [&>button>svg]:text-neutral-600 [&>button]:mt-[19px]">
+                                        <SheetTitle className="text-primary-500">
+                                            Institute Details
+                                        </SheetTitle>
+                                        <div className="flex flex-col gap-8">
+                                            <div className="flex flex-col items-center justify-center gap-4">
+                                                {instituteLogo !== '' && (
+                                                    <img
+                                                        src={instituteLogo}
+                                                        alt="logo"
+                                                        className="size-48 rounded-full"
+                                                    />
+                                                )}
+                                                <h1>{instituteDetails?.institute_name}</h1>
+                                                <div className="flex items-center gap-2">
+                                                    <h1>Institute Type</h1>
+                                                    <p className="rounded-lg border px-2 py-1 text-sm text-neutral-600">
+                                                        {instituteDetails?.type}
+                                                    </p>
+                                                </div>
+                                                <EditDashboardProfileComponent isEdit={true} />
                                             </div>
-                                            <AdminProfile adminDetails={adminDetails} />
                                         </div>
-                                        <Separator />
-                                        <div className="flex flex-col gap-2">
-                                            <h1>Contact Information</h1>
-                                            <p className="text-sm text-neutral-600">
-                                                <span>Email:&nbsp;</span>
-                                                <span>{adminDetails?.email}</span>
-                                            </p>
-                                            <p className="text-sm text-neutral-600">
-                                                <span>Mobile:&nbsp;</span>
-                                                <span>+{adminDetails?.mobile_number}</span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </SheetContent>
-                            </Sheet>
-                            <Sheet>
-                                <SheetTrigger className="w-full p-2 text-sm hover:rounded-sm hover:bg-accent hover:text-accent-foreground">
-                                    View Institute Details
-                                </SheetTrigger>
-                                <SheetContent className="max-h-screen !min-w-[565px] overflow-y-auto !border-l border-gray-200 bg-primary-50 p-8 shadow-none [&>button>svg]:size-6 [&>button>svg]:font-thin [&>button>svg]:text-neutral-600 [&>button]:mt-[19px]">
-                                    <SheetTitle className="text-primary-500">
-                                        Institute Details
-                                    </SheetTitle>
-                                    <div className="flex flex-col gap-8">
-                                        <div className="flex flex-col items-center justify-center gap-4">
-                                            {instituteLogo !== '' && (
-                                                <img
-                                                    src={instituteLogo}
-                                                    alt="logo"
-                                                    className="size-48 rounded-full"
-                                                />
-                                            )}
-                                            <h1>{instituteDetails?.institute_name}</h1>
-                                            <div className="flex items-center gap-2">
-                                                <h1>Institute Type</h1>
-                                                <p className="rounded-lg border px-2 py-1 text-sm text-neutral-600">
-                                                    {instituteDetails?.type}
-                                                </p>
-                                            </div>
-                                            <EditDashboardProfileComponent isEdit={true} />
-                                        </div>
-                                        <Separator />
-                                        <div className="flex flex-col gap-2">
-                                            <h1>Contact Information</h1>
-                                            <p className="text-sm text-neutral-600">
-                                                <span>Institute Email:&nbsp;</span>
-                                                <span>{instituteDetails?.email}</span>
-                                            </p>
-                                            <p className="text-sm text-neutral-600">
-                                                <span>Institute Mobile:&nbsp;</span>
-                                                <span>+{instituteDetails?.phone}</span>
-                                            </p>
-                                            <p className="text-sm text-neutral-600">
-                                                <span>Institute Website:&nbsp;</span>
-                                                <span>{instituteDetails?.website_url}</span>
-                                            </p>
-                                        </div>
-                                        <Separator />
-                                        <div className="flex flex-col gap-2">
-                                            <h1>Location Details</h1>
-                                            <p className="text-sm text-neutral-600">
-                                                <span>Address:&nbsp;</span>
-                                                <span>{instituteDetails?.address}</span>
-                                            </p>
-                                            <p className="text-sm text-neutral-600">
-                                                <span>City/Village:&nbsp;</span>
-                                                <span>{instituteDetails?.city}</span>
-                                            </p>
-                                            <p className="text-sm text-neutral-600">
-                                                <span>State:&nbsp;</span>
-                                                <span>{instituteDetails?.state}</span>
-                                            </p>
-                                            <p className="text-sm text-neutral-600">
-                                                <span>Country:&nbsp;</span>
-                                                <span>{instituteDetails?.country}</span>
-                                            </p>
-                                            <p className="text-sm text-neutral-600">
-                                                <span>Pincode:&nbsp;</span>
-                                                <span>{instituteDetails?.pin_code}</span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </SheetContent>
-                            </Sheet>
-                            {roles.includes('STUDENT') && (
-                                <DropdownMenuItem className="w-full cursor-pointer">
-                                    <SSOSwitcher variant="dropdown" />
-                                </DropdownMenuItem>
+                                    </SheetContent>
+                                </Sheet>
                             )}
                             <DropdownMenuItem
+                                className="w-full p-2 text-sm hover:rounded-sm hover:bg-accent hover:text-accent-foreground"
                                 onClick={handleLogout}
-                                className="w-full cursor-pointer"
                             >
                                 Logout
                             </DropdownMenuItem>

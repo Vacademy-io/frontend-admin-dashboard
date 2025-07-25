@@ -5,8 +5,6 @@ import { InitStudyLibraryProvider } from '@/providers/study-library/init-study-l
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { CaretLeft } from 'phosphor-react';
 import { useEffect, useState } from 'react';
-import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
-import { getCourses } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getCourses';
 import { CourseDetailsPage } from './-components/course-details-page';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
@@ -30,19 +28,14 @@ function RouteComponent() {
     const { courseId } = Route.useSearch();
     const [isLoading, setIsLoading] = useState(false);
 
-    const { studyLibraryData } = useStudyLibraryStore();
-
-    const [courses, setCourses] = useState(getCourses());
-
     useEffect(() => {
         setIsLoading(true);
-        setCourses(getCourses());
         // Add a small delay to ensure smooth transition
         const timer = setTimeout(() => {
             setIsLoading(false);
         }, 500);
         return () => clearTimeout(timer);
-    }, [studyLibraryData, courseId]);
+    }, [courseId]);
 
     const heading = (
         <div className="flex items-center gap-4">
@@ -56,20 +49,7 @@ function RouteComponent() {
     }, []);
 
     return (
-        <LayoutContainer
-            internalSideBar
-            sideBarList={courses.map((course) => {
-                return {
-                    value: course.package_name,
-                    id: course.id,
-                };
-            })}
-            sideBarData={{
-                title: getTerminology(ContentTerms.Course, SystemTerms.Course) + 's',
-                listIconText: 'C',
-                searchParam: 'courseId',
-            }}
-        >
+        <LayoutContainer>
             <InitStudyLibraryProvider>
                 {isLoading ? (
                     <div className="flex min-h-screen items-center justify-center">

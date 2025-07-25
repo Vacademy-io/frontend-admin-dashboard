@@ -96,7 +96,7 @@ export const GET_PUBLIC_URL_PUBLIC = `${BASE_URL}/media-service/public/get-publi
 export const GET_DETAILS = `${BASE_URL}/media-service/get-details/ids`;
 export const ACKNOWLEDGE_FOR_PUBLIC_URL = `${BASE_URL}/media-service/acknowledge-get-details`;
 
-export const INIT_STUDY_LIBRARY = `${BASE_URL}/admin-core-service/v1/study-library/init`;
+export const INIT_STUDY_LIBRARY = `http://localhost:8072/admin-core-service/v1/study-library/init`;
 export const GET_MODULES_WITH_CHAPTERS = `${BASE_URL}/admin-core-service/v1/study-library/modules-with-chapters`;
 
 export const ADD_LEVEL = `${BASE_URL}/admin-core-service/level/v1/add-level`;
@@ -120,9 +120,25 @@ export const UPDATE_CHAPTER_ORDER = `${BASE_URL}/admin-core-service/chapter/v1/u
 export const COPY_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/copy`;
 export const MOVE_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/move`;
 
-export const ADD_COURSE = `${BASE_URL}/admin-core-service/course/v1/add-course`;
+export const ADD_COURSE = `http://localhost:8072/admin-core-service/course/v1/add-course`;
 export const DELETE_COURSE = `${BASE_URL}/admin-core-service/course/v1/delete-courses`;
-export const UPDATE_COURSE = `${BASE_URL}/admin-core-service/course/v1/update-course-details`;
+export const UPDATE_COURSE = `http://localhost:8072/admin-core-service/course/v1/update-course-details`;
+
+// Teacher Course Approval APIs
+export const TEACHER_MY_COURSES = `http://localhost:8072/admin-core-service/teacher/course-approval/v1/my-courses`;
+export const TEACHER_CREATE_EDITABLE_COPY = `http://localhost:8072/admin-core-service/teacher/course-approval/v1/create-editable-copy`;
+export const TEACHER_SUBMIT_FOR_REVIEW = `http://localhost:8072/admin-core-service/teacher/course-approval/v1/submit-for-review`;
+export const TEACHER_WITHDRAW_FROM_REVIEW = `http://localhost:8072/admin-core-service/teacher/course-approval/v1/withdraw-from-review`;
+export const TEACHER_CAN_EDIT = `http://localhost:8072/admin-core-service/teacher/course-approval/v1/can-edit`;
+export const TEACHER_COURSE_HISTORY = `http://localhost:8072/admin-core-service/teacher/course-approval/v1/my-course-history`;
+
+// Admin Course Approval APIs
+export const ADMIN_PENDING_REVIEW = `http://localhost:8072/admin-core-service/admin/course-approval/v1/pending-review`;
+export const ADMIN_APPROVE_COURSE = `http://localhost:8072/admin-core-service/admin/course-approval/v1/approve`;
+export const ADMIN_REJECT_COURSE = `http://localhost:8072/admin-core-service/admin/course-approval/v1/reject`;
+export const ADMIN_COURSE_HISTORY = `http://localhost:8072/admin-core-service/admin/course-approval/v1/course-history`;
+export const ADMIN_APPROVAL_SUMMARY = `http://localhost:8072/admin-core-service/admin/course-approval/v1/approval-summary`;
+export const GET_COURSE_DETAILS_FOR_REVIEW = `http://localhost:8072/admin-core-service/v1/study-library/course-details`;
 
 export const GET_SESSION_DETAILS = `${BASE_URL}/admin-core-service/sessions/v1/session-details`;
 export const ADD_SESSION = `${BASE_URL}/admin-core-service/sessions/v1/add`;

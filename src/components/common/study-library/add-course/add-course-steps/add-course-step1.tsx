@@ -46,6 +46,7 @@ export const step1Schema = z.object({
     courseBannerBlob: z.string().optional(),
     courseMediaBlob: z.string().optional(),
     tags: z.array(z.string()).default([]),
+    parentCourseId: z.string().optional(), // For course approval workflow
 });
 export type Step1Data = z.infer<typeof step1Schema>;
 

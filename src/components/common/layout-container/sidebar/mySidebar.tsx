@@ -27,6 +27,8 @@ import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui
 import { WhatsappLogo, EnvelopeSimple, Lightning } from '@phosphor-icons/react';
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import useInstituteLogoStore from './institutelogo-global-zustand';
+import { getUserRoles, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 const voltSidebarData: SidebarItemsType[] = [
     {
@@ -47,15 +49,33 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
 
     const [isVoltSubdomain, setIsVoltSubdomain] = useState(false);
 
+    // Get user roles for role-based filtering
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const userRoles = getUserRoles(accessToken);
+    const isAdmin = userRoles.includes('ADMIN');
+
     useEffect(() => {
         setIsVoltSubdomain(
             typeof window !== 'undefined' && window.location.hostname.startsWith('volt.')
         );
     }, []);
 
-    const finalSidebarItems = isVoltSubdomain
+    // Filter admin-only items if user is not admin
+    const filterAdminOnlyItems = (items: SidebarItemsType[]): SidebarItemsType[] => {
+        if (isAdmin) return items;
+
+        return items.filter(item => {
+            // Hide these items for non-admin users
+            const adminOnlyItems = ['settings', 'manage-institute', 'learner-insights'];
+            return !adminOnlyItems.includes(item.id);
+        });
+    };
+
+    const baseItems = isVoltSubdomain
         ? voltSidebarData
         : filterMenuItems(filterMenuList(subModules, SidebarItemsData), data?.id);
+
+    const finalSidebarItems = filterAdminOnlyItems(baseItems);
 
     const { getPublicUrl } = useFileUpload();
     const { instituteLogo, setInstituteLogo } = useInstituteLogoStore();

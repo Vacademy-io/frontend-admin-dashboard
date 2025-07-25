@@ -75,6 +75,11 @@ export interface FormattedCourseData {
     about_the_course_html: string;
     tags: string[];
     course_depth: number;
+    // Teacher approval workflow fields
+    status: string; // DRAFT for teachers, ACTIVE for admins
+    created_by_user_id: string; // ID of the user creating the course
+    original_course_id?: string | null; // null for new courses, courseId for editable copies
+    version_number: number; // defaults to 1
 }
 
 type FormattedSession = FormattedCourseData['sessions'][0];
@@ -85,6 +90,22 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
     const tokenData = getTokenDecodedData(accessToken);
     const hasLevels = formData.hasLevels === 'yes';
     const hasSessions = formData.hasSessions === 'yes';
+
+    // Determine course status based on user role
+    const getCurrentCourseStatus = (): string => {
+        if (!tokenData?.authorities) return 'ACTIVE'; // Default fallback
+
+        // Check user roles across all institutes
+        for (const authority of Object.values(tokenData.authorities)) {
+            if (authority.roles && authority.roles.includes('ADMIN')) {
+                return 'ACTIVE'; // Admins create courses that are immediately active
+            }
+            if (authority.roles && authority.roles.includes('TEACHER')) {
+                return 'DRAFT'; // Teachers create courses in draft status
+            }
+        }
+        return 'ACTIVE'; // Default fallback
+    };
 
     // 👇 Additional user to be added in every level
     const additionalUser = {
@@ -261,6 +282,11 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
         tags: formData.tags || [],
         course_depth: formData.levelStructure || 2,
         course_html_description: formData.description || '',
+        // Teacher approval workflow fields
+        status: getCurrentCourseStatus(),
+        created_by_user_id: tokenData?.user || '',
+        original_course_id: formData.parentCourseId || null,
+        version_number: 1,
     };
 };
 
@@ -486,6 +512,11 @@ export const convertToApiCourseFormatUpdate = (
         tags: formData.tags || [],
         course_depth: formData.levelStructure || 2,
         course_html_description: formData.description || '',
+        // Teacher approval workflow fields
+        status: 'ACTIVE', // For updates, we assume it's already active
+        created_by_user_id: tokenData?.user || '',
+        original_course_id: formData.parentCourseId || null,
+        version_number: 1, // Default version number
     };
 };
 

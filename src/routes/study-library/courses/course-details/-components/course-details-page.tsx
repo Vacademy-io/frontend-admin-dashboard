@@ -39,6 +39,7 @@ import {
     transformApiDataToCourseData,
 } from '../-utils/helper';
 import { CourseStructureDetails } from './course-structure-details';
+import { isUserAdmin } from '@/utils/userDetails';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { AddCourseForm } from '@/components/common/study-library/add-course/add-course-form';
@@ -541,16 +542,16 @@ export const CourseDetailsPage = () => {
 
     return (
         <div className="bg-gray-5 z-0 flex min-h-screen flex-col">
-            {/* Top Banner - More Compact */}
+            {/* Top Banner - Compact */}
             <div
                 className={`relative ${
                     form.watch('courseData').courseBannerMediaId
                         ? form.getValues('courseData.isCoursePublishedToCatalaouge')
-                            ? 'min-h-[280px]'
-                            : 'min-h-[240px]'
-                        : form.getValues('courseData.isCoursePublishedToCatalaouge')
-                          ? 'min-h-[200px]'
-                          : 'min-h-[160px]'
+                            ? 'min-h-[200px]'
+                            : 'min-h-[180px]'
+                        : form.getValues('courseData').isCoursePublishedToCatalaouge
+                          ? 'min-h-[140px]'
+                          : 'min-h-[120px]'
                 }`}
             >
                 {/* Transparent black overlay */}
@@ -577,10 +578,10 @@ export const CourseDetailsPage = () => {
                 {/* Primary color overlay with 70% opacity */}
                 <div
                     className={`container relative z-20 mx-auto px-4 ${
-                        form.watch('courseData').courseBannerMediaId ? 'py-8' : 'py-6'
+                        form.watch('courseData').courseBannerMediaId ? 'py-5' : 'py-4'
                     } ${!form.watch('courseData').courseBannerMediaId ? 'text-black' : 'text-white'}`}
                 >
-                    <div className="flex items-start justify-between gap-6">
+                    <div className="flex flex-col items-start justify-between gap-4 lg:flex-row lg:gap-6">
                         {/* Left side - Title and Description */}
                         <div className="max-w-2xl flex-1">
                             {!form.watch('courseData').title ? (
@@ -594,47 +595,53 @@ export const CourseDetailsPage = () => {
                                 <>
                                     <div className="flex items-start justify-between gap-4">
                                         <h1
-                                            className={`font-bold ${
+                                            className={`font-semibold ${
                                                 form.watch('courseData').courseBannerMediaId
-                                                    ? 'mb-3 text-3xl'
-                                                    : 'mb-2 text-2xl'
+                                                    ? 'mb-2 text-2xl'
+                                                    : 'mb-1 text-xl'
                                             }`}
                                         >
                                             {form.getValues('courseData').title}
                                         </h1>
                                     </div>
                                     <p
-                                        className={`opacity-90 ${
+                                        className={`opacity-85 ${
                                             form.watch('courseData').courseBannerMediaId
-                                                ? 'mb-3 text-base'
-                                                : 'mb-2 text-sm'
+                                                ? 'mb-2 text-sm'
+                                                : 'mb-1 text-xs'
                                         }`}
                                         dangerouslySetInnerHTML={{
                                             __html: form.getValues('courseData').description || '',
                                         }}
                                     />
-                                    {form.getValues('courseData.isCoursePublishedToCatalaouge') && (
+                                    {form.getValues('courseData').isCoursePublishedToCatalaouge && (
                                         <MyButton
                                             type="button"
-                                            scale="medium"
+                                            scale="small"
                                             buttonType="primary"
-                                            className="bg-success-100 font-medium !text-black hover:bg-success-100 focus:bg-success-100 active:bg-success-100"
+                                            className="border border-green-200 bg-green-50 text-xs font-medium !text-green-700 hover:bg-green-100 focus:bg-green-100 active:bg-green-100"
                                         >
                                             Added to catalog
                                         </MyButton>
                                     )}
                                     <div className="shrink-0">
-                                        <AddCourseForm
-                                            isEdit={true}
-                                            initialCourseData={form.getValues()}
-                                        />
+                                        {/* Only show edit course button for admins or on draft courses */}
+                                        {(isUserAdmin() ||
+                                            (form.getValues('courseData').status !== 'ACTIVE' &&
+                                                form.getValues('courseData').status !==
+                                                    'IN_REVIEW')) && (
+                                            <AddCourseForm
+                                                isEdit={true}
+                                                initialCourseData={form.getValues()}
+                                            />
+                                        )}
                                     </div>
                                     {form.getValues('courseData').tags.length > 0 && (
-                                        <div className="flex flex-wrap gap-2">
+                                        <div className="mt-2 flex flex-wrap gap-1.5">
                                             {form.getValues('courseData').tags.map((tag, index) => (
                                                 <span
                                                     key={index}
-                                                    className="rounded-md border px-2 py-1 text-xs shadow-md"
+                                                    className="rounded-full border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600"
                                                 >
                                                     {tag}
                                                 </span>
@@ -645,14 +652,14 @@ export const CourseDetailsPage = () => {
                             )}
                         </div>
 
-                        {/* Right side - Video Player - More Compact */}
+                        {/* Right side - Video Player - Responsive */}
                         {form.watch('courseData').courseMediaId.id &&
                             (form.watch('courseData').courseMediaId.type === 'youtube' ? (
                                 <div
-                                    className={`shrink-0 overflow-hidden rounded-lg shadow-lg ${
+                                    className={`w-full shrink-0 overflow-hidden rounded-lg shadow-lg lg:w-[280px] ${
                                         form.watch('courseData').courseBannerMediaId
-                                            ? 'w-[320px]'
-                                            : 'w-[280px]'
+                                            ? 'max-w-[400px] lg:max-w-[280px]'
+                                            : 'max-w-[350px] lg:max-w-[240px]'
                                     }`}
                                 >
                                     <div className="relative flex aspect-video items-center justify-center bg-black">
@@ -670,10 +677,10 @@ export const CourseDetailsPage = () => {
                                 </div>
                             ) : form.watch('courseData').courseMediaId.type === 'video' ? (
                                 <div
-                                    className={`shrink-0 overflow-hidden rounded-lg shadow-lg ${
+                                    className={`w-full shrink-0 overflow-hidden rounded-lg shadow-lg lg:w-[280px] ${
                                         form.watch('courseData').courseBannerMediaId
-                                            ? 'w-[320px]'
-                                            : 'w-[280px]'
+                                            ? 'max-w-[400px] lg:max-w-[280px]'
+                                            : 'max-w-[350px] lg:max-w-[240px]'
                                     }`}
                                 >
                                     <div className="relative aspect-video bg-black">
@@ -697,10 +704,10 @@ export const CourseDetailsPage = () => {
                                 </div>
                             ) : (
                                 <div
-                                    className={`shrink-0 overflow-hidden rounded-lg shadow-lg ${
+                                    className={`w-full shrink-0 overflow-hidden rounded-lg shadow-lg lg:w-[280px] ${
                                         form.watch('courseData').courseBannerMediaId
-                                            ? 'w-[320px]'
-                                            : 'w-[280px]'
+                                            ? 'max-w-[400px] lg:max-w-[280px]'
+                                            : 'max-w-[350px] lg:max-w-[240px]'
                                     }`}
                                 >
                                     <div className="relative aspect-video bg-black">
@@ -717,24 +724,24 @@ export const CourseDetailsPage = () => {
             </div>
 
             {/* Main Content */}
-            <div className="container mx-auto px-4 py-8">
-                <div className="flex gap-8">
+            <div className="container mx-auto p-4">
+                <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
                     {/* Left Column - 2/3 width */}
-                    <div className="flex w-2/3 grow flex-col">
+                    <div className="flex w-full grow flex-col lg:w-2/3">
                         {/* Session and Level Selectors */}
-                        <div className="container mx-auto px-0 pb-6">
-                            <div className="flex items-center gap-6">
+                        <div className="container mx-auto px-0 pb-4">
+                            <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
                                 {sessionOptions.length === 1 ? (
                                     sessionOptions[0]?.label !== 'default' && (
-                                        <div className="flex flex-col gap-2">
-                                            <label className="text-sm font-medium">
+                                        <div className="flex flex-col gap-1">
+                                            <label className="text-xs font-medium text-gray-600">
                                                 {sessionOptions[0]?.label}
                                             </label>
                                         </div>
                                     )
                                 ) : (
-                                    <div className="flex flex-col gap-2">
-                                        <label className="text-sm font-medium">
+                                    <div className="flex flex-col gap-1">
+                                        <label className="text-xs font-medium text-gray-600">
                                             {getTerminology(
                                                 ContentTerms.Session,
                                                 SystemTerms.Session
@@ -744,7 +751,7 @@ export const CourseDetailsPage = () => {
                                             value={selectedSession}
                                             onValueChange={handleSessionChange}
                                         >
-                                            <SelectTrigger className="w-48">
+                                            <SelectTrigger className="h-8 w-44 text-sm">
                                                 <SelectValue
                                                     placeholder={`Select ${getTerminology(
                                                         ContentTerms.Session,
@@ -767,15 +774,15 @@ export const CourseDetailsPage = () => {
                                 )}
                                 {levelOptions.length === 1 ? (
                                     levelOptions[0]?.label !== 'default' && (
-                                        <div className="flex flex-col gap-2">
-                                            <label className="text-sm font-medium">
+                                        <div className="flex flex-col gap-1">
+                                            <label className="text-xs font-medium text-gray-600">
                                                 {levelOptions[0]?.label}
                                             </label>
                                         </div>
                                     )
                                 ) : (
-                                    <div className="flex flex-col gap-2">
-                                        <label className="text-sm font-medium">
+                                    <div className="flex flex-col gap-1">
+                                        <label className="text-xs font-medium text-gray-600">
                                             {getTerminology(ContentTerms.Level, SystemTerms.Level)}
                                         </label>
                                         <Select
@@ -783,7 +790,7 @@ export const CourseDetailsPage = () => {
                                             onValueChange={handleLevelChange}
                                             disabled={!selectedSession}
                                         >
-                                            <SelectTrigger className="w-48">
+                                            <SelectTrigger className="h-8 w-44 text-sm">
                                                 <SelectValue
                                                     placeholder={`Select ${getTerminology(
                                                         ContentTerms.Level,
@@ -811,12 +818,16 @@ export const CourseDetailsPage = () => {
                             selectedSession={selectedSession}
                             selectedLevel={selectedLevel}
                             courseStructure={form.getValues('courseData.courseStructure')}
+                            courseStatus={form.getValues('courseData').status}
+                            isUserAdmin={isUserAdmin()}
                         />
 
                         {/* What You'll Learn Section */}
                         {form.getValues('courseData').whatYoullLearn && (
-                            <div className="mb-8 mt-6 bg-white p-6">
-                                <h2 className="mb-4 text-2xl font-bold">What you&apos;ll learn?</h2>
+                            <div className="my-4 bg-white p-4">
+                                <h2 className="mb-3 text-lg font-semibold">
+                                    What you&apos;ll learn?
+                                </h2>
                                 <div className="rounded-lg">
                                     <p
                                         dangerouslySetInnerHTML={{
@@ -830,8 +841,8 @@ export const CourseDetailsPage = () => {
 
                         {/* About Content Section */}
                         {form.getValues('courseData').aboutTheCourse && (
-                            <div className="mb-8 rounded-sm bg-white p-6">
-                                <h2 className="mb-4 text-2xl font-bold">
+                            <div className="mb-4 rounded-sm bg-white p-4">
+                                <h2 className="mb-3 text-lg font-semibold">
                                     About this{' '}
                                     {getTerminology(
                                         ContentTerms.Course,
@@ -851,8 +862,8 @@ export const CourseDetailsPage = () => {
 
                         {/* Who Should Join Section */}
                         {form.getValues('courseData').whoShouldLearn && (
-                            <div className="mb-8 bg-white p-6">
-                                <h2 className="mb-4 text-2xl font-bold">Who should join?</h2>
+                            <div className="mb-4 bg-white p-4">
+                                <h2 className="mb-3 text-lg font-semibold">Who should join?</h2>
                                 <div className="rounded-lg">
                                     <p
                                         dangerouslySetInnerHTML={{
@@ -866,14 +877,14 @@ export const CourseDetailsPage = () => {
 
                         {/* Instructors Section */}
                         {instructors && instructors.length > 0 && (
-                            <div className="mb-8 flex flex-col gap-3 bg-white p-6">
-                                <h2 className=" text-2xl font-bold">Authors</h2>
+                            <div className="mb-4 flex flex-col gap-2 bg-white p-4">
+                                <h2 className="text-lg font-semibold">Authors</h2>
                                 {loadingInstructors ? (
                                     <div>Loading instructors...</div>
                                 ) : (
                                     resolvedInstructors.map((instructor, index) => (
-                                        <div key={index} className="flex gap-3 rounded-lg">
-                                            <Avatar className="size-8">
+                                        <div key={index} className="flex gap-2 rounded-lg">
+                                            <Avatar className="size-6">
                                                 {instructor.profilePicUrl ? (
                                                     <AvatarImage
                                                         src={instructor.profilePicUrl}
@@ -885,7 +896,9 @@ export const CourseDetailsPage = () => {
                                                     </AvatarFallback>
                                                 )}
                                             </Avatar>
-                                            <h3 className="text-lg">{instructor.name}</h3>
+                                            <h3 className="text-sm font-medium">
+                                                {instructor.name}
+                                            </h3>
                                         </div>
                                     ))
                                 )}
@@ -894,18 +907,17 @@ export const CourseDetailsPage = () => {
                     </div>
 
                     {/* Right Column - 1/3 width */}
-                    <div className="w-1/3">
-                        <div className="sticky top-4 rounded-lg border bg-white p-6 shadow-lg">
+                    <div className="w-full lg:w-1/3">
+                        <div className="sticky top-4 rounded-lg border bg-white p-4 shadow-sm">
                             {/* Course Stats */}
-                            <h2 className="mb-4 text-lg font-bold">
-                                {' '}
+                            <h2 className="mb-3 line-clamp-2 text-base font-semibold text-gray-800">
                                 {form.getValues('courseData').title}
                             </h2>
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 {levelOptions[0]?.label !== 'default' && (
                                     <div className="flex items-center gap-2">
-                                        <StepsIcon size={18} />
-                                        <span>
+                                        <StepsIcon size={14} className="text-gray-500" />
+                                        <span className="text-sm text-gray-700">
                                             {
                                                 levelOptions.find(
                                                     (option) => option.value === selectedLevel
@@ -916,15 +928,15 @@ export const CourseDetailsPage = () => {
                                 )}
                                 {slideCountQuery.isLoading ? (
                                     <div className="space-y-2">
-                                        {[1, 2, 3, 4, 5].map((i) => (
+                                        {[1, 2, 3].map((i) => (
                                             <div
                                                 key={i}
-                                                className="h-6 w-32 animate-pulse rounded bg-gray-200"
+                                                className="h-4 w-28 animate-pulse rounded bg-gray-200"
                                             />
                                         ))}
                                     </div>
                                 ) : slideCountQuery.error ? (
-                                    <div className="text-sm text-red-500">
+                                    <div className="text-xs text-red-500">
                                         Error loading slide counts
                                     </div>
                                 ) : (
@@ -934,20 +946,20 @@ export const CourseDetailsPage = () => {
                                         calculateTotalTimeForCourseDuration(slideCountQuery.data)
                                             .minutes ? (
                                             <div className="flex items-center gap-2">
-                                                <Clock size={20} />
-                                                <span>
+                                                <Clock size={14} className="text-gray-500" />
+                                                <span className="text-sm text-gray-700">
                                                     {
                                                         calculateTotalTimeForCourseDuration(
                                                             slideCountQuery.data
                                                         ).hours
-                                                    }{' '}
-                                                    hour{' '}
+                                                    }
+                                                    h{' '}
                                                     {
                                                         calculateTotalTimeForCourseDuration(
                                                             slideCountQuery.data
                                                         ).minutes
-                                                    }{' '}
-                                                    minutes
+                                                    }
+                                                    m
                                                 </span>
                                             </div>
                                         ) : null}
@@ -958,79 +970,67 @@ export const CourseDetailsPage = () => {
                                             >
                                                 {count.source_type === 'VIDEO' && (
                                                     <>
-                                                        <PlayCircle size={18} />
-                                                        <span>
-                                                            {count.slide_count} Video{' '}
-                                                            {getTerminology(
-                                                                ContentTerms.Slides,
-                                                                SystemTerms.Slides
-                                                            ).toLocaleLowerCase()}
-                                                            s
+                                                        <PlayCircle
+                                                            size={14}
+                                                            className="text-gray-500"
+                                                        />
+                                                        <span className="text-sm text-gray-700">
+                                                            {count.slide_count} Video
+                                                            {count.slide_count !== 1 ? 's' : ''}
                                                         </span>
                                                     </>
                                                 )}
                                                 {count.source_type === 'CODE' && (
                                                     <>
-                                                        <Code size={18} />
-                                                        <span>
-                                                            {count.slide_count} Code{' '}
-                                                            {getTerminology(
-                                                                ContentTerms.Slides,
-                                                                SystemTerms.Slides
-                                                            ).toLocaleLowerCase()}
-                                                            s
+                                                        <Code size={14} className="text-gray-500" />
+                                                        <span className="text-sm text-gray-700">
+                                                            {count.slide_count} Code
+                                                            {count.slide_count !== 1 ? 's' : ''}
                                                         </span>
                                                     </>
                                                 )}
                                                 {count.source_type === 'PDF' && (
                                                     <>
-                                                        <FilePdf size={18} />
-                                                        <span>
-                                                            {count.slide_count} PDF{' '}
-                                                            {getTerminology(
-                                                                ContentTerms.Slides,
-                                                                SystemTerms.Slides
-                                                            ).toLocaleLowerCase()}
-                                                            s
+                                                        <FilePdf
+                                                            size={14}
+                                                            className="text-gray-500"
+                                                        />
+                                                        <span className="text-sm text-gray-700">
+                                                            {count.slide_count} PDF
+                                                            {count.slide_count !== 1 ? 's' : ''}
                                                         </span>
                                                     </>
                                                 )}
                                                 {count.source_type === 'DOCUMENT' && (
                                                     <>
-                                                        <FileDoc size={18} />
-                                                        <span>
-                                                            {count.slide_count} Doc{' '}
-                                                            {getTerminology(
-                                                                ContentTerms.Slides,
-                                                                SystemTerms.Slides
-                                                            ).toLocaleLowerCase()}
-                                                            s
+                                                        <FileDoc
+                                                            size={14}
+                                                            className="text-gray-500"
+                                                        />
+                                                        <span className="text-sm text-gray-700">
+                                                            {count.slide_count} Doc
+                                                            {count.slide_count !== 1 ? 's' : ''}
                                                         </span>
                                                     </>
                                                 )}
                                                 {count.source_type === 'QUESTION' && (
                                                     <>
-                                                        <Question size={18} />
-                                                        <span>
-                                                            {count.slide_count} Question{' '}
-                                                            {getTerminology(
-                                                                ContentTerms.Slides,
-                                                                SystemTerms.Slides
-                                                            ).toLocaleLowerCase()}
-                                                            s
+                                                        <Question
+                                                            size={14}
+                                                            className="text-gray-500"
+                                                        />
+                                                        <span className="text-sm text-gray-700">
+                                                            {count.slide_count} Question
+                                                            {count.slide_count !== 1 ? 's' : ''}
                                                         </span>
                                                     </>
                                                 )}
                                                 {count.source_type === 'ASSIGNMENT' && (
                                                     <>
-                                                        <File size={18} />
-                                                        <span>
-                                                            {count.slide_count} Assignment{' '}
-                                                            {getTerminology(
-                                                                ContentTerms.Slides,
-                                                                SystemTerms.Slides
-                                                            ).toLocaleLowerCase()}
-                                                            s
+                                                        <File size={14} className="text-gray-500" />
+                                                        <span className="text-sm text-gray-700">
+                                                            {count.slide_count} Assignment
+                                                            {count.slide_count !== 1 ? 's' : ''}
                                                         </span>
                                                     </>
                                                 )}
@@ -1038,8 +1038,11 @@ export const CourseDetailsPage = () => {
                                         ))}
                                         {form.getValues('courseData').instructors.length > 0 && (
                                             <div className="flex items-center gap-2">
-                                                <ChalkboardTeacher size={18} />
-                                                <span>
+                                                <ChalkboardTeacher
+                                                    size={14}
+                                                    className="text-gray-500"
+                                                />
+                                                <span className="text-sm text-gray-700">
                                                     {form
                                                         .getValues('courseData')
                                                         .instructors.map((i) => i.name)
