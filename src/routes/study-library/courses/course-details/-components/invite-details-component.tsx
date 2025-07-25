@@ -9,13 +9,16 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { InviteLink } from '@/routes/manage-students/-components/InviteLink';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import { ArrowRight, Calendar, Plus } from 'phosphor-react';
-import { handleFetchInviteLinks } from '../-services/get-invite-links';
+import { handleFetchInviteLinks, handleMakeInviteLinkDefault } from '../-services/get-invite-links';
 import { MyPagination } from '@/components/design-system/pagination';
 import { usePaginationState } from '@/hooks/pagination';
-import { InviteLinkDataInterface } from '@/schemas/study-library/invite-links-schema';
+import type { InviteLinkDataInterface } from '@/schemas/study-library/invite-links-schema';
+import { Badge } from '@/components/ui/badge';
+import { AxiosError } from 'axios';
+import { toast } from 'sonner';
 
 // Inline types to fix linter errors
 interface Instructor {
@@ -46,6 +49,7 @@ interface SessionData {
 
 const InviteDetailsComponent = ({ sessionsData }: { sessionsData: SessionData[] }) => {
     // Flatten all levels for all sessions to count cards
+    const queryClient = useQueryClient();
     const navigate = useNavigate();
     const { getPackageSessionId, getDetailsFromPackageSessionId } = useInstituteDetailsStore();
     const router = useRouter();
@@ -83,6 +87,62 @@ const InviteDetailsComponent = ({ sessionsData }: { sessionsData: SessionData[] 
 
     const shouldScroll = inviteLinks.content.length > 3;
 
+    // --- Group invite links by package_session_id ---
+    // Step 1: Flatten inviteLinks.content so each entry is {inviteLink, packageSessionId}
+    const flattenedInviteLinks = (
+        inviteLinks && inviteLinks.content ? inviteLinks.content : []
+    ).flatMap((inviteLink: InviteLinkDataInterface) =>
+        (inviteLink.package_session_ids || []).map((packageSessionId: string) => ({
+            ...inviteLink,
+            packageSessionId,
+        }))
+    );
+    // Step 2: Group by packageSessionId
+    type FlattenedInviteLink = InviteLinkDataInterface & { packageSessionId: string };
+    const groupedByPackageSessionId: Record<string, FlattenedInviteLink[]> = {};
+    flattenedInviteLinks.forEach((item: FlattenedInviteLink) => {
+        if (!groupedByPackageSessionId[item.packageSessionId]) {
+            groupedByPackageSessionId[item.packageSessionId] = [];
+        }
+        groupedByPackageSessionId[item.packageSessionId]?.push(item);
+    });
+    const groupedEntries: [string, FlattenedInviteLink[]][] =
+        Object.entries(groupedByPackageSessionId);
+
+    const handleMakeDefaultMutation = useMutation({
+        mutationFn: async ({
+            packageSessionId,
+            inviteLinkId,
+        }: {
+            packageSessionId: string;
+            inviteLinkId: string;
+        }) => {
+            return handleMakeInviteLinkDefault(packageSessionId, inviteLinkId);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['GET_INVITE_LINKS'] });
+        },
+        onError: (error: unknown) => {
+            if (error instanceof AxiosError) {
+                toast.error(error?.response?.data?.ex || 'Failed to submit rating', {
+                    className: 'error-toast',
+                    duration: 2000,
+                });
+            } else {
+                toast.error('An unexpected error occurred', {
+                    className: 'error-toast',
+                    duration: 2000,
+                });
+                console.error('Unexpected error:', error);
+            }
+        },
+    });
+
+    // Handler for making an invite link default (to be implemented)
+    const handleMakeDefault = (packageSessionId: string, inviteLinkId: string) => {
+        handleMakeDefaultMutation.mutate({ packageSessionId, inviteLinkId });
+    };
+
     return (
         <Dialog>
             <DialogTrigger>
@@ -107,13 +167,16 @@ const InviteDetailsComponent = ({ sessionsData }: { sessionsData: SessionData[] 
                     className={`space-y-4 p-4 ${shouldScroll ? 'overflow-y-auto' : ''}`}
                     style={shouldScroll ? { maxHeight: '60vh' } : {}}
                 >
-                    {shouldFetch && inviteLinks.content.length > 0 ? (
-                        inviteLinks.content.map(
-                            (inviteLink: InviteLinkDataInterface, index: number) => (
+                    {shouldFetch && groupedEntries.length > 0 ? (
+                        groupedEntries.map(
+                            (
+                                [packageSessionId, inviteLinksArr]: [string, FlattenedInviteLink[]],
+                                groupIndex: number
+                            ) => (
                                 <div
                                     className="animate-fadeIn group flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-4 transition-all duration-200 hover:border-primary-200 hover:shadow-md"
-                                    key={index}
-                                    style={{ animationDelay: `${index * 0.1}s` }}
+                                    key={packageSessionId}
+                                    style={{ animationDelay: `${groupIndex * 0.1}s` }}
                                 >
                                     {/* Enhanced header with course info */}
                                     <div className="flex items-start justify-between gap-3">
@@ -126,45 +189,64 @@ const InviteDetailsComponent = ({ sessionsData }: { sessionsData: SessionData[] 
                                                     </div>
                                                     <span className="font-medium">Level:</span>
                                                     <span className="text-neutral-700">
-                                                        {inviteLink.package_session_ids
-                                                            .map(
-                                                                (id) =>
-                                                                    getDetailsFromPackageSessionId({
-                                                                        packageSessionId: id,
-                                                                    })?.level.level_name
-                                                            )
-                                                            .filter(Boolean) // removes undefined or null values
-                                                            .join(', ')}
+                                                        {getDetailsFromPackageSessionId({
+                                                            packageSessionId,
+                                                        })?.level.level_name || '-'}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <Calendar className="size-3.5 text-neutral-400" />
                                                     <span className="font-medium">Session:</span>
                                                     <span className="text-neutral-700">
-                                                        {inviteLink.package_session_ids
-                                                            .map(
-                                                                (id) =>
-                                                                    getDetailsFromPackageSessionId({
-                                                                        packageSessionId: id,
-                                                                    })?.session.session_name
-                                                            )
-                                                            .filter(Boolean) // removes undefined or null values
-                                                            .join(', ')}
+                                                        {getDetailsFromPackageSessionId({
+                                                            packageSessionId,
+                                                        })?.session.session_name || '-'}
                                                     </span>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Invite link section */}
-                                    <div className="border-t border-neutral-100  pt-2">
+                                    {/* Invite links section for this package session */}
+                                    <div className="border-t border-neutral-100 pt-2">
                                         <div className="mb-2 text-xs font-medium text-neutral-600">
-                                            Invite Link:
+                                            Invite Links:
                                         </div>
-                                        <InviteLink
-                                            inviteCode={inviteLink.invite_code}
-                                            linkLen={50}
-                                        />
+                                        <div className="flex flex-col gap-2">
+                                            {inviteLinksArr.map(
+                                                (inviteLink: FlattenedInviteLink, idx: number) => {
+                                                    return (
+                                                        <div
+                                                            key={inviteLink.id + idx}
+                                                            className="flex items-center gap-2"
+                                                        >
+                                                            <InviteLink
+                                                                inviteCode={inviteLink.invite_code}
+                                                            />
+                                                            {inviteLink.tag === 'DEFAULT' ? (
+                                                                <Badge variant="default">
+                                                                    DEFAULT
+                                                                </Badge>
+                                                            ) : (
+                                                                <MyButton
+                                                                    type="button"
+                                                                    scale="small"
+                                                                    buttonType="secondary"
+                                                                    onClick={() =>
+                                                                        handleMakeDefault(
+                                                                            packageSessionId,
+                                                                            inviteLink.id
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    Make Default
+                                                                </MyButton>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                }
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             )
@@ -174,10 +256,10 @@ const InviteDetailsComponent = ({ sessionsData }: { sessionsData: SessionData[] 
                             No invite links available.
                         </div>
                     )}
-                    {shouldFetch && inviteLinks.content.length > 0 && (
+                    {shouldFetch && (inviteLinks?.content?.length ?? 0) > 0 && (
                         <MyPagination
                             currentPage={page}
-                            totalPages={inviteLinks.totalPages}
+                            totalPages={inviteLinks?.totalPages ?? 1}
                             onPageChange={handlePageChange}
                         />
                     )}

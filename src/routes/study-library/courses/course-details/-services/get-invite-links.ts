@@ -1,5 +1,5 @@
 import { getInstituteId } from '@/constants/helper';
-import { GET_INVITE_LINKS } from '@/constants/urls';
+import { GET_INVITE_LINKS, MAKE_INVITE_LINK_DEFAULT } from '@/constants/urls';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 
 const fetchInviteLinks = async (packageSessionIds: string[], pageNo: number, pageSize: number) => {
@@ -31,4 +31,16 @@ export const handleFetchInviteLinks = (
         },
         staleTime: 60 * 60 * 1000,
     };
+};
+
+export const handleMakeInviteLinkDefault = async (
+    packageSessionId: string,
+    inviteLinkId: string
+) => {
+    const response = await authenticatedAxiosInstance({
+        method: 'PUT',
+        url: MAKE_INVITE_LINK_DEFAULT,
+        params: { enrollInviteId: inviteLinkId, packageSessionId },
+    });
+    return response?.data;
 };
