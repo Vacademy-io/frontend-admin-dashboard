@@ -37,6 +37,7 @@ import sectionDetailsSchema from '../../create-assessment/$assessmentId/$examtyp
 import { zodResolver } from '@hookform/resolvers/zod';
 import ConvertToHTML from '../-images/convertToHTML.png';
 import { AssignmentFormType } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-form-schemas/assignmentFormSchema';
+import { convertCapitalToTitleCase } from '@/lib/utils';
 
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 export type UploadQuestionPaperFormType = z.infer<typeof uploadQuestionPaperFormSchema>;
@@ -457,7 +458,7 @@ export const QuestionPaperUpload = ({
                                     name="yearClass"
                                     options={YearClassFilterData.map((option, index) => ({
                                         value: option.name,
-                                        label: option.name,
+                                        label: convertCapitalToTitleCase(option.name),
                                         _id: index,
                                     }))}
                                     control={form.control}
@@ -469,7 +470,7 @@ export const QuestionPaperUpload = ({
                                     name="subject"
                                     options={SubjectFilterData.map((option, index) => ({
                                         value: option.name,
-                                        label: option.name,
+                                        label: convertCapitalToTitleCase(option.name),
                                         _id: index,
                                     }))}
                                     control={form.control}

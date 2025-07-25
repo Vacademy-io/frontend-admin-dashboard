@@ -26,6 +26,7 @@ import { usePacageDetails } from '../../-store/usePacageDetails';
 import { formatToTwoDecimalPlaces } from '../../-services/helper';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { convertCapitalToTitleCase } from '@/lib/utils';
 
 const formSchema = z.object({
     course: z.string().min(1, 'Course is required'),
@@ -163,7 +164,7 @@ export default function ProgressReports() {
                             <SelectContent>
                                 {courseList.map((course) => (
                                     <SelectItem key={course.id} value={course.id}>
-                                        {course.name}
+                                        {convertCapitalToTitleCase(course.name)}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -192,7 +193,7 @@ export default function ProgressReports() {
                             <SelectContent>
                                 {sessionList.map((session) => (
                                     <SelectItem key={session.id} value={session.id}>
-                                        {session.name}
+                                        {convertCapitalToTitleCase(session.name)}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -222,7 +223,7 @@ export default function ProgressReports() {
                             <SelectContent>
                                 {levelList.map((level) => (
                                     <SelectItem key={level.id} value={level.id}>
-                                        {level.level_name}
+                                        {convertCapitalToTitleCase(level.level_name)}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
