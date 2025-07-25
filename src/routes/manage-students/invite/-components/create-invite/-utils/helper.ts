@@ -87,6 +87,15 @@ export interface PaymentOption {
     payment_option_metadata_json: string; // or parsed as: PaymentOptionMetadata if you want to parse it
 }
 
+interface PaymentPlansInterface {
+    value: number;
+    unit: string;
+    price: string;
+    features: string[];
+    title: string;
+    newFeature: string;
+}
+
 export function transformApiDataToDummyStructure(data: ApiCourseData[]) {
     const dummyCourses: { id: string; name: string }[] = [];
     const dummyBatches: Record<
@@ -247,7 +256,7 @@ export function splitPlansByType(data: PaymentOption[]): {
                         parsedData?.donationData?.suggestedAmounts
                             ?.split(',')
                             ?.map((x: string) => Number(x.trim())) || [],
-                    minAmount: parsedData?.donationData?.minimumAmount || 0,
+                    minAmount: Number(parsedData?.donationData?.minimumAmount) || 0,
                     currency: parsedData?.currency || '',
                     type: item.type,
                 });
@@ -278,7 +287,19 @@ export function splitPlansByType(data: PaymentOption[]): {
                     description: 'Access to subscription plan.',
                     currency: parsedData?.currency || '',
                     type: item.type,
-                    paymentOption: parsedData?.subscriptionData?.customIntervals || [],
+                    paymentOption:
+                        parsedData?.subscriptionData?.customIntervals.map(
+                            (interval: PaymentPlansInterface) => {
+                                return {
+                                    value: interval.value || 0,
+                                    unit: interval.unit || '',
+                                    price: interval.price || '',
+                                    features: interval.features || [],
+                                    title: interval.title || '',
+                                    newFeature: interval.newFeature || '',
+                                };
+                            }
+                        ) || [],
                 });
             }
         }
@@ -325,7 +346,7 @@ export function convertReferralData(data: ReferralData[]) {
         name: item.name,
         refereeBenefit: '',
         referrerTiers: [{ tier: '', reward: '' }],
-        vestingPeriod: item.referrer_vesting_days,
+        vestingPeriod: item.referrer_vesting_days || 0,
         combineOffers: true,
     }));
 }
