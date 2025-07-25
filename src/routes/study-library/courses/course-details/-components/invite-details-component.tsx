@@ -132,9 +132,10 @@ const InviteDetailsComponent = ({ form }: { form: UseFormReturn<CourseDetailsFor
     };
 
     // Handler for viewing an invite link (to be implemented)
-    const handleViewInviteLink = (inviteLinkId: string) => {
+    const handleViewInviteLink = (inviteLinkId: string, packageSessionId: string) => {
         // TODO: Implement view functionality
-        console.log('View clicked for', inviteLinkId);
+        setAddDialogData({ packageSessionId, defaultInviteLinkId: inviteLinkId });
+        setIsAddDialogOpen(true);
     };
 
     // Handler for adding a new invite link to a package session
@@ -242,7 +243,8 @@ const InviteDetailsComponent = ({ form }: { form: UseFormReturn<CourseDetailsFor
                                                                         buttonType="secondary"
                                                                         onClick={() =>
                                                                             handleViewInviteLink(
-                                                                                inviteLink.id
+                                                                                inviteLink.id,
+                                                                                packageSessionId
                                                                             )
                                                                         }
                                                                     >
@@ -343,6 +345,7 @@ const InviteDetailsComponent = ({ form }: { form: UseFormReturn<CourseDetailsFor
                 ]}
                 showSummaryDialog={isAddDialogOpen}
                 setShowSummaryDialog={setIsAddDialogOpen}
+                inviteLinkId={addDialogData?.defaultInviteLinkId}
             />
         </>
     );

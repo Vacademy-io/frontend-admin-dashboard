@@ -43,6 +43,7 @@ export interface GenerateInviteLinkDialogProps {
     selectedBatches: Batch[];
     showSummaryDialog: boolean;
     setShowSummaryDialog: (open: boolean) => void;
+    inviteLinkId?: string;
 }
 
 const testInputFieldSchema = z.object({
