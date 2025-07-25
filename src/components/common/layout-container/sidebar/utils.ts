@@ -10,7 +10,7 @@ import {
     ChartLineUp,
 } from '@phosphor-icons/react';
 import { SidebarItemsType } from '../../../../types/layout-container/layout-container-types';
-import { GearSix, Notepad, NotePencil, UsersFour } from 'phosphor-react';
+import { GearSix, Lightning, Notepad, NotePencil, UsersFour } from 'phosphor-react';
 import { getInstituteId } from '@/constants/helper';
 import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 import { StorageKey } from '@/constants/storage/storage';
@@ -126,14 +126,16 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemLink: '/study-library/reports',
             },
             {
-                subItem: 'Volt',
-                subItemLink: '/study-library/volt',
-            },
-            {
                 subItem: 'Doubt Management',
                 subItemLink: '/study-library/doubt-management',
             },
         ],
+    },
+    {
+        icon: Lightning,
+        id: 'volt',
+        title: 'Volt',
+        to: '/study-library/volt',
     },
     {
         icon: NotePencil,

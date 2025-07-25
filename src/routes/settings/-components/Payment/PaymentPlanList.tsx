@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { CreditCard, Calendar, DollarSign, Edit, Trash2, Globe, Eye } from 'lucide-react';
-import { PaymentPlan } from '@/types/payment';
+import { PaymentPlan, PaymentPlans } from '@/types/payment';
 
 const currencySymbols: { [key: string]: string } = {
     USD: '$',
@@ -43,23 +43,27 @@ const getPlanPriceDetails = (plan: PaymentPlan) => {
     }
 
     switch (plan.type) {
-        case 'subscription': {
+        case PaymentPlans.SUBSCRIPTION: {
             if (plan.config?.subscription?.customIntervals?.length > 0) {
                 plan.config.subscription.customIntervals.forEach(
                     (
                         interval: {
                             price: string;
+                            originalPrice?: string;
                             title?: string;
                             value: number;
                             unit: string;
                         },
                         idx: number
                     ) => {
-                        const originalPrice = parseFloat(interval.price || '0');
+                        const originalPrice =
+                            interval.originalPrice !== undefined
+                                ? parseFloat(interval.originalPrice)
+                                : parseFloat(interval.price || '0');
+                        let discountedPrice = parseFloat(interval.price || '0');
                         const discount = plan.config?.planDiscounts?.[`interval_${idx}`];
 
                         if (discount && discount.type !== 'none' && discount.amount) {
-                            let discountedPrice = originalPrice;
                             let discountText = '';
 
                             if (discount.type === 'percentage') {
@@ -111,7 +115,7 @@ const getPlanPriceDetails = (plan: PaymentPlan) => {
             break;
         }
 
-        case 'upfront': {
+        case PaymentPlans.UPFRONT: {
             const originalPrice = parseFloat(plan.config?.upfront?.fullPrice || '0');
             const upfrontDiscount = plan.config?.planDiscounts?.upfront;
 
@@ -156,7 +160,7 @@ const getPlanPriceDetails = (plan: PaymentPlan) => {
             break;
         }
 
-        case 'donation': {
+        case PaymentPlans.DONATION: {
             if (plan.config?.donation?.suggestedAmounts) {
                 details.push(
                     `Suggested Amounts: ${symbol}${plan.config.donation.suggestedAmounts}`
@@ -168,7 +172,7 @@ const getPlanPriceDetails = (plan: PaymentPlan) => {
             break;
         }
 
-        case 'free': {
+        case PaymentPlans.FREE: {
             if (plan.config.free?.validityDays) {
                 details.push(`Free for ${plan.config.free.validityDays} days`);
             } else {
@@ -239,8 +243,8 @@ export const PaymentPlanList: React.FC<PaymentPlanListProps> = ({
                                                 {plan.type}
                                             </Badge>
                                             {onPreview &&
-                                                (plan.type === 'subscription' ||
-                                                    plan.type === 'donation') && (
+                                                (plan.type === PaymentPlans.SUBSCRIPTION ||
+                                                    plan.type === PaymentPlans.DONATION) && (
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
@@ -294,7 +298,7 @@ export const PaymentPlanList: React.FC<PaymentPlanListProps> = ({
                                                 {detail}
                                             </p>
                                         ))}
-                                        {plan.type !== 'free' && (
+                                        {plan.type !== PaymentPlans.FREE && (
                                             <p className="mt-2 text-xs text-gray-500">
                                                 Currency: {plan.currency}
                                             </p>
