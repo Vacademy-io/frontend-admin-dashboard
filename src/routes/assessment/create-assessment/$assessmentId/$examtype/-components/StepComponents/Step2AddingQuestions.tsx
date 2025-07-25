@@ -553,7 +553,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                             </p>
                                         </div>
                                     )}
-                                    {form.watch('testDuration').entireTestDuration.checked &&
+                                    {form.watch('testDuration')?.entireTestDuration?.checked &&
                                         getStepKey({
                                             assessmentDetails,
                                             currentStep,

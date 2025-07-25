@@ -239,22 +239,28 @@ export interface QuizSlideQuestion {
     id: string;
     parent_rich_text: TextData;
     text: TextData;
+    text_data: TextData; // Added for backend compatibility
     explanation_text: TextData;
+    explanation_text_data: TextData; // Added for backend compatibility
     media_id: string;
     status: string;
     question_response_type: string;
     question_type: string;
+    questionType?: string; // Fix: Add questionType field for backend compatibility
     access_level: string;
     auto_evaluation_json: string;
     evaluation_type: string;
+    question_time_in_millis: number; // Added for backend compatibility
     question_order: number;
     quiz_slide_id: string;
     can_skip: boolean;
+    new_question: boolean; // Added for backend compatibility
     options: {
         id: string;
         quiz_slide_question_id: string;
         text: TextData;
         explanation_text: TextData;
+        explanation_text_data: TextData; // Added for backend compatibility
         media_id: string;
     }[];
 }
@@ -575,17 +581,9 @@ export const useSlidesMutations = (
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SLIDES_PROGRESS'] });
 
-            // If this was a new slide creation, set first slide as active after refetch completes
-            if (result.isNewSlide) {
-                // Wait for the slides query to actually refetch and update the store
-                setTimeout(() => {
-                    const { setActiveItem, items } = useContentStore.getState();
-
-                    if (items && items.length > 0) {
-                        setActiveItem(items[0] as Slide);
-                    }
-                }, 1000); // Increased timeout to ensure refetch completes
-            }
+            // Note: We don't automatically set the first slide as active here anymore
+            // because AddQuizDialog handles setting the correct slide as active after refetch
+            console.log('[addUpdateQuizSlideMutation] Query invalidation completed');
         },
     });
 

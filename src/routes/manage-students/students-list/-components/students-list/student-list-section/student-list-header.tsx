@@ -14,7 +14,9 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import { NoCourseDialog } from '@/components/common/students/no-course-dialog';
 import { cn } from '@/lib/utils';
 import { UserPlus, ArrowRight, Users, GraduationCap, Calendar } from '@phosphor-icons/react';
-import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { convertCapitalToTitleCase } from '@/lib/utils';
 
 const InviteLinksDialog = ({
     currentSession,
@@ -73,7 +75,7 @@ const InviteLinksDialog = ({
                                     packageSessionId: b.package_session_id,
                                 });
 
-                                const courseName = batch.package_dto.package_name;
+                                const courseName = convertCapitalToTitleCase(batch.package_dto.package_name);
                                 const levelName = batchDetails?.level.level_name || 'Unknown Level';
                                 const sessionName =
                                     batchDetails?.session.session_name || currentSession.name;
@@ -162,7 +164,7 @@ export const StudentListHeader = ({
     titleSize?: string;
 }) => {
     const [openInviteLinksDialog, setOpenInviteLinksDialog] = useState(false);
-    const { instituteDetails, showForInstitutes } = useInstituteDetailsStore();
+    const { instituteDetails } = useInstituteDetailsStore();
     const [isOpen, setIsOpen] = useState(false);
 
     const handleOpenChange = () => {
@@ -183,9 +185,7 @@ export const StudentListHeader = ({
                             titleSize ? titleSize : 'text-lg lg:text-xl'
                         )}
                     >
-                        {showForInstitutes([HOLISTIC_INSTITUTE_ID])
-                            ? 'Member Management'
-                            : 'Learner Management'}
+                        {getTerminology(RoleTerms.Learner, SystemTerms.Learner)} Management
                     </h1>
                     <div className="h-0.5 w-8 rounded-full bg-gradient-to-r from-primary-400 to-primary-500"></div>
                 </div>
@@ -208,7 +208,7 @@ export const StudentListHeader = ({
                         <NoCourseDialog
                             isOpen={isOpen}
                             setIsOpen={setIsOpen}
-                            type="Enroll Students"
+                            type={`Enroll ${getTerminology(RoleTerms.Learner, SystemTerms.Learner)}s`}
                             content="You need to create a course and add a subject in it before"
                             trigger={
                                 <MyButton

@@ -2,6 +2,8 @@ import { MyDialog } from '@/components/design-system/dialog';
 import { AddSessionDataType, AddSessionForm } from './add-session-form';
 import { Dispatch, ReactNode, SetStateAction } from 'react';
 import { SessionData } from '@/types/study-library/session-types';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface AddSessionDialogProps {
     isAddSessionDiaogOpen: boolean;
@@ -26,7 +28,11 @@ export const AddSessionDialog = ({
 }: AddSessionDialogProps) => {
     return (
         <MyDialog
-            heading={initialValues ? 'Edit session' : 'Add session'}
+            heading={
+                initialValues
+                    ? 'Edit ' + getTerminology(ContentTerms.Session, SystemTerms.Session)
+                    : 'Add ' + getTerminology(ContentTerms.Session, SystemTerms.Session)
+            }
             trigger={trigger}
             dialogWidth="w-[700px]"
             open={isAddSessionDiaogOpen}

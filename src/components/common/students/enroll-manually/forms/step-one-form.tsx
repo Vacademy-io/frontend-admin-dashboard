@@ -19,6 +19,8 @@ import { StudentTable } from '@/types/student-table-types';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { Menu, Transition } from '@headlessui/react';
 import { Pencil, Upload, Trash2 } from 'lucide-react';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 export const StepOneForm = ({
     initialValues,
@@ -145,7 +147,13 @@ export const StepOneForm = ({
                     className="flex flex-col items-center gap-5"
                 >
                     <FormItemWrapper<StepOneData> control={form.control} name="profilePicture">
-                        <FormStepHeading stepNumber={1} heading="Add Student Profile Picture" />
+                        <FormStepHeading
+                            stepNumber={1}
+                            heading={`Add ${getTerminology(
+                                RoleTerms.Learner,
+                                SystemTerms.Learner
+                            )} Profile Picture`}
+                        />
                     </FormItemWrapper>
 
                     <FormItemWrapper<StepOneData>
@@ -169,7 +177,7 @@ export const StepOneForm = ({
                                     <div className="absolute bottom-3 right-3 z-10">
                                         <Menu as="div" className="relative inline-block text-left">
                                             <Menu.Button className="rounded-full bg-white p-1 shadow hover:bg-neutral-100">
-                                                <Pencil className="h-4 w-4 text-neutral-700" />
+                                                <Pencil className="size-4 text-neutral-700" />
                                             </Menu.Button>
                                             <Transition
                                                 as={Fragment}
@@ -182,7 +190,7 @@ export const StepOneForm = ({
                                             >
                                                 {/* ✅ Opens upward */}
                                                 <Menu.Items className="absolute bottom-10 right-0 z-20 w-44 origin-bottom-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
-                                                    <div className="px-1 py-1">
+                                                    <div className="p-1">
                                                         <Menu.Item>
                                                             {({ active }) => (
                                                                 <button
@@ -194,9 +202,9 @@ export const StepOneForm = ({
                                                                         active
                                                                             ? 'bg-neutral-100'
                                                                             : ''
-                                                                    } group flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm`}
+                                                                    } group flex w-full items-center gap-2 rounded-md p-2 text-sm`}
                                                                 >
-                                                                    <Upload className="h-4 w-4" />
+                                                                    <Upload className="size-4" />
                                                                     Upload New
                                                                 </button>
                                                             )}
@@ -210,9 +218,9 @@ export const StepOneForm = ({
                                                                         active
                                                                             ? 'bg-neutral-100'
                                                                             : ''
-                                                                    } group flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-red-600`}
+                                                                    } group flex w-full items-center gap-2 rounded-md p-2 text-sm text-red-600`}
                                                                 >
-                                                                    <Trash2 className="h-4 w-4" />
+                                                                    <Trash2 className="size-4" />
                                                                     Remove Image
                                                                 </button>
                                                             )}

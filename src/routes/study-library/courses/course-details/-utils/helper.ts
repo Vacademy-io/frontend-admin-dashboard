@@ -1,5 +1,12 @@
 import { SubjectType } from '@/stores/study-library/use-study-library-store';
 import { getPublicUrl } from '@/services/upload_file';
+import { convertCapitalToTitleCase } from '@/lib/utils';
+
+type DataItem = {
+    total_read_time_minutes: number | null;
+    slide_count: number;
+    source_type: string;
+};
 
 export interface Instructor {
     id: string;
@@ -25,6 +32,7 @@ export interface Session {
         session_name: string;
         status: string;
         start_date: string;
+        new_session: boolean;
     };
     level_with_details: Array<{
         id: string;
@@ -32,6 +40,7 @@ export interface Session {
         duration_in_days: number;
         instructors: Instructor[];
         subjects: SubjectType[];
+        new_level: boolean;
     }>;
 }
 
@@ -77,26 +86,40 @@ function isJson(str: string): boolean {
 export const transformApiDataToCourseData = async (apiData: CourseWithSessionsType) => {
     if (!apiData) return null;
 
+    // Local cache for fileId -> publicUrl
+    const fileUrlCache: Record<string, string> = {};
+    async function getUrlOnce(fileId: string | null | undefined): Promise<string> {
+        if (!fileId) return '';
+        if (fileUrlCache[fileId] !== undefined) return fileUrlCache[fileId] ?? '';
+        const url = (await getPublicUrl(fileId)) ?? '';
+        fileUrlCache[fileId] = url;
+        return url;
+    }
+
     try {
         const courseMediaImage = isJson(apiData.course.course_media_id)
             ? JSON.parse(apiData.course.course_media_id)
             : apiData.course.course_media_id;
 
-        const coursePreviewImageMediaId = await getPublicUrl(
-            apiData.course.course_preview_image_media_id
+        const coursePreviewImageMediaId = await getUrlOnce(
+            apiData.course.course_preview_image_media_id ?? ''
         );
+        const courseBannerMediaId = await getUrlOnce(apiData.course.course_banner_media_id ?? '');
 
-        const courseBannerMediaId = await getPublicUrl(apiData.course.course_banner_media_id);
-
-        const courseMediaId = await getPublicUrl(
-            isJson(apiData.course.course_media_id)
-                ? courseMediaImage.id
-                : apiData.course.course_media_id
-        );
+        let courseMediaPreview = '';
+        if (isJson(apiData.course.course_media_id) && courseMediaImage.type === 'youtube') {
+            courseMediaPreview = courseMediaImage.id;
+        } else {
+            courseMediaPreview = await getUrlOnce(
+                isJson(apiData.course.course_media_id)
+                    ? courseMediaImage.id ?? ''
+                    : apiData.course.course_media_id ?? ''
+            );
+        }
 
         return {
             id: apiData.course.id,
-            title: apiData.course.package_name,
+            title: convertCapitalToTitleCase(apiData.course.package_name),
             description: apiData.course.course_html_description, // Remove HTML tags
             tags: apiData.course.tags?.split(',').map((tag) => tag.trim()) || [],
             imageUrl: '', // Use the preview image as the main image
@@ -105,7 +128,7 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
             whyLearn: apiData.course.why_learn,
             whoShouldLearn: apiData.course.who_should_learn,
             aboutTheCourse: apiData.course.about_the_course,
-            packageName: apiData.course.package_name,
+            packageName: convertCapitalToTitleCase(apiData.course.package_name),
             status: apiData.course.status,
             isCoursePublishedToCatalaouge: apiData.course.is_course_published_to_catalaouge,
             coursePreviewImageMediaId: apiData.course.course_preview_image_media_id,
@@ -116,7 +139,7 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
             },
             coursePreviewImageMediaPreview: coursePreviewImageMediaId,
             courseBannerMediaPreview: courseBannerMediaId,
-            courseMediaPreview: courseMediaId ?? '',
+            courseMediaPreview: courseMediaPreview ?? '',
             courseHtmlDescription: apiData.course.course_html_description,
             instructors: [], // This should be populated from your API if available
             sessions: apiData.sessions.map((session) => ({
@@ -131,8 +154,9 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
 
                     return {
                         id: level.id,
-                        name: level.name,
+                        name: convertCapitalToTitleCase(level.name),
                         duration_in_days: level.duration_in_days,
+                        newLevel: level.new_level,
                         instructors: level.instructors.map((inst) => ({
                             id: inst.id,
                             name: inst.full_name,
@@ -142,7 +166,7 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
                         })),
                         subjects: subjects.map((subject) => ({
                             id: subject.id,
-                            subject_name: subject.subject_name,
+                            subject_name: convertCapitalToTitleCase(subject.subject_name),
                             subject_code: subject.subject_code,
                             credit: subject.credit,
                             thumbnail_id: subject.thumbnail_id,
@@ -154,9 +178,10 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
                 }),
                 sessionDetails: {
                     id: session.session_dto.id,
-                    session_name: session.session_dto.session_name,
+                    session_name: convertCapitalToTitleCase(session.session_dto.session_name),
                     status: session.session_dto.status,
                     start_date: session.session_dto.start_date,
+                    newSession: session.session_dto.new_session,
                 },
             })),
         };
@@ -188,4 +213,19 @@ export function getInstructorsBySessionAndLevel(
         }
     }
     return [];
+}
+
+export function calculateTotalTimeForCourseDuration(data: DataItem[]): {
+    hours: number;
+    minutes: number;
+} {
+    if (!data) return { hours: 0, minutes: 0 };
+    const totalMinutes = data.reduce((sum, item) => {
+        return sum + (item.total_read_time_minutes ?? 0);
+    }, 0);
+
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    return { hours, minutes };
 }

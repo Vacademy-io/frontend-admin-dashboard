@@ -15,7 +15,7 @@ function RootErrorComponent() {
                 />
             </Helmet>
 
-            <div className="bg-base-primary grid h-screen select-none place-content-center px-4 text-gray-700 dark:text-gray-800">
+            <div className="flex h-screen w-screen select-none items-center justify-center px-4 text-gray-700 dark:text-gray-800">
                 <div className="text-center">
                     <h1 className="text-9xl font-black">500</h1>
                     <p className="text-2xl font-bold tracking-tight sm:text-4xl">

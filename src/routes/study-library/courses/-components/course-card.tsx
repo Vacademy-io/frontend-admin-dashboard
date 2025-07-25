@@ -5,6 +5,7 @@ import { useNavigate, useRouter } from '@tanstack/react-router';
 import { CourseFormData } from '../../../../components/common/study-library/add-course/add-course-form';
 import { useEffect, useState } from 'react';
 import { getPublicUrl } from '@/services/upload_file';
+import { convertCapitalToTitleCase } from '@/lib/utils';
 
 export const CourseCard = ({
     course,
@@ -70,7 +71,7 @@ export const CourseCard = ({
             )}
             <div className="flex w-full justify-between gap-3">
                 <div className="text-semibold w-full text-wrap text-center text-subtitle font-semibold text-neutral-600">
-                    {course.package_name}
+                    {convertCapitalToTitleCase(course.package_name)}
                 </div>
                 <CourseMenuOptions onDelete={onDelete} onEdit={onEdit} course={course} />
             </div>

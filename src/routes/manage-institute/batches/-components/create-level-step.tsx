@@ -9,6 +9,8 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { X } from 'phosphor-react';
 import { MyButton } from '@/components/design-system/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 export const CreateLevelStep = () => {
     const { getLevelsFromPackage, instituteDetails, getSessionFromPackage } =
@@ -74,15 +76,15 @@ export const CreateLevelStep = () => {
             <FormField
                 control={form.control}
                 name="levelCreationType"
-                render={({ field }: any) => (
+                render={({ field }) => (
                     <FormItem className="space-y-3">
                         <FormLabel className="text-base font-medium text-neutral-700">
-                            Level Selection
+                            {getTerminology(ContentTerms.Level, SystemTerms.Level)} Selection
                         </FormLabel>
                         <FormControl>
                             <RadioGroup
                                 className="flex gap-6 pt-1"
-                                onValueChange={(value: any) => {
+                                onValueChange={(value) => {
                                     field.onChange(value);
                                     form.setValue('selectedLevel', null); // Reset dependent field
                                     form.setValue('selectedLevelDuration', null);
@@ -104,7 +106,8 @@ export const CreateLevelStep = () => {
                                         htmlFor="existing-level"
                                         className={`cursor-pointer font-normal ${levelList.length === 0 ? 'text-neutral-400' : 'text-neutral-600'}`}
                                     >
-                                        Select existing level
+                                        Select existing{' '}
+                                        {getTerminology(ContentTerms.Level, SystemTerms.Level)}
                                     </FormLabel>
                                 </FormItem>
                                 <FormItem className="flex items-center space-x-2 space-y-0">
@@ -115,7 +118,8 @@ export const CreateLevelStep = () => {
                                         htmlFor="new-level"
                                         className="cursor-pointer font-normal text-neutral-600"
                                     >
-                                        Create new level
+                                        Create new{' '}
+                                        {getTerminology(ContentTerms.Level, SystemTerms.Level)}
                                     </FormLabel>
                                 </FormItem>
                             </RadioGroup>
@@ -130,17 +134,21 @@ export const CreateLevelStep = () => {
                     control={form.control}
                     name="selectedLevel"
                     rules={{ required: 'Please select a level' }}
-                    render={({ field }: any) => (
+                    render={({ field }) => (
                         <FormItem className="flex flex-col gap-1.5">
                             <FormLabel className="text-neutral-700">
-                                Level <span className="text-danger-500">*</span>
+                                {getTerminology(ContentTerms.Level, SystemTerms.Level)}{' '}
+                                <span className="text-danger-500">*</span>
                             </FormLabel>
                             <FormControl>
                                 <MyDropdown
                                     currentValue={field.value}
                                     dropdownList={levelList}
                                     handleChange={field.onChange}
-                                    placeholder="Select a level"
+                                    placeholder={`Select a ${getTerminology(
+                                        ContentTerms.Level,
+                                        SystemTerms.Level
+                                    ).toLocaleLowerCase()}`}
                                     disable={levelList.length === 0}
                                 />
                             </FormControl>
@@ -193,12 +201,12 @@ export const CreateLevelStep = () => {
                     <FormField
                         control={form.control}
                         name="duplicateStudyMaterials"
-                        render={({ field }: any) => (
+                        render={({ field }) => (
                             <FormItem className="flex flex-row items-center space-x-3 space-y-0 py-1">
                                 <FormControl>
                                     <Checkbox
                                         checked={field.value}
-                                        onCheckedChange={(checked: any) => {
+                                        onCheckedChange={(checked) => {
                                             field.onChange(checked);
                                             if (!checked) {
                                                 form.setValue('selectedDuplicateSession', null);
@@ -211,7 +219,11 @@ export const CreateLevelStep = () => {
                                     htmlFor="duplicate-materials"
                                     className="cursor-pointer text-sm font-normal text-neutral-700"
                                 >
-                                    Duplicate study materials from a pre-existing session
+                                    Duplicate study materials from a pre-existing{' '}
+                                    {getTerminology(
+                                        ContentTerms.Session,
+                                        SystemTerms.Session
+                                    ).toLocaleLowerCase()}
                                 </FormLabel>
                             </FormItem>
                         )}
@@ -222,10 +234,14 @@ export const CreateLevelStep = () => {
                             control={form.control}
                             name="selectedDuplicateSession"
                             rules={{ required: 'Please select a session to duplicate from' }}
-                            render={({ field }: any) => (
+                            render={({ field }) => (
                                 <FormItem className="mt-3 flex flex-col gap-1.5">
                                     <FormLabel className="text-neutral-700">
-                                        Duplicate from Session{' '}
+                                        Duplicate from{' '}
+                                        {getTerminology(
+                                            ContentTerms.Session,
+                                            SystemTerms.Session
+                                        ).toLocaleLowerCase()}{' '}
                                         <span className="text-danger-500">*</span>
                                     </FormLabel>
                                     <FormControl>
@@ -233,7 +249,10 @@ export const CreateLevelStep = () => {
                                             currentValue={field.value}
                                             dropdownList={sessionList}
                                             handleChange={field.onChange}
-                                            placeholder="Select session for duplication"
+                                            placeholder={`Select ${getTerminology(
+                                                ContentTerms.Session,
+                                                SystemTerms.Session
+                                            ).toLocaleLowerCase()} for duplication`}
                                             disable={sessionList.length === 0}
                                         />
                                     </FormControl>

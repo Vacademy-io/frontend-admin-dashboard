@@ -9,6 +9,7 @@ import { TimestampCell } from './doubt-cell';
 import { MarkAsResolved } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/doubt-resolution/MarkAsResolved';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useDoubtTable } from '../../-hooks/useDoubtTable';
+import { convertCapitalToTitleCase } from '@/lib/utils';
 
 const calculateTimeDifference = (raisedTime: string, resolvedTime: string | null) => {
     if (!resolvedTime) return 'Not resolved yet';
@@ -50,11 +51,11 @@ export const DoubtDetailsDialog = ({ doubt, refetch }: { doubt: Doubt; refetch: 
     );
     const { userDetailsRecord } = useDoubtTable();
     const batchName = batch
-        ? batch.level.level_name +
+        ? convertCapitalToTitleCase(batch.level.level_name) +
           ' ' +
-          batch.package_dto.package_name +
+          convertCapitalToTitleCase(batch.package_dto.package_name) +
           ' ' +
-          batch.session.session_name
+          convertCapitalToTitleCase(batch.session.session_name)
         : '';
     return (
         <MyDialog

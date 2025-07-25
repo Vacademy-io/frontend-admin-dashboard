@@ -35,6 +35,8 @@ import { convertMinutesToTimeFormat, formatToTwoDecimalPlaces } from '../../-ser
 import { useSearch } from '@tanstack/react-router';
 import { Route } from '@/routes/study-library/reports';
 import { toast } from 'sonner';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 const formSchema = z.object({
     course: z.string().min(1, 'Course is required'),
@@ -90,9 +92,9 @@ export default function ProgressReports() {
 
     const { data } = useLearnerDetails(
         getPackageSessionId({
-            courseId: selectedCourse,
-            sessionId: selectedSession,
-            levelId: selectedLevel,
+            courseId: selectedCourse || '',
+            sessionId: selectedSession || '',
+            levelId: selectedLevel || '',
         }) || '',
         INSTITUTE_ID || ''
     );
@@ -134,11 +136,11 @@ export default function ProgressReports() {
             {
                 packageSessionId:
                     getPackageSessionId({
-                        courseId: data.course,
-                        sessionId: data.session,
-                        levelId: data.level,
+                        courseId: data.course || '',
+                        sessionId: data.session || '',
+                        levelId: data.level || '',
                     }) || '',
-                userId: data.student,
+                userId: data.student || '',
             },
             {
                 onSuccess: (data) => {
@@ -154,9 +156,9 @@ export default function ProgressReports() {
         setLevel(levelList.find((course) => (course.id = data.level))?.level_name || '');
         setPacageSessionId(
             getPackageSessionId({
-                courseId: data.course,
-                sessionId: data.session,
-                levelId: data.level,
+                courseId: data.course || '',
+                sessionId: data.session || '',
+                levelId: data.level || '',
             }) || ''
         );
     };
@@ -168,11 +170,11 @@ export default function ProgressReports() {
                 endDate: '',
                 packageSessionId:
                     getPackageSessionId({
-                        courseId: selectedCourse,
-                        sessionId: selectedSession,
-                        levelId: selectedLevel,
+                        courseId: selectedCourse || '',
+                        sessionId: selectedSession || '',
+                        levelId: selectedLevel || '',
                     }) || '',
-                userId: selectedStudent,
+                userId: selectedStudent || '',
             }),
         onSuccess: async (response) => {
             const url = window.URL.createObjectURL(new Blob([response]));
@@ -218,7 +220,7 @@ export default function ProgressReports() {
 
     const subjectWiseData = {
         content: subjectReportData
-            ? transformToSubjectOverview(subjectReportData, watch('student'))
+            ? transformToSubjectOverview(subjectReportData, watch('student') || '')
             : [],
         total_pages: 0,
         page_no: 0,
@@ -232,7 +234,7 @@ export default function ProgressReports() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div className="flex flex-row items-center justify-between">
                     <div>
-                        <div>Course</div>
+                        <div>{getTerminology(ContentTerms.Course, SystemTerms.Course)}</div>
                         <Select
                             onValueChange={(value) => {
                                 setValue('course', value);
@@ -254,10 +256,9 @@ export default function ProgressReports() {
                     </div>
 
                     <div>
-                        <div>Session</div>
+                        <div>{getTerminology(ContentTerms.Session, SystemTerms.Session)}</div>
                         <Select
                             onValueChange={(value) => {
-                                console.log('here');
                                 setValue('session', value);
                             }}
                             defaultValue={
@@ -267,7 +268,9 @@ export default function ProgressReports() {
                             disabled={!sessionList.length}
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
-                                <SelectValue placeholder="Select a Session" />
+                                <SelectValue
+                                    placeholder={`Select a ${getTerminology(ContentTerms.Session, SystemTerms.Session)}`}
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 {sessionList.map((session) => (
@@ -280,7 +283,7 @@ export default function ProgressReports() {
                     </div>
 
                     <div>
-                        <div>Level</div>
+                        <div>{getTerminology(ContentTerms.Level, SystemTerms.Level)}</div>
                         <Select
                             onValueChange={(value) => {
                                 setValue('level', value);
@@ -291,7 +294,9 @@ export default function ProgressReports() {
                             {...register('level')}
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
-                                <SelectValue placeholder="Select a Level" />
+                                <SelectValue
+                                    placeholder={`Select a ${getTerminology(ContentTerms.Level, SystemTerms.Level)}`}
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 {levelList.map((level) => (
@@ -305,7 +310,7 @@ export default function ProgressReports() {
                 </div>
 
                 <div>
-                    <div>Learner Name</div>
+                    <div>Name</div>
                     <Select
                         onValueChange={(value) => {
                             setValue('student', value);
@@ -380,7 +385,7 @@ export default function ProgressReports() {
                                 </div>
                             </div>
                             <div className="flex flex-row gap-10">
-                                <ReportRecipientsDialogBox userId={selectedStudent} />
+                                <ReportRecipientsDialogBox userId={selectedStudent || ''} />
                                 <MyButton
                                     buttonType="secondary"
                                     onClick={() => {
@@ -393,23 +398,26 @@ export default function ProgressReports() {
                         </div>
                         <div className="flex flex-row items-center justify-between">
                             <div>
-                                Course:{' '}
+                                {getTerminology(ContentTerms.Course, SystemTerms.Course)}:{' '}
                                 {courseList.find((course) => course.id === selectedCourse)?.name}
                             </div>
                             <div>
-                                Session:{' '}
+                                {getTerminology(ContentTerms.Session, SystemTerms.Session)}:{' '}
                                 {
                                     sessionList.find((session) => session.id === selectedSession)
                                         ?.name
                                 }
                             </div>
                             <div>
-                                Level:{' '}
+                                {getTerminology(ContentTerms.Level, SystemTerms.Level)}:{' '}
                                 {levelList.find((level) => level.id === selectedLevel)?.level_name}
                             </div>
                         </div>
                         <div className="flex flex-col justify-between gap-6">
-                            <div className="text-h3 text-primary-500">Subject-wise Overview</div>
+                            <div className="text-h3 text-primary-500">
+                                {getTerminology(ContentTerms.Subjects, SystemTerms.Subjects)}-wise
+                                Overview
+                            </div>
                             <MyTable
                                 data={subjectWiseData}
                                 columns={SubjectOverviewColumns}

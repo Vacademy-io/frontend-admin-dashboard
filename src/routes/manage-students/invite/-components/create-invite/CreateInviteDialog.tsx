@@ -19,6 +19,8 @@ import { AddCourseButton } from '@/components/common/study-library/add-course/ad
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
 import { CourseFormData } from '@/components/common/study-library/add-course/add-course-form';
 import { Plus } from 'phosphor-react';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 interface CreateInviteDialogProps {
     initialValues?: InviteForm;
@@ -168,8 +170,8 @@ export const CreateInviteDialog = ({
     useEffect(() => {
         if (handleDisableCreateInviteButton) {
             if (
-                watch('batches.preSelectedCourses').length === 0 &&
-                watch('batches.learnerChoiceCourses').length === 0
+                (watch('batches.preSelectedCourses')?.length ?? 0) === 0 &&
+                (watch('batches.learnerChoiceCourses')?.length ?? 0) === 0
             ) {
                 handleDisableCreateInviteButton(true);
             } else {
@@ -179,10 +181,10 @@ export const CreateInviteDialog = ({
     }, [watch('batches.preSelectedCourses'), watch('batches.learnerChoiceCourses')]);
 
     useEffect(() => {
-        const len = watch('batches.learnerChoiceCourses').length;
+        const len = watch('batches.learnerChoiceCourses')?.length ?? 0;
         const maxValue = watch('batches.maxCourses');
-        if (maxValue > len) setValue('batches.maxCourses', len);
-    }, [watch('batches.learnerChoiceCourses').length]);
+        if (maxValue && maxValue > len) setValue('batches.maxCourses', len);
+    }, [watch('batches.learnerChoiceCourses')?.length]);
 
     useIntroJsTour({
         key: IntroKey.inviteFirstTimeVisit,
@@ -359,7 +361,12 @@ export const CreateInviteDialog = ({
                                                             htmlFor="contain_levels_false"
                                                             className="text-subtitle text-neutral-600"
                                                         >
-                                                            I want students to choose batches
+                                                            I want{' '}
+                                                            {getTerminology(
+                                                                RoleTerms.Learner,
+                                                                SystemTerms.Learner
+                                                            ).toLocaleLowerCase()}
+                                                            s to choose batches
                                                         </label>
                                                     </div>
                                                 </RadioGroup>

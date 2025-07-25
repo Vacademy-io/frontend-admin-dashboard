@@ -15,6 +15,9 @@ import { toast } from 'sonner';
 import { CreateBatchDialog } from './create-batch-dialog';
 import createInviteLink from '@/routes/manage-students/invite/-utils/createInviteLink';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { RoleTerms } from '@/routes/settings/-components/NamingSettings';
+import { convertCapitalToTitleCase } from '@/lib/utils';
 
 // Locally defined type based on observed structure from useInstituteDetailsStore
 interface BatchForSessionStoreType {
@@ -80,7 +83,7 @@ const BatchCard = ({ batch }: batchCardProps) => {
             <div className="flex flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
                 <div className="flex flex-col gap-3">
                     <div className="flex items-start justify-between">
-                        <p className="text-lg font-semibold text-neutral-700">{batch.batch_name}</p>
+                        <p className="text-lg font-semibold text-neutral-700">{convertCapitalToTitleCase(batch.batch_name)}</p>
                         <MyButton
                             buttonType="text"
                             layoutVariant="icon"
@@ -94,7 +97,8 @@ const BatchCard = ({ batch }: batchCardProps) => {
                     <div className="flex items-center gap-2 text-neutral-600">
                         <Users size={20} />
                         <p className="text-sm font-medium">
-                            {batch.count_students} Student{batch.count_students !== 1 ? 's' : ''}
+                            {batch.count_students} {getTerminology(RoleTerms.Learner, 'Learner')}
+                            {batch.count_students !== 1 ? 's' : ''}
                         </p>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-neutral-500">
@@ -122,7 +126,8 @@ const BatchCard = ({ batch }: batchCardProps) => {
                                 scale="medium"
                                 className="hover:text-primary-600 text-neutral-700"
                             >
-                                <Plus size={18} className="mr-1" /> Enroll Student
+                                <Plus size={18} className="mr-1" />
+                                Enroll {getTerminology(RoleTerms.Learner, 'Learner')}
                             </MyButton>
                         }
                     />
@@ -194,7 +199,7 @@ export const BatchSection = ({ batch, currentSessionId }: BatchSectionProps) => 
             {filteredBatches.length > 0 ? (
                 <div className="flex flex-col gap-5">
                     <p className="text-xl font-semibold text-neutral-700">
-                        {batch.package_dto.package_name}
+                        {convertCapitalToTitleCase(batch.package_dto.package_name)}
                     </p>
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                         {filteredBatches.map((batchLevel, index) => (
@@ -205,7 +210,7 @@ export const BatchSection = ({ batch, currentSessionId }: BatchSectionProps) => 
             ) : currentSessionId && batch.batches.length > 0 ? null : (
                 <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 p-8 text-center">
                     <p className="text-lg font-semibold text-neutral-700">
-                        {batch.package_dto.package_name}
+                        {convertCapitalToTitleCase(batch.package_dto.package_name)}
                     </p>
                     <p className="text-neutral-500">
                         No batches found for this package

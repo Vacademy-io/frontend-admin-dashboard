@@ -31,6 +31,9 @@ import { MyPagination } from '@/components/design-system/pagination';
 import { formatToTwoDecimalPlaces, convertMinutesToTimeFormat } from '../../-services/helper';
 import { usePacageDetails } from '../../-store/usePacageDetails';
 import { toast } from 'sonner';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { convertCapitalToTitleCase } from '@/lib/utils';
 
 const formSchema = z
     .object({
@@ -145,8 +148,8 @@ export default function TimelineReports() {
         leaderboardMutation.mutate(
             {
                 body: {
-                    start_date: startDate,
-                    end_date: endDate,
+                    start_date: startDate || '',
+                    end_date: endDate || '',
                     package_session_id: pacageSessionId,
                 },
                 param: { pageNo: currPage, pageSize: 10 },
@@ -168,13 +171,13 @@ export default function TimelineReports() {
     const getBatchReportDataPDF = useMutation({
         mutationFn: () =>
             exportBatchReport({
-                startDate: startDate,
-                endDate: endDate,
+                startDate: startDate || '',
+                endDate: endDate || '',
                 packageSessionId:
                     getPackageSessionId({
-                        courseId: selectedCourse,
-                        sessionId: selectedSession,
-                        levelId: selectedLevel,
+                        courseId: selectedCourse || '',
+                        sessionId: selectedSession || '',
+                        levelId: selectedLevel || '',
                     }) || '',
                 userId: '',
             }),
@@ -207,9 +210,9 @@ export default function TimelineReports() {
                 // package_session_id: "aec81215-33b6-4af7-9b7e-ebee99e9d18b",
                 package_session_id:
                     getPackageSessionId({
-                        courseId: data.course,
-                        sessionId: data.session,
-                        levelId: data.level,
+                        courseId: data.course || '',
+                        sessionId: data.session || '',
+                        levelId: data.level || '',
                     }) || '',
             },
             {
@@ -230,9 +233,9 @@ export default function TimelineReports() {
                     end_date: data.endDate,
                     package_session_id:
                         getPackageSessionId({
-                            courseId: data.course,
-                            sessionId: data.session,
-                            levelId: data.level,
+                            courseId: data.course || '',
+                            sessionId: data.session || '',
+                            levelId: data.level || '',
                         }) || '',
                 },
                 param: {
@@ -254,9 +257,9 @@ export default function TimelineReports() {
         );
         setPacageSessionId(
             getPackageSessionId({
-                courseId: data.course,
-                sessionId: data.session,
-                levelId: data.level,
+                courseId: data.course || '',
+                sessionId: data.session || '',
+                levelId: data.level || '',
             }) || ''
         );
         // api call
@@ -321,7 +324,8 @@ export default function TimelineReports() {
                 <div className="flex flex-row items-center justify-between">
                     <div>
                         <div>
-                            Course <span className="text-red-600">*</span>
+                            {getTerminology(ContentTerms.Course, SystemTerms.Course)}{' '}
+                            <span className="text-red-600">*</span>
                         </div>
                         <Select
                             onValueChange={(value) => {
@@ -331,12 +335,17 @@ export default function TimelineReports() {
                             defaultValue=""
                         >
                             <SelectTrigger className="h-[40px] w-[320px]">
-                                <SelectValue placeholder="Select a Course" />
+                                <SelectValue
+                                    placeholder={`Select a ${getTerminology(
+                                        ContentTerms.Course,
+                                        SystemTerms.Course
+                                    )}`}
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 {courseList.map((course) => (
                                     <SelectItem key={course.id} value={course.id}>
-                                        {course.name}
+                                        {convertCapitalToTitleCase(course.name)}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -346,7 +355,8 @@ export default function TimelineReports() {
                     {!defaultSessionLevels && (
                         <div>
                             <div>
-                                Session <span className="text-red-600">*</span>
+                                {getTerminology(ContentTerms.Session, SystemTerms.Session)}{' '}
+                                <span className="text-red-600">*</span>
                             </div>
                             <Select
                                 // value={watch("session") === "" ? null : watch("session")}
@@ -358,12 +368,17 @@ export default function TimelineReports() {
                                 disabled={!sessionList.length}
                             >
                                 <SelectTrigger className="h-[40px] w-[320px]">
-                                    <SelectValue placeholder="Select a Session" />
+                                    <SelectValue
+                                        placeholder={`Select a ${getTerminology(
+                                            ContentTerms.Session,
+                                            SystemTerms.Session
+                                        )}`}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {sessionList.map((session) => (
                                         <SelectItem key={session.id} value={session.id}>
-                                            {session.name}
+                                            {convertCapitalToTitleCase(session.name)}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -374,7 +389,8 @@ export default function TimelineReports() {
                     {!defaultSessionLevels && (
                         <div>
                             <div>
-                                Level <span className="text-red-600">*</span>
+                                {getTerminology(ContentTerms.Level, SystemTerms.Level)}{' '}
+                                <span className="text-red-600">*</span>
                             </div>
                             <Select
                                 onValueChange={(value) => {
@@ -385,12 +401,17 @@ export default function TimelineReports() {
                                 disabled={!levelList.length}
                             >
                                 <SelectTrigger className="h-[40px] w-[320px]">
-                                    <SelectValue placeholder="Select a Level" />
+                                    <SelectValue
+                                        placeholder={`Select a ${getTerminology(
+                                            ContentTerms.Level,
+                                            SystemTerms.Level
+                                        )}`}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {levelList.map((level) => (
                                         <SelectItem key={level.id} value={level.id}>
-                                            {level.level_name}
+                                            {convertCapitalToTitleCase(level.level_name)}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -459,7 +480,10 @@ export default function TimelineReports() {
                     </div>
                     <div className="flex flex-row items-center justify-between">
                         <div className="flex flex-col items-center justify-center">
-                            <div className="text-h3 font-[600]">Course Completed by batch</div>
+                            <div className="text-h3 font-[600]">
+                                {getTerminology(ContentTerms.Course, SystemTerms.Course)} Completed
+                                by batch
+                            </div>
                             <div>{`${formatToTwoDecimalPlaces(
                                 reportData?.percentage_course_completed
                             )} %`}</div>

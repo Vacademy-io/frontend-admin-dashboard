@@ -36,6 +36,24 @@ export const handleFetchSlides = (chapterId: string) => {
     };
 };
 
+// Fetch slides directly for packageSessionId (for 2-depth courses)
+export const fetchDirectSlides = async (packageSessionId: string) => {
+    const response = await authenticatedAxiosInstance.get(`${GET_SLIDES}`, {
+        params: {
+            packageSessionId,
+        },
+    });
+    return response.data;
+};
+
+export const handleFetchDirectSlides = (packageSessionId: string) => {
+    return {
+        queryKey: ['GET_DIRECT_SLIDES', packageSessionId],
+        queryFn: () => fetchDirectSlides(packageSessionId),
+        staleTime: 60 * 60 * 1000,
+    };
+};
+
 export type RichTextData = {
     id: string;
     type: string;

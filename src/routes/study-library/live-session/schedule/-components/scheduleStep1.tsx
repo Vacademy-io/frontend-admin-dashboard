@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 import { MyButton } from '@/components/design-system/button';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Separator } from '@radix-ui/react-separator';
@@ -11,7 +13,7 @@ import { useFilterDataForAssesment } from '@/routes/assessment/assessment-list/-
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { MyRadioButton } from '@/components/design-system/radio';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import {
     RecurringType,
     SessionPlatform,
@@ -66,7 +68,9 @@ export default function ScheduleStep1() {
     const [selectedMusicFile, setSelectedMusicFile] = useState<File | null>(null);
     const musicFileInputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [scheduleType, setScheduleType] = useState<'everyday' | 'weekday' | 'exceptSunday' | 'custom' | null>(null);
+    const [scheduleType, setScheduleType] = useState<
+        'everyday' | 'weekday' | 'exceptSunday' | 'custom' | null
+    >(null);
 
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
@@ -96,13 +100,15 @@ export default function ScheduleStep1() {
             subject: 'none',
             timeZone: '(GMT 5:30) India Standard Time (Asia/Kolkata)',
             events: '1',
+            openWaitingRoomBefore: '15',
             sessionType: SessionType.LIVE,
             streamingType: sessionDetails?.schedule?.session_streaming_service_type
                 ? sessionDetails?.schedule?.session_streaming_service_type
-                : SessionPlatform.EMBED_IN_APP,
+                : '',
             allowRewind: false,
+            allowPause: false,
             enableWaitingRoom: false,
-            sessionPlatform: StreamingPlatform.YOUTUBE,
+            sessionPlatform: StreamingPlatform.OTHER,
             durationMinutes: '00',
             durationHours: '00',
         },
@@ -140,7 +146,6 @@ export default function ScheduleStep1() {
                 } else {
                     form.setValue('sessionPlatform', StreamingPlatform.OTHER);
                     form.setValue('streamingType', SessionPlatform.REDIRECT_TO_OTHER_PLATFORM);
-                    
                 }
             }
         });
@@ -222,6 +227,107 @@ export default function ScheduleStep1() {
     }, [sessionDetails]);
 
     const { control, watch } = form;
+    // Watch the selected streaming platform to conditionally render/disable options
+    const sessionPlatformWatch = useWatch({ control, name: 'sessionPlatform' });
+    const defaultLinkWatch = useWatch({ control, name: 'defaultLink' });
+
+    const detectedPlatform = useMemo(() => {
+        const link = (defaultLinkWatch || '').trim();
+        const youtubeRegex = /^(https?:\/\/(www\.)?youtube\.com\/(watch\?v=|@.+\/live))/i;
+        const meetRegex = /^(https?:\/\/meet\.google\.com\/(new|[a-zA-Z0-9-]+))/i;
+        const zoomRegex = /^(https?:\/\/([\w.-]+\.)?zoom\.us\/)/i;
+        if (youtubeRegex.test(link)) return 'youtube';
+        if (meetRegex.test(link)) return 'meet';
+        if (zoomRegex.test(link)) return 'zoom';
+        return 'other';
+    }, [defaultLinkWatch]);
+
+    // Effect: set form values based on detected platform
+    useEffect(() => {
+        switch (detectedPlatform) {
+            case 'youtube': {
+                form.setValue('sessionPlatform', StreamingPlatform.YOUTUBE);
+                form.setValue('streamingType', SessionPlatform.EMBED_IN_APP);
+                break;
+            }
+            case 'meet': {
+                form.setValue('sessionPlatform', StreamingPlatform.MEET);
+                form.setValue('sessionType', SessionType.LIVE);
+                form.setValue('streamingType', SessionPlatform.REDIRECT_TO_OTHER_PLATFORM);
+                break;
+            }
+            case 'zoom': {
+                form.setValue('sessionPlatform', StreamingPlatform.ZOOM);
+                form.setValue('streamingType', SessionPlatform.REDIRECT_TO_OTHER_PLATFORM);
+                break;
+            }
+            case 'other': {
+                form.setValue('sessionPlatform', StreamingPlatform.OTHER);
+                break;
+            }
+        }
+    }, [detectedPlatform]);
+
+    const isMeetPlatform = sessionPlatformWatch === StreamingPlatform.MEET;
+    const isZoomPlatform = sessionPlatformWatch === StreamingPlatform.ZOOM;
+
+    // Disabled options logic based on current platform selection
+    const disabledLiveClassOptions = useMemo(() => {
+        if (isMeetPlatform) return [SessionType.PRE_RECORDED];
+        return [];
+    }, [isMeetPlatform]);
+
+    const sessionTypeWatch = useWatch({ control, name: 'sessionType' });
+
+    const disabledStreamingOptions = useMemo(() => {
+        if (isMeetPlatform) {
+            return [SessionPlatform.EMBED_IN_APP];
+        }
+        if (isZoomPlatform && sessionTypeWatch !== SessionType.PRE_RECORDED) {
+            return [SessionPlatform.EMBED_IN_APP];
+        }
+        return [];
+    }, [isMeetPlatform, isZoomPlatform, sessionTypeWatch]);
+
+    // Map detectedPlatform string to enum value for comparison
+    const detectedEnumPlatform = useMemo(() => {
+        switch (detectedPlatform) {
+            case 'youtube':
+                return StreamingPlatform.YOUTUBE;
+            case 'meet':
+                return StreamingPlatform.MEET;
+            case 'zoom':
+                return StreamingPlatform.ZOOM;
+            default:
+                return StreamingPlatform.OTHER;
+        }
+    }, [detectedPlatform]);
+
+    const handleSessionPlatformChange = useCallback(
+        (value: string) => {
+            // If user picks a platform that doesn't match the one inferred from link, clear the link to prevent mismatch
+            if (defaultLinkWatch && value !== detectedEnumPlatform) {
+                form.setValue('defaultLink', '');
+                // Clear dependent selections to avoid inconsistencies
+                form.setValue('sessionType', '');
+                form.setValue('streamingType', '');
+            }
+        },
+        [defaultLinkWatch, detectedEnumPlatform]
+    );
+
+    // When Google Meet is selected, enforce Live session type and Redirect streaming type
+    useEffect(() => {
+        if (isMeetPlatform) {
+            // Enforce only if not already selected to avoid unnecessary re-renders
+            if (form.getValues('sessionType') !== SessionType.LIVE) {
+                form.setValue('sessionType', SessionType.LIVE);
+            }
+            if (form.getValues('streamingType') !== SessionPlatform.REDIRECT_TO_OTHER_PLATFORM) {
+                form.setValue('streamingType', SessionPlatform.REDIRECT_TO_OTHER_PLATFORM);
+            }
+        }
+    }, [isMeetPlatform]);
     const meetingType = useWatch({ control, name: 'meetingType' });
     const recurringSchedule = watch('recurringSchedule');
 
@@ -307,7 +413,7 @@ export default function ScheduleStep1() {
         );
         try {
             const response = await createLiveSessionStep1(body);
-            useLiveSessionStore.getState().setSessionId(response.id);
+            setSessionId(response.id);
             navigate({ to: '/study-library/live-session/schedule/step2' });
         } catch (error) {
             console.error(error);
@@ -417,7 +523,7 @@ export default function ScheduleStep1() {
         currentSchedule.forEach((day, index) => {
             const weekDay = WEEK_DAYS.find((d) => d.label === day.day);
             const isWeekday = weekDay?.value
-                ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri' , 'Sat'].includes(weekDay.value)
+                ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].includes(weekDay.value)
                 : false;
             form.setValue(`recurringSchedule.${index}.isSelect`, isWeekday);
 
@@ -443,9 +549,7 @@ export default function ScheduleStep1() {
 
         currentSchedule.forEach((day, index) => {
             const weekDay = WEEK_DAYS.find((d) => d.label === day.day);
-            const isWeekday = weekDay?.value
-                ? [''].includes(weekDay.value)
-                : false;
+            const isWeekday = weekDay?.value ? [''].includes(weekDay.value) : false;
             form.setValue(`recurringSchedule.${index}.isSelect`, isWeekday);
 
             const dh = form.getValues('durationHours');
@@ -495,7 +599,7 @@ export default function ScheduleStep1() {
                     <SelectField
                         label="Subject"
                         name="subject"
-                        labelStyle="font-thin"
+                        labelStyle="text-sm font-medium"
                         options={[
                             { value: 'none', label: 'Select Subject', _id: -1 },
                             ...SubjectFilterData.map((option, index) => ({
@@ -506,12 +610,20 @@ export default function ScheduleStep1() {
                         ]}
                         control={form.control}
                         className="mt-[8px] w-56 font-thin"
+                        required
                     />
                 )}
             </div>
 
             <div className="flex h-[280px] flex-col gap-6">
-                <h1 className="-mb-5 font-thin">Description</h1>
+                <div className="-mb-5 flex flex-col gap-1">
+                    <h1 className="text-sm font-medium">Description</h1>
+                    <p className="text-xs font-normal text-neutral-500">
+                        (Provide a brief overview of your live class. You can include text, emojis,
+                        images, or posters to give participants a quick idea of what the session is
+                        about)
+                    </p>
+                </div>
                 <FormField
                     control={control}
                     name="description"
@@ -559,9 +671,13 @@ export default function ScheduleStep1() {
                     name="startTime"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Start Date & Time</FormLabel>
+                            <FormLabel className="text-sm font-medium">
+                                Start Date & Time
+                                <span className="text-danger-600">*</span>
+                            </FormLabel>
                             <FormControl>
                                 <MyInput
+                                    required
                                     inputType="datetime-local"
                                     input={field.value}
                                     onChangeFunction={field.onChange}
@@ -649,7 +765,7 @@ export default function ScheduleStep1() {
                         name="endDate"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>End Date</FormLabel>
+                                <FormLabel className="text-sm font-medium">End Date</FormLabel>
                                 <FormControl>
                                     <MyInput
                                         inputType="date"
@@ -672,7 +788,10 @@ export default function ScheduleStep1() {
                 name="defaultLink"
                 render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Live Class Link</FormLabel>
+                        <FormLabel className="text-sm font-medium">
+                            Live Class Link
+                            <span className="text-danger-600">*</span>
+                        </FormLabel>
                         <FormControl>
                             <MyInput
                                 inputType="text"
@@ -692,13 +811,14 @@ export default function ScheduleStep1() {
             <SelectField
                 label="Live Stream Platform"
                 name="sessionPlatform"
-                labelStyle="font-thin"
+                labelStyle="text-sm font-medium"
                 options={STREAMING_OPTIONS}
                 control={form.control}
                 className="mt-[8px] w-56 font-thin"
+                onSelect={handleSessionPlatformChange}
             />
             <div className="flex h-full flex-col items-start justify-around gap-2">
-                <div className="text-sm">Type of Live Class</div>
+                <div className="text-sm font-medium">Type of Live Class</div>
                 <FormField
                     control={control}
                     name="sessionType"
@@ -711,6 +831,7 @@ export default function ScheduleStep1() {
                                 { label: 'Live', value: SessionType.LIVE },
                                 { label: 'Pre Recorded', value: SessionType.PRE_RECORDED },
                             ]}
+                            disabledOptions={disabledLiveClassOptions}
                             className="flex flex-row gap-4"
                         />
                     )}
@@ -723,35 +844,77 @@ export default function ScheduleStep1() {
         <div className="flex flex-col items-start gap-8">
             <div className="flex flex-row items-end gap-8">
                 <div className="flex h-full flex-col items-start justify-around gap-2">
-                    <div className="text-sm">Live Class Streaming</div>
+                    <div className="text-sm font-medium">
+                        Live Streaming Platform
+                        <span className="ml-1 text-xs font-normal text-neutral-500">
+                            (Do you want the students to view the class in the learner app, or do you want to redirect them to the app that is hosting the live session?)
+                        </span>
+                    </div>
                     <FormField
                         control={control}
                         name="streamingType"
                         render={({ field }) => (
                             <MyRadioButton
-                                name="meetingType"
+                                name="streamingType"
                                 value={field.value}
                                 onChange={field.onChange}
                                 options={[
-                                    { label: 'Embed in-app', value: SessionPlatform.EMBED_IN_APP },
                                     {
-                                        label: 'Redirect to other platform',
+                                        label: 'Embed in-app',
+                                        value: SessionPlatform.EMBED_IN_APP,
+                                    },
+                                    {
+                                        label:
+                                            sessionPlatformWatch === StreamingPlatform.YOUTUBE
+                                                ? 'Redirect to YouTube'
+                                                : sessionPlatformWatch === StreamingPlatform.MEET
+                                                  ? 'Redirect to Google Meet'
+                                                  : sessionPlatformWatch === StreamingPlatform.ZOOM
+                                                    ? 'Redirect to Zoom'
+                                                    : 'Redirect to other platform',
                                         value: SessionPlatform.REDIRECT_TO_OTHER_PLATFORM,
                                     },
                                 ]}
+                                disabledOptions={disabledStreamingOptions}
                                 className="flex flex-row gap-4"
                             />
                         )}
                     />
                 </div>
-                <div className="flex h-full flex-row items-start gap-4">
+            </div>
+            {/* Lock video playback settings */}
+            <div className="flex flex-col items-start gap-4">
+                <h4 className="text-sm font-semibold">Lock video playback settings</h4>
+                <div className="flex flex-row items-center gap-4">
                     <Controller
                         control={control}
-                        name={`allowRewind`}
+                        name="allowRewind"
                         render={({ field }) => (
                             <label className="flex items-center gap-2">
                                 <span className="text-sm">Allow rewind</span>
-                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                <Switch
+                                    disabled={
+                                        watch('streamingType') !== SessionPlatform.EMBED_IN_APP
+                                    }
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                />
+                            </label>
+                        )}
+                    />
+                    <Controller
+                        control={control}
+                        name="allowPause"
+                        render={({ field }) => (
+                            <label className="flex items-center gap-2">
+                                <span className="text-sm">Allow play pause</span>
+                                <Switch
+                                    disabled={
+                                        watch('streamingType') !== SessionPlatform.EMBED_IN_APP
+                                    }
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                />
                             </label>
                         )}
                     />
@@ -781,7 +944,7 @@ export default function ScheduleStep1() {
                     <SelectField
                         label="Open Waiting Room Before"
                         name="openWaitingRoomBefore"
-                        labelStyle="font-thin"
+                        labelStyle="text-sm font-medium"
                         options={WAITING_ROOM_OPTIONS}
                         control={form.control}
                         className="mt-[8px] w-56 font-thin"
@@ -815,9 +978,7 @@ export default function ScheduleStep1() {
                         </div>
                         {selectedFile && (
                             <div className="mt-2 flex h-fit max-w-[140px] flex-row items-center justify-between gap-2 rounded-md border border-primary-500 p-1 text-sm">
-                                <span className="max-w-[120px] overflow-hidden truncate text-ellipsis whitespace-nowrap">
-                                    {selectedFile.name}
-                                </span>
+                                <span className="max-w-[120px] truncate">{selectedFile.name}</span>
                                 <X className="shrink-0 cursor-pointer" onClick={handleRemoveFile} />
                             </div>
                         )}
@@ -837,7 +998,7 @@ export default function ScheduleStep1() {
                         </div>
                         {selectedMusicFile && (
                             <div className="mt-2 flex h-fit max-w-[140px] flex-row items-center justify-between gap-2 rounded-md border border-primary-500 p-1 text-sm">
-                                <span className="max-w-[120px] overflow-hidden truncate text-ellipsis whitespace-nowrap">
+                                <span className="max-w-[120px] truncate">
                                     {selectedMusicFile.name}
                                 </span>
 
@@ -858,15 +1019,17 @@ export default function ScheduleStep1() {
                     <div className="flex flex-row items-center gap-2">
                         <Select
                             value={scheduleType || ''}
-                            onValueChange={(value: 'everyday' | 'weekday' | 'exceptSunday' | 'custom') => {
+                            onValueChange={(
+                                value: 'everyday' | 'weekday' | 'exceptSunday' | 'custom'
+                            ) => {
                                 setScheduleType(value);
                                 if (value === 'everyday') {
                                     toggleEveryDay();
                                 } else if (value === 'weekday') {
                                     toggleMonToFri();
-                                } else if(value === 'exceptSunday'){
+                                } else if (value === 'exceptSunday') {
                                     toggleMonToSat();
-                                } else if(value === 'custom'){
+                                } else if (value === 'custom') {
                                     toggleCustom();
                                 }
                             }}
@@ -1053,7 +1216,7 @@ export default function ScheduleStep1() {
     return (
         <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(onSubmit, onError)} className="flex flex-col gap-8">
-                <div className="m-0 flex items-center justify-between p-0">
+                <div className="m-0 flex items-center justify-between p-0 sticky top-[72px] z-[9] bg-white border-b border-neutral-200 py-2">
                     <h1>Live Session Information</h1>
                     <MyButton type="submit" scale="large" buttonType="primary">
                         Next

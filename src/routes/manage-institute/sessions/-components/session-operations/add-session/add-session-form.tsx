@@ -16,6 +16,8 @@ import { useAddCourse } from '@/services/study-library/course-operations/add-cou
 import { Checkbox } from '@/components/ui/checkbox';
 import { LevelType, levelWithDetails } from '@/schemas/student/student-list/institute-schema';
 import { SessionData } from '@/types/study-library/session-types';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 const formSchema = z.object({
     id: z.string().nullable(),
@@ -174,9 +176,9 @@ export const AddSessionForm = ({
         const startDate = form.watch('start_date');
         const levels = form.watch('levels');
 
-        const hasValidName = sessionName.trim() !== '';
+        const hasValidName = sessionName?.trim() !== '';
         const hasValidDate = startDate !== '';
-        const hasSelectedLevels = levels.length > 0;
+        const hasSelectedLevels = (levels?.length ?? 0) > 0;
 
         setDisableAddButton(!(hasValidName && hasValidDate && hasSelectedLevels));
     }, [form.watch('session_name'), form.watch('start_date'), form.watch('levels')]);
@@ -235,7 +237,6 @@ export const AddSessionForm = ({
                     !(l.level_dto.id === level.level_dto.id && l.level_dto.package_id === packageId)
             );
             form.setValue('levels', updatedLevels);
-            console.log('updatedLevels', updatedLevels);
         } else {
             // Add the level if it's not already selected
             const levelToAdd: LevelForSession = {
@@ -252,7 +253,6 @@ export const AddSessionForm = ({
                 start_date: level.start_date,
             };
             form.setValue('levels', [...currentLevels, levelToAdd]);
-            console.log('updatedLevels', form.getValues('levels'));
         }
     };
 
@@ -275,10 +275,21 @@ export const AddSessionForm = ({
             { requestData: requestData },
             {
                 onSuccess: () => {
-                    toast.success('Course added successfully');
+                    toast.success(
+                        ` ${getTerminology(
+                            ContentTerms.Course,
+                            SystemTerms.Course
+                        )} added successfully`
+                    );
                 },
                 onError: (error) => {
-                    toast.error(error.message || 'Failed to add course');
+                    toast.error(
+                        error.message ||
+                            `Failed to add ${getTerminology(
+                                ContentTerms.Course,
+                                SystemTerms.Course
+                            ).toLocaleLowerCase()}`
+                    );
                 },
             }
         );
@@ -312,7 +323,10 @@ export const AddSessionForm = ({
                         <FormItem>
                             <FormControl>
                                 <MyInput
-                                    label="Session Name"
+                                    label={
+                                        getTerminology(ContentTerms.Session, SystemTerms.Session) +
+                                        ' Name'
+                                    }
                                     required={true}
                                     inputType="text"
                                     inputPlaceholder="Eg. 2024-2025"
@@ -522,7 +536,11 @@ export const AddSessionForm = ({
                                                             e.stopPropagation();
                                                         }}
                                                     >
-                                                        <Plus /> Add Course
+                                                        <Plus /> Add{' '}
+                                                        {getTerminology(
+                                                            ContentTerms.Course,
+                                                            SystemTerms.Course
+                                                        ).toLocaleLowerCase()}
                                                     </MyButton>
                                                 }
                                             />

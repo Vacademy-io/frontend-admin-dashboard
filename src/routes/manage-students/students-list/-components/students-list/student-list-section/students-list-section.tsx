@@ -37,6 +37,9 @@ import { InviteFormProvider } from '@/routes/manage-students/invite/-context/use
 import { Users, FileMagnifyingGlass } from '@phosphor-icons/react';
 import { HOLISTIC_HIDE_COLUMNS, HOLISTIC_NEW_COLUMNS } from '@/constants/institute-data';
 import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { convertCapitalToTitleCase } from '@/lib/utils';
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -81,7 +84,9 @@ export const StudentsListSection = () => {
     });
 
     useEffect(() => {
-        setNavHeading('Students');
+        setNavHeading(
+            <h1 className="text-lg">{getTerminology(RoleTerms.Learner, SystemTerms.Learner)}s</h1>
+        );
     }, []);
 
     const {
@@ -197,7 +202,7 @@ export const StudentsListSection = () => {
                 packageSessionId: search.package_session_id,
             });
             const batchName =
-                (details?.level.level_name || '') + (details?.package_dto.package_name || '');
+                convertCapitalToTitleCase(details?.level.level_name || '') + ' ' + convertCapitalToTitleCase(details?.package_dto.package_name || '');
             setColumnFilters((prev) => [
                 ...prev,
                 {
@@ -233,16 +238,20 @@ export const StudentsListSection = () => {
             <div className="mb-6 rounded-full bg-gradient-to-br from-neutral-100 to-neutral-200 p-6 shadow-inner">
                 <EmptyStudentListImage className="size-16 opacity-50" />
             </div>
-            <h3 className="mb-3 text-xl font-semibold text-neutral-700">No Students Found</h3>
+            <h3 className="mb-3 text-xl font-semibold text-neutral-700">
+                No {getTerminology(RoleTerms.Learner, SystemTerms.Learner)} Found
+            </h3>
             <p className="mb-6 max-w-md text-sm leading-relaxed text-neutral-500">
-                No student data matches your current filters. Try adjusting your search criteria or
-                add new students to get started.
+                No {getTerminology(RoleTerms.Learner, SystemTerms.Learner).toLocaleLowerCase()} data
+                matches your current filters. Try adjusting your search criteria or add new{' '}
+                {getTerminology(RoleTerms.Learner, SystemTerms.Learner).toLocaleLowerCase()} to get
+                started.
             </p>
             <div className="flex flex-col items-center gap-3 sm:flex-row">
                 <InviteFormProvider>
                     <button className="to-primary-600 hover:from-primary-600 hover:to-primary-700 group flex items-center gap-2 rounded-lg bg-gradient-to-r from-primary-500 px-4 py-2 text-white shadow-md transition-all duration-200 hover:scale-105">
                         <Users className="size-4 transition-transform duration-200 group-hover:scale-110" />
-                        Invite Students
+                        Invite {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}
                     </button>
                 </InviteFormProvider>
                 <button
@@ -290,7 +299,12 @@ export const StudentsListSection = () => {
                         <div className="flex w-full flex-col items-center gap-4 py-12">
                             <DashboardLoader />
                             <p className="animate-pulse text-sm text-neutral-500">
-                                Loading student data...
+                                Loading{' '}
+                                {getTerminology(
+                                    RoleTerms.Learner,
+                                    SystemTerms.Learner
+                                ).toLocaleLowerCase()}{' '}
+                                data...
                             </p>
                         </div>
                     ) : !studentTableData || studentTableData.content.length == 0 ? (

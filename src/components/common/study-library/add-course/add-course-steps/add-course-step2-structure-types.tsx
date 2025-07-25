@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { UseFormReturn } from 'react-hook-form';
 import { Step2Data } from './add-course-step2';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 // Types and mockCourses remain the same as in your previous version
 // ... (Slide, Chapter, Module, Subject, Course, mockCourses types) ...
@@ -484,7 +486,8 @@ const CourseCard: React.FC<CourseCardProps> = ({
                     className="truncate text-xs text-gray-500 dark:text-gray-400"
                     title={course.structure.courseName}
                 >
-                    {course.structure.courseName} (Level {course.level})
+                    {course.structure.courseName} (
+                    {getTerminology(ContentTerms.Level, SystemTerms.Level)} {course.level})
                 </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
