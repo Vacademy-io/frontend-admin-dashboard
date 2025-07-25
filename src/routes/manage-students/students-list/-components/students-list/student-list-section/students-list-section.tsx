@@ -39,6 +39,7 @@ import { HOLISTIC_HIDE_COLUMNS, HOLISTIC_NEW_COLUMNS } from '@/constants/institu
 import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { convertCapitalToTitleCase } from '@/lib/utils';
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -201,7 +202,7 @@ export const StudentsListSection = () => {
                 packageSessionId: search.package_session_id,
             });
             const batchName =
-                (details?.level.level_name || '') + (details?.package_dto.package_name || '');
+                convertCapitalToTitleCase(details?.level.level_name || '') + ' ' + convertCapitalToTitleCase(details?.package_dto.package_name || '');
             setColumnFilters((prev) => [
                 ...prev,
                 {
