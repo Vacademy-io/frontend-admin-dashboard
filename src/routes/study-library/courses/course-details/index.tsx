@@ -11,6 +11,7 @@ import { CourseDetailsPage } from './-components/course-details-page';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { convertCapitalToTitleCase } from '@/lib/utils';
 
 interface CourseSearchParams {
     courseId: string;
@@ -60,7 +61,7 @@ function RouteComponent() {
             internalSideBar
             sideBarList={courses.map((course) => {
                 return {
-                    value: course.package_name,
+                    value: convertCapitalToTitleCase(course.package_name),
                     id: course.id,
                 };
             })}
