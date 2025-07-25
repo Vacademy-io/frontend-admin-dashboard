@@ -119,6 +119,23 @@ const InviteDetailsComponent = ({ form }: { form: UseFormReturn<CourseDetailsFor
         handleMakeDefaultMutation.mutate({ packageSessionId, inviteLinkId });
     };
 
+    // Handler for viewing an invite link (to be implemented)
+    const handleViewInviteLink = (inviteLinkId: string) => {
+        // TODO: Implement view functionality
+        console.log('View clicked for', inviteLinkId);
+    };
+
+    // Handler for adding a new invite link to a package session (to be implemented)
+    const handleAddInviteLink = (packageSessionId: string, defaultInviteLinkId: string) => {
+        // TODO: Implement add functionality
+        console.log(
+            'Add clicked for package session',
+            packageSessionId,
+            'with default invite link',
+            defaultInviteLinkId
+        );
+    };
+
     return (
         <Dialog>
             <DialogTrigger>
@@ -156,19 +173,37 @@ const InviteDetailsComponent = ({ form }: { form: UseFormReturn<CourseDetailsFor
                                 >
                                     {/* Enhanced header with course info */}
 
-                                    <div className="flex items-center gap-2 font-semibold">
-                                        <div className="rounded-md bg-primary-100 p-1">
-                                            <Users size={18} />
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 font-semibold">
+                                            <div className="rounded-md bg-primary-100 p-1">
+                                                <Users size={18} />
+                                            </div>
+                                            <span>
+                                                {form.getValues('courseData.packageName')}{' '}
+                                                {getDetailsFromPackageSessionId({
+                                                    packageSessionId,
+                                                })?.session.session_name || '-'}{' '}
+                                                {getDetailsFromPackageSessionId({
+                                                    packageSessionId,
+                                                })?.level.level_name || '-'}
+                                            </span>
                                         </div>
-                                        <span>
-                                            {form.getValues('courseData.packageName')}{' '}
-                                            {getDetailsFromPackageSessionId({
-                                                packageSessionId,
-                                            })?.session.session_name || '-'}{' '}
-                                            {getDetailsFromPackageSessionId({
-                                                packageSessionId,
-                                            })?.level.level_name || '-'}
-                                        </span>
+                                        <MyButton
+                                            type="button"
+                                            scale="small"
+                                            buttonType="secondary"
+                                            onClick={() => {
+                                                const defaultInviteLink = inviteLinksArr.find(
+                                                    (invite) => invite.tag === 'DEFAULT'
+                                                );
+                                                handleAddInviteLink(
+                                                    packageSessionId,
+                                                    defaultInviteLink?.id || ''
+                                                );
+                                            }}
+                                        >
+                                            Add
+                                        </MyButton>
                                     </div>
 
                                     {/* Invite links section for this package session */}
@@ -182,34 +217,55 @@ const InviteDetailsComponent = ({ form }: { form: UseFormReturn<CourseDetailsFor
                                                     return (
                                                         <div
                                                             key={inviteLink.id + idx}
-                                                            className="flex items-center gap-2"
+                                                            className="mb-2 rounded-md border bg-neutral-50 p-3"
                                                         >
-                                                            <InviteLink
-                                                                inviteCode={inviteLink.invite_code}
-                                                            />
-                                                            {inviteLink.tag === 'DEFAULT' ? (
-                                                                <Badge
-                                                                    variant="default"
-                                                                    className="ml-1 border border-gray-500 bg-green-200 text-gray-600 shadow-none"
-                                                                >
-                                                                    DEFAULT
-                                                                </Badge>
-                                                            ) : (
+                                                            <div className="mb-2 flex items-center gap-2">
+                                                                <div className="text-sm font-medium text-neutral-700">
+                                                                    {inviteLink.name}
+                                                                </div>
                                                                 <MyButton
                                                                     type="button"
                                                                     scale="small"
                                                                     buttonType="secondary"
                                                                     onClick={() =>
-                                                                        handleMakeDefault(
-                                                                            packageSessionId,
+                                                                        handleViewInviteLink(
                                                                             inviteLink.id
                                                                         )
                                                                     }
-                                                                    className="ml-1"
                                                                 >
-                                                                    Make Default
+                                                                    View
                                                                 </MyButton>
-                                                            )}
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <InviteLink
+                                                                    inviteCode={
+                                                                        inviteLink.invite_code
+                                                                    }
+                                                                />
+                                                                {inviteLink.tag === 'DEFAULT' ? (
+                                                                    <Badge
+                                                                        variant="default"
+                                                                        className="ml-1 border border-gray-500 bg-green-200 text-gray-600 shadow-none"
+                                                                    >
+                                                                        DEFAULT
+                                                                    </Badge>
+                                                                ) : (
+                                                                    <MyButton
+                                                                        type="button"
+                                                                        scale="small"
+                                                                        buttonType="secondary"
+                                                                        onClick={() =>
+                                                                            handleMakeDefault(
+                                                                                packageSessionId,
+                                                                                inviteLink.id
+                                                                            )
+                                                                        }
+                                                                        className="ml-1"
+                                                                    >
+                                                                        Make Default
+                                                                    </MyButton>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     );
                                                 }
