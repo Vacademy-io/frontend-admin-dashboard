@@ -29,7 +29,6 @@ import { AddDiscountDialog } from './AddDiscountDialog';
 import { AddReferralProgramDialog } from './AddReferralProgramDialog';
 import { ReferralProgramDialog } from './ReferralProgramDialog';
 import InstituteBrandingCard from './-components/InstituteBrandingCard';
-import EnrollmentSettingsCard from './-components/EnrollmentSettingsCard';
 import CoursePreviewCard from './-components/CoursePreviewCard';
 import PaymentPlanCard from './-components/PaymentPlanCard';
 import DiscountSettingsCard from './-components/DiscountSettingsCard';
@@ -641,8 +640,6 @@ const GenerateInviteLinkDialog = ({
                             <InviteNameCard form={form} />
                             {/* Institute Branding Card */}
                             <InstituteBrandingCard form={form} />
-                            {/* Enrollment Settings Card */}
-                            <EnrollmentSettingsCard form={form} />
                             {/* Course Preview Card */}
                             <CoursePreviewCard
                                 form={form}

@@ -21,15 +21,27 @@ import { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { UseFormReturn } from 'react-hook-form';
 import { CourseDetailsFormValues } from './course-details-schema';
+import { useState } from 'react';
+import GenerateInviteLinkDialog from '@/routes/manage-students/invite/-components/create-invite/GenerateInviteLinkDialog';
 
 const InviteDetailsComponent = ({ form }: { form: UseFormReturn<CourseDetailsFormValues> }) => {
-    // Flatten all levels for all sessions to count cards
     const sessionsData = form.getValues('courseData.sessions');
     const queryClient = useQueryClient();
     const navigate = useNavigate();
     const { getPackageSessionId, getDetailsFromPackageSessionId } = useInstituteDetailsStore();
     const router = useRouter();
     const { courseId } = router.state.location.search;
+
+    const selectedCourse = {
+        id: courseId || '',
+        name: form.getValues('courseData.packageName') || '',
+    };
+
+    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+    const [addDialogData, setAddDialogData] = useState<{
+        packageSessionId: string;
+        defaultInviteLinkId: string;
+    } | null>(null);
 
     // Generate array of packageSessionIds for each level in each session
     const packageSessionIds: string[] = sessionsData
@@ -43,7 +55,7 @@ const InviteDetailsComponent = ({ form }: { form: UseFormReturn<CourseDetailsFor
                     }) || ''
             )
         )
-        .filter(Boolean); // filter out empty strings
+        .filter(Boolean);
 
     const { page, pageSize, handlePageChange } = usePaginationState({
         initialPage: 0,
@@ -114,7 +126,7 @@ const InviteDetailsComponent = ({ form }: { form: UseFormReturn<CourseDetailsFor
         },
     });
 
-    // Handler for making an invite link default (to be implemented)
+    // Handler for making an invite link default
     const handleMakeDefault = (packageSessionId: string, inviteLinkId: string) => {
         handleMakeDefaultMutation.mutate({ packageSessionId, inviteLinkId });
     };
@@ -125,186 +137,214 @@ const InviteDetailsComponent = ({ form }: { form: UseFormReturn<CourseDetailsFor
         console.log('View clicked for', inviteLinkId);
     };
 
-    // Handler for adding a new invite link to a package session (to be implemented)
+    // Handler for adding a new invite link to a package session
     const handleAddInviteLink = (packageSessionId: string, defaultInviteLinkId: string) => {
-        // TODO: Implement add functionality
-        console.log(
-            'Add clicked for package session',
-            packageSessionId,
-            'with default invite link',
-            defaultInviteLinkId
-        );
+        setAddDialogData({ packageSessionId, defaultInviteLinkId });
+        setIsAddDialogOpen(true);
     };
 
     return (
-        <Dialog>
-            <DialogTrigger>
-                <MyButton
-                    type="button"
-                    scale="small"
-                    buttonType="secondary"
-                    className="mt-4 flex items-center gap-1"
-                >
-                    <Plus size={16} />
-                    Invite Links
-                </MyButton>
-            </DialogTrigger>
-            <DialogContent className="!w-[80vw] max-w-[80vw] p-0">
-                <DialogHeader className="rounded-t-lg bg-primary-50 p-4">
-                    <DialogTitle className="font-normal text-primary-500">
-                        📨
-                        <span className="ml-2">Invite Links</span>
-                    </DialogTitle>
-                </DialogHeader>
-                <div
-                    className={`space-y-4 p-4 ${shouldScroll ? 'overflow-y-auto' : ''}`}
-                    style={shouldScroll ? { maxHeight: '60vh' } : {}}
-                >
-                    {shouldFetch && groupedEntries.length > 0 ? (
-                        groupedEntries.map(
-                            (
-                                [packageSessionId, inviteLinksArr]: [string, FlattenedInviteLink[]],
-                                groupIndex: number
-                            ) => (
-                                <div
-                                    className="animate-fadeIn group flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-4 transition-all duration-200 hover:border-primary-200 hover:shadow-md"
-                                    key={packageSessionId}
-                                    style={{ animationDelay: `${groupIndex * 0.1}s` }}
-                                >
-                                    {/* Enhanced header with course info */}
-
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2 font-semibold">
-                                            <div className="rounded-md bg-primary-100 p-1">
-                                                <Users size={18} />
-                                            </div>
-                                            <span>
-                                                {form.getValues('courseData.packageName')}{' '}
-                                                {getDetailsFromPackageSessionId({
-                                                    packageSessionId,
-                                                })?.session.session_name || '-'}{' '}
-                                                {getDetailsFromPackageSessionId({
-                                                    packageSessionId,
-                                                })?.level.level_name || '-'}
-                                            </span>
-                                        </div>
-                                        <MyButton
-                                            type="button"
-                                            scale="small"
-                                            buttonType="secondary"
-                                            onClick={() => {
-                                                const defaultInviteLink = inviteLinksArr.find(
-                                                    (invite) => invite.tag === 'DEFAULT'
-                                                );
-                                                handleAddInviteLink(
-                                                    packageSessionId,
-                                                    defaultInviteLink?.id || ''
-                                                );
-                                            }}
-                                        >
-                                            Add
-                                        </MyButton>
-                                    </div>
-
-                                    {/* Invite links section for this package session */}
-                                    <div className="border-t border-neutral-100 pt-2">
-                                        <div className="mb-2 text-xs font-medium text-neutral-600">
-                                            Invite Links:
-                                        </div>
-                                        <div className="flex flex-col gap-2">
-                                            {inviteLinksArr.map(
-                                                (inviteLink: FlattenedInviteLink, idx: number) => {
-                                                    return (
-                                                        <div
-                                                            key={inviteLink.id + idx}
-                                                            className="mb-2 rounded-md border bg-neutral-50 p-3"
-                                                        >
-                                                            <div className="mb-2 flex items-center gap-2">
-                                                                <div className="text-sm font-medium text-neutral-700">
-                                                                    {inviteLink.name}
-                                                                </div>
-                                                                <MyButton
-                                                                    type="button"
-                                                                    scale="small"
-                                                                    buttonType="secondary"
-                                                                    onClick={() =>
-                                                                        handleViewInviteLink(
-                                                                            inviteLink.id
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    View
-                                                                </MyButton>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <InviteLink
-                                                                    inviteCode={
-                                                                        inviteLink.invite_code
-                                                                    }
-                                                                />
-                                                                {inviteLink.tag === 'DEFAULT' ? (
-                                                                    <Badge
-                                                                        variant="default"
-                                                                        className="ml-1 border border-gray-500 bg-green-200 text-gray-600 shadow-none"
-                                                                    >
-                                                                        DEFAULT
-                                                                    </Badge>
-                                                                ) : (
-                                                                    <MyButton
-                                                                        type="button"
-                                                                        scale="small"
-                                                                        buttonType="secondary"
-                                                                        onClick={() =>
-                                                                            handleMakeDefault(
-                                                                                packageSessionId,
-                                                                                inviteLink.id
-                                                                            )
-                                                                        }
-                                                                        className="ml-1"
-                                                                    >
-                                                                        Make Default
-                                                                    </MyButton>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                }
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            )
-                        )
-                    ) : (
-                        <div className="py-8 text-center text-neutral-500">
-                            No invite links available.
-                        </div>
-                    )}
-                    {shouldFetch && (inviteLinks?.content?.length ?? 0) > 0 && (
-                        <MyPagination
-                            currentPage={page}
-                            totalPages={inviteLinks?.totalPages ?? 1}
-                            onPageChange={handlePageChange}
-                        />
-                    )}
-                </div>
-                <Separator />
-                <div className="p-4 pt-0">
+        <>
+            <Dialog>
+                <DialogTrigger>
                     <MyButton
                         type="button"
                         scale="small"
                         buttonType="secondary"
                         className="mt-4 flex items-center gap-1"
-                        onClick={() => {
-                            navigate({ to: '/manage-students/invite' });
-                        }}
                     >
-                        <ArrowRight size={18} />
-                        Invite Page
+                        <Plus size={16} />
+                        Invite Links
                     </MyButton>
-                </div>
-            </DialogContent>
-        </Dialog>
+                </DialogTrigger>
+                <DialogContent className="!w-[80vw] max-w-[80vw] p-0">
+                    <DialogHeader className="rounded-t-lg bg-primary-50 p-4">
+                        <DialogTitle className="font-normal text-primary-500">
+                            📨
+                            <span className="ml-2">Invite Links</span>
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div
+                        className={`space-y-4 p-4 ${shouldScroll ? 'overflow-y-auto' : ''}`}
+                        style={shouldScroll ? { maxHeight: '60vh' } : {}}
+                    >
+                        {shouldFetch && groupedEntries.length > 0 ? (
+                            groupedEntries.map(
+                                (
+                                    [packageSessionId, inviteLinksArr]: [
+                                        string,
+                                        FlattenedInviteLink[],
+                                    ],
+                                    groupIndex: number
+                                ) => (
+                                    <div
+                                        className="animate-fadeIn group flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-4 transition-all duration-200 hover:border-primary-200 hover:shadow-md"
+                                        key={packageSessionId}
+                                        style={{ animationDelay: `${groupIndex * 0.1}s` }}
+                                    >
+                                        {/* Enhanced header with course info */}
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2 font-semibold">
+                                                <div className="rounded-md bg-primary-100 p-1">
+                                                    <Users size={18} />
+                                                </div>
+                                                <span>
+                                                    {form.getValues('courseData.packageName')}{' '}
+                                                    {getDetailsFromPackageSessionId({
+                                                        packageSessionId,
+                                                    })?.session.session_name || '-'}{' '}
+                                                    {getDetailsFromPackageSessionId({
+                                                        packageSessionId,
+                                                    })?.level.level_name || '-'}
+                                                </span>
+                                            </div>
+                                            <MyButton
+                                                type="button"
+                                                scale="small"
+                                                buttonType="secondary"
+                                                onClick={() => {
+                                                    const defaultInviteLink = inviteLinksArr.find(
+                                                        (invite) => invite.tag === 'DEFAULT'
+                                                    );
+                                                    handleAddInviteLink(
+                                                        packageSessionId,
+                                                        defaultInviteLink?.id || ''
+                                                    );
+                                                }}
+                                            >
+                                                Add
+                                            </MyButton>
+                                        </div>
+
+                                        {/* Invite links section for this package session */}
+                                        <div className="border-t border-neutral-100 pt-2">
+                                            <div className="mb-2 text-xs font-medium text-neutral-600">
+                                                Invite Links:
+                                            </div>
+                                            <div className="flex flex-col gap-2">
+                                                {inviteLinksArr.map(
+                                                    (
+                                                        inviteLink: FlattenedInviteLink,
+                                                        idx: number
+                                                    ) => {
+                                                        return (
+                                                            <div
+                                                                key={inviteLink.id + idx}
+                                                                className="mb-2 rounded-md border bg-neutral-50 p-3"
+                                                            >
+                                                                <div className="mb-2 flex items-center gap-2">
+                                                                    <div className="text-sm font-medium text-neutral-700">
+                                                                        {inviteLink.name}
+                                                                    </div>
+                                                                    <MyButton
+                                                                        type="button"
+                                                                        scale="small"
+                                                                        buttonType="secondary"
+                                                                        onClick={() =>
+                                                                            handleViewInviteLink(
+                                                                                inviteLink.id
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        View
+                                                                    </MyButton>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <InviteLink
+                                                                        inviteCode={
+                                                                            inviteLink.invite_code
+                                                                        }
+                                                                    />
+                                                                    {inviteLink.tag ===
+                                                                    'DEFAULT' ? (
+                                                                        <Badge
+                                                                            variant="default"
+                                                                            className="ml-1 border border-gray-500 bg-green-200 text-gray-600 shadow-none"
+                                                                        >
+                                                                            DEFAULT
+                                                                        </Badge>
+                                                                    ) : (
+                                                                        <MyButton
+                                                                            type="button"
+                                                                            scale="small"
+                                                                            buttonType="secondary"
+                                                                            onClick={() =>
+                                                                                handleMakeDefault(
+                                                                                    packageSessionId,
+                                                                                    inviteLink.id
+                                                                                )
+                                                                            }
+                                                                            className="ml-1"
+                                                                        >
+                                                                            Make Default
+                                                                        </MyButton>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    }
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            )
+                        ) : (
+                            <div className="py-8 text-center text-neutral-500">
+                                No invite links available.
+                            </div>
+                        )}
+                        {shouldFetch && (inviteLinks?.content?.length ?? 0) > 0 && (
+                            <MyPagination
+                                currentPage={page}
+                                totalPages={inviteLinks?.totalPages ?? 1}
+                                onPageChange={handlePageChange}
+                            />
+                        )}
+                    </div>
+                    <Separator />
+                    <div className="p-4 pt-0">
+                        <MyButton
+                            type="button"
+                            scale="small"
+                            buttonType="secondary"
+                            className="mt-4 flex items-center gap-1"
+                            onClick={() => {
+                                navigate({ to: '/manage-students/invite' });
+                            }}
+                        >
+                            <ArrowRight size={18} />
+                            Invite Page
+                        </MyButton>
+                    </div>
+                </DialogContent>
+            </Dialog>
+            <GenerateInviteLinkDialog
+                selectedCourse={selectedCourse}
+                selectedBatches={[
+                    {
+                        sessionId:
+                            getDetailsFromPackageSessionId({
+                                packageSessionId: addDialogData?.packageSessionId || '',
+                            })?.session.id || '',
+                        levelId:
+                            getDetailsFromPackageSessionId({
+                                packageSessionId: addDialogData?.packageSessionId || '',
+                            })?.level.id || '',
+                        sessionName:
+                            getDetailsFromPackageSessionId({
+                                packageSessionId: addDialogData?.packageSessionId || '',
+                            })?.session.session_name || '',
+                        levelName:
+                            getDetailsFromPackageSessionId({
+                                packageSessionId: addDialogData?.packageSessionId || '',
+                            })?.level.level_name || '',
+                    },
+                ]}
+                showSummaryDialog={isAddDialogOpen}
+                setShowSummaryDialog={setIsAddDialogOpen}
+            />
+        </>
     );
 };
 

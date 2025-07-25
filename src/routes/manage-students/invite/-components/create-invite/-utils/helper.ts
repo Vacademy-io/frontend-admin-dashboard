@@ -314,17 +314,67 @@ export function getDefaultPlanFromPaymentsData(data: PaymentOption[]) {
         return {
             id: '',
             name: '',
-            description: '',
+            days: 0,
+            suggestedAmount: [],
+            minAmount: 0,
+            currency: '',
+            price: '',
+            paymentOption: [],
+            type: '',
         };
-
-    return {
-        id: item.id,
-        name: item.name,
-        description:
-            item.type === 'FREE'
-                ? 'Access to basic course content.'
-                : 'Full access to all course materials and support.',
-    };
+    const parsedData = JSON.parse(item.payment_option_metadata_json);
+    if (item.type === 'donation') {
+        return {
+            id: item.id,
+            name: item.name,
+            description: 'Access to donation plan.',
+            suggestedAmount:
+                parsedData?.donationData?.suggestedAmounts
+                    ?.split(',')
+                    ?.map((x: string) => Number(x.trim())) || [],
+            minAmount: Number(parsedData?.donationData?.minimumAmount) || 0,
+            currency: parsedData?.currency || '',
+            type: item.type,
+        };
+    } else if (item.type === 'free' || item.type === 'FREE' || item.type === 'Free') {
+        return {
+            id: item.id,
+            name: item.name,
+            description: 'Access to free plan.',
+            days: parsedData?.freeData?.validityDays || 0,
+            type: item.type,
+        };
+    } else if (item.type === 'upfront') {
+        return {
+            id: item.id,
+            name: item.name,
+            description: 'Access to one time payment plan.',
+            price: parsedData?.upfrontData?.fullPrice || '',
+            currency: parsedData?.currency || '',
+            type: item.type,
+        };
+    } else {
+        return {
+            id: item.id,
+            name: item.name,
+            description: 'Access to subscription plan.',
+            currency: parsedData?.currency || '',
+            type: item.type,
+            paymentOption:
+                parsedData?.subscriptionData?.customIntervals.map(
+                    (interval: PaymentPlansInterface) => {
+                        return {
+                            value: interval.value || 0,
+                            unit: interval.unit || '',
+                            price: interval.price || '',
+                            features: interval.features || [],
+                            title: interval.title || '',
+                            newFeature: interval.newFeature || '',
+                        };
+                    }
+                ) || [],
+        };
+    }
 }
 
 export function getMatchingPaymentPlan(data: PaymentOption[], id: string) {
