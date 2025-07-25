@@ -63,6 +63,7 @@ import { TeachersList } from '../subjects/-components/teacher-list';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { useFileUpload } from '@/hooks/use-file-upload';
+import { convertCapitalToTitleCase } from '@/lib/utils';
 
 // Interfaces (assuming these are unchanged)
 export interface Chapter {
@@ -719,7 +720,7 @@ export const CourseStructureDetails = ({
                                                     className="truncate"
                                                     title={subject.subject_name}
                                                 >
-                                                    {subject.subject_name}
+                                                    {convertCapitalToTitleCase(subject.subject_name)}
                                                 </span>
                                             </div>
                                             <MyButton
@@ -787,12 +788,9 @@ export const CourseStructureDetails = ({
                                                                         </span>
                                                                         <span
                                                                             className="truncate"
-                                                                            title={
-                                                                                mod.module
-                                                                                    .module_name
-                                                                            }
+                                                                            title={mod.module.module_name}
                                                                         >
-                                                                            {mod.module.module_name}
+                                                                            {convertCapitalToTitleCase(mod.module.module_name)}
                                                                         </span>
                                                                     </div>
                                                                     <MyButton
@@ -886,17 +884,9 @@ export const CourseStructureDetails = ({
                                                                                                 </span>
                                                                                                 <span
                                                                                                     className="truncate"
-                                                                                                    title={
-                                                                                                        ch
-                                                                                                            .chapter
-                                                                                                            .chapter_name
-                                                                                                    }
+                                                                                                    title={ch.chapter.chapter_name}
                                                                                                 >
-                                                                                                    {
-                                                                                                        ch
-                                                                                                            .chapter
-                                                                                                            .chapter_name
-                                                                                                    }
+                                                                                                    {convertCapitalToTitleCase(ch.chapter.chapter_name)}
                                                                                                 </span>
                                                                                             </div>
                                                                                             <MyButton
@@ -1124,12 +1114,9 @@ export const CourseStructureDetails = ({
                                                                         </span>
                                                                         <span
                                                                             className="truncate"
-                                                                            title={
-                                                                                mod.module
-                                                                                    .module_name
-                                                                            }
+                                                                            title={mod.module.module_name}
                                                                         >
-                                                                            {mod.module.module_name}
+                                                                            {convertCapitalToTitleCase(mod.module.module_name)}
                                                                         </span>
                                                                     </div>
                                                                 </CollapsibleTrigger>
@@ -1201,17 +1188,9 @@ export const CourseStructureDetails = ({
                                                                                                 </span>
                                                                                                 <span
                                                                                                     className="truncate"
-                                                                                                    title={
-                                                                                                        ch
-                                                                                                            .chapter
-                                                                                                            .chapter_name
-                                                                                                    }
+                                                                                                    title={ch.chapter.chapter_name}
                                                                                                 >
-                                                                                                    {
-                                                                                                        ch
-                                                                                                            .chapter
-                                                                                                            .chapter_name
-                                                                                                    }
+                                                                                                    {convertCapitalToTitleCase(ch.chapter.chapter_name)}
                                                                                                 </span>
                                                                                             </div>
                                                                                             <MyButton
@@ -1479,17 +1458,9 @@ export const CourseStructureDetails = ({
                                                                                                 </span>
                                                                                                 <span
                                                                                                     className="truncate"
-                                                                                                    title={
-                                                                                                        ch
-                                                                                                            .chapter
-                                                                                                            .chapter_name
-                                                                                                    }
+                                                                                                    title={ch.chapter.chapter_name}
                                                                                                 >
-                                                                                                    {
-                                                                                                        ch
-                                                                                                            .chapter
-                                                                                                            .chapter_name
-                                                                                                    }
+                                                                                                    {convertCapitalToTitleCase(ch.chapter.chapter_name)}
                                                                                                 </span>
                                                                                             </div>
                                                                                             <MyButton
@@ -1830,7 +1801,7 @@ export const CourseStructureDetails = ({
                                         className="mb-1 truncate text-sm font-medium text-gray-800"
                                         title={subject.subject_name}
                                     >
-                                        {subject.subject_name}
+                                        {convertCapitalToTitleCase(subject.subject_name)}
                                     </h4>
 
                                     {/* Subject Number */}
@@ -1884,7 +1855,7 @@ export const CourseStructureDetails = ({
                                             className="mb-1 truncate text-sm font-medium text-gray-800"
                                             title={mod.module.module_name}
                                         >
-                                            {mod.module.module_name}
+                                            {convertCapitalToTitleCase(mod.module.module_name)}
                                         </h4>
 
                                         {/* Module Number */}
@@ -1944,7 +1915,7 @@ export const CourseStructureDetails = ({
                                             className="mb-1 truncate text-sm font-medium text-gray-800"
                                             title={mod.module.module_name}
                                         >
-                                            {mod.module.module_name}
+                                            {convertCapitalToTitleCase(mod.module.module_name)}
                                         </h4>
 
                                         {/* Module Number */}
@@ -2009,7 +1980,7 @@ export const CourseStructureDetails = ({
                                         className="mb-1 truncate text-sm font-medium text-gray-800"
                                         title={ch.chapter.chapter_name}
                                     >
-                                        {ch.chapter.chapter_name}
+                                        {convertCapitalToTitleCase(ch.chapter.chapter_name)}
                                     </h4>
 
                                     {/* Chapter Number */}
@@ -2073,7 +2044,7 @@ export const CourseStructureDetails = ({
                                             className="mb-1 truncate text-sm font-medium text-gray-800"
                                             title={ch.chapter.chapter_name}
                                         >
-                                            {ch.chapter.chapter_name}
+                                            {convertCapitalToTitleCase(ch.chapter.chapter_name)}
                                         </h4>
 
                                         {/* Chapter Number */}
