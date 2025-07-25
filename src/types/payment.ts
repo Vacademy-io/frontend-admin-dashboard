@@ -1,9 +1,9 @@
 // Payment plan types
-export type PaymentPlanType = 'subscription' | 'upfront' | 'donation' | 'free';
+export type PaymentPlanType = 'SUBSCRIPTION' | 'ONE_TIME' | 'DONATION' | 'FREE';
 export type PaymentPlanTag = 'DEFAULT' | 'free' | null;
 
 export interface PaymentPlanApi {
-    id: string;
+    id?: string;
     name: string;
     status: string;
     validity_in_days: number;
@@ -41,4 +41,11 @@ export interface PaymentPlan {
     config: any;
     features?: string[];
     validityDays?: number;
+}
+
+export enum PaymentPlans {
+    FREE = 'FREE',
+    DONATION = 'DONATION',
+    SUBSCRIPTION = 'SUBSCRIPTION',
+    UPFRONT = 'ONE_TIME',
 }

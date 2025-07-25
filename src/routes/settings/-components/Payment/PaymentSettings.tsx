@@ -9,7 +9,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { CreditCard, Globe, Plus, ArrowClockwise } from 'phosphor-react';
+import { CreditCard, Globe, Plus } from 'phosphor-react';
 import { useState, useEffect, useRef } from 'react';
 import { PaymentPlanList } from './PaymentPlanList';
 import { MyButton } from '@/components/design-system/button';
@@ -21,21 +21,15 @@ import { Eye, Loader2 } from 'lucide-react';
 import {
     savePaymentOption,
     getPaymentOptions,
-    transformLocalPlanToApiFormat,
     transformApiPlanToLocalFormat,
     makeDefaultPaymentOption,
+    transformLocalPlanToApiFormatArray,
 } from '@/services/payment-options';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { currencyOptions } from '../../-constants/payments';
 import { getInstituteId } from '@/constants/helper';
-import { PaymentPlan, PaymentPlanTag, PaymentPlanType } from '@/types/payment';
-
-const toPaymentPlanTag = (tag: string | null): PaymentPlanTag => {
-    if (tag === 'default' || tag === 'free' || tag === null) return tag as PaymentPlanTag;
-    return 'free';
-};
+import { PaymentPlan, PaymentPlans, PaymentPlanTag, PaymentPlanType } from '@/types/payment';
 
 interface Interval {
     price: string;
@@ -145,7 +139,12 @@ const PaymentSettings = () => {
         setIsLoading(true);
         try {
             const request = {
-                types: ['subscription', 'upfront', 'donation', 'free'],
+                types: [
+                    PaymentPlans.SUBSCRIPTION,
+                    PaymentPlans.UPFRONT,
+                    PaymentPlans.DONATION,
+                    PaymentPlans.FREE,
+                ],
                 source: 'INSTITUTE',
                 source_id: instituteId ?? '',
                 require_approval: true,
@@ -153,27 +152,74 @@ const PaymentSettings = () => {
             };
 
             const response = await getPaymentOptions(request);
+            console.log('response', response);
             const transformedPlans =
-                response?.flatMap((paymentOption) => {
-                    if (paymentOption.payment_plans?.length > 0) {
-                        return paymentOption.payment_plans.map((plan) => {
-                            const planWithMetadata = {
-                                ...plan,
+                response
+                    ?.map((paymentOption) => {
+                        if (paymentOption.type === PaymentPlans.SUBSCRIPTION) {
+                            // Aggregate all intervals
+                            const intervals = paymentOption.payment_plans.map((plan) => ({
+                                price: plan.actual_price, // discounted price
+                                originalPrice: plan.elevated_price, // original price
+                                title: plan.name || '',
+                                value: plan.validity_in_days,
+                                unit: 'days', // or 'months', depending on your logic
+                                features: JSON.parse(plan.feature_json || '[]'),
+                            }));
+                            // Use the first plan for other fields
+                            const basePlan = paymentOption.payment_plans[0];
+                            if (!basePlan) return null;
+                            const localPlan = transformApiPlanToLocalFormat({
+                                ...basePlan,
+                                name: basePlan.name || '',
+                                currency: basePlan.currency || '',
+                                feature_json: basePlan.feature_json || '[]',
                                 payment_option_metadata_json:
                                     paymentOption.payment_option_metadata_json,
                                 type: paymentOption.type,
-                            };
-                            const localPlan = transformApiPlanToLocalFormat(planWithMetadata);
+                            });
+                            // Set all intervals in config
                             return {
                                 ...localPlan,
-                                id: paymentOption.id,
+                                id: paymentOption.id || '',
                                 tag: paymentOption.tag as PaymentPlanTag,
                                 type: localPlan.type as PaymentPlanType,
-                            };
-                        });
-                    }
-                    return [];
-                }) || [];
+                                name: paymentOption.name || '',
+                                currency: localPlan.currency || '',
+                                config: {
+                                    ...localPlan.config,
+                                    subscription: {
+                                        ...((localPlan.config && localPlan.config.subscription) ||
+                                            {}),
+                                        customIntervals: intervals,
+                                    },
+                                },
+                            } as PaymentPlan;
+                        } else if (paymentOption.payment_plans?.length > 0) {
+                            // For non-subscription, just use the first plan
+                            const plan = paymentOption.payment_plans[0];
+                            if (!plan) return null;
+                            const localPlan = transformApiPlanToLocalFormat({
+                                ...plan,
+                                name: paymentOption.name || '',
+                                currency: plan.currency || '',
+                                feature_json: plan.feature_json || '[]',
+                                payment_option_metadata_json:
+                                    paymentOption.payment_option_metadata_json,
+                                type: paymentOption.type,
+                            });
+                            return {
+                                ...localPlan,
+                                id: paymentOption.id || '',
+                                tag: paymentOption.tag as PaymentPlanTag,
+                                type: localPlan.type as PaymentPlanType,
+                                name: paymentOption.name || '',
+                                currency: localPlan.currency || '',
+                            } as PaymentPlan;
+                        }
+                        return null;
+                    })
+                    .filter((plan): plan is PaymentPlan => plan !== null) || [];
 
             setPaymentPlans(
                 transformedPlans.map((plan) => ({
@@ -183,6 +229,8 @@ const PaymentSettings = () => {
                     config: plan.config || {},
                     tag: plan.tag as PaymentPlanTag,
                     type: plan.type as PaymentPlanType,
+                    name: plan.name || '',
+                    currency: plan.currency || '',
                 }))
             );
 
@@ -253,36 +301,36 @@ const PaymentSettings = () => {
     const handleSavePaymentPlan = async (plan: PaymentPlan, approvalOverride?: boolean) => {
         setIsSaving(true);
         try {
-            const apiPlan = transformLocalPlanToApiFormat(plan);
+            const apiPlans = transformLocalPlanToApiFormatArray(plan);
+
             const paymentOptionRequest = {
-                id: plan.id, // Use the plan ID directly (either existing or new)
                 name: plan.name,
                 status: 'ACTIVE',
                 source: 'INSTITUTE',
                 source_id: instituteId ?? '',
-                type: plan.type,
+                type: plan.type.toUpperCase(),
                 require_approval: approvalOverride ?? requireApproval,
-                payment_plans: [apiPlan],
+                payment_plans: apiPlans,
                 payment_option_metadata_json: JSON.stringify({
                     currency: plan.currency,
                     features: plan.features || [],
                     config: plan.config,
                     subscriptionData:
-                        plan.type === 'subscription'
+                        plan.type === PaymentPlans.SUBSCRIPTION
                             ? {
                                   customIntervals: plan.config?.subscription?.customIntervals || [],
                                   planDiscounts: plan.config?.planDiscounts || {},
                               }
                             : undefined,
                     upfrontData:
-                        plan.type === 'upfront'
+                        plan.type === PaymentPlans.UPFRONT
                             ? {
                                   fullPrice: plan.config?.upfront?.fullPrice,
                                   planDiscounts: plan.config?.planDiscounts || {},
                               }
                             : undefined,
                     donationData:
-                        plan.type === 'donation'
+                        plan.type === PaymentPlans.DONATION
                             ? {
                                   suggestedAmounts: plan.config?.donation?.suggestedAmounts,
                                   minimumAmount: plan.config?.donation?.minimumAmount,
@@ -290,7 +338,7 @@ const PaymentSettings = () => {
                               }
                             : undefined,
                     freeData:
-                        plan.type === 'free'
+                        plan.type === PaymentPlans.FREE
                             ? {
                                   validityDays: plan.config?.free?.validityDays,
                               }
@@ -314,9 +362,9 @@ const PaymentSettings = () => {
                         {
                             ...transformedPlan,
                             tag:
-                                transformedPlan.type === 'free'
+                                transformedPlan.type === PaymentPlans.FREE
                                     ? 'free'
-                                    : transformedPlan.type === 'donation'
+                                    : transformedPlan.type === PaymentPlans.DONATION
                                       ? 'donation'
                                       : 'default',
                         } as PaymentPlan,
@@ -325,6 +373,8 @@ const PaymentSettings = () => {
                     setPaymentPlans((plans) => [...plans, plan]);
                 }
                 toast.success('Payment plan created successfully');
+                // Refresh the list from the API after creating a new plan
+                await loadPaymentOptions();
             }
 
             setEditingPlan(null);
@@ -356,14 +406,18 @@ const PaymentSettings = () => {
 
     // Filtering: use only type, never tag
     const getFreePlans = () =>
-        paymentPlans.filter((plan) => plan.type === 'free' || plan.type === 'donation');
+        paymentPlans.filter(
+            (plan) => plan.type === PaymentPlans.FREE || plan.type === PaymentPlans.DONATION
+        );
     const getPaidPlans = () =>
-        paymentPlans.filter((plan) => plan.type === 'subscription' || plan.type === 'upfront');
+        paymentPlans.filter(
+            (plan) => plan.type === PaymentPlans.SUBSCRIPTION || plan.type === PaymentPlans.UPFRONT
+        );
 
     const renderPlanPreview = () => {
         if (!previewingPlan) return null;
 
-        if (previewingPlan.type === 'subscription') {
+        if (previewingPlan.type === PaymentPlans.SUBSCRIPTION) {
             return (
                 <SubscriptionPlanPreview
                     currency={previewingPlan.currency}
@@ -376,7 +430,7 @@ const PaymentSettings = () => {
             );
         }
 
-        if (previewingPlan.type === 'donation') {
+        if (previewingPlan.type === PaymentPlans.DONATION) {
             return (
                 <DonationPlanPreview
                     currency={previewingPlan.currency}
@@ -409,16 +463,6 @@ const PaymentSettings = () => {
                                 <Plus className="size-4" />
                                 Add Payment Plan
                             </MyButton>
-                            <Button
-                                onClick={loadPaymentOptions}
-                                disabled={isLoading || isSaving}
-                                variant="outline"
-                                className="border hover:border-primary-500 hover:bg-primary-50"
-                            >
-                                <ArrowClockwise
-                                    className={`size-4 ${isLoading ? 'animate-spin' : ''}`}
-                                />
-                            </Button>
                         </div>
                     </div>
                 </CardHeader>
@@ -487,10 +531,7 @@ const PaymentSettings = () => {
                             </div>
                         ) : (
                             <PaymentPlanList
-                                plans={getPaidPlans().map((plan) => ({
-                                    ...plan,
-                                    tag: toPaymentPlanTag(plan.tag),
-                                }))}
+                                plans={getPaidPlans()}
                                 onEdit={handleEditPlan}
                                 onDelete={handleDeletePlan}
                                 onSetDefault={handleSetDefaultPlan}
