@@ -458,8 +458,11 @@ const QuizPreview = ({ activeItem, routeParams }: QuizPreviewProps) => {
                                 );
                             })
                     ) : (
-                        <div className="flex flex-col items-center justify-center py-12 text-center">
-                            <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-slate-100">
+                        <div
+                            className="flex flex-col items-center justify-center py-12 text-center cursor-pointer hover:bg-slate-50 rounded-lg transition-colors duration-200"
+                            onClick={() => setIsQuestionTypeDialogOpen(true)}
+                        >
+                            <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 transition-colors duration-200">
                                 <Plus size={24} className="text-slate-400" />
                             </div>
                             <h3 className="mb-2 text-lg font-medium text-slate-600">
