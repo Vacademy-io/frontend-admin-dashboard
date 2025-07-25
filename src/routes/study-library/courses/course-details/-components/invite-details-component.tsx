@@ -346,6 +346,7 @@ const InviteDetailsComponent = ({ form }: { form: UseFormReturn<CourseDetailsFor
                 showSummaryDialog={isAddDialogOpen}
                 setShowSummaryDialog={setIsAddDialogOpen}
                 inviteLinkId={addDialogData?.defaultInviteLinkId}
+                singlePackageSessionId={true}
             />
         </>
     );
