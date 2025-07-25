@@ -224,7 +224,10 @@ const InviteDetailsComponent = ({ sessionsData }: { sessionsData: SessionData[] 
                                                                 inviteCode={inviteLink.invite_code}
                                                             />
                                                             {inviteLink.tag === 'DEFAULT' ? (
-                                                                <Badge variant="default">
+                                                                <Badge
+                                                                    variant="default"
+                                                                    className="ml-1 border border-gray-500 bg-green-200 text-gray-600 shadow-none"
+                                                                >
                                                                     DEFAULT
                                                                 </Badge>
                                                             ) : (
@@ -238,6 +241,7 @@ const InviteDetailsComponent = ({ sessionsData }: { sessionsData: SessionData[] 
                                                                             inviteLink.id
                                                                         )
                                                                     }
+                                                                    className="ml-1"
                                                                 >
                                                                     Make Default
                                                                 </MyButton>
