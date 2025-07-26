@@ -176,15 +176,28 @@ function transformCustomFields(customFields: CustomField[], instituteId: string)
     });
 }
 
+function safeJsonParse<T = unknown>(str: string, fallback: T): T {
+    if (!str) return fallback;
+    try {
+        return JSON.parse(str);
+    } catch {
+        return fallback;
+    }
+}
+
 export function ReTransformCustomFields(customFields: IndividualInviteLinkDetails) {
     return customFields?.institute_custom_fields?.map((field) => {
+        const config = safeJsonParse<{ coommaSepartedOptions?: string }>(
+            field.custom_field.config,
+            {}
+        );
         return {
             id: field.id,
             type: field.type,
             name: field.custom_field.fieldName,
             oldKey: false,
             isRequired: field.custom_field.isMandatory,
-            options: JSON.parse(field.custom_field.config).coommaSepartedOptions.split(','),
+            options: config.coommaSepartedOptions ? config.coommaSepartedOptions.split(',') : [],
             _id: '',
             status: 'ACTIVE',
         };

@@ -583,34 +583,46 @@ const GenerateInviteLinkDialog = ({
     useEffect(() => {
         const loadCourseData = async () => {
             try {
+                const parsedJsonData = await safeJsonParse(
+                    inviteLinkDetails?.web_page_meta_data_json,
+                    {}
+                );
                 const transformedData =
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-expect-error
                     await transformApiDataToCourseDataForInvite(courseDetailsData);
-                if (transformedData) {
-                    form.reset({
-                        ...form.getValues(),
-                        course: transformedData.packageName,
-                        description: transformedData.description,
-                        learningOutcome: transformedData.whyLearn,
-                        aboutCourse: transformedData.aboutTheCourse,
-                        targetAudience: transformedData.whoShouldLearn,
-                        coursePreview: transformedData.coursePreviewImageMediaId,
-                        courseBanner: transformedData.courseBannerMediaId,
-                        courseMedia: transformedData.courseMediaId,
-                        coursePreviewBlob: transformedData.coursePreviewImageMediaPreview,
-                        courseBannerBlob: transformedData.courseBannerMediaPreview,
-                        courseMediaBlob: transformedData.courseMediaPreview,
-                        tags: transformedData.tags,
-                    });
-                }
+
+                form.reset({
+                    ...form.getValues(),
+                    course: parsedJsonData?.course ?? transformedData?.packageName,
+                    description: parsedJsonData?.description ?? transformedData?.description,
+                    learningOutcome: parsedJsonData?.whyLearn ?? transformedData?.whyLearn,
+                    aboutCourse: parsedJsonData?.aboutTheCourse ?? transformedData?.aboutTheCourse,
+                    targetAudience:
+                        parsedJsonData?.whoShouldLearn ?? transformedData?.whoShouldLearn,
+                    coursePreview:
+                        parsedJsonData?.coursePreviewImageMediaId ??
+                        transformedData?.coursePreviewImageMediaId,
+                    courseBanner:
+                        parsedJsonData?.courseBannerMediaId ?? transformedData?.courseBannerMediaId,
+                    courseMedia: parsedJsonData?.courseMediaId ?? transformedData?.courseMediaId,
+                    coursePreviewBlob:
+                        parsedJsonData?.coursePreviewImageMediaPreview ??
+                        transformedData?.coursePreviewImageMediaPreview,
+                    courseBannerBlob:
+                        parsedJsonData?.courseBannerMediaPreview ??
+                        transformedData?.courseBannerMediaPreview,
+                    courseMediaBlob:
+                        parsedJsonData?.courseMediaPreview ?? transformedData?.courseMediaPreview,
+                    tags: parsedJsonData?.tags ?? transformedData?.tags,
+                });
             } catch (error) {
                 console.error('Error transforming course data:', error);
             }
         };
 
         loadCourseData();
-    }, [courseDetailsData]);
+    }, [courseDetailsData, inviteLinkDetails]);
 
     useEffect(() => {
         if (singlePackageSessionId) {
@@ -628,6 +640,8 @@ const GenerateInviteLinkDialog = ({
                 includeInstituteLogo:
                     safeJsonParse(inviteLinkDetails?.web_page_meta_data_json, {})
                         ?.includeInstituteLogo || false,
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
                 custom_fields:
                     inviteLinkDetails?.institute_custom_fields.length === 0
                         ? [
