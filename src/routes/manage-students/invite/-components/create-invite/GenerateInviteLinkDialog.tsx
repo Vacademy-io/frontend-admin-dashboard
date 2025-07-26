@@ -8,7 +8,7 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import { TokenKey } from '@/constants/auth/tokens';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { useFileUpload } from '@/hooks/use-file-upload';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useForm as useShadForm } from 'react-hook-form';
 import { zodResolver as shadZodResolver } from '@hookform/resolvers/zod';
 import { useForm as useDiscountForm } from 'react-hook-form';
@@ -73,9 +73,9 @@ const GenerateInviteLinkDialog = ({
     const { data: paymentsData } = useSuspenseQuery(handleGetPaymentDetails());
     const { studyLibraryData } = useStudyLibraryStore();
 
-    const courseDetailsData = useMemo(() => {
-        return studyLibraryData?.find((item) => item.course.id === selectedCourse?.id);
-    }, [studyLibraryData]);
+    const courseDetailsData = studyLibraryData?.find(
+        (item) => item.course.id === selectedCourse?.id
+    );
 
     const queryClient = useQueryClient();
     const form = useForm<InviteLinkFormValues>({
@@ -590,9 +590,6 @@ const GenerateInviteLinkDialog = ({
                 if (transformedData) {
                     form.reset({
                         ...form.getValues(),
-                        name: '',
-                        includeInstituteLogo: false,
-                        requireApproval: false,
                         course: transformedData.packageName,
                         description: transformedData.description,
                         learningOutcome: transformedData.whyLearn,
