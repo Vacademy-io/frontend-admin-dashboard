@@ -49,8 +49,8 @@ export const useInstituteQuery = () => {
                     const namingSettings = instituteSettings.setting.NAMING_SETTING;
                     setValue(namingSettings.data.data);
                 }
-                if (!isNullOrEmptyOrUndefined(data?.sub_modules)) {
-                    setModules(data?.sub_modules);
+                if (!isNullOrEmptyOrUndefined(data)) {
+                    setModules(data.sub_modules);
                 }
             } catch (error) {
                 console.error('Error setting naming settings:', error);
