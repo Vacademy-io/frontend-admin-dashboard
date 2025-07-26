@@ -173,6 +173,17 @@ const GenerateInviteLinkDialog = ({
     const data = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
 
+    // Helper function to safely parse JSON
+    const safeJsonParse = (jsonString: string | null | undefined, defaultValue: unknown = null) => {
+        if (!jsonString) return defaultValue;
+        try {
+            return JSON.parse(jsonString);
+        } catch (error) {
+            console.warn('Failed to parse JSON:', jsonString, error);
+            return defaultValue;
+        }
+    };
+
     const { uploadFile, getPublicUrl } = useFileUpload();
 
     const coursePreviewRef = useRef<HTMLInputElement>(null);
@@ -616,9 +627,9 @@ const GenerateInviteLinkDialog = ({
             form.reset({
                 ...form.getValues(),
                 name: inviteLinkDetails?.name,
-                includeInstituteLogo: inviteLinkDetails?.web_page_meta_data_json
-                    ? JSON.parse(inviteLinkDetails?.web_page_meta_data_json).includeInstituteLogo
-                    : false,
+                includeInstituteLogo:
+                    safeJsonParse(inviteLinkDetails?.web_page_meta_data_json, {})
+                        ?.includeInstituteLogo || false,
                 custom_fields:
                     inviteLinkDetails?.institute_custom_fields.length === 0
                         ? [
@@ -659,19 +670,18 @@ const GenerateInviteLinkDialog = ({
                 selectedDiscountId: 'none',
                 referralPrograms: [],
                 selectedReferralId: 'r1',
-                restrictToSameBatch: inviteLinkDetails?.web_page_meta_data_json
-                    ? JSON.parse(inviteLinkDetails?.web_page_meta_data_json).restrictToSameBatch
-                    : '',
+                restrictToSameBatch:
+                    safeJsonParse(inviteLinkDetails?.web_page_meta_data_json, {})
+                        ?.restrictToSameBatch || false,
                 accessDurationType:
                     form.watch('selectedPlan')?.type === 'subscription' ? 'define' : '',
                 accessDurationDays: inviteLinkDetails?.learner_access_days,
                 inviteeEmails: [],
-                customHtml: inviteLinkDetails?.web_page_meta_data_json
-                    ? JSON.parse(inviteLinkDetails?.web_page_meta_data_json).customHtml
-                    : '',
-                showRelatedCourses: inviteLinkDetails?.web_page_meta_data_json
-                    ? JSON.parse(inviteLinkDetails?.web_page_meta_data_json).showRelatedCourses
-                    : false,
+                customHtml:
+                    safeJsonParse(inviteLinkDetails?.web_page_meta_data_json, {})?.customHtml || '',
+                showRelatedCourses:
+                    safeJsonParse(inviteLinkDetails?.web_page_meta_data_json, {})
+                        ?.showRelatedCourses || false,
             });
         }
     }, [inviteLinkDetails]);
