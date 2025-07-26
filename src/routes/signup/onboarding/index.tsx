@@ -18,6 +18,8 @@ export interface OrganizationOnboardingProps {
 export const onboardingParamsSchema = z.object({
     assess: z.coerce.boolean().optional(),
     lms: z.coerce.boolean().optional(),
+    volt: z.coerce.boolean().optional(),
+    vsmart: z.coerce.boolean().optional(),
     signupData: z.string().optional(),
 });
 

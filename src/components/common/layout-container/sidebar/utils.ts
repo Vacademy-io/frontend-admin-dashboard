@@ -56,14 +56,17 @@ export const SidebarItemsData: SidebarItemsType[] = [
             {
                 subItem: 'Batches',
                 subItemLink: '/manage-institute/batches',
+                subItemId: 'batches',
             },
             {
                 subItem: getTerminology(ContentTerms.Session, 'Session'), // Session
                 subItemLink: '/manage-institute/sessions',
+                subItemId: 'sessions',
             },
             {
                 subItem: 'Teams',
                 subItemLink: '/manage-institute/teams',
+                subItemId: 'teams',
             },
         ],
     },
@@ -75,16 +78,19 @@ export const SidebarItemsData: SidebarItemsType[] = [
             {
                 subItem: `${getTerminology(RoleTerms.Learner, 'Learner')} list`, // Student
                 subItemLink: '/manage-students/students-list',
+                subItemId: 'students-list',
             },
             ...(getInstituteId() !== HOLISTIC_INSTITUTE_ID
                 ? [
                       {
                           subItem: 'Enroll Requests',
                           subItemLink: '/manage-students/enroll-requests',
+                          subItemId: 'enroll-requests',
                       },
                       {
                           subItem: 'Invite',
                           subItemLink: '/manage-students/invite',
+                          subItemId: 'invite',
                       },
                   ]
                 : []),
@@ -112,22 +118,27 @@ export const SidebarItemsData: SidebarItemsType[] = [
             {
                 subItem: getTerminology(ContentTerms.Course, SystemTerms.Course), // Course
                 subItemLink: '/study-library/courses',
+                subItemId: 'course',
             },
             {
                 subItem: `${getTerminology(ContentTerms.LiveSession, SystemTerms.LiveSession)}`, // LiveSession
                 subItemLink: '/study-library/live-session',
+                subItemId: 'live-session',
             },
             {
                 subItem: 'Attendance Tracker',
                 subItemLink: '/study-library/attendance-tracker',
+                subItemId: 'attendance-tracker',
             },
             {
                 subItem: 'Reports',
                 subItemLink: '/study-library/reports',
+                subItemId: 'reports',
             },
             {
                 subItem: 'Doubt Management',
                 subItemLink: '/study-library/doubt-management',
+                subItemId: 'doubt-management',
             },
         ],
     },
@@ -152,10 +163,12 @@ export const SidebarItemsData: SidebarItemsType[] = [
             {
                 subItem: 'Assessment List',
                 subItemLink: '/assessment/assessment-list?selectedTab=liveTests',
+                subItemId: 'assessment-list',
             },
             {
                 subItem: 'Question Papers',
                 subItemLink: '/assessment/question-papers',
+                subItemId: 'question-papers',
             },
         ],
     },
@@ -167,32 +180,36 @@ export const SidebarItemsData: SidebarItemsType[] = [
             {
                 subItem: 'Evaluations',
                 subItemLink: '/evaluation/evaluations',
+                subItemId: 'evaluations',
             },
             {
                 subItem: 'Evaluation tool',
                 subItemLink: '/evaluation/evaluation-tool',
+                subItemId: 'evaluation-tool',
             },
         ],
     },
     {
         icon: Globe,
-        id: 'Community Centre',
+        id: 'community-centre',
         title: 'Community Centre',
         to: '/community',
     },
     {
         icon: HeadCircuit,
         title: 'VSmart AI Tools',
-        id: 'AI Center',
+        id: 'ai-center',
         to: '/ai-center',
         subItems: [
             {
                 subItem: 'AI Tools',
                 subItemLink: '/ai-center/ai-tools',
+                subItemId: 'ai-tools',
             },
             {
                 subItem: 'My Resources',
                 subItemLink: '/ai-center/my-resources',
+                subItemId: 'my-resources',
             },
         ],
     },

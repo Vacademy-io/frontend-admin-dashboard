@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -52,13 +52,14 @@ interface SignupData {
     user_roles: string[];
     subject_id?: string;
     vendor_id?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
 }
 
 export function Step3AddOrgDetails() {
     const queryClient = useQueryClient();
     const navigate = useNavigate();
-    const { formDataAddOrg, setFormDataAddOrg, resetAddOrgForm } = useAddOrgStore();
+    const { setFormDataAddOrg, resetAddOrgForm } = useAddOrgStore();
     const { formData, resetForm } = useOrganizationStore();
     const [signupData, setSignupData] = useState<SignupData | null>(null);
 
@@ -129,6 +130,7 @@ export function Step3AddOrgDetails() {
             searchParams: Record<string, boolean>;
             formData: FormValuesStep1Signup;
             formDataOrg: z.infer<typeof organizationDetailsSignupStep1>;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             signupData?: Record<string, any>;
         }) => {
             return handleSignupInstitute({
@@ -170,6 +172,8 @@ export function Step3AddOrgDetails() {
             searchParams: {
                 assess: url.searchParams.get('assess') === 'true',
                 lms: url.searchParams.get('lms') === 'true',
+                volt: url.searchParams.get('volt') === 'true',
+                vsmart: url.searchParams.get('vsmart') === 'true',
             },
             formData,
             formDataOrg: values,

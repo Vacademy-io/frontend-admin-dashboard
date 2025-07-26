@@ -13,6 +13,7 @@ export const convertedSignupData = ({
     searchParams: Record<string, boolean>;
     formData: FormValuesStep1Signup;
     formDataOrg: z.infer<typeof organizationDetailsSignupStep1>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     signupData?: Record<string, any>;
 }) => {
     const module_request_ids_list: string[] = [];
@@ -23,6 +24,12 @@ export const convertedSignupData = ({
 
     if (searchParams.lms) {
         module_request_ids_list.push('2');
+    }
+    if (searchParams.volt) {
+        module_request_ids_list.push('3');
+    }
+    if (searchParams.vsmart) {
+        module_request_ids_list.push('4');
     }
 
     const data = {

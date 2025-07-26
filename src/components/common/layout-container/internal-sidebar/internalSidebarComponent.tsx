@@ -1,14 +1,10 @@
-import {
-    filterMenuItems,
-    filterMenuList,
-    getModuleFlags,
-} from '@/routes/evaluator-ai/-components/layout-container/sidebar/helper';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { SidebarItem } from '@/routes/evaluator-ai/-components/layout-container/sidebar/sidebar-item';
 import { SidebarItemsData } from '@/routes/evaluator-ai/-components/layout-container/sidebar/utils';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import React from 'react';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { filterMenuItems, filterMenuListByModules } from '../sidebar/helper';
 
 export const InternalSidebarComponent = ({
     sidebarComponent,
@@ -16,8 +12,7 @@ export const InternalSidebarComponent = ({
     sidebarComponent: React.ReactNode;
 }) => {
     const { data, isLoading } = useSuspenseQuery(useInstituteQuery());
-    const subModules = getModuleFlags(data?.sub_modules);
-    const sideBarData = filterMenuList(subModules, SidebarItemsData);
+    const sideBarData = filterMenuListByModules(data?.sub_modules, SidebarItemsData);
     const sideBarItems = filterMenuItems(sideBarData, data?.id);
 
     if (isLoading) {

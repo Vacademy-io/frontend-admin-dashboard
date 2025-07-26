@@ -6,6 +6,8 @@ interface OAuthLoginOptions {
     isSignup?: boolean;
     assess?: boolean;
     lms?: boolean;
+    volt?: boolean;
+    vsmart?: boolean;
 }
 
 export const handleOAuthSignUp = (provider: OAuthProvider, options: OAuthLoginOptions = {}) => {

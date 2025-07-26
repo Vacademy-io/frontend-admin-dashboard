@@ -19,10 +19,14 @@ import { useEffect } from 'react';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { FcGoogle } from 'react-icons/fc';
 import { handleOAuthSignUp } from '@/hooks/signup/oauth-signup';
+import VacademyVoltLogo from '@/components/core/volt-logo';
+import VacademyVSmartLogo from '@/components/core/vsmart-logo';
 
 const items = [
-    { id: 'assess', label: 'Assess' },
-    { id: 'lms', label: 'LMS' },
+    { id: 'assess', label: 'Assess', description: 'Smart assessment and evaluation platform' },
+    { id: 'lms', label: 'LMS', description: 'Complete learning management system' },
+    { id: 'volt', label: 'Volt', description: 'Interactive live classroom experience' },
+    { id: 'vsmart', label: 'Vsmart', description: 'AI-powered learning assistant' },
 ] as const;
 
 const FormSchema = z.object({
@@ -43,6 +47,8 @@ export function SignUpComponent() {
             items: {
                 assess: false,
                 lms: false,
+                volt: false,
+                vsmart: false,
             },
         },
         mode: 'onChange',
@@ -58,18 +64,18 @@ export function SignUpComponent() {
 
     return (
         <div className="flex h-screen w-full">
-            <div className="flex w-1/2 flex-col items-center justify-center bg-primary-50">
+            <div className="flex w-2/5 flex-col items-center justify-center bg-primary-50">
                 <VacademyLogo />
-                <OnboardingSignup />
+                <OnboardingSignup className="w-[500px]" />
             </div>
-            <div className="flex w-1/2 items-center justify-center">
+            <div className="flex w-3/5 items-center justify-center">
                 <Form {...form}>
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}
-                        className="flex w-[350px] flex-col items-center justify-center space-y-8"
+                        className="flex w-[550px] flex-col items-center justify-center space-y-8"
                     >
                         <div className="flex w-full flex-col items-center justify-center">
-                            <div className="mb-10">
+                            <div className="mb-10 flex flex-col items-center justify-center">
                                 <FormLabel className="text-[1.5rem]">
                                     Evaluate smarter, learn better
                                 </FormLabel>
@@ -92,7 +98,9 @@ export function SignUpComponent() {
                                     }
                                     disabled={
                                         !form.getValues('items.assess') &&
-                                        !form.getValues('items.lms')
+                                        !form.getValues('items.lms') &&
+                                        !form.getValues('items.volt') &&
+                                        !form.getValues('items.vsmart')
                                     }
                                 >
                                     {FcGoogle({ size: 20 })}
@@ -107,11 +115,15 @@ export function SignUpComponent() {
                                             isSignup: true,
                                             assess: form.getValues('items.assess'),
                                             lms: form.getValues('items.lms'),
+                                            volt: form.getValues('items.volt'),
+                                            vsmart: form.getValues('items.vsmart'),
                                         })
                                     }
                                     disabled={
                                         !form.getValues('items.assess') &&
-                                        !form.getValues('items.lms')
+                                        !form.getValues('items.lms') &&
+                                        !form.getValues('items.volt') &&
+                                        !form.getValues('items.vsmart')
                                     }
                                 >
                                     <GitHubLogoIcon className="size-5" />
@@ -128,31 +140,44 @@ export function SignUpComponent() {
                                 </div>
                             </div>
 
-                            <div className="my-4 flex w-[300px] flex-col gap-4">
+                            <div className="my-4 grid w-[110%] grid-cols-2 gap-4">
                                 {items.map((item) => (
                                     <FormField
                                         key={item.id}
                                         control={form.control}
                                         name={`items.${item.id}`}
                                         render={({ field }) => (
-                                            <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-lg border bg-neutral-50 p-2">
-                                                <FormLabel className="text-sm font-normal">
-                                                    {item.label === 'Assess' && (
-                                                        <VacademyAssessLogo />
-                                                    )}
-                                                    {item.label === 'LMS' && <VacademyLMSLogo />}
-                                                </FormLabel>
-                                                <FormControl className="flex items-center justify-center">
-                                                    <Checkbox
-                                                        checked={field.value}
-                                                        onCheckedChange={field.onChange}
-                                                        className={`mt-1 size-5 border shadow-none ${
-                                                            field.value
-                                                                ? 'border-none bg-green-500 text-white'
-                                                                : 'bg-white'
-                                                        }`}
-                                                    />
-                                                </FormControl>
+                                            <FormItem className="flex flex-col space-y-2 rounded-lg border bg-neutral-50 p-2 transition-all hover:border-primary-200 hover:bg-primary-50">
+                                                <div className="flex items-start justify-between">
+                                                    <FormLabel className="text-sm font-normal">
+                                                        {item.label === 'Assess' && (
+                                                            <VacademyAssessLogo className="w-[200px]" />
+                                                        )}
+                                                        {item.label === 'LMS' && (
+                                                            <VacademyLMSLogo className="w-[200px]" />
+                                                        )}
+                                                        {item.label === 'Volt' && (
+                                                            <VacademyVoltLogo />
+                                                        )}
+                                                        {item.label === 'Vsmart' && (
+                                                            <VacademyVSmartLogo />
+                                                        )}
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                        <Checkbox
+                                                            checked={field.value}
+                                                            onCheckedChange={field.onChange}
+                                                            className={`size-5 border shadow-none ${
+                                                                field.value
+                                                                    ? 'border-none bg-green-500 text-white'
+                                                                    : 'bg-white'
+                                                            }`}
+                                                        />
+                                                    </FormControl>
+                                                </div>
+                                                <p className="text-xs text-neutral-500">
+                                                    {item.description}
+                                                </p>
                                             </FormItem>
                                         )}
                                     />
@@ -171,6 +196,8 @@ export function SignUpComponent() {
                                     search: {
                                         assess: form.getValues('items').assess ?? false,
                                         lms: form.getValues('items').lms ?? false,
+                                        volt: form.getValues('items').volt ?? false,
+                                        vsmart: form.getValues('items').vsmart ?? false,
                                     },
                                 })
                             }
