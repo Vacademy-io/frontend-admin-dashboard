@@ -93,3 +93,4 @@ export type levelWithDetails = {
 };
 export type levelsWithPackageDetails = Array<levelWithDetails>;
 export type InstituteType = z.infer<typeof InstituteTypeSchema>;
+export type SubModuleType = z.infer<typeof SubModuleSchema>;

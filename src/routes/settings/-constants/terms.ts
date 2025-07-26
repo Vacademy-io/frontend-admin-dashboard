@@ -24,13 +24,13 @@ export type NamingSettingsType = {
     customValue: string;
 };
 export const defaultNamingSettings: NamingSettingsType[] = [
-    { key: 'Course', systemValue: 'Courses', customValue: 'Course' },
+    { key: 'Course', systemValue: 'Course', customValue: 'Course' },
     { key: 'Level', systemValue: 'Level', customValue: 'Level' },
     { key: 'Session', systemValue: 'Session', customValue: 'Session' },
-    { key: 'Subjects', systemValue: 'Subjects', customValue: 'Subjects' },
-    { key: 'Modules', systemValue: 'Modules', customValue: 'Modules' },
-    { key: 'Chapters', systemValue: 'Chapters', customValue: 'Chapters' },
-    { key: 'Slides', systemValue: 'Slides', customValue: 'Slides' },
+    { key: 'Subjects', systemValue: 'Subject', customValue: 'Subject' },
+    { key: 'Modules', systemValue: 'Module', customValue: 'Module' },
+    { key: 'Chapters', systemValue: 'Chapter', customValue: 'Chapter' },
+    { key: 'Slides', systemValue: 'Slide', customValue: 'Slide' },
     { key: 'Admin', systemValue: 'Admin', customValue: 'Admin' },
     { key: 'Teacher', systemValue: 'Teacher', customValue: 'Teacher' },
     {
