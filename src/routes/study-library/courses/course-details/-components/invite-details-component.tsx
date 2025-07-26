@@ -41,6 +41,7 @@ const InviteDetailsComponent = ({ form }: { form: UseFormReturn<CourseDetailsFor
     const [addDialogData, setAddDialogData] = useState<{
         packageSessionId: string;
         defaultInviteLinkId: string;
+        isEditInviteLink: boolean;
     } | null>(null);
 
     // Generate array of packageSessionIds for each level in each session
@@ -134,13 +135,17 @@ const InviteDetailsComponent = ({ form }: { form: UseFormReturn<CourseDetailsFor
     // Handler for viewing an invite link (to be implemented)
     const handleViewInviteLink = (inviteLinkId: string, packageSessionId: string) => {
         // TODO: Implement view functionality
-        setAddDialogData({ packageSessionId, defaultInviteLinkId: inviteLinkId });
+        setAddDialogData({
+            packageSessionId,
+            defaultInviteLinkId: inviteLinkId,
+            isEditInviteLink: true,
+        });
         setIsAddDialogOpen(true);
     };
 
     // Handler for adding a new invite link to a package session
     const handleAddInviteLink = (packageSessionId: string, defaultInviteLinkId: string) => {
-        setAddDialogData({ packageSessionId, defaultInviteLinkId });
+        setAddDialogData({ packageSessionId, defaultInviteLinkId, isEditInviteLink: false });
         setIsAddDialogOpen(true);
     };
 
@@ -347,6 +352,7 @@ const InviteDetailsComponent = ({ form }: { form: UseFormReturn<CourseDetailsFor
                 setShowSummaryDialog={setIsAddDialogOpen}
                 inviteLinkId={addDialogData?.defaultInviteLinkId}
                 singlePackageSessionId={true}
+                isEditInviteLink={addDialogData?.isEditInviteLink}
             />
         </>
     );

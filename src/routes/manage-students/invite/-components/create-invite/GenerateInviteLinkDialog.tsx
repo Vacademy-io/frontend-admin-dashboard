@@ -60,6 +60,7 @@ const GenerateInviteLinkDialog = ({
     selectedBatches,
     inviteLinkId,
     singlePackageSessionId,
+    isEditInviteLink,
 }: GenerateInviteLinkDialogProps) => {
     const { data: inviteLinkDetails } = useSuspenseQuery(
         singlePackageSessionId && inviteLinkId
@@ -771,7 +772,7 @@ const GenerateInviteLinkDialog = ({
                         onClick={handleSubmit(onSubmit, onInvalid)}
                         disable={!form.watch('name')}
                     >
-                        Create Invite Link
+                        {isEditInviteLink ? 'Update Invite Link' : 'Create Invite Link'}
                     </MyButton>
                 </div>
             </DialogContent>
