@@ -1,6 +1,7 @@
 import { getInstituteId } from '@/constants/helper';
 import { InviteLinkFormValues } from '../GenerateInviteLinkSchema';
 import { CustomField } from '../../../-schema/InviteFormSchema';
+import { IndividualInviteLinkDetails } from '@/types/study-library/individual-invite-interface';
 
 export interface ReferralData {
     id: string;
@@ -175,6 +176,21 @@ function transformCustomFields(customFields: CustomField[], instituteId: string)
     });
 }
 
+export function ReTransformCustomFields(customFields: IndividualInviteLinkDetails) {
+    return customFields?.institute_custom_fields?.map((field) => {
+        return {
+            id: field.id,
+            type: field.type,
+            name: field.custom_field.fieldName,
+            oldKey: false,
+            isRequired: field.custom_field.isMandatory,
+            options: JSON.parse(field.custom_field.config).coommaSepartedOptions.split(','),
+            _id: '',
+            status: 'ACTIVE',
+        };
+    });
+}
+
 export function convertInviteData(
     data: InviteLinkFormValues,
     selectedCourse: Course | null,
@@ -204,8 +220,10 @@ export function convertInviteData(
         courseBannerBlob: data.courseBannerBlob,
         courseMediaBlob: data.courseMediaBlob,
         tags: data.tags,
-        customHtml: data.customHtml,
         showRelatedCourses: data.showRelatedCourses,
+        includeInstituteLogo: data.includeInstituteLogo,
+        restrictToSameBatch: data.restrictToSameBatch,
+        customHtml: data.customHtml,
     };
     const convertedData = {
         id: '',
@@ -219,6 +237,8 @@ export function convertInviteData(
         vendor_id: '',
         currency: '',
         tag: '',
+        learner_access_days:
+            data.selectedPlan?.type === 'subscription' ? data.accessDurationDays : null,
         web_page_meta_data_json: JSON.stringify(jsonMetaData),
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
@@ -378,7 +398,83 @@ export function getDefaultPlanFromPaymentsData(data: PaymentOption[]) {
 }
 
 export function getMatchingPaymentPlan(data: PaymentOption[], id: string) {
-    return data.find((item) => item.id === id);
+    const item = data.find((item) => item.id === id);
+    if (!item)
+        return {
+            id: '',
+            name: '',
+            days: 0,
+            suggestedAmount: [],
+            minAmount: 0,
+            currency: '',
+            price: '',
+            paymentOption: [],
+            type: '',
+        };
+    const parsedData = JSON.parse(item.payment_option_metadata_json);
+    if (item.type === 'donation') {
+        return {
+            id: item.id,
+            name: item.name,
+            description: 'Access to donation plan.',
+            suggestedAmount:
+                parsedData?.donationData?.suggestedAmounts
+                    ?.split(',')
+                    ?.map((x: string) => Number(x.trim())) || [],
+            minAmount: Number(parsedData?.donationData?.minimumAmount) || 0,
+            currency: parsedData?.currency || '',
+            type: item.type,
+        };
+    } else if (item.type === 'free' || item.type === 'FREE' || item.type === 'Free') {
+        return {
+            id: item.id,
+            name: item.name,
+            description: 'Access to free plan.',
+            days: parsedData?.freeData?.validityDays || 0,
+            type: item.type,
+        };
+    } else if (item.type === 'upfront') {
+        return {
+            id: item.id,
+            name: item.name,
+            description: 'Access to one time payment plan.',
+            price: parsedData?.upfrontData?.fullPrice || '',
+            currency: parsedData?.currency || '',
+            type: item.type,
+        };
+    } else {
+        return {
+            id: item.id,
+            name: item.name,
+            description: 'Access to subscription plan.',
+            currency: parsedData?.currency || '',
+            type: item.type,
+            paymentOption:
+                parsedData?.subscriptionData?.customIntervals.map(
+                    (interval: PaymentPlansInterface) => {
+                        return {
+                            value: interval.value || 0,
+                            unit: interval.unit || '',
+                            price: interval.price || '',
+                            features: interval.features || [],
+                            title: interval.title || '',
+                            newFeature: interval.newFeature || '',
+                        };
+                    }
+                ) || [],
+        };
+    }
+}
+
+export function getPaymentOptionBySessionId(
+    data: IndividualInviteLinkDetails,
+    targetSessionId: string | null
+) {
+    return (
+        data?.package_session_to_payment_options?.find(
+            (item) => item.package_session_id === targetSessionId
+        ) || null
+    );
 }
 
 export function convertReferralData(data: ReferralData[]) {

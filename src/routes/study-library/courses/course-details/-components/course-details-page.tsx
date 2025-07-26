@@ -206,8 +206,6 @@ export const CourseDetailsPage = () => {
         mode: 'onChange',
     });
 
-    console.log(form.getValues());
-
     const getInitials = (email: string) => {
         const name = email.split('@')[0];
         return name?.slice(0, 2).toUpperCase();

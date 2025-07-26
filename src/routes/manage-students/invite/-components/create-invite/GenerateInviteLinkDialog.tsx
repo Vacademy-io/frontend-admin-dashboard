@@ -8,7 +8,7 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import { TokenKey } from '@/constants/auth/tokens';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { useFileUpload } from '@/hooks/use-file-upload';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useForm as useShadForm } from 'react-hook-form';
 import { zodResolver as shadZodResolver } from '@hookform/resolvers/zod';
 import { useForm as useDiscountForm } from 'react-hook-form';
@@ -41,19 +41,42 @@ import CustomHTMLCard from './-components/CustomHTMLCard';
 import ShowRelatedCoursesCard from './-components/ShowRelatedCoursesCard';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
-import { handleEnrollInvite } from './-services/enroll-invite';
+import { handleEnrollInvite, handleGetEnrollSingleInviteDetails } from './-services/enroll-invite';
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { handleGetPaymentDetails } from './-services/get-payments';
 import InviteNameCard from './-components/InviteNameCard';
+import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
+import { transformApiDataToCourseDataForInvite } from '@/routes/study-library/courses/course-details/-utils/helper';
+import {
+    getMatchingPaymentPlan,
+    getPaymentOptionBySessionId,
+    ReTransformCustomFields,
+} from './-utils/helper';
 
 const GenerateInviteLinkDialog = ({
     showSummaryDialog,
     setShowSummaryDialog,
     selectedCourse,
     selectedBatches,
+    inviteLinkId,
+    singlePackageSessionId,
 }: GenerateInviteLinkDialogProps) => {
-    const queryClient = useQueryClient();
+    const { data: inviteLinkDetails } = useSuspenseQuery(
+        singlePackageSessionId && inviteLinkId
+            ? handleGetEnrollSingleInviteDetails({ inviteId: inviteLinkId })
+            : {
+                  queryKey: ['empty-invite-details'],
+                  queryFn: () => null,
+              }
+    );
     const { data: paymentsData } = useSuspenseQuery(handleGetPaymentDetails());
+    const { studyLibraryData } = useStudyLibraryStore();
+
+    const courseDetailsData = useMemo(() => {
+        return studyLibraryData?.find((item) => item.course.id === selectedCourse?.id);
+    }, [studyLibraryData]);
+
+    const queryClient = useQueryClient();
     const form = useForm<InviteLinkFormValues>({
         resolver: zodResolver(inviteLinkSchema),
         defaultValues: {
@@ -545,6 +568,114 @@ const GenerateInviteLinkDialog = ({
         return () => document.removeEventListener('mousedown', handleClick);
     }, [form.watch('showYoutubeInput')]);
 
+    useEffect(() => {
+        const loadCourseData = async () => {
+            try {
+                const transformedData =
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-expect-error
+                    await transformApiDataToCourseDataForInvite(courseDetailsData);
+                if (transformedData) {
+                    form.reset({
+                        ...form.getValues(),
+                        name: '',
+                        includeInstituteLogo: false,
+                        requireApproval: false,
+                        course: transformedData.packageName,
+                        description: transformedData.description,
+                        learningOutcome: transformedData.whyLearn,
+                        aboutCourse: transformedData.aboutTheCourse,
+                        targetAudience: transformedData.whoShouldLearn,
+                        coursePreview: transformedData.coursePreviewImageMediaId,
+                        courseBanner: transformedData.courseBannerMediaId,
+                        courseMedia: transformedData.courseMediaId,
+                        coursePreviewBlob: transformedData.coursePreviewImageMediaPreview,
+                        courseBannerBlob: transformedData.courseBannerMediaPreview,
+                        courseMediaBlob: transformedData.courseMediaPreview,
+                        tags: transformedData.tags,
+                    });
+                }
+            } catch (error) {
+                console.error('Error transforming course data:', error);
+            }
+        };
+
+        loadCourseData();
+    }, [courseDetailsData]);
+
+    useEffect(() => {
+        if (singlePackageSessionId) {
+            const paymentOptionDetailsForSelectedSession = getPaymentOptionBySessionId(
+                inviteLinkDetails,
+                getPackageSessionId({
+                    courseId: selectedCourse?.id || '',
+                    levelId: selectedBatches[0]?.levelId || '',
+                    sessionId: selectedBatches[0]?.sessionId || '',
+                })
+            );
+            form.reset({
+                ...form.getValues(),
+                name: inviteLinkDetails?.name,
+                includeInstituteLogo: inviteLinkDetails?.web_page_meta_data_json
+                    ? JSON.parse(inviteLinkDetails?.web_page_meta_data_json).includeInstituteLogo
+                    : false,
+                custom_fields:
+                    inviteLinkDetails?.institute_custom_fields.length === 0
+                        ? [
+                              {
+                                  id: '0',
+                                  type: 'textfield',
+                                  name: 'Full Name',
+                                  oldKey: true,
+                                  isRequired: true,
+                                  key: 'full_name',
+                                  order: 0,
+                              },
+                              {
+                                  id: '1',
+                                  type: 'textfield',
+                                  name: 'Email',
+                                  oldKey: true,
+                                  isRequired: true,
+                                  key: 'email',
+                                  order: 1,
+                              },
+                              {
+                                  id: '2',
+                                  type: 'textfield',
+                                  name: 'Phone Number',
+                                  oldKey: true,
+                                  isRequired: true,
+                                  key: 'phone_number',
+                                  order: 2,
+                              },
+                          ]
+                        : ReTransformCustomFields(inviteLinkDetails),
+                selectedPlan: getMatchingPaymentPlan(
+                    paymentsData,
+                    paymentOptionDetailsForSelectedSession?.payment_option?.id || ''
+                ),
+                discounts: [],
+                selectedDiscountId: 'none',
+                referralPrograms: [],
+                selectedReferralId: 'r1',
+                restrictToSameBatch: inviteLinkDetails?.web_page_meta_data_json
+                    ? JSON.parse(inviteLinkDetails?.web_page_meta_data_json).restrictToSameBatch
+                    : '',
+                accessDurationType:
+                    form.watch('selectedPlan')?.type === 'subscription' ? 'define' : '',
+                accessDurationDays: inviteLinkDetails?.learner_access_days,
+                inviteeEmails: [],
+                customHtml: inviteLinkDetails?.web_page_meta_data_json
+                    ? JSON.parse(inviteLinkDetails?.web_page_meta_data_json).customHtml
+                    : '',
+                showRelatedCourses: inviteLinkDetails?.web_page_meta_data_json
+                    ? JSON.parse(inviteLinkDetails?.web_page_meta_data_json).showRelatedCourses
+                    : false,
+            });
+        }
+    }, [inviteLinkDetails]);
+
     return (
         <Dialog open={showSummaryDialog} onOpenChange={setShowSummaryDialog}>
             <DialogContent className="animate-fadeIn flex min-h-[90vh] min-w-[85vw] flex-col">
@@ -595,7 +726,9 @@ const GenerateInviteLinkDialog = ({
                                 handleCloseDialog={handleCloseDialog}
                             />
                             {/* Learner Access Duration Card */}
-                            <LearnerAccessDurationCard form={form} />
+                            {form.watch('selectedPlan')?.type === 'subscription' && (
+                                <LearnerAccessDurationCard form={form} />
+                            )}
                             {/* Invite via email Card */}
                             <InviteViaEmailCard
                                 form={form}
