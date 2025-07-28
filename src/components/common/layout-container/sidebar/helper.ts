@@ -6,7 +6,7 @@ import {
 } from '@/constants/urls';
 import { SidebarItemsType } from '@/types/layout-container/layout-container-types';
 import { SubModuleType } from '@/schemas/student/student-list/institute-schema';
-import { SUB_MODULE_SIDEBAR_MAPPING } from './constant';
+import { SUB_MODULE_SIDEBAR_MAPPING, controlledTabs, modules } from './constant';
 
 export function getModuleFlags(
     sub_modules:
@@ -99,9 +99,19 @@ export function filterMenuListByModules(
         });
 }
 
-export function filterMenuItems(menuList: SidebarItemsType[], instituteId: string | undefined) {
+export function filterMenuItems(
+    menuList: SidebarItemsType[],
+    instituteId: string | undefined,
+    isTabVisible?: (tabId: string) => boolean,
+    isSubItemVisible?: (parentTabId: string, subItemTabId: string) => boolean
+) {
+    // Define the tabs that should be controlled by tab settings
+
+    let filteredList = menuList;
+
+    // Apply institute-specific filtering first
     if (instituteId === CODE_CIRCLE_INSTITUTE_ID || instituteId === SSDC_INSTITUTE_ID) {
-        return menuList.filter(
+        filteredList = filteredList.filter(
             (item) =>
                 item.id !== 'Homework Creation' &&
                 item.id !== 'assessment-centre' &&
@@ -109,18 +119,16 @@ export function filterMenuItems(menuList: SidebarItemsType[], instituteId: strin
                 item.id !== 'Community Centre' &&
                 item.id !== 'AI Center'
         );
-    }
-    if (instituteId === SHUBHAM_INSTITUTE_ID) {
-        return menuList.filter(
+    } else if (instituteId === SHUBHAM_INSTITUTE_ID) {
+        filteredList = filteredList.filter(
             (item) =>
                 item.id !== 'evaluation-centre' &&
                 item.id !== 'Community Centre' &&
                 item.id !== 'Homework Creation' &&
                 item.id !== 'AI Center'
         );
-    }
-    if (instituteId === HOLISTIC_INSTITUTE_ID) {
-        return menuList.filter(
+    } else if (instituteId === HOLISTIC_INSTITUTE_ID) {
+        filteredList = filteredList.filter(
             (item) =>
                 item.id === 'dashboard' ||
                 item.id === 'student-mangement' ||
@@ -130,5 +138,65 @@ export function filterMenuItems(menuList: SidebarItemsType[], instituteId: strin
         );
     }
 
-    return menuList;
+    // Apply tab settings filtering if functions are provided
+    if (isTabVisible && isSubItemVisible) {
+        filteredList = filteredList
+            .filter((item) => {
+                // show all tabs that are not controlled tabs
+                if (!controlledTabs.includes(item.id)) {
+                    return true; // show all tabs that are not controlled tabs
+                }
+
+                // in case of controlled tabs, return true if the tab is visible
+                console.log(item.id, isTabVisible(item.id));
+                return isTabVisible(item.id);
+            })
+            .map((item) => {
+                // Do the same for sub-items
+                if (item.subItems) {
+                    const filteredSubItems = item.subItems.filter((subItem) => {
+                        // show all sub-items that are not controlled sub-items
+                        if (!controlledTabs.includes(subItem.subItemId || '')) {
+                            return true;
+                        }
+
+                        // in case of controlled sub-items, return true if the sub-item is visible
+                        // Note: For controlled sub-items, we check their individual visibility
+                        // regardless of whether the parent tab is controlled or not
+                        console.log(
+                            item.id,
+                            subItem.subItemId,
+                            isSubItemVisible(item.id, subItem.subItemId || '')
+                        );
+                        return isSubItemVisible(item.id, subItem.subItemId || '');
+                    });
+
+                    // return the item with filtered sub-items
+                    return { ...item, subItems: filteredSubItems };
+                }
+                return item;
+            });
+    }
+
+    return filteredList;
+}
+
+export function getModules(subModules: SubModuleType[] | undefined) {
+    const optionalModules: Set<string> = new Set();
+    console.log('getModules called with subModules:', subModules);
+    console.log('Available modules constant:', modules);
+
+    if (subModules) {
+        subModules.forEach((subModule) => {
+            console.log('Checking subModule:', subModule.module);
+            if (modules.includes(subModule.module)) {
+                optionalModules.add(subModule.module);
+                console.log('Added module:', subModule.module);
+            }
+        });
+    }
+
+    const result = Array.from(optionalModules);
+    console.log('getModules returning:', result);
+    return result;
 }

@@ -27,6 +27,7 @@ import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui
 import { WhatsappLogo, EnvelopeSimple, Lightning } from '@phosphor-icons/react';
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import useInstituteLogoStore from './institutelogo-global-zustand';
+import { useTabSettings } from '@/hooks/use-tab-settings';
 
 const voltSidebarData: SidebarItemsType[] = [
     {
@@ -43,6 +44,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     const { data, isLoading } = useSuspenseQuery(useInstituteQuery());
     const router = useRouter();
     const currentRoute = router.state.location.pathname;
+    const { isTabVisible, isSubItemVisible } = useTabSettings();
 
     const [isVoltSubdomain, setIsVoltSubdomain] = useState(false);
 
@@ -54,7 +56,12 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
 
     const finalSidebarItems = isVoltSubdomain
         ? voltSidebarData
-        : filterMenuItems(filterMenuListByModules(data?.sub_modules, SidebarItemsData), data?.id);
+        : filterMenuItems(
+              filterMenuListByModules(data?.sub_modules, SidebarItemsData),
+              data?.id,
+              isTabVisible,
+              isSubItemVisible
+          );
 
     const { getPublicUrl } = useFileUpload();
     const { instituteLogo, setInstituteLogo } = useInstituteLogoStore();

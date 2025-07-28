@@ -5,6 +5,7 @@ import { useInstituteQuery } from '@/services/student-list-section/getInstituteD
 import React from 'react';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { filterMenuItems, filterMenuListByModules } from '../sidebar/helper';
+import { useTabSettings } from '@/hooks/use-tab-settings';
 
 export const InternalSidebarComponent = ({
     sidebarComponent,
@@ -12,8 +13,9 @@ export const InternalSidebarComponent = ({
     sidebarComponent: React.ReactNode;
 }) => {
     const { data, isLoading } = useSuspenseQuery(useInstituteQuery());
+    const { isTabVisible, isSubItemVisible } = useTabSettings();
     const sideBarData = filterMenuListByModules(data?.sub_modules, SidebarItemsData);
-    const sideBarItems = filterMenuItems(sideBarData, data?.id);
+    const sideBarItems = filterMenuItems(sideBarData, data?.id, isTabVisible, isSubItemVisible);
 
     if (isLoading) {
         return <DashboardLoader />;

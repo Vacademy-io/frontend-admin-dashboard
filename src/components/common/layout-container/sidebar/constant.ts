@@ -55,3 +55,15 @@ export const SUB_MODULE_SIDEBAR_MAPPING: Record<
     VSMART_COMMUNITY_CENTRE: { itemId: 'community-centre', subItemIds: [] },
     VSMART_AI_TOOLS: { itemId: 'ai-center', subItemIds: ['ai-tools', 'my-resources'] },
 };
+
+export const controlledTabs = [
+    'live-session',
+    'reports',
+    'doubt-management',
+    'evaluation-centre',
+    'evaluations',
+    'evaluation-tool',
+    'community-centre',
+];
+
+export const modules = ['ASSESS', 'ENGAGE', 'VOLT', 'VSMART_AI_TOOLS'];
