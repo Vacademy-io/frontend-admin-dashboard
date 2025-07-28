@@ -63,10 +63,14 @@ export const SlideMaterial = ({
     setGetCurrentEditorHTMLContent,
     setSaveDraft,
     isLearnerView = false,
+    hidePublishButtons = false,
+    customSaveFunction,
 }: {
     setGetCurrentEditorHTMLContent: (fn: () => string) => void;
     setSaveDraft: (fn: (activeItem: Slide) => Promise<void>) => void;
     isLearnerView?: boolean;
+    hidePublishButtons?: boolean;
+    customSaveFunction?: (slide: Slide) => Promise<void>;
 }) => {
     const { items, activeItem, setActiveItem } = useContentStore();
     const editor = useMemo(() => createYooptaEditor(), []);
@@ -85,6 +89,7 @@ export const SlideMaterial = ({
     const isExcalidrawBusyRef = useRef(false); // Track if Excalidraw is performing intensive operations
     const pendingStateUpdateRef = useRef<any>(null); // Store pending state updates
     const stableKeyRef = useRef<string>(''); // Stable key during operations
+
 
     const searchParams = router.state.location.search;
     const { courseId, levelId, chapterId, slideId, moduleId, subjectId, sessionId } = searchParams;
@@ -270,8 +275,20 @@ export const SlideMaterial = ({
                 // Determine the correct status based on current state
                 let newStatus = activeItem.status || 'DRAFT';
 
-                // If the slide is PUBLISHED and being edited, change status to UNSYNC
-                if (activeItem.status === 'PUBLISHED') {
+                // For non-admin users with hidePublishButtons=true, auto-publish presentations
+                if (hidePublishButtons) {
+                    newStatus = 'PUBLISHED';
+                    console.log('🎨 Auto-publishing presentation for non-admin user');
+                    // Show toast notification for auto-publish and trigger approval button
+                    if (activeItem.status !== 'PUBLISHED') {
+                        import('sonner').then(({ toast }) => {
+                            toast.success('Presentation auto-published for review');
+                        });
+                        // Trigger approval button for non-admin users
+                        localStorage.setItem('triggerApprovalButton', Date.now().toString());
+                    }
+                } else if (activeItem.status === 'PUBLISHED') {
+                    // If the slide is PUBLISHED and being edited, change status to UNSYNC
                     newStatus = 'UNSYNC';
                 }
                 try {
@@ -288,7 +305,7 @@ export const SlideMaterial = ({
                             title: activeItem.document_slide?.title || '',
                             cover_file_id: '',
                             total_pages: 1,
-                            published_data: activeItem.document_slide?.published_data || null, // Keep published_data unchanged
+                            published_data: newStatus === 'PUBLISHED' ? fileId : (activeItem.document_slide?.published_data || null), // Set published_data for non-admin auto-publish
                             published_document_total_pages: 1,
                         },
                         status: newStatus, // Use the determined status
@@ -306,6 +323,7 @@ export const SlideMaterial = ({
                                 ? {
                                       ...activeItem.document_slide,
                                       data: fileId, // Update local state with new fileId
+                                      published_data: newStatus === 'PUBLISHED' ? fileId : activeItem.document_slide.published_data, // Update published_data for auto-publish
                                   }
                                 : undefined,
                         };
@@ -318,6 +336,7 @@ export const SlideMaterial = ({
                                 ? {
                                       ...activeItem.document_slide,
                                       data: fileId,
+                                      published_data: newStatus === 'PUBLISHED' ? fileId : activeItem.document_slide.published_data, // Update published_data for auto-publish
                                   }
                                 : undefined,
                         };
@@ -1174,6 +1193,13 @@ export const SlideMaterial = ({
                 activeItem?.document_slide?.type == 'PRESENTATION'
             ) {
                 try {
+                    // For non-admin users, use custom save function if available
+                    if (customSaveFunction && slide) {
+                        console.log('🎨 Using custom save function for presentation');
+                        await customSaveFunction(slide);
+                        return;
+                    }
+
                     // For presentations, use the same status logic as auto-save
                     let presentationStatus = slide?.status || 'DRAFT';
 
@@ -1412,8 +1438,15 @@ export const SlideMaterial = ({
         }
     };
 
-    const handleSaveDraftClick = async () => {
+        const handleSaveDraftClick = async () => {
         try {
+            // Use custom save function if provided (for non-admin users)
+            if (customSaveFunction && activeItem) {
+                console.log('🔄 Using custom save function for non-admin');
+                await customSaveFunction(activeItem);
+                return; // Don't show additional toast as custom function handles it
+            }
+
             await SaveDraft(activeItem);
             toast.success('Slide saved successfully');
         } catch {
@@ -1583,16 +1616,22 @@ export const SlideMaterial = ({
 
                                 <ActivityStatsSidebar />
 
-                                {(activeItem?.document_slide?.type === 'DOC' ||
-                                    activeItem?.document_slide?.type === 'PRESENTATION' ||
-                                    activeItem?.document_slide?.type === 'CODE' ||
-                                    activeItem?.document_slide?.type === 'JUPYTER' ||
-                                    activeItem?.document_slide?.type === 'SCRATCH' ||
-                                    activeItem?.source_type === 'QUESTION' ||
-                                    activeItem?.source_type === 'ASSIGNMENT' ||
-                                    activeItem?.source_type === 'QUIZ' ||
-                                    (activeItem?.source_type === 'VIDEO' &&
-                                        activeItem?.splitScreenMode)) && (
+
+                                {(!hidePublishButtons || // Show for admin users OR
+                                    (hidePublishButtons && ( // Show for non-admin users if it's an editable slide type
+                                        activeItem?.document_slide?.type === 'DOC' ||
+                                        activeItem?.document_slide?.type === 'PDF' ||
+                                        activeItem?.document_slide?.type === 'PRESENTATION' ||
+                                        activeItem?.document_slide?.type === 'CODE' ||
+                                        activeItem?.document_slide?.type === 'JUPYTER' ||
+                                        activeItem?.document_slide?.type === 'SCRATCH' ||
+                                        activeItem?.source_type === 'QUESTION' ||
+                                        activeItem?.source_type === 'ASSIGNMENT' ||
+                                        activeItem?.source_type === 'QUIZ' ||
+                                        activeItem?.source_type === 'DOCUMENT' ||
+                                        activeItem?.source_type === 'VIDEO' // Include ALL video slides for non-admin
+                                    )) ||
+                                    (!hidePublishButtons && activeItem?.source_type === 'VIDEO' && activeItem?.splitScreenMode)) && ( // Keep split-screen condition for admin
                                     <MyButton
                                         buttonType="secondary"
                                         scale="medium"
@@ -1606,14 +1645,16 @@ export const SlideMaterial = ({
                                                 <Loader2 className="size-4 animate-spin text-primary-500 " />
                                                 Saving...
                                             </>
+                                        ) : hidePublishButtons ? (
+                                            'Save Changes'
                                         ) : (
                                             'Save Draft'
                                         )}
                                     </MyButton>
                                 )}
 
-                                {/* Single Publish/Unpublish Button */}
-                                {activeItem.status === 'PUBLISHED' ? (
+                                {/* Single Publish/Unpublish Button - Hidden for non-admin users */}
+                                {!hidePublishButtons && (activeItem.status === 'PUBLISHED' ? (
                                     <MyButton
                                         buttonType="secondary"
                                         scale="medium"
@@ -1631,7 +1672,7 @@ export const SlideMaterial = ({
                                     >
                                         Publish
                                     </MyButton>
-                                )}
+                                ))}
 
                                 {/* Keep dialogs but make them conditional */}
                                 {isUnpublishDialogOpen && (

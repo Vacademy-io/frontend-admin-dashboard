@@ -26,6 +26,7 @@ import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtili
 import { TokenKey } from '@/constants/auth/tokens';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { RoleTypeExceptStudent } from '@/constants/dummy-data';
+import { CourseSettingsData } from '@/types/course-settings';
 
 interface Level {
     id: string;
@@ -226,6 +227,9 @@ export const AddCourseStep2 = ({
     isLoading = false,
     disableCreate = false,
     isEdit,
+    courseSettings,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    settingsLoading = false,
 }: {
     onBack: () => void;
     onSubmit: (data: Step2Data) => void;
@@ -233,6 +237,8 @@ export const AddCourseStep2 = ({
     isLoading?: boolean;
     disableCreate?: boolean;
     isEdit?: boolean;
+    courseSettings?: CourseSettingsData;
+    settingsLoading?: boolean;
 }) => {
     const { instituteDetails } = useInstituteDetailsStore();
     const existingBatches = instituteDetails?.batches_for_sessions || [];
@@ -240,10 +246,21 @@ export const AddCourseStep2 = ({
     const tokenData = getTokenDecodedData(accessToken);
 
     const instituteId = getInstituteId();
-    const [hasLevels, setHasLevels] = useState(initialData?.hasLevels || 'yes');
-    const [hasSessions, setHasSessions] = useState(
-        instituteId === CODE_CIRCLE_INSTITUTE_ID ? 'no' : initialData?.hasSessions || 'yes'
-    );
+
+    // Determine initial values based on course settings
+    const getInitialHasLevels = () => {
+        if (courseSettings?.courseStructure?.enableLevels === false) return 'no';
+        return initialData?.hasLevels || 'yes';
+    };
+
+    const getInitialHasSessions = () => {
+        if (courseSettings?.courseStructure?.enableSessions === false) return 'no';
+        if (instituteId === CODE_CIRCLE_INSTITUTE_ID) return 'no';
+        return initialData?.hasSessions || 'yes';
+    };
+
+    const [hasLevels, setHasLevels] = useState(getInitialHasLevels());
+    const [hasSessions, setHasSessions] = useState(getInitialHasSessions());
     const [sessions, setSessions] = useState<Session[]>(
         (initialData?.sessions || []).map((session) => ({
             ...session,
@@ -266,9 +283,19 @@ export const AddCourseStep2 = ({
     const [instructorMappings, setInstructorMappings] = useState<InstructorMapping[]>([]);
     const [instructors, setInstructors] = useState<Instructor[]>([]);
 
-    const [publishToCatalogue, setPublishToCatalogue] = useState(
-        initialData?.publishToCatalogue ? (initialData?.publishToCatalogue ? true : false) : true
-    );
+    const [publishToCatalogue, setPublishToCatalogue] = useState(() => {
+        // If initialData exists, use it
+        if (initialData?.publishToCatalogue !== undefined) {
+            return initialData.publishToCatalogue;
+        }
+        // If autoPublishToCatalogue is true, auto-publish
+        if (courseSettings?.catalogueSettings?.autoPublishToCatalogue) {
+            return true;
+        }
+        // Default behavior based on catalogueMode
+        const catalogueMode = courseSettings?.catalogueSettings?.catalogueMode || 'ask';
+        return catalogueMode === 'ask' ? true : false;
+    });
 
     const [showAssignmentCard, setShowAssignmentCard] = useState(false);
     const [selectedSessionLevels, setSelectedSessionLevels] = useState<
@@ -922,26 +949,106 @@ export const AddCourseStep2 = ({
         form.setValue('publishToCatalogue', publishToCatalogue);
     }, [hasLevels, hasSessions, sessions, instructors, publishToCatalogue, form]);
 
+    // Effect to handle course settings changes
+    useEffect(() => {
+        if (courseSettings?.courseStructure?.enableSessions === false && hasSessions === 'yes') {
+            setHasSessions('no');
+        }
+        if (courseSettings?.courseStructure?.enableLevels === false && hasLevels === 'yes') {
+            setHasLevels('no');
+        }
+        // Auto-set course depth when fixCourseDepth is true
+        if (courseSettings?.courseStructure?.fixCourseDepth) {
+            const defaultDepth = courseSettings.courseStructure.defaultDepth || 3;
+            form.setValue('levelStructure', defaultDepth);
+        }
+        // Auto-set catalogue publishing when autoPublishToCatalogue is true
+        if (
+            courseSettings?.catalogueSettings?.autoPublishToCatalogue &&
+            !initialData?.publishToCatalogue
+        ) {
+            setPublishToCatalogue(true);
+        }
+    }, [courseSettings, hasSessions, hasLevels, form, initialData]);
+
     useEffect(() => {
         fetchInstituteDashboardUsers(instituteId, {
             roles: RoleTypeExceptStudent,
             status: [{ id: '1', name: 'ACTIVE' }],
         })
             .then((res) => {
-                setInstructors(
-                    res.map((instructor: UserRolesDataEntry) => ({
-                        id: instructor.id,
-                        email: instructor.email,
-                        name: instructor.full_name,
-                        profilePicId: instructor.profile_pic_file_id,
-                        roles: instructor.roles?.map((role) => role.role_name) || [],
-                    }))
-                );
+                const allInstructors = res.map((instructor: UserRolesDataEntry) => ({
+                    id: instructor.id,
+                    email: instructor.email,
+                    name: instructor.full_name,
+                    profilePicId: instructor.profile_pic_file_id,
+                    roles: instructor.roles?.map((role) => role.role_name) || [],
+                }));
+
+                setInstructors(allInstructors);
+
+                // Auto-add the current logged-in user as an instructor if they're in the list
+                if (tokenData?.email && !isEdit) {
+                    const currentUser = allInstructors.find(
+                        (instructor: Instructor) => instructor.email === tokenData.email
+                    );
+
+                    if (currentUser) {
+                        // Add current user to selected instructors automatically
+                        setSelectedInstructors([currentUser]);
+                    }
+                }
             })
             .catch((err) => {
                 console.log(err);
             });
-    }, []);
+    }, [tokenData?.email, isEdit]);
+
+    // Auto-assign current user to all sessions and levels when creating a new course
+    useEffect(() => {
+        if (
+            !isEdit &&
+            tokenData?.email &&
+            selectedInstructors.length === 1 &&
+            sessions.length > 0
+        ) {
+            const currentUser = selectedInstructors[0];
+
+            if (currentUser?.email === tokenData.email && instructorMappings.length === 0) {
+                // Auto-assign current user to all sessions and levels
+                const updatedSessions = sessions.map((session) => ({
+                    ...session,
+                    levels: session.levels.map((level) => ({
+                        ...level,
+                        userIds: [...level.userIds, currentUser],
+                    })),
+                }));
+
+                setSessions(updatedSessions);
+
+                // Add to instructor mappings
+                const allSessionLevels = getAllSessionLevelsForInstructor(
+                    updatedSessions,
+                    hasSessions,
+                    hasLevels
+                );
+
+                setInstructorMappings([
+                    {
+                        id: currentUser.id,
+                        email: currentUser.email,
+                        sessionLevels: allSessionLevels,
+                    },
+                ]);
+            }
+        }
+    }, [
+        tokenData?.email,
+        selectedInstructors.length,
+        sessions.length,
+        instructorMappings.length,
+        isEdit,
+    ]);
 
     // Effect to update form when sessions change
     useEffect(() => {
@@ -996,46 +1103,150 @@ export const AddCourseStep2 = ({
                                 )}
 
                                 {/* Structure Selection */}
-                                {!isEdit && (
+                                {!isEdit && !courseSettings?.courseStructure?.fixCourseDepth && (
                                     <div>
                                         <h3 className="mb-3 text-base font-medium text-gray-900">
                                             Select course structure that is suitable for your
                                             institute
                                         </h3>
-                                        <AddCourseStep2StructureTypes form={form} />
+                                        <AddCourseStep2StructureTypes
+                                            form={form}
+                                            courseSettings={courseSettings}
+                                        />
                                     </div>
                                 )}
 
-                                {instituteId !== CODE_CIRCLE_INSTITUTE_ID && !isEdit && (
-                                    <>
-                                        {!isEdit && <Separator className="bg-gray-200" />}
+                                {/* Fixed Course Depth Indicator */}
+                                {!isEdit && courseSettings?.courseStructure?.fixCourseDepth && (
+                                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+                                        <div className="flex items-center gap-2">
+                                            <div className="size-4 rounded-full bg-blue-500"></div>
+                                            <p className="text-sm font-medium text-blue-900">
+                                                Course Structure:{' '}
+                                                {courseSettings.courseStructure.defaultDepth}-Level
+                                                Structure
+                                            </p>
+                                        </div>
+                                        <p className="mt-1 text-xs text-blue-700">
+                                            Course structure is pre-configured by your institute
+                                            settings.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {instituteId !== CODE_CIRCLE_INSTITUTE_ID &&
+                                    !isEdit &&
+                                    courseSettings?.courseStructure?.enableSessions !== false && (
+                                        <>
+                                            {!isEdit && <Separator className="bg-gray-200" />}
+                                            <div className="space-y-2">
+                                                <Label className="block text-base font-medium text-gray-900">
+                                                    Contains{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Session,
+                                                        SystemTerms.Session
+                                                    )}
+                                                    s?
+                                                </Label>
+                                                <p className="text-sm text-gray-600">
+                                                    {getTerminology(
+                                                        ContentTerms.Session,
+                                                        SystemTerms.Session
+                                                    )}{' '}
+                                                    organize a{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Course,
+                                                        SystemTerms.Course
+                                                    ).toLocaleLowerCase()}{' '}
+                                                    into different batches or time periods. For eg:
+                                                    January 2025 Batch, February 2025 Batch
+                                                </p>
+                                                <RadioGroup
+                                                    value={hasSessions}
+                                                    onValueChange={(value) => {
+                                                        setHasSessions(value);
+                                                        // Clear sessions when switching to 'no'
+                                                        if (value === 'no') {
+                                                            setSessions(
+                                                                sessions.map((session) => ({
+                                                                    ...session,
+                                                                    levels: [],
+                                                                }))
+                                                            );
+                                                        }
+                                                    }}
+                                                    className="flex gap-6"
+                                                >
+                                                    <div className="flex items-center space-x-2">
+                                                        <RadioGroupItem
+                                                            value="yes"
+                                                            id="sessions-yes"
+                                                        />
+                                                        <Label
+                                                            htmlFor="sessions-yes"
+                                                            className="text-sm font-normal"
+                                                        >
+                                                            Yes
+                                                        </Label>
+                                                    </div>
+                                                    <div className="flex items-center space-x-2">
+                                                        <RadioGroupItem
+                                                            value="no"
+                                                            id="sessions-no"
+                                                        />
+                                                        <Label
+                                                            htmlFor="sessions-no"
+                                                            className="text-sm font-normal"
+                                                        >
+                                                            No
+                                                        </Label>
+                                                    </div>
+                                                </RadioGroup>
+                                            </div>
+                                        </>
+                                    )}
+
+                                {!isEdit &&
+                                    courseSettings?.courseStructure?.enableLevels !== false && (
+                                        <Separator className="bg-gray-200" />
+                                    )}
+
+                                {/* Contains Levels Radio */}
+                                {!isEdit &&
+                                    courseSettings?.courseStructure?.enableLevels !== false && (
                                         <div className="space-y-2">
                                             <Label className="block text-base font-medium text-gray-900">
                                                 Contains{' '}
                                                 {getTerminology(
-                                                    ContentTerms.Session,
-                                                    SystemTerms.Session
+                                                    ContentTerms.Level,
+                                                    SystemTerms.Level
                                                 )}
                                                 s?
                                             </Label>
                                             <p className="text-sm text-gray-600">
                                                 {getTerminology(
-                                                    ContentTerms.Session,
-                                                    SystemTerms.Session
+                                                    ContentTerms.Level,
+                                                    SystemTerms.Level
                                                 )}{' '}
                                                 organize a{' '}
                                                 {getTerminology(
                                                     ContentTerms.Course,
                                                     SystemTerms.Course
                                                 ).toLocaleLowerCase()}{' '}
-                                                into different batches or time periods. For eg:
-                                                January 2025 Batch, February 2025 Batch
+                                                into structured learning stages. These stages may
+                                                represent increasing difficulty, different modules,
+                                                or key milestones within the{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Course,
+                                                    SystemTerms.Course
+                                                ).toLocaleLowerCase()}{' '}
+                                                . For eg: Basic, Advanced
                                             </p>
                                             <RadioGroup
-                                                value={hasSessions}
+                                                value={hasLevels}
                                                 onValueChange={(value) => {
-                                                    setHasSessions(value);
-                                                    // Clear sessions when switching to 'no'
+                                                    setHasLevels(value);
+                                                    // Clear levels when switching to 'no'
                                                     if (value === 'no') {
                                                         setSessions(
                                                             sessions.map((session) => ({
@@ -1048,18 +1259,18 @@ export const AddCourseStep2 = ({
                                                 className="flex gap-6"
                                             >
                                                 <div className="flex items-center space-x-2">
-                                                    <RadioGroupItem value="yes" id="sessions-yes" />
+                                                    <RadioGroupItem value="yes" id="levels-yes" />
                                                     <Label
-                                                        htmlFor="sessions-yes"
+                                                        htmlFor="levels-yes"
                                                         className="text-sm font-normal"
                                                     >
                                                         Yes
                                                     </Label>
                                                 </div>
                                                 <div className="flex items-center space-x-2">
-                                                    <RadioGroupItem value="no" id="sessions-no" />
+                                                    <RadioGroupItem value="no" id="levels-no" />
                                                     <Label
-                                                        htmlFor="sessions-no"
+                                                        htmlFor="levels-no"
                                                         className="text-sm font-normal"
                                                     >
                                                         No
@@ -1067,72 +1278,7 @@ export const AddCourseStep2 = ({
                                                 </div>
                                             </RadioGroup>
                                         </div>
-                                    </>
-                                )}
-
-                                {!isEdit && <Separator className="bg-gray-200" />}
-
-                                {/* Contains Levels Radio */}
-                                {!isEdit && (
-                                    <div className="space-y-2">
-                                        <Label className="block text-base font-medium text-gray-900">
-                                            Contains{' '}
-                                            {getTerminology(ContentTerms.Level, SystemTerms.Level)}
-                                            s?
-                                        </Label>
-                                        <p className="text-sm text-gray-600">
-                                            {getTerminology(ContentTerms.Level, SystemTerms.Level)}{' '}
-                                            organize a{' '}
-                                            {getTerminology(
-                                                ContentTerms.Course,
-                                                SystemTerms.Course
-                                            ).toLocaleLowerCase()}{' '}
-                                            into structured learning stages. These stages may
-                                            represent increasing difficulty, different modules, or
-                                            key milestones within the{' '}
-                                            {getTerminology(
-                                                ContentTerms.Course,
-                                                SystemTerms.Course
-                                            ).toLocaleLowerCase()}{' '}
-                                            . For eg: Basic, Advanced
-                                        </p>
-                                        <RadioGroup
-                                            value={hasLevels}
-                                            onValueChange={(value) => {
-                                                setHasLevels(value);
-                                                // Clear levels when switching to 'no'
-                                                if (value === 'no') {
-                                                    setSessions(
-                                                        sessions.map((session) => ({
-                                                            ...session,
-                                                            levels: [],
-                                                        }))
-                                                    );
-                                                }
-                                            }}
-                                            className="flex gap-6"
-                                        >
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="yes" id="levels-yes" />
-                                                <Label
-                                                    htmlFor="levels-yes"
-                                                    className="text-sm font-normal"
-                                                >
-                                                    Yes
-                                                </Label>
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="no" id="levels-no" />
-                                                <Label
-                                                    htmlFor="levels-no"
-                                                    className="text-sm font-normal"
-                                                >
-                                                    No
-                                                </Label>
-                                            </div>
-                                        </RadioGroup>
-                                    </div>
-                                )}
+                                    )}
 
                                 {/* Info message when both are No */}
                                 {hasSessions !== 'yes' && hasLevels !== 'yes' && (
@@ -3400,45 +3546,79 @@ export const AddCourseStep2 = ({
                                     </div>
                                 </div>
 
-                                <Separator className="bg-gray-200" />
+                                {courseSettings?.catalogueSettings?.autoPublishToCatalogue ? (
+                                    <>
+                                        <Separator className="bg-gray-200" />
 
-                                {/* Course Catalogue Section */}
-                                <div className="space-y-2">
-                                    <div className="flex items-center space-x-3">
-                                        <Checkbox
-                                            id="publish-catalogue"
-                                            checked={publishToCatalogue}
-                                            onCheckedChange={handlePublishChange}
-                                            className="data-[state=checked]:border-[#3B82F6] data-[state=checked]:bg-[#3B82F6]"
-                                        />
-                                        <Label
-                                            htmlFor="publish-catalogue"
-                                            className="text-base font-medium text-gray-900"
-                                        >
-                                            Publish to{' '}
-                                            {getTerminology(
-                                                ContentTerms.Course,
-                                                SystemTerms.Course
-                                            )}{' '}
-                                            Catalogue
-                                        </Label>
-                                    </div>
-                                    <p className="ml-7 text-sm text-gray-600">
-                                        The{' '}
-                                        {getTerminology(
-                                            ContentTerms.Course,
-                                            SystemTerms.Course
-                                        ).toLocaleLowerCase()}{' '}
-                                        will be added to the{' '}
-                                        {getTerminology(
-                                            ContentTerms.Course,
-                                            SystemTerms.Course
-                                        ).toLocaleLowerCase()}{' '}
-                                        catalogue which will be viewed by the learners.
-                                    </p>
-                                </div>
+                                        {/* Auto Publish Indicator */}
+                                        <div className="rounded-lg border border-green-200 bg-green-50 p-3">
+                                            <div className="flex items-center gap-2">
+                                                <div className="size-4 rounded-full bg-green-500"></div>
+                                                <p className="text-sm font-medium text-green-900">
+                                                    Auto-Publishing to{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Course,
+                                                        SystemTerms.Course
+                                                    )}{' '}
+                                                    Catalogue
+                                                </p>
+                                            </div>
+                                            <p className="mt-1 text-xs text-green-700">
+                                                This{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Course,
+                                                    SystemTerms.Course
+                                                ).toLowerCase()}{' '}
+                                                will be automatically published to the catalogue as
+                                                per your institute settings.
+                                            </p>
+                                        </div>
 
-                                <Separator className="bg-gray-200" />
+                                        <Separator className="bg-gray-200" />
+                                    </>
+                                ) : (
+                                    <>
+                                        <Separator className="bg-gray-200" />
+
+                                        {/* Course Catalogue Section */}
+                                        <div className="space-y-2">
+                                            <div className="flex items-center space-x-3">
+                                                <Checkbox
+                                                    id="publish-catalogue"
+                                                    checked={publishToCatalogue}
+                                                    onCheckedChange={handlePublishChange}
+                                                    className="data-[state=checked]:border-[#3B82F6] data-[state=checked]:bg-[#3B82F6]"
+                                                />
+                                                <Label
+                                                    htmlFor="publish-catalogue"
+                                                    className="text-base font-medium text-gray-900"
+                                                >
+                                                    Publish to{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Course,
+                                                        SystemTerms.Course
+                                                    )}{' '}
+                                                    Catalogue
+                                                </Label>
+                                            </div>
+                                            <p className="ml-7 text-sm text-gray-600">
+                                                The{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Course,
+                                                    SystemTerms.Course
+                                                ).toLocaleLowerCase()}{' '}
+                                                will be added to the{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Course,
+                                                    SystemTerms.Course
+                                                ).toLocaleLowerCase()}{' '}
+                                                catalogue which will be viewed by the learners.
+                                            </p>
+                                        </div>
+
+                                        <Separator className="bg-gray-200" />
+                                    </>
+                                )}
                             </CardContent>
                         </Card>
                     </div>

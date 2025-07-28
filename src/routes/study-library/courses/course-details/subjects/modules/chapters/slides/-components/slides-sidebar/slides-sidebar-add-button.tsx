@@ -36,6 +36,7 @@ import {
 } from '../yoopta-editor-customizations/createAssignmentSlidePayload';
 import { createPresentationSlidePayload } from '../create-presentation-slide';
 import AddQuestionDialog from './add-question-dialog';
+import { getSlideStatusForUser } from '../../non-admin/hooks/useNonAdminSlides';
 
 // Simple utility function for setting first slide as active (used as fallback)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -221,6 +222,7 @@ export const ChapterSidebarAddButton = () => {
                     const documentData = formatHTMLString('');
                     const slideId = crypto.randomUUID();
                     const uniqueTitle = generateUniqueDocumentSlideTitle(items || [], 'DOC');
+                    const slideStatus = getSlideStatusForUser();
                     const response = await addUpdateDocumentSlide({
                         id: slideId,
                         title: uniqueTitle,
@@ -234,10 +236,10 @@ export const ChapterSidebarAddButton = () => {
                             title: uniqueTitle,
                             cover_file_id: '',
                             total_pages: 1,
-                            published_data: null,
+                            published_data: slideStatus === 'PUBLISHED' ? documentData : null,
                             published_document_total_pages: 1,
                         },
-                        status: 'DRAFT',
+                        status: slideStatus,
                         new_slide: true,
                         notify: false,
                     });
@@ -328,6 +330,16 @@ export const ChapterSidebarAddButton = () => {
                     // Create a Jupyter notebook slide as a document with special type
                     const slideId = crypto.randomUUID();
                     const uniqueTitle = generateUniqueDocumentSlideTitle(items || [], 'JUPYTER');
+                    const slideStatus = getSlideStatusForUser();
+                    const jupyterData = JSON.stringify({
+                        projectName: '',
+                        contentUrl: '',
+                        contentBranch: 'main',
+                        notebookLocation: 'root',
+                        activeTab: 'settings',
+                        editorType: 'jupyterEditor',
+                        timestamp: Date.now(),
+                    });
                     const response = await addUpdateDocumentSlide({
                         id: slideId,
                         title: uniqueTitle,
@@ -337,22 +349,14 @@ export const ChapterSidebarAddButton = () => {
                         document_slide: {
                             id: crypto.randomUUID(),
                             type: 'JUPYTER',
-                            data: JSON.stringify({
-                                projectName: '',
-                                contentUrl: '',
-                                contentBranch: 'main',
-                                notebookLocation: 'root',
-                                activeTab: 'settings',
-                                editorType: 'jupyterEditor',
-                                timestamp: Date.now(),
-                            }),
+                            data: jupyterData,
                             title: uniqueTitle,
                             cover_file_id: '',
                             total_pages: 1,
-                            published_data: null,
+                            published_data: slideStatus === 'PUBLISHED' ? jupyterData : null,
                             published_document_total_pages: 1,
                         },
-                        status: 'DRAFT',
+                        status: slideStatus,
                         new_slide: true,
                         notify: false,
                     });
@@ -372,6 +376,16 @@ export const ChapterSidebarAddButton = () => {
                     // Create a Scratch project slide as a document with special type
                     const slideId = crypto.randomUUID();
                     const uniqueTitle = generateUniqueDocumentSlideTitle(items || [], 'SCRATCH');
+                    const slideStatus = getSlideStatusForUser();
+                    const scratchData = JSON.stringify({
+                        projectId: '',
+                        scratchUrl: '',
+                        embedType: 'project',
+                        autoStart: false,
+                        hideControls: false,
+                        editorType: 'scratchEditor',
+                        timestamp: Date.now(),
+                    });
                     const response = await addUpdateDocumentSlide({
                         id: slideId,
                         title: uniqueTitle,
@@ -381,22 +395,14 @@ export const ChapterSidebarAddButton = () => {
                         document_slide: {
                             id: crypto.randomUUID(),
                             type: 'SCRATCH',
-                            data: JSON.stringify({
-                                projectId: '',
-                                scratchUrl: '',
-                                embedType: 'project',
-                                autoStart: false,
-                                hideControls: false,
-                                editorType: 'scratchEditor',
-                                timestamp: Date.now(),
-                            }),
+                            data: scratchData,
                             title: uniqueTitle,
                             cover_file_id: '',
                             total_pages: 1,
-                            published_data: null,
+                            published_data: slideStatus === 'PUBLISHED' ? scratchData : null,
                             published_document_total_pages: 1,
                         },
-                        status: 'DRAFT',
+                        status: slideStatus,
                         new_slide: true,
                         notify: false,
                     });

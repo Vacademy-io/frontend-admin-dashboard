@@ -80,9 +80,7 @@ export const sessionFormSchema = z
         durationHours: z.string({
             required_error: 'Duration is required',
         }),
-        defaultLink: z
-            .string({ required_error: 'Live class link is required' })
-            .url('Invalid URL'),
+        defaultLink: z.string({ required_error: 'Live class link is required' }).url('Invalid URL'),
         meetingType: z.nativeEnum(RecurringType),
         recurringSchedule: z.array(weeklyClassSchema).optional(),
     })

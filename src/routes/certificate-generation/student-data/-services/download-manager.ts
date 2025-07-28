@@ -1,5 +1,8 @@
 import { saveAs } from 'file-saver';
-import { GeneratedCertificate, CertificateGenerationResult } from '@/types/certificate/certificate-types';
+import {
+    GeneratedCertificate,
+    CertificateGenerationResult,
+} from '@/types/certificate/certificate-types';
 
 export class DownloadManager {
     // Download a single certificate
@@ -19,24 +22,27 @@ export class DownloadManager {
         onProgress?: (completed: number, total: number) => void
     ): Promise<void> {
         console.log(`Starting individual downloads for ${certificates.length} certificates`);
-        
+
         for (let i = 0; i < certificates.length; i++) {
             const certificate = certificates[i];
-            
+
             try {
                 // Small delay between downloads to prevent browser overwhelming
                 if (i > 0) {
-                    await new Promise(resolve => setTimeout(resolve, 200));
+                    await new Promise((resolve) => setTimeout(resolve, 200));
                 }
-                
+
                 await this.downloadSingleCertificate(certificate as GeneratedCertificate);
                 onProgress?.(i + 1, certificates.length);
             } catch (error) {
-                console.error(`Failed to download certificate for ${certificate?.studentName}:`, error);
+                console.error(
+                    `Failed to download certificate for ${certificate?.studentName}:`,
+                    error
+                );
                 // Continue with other downloads even if one fails
             }
         }
-        
+
         console.log('Individual downloads completed');
     }
 
@@ -48,12 +54,14 @@ export class DownloadManager {
     ): Promise<void> {
         // TODO: Implement ZIP download functionality
         // This requires adding jszip as a dependency
-        
-        console.warn('ZIP download not implemented yet. Use downloadCertificatesIndividually instead.');
-        
+
+        console.warn(
+            'ZIP download not implemented yet. Use downloadCertificatesIndividually instead.'
+        );
+
         // For now, fall back to individual downloads
         await this.downloadCertificatesIndividually(certificates, onProgress);
-        
+
         // TODO: Uncomment and implement when jszip is added
         /*
         try {
@@ -117,7 +125,7 @@ export class DownloadManager {
         const timestamp = new Date().toISOString();
         const lines = [
             'Certificate Generation Summary',
-            '=' .repeat(50),
+            '='.repeat(50),
             `Generated on: ${timestamp}`,
             `Total Students: ${result.totalCount}`,
             `Successful: ${result.successCount}`,
@@ -135,9 +143,11 @@ export class DownloadManager {
             lines.push('');
             lines.push('Errors:');
             lines.push('-'.repeat(15));
-            
+
             result.errors.forEach((error, index) => {
-                lines.push(`${index + 1}. ${error.studentName} (${error.studentId}): ${error.error}`);
+                lines.push(
+                    `${index + 1}. ${error.studentName} (${error.studentId}): ${error.error}`
+                );
             });
         }
 
@@ -150,7 +160,7 @@ export class DownloadManager {
         const blob = new Blob([summary], { type: 'text/plain;charset=utf-8' });
         const timestamp = new Date().toISOString().slice(0, 10);
         const fileName = `certificate_generation_summary_${timestamp}.txt`;
-        
+
         saveAs(blob, fileName);
         console.log('Generation summary downloaded');
     }
@@ -158,11 +168,11 @@ export class DownloadManager {
     // Utility method to format file size
     formatFileSize(bytes: number): string {
         if (bytes === 0) return '0 Bytes';
-        
+
         const k = 1024;
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
-        
+
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
@@ -190,4 +200,4 @@ npm install jszip
 pnpm add jszip
 
 Then uncomment the ZIP implementation in downloadCertificatesAsZip method.
-*/ 
+*/

@@ -3,7 +3,11 @@ import type {
     QuizSlidePayload,
     Slide,
 } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
-import { generateUniqueAssignmentSlideTitle, generateUniqueQuizSlideTitle } from '../../-helper/slide-naming-utils';
+import {
+    generateUniqueAssignmentSlideTitle,
+    generateUniqueQuizSlideTitle,
+} from '../../-helper/slide-naming-utils';
+import { getSlideStatusForUser } from '../../non-admin/hooks/useNonAdminSlides';
 
 export function createAssignmentSlidePayload(
     allSlides: Slide[] = [],
@@ -26,6 +30,8 @@ export function createAssignmentSlidePayload(
         isValidISO: /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(isoDate),
     });
 
+    const slideStatus = getSlideStatusForUser();
+
     return {
         id: slideId,
         source_id: '',
@@ -33,7 +39,7 @@ export function createAssignmentSlidePayload(
         title: title,
         image_file_id: '',
         description: 'Assignment',
-        status: 'DRAFT',
+        status: slideStatus,
         slide_order: 0,
         video_slide: null,
         document_slide: null,
@@ -71,14 +77,14 @@ export function createQuizSlidePayload(
 ): QuizSlidePayload {
     const slideId = crypto.randomUUID();
     const title =
-        titleOverride?.trim() ||
-        generateUniqueQuizSlideTitle(allSlides) ||
-        'Untitled Quiz';
+        titleOverride?.trim() || generateUniqueQuizSlideTitle(allSlides) || 'Untitled Quiz';
 
     console.log('[Quiz Payload] Creating quiz slide payload:', {
         title,
         slideId,
     });
+
+    const slideStatus = getSlideStatusForUser();
 
     return {
         id: slideId,
@@ -87,7 +93,7 @@ export function createQuizSlidePayload(
         title: title,
         image_file_id: '',
         description: 'Quiz',
-        status: 'DRAFT',
+        status: slideStatus,
         slide_order: 0,
         video_slide: null,
         document_slide: null,

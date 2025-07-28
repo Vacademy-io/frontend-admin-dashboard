@@ -13,5 +13,5 @@ export const useLiveSessionStore = create<LiveSessionStep1State>((set) => ({
     isEdit: false,
     setIsEdit: (isEdit: boolean) => set({ isEdit: isEdit }),
     setSessionId: (id: string) => set({ sessionId: id }),
-    clearSessionId: () => set({ sessionId: '' , isEdit : false}),
+    clearSessionId: () => set({ sessionId: '', isEdit: false }),
 }));

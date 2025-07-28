@@ -847,7 +847,8 @@ export default function ScheduleStep1() {
                     <div className="text-sm font-medium">
                         Live Streaming Platform
                         <span className="ml-1 text-xs font-normal text-neutral-500">
-                            (Do you want the students to view the class in the learner app, or do you want to redirect them to the app that is hosting the live session?)
+                            (Do you want the students to view the class in the learner app, or do
+                            you want to redirect them to the app that is hosting the live session?)
                         </span>
                     </div>
                     <FormField
@@ -1216,7 +1217,7 @@ export default function ScheduleStep1() {
     return (
         <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(onSubmit, onError)} className="flex flex-col gap-8">
-                <div className="m-0 flex items-center justify-between p-0 sticky top-[72px] z-[9] bg-white border-b border-neutral-200 py-2">
+                <div className="sticky top-[72px] z-[9] m-0 flex items-center justify-between border-b border-neutral-200 bg-white p-0 py-2">
                     <h1>Live Session Information</h1>
                     <MyButton type="submit" scale="large" buttonType="primary">
                         Next

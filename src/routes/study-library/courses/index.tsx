@@ -4,11 +4,20 @@ import { InitStudyLibraryProvider } from '@/providers/study-library/init-study-l
 import { createFileRoute } from '@tanstack/react-router';
 import { Helmet } from 'react-helmet';
 
+interface CourseSearchParams {
+    selectedTab?: 'AuthoredCourses' | 'AllCourses' | 'CourseInReview' | 'CourseApproval';
+}
+
 export const Route = createFileRoute('/study-library/courses/')({
     component: RouteComponent,
+    validateSearch: (search: Record<string, unknown>): CourseSearchParams => ({
+        selectedTab: (search.selectedTab as CourseSearchParams['selectedTab']) || undefined,
+    }),
 });
 
 function RouteComponent() {
+    const searchParams = Route.useSearch();
+
     return (
         <LayoutContainer>
             <Helmet>
@@ -19,7 +28,7 @@ function RouteComponent() {
                 />
             </Helmet>
             <InitStudyLibraryProvider>
-                <CourseMaterial />
+                <CourseMaterial initialSelectedTab={searchParams.selectedTab} />
             </InitStudyLibraryProvider>
         </LayoutContainer>
     );

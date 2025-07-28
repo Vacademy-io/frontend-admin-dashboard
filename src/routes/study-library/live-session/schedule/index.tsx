@@ -16,7 +16,10 @@ function RouteComponent() {
 
     const heading = (
         <div className="flex items-center gap-4">
-            <CaretLeft onClick={() => navigate({ to: '/study-library/live-session' })} className="cursor-pointer" />
+            <CaretLeft
+                onClick={() => navigate({ to: '/study-library/live-session' })}
+                className="cursor-pointer"
+            />
             <div>Schedule Live Sessions</div>
         </div>
     );

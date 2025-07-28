@@ -15,6 +15,7 @@ import { useContentStore } from '@/routes/study-library/courses/course-details/s
 import { convertHtmlToPdf } from '../../-helper/helper';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useSlidesMutations } from '../../-hooks/use-slides';
+import { getSlideStatusForUser } from '../../non-admin/hooks/useNonAdminSlides';
 
 interface FormData {
     docFile: FileList | null;
@@ -129,6 +130,7 @@ export const AddDocDialog = ({
             const processedHtml = await replaceBase64ImagesWithNetworkUrls(HTMLContent);
             const { totalPages } = await convertHtmlToPdf(processedHtml);
             const slideId = crypto.randomUUID();
+            const slideStatus = getSlideStatusForUser();
 
             const response = await addUpdateDocumentSlide({
                 id: slideId,
@@ -143,10 +145,10 @@ export const AddDocDialog = ({
                     title: form.getValues('docTitle'),
                     cover_file_id: '',
                     total_pages: totalPages,
-                    published_data: null,
-                    published_document_total_pages: 1,
+                    published_data: slideStatus === 'PUBLISHED' ? processedHtml : null,
+                    published_document_total_pages: slideStatus === 'PUBLISHED' ? totalPages : 1,
                 },
-                status: 'DRAFT',
+                status: slideStatus,
                 new_slide: true,
                 notify: false,
             });
@@ -243,7 +245,7 @@ export const AddDocDialog = ({
                     >
                         {isUploading ? (
                             <div className="flex items-center justify-center gap-2">
-                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                                <div className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                                 Uploading...
                             </div>
                         ) : (

@@ -12,4 +12,4 @@ export function buildApiUrl(endpoint: string, params: Record<string, string | nu
         url.searchParams.set(key, String(value));
     });
     return url.toString();
-} 
+}

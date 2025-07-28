@@ -23,20 +23,20 @@ export default function LearningCenterWidget() {
             icon: BookOpen,
             title: 'Study Library',
             description: 'Access course materials and resources',
-            action: handleStudyLibrary
+            action: handleStudyLibrary,
         },
         {
             icon: VideoCamera,
             title: 'Live Sessions',
             description: 'Manage live teaching sessions',
-            action: handleManageSessions
+            action: handleManageSessions,
         },
         {
             icon: Folder,
             title: 'Batch Management',
             description: 'Organize students into batches',
-            action: handleManageBatches
-        }
+            action: handleManageBatches,
+        },
     ];
 
     return (

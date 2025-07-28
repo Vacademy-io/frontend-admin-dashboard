@@ -7,6 +7,9 @@ export interface CourseType {
     package_name: string;
     thumbnail_file_id: string;
     status: string;
+    createdByUserId?: string;
+    institute_id?: string;
+    originalCourseId?: string;
 }
 
 export type StudyLibrarySessionType = SessionType;
@@ -41,7 +44,9 @@ export interface CourseWithSessionsType {
 
 interface StudyLibraryStore {
     studyLibraryData: CourseWithSessionsType[] | null;
+    isInitLoading: boolean;
     setStudyLibraryData: (data: CourseWithSessionsType[]) => void;
+    setInitLoading: (loading: boolean) => void;
     resetStudyLibraryStore: () => void;
     getSessionsByCourseLevelSubject: (params: {
         courseId: string;
@@ -52,8 +57,10 @@ interface StudyLibraryStore {
 
 export const useStudyLibraryStore = create<StudyLibraryStore>((set, get) => ({
     studyLibraryData: null,
+    isInitLoading: false,
     setStudyLibraryData: (data) => set({ studyLibraryData: data }),
-    resetStudyLibraryStore: () => set({ studyLibraryData: null }),
+    setInitLoading: (loading) => set({ isInitLoading: loading }),
+    resetStudyLibraryStore: () => set({ studyLibraryData: null, isInitLoading: false }),
     getSessionsByCourseLevelSubject: (params) => {
         const { studyLibraryData } = get();
         if (!studyLibraryData) return [];

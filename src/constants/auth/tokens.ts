@@ -20,7 +20,7 @@ export interface Role {
     isEnabled: boolean;
 }
 
-interface Authority {
+export interface Authority {
     permissions: string[];
     roles: string[];
 }

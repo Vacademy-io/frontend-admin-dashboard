@@ -124,6 +124,21 @@ export const ADD_COURSE = `${BASE_URL}/admin-core-service/course/v1/add-course`;
 export const DELETE_COURSE = `${BASE_URL}/admin-core-service/course/v1/delete-courses`;
 export const UPDATE_COURSE = `${BASE_URL}/admin-core-service/course/v1/update-course-details`;
 
+// Teacher Course Approval Workflow URLs
+export const TEACHER_MY_COURSES = `${BASE_URL}/admin-core-service/teacher/course-approval/v1/my-courses/detailed`;
+export const TEACHER_CREATE_EDITABLE_COPY = `${BASE_URL}/admin-core-service/teacher/course-approval/v1/create-editable-copy`;
+export const TEACHER_SUBMIT_FOR_REVIEW = `${BASE_URL}/admin-core-service/teacher/course-approval/v1/submit-for-review`;
+export const TEACHER_WITHDRAW_FROM_REVIEW = `${BASE_URL}/admin-core-service/teacher/course-approval/v1/withdraw-from-review`;
+export const TEACHER_CAN_EDIT_COURSE = `${BASE_URL}/admin-core-service/teacher/course-approval/v1/can-edit`;
+export const TEACHER_COURSE_HISTORY = `${BASE_URL}/admin-core-service/teacher/course-approval/v1/my-course-history`;
+
+// Admin Course Approval Workflow URLs
+export const ADMIN_PENDING_APPROVAL_COURSES = `${BASE_URL}/admin-core-service/admin/course-approval/v1/pending-review`;
+export const ADMIN_APPROVE_COURSE = `${BASE_URL}/admin-core-service/admin/course-approval/v1/approve`;
+export const ADMIN_REJECT_COURSE = `${BASE_URL}/admin-core-service/admin/course-approval/v1/reject`;
+export const ADMIN_COURSE_HISTORY = `${BASE_URL}/admin-core-service/admin/course-approval/v1/course-history`;
+export const ADMIN_APPROVAL_SUMMARY = `${BASE_URL}/admin-core-service/admin/course-approval/v1/approval-summary`;
+
 export const GET_SESSION_DETAILS = `${BASE_URL}/admin-core-service/sessions/v1/session-details`;
 export const ADD_SESSION = `${BASE_URL}/admin-core-service/sessions/v1/add`;
 export const EDIT_SESSION = `${BASE_URL}/admin-core-service/sessions/v1/edit`;

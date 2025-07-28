@@ -293,7 +293,8 @@ const CourseListPage = ({
                                                 <div
                                                     className={`rounded-lg bg-gray-100 p-1 px-2 text-xs font-semibold text-gray-700`}
                                                 >
-                                                    {convertCapitalToTitleCase(course.level_name) || 'Level'}
+                                                    {convertCapitalToTitleCase(course.level_name) ||
+                                                        'Level'}
                                                 </div>
                                             </div>
                                             {/* Description section */}

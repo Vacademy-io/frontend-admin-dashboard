@@ -245,7 +245,8 @@ export default function ProgressReports() {
                     <div className="flex flex-row justify-between gap-10">
                         <div className="flex flex-col gap-6">
                             <div className="text-h3 text-primary-500">
-                                {courseList.find((course) => course.id === selectedCourse)?.name || ''}
+                                {courseList.find((course) => course.id === selectedCourse)?.name ||
+                                    ''}
                             </div>
                         </div>
                         <MyButton buttonType="secondary">Export</MyButton>
