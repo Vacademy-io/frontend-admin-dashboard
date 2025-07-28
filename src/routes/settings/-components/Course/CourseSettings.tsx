@@ -1,36 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { CourseSettingsForm } from './CourseSettingsForm';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, CheckCircle, Loader2, Settings } from 'lucide-react';
-import { getCourseSettings, saveCourseSettings, mergeWithDefaults } from '@/services/course-settings';
+import { saveCourseSettings } from '@/services/course-settings';
 import { CourseSettingsData } from '@/types/course-settings';
+import { useCourseSettings } from '@/hooks/useCourseSettings';
 
 const CourseSettings = () => {
-    const [settings, setSettings] = useState<CourseSettingsData | null>(null);
-    const [loading, setLoading] = useState(true);
+    const { settings, loading, error: contextError, refreshSettings } = useCourseSettings();
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
-
-    // Load course settings on component mount
-    useEffect(() => {
-        loadCourseSettings();
-    }, []);
-
-    const loadCourseSettings = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            const courseSettings = await getCourseSettings();
-            // Ensure all fields are present by merging with defaults
-            const mergedSettings = mergeWithDefaults(courseSettings);
-            setSettings(mergedSettings);
-        } catch (error) {
-            handleError(error, 'load course settings');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     // Error handling for component operations
     const handleError = (error: unknown, operation: string) => {
@@ -44,7 +24,8 @@ const CourseSettings = () => {
             setSaving(true);
             setError(null);
             await saveCourseSettings(updatedSettings);
-            setSettings(updatedSettings);
+            // Refresh the context to update all components using course settings
+            await refreshSettings();
             setSuccess('Course settings saved successfully!');
             setTimeout(() => setSuccess(null), 5000);
         } catch (error) {
@@ -57,10 +38,10 @@ const CourseSettings = () => {
     return (
         <div className="space-y-6">
             {/* Error Alert */}
-            {error && (
+            {(error || contextError) && (
                 <Alert variant="destructive">
                     <AlertTriangle className="size-4" />
-                    <AlertDescription>{error}</AlertDescription>
+                    <AlertDescription>{error || contextError}</AlertDescription>
                 </Alert>
             )}
 
