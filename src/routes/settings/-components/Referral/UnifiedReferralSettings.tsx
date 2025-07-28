@@ -518,6 +518,22 @@ export const UnifiedReferralSettings: React.FC<UnifiedReferralSettingsProps> = (
                                 />
                                 <Label>Allow combining with other offers</Label>
                             </div>
+
+                            <div className="space-y-2">
+                                <div className="flex items-center space-x-2">
+                                    <Switch
+                                        checked={formData.isDefault || false}
+                                        onCheckedChange={(checked) =>
+                                            setFormData({ ...formData, isDefault: checked })
+                                        }
+                                    />
+                                    <Label>Set as default referral program</Label>
+                                </div>
+                                <p className="ml-6 text-xs text-gray-600">
+                                    Default programs will be automatically selected for new
+                                    referrals
+                                </p>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
