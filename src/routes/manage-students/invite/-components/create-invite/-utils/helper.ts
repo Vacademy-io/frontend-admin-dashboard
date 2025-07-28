@@ -18,6 +18,13 @@ export interface ReferralData {
     updated_at: string; // Consider `Date` if you parse it
 }
 
+interface ReferrerReward {
+    referral_count: number;
+    reward: {
+        type: string;
+    };
+}
+
 type ApiCourseData = {
     course: {
         id: string;
@@ -495,23 +502,80 @@ export function convertReferralData(data: ReferralData[]) {
         return {
             id: '',
             name: '',
-            refereeBenefit: '',
-            referrerTiers: [{ tier: '', reward: '' }],
+            refereeBenefit: {
+                type: '',
+                value: 0,
+                currency: '',
+            },
+            referrerBenefit: [
+                {
+                    referralCount: 0,
+                    type: '',
+                },
+            ],
             vestingPeriod: 0,
             combineOffers: false,
         };
-    return data.map((item) => ({
-        id: item.id,
-        name: item.name,
-        refereeBenefit: '',
-        referrerTiers: [{ tier: '', reward: '' }],
-        vestingPeriod: item.referrer_vesting_days || 0,
-        combineOffers: true,
-    }));
+    return data?.map((item) => {
+        const refereeDiscountJson = JSON.parse(item.referee_discount_json);
+        const referrerDiscountJson = JSON.parse(item.referrer_discount_json);
+        return {
+            id: item.id,
+            name: item.name,
+            refereeBenefit: {
+                type: refereeDiscountJson.reward.type,
+                value: refereeDiscountJson.reward.value,
+                currency: refereeDiscountJson.reward.currency,
+            },
+            referrerBenefit: referrerDiscountJson.rewards.map((reward: ReferrerReward) => {
+                return {
+                    referralCount: reward.referral_count,
+                    type: reward.reward.type,
+                };
+            }),
+            vestingPeriod: item.referrer_vesting_days || 0,
+            combineOffers: true,
+        };
+    });
 }
 
 export function getDefaultMatchingReferralData(data: ReferralData[]) {
     const item = data.find((item) => item.tag === 'DEFAULT');
-    if (!item) return '';
-    return item.id;
+    if (!item)
+        return {
+            id: '',
+            name: '',
+            refereeBenefit: {
+                type: '',
+                value: 0,
+                currency: '',
+            },
+            referrerBenefit: [
+                {
+                    referralCount: 0,
+                    type: '',
+                },
+            ],
+            vestingPeriod: 0,
+            combineOffers: false,
+        };
+    const refereeDiscountJson = JSON.parse(item.referee_discount_json);
+    const referrerDiscountJson = JSON.parse(item.referrer_discount_json);
+    return {
+        id: item.id,
+        name: item.name,
+        refereeBenefit: {
+            type: refereeDiscountJson.reward.type,
+            value: refereeDiscountJson.reward.value,
+            currency: refereeDiscountJson.reward.currency,
+        },
+        referrerBenefit: referrerDiscountJson.rewards.map((reward: ReferrerReward) => {
+            return {
+                referralCount: reward.referral_count,
+                type: reward.reward.type,
+            };
+        }),
+        vestingPeriod: item.referrer_vesting_days || 0,
+        combineOffers: true,
+    };
 }

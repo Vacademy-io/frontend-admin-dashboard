@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
-import { Gift, CalendarBlank } from 'phosphor-react';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { TokenKey } from '@/constants/auth/tokens';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
@@ -354,32 +353,6 @@ const GenerateInviteLinkDialog = ({
             combineOffers: false,
         },
     });
-
-    const handleAddReferral = (values: AddReferralFormValues) => {
-        const referralPrograms = form.getValues('referralPrograms');
-        const newId = `r${referralPrograms.length + 1}`;
-        form.setValue('referralPrograms', [
-            ...referralPrograms,
-            {
-                id: newId,
-                name: values.name,
-                refereeBenefit: values.refereeBenefit,
-                referrerTiers: values.referrerTiers.map((t) => ({
-                    ...t,
-                    icon: t.reward.toLowerCase().includes('gift') ? (
-                        <Gift size={16} className="text-yellow-600" />
-                    ) : (
-                        <CalendarBlank size={16} className="text-blue-600" />
-                    ),
-                })),
-                vestingPeriod: values.vestingPeriod,
-                combineOffers: values.combineOffers,
-            },
-        ]);
-        form.setValue('selectedReferralId', newId);
-        form.setValue('showAddReferralDialog', false);
-        addReferralForm.reset();
-    };
 
     const handleDeleteOpenField = (id: string) => {
         const updatedFields = customFieldsArray
@@ -802,11 +775,7 @@ const GenerateInviteLinkDialog = ({
             {/* Referral Program Selection Dialog */}
             <ReferralProgramDialog form={form} />
             {/* Add New Referral Program Dialog */}
-            <AddReferralProgramDialog
-                form={form}
-                addReferralForm={addReferralForm}
-                handleAddReferral={handleAddReferral}
-            />
+            <AddReferralProgramDialog form={form} addReferralForm={addReferralForm} />
         </Dialog>
     );
 };

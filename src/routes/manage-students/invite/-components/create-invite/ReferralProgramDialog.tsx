@@ -15,6 +15,7 @@ import { Gift, Users, Gear, TrendUp } from 'phosphor-react';
 import { handleGetReferralProgramDetails } from './-services/referral-services';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { convertReferralData, getDefaultMatchingReferralData } from './-utils/helper';
+import { getReferralTypeIcon } from './-components/ReferralProgramCard';
 
 interface ReferralProgramDialogProps {
     form: UseFormReturn<InviteLinkFormValues>;
@@ -29,7 +30,7 @@ export function ReferralProgramDialog({ form }: ReferralProgramDialogProps) {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
             referralPrograms: convertReferralData(referralProgramDetails),
-            selectedReferralId: getDefaultMatchingReferralData(referralProgramDetails),
+            selectedReferral: getDefaultMatchingReferralData(referralProgramDetails),
         });
     }, []);
 
@@ -52,6 +53,7 @@ export function ReferralProgramDialog({ form }: ReferralProgramDialogProps) {
                             className={`cursor-pointer flex-col gap-1 border-2 p-4 ${form.watch('selectedReferralId') === program.id ? 'border-primary' : 'border-gray-200'} transition-all`}
                             onClick={() => {
                                 form.setValue('selectedReferralId', program.id);
+                                form.setValue('selectedReferral', program);
                                 form.setValue('showReferralDialog', false);
                             }}
                         >
@@ -67,21 +69,59 @@ export function ReferralProgramDialog({ form }: ReferralProgramDialogProps) {
                                 )}
                             </div>
                             <div className="mt-2 flex flex-col gap-2">
-                                <div className="flex items-center gap-2">
-                                    <Gift size={16} />
-                                    <span className="font-semibold">Referee Benefit:</span>
-                                    <span className="text-green-700">{program.refereeBenefit}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Users size={16} />
-                                    <span className="font-semibold">Referrer Tiers:</span>
-                                </div>
-                                {program.referrerTiers.map((tier, idx) => (
-                                    <div key={idx} className="ml-6 flex items-center gap-2">
-                                        <span className="text-gray-700">{tier.tier}</span>
-                                        {tier.icon}
+                                <div className="flex flex-col items-start gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <Gift size={16} />
+                                        <span className="font-semibold">Referee Benefit:</span>
                                     </div>
-                                ))}
+                                    {program?.refereeBenefit?.type === 'free_course' ? (
+                                        <span className="ml-6 flex items-center gap-1 font-semibold text-green-700">
+                                            {getReferralTypeIcon(
+                                                program?.refereeBenefit?.type || ''
+                                            )}
+                                            <span>Free course access</span>
+                                        </span>
+                                    ) : program?.refereeBenefit?.type === 'free_days' ? (
+                                        <span className="ml-6 flex items-center gap-1 font-semibold text-green-700">
+                                            {getReferralTypeIcon(
+                                                program?.refereeBenefit?.type || ''
+                                            )}
+                                            <span>{program?.refereeBenefit?.value} free days</span>
+                                        </span>
+                                    ) : program?.refereeBenefit?.type === 'bonus_content' ? (
+                                        <span className="ml-6 flex items-center gap-1 font-semibold text-green-700">
+                                            {getReferralTypeIcon(
+                                                program?.refereeBenefit?.type || ''
+                                            )}
+                                            <span>Bonus Content</span>
+                                        </span>
+                                    ) : (
+                                        <span className="ml-6 flex items-center font-semibold text-green-700">
+                                            {getReferralTypeIcon(
+                                                program?.refereeBenefit?.type || ''
+                                            )}
+                                            {program?.refereeBenefit?.value}
+                                            &nbsp;off
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="flex flex-col items-start gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <Users size={16} />
+                                        <span className="font-semibold">Referrer Tiers:</span>
+                                    </div>
+                                    {program?.referrerBenefit?.map((benefit, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="ml-4 flex w-full items-center justify-between pr-4"
+                                        >
+                                            <span className="ml-2 text-gray-700">
+                                                {benefit.referralCount}
+                                            </span>
+                                            {getReferralTypeIcon(benefit?.type || '')}
+                                        </div>
+                                    ))}
+                                </div>
                                 <div className="flex items-center gap-2">
                                     <Gear size={16} />
                                     <span className="font-semibold">Program Settings:</span>

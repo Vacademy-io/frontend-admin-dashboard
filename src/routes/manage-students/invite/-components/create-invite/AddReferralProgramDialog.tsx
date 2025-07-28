@@ -15,14 +15,9 @@ import { Switch as ShadSwitch } from '@/components/ui/switch';
 interface AddReferralProgramDialogProps {
     form: UseFormReturn<InviteLinkFormValues>;
     addReferralForm: UseFormReturn<AddReferralFormValues>;
-    handleAddReferral: (values: AddReferralFormValues) => void;
 }
 
-export function AddReferralProgramDialog({
-    form,
-    addReferralForm,
-    handleAddReferral,
-}: AddReferralProgramDialogProps) {
+export function AddReferralProgramDialog({ form, addReferralForm }: AddReferralProgramDialogProps) {
     return (
         <ShadDialog
             open={form.watch('showAddReferralDialog')}
@@ -33,10 +28,7 @@ export function AddReferralProgramDialog({
                     <ShadDialogTitle>Add New Referral Program</ShadDialogTitle>
                 </ShadDialogHeader>
                 <Form {...addReferralForm}>
-                    <form
-                        className="space-y-4"
-                        onSubmit={addReferralForm.handleSubmit(handleAddReferral)}
-                    >
+                    <form className="space-y-4">
                         <FormField
                             control={addReferralForm.control}
                             name="name"
@@ -155,7 +147,7 @@ export function AddReferralProgramDialog({
                             )}
                         />
                         <div className="flex justify-end">
-                            <MyButton type="submit" scale="small" buttonType="primary">
+                            <MyButton type="button" scale="small" buttonType="primary">
                                 Save
                             </MyButton>
                         </div>

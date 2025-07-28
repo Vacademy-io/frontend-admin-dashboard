@@ -162,6 +162,7 @@ export const inviteLinkSchema = z.object({
             type: z.string().optional(),
         })
         .optional(),
+
     showAddPlanDialog: z.boolean().default(false),
     showDiscountDialog: z.boolean().default(false),
     discounts: z
@@ -178,17 +179,39 @@ export const inviteLinkSchema = z.object({
         .default([]),
     showAddDiscountDialog: z.boolean().default(false),
     selectedDiscountId: z.string().default('none'),
+    selectedReferral: z
+        .object({
+            id: z.string(),
+            name: z.string(),
+            refereeBenefit: z.object({
+                type: z.string(),
+                value: z.number(),
+                currency: z.string(),
+            }),
+            referrerBenefit: z.array(
+                z.object({
+                    referralCount: z.number(),
+                    type: z.string(),
+                })
+            ),
+            vestingPeriod: z.number(),
+            combineOffers: z.boolean(),
+        })
+        .optional(),
     referralPrograms: z
         .array(
             z.object({
                 id: z.string(),
                 name: z.string(),
-                refereeBenefit: z.string(),
-                referrerTiers: z.array(
+                refereeBenefit: z.object({
+                    type: z.string(),
+                    value: z.number(),
+                    currency: z.string(),
+                }),
+                referrerBenefit: z.array(
                     z.object({
-                        tier: z.string(),
-                        reward: z.string(),
-                        icon: z.any().optional(),
+                        referralCount: z.number(),
+                        type: z.string(),
                     })
                 ),
                 vestingPeriod: z.number(),
