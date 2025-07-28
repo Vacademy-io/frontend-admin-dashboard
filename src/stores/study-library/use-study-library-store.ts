@@ -8,6 +8,8 @@ export interface CourseType {
     thumbnail_file_id: string;
     status: string;
     createdByUserId?: string;
+    institute_id?: string;
+    originalCourseId?: string;
 }
 
 export type StudyLibrarySessionType = SessionType;

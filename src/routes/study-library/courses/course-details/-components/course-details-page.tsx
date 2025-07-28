@@ -46,7 +46,7 @@ import { MyButton } from '@/components/design-system/button';
 import { getPublicUrl } from '@/services/upload_file';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
-import { TokenKey } from '@/constants/auth/tokens';
+import { TokenKey, Authority } from '@/constants/auth/tokens';
 
 type SlideType = {
     id: string;
@@ -590,14 +590,13 @@ export const CourseDetailsPage = () => {
     const isAdmin =
         tokenData?.authorities &&
         Object.values(tokenData.authorities).some(
-            (auth: Record<string, unknown>) =>
-                Array.isArray(auth?.roles) && auth.roles.includes('ADMIN')
+            (auth: Authority) => Array.isArray(auth?.roles) && auth.roles.includes('ADMIN')
         );
     const currentUserId = tokenData?.user;
 
     // Get course status and ownership
     const courseStatus = form.getValues('courseData')?.status;
-    const courseCreatedBy = form.getValues('courseData')?.createdByUserId;
+    const courseCreatedBy = form.getValues('courseData')?.created_by_user_id;
     const isOwnCourse = courseCreatedBy === currentUserId;
 
     // Determine if user can edit

@@ -66,7 +66,8 @@ import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-compone
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { convertCapitalToTitleCase } from '@/lib/utils';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
-import { TokenKey } from '@/constants/auth/tokens';
+import { TokenKey, Authority } from '@/constants/auth/tokens';
+import { useCourseSettings } from '@/hooks/useCourseSettings';
 
 // Interfaces (assuming these are unchanged)
 export interface Chapter {
@@ -173,6 +174,7 @@ export const CourseStructureDetails = ({
     const { studyLibraryData } = useStudyLibraryStore();
     const { setActiveItem } = useContentStore();
     const { isInitLoading } = useStudyLibraryContext();
+    const { settings: courseSettings } = useCourseSettings();
 
     // Check user permissions for editing
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
@@ -180,8 +182,7 @@ export const CourseStructureDetails = ({
     const isAdmin =
         tokenData?.authorities &&
         Object.values(tokenData.authorities).some(
-            (auth: Record<string, unknown>) =>
-                Array.isArray(auth?.roles) && auth.roles.includes('ADMIN')
+            (auth: Authority) => Array.isArray(auth?.roles) && auth.roles.includes('ADMIN')
         );
     const currentUserId = tokenData?.user;
 
@@ -244,9 +245,16 @@ export const CourseStructureDetails = ({
     const getStorageKey = () => `course-structure-tab-${courseId}`;
 
     const [selectedTab, setSelectedTab] = useState<string>(() => {
-        // Initialize from localStorage or default to OUTLINE
+        // Initialize from localStorage or use course settings default
         const stored = localStorage.getItem(getStorageKey());
-        return stored || TabType.OUTLINE;
+        if (stored) return stored;
+
+        // Use course settings to determine default tab
+        const defaultViewMode = courseSettings?.courseViewSettings?.defaultViewMode;
+        if (defaultViewMode === 'structure') {
+            return TabType.CONTENT_STRUCTURE;
+        }
+        return TabType.OUTLINE; // Default fallback
     });
 
     const handleTabChange = (value: string) => {
@@ -451,6 +459,46 @@ export const CourseStructureDetails = ({
             setChapterSlidesMap({});
         }
     }, [subjectModulesMap, packageSessionIds, fetchSlides]);
+
+    // Auto-expand items based on course settings (only for outline tab)
+    useEffect(() => {
+        const defaultState = courseSettings?.outlineSettings?.defaultState;
+        if (defaultState === 'expanded' && selectedTab === TabType.OUTLINE) {
+            // Expand subjects (always applicable)
+            if (subjects && subjects.length > 0) {
+                const allSubjectIds = new Set(subjects.map((subject) => subject.id));
+                setOpenSubjects(allSubjectIds);
+            }
+
+            // Expand modules and chapters if they exist
+            if (Object.keys(subjectModulesMap).length > 0) {
+                // Expand all modules
+                const allModuleIds = new Set<string>();
+                Object.values(subjectModulesMap).forEach((moduleList) => {
+                    moduleList.forEach((moduleData) => {
+                        allModuleIds.add(moduleData.module.id);
+                    });
+                });
+                setOpenModules(allModuleIds);
+
+                // Expand all chapters
+                const allChapterIds = new Set<string>();
+                Object.values(subjectModulesMap).forEach((moduleList) => {
+                    moduleList.forEach((moduleData) => {
+                        moduleData.chapters.forEach((chapterData) => {
+                            allChapterIds.add(chapterData.chapter.id);
+                        });
+                    });
+                });
+                setOpenChapters(allChapterIds);
+            }
+        } else if (defaultState === 'collapsed') {
+            // Ensure everything is collapsed
+            setOpenSubjects(new Set());
+            setOpenModules(new Set());
+            setOpenChapters(new Set());
+        }
+    }, [courseSettings?.outlineSettings?.defaultState, subjectModulesMap, subjects, selectedTab]);
 
     // Load direct slides for 2-depth courses
     useEffect(() => {
@@ -2326,7 +2374,38 @@ export const CourseStructureDetails = ({
                         className="h-auto min-w-max flex-nowrap bg-transparent p-0"
                         style={{ display: 'flex', justifyContent: 'left' }}
                     >
-                        {tabs.map((tab) => (
+                        {(() => {
+                            // Reorder tabs based on course settings
+                            const defaultViewMode =
+                                courseSettings?.courseViewSettings?.defaultViewMode;
+                            let reorderedTabs = [...tabs];
+
+                            if (defaultViewMode === 'structure') {
+                                // Move Content Structure to first position
+                                const structureTab = reorderedTabs.find(
+                                    (tab) => tab.value === 'CONTENT_STRUCTURE'
+                                );
+                                const otherTabs = reorderedTabs.filter(
+                                    (tab) => tab.value !== 'CONTENT_STRUCTURE'
+                                );
+                                if (structureTab) {
+                                    reorderedTabs = [structureTab, ...otherTabs];
+                                }
+                            } else {
+                                // Move Outline to first position (default behavior)
+                                const outlineTab = reorderedTabs.find(
+                                    (tab) => tab.value === 'OUTLINE'
+                                );
+                                const otherTabs = reorderedTabs.filter(
+                                    (tab) => tab.value !== 'OUTLINE'
+                                );
+                                if (outlineTab) {
+                                    reorderedTabs = [outlineTab, ...otherTabs];
+                                }
+                            }
+
+                            return reorderedTabs;
+                        })().map((tab) => (
                             <TabsTrigger
                                 key={tab.value}
                                 value={tab.value}

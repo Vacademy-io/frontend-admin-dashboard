@@ -140,6 +140,7 @@ export const courseDetailsSchema = z.object({
         courseBannerMediaPreview: z.string(),
         courseMediaPreview: z.string(),
         courseHtmlDescription: z.string(),
+        created_by_user_id: z.string().optional(),
         instructors: z
             .array(instructorSchema)
             .min(1, { message: 'At least one instructor is required.' }),

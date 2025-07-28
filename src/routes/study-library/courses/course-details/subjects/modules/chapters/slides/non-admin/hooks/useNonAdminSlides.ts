@@ -12,6 +12,8 @@ import { createQuizSlidePayload } from '@/routes/study-library/courses/course-de
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { convertHtmlToPdf } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-helper/helper';
+import { AssignmentSlidePayload } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
+import { SlideQuestionsDataInterface } from '@/types/study-library/study-library-slides-type';
 
 export interface UnsavedChanges {
     hasChanges: boolean;
@@ -106,7 +108,9 @@ export function useNonAdminSlides(chapterId: string) {
                         notify: false,
                         newSlide: isNewSlide,
                     });
-                    await slidesMutations.updateAssignmentOrder(convertedData!);
+                    await slidesMutations.addUpdateAssignmentSlide(
+                        convertedData as unknown as AssignmentSlidePayload
+                    );
                     toast.success('Assignment slide published successfully');
                 } else if (slide?.source_type === 'QUESTION') {
                     const convertedData = convertToQuestionBackendSlideFormat({
@@ -115,7 +119,9 @@ export function useNonAdminSlides(chapterId: string) {
                         notify: false,
                         newSlide: isNewSlide,
                     });
-                    await slidesMutations.updateQuestionOrder(convertedData!);
+                    await slidesMutations.updateQuestionOrder(
+                        convertedData as unknown as SlideQuestionsDataInterface
+                    );
                     toast.success('Question slide published successfully');
                 } else if (slide?.source_type === 'QUIZ') {
                     const payload = createQuizSlidePayload(slide.quiz_slide?.questions || [], {
@@ -125,19 +131,23 @@ export function useNonAdminSlides(chapterId: string) {
                     await slidesMutations.addUpdateQuizSlide(payload);
                     toast.success('Quiz slide published successfully');
                 } else if (slide?.source_type === 'VIDEO') {
-                    const videoSlidePayload = {
-                        id: slide.id,
-                        title: slide.title,
-                        image_file_id: slide.image_file_id || '',
-                        description: slide.description || '',
-                        slide_order: slide.slide_order,
-                        video_slide: slide.video_slide,
-                        status: publishedStatus,
-                        new_slide: isNewSlide,
-                        notify: false,
-                    };
-                    await slidesMutations.addUpdateVideoSlide(videoSlidePayload);
-                    toast.success('Video slide published successfully');
+                    if (slide.video_slide) {
+                        const videoSlidePayload = {
+                            id: slide.id,
+                            title: slide.title,
+                            image_file_id: slide.image_file_id || '',
+                            description: slide.description || '',
+                            slide_order: slide.slide_order,
+                            video_slide: slide.video_slide,
+                            status: publishedStatus,
+                            new_slide: isNewSlide,
+                            notify: false,
+                        };
+                        await slidesMutations.addUpdateVideoSlide(videoSlidePayload);
+                        toast.success('Video slide published successfully');
+                    } else {
+                        toast.error('Video slide data is missing');
+                    }
                 } else {
                     // Handle DOCUMENT slides (DOC, PDF, PRESENTATION, CODE, JUPYTER, SCRATCH)
                     let currentData: string;

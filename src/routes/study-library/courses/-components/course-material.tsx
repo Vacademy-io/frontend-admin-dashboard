@@ -125,15 +125,19 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
     );
 
     const { setNavHeading } = useNavHeadingStore();
-    const [selectedTab, setSelectedTab] = useState(initialSelectedTab || 'AuthoredCourses');
+    const [selectedTab, setSelectedTab] = useState<
+        'AuthoredCourses' | 'AllCourses' | 'CourseInReview' | 'CourseApproval'
+    >(initialSelectedTab || 'AuthoredCourses');
 
     // Handle tab change with URL sync
-    const handleTabChange = (newTab: string) => {
+    const handleTabChange = (
+        newTab: 'AuthoredCourses' | 'AllCourses' | 'CourseInReview' | 'CourseApproval'
+    ) => {
         setSelectedTab(newTab);
         // Update URL with new tab
         navigate({
             to: '/study-library/courses',
-            search: { selectedTab: newTab as CourseMaterialProps['initialSelectedTab'] },
+            search: { selectedTab: newTab },
             replace: true, // Replace current history entry instead of adding new one
         });
     };
@@ -428,7 +432,13 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
             availableTabs.length > 0 &&
             availableTabs[0]
         ) {
-            setSelectedTab(availableTabs[0]?.key);
+            setSelectedTab(
+                availableTabs[0]?.key as
+                    | 'AuthoredCourses'
+                    | 'AllCourses'
+                    | 'CourseInReview'
+                    | 'CourseApproval'
+            );
         }
     }, [availableTabs, selectedTab]);
     // Use correct data for CourseListPage
@@ -505,7 +515,18 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
             </div>
 
             {/* Add Tabs Section Here */}
-            <Tabs value={selectedTab} onValueChange={handleTabChange}>
+            <Tabs
+                value={selectedTab}
+                onValueChange={(value) =>
+                    handleTabChange(
+                        value as
+                            | 'AuthoredCourses'
+                            | 'AllCourses'
+                            | 'CourseInReview'
+                            | 'CourseApproval'
+                    )
+                }
+            >
                 <TabsList className="inline-flex h-auto w-full justify-start gap-4 rounded-none border-b !bg-transparent p-0">
                     {availableTabs.map((tab) => (
                         <TabsTrigger

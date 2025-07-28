@@ -1194,7 +1194,7 @@ export const SlideMaterial = ({
             ) {
                 try {
                     // For non-admin users, use custom save function if available
-                    if (customSaveFunction) {
+                    if (customSaveFunction && slide) {
                         console.log('🎨 Using custom save function for presentation');
                         await customSaveFunction(slide);
                         return;
@@ -1441,7 +1441,7 @@ export const SlideMaterial = ({
         const handleSaveDraftClick = async () => {
         try {
             // Use custom save function if provided (for non-admin users)
-            if (customSaveFunction) {
+            if (customSaveFunction && activeItem) {
                 console.log('🔄 Using custom save function for non-admin');
                 await customSaveFunction(activeItem);
                 return; // Don't show additional toast as custom function handles it

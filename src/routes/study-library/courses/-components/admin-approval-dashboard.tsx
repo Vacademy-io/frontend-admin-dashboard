@@ -259,7 +259,8 @@ export const AdminApprovalDashboard: React.FC = () => {
                                     </MyButton>
                                     <MyButton
                                         onClick={() => handleRejectCourse(course)}
-                                        buttonType="destructive"
+                                        buttonType="secondary"
+                                        className="border-red-600 text-red-600 hover:bg-red-50"
                                         disabled={rejectMutation.isPending}
                                     >
                                         <XCircle size={16} className="mr-1" />
@@ -305,8 +306,8 @@ export const AdminApprovalDashboard: React.FC = () => {
                                 </MyButton>
                                 <MyButton
                                     onClick={submitRejection}
-                                    buttonType="destructive"
-                                    className="flex-1"
+                                    buttonType="secondary"
+                                    className="flex-1 border-red-600 text-red-600 hover:bg-red-50"
                                     disabled={!rejectReason.trim() || rejectMutation.isPending}
                                 >
                                     {rejectMutation.isPending ? 'Rejecting...' : 'Reject Course'}

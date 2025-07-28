@@ -146,9 +146,7 @@ export function NonAdminSlidesView({
                         ContentTerms.Slides,
                         SystemTerms.Slides
                     )}s`}</span>
-                    {isReadOnlyMode && (
-                        <Lock size={16} className="text-gray-500" title="Read-only mode" />
-                    )}
+                    {isReadOnlyMode && <Lock size={16} className="text-gray-500" />}
                 </div>
             </div>
         ),
