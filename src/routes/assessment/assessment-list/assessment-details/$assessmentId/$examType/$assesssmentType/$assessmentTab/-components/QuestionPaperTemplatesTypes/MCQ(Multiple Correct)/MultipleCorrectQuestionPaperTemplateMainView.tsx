@@ -338,7 +338,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                         <FormControl>
                                             <MainViewQuillEditor
                                                 value={field.value}
-                                                 onBlur={field.onBlur}
+                                                onBlur={field.onBlur}
                                                 onChange={field.onChange}
                                             />
                                         </FormControl>

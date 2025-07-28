@@ -111,4 +111,4 @@ const QuestionTypeSelector: React.FC<QuestionTypeSelectorProps> = ({
     );
 };
 
-export default QuestionTypeSelector; 
+export default QuestionTypeSelector;

@@ -75,7 +75,9 @@ const InviteLinksDialog = ({
                                     packageSessionId: b.package_session_id,
                                 });
 
-                                const courseName = convertCapitalToTitleCase(batch.package_dto.package_name);
+                                const courseName = convertCapitalToTitleCase(
+                                    batch.package_dto.package_name
+                                );
                                 const levelName = batchDetails?.level.level_name || 'Unknown Level';
                                 const sessionName =
                                     batchDetails?.session.session_name || currentSession.name;

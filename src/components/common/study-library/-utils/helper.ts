@@ -1,6 +1,8 @@
 import { CourseDetailsFormValues } from '@/routes/study-library/courses/course-details/-components/course-details-schema';
 import { Step1Data, Step2Data } from '../add-course/add-course-form';
 import { Session } from '@/types/course/create-course';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 export type CourseFormData = Step1Data & Step2Data;
 interface AddFacultyToCourse {
@@ -217,6 +219,13 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
         ];
     }
 
+    // Get user data for approval workflow
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const isAdmin = tokenData?.authorities && Object.values(tokenData.authorities).some((auth: any) =>
+        auth?.roles?.includes('ADMIN')
+    );
+
     return {
         id: '',
         new_course: true,
@@ -234,6 +243,11 @@ export const convertToApiCourseFormat = (formData: CourseFormData): FormattedCou
         tags: formData.tags || [],
         course_depth: formData.levelStructure || 2,
         course_html_description: formData.description || '',
+        // New fields for teacher approval workflow
+        status: isAdmin ? 'ACTIVE' : 'DRAFT',
+        created_by_user_id: tokenData?.user || '',
+        original_course_id: null,
+        version_number: 1,
     };
 };
 
@@ -411,6 +425,13 @@ export const convertToApiCourseFormatUpdate = (
         };
     });
 
+    // Get user data for approval workflow
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const isAdmin = tokenData?.authorities && Object.values(tokenData.authorities).some((auth: Record<string, unknown>) =>
+        Array.isArray(auth?.roles) && auth.roles.includes('ADMIN')
+    );
+
     return {
         id: formData.id || '',
         new_course: false,
@@ -428,6 +449,11 @@ export const convertToApiCourseFormatUpdate = (
         tags: formData.tags || [],
         course_depth: formData.levelStructure || 2,
         course_html_description: formData.description || '',
+        // New fields for teacher approval workflow
+        status: formData.status || (isAdmin ? 'ACTIVE' : 'DRAFT'),
+        created_by_user_id: formData.created_by_user_id || tokenData?.user || '',
+        original_course_id: formData.original_course_id || null,
+        version_number: formData.version_number || 1,
     };
 };
 

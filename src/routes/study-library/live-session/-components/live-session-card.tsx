@@ -291,7 +291,9 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                                     <DashboardLoader />
                                 ) : (
                                     <>
-                                        <h3 className="mb-2 text-lg font-semibold">Registrations</h3>
+                                        <h3 className="mb-2 text-lg font-semibold">
+                                            Registrations
+                                        </h3>
                                         <MyTable
                                             data={tableData}
                                             columns={registrationColumns}
@@ -333,8 +335,10 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                 className="w-fit max-w-4xl"
             >
                 <div className="flex h-full flex-col gap-3 p-4 ">
-                    <div className="text-lg">Do you want to delete every class for this session</div>
-                    <div className="flex flex-row gap-4 justify-between items-center">
+                    <div className="text-lg">
+                        Do you want to delete every class for this session
+                    </div>
+                    <div className="flex flex-row items-center justify-between gap-4">
                         <MyButton
                             onClick={() => {
                                 handleDelete('session');

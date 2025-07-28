@@ -9,8 +9,8 @@ export interface ReportTableData {
 export interface RegistrationTableData {
     index: number;
     username: string;
-    phoneNumber:string;
-    email:string;
+    phoneNumber: string;
+    email: string;
 }
 
 export const reportColumns: ColumnDef<ReportTableData>[] = [

@@ -17,7 +17,15 @@ interface RadioGroupFieldProps {
     disabledOptions?: string[];
 }
 
-export function MyRadioButton({ options, value, onChange, name, className , disabled = false, disabledOptions = []}: RadioGroupFieldProps) {
+export function MyRadioButton({
+    options,
+    value,
+    onChange,
+    name,
+    className,
+    disabled = false,
+    disabledOptions = [],
+}: RadioGroupFieldProps) {
     return (
         <RadioGroup
             disabled={disabled}
@@ -31,7 +39,12 @@ export function MyRadioButton({ options, value, onChange, name, className , disa
                 return (
                     <div key={id} className="flex items-center space-x-2">
                         <RadioGroupItem disabled={isDisabled} value={option.value} id={id} />
-                        <Label htmlFor={id} className={isDisabled ? 'opacity-50 cursor-not-allowed' : ''}>{option.label}</Label>
+                        <Label
+                            htmlFor={id}
+                            className={isDisabled ? 'cursor-not-allowed opacity-50' : ''}
+                        >
+                            {option.label}
+                        </Label>
                     </div>
                 );
             })}

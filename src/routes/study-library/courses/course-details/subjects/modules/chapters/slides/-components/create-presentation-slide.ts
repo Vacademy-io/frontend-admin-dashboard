@@ -3,6 +3,7 @@ import { slideType } from '@/routes/manage-students/students-list/-components/st
 
 import { generateUniqueDocumentSlideTitle } from '../-helper/slide-naming-utils';
 import { DocumentSlidePayload, Slide } from '../-hooks/use-slides';
+import { getSlideStatusForUser } from '../non-admin/hooks/useNonAdminSlides';
 // import { SlideType } from './slide-type-sheet';
 
 /**
@@ -18,6 +19,9 @@ export function createPresentationSlidePayload(
     // Generate unique title based on existing slides
     const uniqueTitle = generateUniqueDocumentSlideTitle(allSlides, 'PRESENTATION');
 
+    // Get the correct status based on user role
+    const slideStatus = getSlideStatusForUser();
+
     // Create the presentation slide payload
     return {
         id: slideId,
@@ -32,10 +36,10 @@ export function createPresentationSlidePayload(
             title: uniqueTitle,
             cover_file_id: '',
             total_pages: 1,
-            published_data: null,
+            published_data: slideStatus === 'PUBLISHED' ? null : null, // Will be set when content is saved
             published_document_total_pages: 1,
         },
-        status: 'DRAFT',
+        status: slideStatus,
         new_slide: true,
         notify: false,
     };

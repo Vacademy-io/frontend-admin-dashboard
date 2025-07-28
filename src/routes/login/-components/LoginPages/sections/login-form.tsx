@@ -64,7 +64,7 @@ export function LoginForm() {
             amplitudeEvents.signIn('sso');
             trackEvent('Login Success', {
                 login_method: 'sso',
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             });
 
             // Clear all queries to ensure fresh data fetch
@@ -91,7 +91,7 @@ export function LoginForm() {
             amplitudeEvents.signIn('oauth');
             trackEvent('Login Success', {
                 login_method: 'oauth',
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             });
 
             // Check user roles and redirect accordingly
@@ -152,7 +152,7 @@ export function LoginForm() {
                 trackEvent('Login Success', {
                     login_method: 'username_password',
                     user_roles: userRoles,
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
                 });
 
                 // Add a small delay to ensure tokens are properly set before navigation
@@ -164,7 +164,7 @@ export function LoginForm() {
                 trackEvent('Login Failed', {
                     login_method: 'username_password',
                     error_reason: 'invalid_credentials',
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
                 });
 
                 toast.error('Login Error', {
@@ -182,7 +182,7 @@ export function LoginForm() {
                 login_method: 'username_password',
                 error_reason: 'network_error',
                 error_message: error?.message || 'Unknown error',
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
             });
 
             toast.error('Login Error', {
@@ -229,7 +229,7 @@ export function LoginForm() {
                                 trackEvent('OAuth Login Initiated', {
                                     provider: 'google',
                                     action: 'login',
-                                    timestamp: new Date().toISOString()
+                                    timestamp: new Date().toISOString(),
                                 });
                                 handleOAuthLogin('google', { isSignup: false });
                             }}
@@ -244,7 +244,7 @@ export function LoginForm() {
                                 trackEvent('OAuth Login Initiated', {
                                     provider: 'github',
                                     action: 'login',
-                                    timestamp: new Date().toISOString()
+                                    timestamp: new Date().toISOString(),
                                 });
                                 handleOAuthLogin('github', { isSignup: false });
                             }}

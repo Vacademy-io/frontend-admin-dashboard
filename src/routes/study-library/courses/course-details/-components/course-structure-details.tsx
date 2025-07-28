@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { SubjectType, useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { useStudyLibraryContext } from '@/providers/study-library/init-study-library-provider';
 import { getCourseSubjects } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects';
 import { useGetPackageSessionId } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId';
 import useIntroJsTour from '@/hooks/use-intro';
@@ -64,6 +65,8 @@ import { getTerminology } from '@/components/common/layout-container/sidebar/uti
 import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { convertCapitalToTitleCase } from '@/lib/utils';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 // Interfaces (assuming these are unchanged)
 export interface Chapter {
@@ -169,6 +172,36 @@ export const CourseStructureDetails = ({
     const { getSessionFromPackage, getPackageSessionId } = useInstituteDetailsStore();
     const { studyLibraryData } = useStudyLibraryStore();
     const { setActiveItem } = useContentStore();
+    const { isInitLoading } = useStudyLibraryContext();
+
+    // Check user permissions for editing
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const isAdmin =
+        tokenData?.authorities &&
+        Object.values(tokenData.authorities).some(
+            (auth: Record<string, unknown>) =>
+                Array.isArray(auth?.roles) && auth.roles.includes('ADMIN')
+        );
+    const currentUserId = tokenData?.user;
+
+    // Get course status from study library data
+    const courseData = studyLibraryData?.find((item) => item.course.id === searchParams.courseId);
+    const courseStatus = courseData?.course?.status;
+    const courseCreatedBy = courseData?.course?.createdByUserId;
+    const isOwnCourse = courseCreatedBy === currentUserId;
+
+    // Determine if user can edit structure
+    // For draft courses, allow editing if:
+    // 1. User is admin, OR
+    // 2. User is the course creator and course is in DRAFT status, OR
+    // 3. If createdByUserId is not available, allow editing for DRAFT status (fallback for authored courses)
+    const canEditStructure =
+        isAdmin ||
+        (isOwnCourse && courseStatus === 'DRAFT') ||
+        (!courseCreatedBy && courseStatus === 'DRAFT');
+    const isPublishedCourse = courseStatus === 'ACTIVE';
+    const isInReviewCourse = courseStatus === 'IN_REVIEW';
 
     const courseId: string = searchParams.courseId || '';
     const levelId: string = selectedLevel || '';
@@ -207,9 +240,19 @@ export const CourseStructureDetails = ({
         }
     }, [sessionList, selectedSession]);
 
-    const [selectedTab, setSelectedTab] = useState<string>(TabType.OUTLINE);
+    // Use localStorage to persist selected tab across re-renders and page refreshes
+    const getStorageKey = () => `course-structure-tab-${courseId}`;
+
+    const [selectedTab, setSelectedTab] = useState<string>(() => {
+        // Initialize from localStorage or default to OUTLINE
+        const stored = localStorage.getItem(getStorageKey());
+        return stored || TabType.OUTLINE;
+    });
+
     const handleTabChange = (value: string) => {
         setSelectedTab(value);
+        // Save to localStorage
+        localStorage.setItem(getStorageKey(), value);
         // Reset navigation when switching to Content Structure tab
         if (value === TabType.CONTENT_STRUCTURE) {
             resetNavigation();
@@ -679,7 +722,7 @@ export const CourseStructureDetails = ({
                 {/* Scrollable content */}
                 <div className="px-6 pb-2">
                     <div className="max-w-3xl space-y-1 rounded-lg border border-gray-200 px-2">
-                        {courseStructure === 5 && (
+                        {courseStructure === 5 && canEditStructure && (
                             <AddSubjectButton isTextButton onAddSubject={handleAddSubject} />
                         )}
                         {courseStructure === 5 &&
@@ -720,7 +763,9 @@ export const CourseStructureDetails = ({
                                                     className="truncate"
                                                     title={subject.subject_name}
                                                 >
-                                                    {convertCapitalToTitleCase(subject.subject_name)}
+                                                    {convertCapitalToTitleCase(
+                                                        subject.subject_name
+                                                    )}
                                                 </span>
                                             </div>
                                             <MyButton
@@ -745,11 +790,13 @@ export const CourseStructureDetails = ({
                                                     <div className="sticky top-0 flex h-full flex-col items-center" />
                                                 </div>
 
-                                                <AddModulesButton
-                                                    isTextButton
-                                                    subjectId={subject.id}
-                                                    onAddModuleBySubjectId={handleAddModule}
-                                                />
+                                                {canEditStructure && (
+                                                    <AddModulesButton
+                                                        isTextButton
+                                                        subjectId={subject.id}
+                                                        onAddModuleBySubjectId={handleAddModule}
+                                                    />
+                                                )}
                                                 {(subjectModulesMap[subject.id] ?? []).map(
                                                     (mod, modIdx) => {
                                                         const isModuleOpen = openModules.has(
@@ -788,9 +835,15 @@ export const CourseStructureDetails = ({
                                                                         </span>
                                                                         <span
                                                                             className="truncate"
-                                                                            title={mod.module.module_name}
+                                                                            title={
+                                                                                mod.module
+                                                                                    .module_name
+                                                                            }
                                                                         >
-                                                                            {convertCapitalToTitleCase(mod.module.module_name)}
+                                                                            {convertCapitalToTitleCase(
+                                                                                mod.module
+                                                                                    .module_name
+                                                                            )}
                                                                         </span>
                                                                     </div>
                                                                     <MyButton
@@ -884,9 +937,17 @@ export const CourseStructureDetails = ({
                                                                                                 </span>
                                                                                                 <span
                                                                                                     className="truncate"
-                                                                                                    title={ch.chapter.chapter_name}
+                                                                                                    title={
+                                                                                                        ch
+                                                                                                            .chapter
+                                                                                                            .chapter_name
+                                                                                                    }
                                                                                                 >
-                                                                                                    {convertCapitalToTitleCase(ch.chapter.chapter_name)}
+                                                                                                    {convertCapitalToTitleCase(
+                                                                                                        ch
+                                                                                                            .chapter
+                                                                                                            .chapter_name
+                                                                                                    )}
                                                                                                 </span>
                                                                                             </div>
                                                                                             <MyButton
@@ -1071,11 +1132,13 @@ export const CourseStructureDetails = ({
                                                     <div className="sticky top-0 flex h-full flex-col items-center" />
                                                 </div>
 
-                                                <AddModulesButton
-                                                    isTextButton
-                                                    subjectId={subject.id}
-                                                    onAddModuleBySubjectId={handleAddModule}
-                                                />
+                                                {canEditStructure && (
+                                                    <AddModulesButton
+                                                        isTextButton
+                                                        subjectId={subject.id}
+                                                        onAddModuleBySubjectId={handleAddModule}
+                                                    />
+                                                )}
                                                 {(subjectModulesMap[subject.id] ?? []).map(
                                                     (mod, modIdx) => {
                                                         const isModuleOpen = openModules.has(
@@ -1114,9 +1177,15 @@ export const CourseStructureDetails = ({
                                                                         </span>
                                                                         <span
                                                                             className="truncate"
-                                                                            title={mod.module.module_name}
+                                                                            title={
+                                                                                mod.module
+                                                                                    .module_name
+                                                                            }
                                                                         >
-                                                                            {convertCapitalToTitleCase(mod.module.module_name)}
+                                                                            {convertCapitalToTitleCase(
+                                                                                mod.module
+                                                                                    .module_name
+                                                                            )}
                                                                         </span>
                                                                     </div>
                                                                 </CollapsibleTrigger>
@@ -1188,9 +1257,17 @@ export const CourseStructureDetails = ({
                                                                                                 </span>
                                                                                                 <span
                                                                                                     className="truncate"
-                                                                                                    title={ch.chapter.chapter_name}
+                                                                                                    title={
+                                                                                                        ch
+                                                                                                            .chapter
+                                                                                                            .chapter_name
+                                                                                                    }
                                                                                                 >
-                                                                                                    {convertCapitalToTitleCase(ch.chapter.chapter_name)}
+                                                                                                    {convertCapitalToTitleCase(
+                                                                                                        ch
+                                                                                                            .chapter
+                                                                                                            .chapter_name
+                                                                                                    )}
                                                                                                 </span>
                                                                                             </div>
                                                                                             <MyButton
@@ -1458,9 +1535,17 @@ export const CourseStructureDetails = ({
                                                                                                 </span>
                                                                                                 <span
                                                                                                     className="truncate"
-                                                                                                    title={ch.chapter.chapter_name}
+                                                                                                    title={
+                                                                                                        ch
+                                                                                                            .chapter
+                                                                                                            .chapter_name
+                                                                                                    }
                                                                                                 >
-                                                                                                    {convertCapitalToTitleCase(ch.chapter.chapter_name)}
+                                                                                                    {convertCapitalToTitleCase(
+                                                                                                        ch
+                                                                                                            .chapter
+                                                                                                            .chapter_name
+                                                                                                    )}
                                                                                                 </span>
                                                                                             </div>
                                                                                             <MyButton
@@ -2211,6 +2296,30 @@ export const CourseStructureDetails = ({
         <DashboardLoader />
     ) : (
         <div className="flex size-full flex-col gap-3 rounded-lg bg-white py-4 text-neutral-700">
+            {/* Restriction Message */}
+            {!canEditStructure && (
+                <div className="mx-4 rounded-md border border-orange-200 bg-orange-50 p-3">
+                    <div className="flex items-center gap-2">
+                        <div className="font-medium text-orange-600">
+                            Editing Restricted: This course is{' '}
+                            {isPublishedCourse
+                                ? 'published'
+                                : isInReviewCourse
+                                  ? 'under review'
+                                  : 'restricted'}
+                            .
+                        </div>
+                        <div className="text-sm text-orange-600">
+                            {isPublishedCourse
+                                ? 'Go to My Courses to create an editable copy.'
+                                : isInReviewCourse
+                                  ? "You cannot edit the content while it's under review."
+                                  : 'You cannot edit this content.'}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <Tabs value={selectedTab} onValueChange={handleTabChange} className="w-full">
                 <div className="overflow-x-auto border-b border-gray-200">
                     <TabsList
@@ -2233,7 +2342,20 @@ export const CourseStructureDetails = ({
                     value={selectedTab}
                     className="mt-4 overflow-hidden rounded-r-md"
                 >
-                    {tabContent[selectedTab as TabType]}
+                    <div className="relative">
+                        {/* Loading overlay */}
+                        {isInitLoading && (
+                            <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+                                <div className="flex flex-col items-center gap-3">
+                                    <DashboardLoader size={24} />
+                                    <div className="text-sm font-medium text-gray-600">
+                                        Updating course structure...
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {tabContent[selectedTab as TabType]}
+                    </div>
                 </TabsContent>
             </Tabs>
 

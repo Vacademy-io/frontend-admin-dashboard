@@ -142,15 +142,15 @@ export function MyTable<T>({
     // State for column pinning - determine which columns to pin based on available columns
     const getDefaultPinnedColumns = () => {
         if (!enableColumnPinning) return [];
-        
-        const columnIds = columns.map(col => col.id || (col as any).accessorKey);
+
+        const columnIds = columns.map((col) => col.id || (col as any).accessorKey);
         const commonPinnedColumns = ['checkbox', 'details', 'full_name'];
-        
+
         // Only pin columns that actually exist in the table
-        const availablePinnedColumns = commonPinnedColumns.filter(colId => 
+        const availablePinnedColumns = commonPinnedColumns.filter((colId) =>
             columnIds.includes(colId)
         );
-        
+
         return availablePinnedColumns;
     };
 

@@ -1,4 +1,4 @@
- import { GET_USER_DETAILS } from '@/constants/urls';
+import { GET_USER_DETAILS } from '@/constants/urls';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { CertificateStudentData } from '@/types/certificate/certificate-types';
 

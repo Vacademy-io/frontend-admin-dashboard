@@ -27,7 +27,6 @@ export interface SubmissionStudentData {
     last_report_release_date: string | null;
 }
 
-
 export interface StudentDetailsAttemptedOpen {
     userId: string;
     name: string;

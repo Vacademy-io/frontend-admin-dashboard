@@ -18,7 +18,7 @@ import React, { useEffect, useState } from 'react';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
-import { filterMenuItems, filterMenuList, getModuleFlags } from './helper';
+import { filterMenuItems, filterMenuList, getModuleFlags, filterSidebarByRole } from './helper';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn, goToMailSupport, goToWhatsappSupport } from '@/lib/utils';
@@ -55,7 +55,9 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
 
     const finalSidebarItems = isVoltSubdomain
         ? voltSidebarData
-        : filterMenuItems(filterMenuList(subModules, SidebarItemsData), data?.id);
+        : filterSidebarByRole(
+              filterMenuItems(filterMenuList(subModules, SidebarItemsData), data?.id)
+          );
 
     const { getPublicUrl } = useFileUpload();
     const { instituteLogo, setInstituteLogo } = useInstituteLogoStore();
