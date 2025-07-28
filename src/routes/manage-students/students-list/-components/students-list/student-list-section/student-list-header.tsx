@@ -133,7 +133,7 @@ const InviteLinksDialog = ({
                                             <div className="mb-2 text-xs font-medium text-neutral-600">
                                                 Invite Link:
                                             </div>
-                                            <InviteLink inviteCode={b.invite_code} linkLen={50} />
+                                            <InviteLink inviteCode={b.invite_code} />
                                         </div>
                                     </div>
                                 );
