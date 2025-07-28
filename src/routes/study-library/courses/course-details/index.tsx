@@ -4,6 +4,7 @@ import { CourseDetailsPage } from '@/routes/study-library/courses/course-details
 import { AuthoredCoursesSidebar } from '@/routes/study-library/courses/course-details/-components/authored-courses-sidebar';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { InitStudyLibraryProvider } from '@/providers/study-library/init-study-library-provider';
+import { CourseSettingsProvider } from '@/providers/course-settings-provider';
 import { createFileRoute } from '@tanstack/react-router';
 import { CaretLeft } from '@phosphor-icons/react';
 import { useMemo, useState, useEffect } from 'react';
@@ -104,17 +105,19 @@ function RouteComponent() {
             hasInternalSidebarComponent={true}
             internalSidebarComponent={customSidebar}
         >
-            <InitStudyLibraryProvider>
-                {isLoading || isLoadingCourses ? (
-                    <div className="flex min-h-screen items-center justify-center">
-                        <div className="flex flex-col items-center gap-4">
-                            <DashboardLoader size={32} />
+            <CourseSettingsProvider>
+                <InitStudyLibraryProvider>
+                    {isLoading || isLoadingCourses ? (
+                        <div className="flex min-h-screen items-center justify-center">
+                            <div className="flex flex-col items-center gap-4">
+                                <DashboardLoader size={32} />
+                            </div>
                         </div>
-                    </div>
-                ) : (
-                    <CourseDetailsPage />
-                )}
-            </InitStudyLibraryProvider>
+                    ) : (
+                        <CourseDetailsPage />
+                    )}
+                </InitStudyLibraryProvider>
+            </CourseSettingsProvider>
         </LayoutContainer>
     );
 }
