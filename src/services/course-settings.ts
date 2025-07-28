@@ -31,11 +31,12 @@ export const getCourseSettings = async (): Promise<CourseSettingsData> => {
         );
 
         // If we get a successful response with data, return it
-        if (response.data && response.data.data) {
-            return response.data.data;
+        if (response.data && response.data.data && Object.keys(response.data.data).length > 0) {
+            return mergeWithDefaults(response.data.data);
         }
 
-        // If no data found, return default settings
+        // If no data found or response is null/empty, return default settings
+        console.log('Course settings response is null or empty, using default settings');
         return DEFAULT_COURSE_SETTINGS;
     } catch (error: any) {
         console.error('Error fetching course settings:', error);

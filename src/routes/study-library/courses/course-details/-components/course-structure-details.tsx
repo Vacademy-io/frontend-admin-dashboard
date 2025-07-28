@@ -174,7 +174,11 @@ export const CourseStructureDetails = ({
     const { studyLibraryData } = useStudyLibraryStore();
     const { setActiveItem } = useContentStore();
     const { isInitLoading } = useStudyLibraryContext();
-    const { settings: courseSettings } = useCourseSettings();
+    const {
+        settings: courseSettings,
+        loading: settingsLoading,
+        error: settingsError,
+    } = useCourseSettings();
 
     // Check user permissions for editing
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
@@ -245,9 +249,14 @@ export const CourseStructureDetails = ({
     const getStorageKey = () => `course-structure-tab-${courseId}`;
 
     const [selectedTab, setSelectedTab] = useState<string>(() => {
-        // Initialize from localStorage or use course settings default
+        // Initialize from localStorage first
         const stored = localStorage.getItem(getStorageKey());
         if (stored) return stored;
+
+        // If settings are still loading or failed, use safe default
+        if (settingsLoading || settingsError) {
+            return TabType.OUTLINE; // Safe default - always show Outline first when settings fail
+        }
 
         // Use course settings to determine default tab
         const defaultViewMode = courseSettings?.courseViewSettings?.defaultViewMode;
@@ -256,6 +265,28 @@ export const CourseStructureDetails = ({
         }
         return TabType.OUTLINE; // Default fallback
     });
+
+    // Effect to update tab selection when settings load
+    useEffect(() => {
+        // Don't override if user has already selected a tab (localStorage exists)
+        const stored = localStorage.getItem(getStorageKey());
+        if (stored) return;
+
+        // Only set default tab after settings have loaded successfully
+        if (!settingsLoading && !settingsError) {
+            const defaultViewMode = courseSettings?.courseViewSettings?.defaultViewMode;
+            if (defaultViewMode === 'structure') {
+                setSelectedTab(TabType.CONTENT_STRUCTURE);
+            } else {
+                setSelectedTab(TabType.OUTLINE);
+            }
+        }
+    }, [
+        settingsLoading,
+        settingsError,
+        courseSettings?.courseViewSettings?.defaultViewMode,
+        courseId,
+    ]);
 
     const handleTabChange = (value: string) => {
         setSelectedTab(value);
@@ -462,6 +493,11 @@ export const CourseStructureDetails = ({
 
     // Auto-expand items based on course settings (only for outline tab)
     useEffect(() => {
+        // Only proceed if settings have loaded successfully
+        if (settingsLoading || settingsError) {
+            return; // Use default collapsed state if settings fail - safer fallback
+        }
+
         const defaultState = courseSettings?.outlineSettings?.defaultState;
         if (defaultState === 'expanded' && selectedTab === TabType.OUTLINE) {
             // Expand subjects (always applicable)
@@ -498,7 +534,14 @@ export const CourseStructureDetails = ({
             setOpenModules(new Set());
             setOpenChapters(new Set());
         }
-    }, [courseSettings?.outlineSettings?.defaultState, subjectModulesMap, subjects, selectedTab]);
+    }, [
+        settingsLoading,
+        settingsError,
+        courseSettings?.outlineSettings?.defaultState,
+        subjectModulesMap,
+        subjects,
+        selectedTab,
+    ]);
 
     // Load direct slides for 2-depth courses
     useEffect(() => {
@@ -2376,23 +2419,10 @@ export const CourseStructureDetails = ({
                     >
                         {(() => {
                             // Reorder tabs based on course settings
-                            const defaultViewMode =
-                                courseSettings?.courseViewSettings?.defaultViewMode;
                             let reorderedTabs = [...tabs];
 
-                            if (defaultViewMode === 'structure') {
-                                // Move Content Structure to first position
-                                const structureTab = reorderedTabs.find(
-                                    (tab) => tab.value === 'CONTENT_STRUCTURE'
-                                );
-                                const otherTabs = reorderedTabs.filter(
-                                    (tab) => tab.value !== 'CONTENT_STRUCTURE'
-                                );
-                                if (structureTab) {
-                                    reorderedTabs = [structureTab, ...otherTabs];
-                                }
-                            } else {
-                                // Move Outline to first position (default behavior)
+                            // If settings are loading or failed, use default order (Outline first as fallback)
+                            if (settingsLoading || settingsError) {
                                 const outlineTab = reorderedTabs.find(
                                     (tab) => tab.value === 'OUTLINE'
                                 );
@@ -2401,6 +2431,33 @@ export const CourseStructureDetails = ({
                                 );
                                 if (outlineTab) {
                                     reorderedTabs = [outlineTab, ...otherTabs];
+                                }
+                            } else {
+                                const defaultViewMode =
+                                    courseSettings?.courseViewSettings?.defaultViewMode;
+
+                                if (defaultViewMode === 'structure') {
+                                    // Move Content Structure to first position
+                                    const structureTab = reorderedTabs.find(
+                                        (tab) => tab.value === 'CONTENT_STRUCTURE'
+                                    );
+                                    const otherTabs = reorderedTabs.filter(
+                                        (tab) => tab.value !== 'CONTENT_STRUCTURE'
+                                    );
+                                    if (structureTab) {
+                                        reorderedTabs = [structureTab, ...otherTabs];
+                                    }
+                                } else {
+                                    // Move Outline to first position (default behavior)
+                                    const outlineTab = reorderedTabs.find(
+                                        (tab) => tab.value === 'OUTLINE'
+                                    );
+                                    const otherTabs = reorderedTabs.filter(
+                                        (tab) => tab.value !== 'OUTLINE'
+                                    );
+                                    if (outlineTab) {
+                                        reorderedTabs = [outlineTab, ...otherTabs];
+                                    }
                                 }
                             }
 

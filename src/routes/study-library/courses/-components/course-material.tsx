@@ -1,5 +1,5 @@
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { AddCourseButton } from '@/components/common/study-library/add-course/add-course-button';
 import useIntroJsTour from '@/hooks/use-intro';
 import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import type { LevelType } from '@/schemas/student/student-list/institute-schema';
 import { handleGetInstituteUsersForAccessControl } from '@/routes/dashboard/-services/dashboard-services';
-import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import { useSuspenseQuery, useQuery } from '@tanstack/react-query';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
@@ -156,25 +156,7 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
     const [sortBy, setSortBy] = useState('oldest');
     const [searchValue, setSearchValue] = useState('');
 
-    const getAllCoursesMutation = useMutation({
-        mutationFn: ({
-            page,
-            pageSize,
-            instituteId,
-            data,
-        }: {
-            page: number;
-            pageSize: number;
-            instituteId: string | undefined;
-            data: AllCourseFilters;
-        }) => getAllCoursesWithFilters(page, pageSize, instituteId, data),
-        onSuccess: (data) => {
-            setAllCoursesData(data);
-        },
-        onError: (error: unknown) => {
-            throw error;
-        },
-    });
+    // Removed getAllCoursesMutation - now using React Query directly
 
     useIntroJsTour({
         key: StudyLibraryIntroKey.createCourseStep,
@@ -197,49 +179,7 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
 
     const handlePageChange = (newPage: number = 0) => {
         setPage(newPage);
-        if (!selectedTab || !tokenData || !instituteDetails?.id || !selectedFilters) return;
-        const safeInstituteId: string = instituteDetails.id;
-        const safeSelectedFilters: AllCourseFilters = {
-            status: selectedFilters?.status ?? ['ACTIVE'],
-            level_ids: selectedFilters?.level_ids ?? [],
-            tag: selectedFilters?.tag ?? [],
-            faculty_ids: selectedFilters?.faculty_ids ?? [],
-            search_by_name: selectedFilters?.search_by_name ?? '',
-            min_percentage_completed: selectedFilters?.min_percentage_completed ?? 0,
-            max_percentage_completed: selectedFilters?.max_percentage_completed ?? 0,
-            sort_columns: selectedFilters?.sort_columns ?? { created_at: 'DESC' as const },
-        };
-
-        const coursesMutate = getAllCoursesMutation.mutate;
-
-        if (typeof coursesMutate === 'function') {
-            const safeStatus = safeSelectedFilters.status ?? ['ACTIVE'];
-            const safeLevelIds = safeSelectedFilters.level_ids ?? [];
-            const safeTag = safeSelectedFilters.tag ?? [];
-            const safeFacultyIds = (safeSelectedFilters.faculty_ids ?? []).filter(
-                (id): id is string => typeof id === 'string'
-            );
-            const safeSearchByName = safeSelectedFilters.search_by_name ?? '';
-            const safeMinCompleted = safeSelectedFilters.min_percentage_completed ?? 0;
-            const safeMaxCompleted = safeSelectedFilters.max_percentage_completed ?? 0;
-            const safeSortColumns: Record<string, 'ASC' | 'DESC'> =
-                safeSelectedFilters.sort_columns ?? { created_at: 'DESC' as const };
-            coursesMutate({
-                page: newPage,
-                pageSize: 10,
-                instituteId: safeInstituteId,
-                data: {
-                    status: safeStatus,
-                    level_ids: safeLevelIds,
-                    tag: safeTag,
-                    faculty_ids: safeFacultyIds,
-                    search_by_name: safeSearchByName,
-                    min_percentage_completed: safeMinCompleted,
-                    max_percentage_completed: safeMaxCompleted,
-                    sort_columns: safeSortColumns,
-                },
-            });
-        }
+        // React Query will automatically refetch when page changes
     };
 
     const handleLevelChange = (levelId: string) => {
@@ -361,40 +301,65 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
     const { getPublicUrl } = useFileUpload();
     const [courseImageUrls, setCourseImageUrls] = useState<Record<string, string>>({});
 
-    // Store refs to prevent stale closures
-    const selectedFiltersRef = useRef(selectedFilters);
-    useEffect(() => {
-        selectedFiltersRef.current = selectedFilters;
+    // Create stable filter key for React Query
+    const filtersKey = useMemo(() => {
+        return {
+            status: selectedFilters.status,
+            level_ids: selectedFilters.level_ids,
+            tag: selectedFilters.tag,
+            faculty_ids: selectedFilters.faculty_ids,
+            search_by_name: selectedFilters.search_by_name,
+            min_percentage_completed: selectedFilters.min_percentage_completed,
+            max_percentage_completed: selectedFilters.max_percentage_completed,
+            sort_columns: selectedFilters.sort_columns,
+        };
     }, [selectedFilters]);
 
-    const pageRef = useRef(page);
+    // Only fetch data for the active tab to prevent unnecessary API calls
+    const { data: fetchedAllCoursesData, isLoading: isLoadingAllCourses } = useQuery({
+        queryKey: ['allCourses', instituteDetails?.id, page, filtersKey],
+        queryFn: () => getAllCoursesWithFilters(page, 10, instituteDetails?.id, filtersKey),
+        enabled: !!instituteDetails?.id && selectedTab === 'AllCourses',
+        staleTime: 30000, // Data is fresh for 30 seconds
+        gcTime: 300000, // Cache for 5 minutes
+    });
+
+    const { data: fetchedAuthoredCoursesData, isLoading: isLoadingAuthoredCourses } = useQuery({
+        queryKey: ['authoredCourses', instituteDetails?.id, page, filtersKey, tokenData?.user],
+        queryFn: () => {
+            const authoredFilters = {
+                ...filtersKey,
+                faculty_ids: tokenData?.user ? [tokenData.user] : [],
+            };
+            return getAllCoursesWithFilters(page, 10, instituteDetails?.id, authoredFilters);
+        },
+        enabled: !!instituteDetails?.id && !!tokenData?.user && selectedTab === 'AuthoredCourses',
+        staleTime: 30000,
+        gcTime: 300000,
+    });
+
+    // Update local state when React Query data changes
     useEffect(() => {
-        pageRef.current = page;
-    }, [page]);
-    // Fetch all tabs data in parallel
+        if (fetchedAllCoursesData) {
+            setAllCoursesData(fetchedAllCoursesData);
+            setLoading((l) => ({ ...l, allCourses: false }));
+        }
+    }, [fetchedAllCoursesData]);
 
     useEffect(() => {
-        if (!instituteDetails?.id) return;
-        setLoading({ allCourses: true, authoredCourses: true });
-        // AllCourses
-        getAllCoursesWithFilters(
-            pageRef.current,
-            10,
-            instituteDetails.id,
-            selectedFiltersRef.current
-        )
-            .then((data) => setAllCoursesData(data))
-            .finally(() => setLoading((l) => ({ ...l, allCourses: false })));
-        // AuthoredCourses
-        const authoredFilters = {
-            ...selectedFiltersRef.current,
-            faculty_ids: tokenData?.user ? [tokenData.user] : [],
-        };
-        getAllCoursesWithFilters(pageRef.current, 10, instituteDetails.id, authoredFilters)
-            .then((data) => setAuthoredCoursesData(data))
-            .finally(() => setLoading((l) => ({ ...l, authoredCourses: false })));
-        // Note: CourseRequests removed - now handled by new approval workflow tabs
-    }, [instituteDetails?.id, page, JSON.stringify(selectedFilters)]);
+        if (fetchedAuthoredCoursesData) {
+            setAuthoredCoursesData(fetchedAuthoredCoursesData);
+            setLoading((l) => ({ ...l, authoredCourses: false }));
+        }
+    }, [fetchedAuthoredCoursesData]);
+
+    // Update loading states - only consider active tab
+    useEffect(() => {
+        setLoading({
+            allCourses: selectedTab === 'AllCourses' ? isLoadingAllCourses : false,
+            authoredCourses: selectedTab === 'AuthoredCourses' ? isLoadingAuthoredCourses : false,
+        });
+    }, [isLoadingAllCourses, isLoadingAuthoredCourses, selectedTab]);
 
     // Helper to get available tabs
     const availableTabs = useMemo(() => {
