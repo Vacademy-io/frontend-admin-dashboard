@@ -8,11 +8,92 @@ import {
 } from '@/types/course-settings';
 
 const COURSE_SETTINGS_KEY = 'COURSE_SETTING';
+const LOCALSTORAGE_KEY = 'course-settings-cache';
+const CACHE_EXPIRY_HOURS = 24; // Cache expires after 24 hours
+
+interface CachedCourseSettings {
+    data: CourseSettingsData;
+    timestamp: number;
+    instituteId: string;
+}
 
 /**
- * Get course settings for the current institute
+ * Get cached course settings from localStorage
  */
-export const getCourseSettings = async (): Promise<CourseSettingsData> => {
+const getCachedSettings = (): CourseSettingsData | null => {
+    try {
+        const instituteId = getInstituteId();
+        if (!instituteId) return null;
+
+        const cached = localStorage.getItem(LOCALSTORAGE_KEY);
+        if (!cached) return null;
+
+        const cachedData: CachedCourseSettings = JSON.parse(cached);
+
+        // Check if cache is for the same institute
+        if (cachedData.instituteId !== instituteId) {
+            localStorage.removeItem(LOCALSTORAGE_KEY);
+            return null;
+        }
+
+        // Check if cache has expired
+        const now = Date.now();
+        const cacheAge = now - cachedData.timestamp;
+        const expiryTime = CACHE_EXPIRY_HOURS * 60 * 60 * 1000; // Convert to milliseconds
+
+        if (cacheAge > expiryTime) {
+            localStorage.removeItem(LOCALSTORAGE_KEY);
+            return null;
+        }
+
+        return mergeWithDefaults(cachedData.data);
+    } catch (error) {
+        console.error('Error reading cached course settings:', error);
+        localStorage.removeItem(LOCALSTORAGE_KEY);
+        return null;
+    }
+};
+
+/**
+ * Save course settings to localStorage cache
+ */
+const setCachedSettings = (settings: CourseSettingsData): void => {
+    try {
+        const instituteId = getInstituteId();
+        if (!instituteId) return;
+
+        const cacheData: CachedCourseSettings = {
+            data: settings,
+            timestamp: Date.now(),
+            instituteId,
+        };
+
+        localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(cacheData));
+    } catch (error) {
+        console.error('Error caching course settings:', error);
+    }
+};
+
+/**
+ * Clear cached course settings
+ */
+export const clearCourseSettingsCache = (): void => {
+    localStorage.removeItem(LOCALSTORAGE_KEY);
+};
+
+/**
+ * Get course settings synchronously from cache only (no API call)
+ * Useful for cases where you need immediate access and don't want to wait for async
+ */
+export const getCourseSettingsFromCache = (): CourseSettingsData => {
+    const cachedSettings = getCachedSettings();
+    return cachedSettings || DEFAULT_COURSE_SETTINGS;
+};
+
+/**
+ * Fetch course settings from API and update cache
+ */
+const fetchCourseSettingsFromAPI = async (): Promise<CourseSettingsData> => {
     try {
         const instituteId = getInstituteId();
 
@@ -30,31 +111,58 @@ export const getCourseSettings = async (): Promise<CourseSettingsData> => {
             }
         );
 
-        // If we get a successful response with data, return it
+        let settings: CourseSettingsData;
+
+        // If we get a successful response with data, use it
         if (response.data && response.data.data && Object.keys(response.data.data).length > 0) {
-            return mergeWithDefaults(response.data.data);
+            settings = mergeWithDefaults(response.data.data);
+        } else {
+            // If no data found or response is null/empty, use default settings
+            console.log('Course settings response is null or empty, using default settings');
+            settings = DEFAULT_COURSE_SETTINGS;
         }
 
-        // If no data found or response is null/empty, return default settings
-        console.log('Course settings response is null or empty, using default settings');
-        return DEFAULT_COURSE_SETTINGS;
+        // Cache the settings
+        setCachedSettings(settings);
+        return settings;
     } catch (error: any) {
         console.error('Error fetching course settings:', error);
 
         // Check if it's a 510 error (Setting not found) or other error
         if (error.response?.status === 510 || error.response?.data?.ex?.includes('Setting not found')) {
             console.log('Course settings not found, returning default settings');
-            return DEFAULT_COURSE_SETTINGS;
+            const settings = DEFAULT_COURSE_SETTINGS;
+            setCachedSettings(settings);
+            return settings;
         }
 
         // For other errors, still return default settings but log the error
         console.warn('Error loading course settings, using defaults:', error.message);
-        return DEFAULT_COURSE_SETTINGS;
+        return DEFAULT_COURSE_SETTINGS; // Don't cache error responses
     }
 };
 
 /**
- * Save course settings for the current institute
+ * Get course settings - tries cache first, then API if needed
+ */
+export const getCourseSettings = async (forceRefresh = false): Promise<CourseSettingsData> => {
+    // If forcing refresh, skip cache and fetch from API
+    if (forceRefresh) {
+        return fetchCourseSettingsFromAPI();
+    }
+
+    // Try to get from cache first
+    const cachedSettings = getCachedSettings();
+    if (cachedSettings) {
+        return cachedSettings;
+    }
+
+    // If no cache, fetch from API
+    return fetchCourseSettingsFromAPI();
+};
+
+/**
+ * Save course settings for the current institute and update cache
  */
 export const saveCourseSettings = async (settings: CourseSettingsData): Promise<CourseSettingsResponse> => {
     try {
@@ -82,6 +190,10 @@ export const saveCourseSettings = async (settings: CourseSettingsData): Promise<
                 },
             }
         );
+
+        // Update cache with the saved settings
+        const mergedSettings = mergeWithDefaults(settings);
+        setCachedSettings(mergedSettings);
 
         return response.data;
     } catch (error) {
