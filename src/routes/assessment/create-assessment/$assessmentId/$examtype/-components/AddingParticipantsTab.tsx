@@ -16,6 +16,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { convertCapitalToTitleCase } from '@/lib/utils';
 
 type TestAccessFormType = z.infer<typeof testAccessSchema>;
 
@@ -199,7 +200,7 @@ const Step3BatchList = ({
                     <SelectContent>
                         {sectionsInfo?.map((section) => (
                             <SelectItem key={section.id} value={section.id}>
-                                {section.name}
+                                {convertCapitalToTitleCase(section.name)}
                             </SelectItem>
                         ))}
                     </SelectContent>

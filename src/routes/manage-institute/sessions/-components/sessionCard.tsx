@@ -16,6 +16,7 @@ import { useEditSession } from '@/services/study-library/session-management/edit
 import { toast } from 'sonner';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { convertCapitalToTitleCase } from '@/lib/utils';
 
 interface SessionCardProps {
     data: SessionData;
@@ -117,7 +118,7 @@ export function SessionCard({ data }: SessionCardProps) {
         <div className="flex flex-col gap-4 rounded-2xl border p-6">
             <div className="flex flex-row items-end justify-between">
                 <div>
-                    <div className="text-lg font-[600]">{data?.session?.session_name}</div>
+                    <div className="text-lg font-[600]">{convertCapitalToTitleCase(data?.session?.session_name)}</div>
                     <div className="text-sm text-neutral-500">Start Date</div>
                 </div>
                 <DropdownMenu>
@@ -163,7 +164,7 @@ export function SessionCard({ data }: SessionCardProps) {
                 {data?.packages.map((item, idx) =>
                     containsActiveLevels(item) ? (
                         <div key={idx}>
-                            <div className="text-base">{item?.package_dto.package_name}</div>
+                            <div className="text-base">{convertCapitalToTitleCase(item?.package_dto.package_name)}</div>
                             <div>
                                 {item.level.map(
                                     (level, idx) =>
@@ -174,7 +175,7 @@ export function SessionCard({ data }: SessionCardProps) {
                                             >
                                                 <div className="size-2 rounded-full bg-neutral-300"></div>
                                                 <div className="text-sm">
-                                                    {level.level_dto.level_name}
+                                                    {convertCapitalToTitleCase(level.level_dto.level_name)}
                                                 </div>
                                             </div>
                                         )

@@ -19,7 +19,7 @@ import { SubscriptionPlanPreview } from './SubscriptionPlanPreview';
 import { DonationPlanPreview } from './DonationPlanPreview';
 import { PaymentPlanEditor } from './PaymentPlanEditor';
 import { currencyOptions } from '../../-constants/payments';
-import { PaymentPlan } from '@/types/payment';
+import { PaymentPlan, PaymentPlans, PaymentPlanType } from '@/types/payment';
 import { RoleTerms, SystemTerms } from '../NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
@@ -71,7 +71,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
         if (isOpen && !editingPlan) {
             setPlanData({
                 name: '',
-                type: 'subscription',
+                type: PaymentPlans.SUBSCRIPTION,
                 currency: defaultCurrency,
                 isDefault: false,
                 features: featuresGlobal,
@@ -106,7 +106,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
 
         // Validate free plan
         if (
-            planData.type === 'free' &&
+            planData.type === PaymentPlans.FREE &&
             (!planData.config?.free?.validityDays || planData.config.free.validityDays <= 0)
         ) {
             return;
@@ -115,14 +115,16 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
         const newPlan: PaymentPlan = {
             id: `plan_${Date.now()}`,
             name: planData.name,
-            type: planData.type,
+            type: planData.type.toUpperCase() as PaymentPlanType,
             tag: planData.tag || 'free',
             currency: planData.currency || 'INR',
             isDefault: planData.isDefault || false,
             config: planData.config || {},
             features: planData.features,
             validityDays:
-                planData.type === 'free' ? planData.config?.free?.validityDays : undefined,
+                planData.type === PaymentPlans.FREE
+                    ? planData.config?.free?.validityDays
+                    : undefined,
         };
 
         onSave(newPlan);
@@ -132,6 +134,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
     const updateConfig = (newConfig: Record<string, unknown>) => {
         setPlanData({
             ...planData,
+            type: planData.type?.toUpperCase() as PaymentPlanType,
             config: {
                 ...planData.config,
                 ...newConfig,
@@ -143,7 +146,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
         if (currentStep === 1 && planData.type && planData.name) {
             setCurrentStep(2);
         } else if (currentStep === 2) {
-            if (planData.type === 'free' || planData.type === 'donation') {
+            if (planData.type === PaymentPlans.FREE || planData.type === PaymentPlans.DONATION) {
                 handleSave();
             } else {
                 setCurrentStep(3);
@@ -169,18 +172,18 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
     };
 
     const getTotalSteps = () => {
-        if (planData.type === 'free') return 2;
-        if (planData.type === 'donation') return 2;
+        if (planData.type === PaymentPlans.FREE) return 2;
+        if (planData.type === PaymentPlans.DONATION) return 2;
         return 3;
     };
 
     // Optimized preview rendering function
     const renderPreview = () => {
         const hasCustomIntervals =
-            planData.type === 'subscription' &&
+            planData.type === PaymentPlans.SUBSCRIPTION &&
             planData.config?.subscription?.customIntervals?.length > 0;
 
-        if (!showPreview || !(hasCustomIntervals || planData.type === 'donation')) {
+        if (!showPreview || !(hasCustomIntervals || planData.type === PaymentPlans.DONATION)) {
             return null;
         }
 
@@ -202,7 +205,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
 
         // Handle plan discounts based on type
         switch (planData.type) {
-            case 'subscription':
+            case PaymentPlans.SUBSCRIPTION:
                 if (planData.config?.subscription?.customIntervals) {
                     planData.config.subscription.customIntervals.forEach(
                         (interval: CustomInterval, idx: number) => {
@@ -226,7 +229,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                     );
                 }
                 break;
-            case 'upfront':
+            case PaymentPlans.UPFRONT:
                 if (planDiscounts.upfront && typeof planDiscounts.upfront === 'object') {
                     const discount = planDiscounts.upfront;
                     if (discount.type !== 'none' && discount.amount) {
@@ -250,11 +253,11 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
 
         return (
             <div ref={previewRef} className="mt-8 space-y-6">
-                {planData.type === 'subscription' && hasCustomIntervals ? (
+                {planData.type === PaymentPlans.SUBSCRIPTION && hasCustomIntervals ? (
                     <SubscriptionPlanPreview
                         currency={planData.currency || 'INR'}
                         subscriptionPlans={{
-                            ...(planData.type === 'subscription' &&
+                            ...(planData.type === PaymentPlans.SUBSCRIPTION &&
                                 planData.config?.subscription?.customIntervals
                                     ?.map((interval: CustomInterval, idx: number) => ({
                                         [`custom${idx}`]: {
@@ -285,7 +288,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                             console.log('Selected plan:', planType);
                         }}
                     />
-                ) : planData.type === 'donation' ? (
+                ) : planData.type === PaymentPlans.DONATION ? (
                     <DonationPlanPreview
                         currency={planData.currency || 'INR'}
                         suggestedAmounts={planData.config?.donation?.suggestedAmounts || ''}
@@ -327,9 +330,10 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
     }
 
     const hasCustomIntervals =
-        planData.type === 'subscription' &&
+        planData.type === PaymentPlans.SUBSCRIPTION &&
         planData.config?.subscription?.customIntervals?.length > 0;
 
+    console.log('planData', planData);
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-h-[90vh] min-w-[800px] overflow-y-auto">
@@ -368,16 +372,10 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                             {requireApprovalCheckbox}
 
                             <RadioGroup
-                                value={
-                                    planData.type as
-                                        | 'subscription'
-                                        | 'upfront'
-                                        | 'donation'
-                                        | 'free'
+                                value={planData.type as PaymentPlanType}
+                                onValueChange={(value: PaymentPlanType) =>
+                                    setPlanData({ ...planData, type: value, config: {} })
                                 }
-                                onValueChange={(
-                                    value: 'subscription' | 'upfront' | 'donation' | 'free'
-                                ) => setPlanData({ ...planData, type: value, config: {} })}
                                 className="space-y-8"
                             >
                                 <div>
@@ -388,11 +386,11 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                         {/* Free Plan */}
                                         <label
                                             htmlFor="free"
-                                            className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${planData.type === 'free' ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'}`}
+                                            className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${planData.type === PaymentPlans.FREE ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'}`}
                                         >
                                             <div className="flex items-start space-x-3">
                                                 <RadioGroupItem
-                                                    value="free"
+                                                    value={PaymentPlans.FREE}
                                                     id="free"
                                                     className="mt-1"
                                                 />
@@ -421,11 +419,11 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                         {/* Optional Donation */}
                                         <label
                                             htmlFor="donation"
-                                            className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${planData.type === 'donation' ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'}`}
+                                            className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${planData.type === PaymentPlans.DONATION ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'}`}
                                         >
                                             <div className="flex items-start space-x-3">
                                                 <RadioGroupItem
-                                                    value="donation"
+                                                    value={PaymentPlans.DONATION}
                                                     id="donation"
                                                     className="mt-1"
                                                 />
@@ -462,11 +460,11 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                         {/* Subscription */}
                                         <label
                                             htmlFor="subscription"
-                                            className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${planData.type === 'subscription' ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'}`}
+                                            className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${planData.type === PaymentPlans.SUBSCRIPTION ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'}`}
                                         >
                                             <div className="flex items-start space-x-3">
                                                 <RadioGroupItem
-                                                    value="subscription"
+                                                    value={PaymentPlans.SUBSCRIPTION}
                                                     id="subscription"
                                                     className="mt-1"
                                                 />
@@ -494,11 +492,11 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                         </label>
                                         {/* One-Time Payment */}
                                         <label
-                                            className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${planData.type === 'upfront' ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'}`}
+                                            className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${planData.type === PaymentPlans.UPFRONT ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'}`}
                                         >
                                             <div className="flex items-start space-x-3">
                                                 <RadioGroupItem
-                                                    value="upfront"
+                                                    value={PaymentPlans.UPFRONT}
                                                     id="upfront"
                                                     className="mt-1"
                                                 />
@@ -534,7 +532,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                     {/* Step 2: Plan Configuration */}
                     {currentStep === 2 && (
                         <div className="space-y-6">
-                            {planData.type !== 'free' && (
+                            {planData.type !== PaymentPlans.FREE && (
                                 <div className="mb-4">
                                     <Label htmlFor="planCurrency" className="text-sm font-medium">
                                         Plan Currency
@@ -566,7 +564,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                 </div>
                             )}
 
-                            {planData.type === 'free' && (
+                            {planData.type === PaymentPlans.FREE && (
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="text-lg">
@@ -601,7 +599,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                 </Card>
                             )}
 
-                            {planData.type === 'subscription' && (
+                            {planData.type === PaymentPlans.SUBSCRIPTION && (
                                 <>
                                     {/* Custom Intervals Section */}
                                     <div className="space-y-6">
@@ -976,7 +974,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                 </>
                             )}
 
-                            {planData.type === 'upfront' && (
+                            {planData.type === PaymentPlans.UPFRONT && (
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="text-lg">
@@ -1008,7 +1006,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                 </Card>
                             )}
 
-                            {planData.type === 'donation' && (
+                            {planData.type === PaymentPlans.DONATION && (
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="text-lg">
@@ -1225,6 +1223,505 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                         </div>
                     )}
 
+                    {/* Step 3: Plan Discounts */}
+                    {currentStep === 3 &&
+                        planData.type !== PaymentPlans.FREE &&
+                        planData.type !== PaymentPlans.DONATION && (
+                            <div className="space-y-6">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="text-lg">
+                                            Apply Discounts to Plan
+                                        </CardTitle>
+                                        <p className="text-sm text-gray-600">
+                                            Set discounts for each plan interval or price tier
+                                        </p>
+                                    </CardHeader>
+                                    <CardContent>
+                                        {planData.type === PaymentPlans.SUBSCRIPTION &&
+                                        planData.config?.subscription?.customIntervals ? (
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full border-collapse border border-gray-200">
+                                                    <thead>
+                                                        <tr className="bg-gray-50">
+                                                            <th className="border border-gray-200 px-4 py-2 text-left font-medium">
+                                                                Subscription Interval
+                                                            </th>
+                                                            <th className="border border-gray-200 px-4 py-2 text-left font-medium">
+                                                                Original Price
+                                                            </th>
+                                                            <th className="border border-gray-200 px-4 py-2 text-left font-medium">
+                                                                Discount Type
+                                                            </th>
+                                                            <th className="border border-gray-200 px-4 py-2 text-left font-medium">
+                                                                Discount Amount
+                                                            </th>
+                                                            <th className="border border-gray-200 px-4 py-2 text-left font-medium">
+                                                                Final Price
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {planData.config.subscription.customIntervals.map(
+                                                            (
+                                                                interval: CustomInterval,
+                                                                idx: number
+                                                            ) => {
+                                                                const originalPrice = parseFloat(
+                                                                    String(interval.price || '0')
+                                                                );
+                                                                const discountType =
+                                                                    planData.config
+                                                                        ?.planDiscounts?.[
+                                                                        `interval_${idx}`
+                                                                    ]?.type || 'none';
+                                                                const discountAmount =
+                                                                    planData.config
+                                                                        ?.planDiscounts?.[
+                                                                        `interval_${idx}`
+                                                                    ]?.amount || '';
+
+                                                                let finalPrice = originalPrice;
+                                                                if (
+                                                                    discountType === 'percentage' &&
+                                                                    discountAmount
+                                                                ) {
+                                                                    finalPrice =
+                                                                        originalPrice *
+                                                                        (1 -
+                                                                            parseFloat(
+                                                                                discountAmount
+                                                                            ) /
+                                                                                100);
+                                                                } else if (
+                                                                    discountType === 'fixed' &&
+                                                                    discountAmount
+                                                                ) {
+                                                                    finalPrice = Math.max(
+                                                                        0,
+                                                                        originalPrice -
+                                                                            parseFloat(
+                                                                                discountAmount
+                                                                            )
+                                                                    );
+                                                                }
+
+                                                                return (
+                                                                    <tr
+                                                                        key={idx}
+                                                                        className="hover:bg-gray-50"
+                                                                    >
+                                                                        <td className="border border-gray-200 px-4 py-2">
+                                                                            <span className="font-medium">
+                                                                                {interval.title ||
+                                                                                    `${interval.value} ${interval.unit} Plan`}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="border border-gray-200 px-4 py-2">
+                                                                            <span className="font-medium">
+                                                                                {getCurrencySymbol(
+                                                                                    planData.currency!
+                                                                                )}
+                                                                                {originalPrice.toLocaleString()}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="border border-gray-200 px-4 py-2">
+                                                                            <Select
+                                                                                value={discountType}
+                                                                                onValueChange={(
+                                                                                    value
+                                                                                ) => {
+                                                                                    const planDiscounts =
+                                                                                        {
+                                                                                            ...planData
+                                                                                                .config
+                                                                                                ?.planDiscounts,
+                                                                                            [`interval_${idx}`]:
+                                                                                                {
+                                                                                                    type: value,
+                                                                                                    amount:
+                                                                                                        value ===
+                                                                                                        'none'
+                                                                                                            ? ''
+                                                                                                            : discountAmount,
+                                                                                                },
+                                                                                        };
+                                                                                    updateConfig({
+                                                                                        planDiscounts,
+                                                                                    });
+                                                                                }}
+                                                                            >
+                                                                                <SelectTrigger className="w-32">
+                                                                                    <SelectValue />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    <SelectItem value="none">
+                                                                                        No Discount
+                                                                                    </SelectItem>
+                                                                                    <SelectItem value="percentage">
+                                                                                        % Off
+                                                                                    </SelectItem>
+                                                                                    <SelectItem value="fixed">
+                                                                                        Flat Off
+                                                                                    </SelectItem>
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        </td>
+                                                                        <td className="border border-gray-200 px-4 py-2">
+                                                                            {discountType !==
+                                                                            'none' ? (
+                                                                                <div className="flex items-center space-x-2">
+                                                                                    {discountType ===
+                                                                                        'fixed' && (
+                                                                                        <span className="text-sm">
+                                                                                            {getCurrencySymbol(
+                                                                                                planData.currency!
+                                                                                            )}
+                                                                                        </span>
+                                                                                    )}
+                                                                                    <Input
+                                                                                        type="number"
+                                                                                        min="0"
+                                                                                        max={
+                                                                                            discountType ===
+                                                                                            'percentage'
+                                                                                                ? 100
+                                                                                                : originalPrice
+                                                                                        }
+                                                                                        placeholder={
+                                                                                            discountType ===
+                                                                                            'percentage'
+                                                                                                ? '10'
+                                                                                                : '50'
+                                                                                        }
+                                                                                        value={
+                                                                                            discountAmount
+                                                                                        }
+                                                                                        onChange={(
+                                                                                            e
+                                                                                        ) => {
+                                                                                            const planDiscounts =
+                                                                                                {
+                                                                                                    ...planData
+                                                                                                        .config
+                                                                                                        ?.planDiscounts,
+                                                                                                    [`interval_${idx}`]:
+                                                                                                        {
+                                                                                                            type: discountType,
+                                                                                                            amount: e
+                                                                                                                .target
+                                                                                                                .value,
+                                                                                                        },
+                                                                                                };
+                                                                                            updateConfig(
+                                                                                                {
+                                                                                                    planDiscounts,
+                                                                                                }
+                                                                                            );
+                                                                                        }}
+                                                                                        className="w-20"
+                                                                                    />
+                                                                                    {discountType ===
+                                                                                        'percentage' && (
+                                                                                        <span className="text-sm">
+                                                                                            %
+                                                                                        </span>
+                                                                                    )}
+                                                                                </div>
+                                                                            ) : (
+                                                                                <span className="text-gray-400">
+                                                                                    -
+                                                                                </span>
+                                                                            )}
+                                                                        </td>
+                                                                        <td className="border border-gray-200 px-4 py-2">
+                                                                            <span
+                                                                                className={`font-medium ${finalPrice < originalPrice ? 'text-green-600' : 'text-gray-900'}`}
+                                                                            >
+                                                                                {getCurrencySymbol(
+                                                                                    planData.currency!
+                                                                                )}
+                                                                                {finalPrice.toLocaleString()}
+                                                                            </span>
+                                                                            {finalPrice <
+                                                                                originalPrice && (
+                                                                                <div className="text-xs text-gray-500">
+                                                                                    Save{' '}
+                                                                                    {getCurrencySymbol(
+                                                                                        planData.currency!
+                                                                                    )}
+                                                                                    {(
+                                                                                        originalPrice -
+                                                                                        finalPrice
+                                                                                    ).toLocaleString()}
+                                                                                </div>
+                                                                            )}
+                                                                        </td>
+                                                                    </tr>
+                                                                );
+                                                            }
+                                                        )}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        ) : planData.type === PaymentPlans.UPFRONT ? (
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full border-collapse border border-gray-200">
+                                                    <thead>
+                                                        <tr className="bg-gray-50">
+                                                            <th className="border border-gray-200 px-4 py-2 text-left font-medium">
+                                                                Plan Type
+                                                            </th>
+                                                            <th className="border border-gray-200 px-4 py-2 text-left font-medium">
+                                                                Original Price
+                                                            </th>
+                                                            <th className="border border-gray-200 px-4 py-2 text-left font-medium">
+                                                                Discount Type
+                                                            </th>
+                                                            <th className="border border-gray-200 px-4 py-2 text-left font-medium">
+                                                                Discount Amount
+                                                            </th>
+                                                            <th className="border border-gray-200 px-4 py-2 text-left font-medium">
+                                                                Final Price
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr className="hover:bg-gray-50">
+                                                            <td className="border border-gray-200 px-4 py-2">
+                                                                <span className="font-medium">
+                                                                    One-Time Payment
+                                                                </span>
+                                                            </td>
+                                                            <td className="border border-gray-200 px-4 py-2">
+                                                                <span className="font-medium">
+                                                                    {getCurrencySymbol(
+                                                                        planData.currency!
+                                                                    )}
+                                                                    {parseFloat(
+                                                                        planData.config?.upfront
+                                                                            ?.fullPrice || '0'
+                                                                    ).toLocaleString()}
+                                                                </span>
+                                                            </td>
+                                                            <td className="border border-gray-200 px-4 py-2">
+                                                                <Select
+                                                                    value={
+                                                                        planData.config
+                                                                            ?.planDiscounts?.upfront
+                                                                            ?.type || 'none'
+                                                                    }
+                                                                    onValueChange={(value) => {
+                                                                        const planDiscounts = {
+                                                                            ...planData.config
+                                                                                ?.planDiscounts,
+                                                                            upfront: {
+                                                                                type: value,
+                                                                                amount:
+                                                                                    value === 'none'
+                                                                                        ? ''
+                                                                                        : planData
+                                                                                              .config
+                                                                                              ?.planDiscounts
+                                                                                              ?.upfront
+                                                                                              ?.amount ||
+                                                                                          '',
+                                                                            },
+                                                                        };
+                                                                        updateConfig({
+                                                                            planDiscounts,
+                                                                        });
+                                                                    }}
+                                                                >
+                                                                    <SelectTrigger className="w-32">
+                                                                        <SelectValue />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        <SelectItem value="none">
+                                                                            No Discount
+                                                                        </SelectItem>
+                                                                        <SelectItem value="percentage">
+                                                                            % Off
+                                                                        </SelectItem>
+                                                                        <SelectItem value="fixed">
+                                                                            Flat Off
+                                                                        </SelectItem>
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            </td>
+                                                            <td className="border border-gray-200 px-4 py-2">
+                                                                {planData.config?.planDiscounts
+                                                                    ?.upfront?.type !== 'none' ? (
+                                                                    <div className="flex items-center space-x-2">
+                                                                        {planData.config
+                                                                            ?.planDiscounts?.upfront
+                                                                            ?.type === 'fixed' && (
+                                                                            <span className="text-sm">
+                                                                                {getCurrencySymbol(
+                                                                                    planData.currency!
+                                                                                )}
+                                                                            </span>
+                                                                        )}
+                                                                        <Input
+                                                                            type="number"
+                                                                            min="0"
+                                                                            max={
+                                                                                planData.config
+                                                                                    ?.planDiscounts
+                                                                                    ?.upfront
+                                                                                    ?.type ===
+                                                                                'percentage'
+                                                                                    ? 100
+                                                                                    : parseFloat(
+                                                                                          planData
+                                                                                              .config
+                                                                                              ?.upfront
+                                                                                              ?.fullPrice ||
+                                                                                              '0'
+                                                                                      )
+                                                                            }
+                                                                            placeholder={
+                                                                                planData.config
+                                                                                    ?.planDiscounts
+                                                                                    ?.upfront
+                                                                                    ?.type ===
+                                                                                'percentage'
+                                                                                    ? '10'
+                                                                                    : '50'
+                                                                            }
+                                                                            value={
+                                                                                planData.config
+                                                                                    ?.planDiscounts
+                                                                                    ?.upfront
+                                                                                    ?.amount || ''
+                                                                            }
+                                                                            onChange={(e) => {
+                                                                                const planDiscounts =
+                                                                                    {
+                                                                                        ...planData
+                                                                                            .config
+                                                                                            ?.planDiscounts,
+                                                                                        upfront: {
+                                                                                            type:
+                                                                                                planData
+                                                                                                    .config
+                                                                                                    ?.planDiscounts
+                                                                                                    ?.upfront
+                                                                                                    ?.type ||
+                                                                                                'percentage',
+                                                                                            amount: e
+                                                                                                .target
+                                                                                                .value,
+                                                                                        },
+                                                                                    };
+                                                                                updateConfig({
+                                                                                    planDiscounts,
+                                                                                });
+                                                                            }}
+                                                                            className="w-20"
+                                                                        />
+                                                                        {planData.config
+                                                                            ?.planDiscounts?.upfront
+                                                                            ?.type ===
+                                                                            'percentage' && (
+                                                                            <span className="text-sm">
+                                                                                %
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="text-gray-400">
+                                                                        -
+                                                                    </span>
+                                                                )}
+                                                            </td>
+                                                            <td className="border border-gray-200 px-4 py-2">
+                                                                {(() => {
+                                                                    const originalPrice =
+                                                                        parseFloat(
+                                                                            planData.config?.upfront
+                                                                                ?.fullPrice || '0'
+                                                                        );
+                                                                    const discountType =
+                                                                        planData.config
+                                                                            ?.planDiscounts?.upfront
+                                                                            ?.type || 'none';
+                                                                    const discountAmount =
+                                                                        planData.config
+                                                                            ?.planDiscounts?.upfront
+                                                                            ?.amount || '';
+
+                                                                    let finalPrice = originalPrice;
+                                                                    if (
+                                                                        discountType ===
+                                                                            'percentage' &&
+                                                                        discountAmount
+                                                                    ) {
+                                                                        finalPrice =
+                                                                            originalPrice *
+                                                                            (1 -
+                                                                                parseFloat(
+                                                                                    discountAmount
+                                                                                ) /
+                                                                                    100);
+                                                                    } else if (
+                                                                        discountType === 'fixed' &&
+                                                                        discountAmount
+                                                                    ) {
+                                                                        finalPrice = Math.max(
+                                                                            0,
+                                                                            originalPrice -
+                                                                                parseFloat(
+                                                                                    discountAmount
+                                                                                )
+                                                                        );
+                                                                    }
+
+                                                                    return (
+                                                                        <>
+                                                                            <span
+                                                                                className={`font-medium ${finalPrice < originalPrice ? 'text-green-600' : 'text-gray-900'}`}
+                                                                            >
+                                                                                {getCurrencySymbol(
+                                                                                    planData.currency!
+                                                                                )}
+                                                                                {finalPrice.toLocaleString()}
+                                                                            </span>
+                                                                            {finalPrice <
+                                                                                originalPrice && (
+                                                                                <div className="text-xs text-gray-500">
+                                                                                    Save{' '}
+                                                                                    {getCurrencySymbol(
+                                                                                        planData.currency!
+                                                                                    )}
+                                                                                    {(
+                                                                                        originalPrice -
+                                                                                        finalPrice
+                                                                                    ).toLocaleString()}
+                                                                                </div>
+                                                                            )}
+                                                                        </>
+                                                                    );
+                                                                })()}
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        ) : (
+                                            <Alert>
+                                                <Info className="size-4" />
+                                                <AlertDescription>
+                                                    No pricing information available for this plan
+                                                    type.
+                                                </AlertDescription>
+                                            </Alert>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        )}
+
                     {/* Navigation Buttons */}
                     <div className="flex justify-between border-t pt-4">
                         <div>
@@ -1236,7 +1733,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                         </div>
                         <div className="flex space-x-2">
                             {(currentStep === 2 || currentStep === 3) &&
-                                (hasCustomIntervals || planData.type === 'donation') && (
+                                (hasCustomIntervals || planData.type === PaymentPlans.DONATION) && (
                                     <Button
                                         onClick={handlePreviewToggle}
                                         variant="outline"
@@ -1251,13 +1748,14 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                             </Button>
                             {currentStep < getTotalSteps() ||
                             (currentStep === 2 &&
-                                (planData.type === 'free' || planData.type === 'donation')) ? (
+                                (planData.type === PaymentPlans.FREE ||
+                                    planData.type === PaymentPlans.DONATION)) ? (
                                 <Button
                                     onClick={handleNext}
                                     disabled={
                                         (currentStep === 1 && (!planData.name || !planData.type)) ||
                                         (currentStep === 2 &&
-                                            planData.type === 'free' &&
+                                            planData.type === PaymentPlans.FREE &&
                                             (!planData.config?.free?.validityDays ||
                                                 planData.config.free.validityDays <= 0)) ||
                                         isSaving
@@ -1269,8 +1767,10 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                             <div className="mr-2 size-4 animate-spin rounded-full border-b-2 border-white"></div>
                                             Saving...
                                         </>
-                                    ) : (planData.type === 'free' && currentStep === 2) ||
-                                      (planData.type === 'donation' && currentStep === 2) ? (
+                                    ) : (planData.type === PaymentPlans.FREE &&
+                                          currentStep === 2) ||
+                                      (planData.type === PaymentPlans.DONATION &&
+                                          currentStep === 2) ? (
                                         'Create Plan'
                                     ) : (
                                         'Next'

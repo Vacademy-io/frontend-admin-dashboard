@@ -3,8 +3,15 @@ import { MyButton } from '@/components/design-system/button';
 import { Card, CardHeader, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
 import { PencilSimpleLine, StarFour, Lightning } from 'phosphor-react';
 import { BrainCircuit } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
 
 const CourseTypeButtons = () => {
+    const navigate = useNavigate();
+
+    const goToAiBuilder = () => {
+        navigate({ to: '/study-library/ai-course-builder' });
+    };
+
     return (
         <div className="flex flex-col gap-6 p-4">
             {/* Section Heading */}
@@ -64,6 +71,7 @@ const CourseTypeButtons = () => {
                             scale="large"
                             buttonType="primary"
                             className="w-full font-medium"
+                            onClick={goToAiBuilder}
                         >
                             Create Course Through AI
                         </MyButton>

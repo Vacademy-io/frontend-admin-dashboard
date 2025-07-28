@@ -27,6 +27,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { convertCapitalToTitleCase } from '@/lib/utils';
 
 interface CourseListPageProps {
     selectedFilters: AllCourseFilters;
@@ -120,7 +121,7 @@ const CourseListPage = ({
                                     className="scale-110 accent-primary-500 transition-transform"
                                 />
                                 <span className="transition-colors group-hover:text-primary-500">
-                                    {level.name}
+                                    {convertCapitalToTitleCase(level.name)}
                                 </span>
                             </label>
                         ))}
@@ -142,7 +143,7 @@ const CourseListPage = ({
                                             className="scale-110 accent-primary-500 transition-transform"
                                         />
                                         <span className="transition-colors group-hover:text-primary-500">
-                                            {tagValue}
+                                            {convertCapitalToTitleCase(tagValue)}
                                         </span>
                                     </label>
                                 ))}
@@ -287,12 +288,12 @@ const CourseListPage = ({
                                         <div className="flex flex-col gap-1 p-4">
                                             <div className="flex items-center justify-between">
                                                 <div className="text-lg font-extrabold text-neutral-800">
-                                                    {course.package_name}
+                                                    {convertCapitalToTitleCase(course.package_name)}
                                                 </div>
                                                 <div
                                                     className={`rounded-lg bg-gray-100 p-1 px-2 text-xs font-semibold text-gray-700`}
                                                 >
-                                                    {course.level_name || 'Level'}
+                                                    {convertCapitalToTitleCase(course.level_name) || 'Level'}
                                                 </div>
                                             </div>
                                             {/* Description section */}
