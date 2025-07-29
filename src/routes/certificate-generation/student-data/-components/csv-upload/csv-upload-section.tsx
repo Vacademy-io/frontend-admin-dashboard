@@ -1,5 +1,9 @@
 import { useState, useRef } from 'react';
-import { CertificateGenerationSession, CsvValidationResult, CsvTemplateRow } from '@/types/certificate/certificate-types';
+import {
+    CertificateGenerationSession,
+    CsvValidationResult,
+    CsvTemplateRow,
+} from '@/types/certificate/certificate-types';
 import { MyButton } from '@/components/design-system/button';
 import { Upload, Check, Warning, X } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
@@ -23,12 +27,14 @@ export const CsvUploadSection = ({ session, onSessionUpdate }: CsvUploadSectionP
         if (file.size > maxSize) {
             const validationResult: CsvValidationResult = {
                 isValid: false,
-                errors: [{
-                    row: 0,
-                    message: 'File size exceeds 1MB limit',
-                    type: 'file_size'
-                }],
-                warnings: []
+                errors: [
+                    {
+                        row: 0,
+                        message: 'File size exceeds 1MB limit',
+                        type: 'file_size',
+                    },
+                ],
+                warnings: [],
             };
             onSessionUpdate({ validationResult });
             return;
@@ -38,12 +44,14 @@ export const CsvUploadSection = ({ session, onSessionUpdate }: CsvUploadSectionP
         if (!file.name.toLowerCase().endsWith('.csv')) {
             const validationResult: CsvValidationResult = {
                 isValid: false,
-                errors: [{
-                    row: 0,
-                    message: 'Please upload a CSV file',
-                    type: 'invalid_data'
-                }],
-                warnings: []
+                errors: [
+                    {
+                        row: 0,
+                        message: 'Please upload a CSV file',
+                        type: 'invalid_data',
+                    },
+                ],
+                warnings: [],
             };
             onSessionUpdate({ validationResult });
             return;
@@ -54,17 +62,19 @@ export const CsvUploadSection = ({ session, onSessionUpdate }: CsvUploadSectionP
         try {
             // Read and parse CSV file
             const csvText = await file.text();
-            const lines = csvText.split('\n').filter(line => line.trim());
-            
+            const lines = csvText.split('\n').filter((line) => line.trim());
+
             if (lines.length < 2) {
                 const validationResult: CsvValidationResult = {
                     isValid: false,
-                    errors: [{
-                        row: 0,
-                        message: 'CSV file must contain at least a header row and one data row',
-                        type: 'invalid_data'
-                    }],
-                    warnings: []
+                    errors: [
+                        {
+                            row: 0,
+                            message: 'CSV file must contain at least a header row and one data row',
+                            type: 'invalid_data',
+                        },
+                    ],
+                    warnings: [],
                 };
                 onSessionUpdate({ validationResult });
                 setIsUploading(false);
@@ -76,26 +86,28 @@ export const CsvUploadSection = ({ session, onSessionUpdate }: CsvUploadSectionP
             if (!firstLine) {
                 const validationResult: CsvValidationResult = {
                     isValid: false,
-                    errors: [{
-                        row: 0,
-                        message: 'CSV file is empty or malformed',
-                        type: 'invalid_data'
-                    }],
-                    warnings: []
+                    errors: [
+                        {
+                            row: 0,
+                            message: 'CSV file is empty or malformed',
+                            type: 'invalid_data',
+                        },
+                    ],
+                    warnings: [],
                 };
                 onSessionUpdate({ validationResult });
                 setIsUploading(false);
                 return;
             }
 
-            const headers = firstLine.split(',').map(h => h.trim().replace(/"/g, ''));
+            const headers = firstLine.split(',').map((h) => h.trim().replace(/"/g, ''));
             const csvData: CsvTemplateRow[] = [];
 
             for (let i = 1; i < lines.length; i++) {
                 const line = lines[i];
                 if (!line) continue;
-                
-                const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+
+                const values = line.split(',').map((v) => v.trim().replace(/"/g, ''));
                 const row: CsvTemplateRow = {
                     user_id: values[0] || '',
                     enrollment_number: values[1] || '',
@@ -123,18 +135,19 @@ export const CsvUploadSection = ({ session, onSessionUpdate }: CsvUploadSectionP
             onSessionUpdate({
                 uploadedCsvData: csvData,
                 csvHeaders: headers,
-                validationResult
+                validationResult,
             });
-
         } catch (error) {
             const validationResult: CsvValidationResult = {
                 isValid: false,
-                errors: [{
-                    row: 0,
-                    message: 'Failed to parse CSV file. Please check the file format.',
-                    type: 'invalid_data'
-                }],
-                warnings: []
+                errors: [
+                    {
+                        row: 0,
+                        message: 'Failed to parse CSV file. Please check the file format.',
+                        type: 'invalid_data',
+                    },
+                ],
+                warnings: [],
             };
             onSessionUpdate({ validationResult });
         }
@@ -155,7 +168,7 @@ export const CsvUploadSection = ({ session, onSessionUpdate }: CsvUploadSectionP
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault();
         setIsDragging(false);
-        
+
         const files = e.dataTransfer.files;
         if (files.length > 0) {
             handleFileSelect(files[0] || null);
@@ -173,7 +186,7 @@ export const CsvUploadSection = ({ session, onSessionUpdate }: CsvUploadSectionP
         onSessionUpdate({
             uploadedCsvData: undefined,
             csvHeaders: undefined,
-            validationResult: undefined
+            validationResult: undefined,
         });
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
@@ -217,70 +230,74 @@ export const CsvUploadSection = ({ session, onSessionUpdate }: CsvUploadSectionP
                         type="file"
                         accept=".csv"
                         onChange={handleFileInputChange}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        className="absolute inset-0 size-full cursor-pointer opacity-0"
                         disabled={isUploading}
                     />
-                    
+
                     <div className="flex flex-col items-center gap-3">
-                        <div className={cn(
-                            'rounded-full p-3 transition-colors duration-200',
-                            isDragging ? 'bg-blue-100' : 'bg-neutral-200'
-                        )}>
-                            <Upload className={cn(
-                                'size-6 transition-colors duration-200',
-                                isDragging ? 'text-blue-600' : 'text-neutral-500'
-                            )} />
+                        <div
+                            className={cn(
+                                'rounded-full p-3 transition-colors duration-200',
+                                isDragging ? 'bg-blue-100' : 'bg-neutral-200'
+                            )}
+                        >
+                            <Upload
+                                className={cn(
+                                    'size-6 transition-colors duration-200',
+                                    isDragging ? 'text-blue-600' : 'text-neutral-500'
+                                )}
+                            />
                         </div>
-                        
+
                         <div>
                             <p className="text-sm font-medium text-neutral-700">
                                 {isUploading ? 'Processing CSV...' : 'Upload Dynamic Data CSV'}
                             </p>
-                            <p className="text-xs text-neutral-500 mt-1">
+                            <p className="mt-1 text-xs text-neutral-500">
                                 Drag and drop or click to select • Max 1MB • CSV format only
                             </p>
                         </div>
-                        
+
                         {!isUploading && (
-                            <MyButton
-                                buttonType="primary"
-                                scale="small"
-                                className="mt-2"
-                            >
+                            <MyButton buttonType="primary" scale="small" className="mt-2">
                                 Select CSV File
                             </MyButton>
                         )}
                     </div>
                 </div>
             ) : (
-                <div className={cn(
-                    'rounded-lg border p-4 transition-all duration-200',
-                    hasErrors 
-                        ? 'border-red-200 bg-red-50' 
-                        : 'border-green-200 bg-green-50'
-                )}>
+                <div
+                    className={cn(
+                        'rounded-lg border p-4 transition-all duration-200',
+                        hasErrors ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'
+                    )}
+                >
                     <div className="flex items-center gap-3">
-                        <div className={cn(
-                            'rounded-full p-2',
-                            hasErrors ? 'bg-red-100' : 'bg-green-100'
-                        )}>
+                        <div
+                            className={cn(
+                                'rounded-full p-2',
+                                hasErrors ? 'bg-red-100' : 'bg-green-100'
+                            )}
+                        >
                             {hasErrors ? (
                                 <Warning className="size-4 text-red-600" />
                             ) : (
                                 <Check className="size-4 text-green-600" />
                             )}
                         </div>
-                        
+
                         <div className="flex-1">
-                            <p className={cn(
-                                'text-sm font-medium',
-                                hasErrors ? 'text-red-700' : 'text-green-700'
-                            )}>
+                            <p
+                                className={cn(
+                                    'text-sm font-medium',
+                                    hasErrors ? 'text-red-700' : 'text-green-700'
+                                )}
+                            >
                                 {hasErrors ? 'CSV Upload Issues Found' : 'CSV Upload Successful'}
                             </p>
-                            <p className="text-xs text-neutral-600 mt-1">
-                                {session.uploadedCsvData?.length || 0} rows processed • 
-                                {session.csvHeaders?.length || 0} columns • 
+                            <p className="mt-1 text-xs text-neutral-600">
+                                {session.uploadedCsvData?.length || 0} rows processed •
+                                {session.csvHeaders?.length || 0} columns •
                                 {(session.csvHeaders?.length || 0) - 3} dynamic fields
                             </p>
                         </div>
@@ -290,16 +307,16 @@ export const CsvUploadSection = ({ session, onSessionUpdate }: CsvUploadSectionP
 
             {isUploaded && session.csvHeaders && (
                 <div className="rounded-lg border border-neutral-200 bg-white p-4">
-                    <h4 className="text-sm font-medium text-neutral-700 mb-3">Detected Columns</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                    <h4 className="mb-3 text-sm font-medium text-neutral-700">Detected Columns</h4>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                         {session.csvHeaders.map((header, index) => (
                             <div
                                 key={index}
                                 className={cn(
-                                    'rounded-md px-3 py-2 text-xs font-medium border',
+                                    'rounded-md border px-3 py-2 text-xs font-medium',
                                     index < 3
-                                        ? 'bg-blue-50 border-blue-200 text-blue-700'
-                                        : 'bg-neutral-50 border-neutral-200 text-neutral-700'
+                                        ? 'border-blue-200 bg-blue-50 text-blue-700'
+                                        : 'border-neutral-200 bg-neutral-50 text-neutral-700'
                                 )}
                             >
                                 {header}
@@ -313,4 +330,4 @@ export const CsvUploadSection = ({ session, onSessionUpdate }: CsvUploadSectionP
             )}
         </div>
     );
-}; 
+};

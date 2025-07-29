@@ -7,6 +7,7 @@ import NamingSettings from './-components/NamingSettings';
 import PaymentSettings from './-components/Payment/PaymentSettings';
 import ReferralSettings from './-components/Referral/ReferralSettings';
 import TabSettings from './-components/Tab/TabSettings';
+import CourseSettings from './-components/Course/CourseSettings';
 
 export const Route = createFileRoute('/settings/')({
     component: () => (
@@ -85,6 +86,20 @@ function RouteComponent() {
                                 Referral Settings
                             </span>
                         </TabsTrigger>
+                        <TabsTrigger
+                            value="course-settings"
+                            className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                selectedTab === 'course-settings'
+                                    ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                    : 'border-none bg-transparent'
+                            }`}
+                        >
+                            <span
+                                className={`${selectedTab === 'course-settings' ? 'text-primary-500' : ''}`}
+                            >
+                                Course Settings
+                            </span>
+                        </TabsTrigger>
                     </TabsList>
                 </div>
                 <TabsContent value="tab-settings">
@@ -98,6 +113,9 @@ function RouteComponent() {
                 </TabsContent>
                 <TabsContent value="referral-settings">
                     <ReferralSettings />
+                </TabsContent>
+                <TabsContent value="course-settings">
+                    <CourseSettings />
                 </TabsContent>
             </Tabs>
         </>

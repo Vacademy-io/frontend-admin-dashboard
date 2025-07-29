@@ -82,23 +82,25 @@ export const ResponseOverlay: React.FC<ResponseOverlayProps> = ({ sessionId, sli
 
     return (
         <>
-            <div className="absolute bottom-14 left-1/2 z-[1005] flex -translate-x-1/2 items-center gap-3 rounded-2xl bg-black/30 backdrop-blur-xl border border-white/10 p-3 text-white shadow-2xl transition-all duration-300 ease-in-out">
+            <div className="absolute bottom-14 left-1/2 z-[1005] flex -translate-x-1/2 items-center gap-3 rounded-2xl border border-white/10 bg-black/30 p-3 text-white shadow-2xl backdrop-blur-xl transition-all duration-300 ease-in-out">
                 {/* Enhanced background effects */}
-                <div className="absolute inset-0 bg-gradient-to-r from-slate-900/20 via-transparent to-slate-900/20 rounded-2xl pointer-events-none" />
+                <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r from-slate-900/20 via-transparent to-slate-900/20" />
 
                 {/* Response counter section */}
                 <div className="relative flex items-center gap-3 border-r border-white/20 pr-4">
-                    <div className="p-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl shadow-lg">
+                    <div className="rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 p-2 shadow-lg">
                         <Activity size={20} className="text-white" />
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-xs text-white/60 font-medium">Live Responses</span>
+                        <span className="text-xs font-medium text-white/60">Live Responses</span>
                         <div className="flex items-center gap-2">
-                    {isLoading ? (
+                            {isLoading ? (
                                 <Loader2 size={18} className="animate-spin text-blue-400" />
-                    ) : (
-                                <span className="text-xl font-bold text-white">{responses.length}</span>
-                    )}
+                            ) : (
+                                <span className="text-xl font-bold text-white">
+                                    {responses.length}
+                                </span>
+                            )}
                             <Users size={16} className="text-white/60" />
                         </div>
                     </div>
@@ -106,37 +108,37 @@ export const ResponseOverlay: React.FC<ResponseOverlayProps> = ({ sessionId, sli
 
                 {/* Action buttons */}
                 <div className="relative flex items-center gap-2">
-                <Button
-                    variant="outline"
-                    size="sm"
-                        className="h-10 px-4 border-orange-400/50 bg-orange-500/10 text-orange-300 hover:bg-orange-500/20 hover:text-orange-200 hover:border-orange-400 backdrop-blur-sm transition-all duration-300 ease-out hover:scale-105 shadow-lg rounded-xl font-semibold"
-                    onClick={() => setIsLeaderboardOpen(true)}
-                >
-                    <Trophy size={16} className="mr-2" />
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-10 rounded-xl border-orange-400/50 bg-orange-500/10 px-4 font-semibold text-orange-300 shadow-lg backdrop-blur-sm transition-all duration-300 ease-out hover:scale-105 hover:border-orange-400 hover:bg-orange-500/20 hover:text-orange-200"
+                        onClick={() => setIsLeaderboardOpen(true)}
+                    >
+                        <Trophy size={16} className="mr-2" />
                         <span className="hidden sm:inline">Leaderboard</span>
-                </Button>
+                    </Button>
 
-                {isMcqQuestion ? (
-                    <Button
-                        variant="outline"
-                        size="sm"
-                            className="h-10 px-4 border-blue-400/50 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20 hover:text-blue-200 hover:border-blue-400 backdrop-blur-sm transition-all duration-300 ease-out hover:scale-105 shadow-lg rounded-xl font-semibold"
-                        onClick={() => setIsDistributionOpen(true)}
-                    >
-                        <PieChart size={16} className="mr-2" />
+                    {isMcqQuestion ? (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-10 rounded-xl border-blue-400/50 bg-blue-500/10 px-4 font-semibold text-blue-300 shadow-lg backdrop-blur-sm transition-all duration-300 ease-out hover:scale-105 hover:border-blue-400 hover:bg-blue-500/20 hover:text-blue-200"
+                            onClick={() => setIsDistributionOpen(true)}
+                        >
+                            <PieChart size={16} className="mr-2" />
                             <span className="hidden sm:inline">Distribution</span>
-                    </Button>
-                ) : (
-                    <Button
-                        variant="outline"
-                        size="sm"
-                            className="h-10 px-4 border-teal-400/50 bg-teal-500/10 text-teal-300 hover:bg-teal-500/20 hover:text-teal-200 hover:border-teal-400 backdrop-blur-sm transition-all duration-300 ease-out hover:scale-105 shadow-lg rounded-xl font-semibold"
-                        onClick={() => setIsWordCloudOpen(true)}
-                    >
-                        <Cloud size={16} className="mr-2" />
+                        </Button>
+                    ) : (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-10 rounded-xl border-teal-400/50 bg-teal-500/10 px-4 font-semibold text-teal-300 shadow-lg backdrop-blur-sm transition-all duration-300 ease-out hover:scale-105 hover:border-teal-400 hover:bg-teal-500/20 hover:text-teal-200"
+                            onClick={() => setIsWordCloudOpen(true)}
+                        >
+                            <Cloud size={16} className="mr-2" />
                             <span className="hidden sm:inline">Word Cloud</span>
-                    </Button>
-                )}
+                        </Button>
+                    )}
                 </div>
             </div>
             <LeaderboardModal

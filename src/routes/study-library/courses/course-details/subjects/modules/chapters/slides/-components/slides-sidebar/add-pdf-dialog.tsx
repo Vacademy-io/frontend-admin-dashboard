@@ -15,6 +15,7 @@ import { useContentStore } from '@/routes/study-library/courses/course-details/s
 import * as pdfjs from 'pdfjs-dist';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { CheckCircle, FilePdf } from 'phosphor-react';
+import { getSlideStatusForUser } from '../../non-admin/hooks/useNonAdminSlides';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
@@ -147,6 +148,7 @@ export const AddPdfDialog = ({
             if (fileId) {
                 setFile(null);
                 const slideId = crypto.randomUUID();
+                const slideStatus = getSlideStatusForUser();
 
                 const response: string = await addUpdateDocumentSlide({
                     id: slideId,
@@ -161,10 +163,10 @@ export const AddPdfDialog = ({
                         title: form.getValues('pdfTitle'),
                         cover_file_id: '',
                         total_pages: totalPages,
-                        published_data: null,
-                        published_document_total_pages: 1,
+                        published_data: slideStatus === 'PUBLISHED' ? fileId : null,
+                        published_document_total_pages: slideStatus === 'PUBLISHED' ? totalPages : 1,
                     },
-                    status: 'DRAFT',
+                    status: slideStatus,
                     new_slide: true,
                     notify: false,
                 });
@@ -224,7 +226,7 @@ export const AddPdfDialog = ({
                             {file ? (
                                 <div className="flex items-center gap-3 duration-500 animate-in fade-in slide-in-from-bottom-2">
                                     <div className="rounded-full bg-green-100 p-3">
-                                        <CheckCircle className="h-6 w-6 text-green-600" />
+                                        <CheckCircle className="size-6 text-green-600" />
                                     </div>
                                     <div>
                                         <p className="text-wrap font-medium text-green-700">
@@ -247,7 +249,7 @@ export const AddPdfDialog = ({
                             ) : (
                                 <div className="space-y-3 text-center">
                                     <div className="mx-auto w-fit animate-pulse rounded-full bg-primary-100 p-4">
-                                        <FilePdf className="text-primary-600 h-8 w-8" />
+                                        <FilePdf className="text-primary-600 size-8" />
                                     </div>
                                     <div>
                                         <p className="mb-1 font-medium text-neutral-700">
@@ -265,7 +267,7 @@ export const AddPdfDialog = ({
                     {error && (
                         <div className="rounded-lg border border-red-200 bg-red-50 p-3 duration-300 animate-in fade-in slide-in-from-top-2">
                             <p className="flex items-center gap-2 text-sm text-red-600">
-                                <span className="h-2 w-2 rounded-full bg-red-500"></span>
+                                <span className="size-2 rounded-full bg-red-500"></span>
                                 {error}
                             </p>
                         </div>
@@ -312,7 +314,7 @@ export const AddPdfDialog = ({
                     >
                         {isUploading ? (
                             <div className="flex items-center justify-center gap-2">
-                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                                <div className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                                 Uploading...
                             </div>
                         ) : (

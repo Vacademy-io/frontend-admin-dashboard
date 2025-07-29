@@ -1,8 +1,16 @@
 import { Dispatch, SetStateAction } from 'react';
-import { DocumentSlidePayload, Slide, VideoSlidePayload, QuizSlidePayload } from '../../-hooks/use-slides';
+import {
+    DocumentSlidePayload,
+    Slide,
+    VideoSlidePayload,
+    QuizSlidePayload,
+} from '../../-hooks/use-slides';
 import { UseMutateAsyncFunction } from '@tanstack/react-query';
 import { createQuizSlidePayload } from '../quiz/utils/api-helpers';
-import { converDataToAssignmentFormat, convertToQuestionBackendSlideFormat } from '../../-helper/helper';
+import {
+    converDataToAssignmentFormat,
+    convertToQuestionBackendSlideFormat,
+} from '../../-helper/helper';
 
 type SlideResponse = {
     id: string;
@@ -60,12 +68,15 @@ export const updateHeading = async (
             // Handle PRESENTATION title update
             if (activeItem.document_slide?.type === 'PRESENTATION') {
                 try {
-                    const { setActiveItem, items, setItems } = require('@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store').useContentStore.getState();
+                    const { setActiveItem, items, setItems } =
+                        require('@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store').useContentStore.getState();
                     const newDocSlide = { ...activeItem.document_slide, title: heading };
                     const newSlide = { ...activeItem, title: heading, document_slide: newDocSlide };
                     setActiveItem(newSlide);
                     if (Array.isArray(items)) {
-                        setItems(items.map(item => item.id === activeItem.id ? newSlide : item));
+                        setItems(
+                            items.map((item) => (item.id === activeItem.id ? newSlide : item))
+                        );
                     }
                 } catch (e) {}
                 await addUpdateDocumentSlide({
@@ -107,10 +118,15 @@ export const updateHeading = async (
                 notify: false,
             });
             try {
-                const { setActiveItem, items, setItems } = require('@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store').useContentStore.getState();
+                const { setActiveItem, items, setItems } =
+                    require('@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store').useContentStore.getState();
                 setActiveItem({ ...activeItem, title: heading });
                 if (Array.isArray(items)) {
-                    setItems(items.map(item => item.id === activeItem.id ? { ...item, title: heading } : item));
+                    setItems(
+                        items.map((item) =>
+                            item.id === activeItem.id ? { ...item, title: heading } : item
+                        )
+                    );
                 }
             } catch (e) {}
         } else if (activeItem.source_type === 'ASSIGNMENT' && updateAssignmentOrder) {
@@ -123,10 +139,15 @@ export const updateHeading = async (
             });
             await updateAssignmentOrder(convertedData);
             try {
-                const { setActiveItem, items, setItems } = require('@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store').useContentStore.getState();
+                const { setActiveItem, items, setItems } =
+                    require('@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store').useContentStore.getState();
                 setActiveItem({ ...activeItem, title: heading });
                 if (Array.isArray(items)) {
-                    setItems(items.map(item => item.id === activeItem.id ? { ...item, title: heading } : item));
+                    setItems(
+                        items.map((item) =>
+                            item.id === activeItem.id ? { ...item, title: heading } : item
+                        )
+                    );
                 }
             } catch (e) {}
         } else if (activeItem.source_type === 'QUESTION' && updateQuestionOrder) {
@@ -139,10 +160,15 @@ export const updateHeading = async (
             });
             await updateQuestionOrder(convertedData);
             try {
-                const { setActiveItem, items, setItems } = require('@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store').useContentStore.getState();
+                const { setActiveItem, items, setItems } =
+                    require('@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store').useContentStore.getState();
                 setActiveItem({ ...activeItem, title: heading });
                 if (Array.isArray(items)) {
-                    setItems(items.map(item => item.id === activeItem.id ? { ...item, title: heading } : item));
+                    setItems(
+                        items.map((item) =>
+                            item.id === activeItem.id ? { ...item, title: heading } : item
+                        )
+                    );
                 }
             } catch (e) {}
         } else if (activeItem.source_type === 'QUIZ' && addUpdateQuizSlide) {
@@ -151,26 +177,28 @@ export const updateHeading = async (
                 ...activeItem.quiz_slide,
                 id: activeItem.quiz_slide?.id || '',
                 title: heading,
-                description: activeItem.quiz_slide?.description || { id: '', content: '', type: 'TEXT' },
+                description: activeItem.quiz_slide?.description || {
+                    id: '',
+                    content: '',
+                    type: 'TEXT',
+                },
                 questions: activeItem.quiz_slide?.questions || [],
             };
             const newSlide = { ...activeItem, title: heading, quiz_slide: newQuizSlide };
             try {
-                const { setActiveItem, items, setItems } = require('@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store').useContentStore.getState();
+                const { setActiveItem, items, setItems } =
+                    require('@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store').useContentStore.getState();
                 setActiveItem(newSlide);
                 if (Array.isArray(items)) {
-                    setItems(items.map(item => item.id === activeItem.id ? newSlide : item));
+                    setItems(items.map((item) => (item.id === activeItem.id ? newSlide : item)));
                 }
             } catch (e) {}
-            const payload = createQuizSlidePayload(
-                activeItem.quiz_slide?.questions || [],
-                {
-                    ...activeItem,
-                    title: heading,
-                    quiz_slide: newQuizSlide,
-                    status,
-                }
-            );
+            const payload = createQuizSlidePayload(activeItem.quiz_slide?.questions || [], {
+                ...activeItem,
+                title: heading,
+                quiz_slide: newQuizSlide,
+                status,
+            });
             await addUpdateQuizSlide(payload);
         }
     }

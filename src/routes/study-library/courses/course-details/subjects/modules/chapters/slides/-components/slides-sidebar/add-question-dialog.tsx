@@ -13,6 +13,7 @@ import { useContentStore } from '../../-stores/chapter-sidebar-store';
 import { useSlidesMutations } from '../../-hooks/use-slides';
 import { Route } from '../..';
 import { convertToQuestionSlideFormat } from '../../-helper/helper';
+import { getSlideStatusForUser } from '../../non-admin/hooks/useNonAdminSlides';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 export interface QuestionTypeProps {
@@ -96,6 +97,7 @@ const AddQuestionDialog = ({ openState }: { openState?: (open: boolean) => void 
         const autoTitle = `${questionType} Question ${questionIndex}`;
 
         try {
+            const slideStatus = getSlideStatusForUser();
             const response: string = await updateQuestionOrder({
                 id: `question-${crypto.randomUUID()}`,
                 source_id: '',
@@ -103,7 +105,7 @@ const AddQuestionDialog = ({ openState }: { openState?: (open: boolean) => void 
                 title: autoTitle,
                 description: 'Question',
                 image_file_id: '',
-                status: 'DRAFT',
+                status: slideStatus,
                 slide_order: 0,
                 question_slide: convertToQuestionSlideFormat(responseData),
                 video_slide: {

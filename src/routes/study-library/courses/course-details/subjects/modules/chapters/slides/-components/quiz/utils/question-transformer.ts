@@ -48,13 +48,22 @@ const extractSubjectiveAnswer = (question: BackendQuestion, questionType: string
 
     try {
         const evaluationData = JSON.parse(question.auto_evaluation_json);
-        console.log('[QuestionTransformer] Parsed auto_evaluation_json for', questionType, ':', evaluationData);
+        console.log(
+            '[QuestionTransformer] Parsed auto_evaluation_json for',
+            questionType,
+            ':',
+            evaluationData
+        );
 
         let subjectiveAnswerText = '';
         if (questionType === 'ONE_WORD') {
             subjectiveAnswerText = evaluationData?.data?.answer || evaluationData?.answer || '';
         } else if (questionType === 'LONG_ANSWER') {
-            subjectiveAnswerText = evaluationData?.data?.answer?.content || evaluationData?.answer?.content || evaluationData?.answer || '';
+            subjectiveAnswerText =
+                evaluationData?.data?.answer?.content ||
+                evaluationData?.answer?.content ||
+                evaluationData?.answer ||
+                '';
         }
 
         console.log('[QuestionTransformer] Extracted subjectiveAnswerText:', subjectiveAnswerText);
@@ -76,16 +85,27 @@ const createBaseTransformedQuestion = (
     const explanation =
         (question.explanation_text_data && question.explanation_text_data.content) ||
         (question.explanation_text && question.explanation_text.content) ||
-        question.explanation || '';
+        question.explanation ||
+        '';
 
     // For comprehension types, set questionName to passage and ensure parentRichTextContent is set from parent_rich_text.content if present
     let finalQuestionName = questionText;
     let parentRichTextContent = '';
     if (
         (questionType === 'CMCQS' || questionType === 'CMCQM' || questionType === 'CNUMERIC') &&
-        (question.parent_rich_text?.content || question.comprehensionText || question.passage || question.text?.content || question.text_data?.content)
+        (question.parent_rich_text?.content ||
+            question.comprehensionText ||
+            question.passage ||
+            question.text?.content ||
+            question.text_data?.content)
     ) {
-        parentRichTextContent = question.parent_rich_text?.content || question.comprehensionText || question.passage || question.text?.content || question.text_data?.content || '';
+        parentRichTextContent =
+            question.parent_rich_text?.content ||
+            question.comprehensionText ||
+            question.passage ||
+            question.text?.content ||
+            question.text_data?.content ||
+            '';
         finalQuestionName = question.text?.content || question.questionName || '';
     } else {
         parentRichTextContent = '';
@@ -103,7 +123,7 @@ const createBaseTransformedQuestion = (
         hasExplanation: !!explanation,
         backendExplanation: question.explanation,
         backendExplanationText: question.explanation_text,
-        backendExplanationTextData: question.explanation_text_data
+        backendExplanationTextData: question.explanation_text_data,
     });
 
     return {
@@ -166,7 +186,7 @@ const handleSubjectiveQuestion = (
 
     console.log(`[QuestionTransformer] ${questionType} question processed:`, {
         subjectiveAnswerText: transformed.subjectiveAnswerText,
-        questionData: question
+        questionData: question,
     });
 };
 
@@ -237,7 +257,8 @@ const handleQuestionOptions = (
 export const transformQuestion = (question: BackendQuestion | any): TransformedQuestion => {
     console.log('[QuestionTransformer] Starting transformation for question:', {
         id: question.id,
-        questionType: question.question_type || question.question_response_type || question.questionType,
+        questionType:
+            question.question_type || question.question_response_type || question.questionType,
         hasOptions: !!question.options,
         optionsLength: question.options?.length || 0,
         hasAutoEvaluationJson: !!question.auto_evaluation_json,
@@ -245,7 +266,11 @@ export const transformQuestion = (question: BackendQuestion | any): TransformedQ
         explanation: question.explanation,
         explanation_text: question.explanation_text,
         explanation_text_data: question.explanation_text_data,
-        hasExplanation: !!(question.explanation || question.explanation_text?.content || question.explanation_text_data?.content)
+        hasExplanation: !!(
+            question.explanation ||
+            question.explanation_text?.content ||
+            question.explanation_text_data?.content
+        ),
     });
 
     const validAnswers = parseValidAnswers(question);
@@ -260,13 +285,24 @@ export const transformQuestion = (question: BackendQuestion | any): TransformedQ
     const subjectiveAnswerText = extractSubjectiveAnswer(question, questionType);
 
     // Create base transformed question
-    const transformed = createBaseTransformedQuestion(question, questionText, questionType, validAnswers);
+    const transformed = createBaseTransformedQuestion(
+        question,
+        questionText,
+        questionType,
+        validAnswers
+    );
 
     // Handle different question types
     if (questionType === 'NUMERIC' || questionType === 'CNUMERIC') {
         handleNumericQuestion(transformed, validAnswers);
     } else if (questionType === 'ONE_WORD' || questionType === 'LONG_ANSWER') {
-        handleSubjectiveQuestion(transformed, question, questionType, validAnswers, subjectiveAnswerText);
+        handleSubjectiveQuestion(
+            transformed,
+            question,
+            questionType,
+            validAnswers,
+            subjectiveAnswerText
+        );
     }
 
     // Handle options for all question types
@@ -281,7 +317,7 @@ export const transformQuestion = (question: BackendQuestion | any): TransformedQ
         subjectiveAnswerText: transformed.subjectiveAnswerText,
         explanation: transformed.explanation,
         explanationLength: transformed.explanation?.length || 0,
-        hasExplanation: !!transformed.explanation
+        hasExplanation: !!transformed.explanation,
     });
 
     return transformed;

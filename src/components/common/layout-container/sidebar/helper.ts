@@ -2,6 +2,8 @@ import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 import { SidebarItemsType } from '@/types/layout-container/layout-container-types';
 import { SubModuleType } from '@/schemas/student/student-list/institute-schema';
 import { SUB_MODULE_SIDEBAR_MAPPING, controlledTabs, modules } from './constant';
+import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 export function getModuleFlags(
     sub_modules:
@@ -34,6 +36,40 @@ export function getAllowedSidebarItems(subModules: SubModuleType[] | undefined):
     });
 
     return allowedItems;
+}
+
+/**
+ * Filters sidebar items based on user role
+ * Removes admin-only items for non-admin users
+ */
+export function filterSidebarByRole(menuList: SidebarItemsType[]): SidebarItemsType[] {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const userRoles = getUserRoles(accessToken);
+    const isAdmin = userRoles.includes('ADMIN');
+
+    // If user is admin, return all items
+    if (isAdmin) {
+        return menuList;
+    }
+
+    // For non-admin users, filter out admin-only items
+    const adminOnlyIds = [
+        'learner-insights', // Learner Live Activities
+        'manage-institute', // Institute settings
+        'settings', // Settings
+    ];
+
+    return menuList.filter((item) => !adminOnlyIds.includes(item.id));
+}
+
+export function filterMenuList(
+    subModules: { assess: boolean | undefined; lms: boolean | undefined },
+    menuList: SidebarItemsType[]
+) {
+    return menuList.filter((item) => {
+        if (item.to === '/assessment' && !subModules.assess) return false;
+        return true;
+    });
 }
 
 // Get allowed sub-items for a specific sidebar item
@@ -101,9 +137,9 @@ export function filterMenuItems(
     isSubItemVisible?: (parentTabId: string, subItemTabId: string) => boolean
 ) {
     // Define the tabs that should be controlled by tab settings
+    let filteredList = filterSidebarByRole(menuList);
 
-    let filteredList = menuList;
-
+    // Filters menu items based on institute-specific rules
     if (instituteId === HOLISTIC_INSTITUTE_ID) {
         filteredList = filteredList.filter(
             (item) =>

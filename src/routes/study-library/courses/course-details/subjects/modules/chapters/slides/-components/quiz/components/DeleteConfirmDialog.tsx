@@ -44,4 +44,4 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
     );
 };
 
-export default DeleteConfirmDialog; 
+export default DeleteConfirmDialog;

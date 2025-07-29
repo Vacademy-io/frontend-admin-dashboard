@@ -85,7 +85,7 @@ export function generateUniqueSlideTitle(
     customPrefix?: string
 ): string {
     const typeForNaming = customPrefix || slideType;
-    const existingTitles = new Set(allSlides.map(slide => slide.title?.trim() || ''));
+    const existingTitles = new Set(allSlides.map((slide) => slide.title?.trim() || ''));
 
     let counter = 1;
     let candidateTitle = `${typeForNaming} ${counter}`;

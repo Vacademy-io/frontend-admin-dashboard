@@ -88,8 +88,7 @@ export const useDialogStore = create<DialogState>((set) => ({
     // Quiz Dialog actions
     openQuizDialog: () => set({ isQuizDialogOpen: true }),
     closeQuizDialog: () => set({ isQuizDialogOpen: false }),
-    toggleQuizDialog: () =>
-        set((state) => ({ isQuizDialogOpen: !state.isQuizDialogOpen })),
+    toggleQuizDialog: () => set((state) => ({ isQuizDialogOpen: !state.isQuizDialogOpen })),
 
     // Reset all dialogs
     resetDialogs: () =>

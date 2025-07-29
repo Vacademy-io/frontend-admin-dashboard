@@ -1,6 +1,11 @@
 import { Dispatch, SetStateAction, RefObject } from 'react';
 import { toast } from 'sonner';
-import { DocumentSlidePayload, Slide, VideoSlidePayload, QuizSlidePayload } from '../../-hooks/use-slides';
+import {
+    DocumentSlidePayload,
+    Slide,
+    VideoSlidePayload,
+    QuizSlidePayload,
+} from '../../-hooks/use-slides';
 import { UseMutateAsyncFunction } from '@tanstack/react-query';
 import { SlideQuestionsDataInterface } from '@/types/study-library/study-library-slides-type';
 import {
@@ -181,13 +186,10 @@ export const handleUnpublishSlide = async (
     if (activeItem?.source_type === 'QUIZ') {
         try {
             // Use the createQuizSlidePayload function to properly transform the data
-            const payload = createQuizSlidePayload(
-                activeItem.quiz_slide?.questions || [],
-                {
-                    ...activeItem,
-                    status: 'DRAFT' // Override status to DRAFT
-                }
-            );
+            const payload = createQuizSlidePayload(activeItem.quiz_slide?.questions || [], {
+                ...activeItem,
+                status: 'DRAFT', // Override status to DRAFT
+            });
 
             // Call the API to unpublish the quiz slide
             await addUpdateQuizSlide(payload);

@@ -13,7 +13,7 @@ export const Route = createFileRoute('/certificate-generation/student-data/')({
         console.log('🔍 Route validateSearch called with:', search);
         console.log('🔍 Route validateSearch - students type:', typeof search.students);
         console.log('🔍 Route validateSearch - students value:', search.students);
-        
+
         const result = {
             students: search.students as string | string[] | undefined,
         };
@@ -24,7 +24,7 @@ export const Route = createFileRoute('/certificate-generation/student-data/')({
 
 export function CertificateStudentData() {
     console.log('🚀 CertificateStudentData component rendering');
-    
+
     try {
         return (
             <LayoutContainer>
@@ -42,4 +42,4 @@ export function CertificateStudentData() {
         console.error('❌ Error rendering CertificateStudentData:', error);
         throw error;
     }
-} 
+}
