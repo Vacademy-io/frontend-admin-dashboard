@@ -30,7 +30,7 @@ import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { HOLISTIC_INSTITUTE_ID, SSDC_INSTITUTE_ID } from '@/constants/urls';
 import { amplitudeEvents, trackPageView, trackEvent } from '@/lib/amplitude';
 import { Helmet } from 'react-helmet';
-import { getModuleFlags } from '@/components/common/layout-container/sidebar/helper';
+import { getModuleFlags, getModules } from '@/components/common/layout-container/sidebar/helper';
 import RoleTypeComponent from './-components/RoleTypeComponent';
 import useLocalStorage from '@/hooks/use-local-storage';
 import EditDashboardProfileComponent from './-components/EditDashboardProfileComponent';
@@ -188,7 +188,7 @@ export function DashboardComponent() {
 
     useEffect(() => {
         // Slightly more compact nav heading
-        setNavHeading(<h1 className="text-md font-medium">Dashboard</h1>);
+        setNavHeading(<h1 className="font-medium">Dashboard</h1>);
 
         // Track dashboard page view
         trackPageView('Dashboard', {
@@ -208,9 +208,6 @@ export function DashboardComponent() {
 
     if (isInstituteLoading || isDashboardLoading || isAssessmentCountLoading)
         return <DashboardLoader />;
-
-    console.log('DashboardComponent - About to render dashboard');
-    console.log('DashboardComponent - instituteDetails:', instituteDetails);
 
     return (
         <>
@@ -244,7 +241,10 @@ export function DashboardComponent() {
             {/* Main content */}
             <div className="mt-5 flex w-full flex-col gap-4">
                 {/* Unresolved Doubts Widget */}
-                <UnresolvedDoubtsWidget instituteId={instituteDetails?.id || ''} />
+                {subModules.lms ||
+                    (subModules.assess && (
+                        <UnresolvedDoubtsWidget instituteId={instituteDetails?.id || ''} />
+                    ))}
 
                 <Card className="grow bg-neutral-50 shadow-none">
                     <CardHeader className="p-4">
@@ -347,63 +347,89 @@ export function DashboardComponent() {
                 </div>
 
                 {/* Institute Overview Widget */}
-                <Card className="grow bg-neutral-50 shadow-none">
-                    <CardHeader className="p-4">
-                        <CardTitle className="text-sm font-semibold">Institute Overview</CardTitle>
-                        <CardDescription className="mt-1 text-xs text-neutral-600">
-                            Key metrics and statistics for your institute
-                        </CardDescription>
-                    </CardHeader>
-                    <div className="px-4 pb-4">
-                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                            <div className="rounded-lg bg-white p-3 shadow-sm">
-                                <div className="text-lg font-semibold text-primary-500">
-                                    {data?.student_count || 0}
+                {subModules.lms ||
+                    (subModules.assess && (
+                        <Card className="grow bg-neutral-50 shadow-none">
+                            <CardHeader className="p-4">
+                                <CardTitle className="text-sm font-semibold">
+                                    Institute Overview
+                                </CardTitle>
+                                <CardDescription className="mt-1 text-xs text-neutral-600">
+                                    Key metrics and statistics for your institute
+                                </CardDescription>
+                            </CardHeader>
+                            <div className="px-4 pb-4">
+                                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                                    <div className="rounded-lg bg-white p-3 shadow-sm">
+                                        <div className="text-lg font-semibold text-primary-500">
+                                            {data?.student_count || 0}
+                                        </div>
+                                        <div className="text-xs text-neutral-600">
+                                            {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}
+                                            s
+                                        </div>
+                                    </div>
+                                    <div className="rounded-lg bg-white p-3 shadow-sm">
+                                        <div className="text-lg font-semibold text-primary-500">
+                                            {data?.batch_count || 0}
+                                        </div>
+                                        <div className="text-xs text-neutral-600">Batches</div>
+                                    </div>
+                                    <div className="rounded-lg bg-white p-3 shadow-sm">
+                                        <div className="text-lg font-semibold text-primary-500">
+                                            {data?.course_count || 0}
+                                        </div>
+                                        <div className="text-xs text-neutral-600">
+                                            {getTerminology(
+                                                ContentTerms.Course,
+                                                SystemTerms.Course
+                                            )}
+                                            s
+                                        </div>
+                                    </div>
+                                    <div className="rounded-lg bg-white p-3 shadow-sm">
+                                        <div className="text-lg font-semibold text-primary-500">
+                                            {data?.subject_count || 0}
+                                        </div>
+                                        <div className="text-xs text-neutral-600">
+                                            {getTerminology(
+                                                ContentTerms.Subjects,
+                                                SystemTerms.Subjects
+                                            )}
+                                            s
+                                        </div>
+                                    </div>
+                                    <div className="rounded-lg bg-white p-3 shadow-sm">
+                                        <div className="text-lg font-semibold text-primary-500">
+                                            {data?.level_count || 0}
+                                        </div>
+                                        <div className="text-xs text-neutral-600">
+                                            {getTerminology(ContentTerms.Level, SystemTerms.Level)}s
+                                        </div>
+                                    </div>
+                                    <div className="rounded-lg bg-white p-3 shadow-sm">
+                                        <div className="text-lg font-semibold text-primary-500">
+                                            {data?.profile_completion_percentage || 0}%
+                                        </div>
+                                        <div className="text-xs text-neutral-600">
+                                            Profile Complete
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="text-xs text-neutral-600">Students</div>
                             </div>
-                            <div className="rounded-lg bg-white p-3 shadow-sm">
-                                <div className="text-lg font-semibold text-primary-500">
-                                    {data?.batch_count || 0}
-                                </div>
-                                <div className="text-xs text-neutral-600">Batches</div>
-                            </div>
-                            <div className="rounded-lg bg-white p-3 shadow-sm">
-                                <div className="text-lg font-semibold text-primary-500">
-                                    {data?.course_count || 0}
-                                </div>
-                                <div className="text-xs text-neutral-600">Courses</div>
-                            </div>
-                            <div className="rounded-lg bg-white p-3 shadow-sm">
-                                <div className="text-lg font-semibold text-primary-500">
-                                    {data?.subject_count || 0}
-                                </div>
-                                <div className="text-xs text-neutral-600">Subjects</div>
-                            </div>
-                            <div className="rounded-lg bg-white p-3 shadow-sm">
-                                <div className="text-lg font-semibold text-primary-500">
-                                    {data?.level_count || 0}
-                                </div>
-                                <div className="text-xs text-neutral-600">Levels</div>
-                            </div>
-                            <div className="rounded-lg bg-white p-3 shadow-sm">
-                                <div className="text-lg font-semibold text-primary-500">
-                                    {data?.profile_completion_percentage || 0}%
-                                </div>
-                                <div className="text-xs text-neutral-600">Profile Complete</div>
-                            </div>
-                        </div>
-                    </div>
-                </Card>
+                        </Card>
+                    ))}
 
                 {/* Dashboard Action Widgets */}
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    <EnrollLearnersWidget />
-                    <LearningCenterWidget />
-                    <AssessmentCenterWidget
-                        assessmentCount={assessmentCount?.assessment_count || 0}
-                        questionPaperCount={assessmentCount?.question_paper_count || 0}
-                    />
+                    {(subModules.assess || subModules.lms) && <EnrollLearnersWidget />}
+                    {subModules.lms && <LearningCenterWidget />}
+                    {subModules.assess && (
+                        <AssessmentCenterWidget
+                            assessmentCount={assessmentCount?.assessment_count || 0}
+                            questionPaperCount={assessmentCount?.question_paper_count || 0}
+                        />
+                    )}
                 </div>
             </div>
         </>
