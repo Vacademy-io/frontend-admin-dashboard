@@ -369,7 +369,6 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                     A unique name to identify this payment plan
                                 </p>
                             </div>
-                            {requireApprovalCheckbox}
 
                             <RadioGroup
                                 value={planData.type as PaymentPlanType}
@@ -532,6 +531,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                     {/* Step 2: Plan Configuration */}
                     {currentStep === 2 && (
                         <div className="space-y-6">
+                            {requireApprovalCheckbox}
                             {planData.type !== PaymentPlans.FREE && (
                                 <div className="mb-4">
                                     <Label htmlFor="planCurrency" className="text-sm font-medium">
@@ -1796,7 +1796,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                     </div>
 
                     {/* Render Preview */}
-                    {renderPreview()}
+                    {currentStep !== 1 && renderPreview()}
                 </div>
             </DialogContent>
         </Dialog>

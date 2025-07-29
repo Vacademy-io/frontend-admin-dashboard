@@ -30,6 +30,8 @@ import { Switch } from '@/components/ui/switch';
 import { currencyOptions } from '../../-constants/payments';
 import { getInstituteId } from '@/constants/helper';
 import { PaymentPlan, PaymentPlans, PaymentPlanTag, PaymentPlanType } from '@/types/payment';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { RoleTerms, SystemTerms } from '../NamingSettings';
 
 interface Interval {
     price: string;
@@ -168,7 +170,22 @@ const PaymentSettings = () => {
                             }));
                             // Use the first plan for other fields
                             const basePlan = paymentOption.payment_plans[0];
-                            if (!basePlan) return null;
+                            if (!basePlan)
+                                return {
+                                    id: paymentOption.id || '',
+                                    tag: paymentOption.tag as PaymentPlanTag,
+                                    type: paymentOption.type as PaymentPlanType,
+                                    name: paymentOption.name || '',
+                                    config: {
+                                        subscription: {
+                                            customIntervals: [],
+                                        },
+                                        free: {
+                                            validityDays: 320,
+                                        },
+                                    },
+                                };
+
                             const localPlan = transformApiPlanToLocalFormat({
                                 ...basePlan,
                                 name: basePlan.name || '',
@@ -195,8 +212,29 @@ const PaymentSettings = () => {
                                     },
                                 },
                             } as PaymentPlan;
+                        } else if (paymentOption.type === PaymentPlans.FREE) {
+                            // For FREE plans, we can create a plan even without payment_plans
+                            const metadata = paymentOption.payment_option_metadata_json
+                                ? JSON.parse(paymentOption.payment_option_metadata_json)
+                                : {};
+
+                            return {
+                                id: paymentOption.id || '',
+                                tag: paymentOption.tag as PaymentPlanTag,
+                                type: PaymentPlans.FREE as PaymentPlanType,
+                                name: paymentOption.name || '',
+                                currency: metadata.currency || 'GBP',
+                                features: metadata.features || [],
+                                config: {
+                                    ...metadata.config,
+                                    free: {
+                                        validityDays: metadata.freeData?.validityDays || 30,
+                                    },
+                                },
+                                isDefault: false,
+                            } as PaymentPlan;
                         } else if (paymentOption.payment_plans?.length > 0) {
-                            // For non-subscription, just use the first plan
+                            // For other non-subscription plans, just use the first plan
                             const plan = paymentOption.payment_plans[0];
                             if (!plan) return null;
                             const localPlan = transformApiPlanToLocalFormat({
@@ -300,10 +338,12 @@ const PaymentSettings = () => {
 
     const handleSavePaymentPlan = async (plan: PaymentPlan, approvalOverride?: boolean) => {
         setIsSaving(true);
+        console.log('plan', plan);
         try {
             const apiPlans = transformLocalPlanToApiFormatArray(plan);
 
             const paymentOptionRequest = {
+                id: editingPlan?.id || undefined,
                 name: plan.name,
                 status: 'ACTIVE',
                 source: 'INSTITUTE',
@@ -380,6 +420,8 @@ const PaymentSettings = () => {
             setEditingPlan(null);
             setShowPaymentPlanCreator(false);
             setRequireApproval(false);
+            // Clear features after successfully creating/updating a plan
+            setFeaturesGlobal([]);
         } catch (error) {
             handleError(error, 'save payment plan');
         } finally {
@@ -556,7 +598,14 @@ const PaymentSettings = () => {
                 requireApprovalCheckbox={
                     !editingPlan && (
                         <div className="mt-4 flex items-center gap-2">
-                            <Label htmlFor="requireApproval">Send for approval</Label>
+                            <Label htmlFor="requireApproval">
+                                Enroll{' '}
+                                {getTerminology(
+                                    RoleTerms.Learner,
+                                    SystemTerms.Learner
+                                ).toLocaleLowerCase()}
+                                s on approval
+                            </Label>
                             <Switch
                                 id="requireApproval"
                                 checked={requireApproval}

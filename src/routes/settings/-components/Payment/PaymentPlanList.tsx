@@ -202,6 +202,7 @@ export const PaymentPlanList: React.FC<PaymentPlanListProps> = ({
     onPreview,
     deletingPlanId,
 }) => {
+    console.log('plans', plans);
     return (
         <Card className="w-full">
             <CardHeader>

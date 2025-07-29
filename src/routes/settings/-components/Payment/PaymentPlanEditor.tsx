@@ -142,25 +142,6 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
         }
     };
 
-    const getStepTitle = () => {
-        switch (currentStep) {
-            case 1:
-                return 'Edit Payment Plan Type';
-            case 2:
-                if (planData.type === PaymentPlans.DONATION) {
-                    return 'Configure Donation Settings';
-                }
-                if (planData.type === PaymentPlans.FREE) {
-                    return 'Configure Free Plan Settings';
-                }
-                return 'Configure Plan Details';
-            case 3:
-                return 'Manage Discounts & Coupons';
-            default:
-                return 'Edit Payment Plan';
-        }
-    };
-
     const getTotalSteps = () => {
         if (planData.type === PaymentPlans.FREE) return 2;
         if (planData.type === PaymentPlans.DONATION) return 2;
@@ -168,16 +149,7 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-lg font-semibold">Edit Payment Plan</h2>
-                    <p className="text-sm text-gray-600">
-                        Step {currentStep} of {getTotalSteps()} - {getStepTitle()}
-                    </p>
-                </div>
-            </div>
-
+        <div className="mt-4 space-y-6">
             {/* Step 1: Basic Plan Information */}
             {currentStep === 1 && (
                 <div className="space-y-6">
