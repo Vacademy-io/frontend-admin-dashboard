@@ -53,21 +53,21 @@ const AddPaymentPlanDialog = ({ form }: PaymentPlansDialogProps) => {
                     features: plan.features || [],
                     config: plan.config,
                     subscriptionData:
-                        plan.type === 'subscription'
+                        plan.type === 'SUBSCRIPTION'
                             ? {
                                   customIntervals: plan.config?.subscription?.customIntervals || [],
                                   planDiscounts: plan.config?.planDiscounts || {},
                               }
                             : undefined,
                     upfrontData:
-                        plan.type === 'upfront'
+                        plan.type === 'ONE_TIME'
                             ? {
                                   fullPrice: plan.config?.upfront?.fullPrice,
                                   planDiscounts: plan.config?.planDiscounts || {},
                               }
                             : undefined,
                     donationData:
-                        plan.type === 'donation'
+                        plan.type === 'DONATION'
                             ? {
                                   suggestedAmounts: plan.config?.donation?.suggestedAmounts,
                                   minimumAmount: plan.config?.donation?.minimumAmount,
@@ -75,7 +75,7 @@ const AddPaymentPlanDialog = ({ form }: PaymentPlansDialogProps) => {
                               }
                             : undefined,
                     freeData:
-                        plan.type === 'free'
+                        plan.type === 'FREE'
                             ? {
                                   validityDays: plan.config?.free?.validityDays,
                               }
@@ -84,7 +84,7 @@ const AddPaymentPlanDialog = ({ form }: PaymentPlansDialogProps) => {
             };
 
             await savePaymentOption(paymentOptionRequest);
-            if (plan.type === 'free') {
+            if (plan.type === 'FREE') {
                 const freePlans = form.getValues('freePlans');
                 form.setValue('freePlans', [...freePlans, paymentOptionRequest]);
             } else {

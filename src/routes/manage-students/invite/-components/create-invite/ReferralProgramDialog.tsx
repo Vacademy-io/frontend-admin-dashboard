@@ -32,7 +32,7 @@ export function ReferralProgramDialog({ form }: ReferralProgramDialogProps) {
             referralPrograms: convertReferralData(referralProgramDetails),
             selectedReferral: getDefaultMatchingReferralData(referralProgramDetails),
         });
-    }, []);
+    }, [referralProgramDetails]);
 
     return (
         <ShadDialog
@@ -47,7 +47,7 @@ export function ReferralProgramDialog({ form }: ReferralProgramDialogProps) {
                     </ShadDialogDescription>
                 </ShadDialogHeader>
                 <div className="mt-4 flex-1 space-y-4 overflow-auto">
-                    {form.getValues('referralPrograms').map((program) => (
+                    {form.watch('referralPrograms')?.map((program) => (
                         <Card
                             key={program.id}
                             className={`cursor-pointer flex-col gap-1 border-2 p-4 ${form.watch('selectedReferralId') === program.id ? 'border-primary' : 'border-gray-200'} transition-all`}

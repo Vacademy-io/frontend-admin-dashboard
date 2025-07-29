@@ -8,15 +8,11 @@ import { TokenKey } from '@/constants/auth/tokens';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { useEffect, useRef } from 'react';
-import { useForm as useShadForm } from 'react-hook-form';
-import { zodResolver as shadZodResolver } from '@hookform/resolvers/zod';
 import { useForm as useDiscountForm } from 'react-hook-form';
 import { zodResolver as discountZodResolver } from '@hookform/resolvers/zod';
 import {
     AddDiscountFormValues,
     addDiscountSchema,
-    AddReferralFormValues,
-    addReferralSchema,
     GenerateInviteLinkDialogProps,
     InviteLinkFormValues,
     inviteLinkSchema,
@@ -342,17 +338,6 @@ const GenerateInviteLinkDialog = ({
         form.setValue('showAddDiscountDialog', false);
         addDiscountForm.reset();
     };
-
-    const addReferralForm = useShadForm<AddReferralFormValues>({
-        resolver: shadZodResolver(addReferralSchema),
-        defaultValues: {
-            name: '',
-            refereeBenefit: '',
-            referrerTiers: [{ tier: '', reward: '' }],
-            vestingPeriod: 0,
-            combineOffers: false,
-        },
-    });
 
     const handleDeleteOpenField = (id: string) => {
         const updatedFields = customFieldsArray
@@ -775,7 +760,7 @@ const GenerateInviteLinkDialog = ({
             {/* Referral Program Selection Dialog */}
             <ReferralProgramDialog form={form} />
             {/* Add New Referral Program Dialog */}
-            <AddReferralProgramDialog form={form} addReferralForm={addReferralForm} />
+            <AddReferralProgramDialog form={form} />
         </Dialog>
     );
 };
