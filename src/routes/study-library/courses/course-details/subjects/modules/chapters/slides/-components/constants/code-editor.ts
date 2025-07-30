@@ -10,25 +10,14 @@ print(f"Sum of numbers: {sum_numbers}")
 # Uncomment below lines to test interactive input:
 # name = input("Enter your name: ")
 # print(f"Hello, {name}! Welcome to coding!")`,
-
     javascript: `// Welcome to JavaScript Code Editor
 console.log("Hello, World!");
 
 // Try some basic operations
 const numbers = [1, 2, 3, 4, 5];
 const sum = numbers.reduce((a, b) => a + b, 0);
-console.log(\`Sum of numbers: \${sum}\`);
+console.log(\`Sum of numbers: \${sum}\`); `  
 
-// Example function
-function greet(name) {
-    return \`Hello, \${name}!\`;
-}
-
-console.log(greet("Coder"));
-
-// Uncomment below lines to test interactive input:
-// const name = prompt("Enter your name:");
-// console.log(\`Hello, \${name}! Welcome to coding!\`);`,
 };
 
 export const CODE_EDITOR_CONFIG = {
@@ -38,6 +27,6 @@ export const CODE_EDITOR_CONFIG = {
     SCROLLBAR_SIZE: 8,
 };
 
-export const SUPPORTED_LANGUAGES = ['python', 'javascript'] as const;
+export const SUPPORTED_LANGUAGES = ['python'] as const;
 
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
