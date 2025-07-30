@@ -38,6 +38,7 @@ import { handleGetAdminDetails } from '@/services/student-list-section/getAdminD
 import { motion } from 'framer-motion';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { UnresolvedDoubtsWidget } from './-components/UnresolvedDoubtsWidget';
+import LiveClassesWidget from './-components/LiveClassesWidget';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, RoleTerms, SystemTerms } from '../settings/-components/NamingSettings';
 
@@ -140,9 +141,9 @@ export function DashboardComponent() {
         trackEvent('Assessment Creation Started', {
             assessment_type: type,
             source: 'dashboard',
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
         });
-        
+
         navigate({
             to: '/assessment/create-assessment/$assessmentId/$examtype',
             params: {
@@ -168,9 +169,9 @@ export function DashboardComponent() {
         amplitudeEvents.useFeature('ai_center', { source: 'dashboard' });
         trackEvent('AI Center Accessed', {
             source: 'dashboard_navigation',
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
         });
-        
+
         router.navigate({
             to: '/ai-center',
         });
@@ -179,14 +180,14 @@ export function DashboardComponent() {
     useEffect(() => {
         // Slightly more compact nav heading
         setNavHeading(<h1 className="text-md font-medium">Dashboard</h1>);
-        
+
         // Track dashboard page view
         trackPageView('Dashboard', {
             user_role: adminDetails?.roles?.join(',') || 'unknown',
             institute_id: instituteDetails?.id,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
         });
-        
+
         amplitudeEvents.navigateToPage('dashboard');
     }, [setNavHeading, adminDetails?.roles, instituteDetails?.id]);
 
@@ -230,11 +231,8 @@ export function DashboardComponent() {
             )}
             {/* Main content - Reduced top margin and gap */}
             <div className="mt-5 flex w-full flex-col gap-4">
-                {/* Reduced mt-8 to mt-5, gap-6 to gap-4 */}
-                
                 {/* Unresolved Doubts Widget - conditionally rendered if there are unresolved doubts */}
                 <UnresolvedDoubtsWidget instituteId={instituteDetails?.id || ''} />
-                
                 <Card className="grow bg-neutral-50 shadow-none">
                     <CardHeader className="p-4">
                         {/* Reduced padding */}
@@ -816,6 +814,14 @@ export function DashboardComponent() {
                             </Card>
                         )}
                     </div>
+                </div>
+                {/* Live Classes Widget at bottom in half-width column */}
+                <div className="flex flex-col gap-4 md:flex-row">
+                    <div className="flex-1">
+                        <LiveClassesWidget instituteId={instituteDetails?.id || ''} />
+                    </div>
+                    {/* empty placeholder for right half */}
+                    <div className="flex-1"></div>
                 </div>
             </div>
         </>

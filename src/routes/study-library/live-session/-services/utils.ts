@@ -76,6 +76,8 @@ export interface Schedule {
     session_end_date: string;
     access_type: string;
     waiting_room_time: number | null;
+    allow_rewind: boolean | null;
+    allow_play_pause: boolean | null;
     thumbnail_file_id: string | null;
     background_score_file_id: string | null;
     session_streaming_service_type: string | null;
