@@ -177,37 +177,90 @@ export function AdminSlidesView({
                     </div>
 
                     {/* Enhanced Breadcrumb */}
-                    <div className="flex w-full px-3 pb-3">
-                        <div className="flex w-full flex-wrap items-center gap-2">
-                            <div
-                                onClick={handleSubjectRoute}
-                                className="group flex cursor-pointer items-center"
-                            >
-                                <span className="group-hover:text-primary-600 truncate text-sm font-medium text-neutral-600 transition-colors duration-200">
-                                    {subjectName}
-                                </span>
+                    {(() => {
+                        const isSubjectDefault =
+                            subjectName?.toLowerCase() === 'default' || !subjectName;
+                        const isModuleDefault =
+                            moduleName?.toLowerCase() === 'default' || !moduleName;
+                        const isChapterDefault =
+                            chapterName?.toLowerCase() === 'default' || !chapterName;
+
+                        // Don't show breadcrumb if all three are default
+                        if (isSubjectDefault && isModuleDefault && isChapterDefault) {
+                            return null;
+                        }
+
+                        const breadcrumbItems = [];
+
+                        // Add subject if not default
+                        if (!isSubjectDefault) {
+                            breadcrumbItems.push(
+                                <div
+                                    key="subject"
+                                    onClick={handleSubjectRoute}
+                                    className="group flex cursor-pointer items-center"
+                                >
+                                    <span className="group-hover:text-primary-600 truncate text-sm font-medium text-neutral-600 transition-colors duration-200">
+                                        {subjectName}
+                                    </span>
+                                </div>
+                            );
+                        }
+
+                        // Add first chevron if subject is not default and module is not default
+                        if (!isSubjectDefault && !isModuleDefault) {
+                            breadcrumbItems.push(
+                                <ChevronRightIcon
+                                    key="chevron1"
+                                    className="size-3.5 shrink-0 text-neutral-400"
+                                />
+                            );
+                        }
+
+                        // Add module if not default
+                        if (!isModuleDefault) {
+                            breadcrumbItems.push(
+                                <div
+                                    key="module"
+                                    onClick={handleModuleRoute}
+                                    className="group flex cursor-pointer items-center"
+                                >
+                                    <span className="group-hover:text-primary-600 truncate text-sm font-medium text-neutral-600 transition-colors duration-200">
+                                        {moduleName}
+                                    </span>
+                                </div>
+                            );
+                        }
+
+                        // Add second chevron if module is not default and chapter is not default
+                        if (!isModuleDefault && !isChapterDefault) {
+                            breadcrumbItems.push(
+                                <ChevronRightIcon
+                                    key="chevron2"
+                                    className="size-3.5 shrink-0 text-neutral-400"
+                                />
+                            );
+                        }
+
+                        // Add chapter if not default
+                        if (!isChapterDefault) {
+                            breadcrumbItems.push(
+                                <div key="chapter" className="flex items-center">
+                                    <span className="text-primary-700 truncate rounded-md bg-primary-100/50 px-2 py-1 text-sm font-semibold">
+                                        {chapterName}
+                                    </span>
+                                </div>
+                            );
+                        }
+
+                        return (
+                            <div className="flex w-full px-3 pb-3">
+                                <div className="flex w-full flex-wrap items-center gap-2">
+                                    {breadcrumbItems}
+                                </div>
                             </div>
-
-                            <ChevronRightIcon className="size-3.5 shrink-0 text-neutral-400" />
-
-                            <div
-                                onClick={handleModuleRoute}
-                                className="group flex cursor-pointer items-center"
-                            >
-                                <span className="group-hover:text-primary-600 truncate text-sm font-medium text-neutral-600 transition-colors duration-200">
-                                    {moduleName}
-                                </span>
-                            </div>
-
-                            <ChevronRightIcon className="size-3.5 shrink-0 text-neutral-400" />
-
-                            <div className="flex items-center">
-                                <span className="text-primary-700 truncate rounded-md bg-primary-100/50 px-2 py-1 text-sm font-semibold">
-                                    {chapterName}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+                        );
+                    })()}
                 </div>
 
                 <div className={`flex w-full flex-1 flex-col gap-4 px-3 pb-3 pt-4`}>
