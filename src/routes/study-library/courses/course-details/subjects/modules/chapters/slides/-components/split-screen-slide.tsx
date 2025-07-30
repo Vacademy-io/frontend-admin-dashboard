@@ -214,8 +214,7 @@ export const SplitScreenSlide: React.FC<SplitScreenSlideProps> = ({
                     <CodeEditorSlide
                         key={`split-code-editor-${currentSlideId || 'default'}`}
                         codeData={{
-                            language:
-                                (splitScreenData.language as 'python' | 'javascript') || 'python',
+                            language: splitScreenData.language as 'python',
                             code: splitScreenData.code || '',
                             theme: (splitScreenData.theme as 'light' | 'dark') || 'light',
                             viewMode: (splitScreenData.viewMode as 'view' | 'edit') || 'edit',
