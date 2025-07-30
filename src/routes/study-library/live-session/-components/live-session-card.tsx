@@ -16,6 +16,8 @@ import { handleDownloadQRCode } from '@/routes/homework-creation/create-assessme
 import { useQueryClient } from '@tanstack/react-query';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useState } from 'react';
+import { toast } from 'sonner';
+import Papa from 'papaparse';
 import { fetchSessionDetails, SessionDetailsResponse } from '../-hooks/useSessionDetails';
 import { useLiveSessionReport } from '../-hooks/useLiveSessionReport';
 import { useLiveSessionStore } from '../schedule/-store/sessionIdstore';
@@ -42,6 +44,9 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
     const [openDialog, setOpenDialog] = useState<boolean>(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
     const [selectedTab, setSelectedTab] = useState<string>('Registration');
+    const [isRegistrationExporting, setIsRegistrationExporting] = useState<boolean>(false);
+    const [isAttendanceExporting, setIsAttendanceExporting] = useState<boolean>(false);
+    // using Sonner toast for notifications
 
     const [scheduledSessionDetails, setScheduleSessionDetails] =
         useState<SessionDetailsResponse | null>(null);
@@ -83,6 +88,8 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
         } catch (error) {
             console.error('Error deleting session:', error);
         }
+        // Close the confirmation dialog automatically
+        setOpenDeleteDialog(false);
     };
 
     const convertToReportTableData = (data: LiveSessionReport[]) => {
@@ -136,6 +143,42 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
     const handleOpenDeleteDialog = () => {
         setOpenDeleteDialog(!openDeleteDialog);
     };
+    // Adding export handlers
+    const handleExportRegistration = () => {
+        setIsRegistrationExporting(true);
+        const csv = Papa.unparse(tableData.content);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `registrations_session_${session.session_id}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        setIsRegistrationExporting(false);
+        toast.success('Registrations downloaded successfully.');
+    };
+    const handleExportAttendance = () => {
+        setIsAttendanceExporting(true);
+        const csvData = tableAttendanceData.content.map((item) => ({
+            index: item.index,
+            username: item.username,
+            attendanceStatus: item.attendanceStatus === 'PRESENT' ? 'Present' : 'Absent',
+        }));
+        const csv = Papa.unparse(csvData);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `attendance_session_${session.session_id}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        setIsAttendanceExporting(false);
+        toast.success('Attendance report downloaded successfully.');
+    };
 
     return (
         <div className="my-6 flex cursor-pointer flex-col gap-4 rounded-xl border bg-neutral-50 p-4">
@@ -173,7 +216,7 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                                     handleOpenDialog();
                                 }}
                             >
-                                View Registration List
+                                View Participant Details
                             </DropdownMenuItem>
                             <DropdownMenuItem
                                 className="cursor-pointer"
@@ -291,9 +334,25 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                                     <DashboardLoader />
                                 ) : (
                                     <>
-                                        <h3 className="mb-2 text-lg font-semibold">
-                                            Registrations
-                                        </h3>
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="mb-2 text-lg font-semibold">Registrations</h3>
+                                            <MyButton
+                                                type="button"
+                                                scale="large"
+                                                buttonType="secondary"
+                                                className="flex items-center font-medium"
+                                                onClick={handleExportRegistration}
+                                            >
+                                                {isRegistrationExporting ? (
+                                                    <DashboardLoader></DashboardLoader>
+                                                ) : (
+                                                    <>
+                                                        <DownloadSimple size={20} className="mr-2" />
+                                                        Export
+                                                    </>
+                                                )}
+                                            </MyButton>
+                                        </div>
                                         <MyTable
                                             data={tableData}
                                             columns={registrationColumns}
@@ -311,7 +370,25 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                                     <DashboardLoader />
                                 ) : (
                                     <>
-                                        <h3 className="mb-2 text-lg font-semibold">Attendance</h3>
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="mb-2 text-lg font-semibold">Attendance</h3>
+                                            <MyButton
+                                                type="button"
+                                                scale="large"
+                                                buttonType="secondary"
+                                                className="flex items-center font-medium"
+                                                onClick={handleExportAttendance}
+                                            >
+                                                {isAttendanceExporting ? (
+                                                    <DashboardLoader></DashboardLoader>
+                                                ) : (
+                                                    <>
+                                                        <DownloadSimple size={20} className="mr-2" />
+                                                        Export
+                                                    </>
+                                                )}
+                                            </MyButton>
+                                        </div>
                                         <MyTable
                                             data={tableAttendanceData}
                                             columns={reportColumns}

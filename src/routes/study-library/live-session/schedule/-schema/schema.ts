@@ -48,12 +48,7 @@ export const sessionFormSchema = z
     .object({
         id: z.string().optional(),
         title: z.string().min(1, 'Title must be at least 1 characters'),
-        subject: z
-            .string()
-            .min(1, 'Subject is required')
-            .refine((val) => val !== 'none', {
-                message: 'Subject is required',
-            }),
+        subject: z.string().optional(),
         openWaitingRoomBefore: z.string().optional(),
         sessionType: z.string(),
         sessionPlatform: z.string(),
@@ -85,6 +80,17 @@ export const sessionFormSchema = z
         recurringSchedule: z.array(weeklyClassSchema).optional(),
     })
     .superRefine((data, ctx) => {
+        // Validate total duration is greater than zero
+        const hours = parseInt(data.durationHours || '0', 10);
+        const minutes = parseInt(data.durationMinutes || '0', 10);
+        if (hours === 0 && minutes === 0) {
+            ctx.addIssue({
+                code: 'custom',
+                message: 'Duration must be greater than zero.',
+                path: ['durationMinutes'],
+            });
+        }
+        // Validate end date for recurring meetings
         if (data.meetingType === RecurringType.WEEKLY && !data.endDate) {
             ctx.addIssue({
                 code: 'custom',

@@ -6,12 +6,14 @@ import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore
 import { CaretLeft } from 'phosphor-react';
 import ScheduleStep1 from '../-components/scheduleStep1';
 import { useNavigate } from '@tanstack/react-router';
+import { useLiveSessionStore } from '../-store/sessionIdstore';
 export const Route = createFileRoute('/study-library/live-session/schedule/step1/')({
     component: RouteComponent,
 });
 
 function RouteComponent() {
     const { setNavHeading } = useNavHeadingStore();
+    const { clearSessionId, clearStep1Data } = useLiveSessionStore();
     const navigate = useNavigate();
 
     const heading = (
@@ -26,6 +28,8 @@ function RouteComponent() {
 
     useEffect(() => {
         setNavHeading(heading);
+        clearSessionId();
+        clearStep1Data();
     }, []);
     return (
         <LayoutContainer>
