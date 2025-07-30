@@ -12,6 +12,8 @@ import {
     Lightning,
     BookOpen,
     Eye,
+    Plus,
+    PencilSimpleLine,
 } from 'phosphor-react';
 import { CompletionStatusComponent } from './-components/CompletionStatusComponent';
 import { IntroKey } from '@/constants/storage/introKey';
@@ -39,6 +41,10 @@ import { ContentTerms, RoleTerms, SystemTerms } from '../settings/-components/Na
 
 import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from '@/svgs';
+import { getModuleFlags } from '@/components/common/layout-container/sidebar/helper';
 
 // Analytics Widgets
 import RealTimeActiveUsersWidget from './-components/analytics-widgets/RealTimeActiveUsersWidget';
@@ -49,7 +55,7 @@ import UserActivitySummaryWidget from './-components/analytics-widgets/UserActiv
 import EnrollLearnersWidget from './-components/EnrollLearnersWidget';
 import LearningCenterWidget from './-components/LearningCenterWidget';
 import AssessmentCenterWidget from './-components/AssessmentCenterWidget';
-
+import RoleTypeComponent from './-components/RoleTypeComponent';
 
 export const Route = createFileRoute('/dashboard/')({
     component: DashboardPage,
@@ -307,6 +313,20 @@ export function DashboardComponent() {
 
     const router = useRouter();
 
+    // Missing state variables and computed values
+    const subModules = getModuleFlags(data?.sub_modules);
+    const [roleTypeCount, setRoleTypeCount] = useState({
+        ADMIN: 0,
+        'COURSE CREATOR': 0,
+        'ASSESSMENT CREATOR': 0,
+        EVALUATOR: 0,
+        TEACHER: 0,
+    });
+
+    const handleEnrollButtonClick = () => {
+        navigate({ to: '/manage-students/invite' });
+    };
+
     const handleAICenterNavigation = () => {
         // Track AI Center access
         amplitudeEvents.useFeature('ai_center', { source: 'dashboard' });
@@ -388,6 +408,9 @@ export function DashboardComponent() {
                             </CardTitle>
                             {/* Smaller title */}
                             <EditDashboardProfileComponent isEdit={false} />
+                        </div>
+                    </CardHeader>
+                </Card>
 
                 {/* My Courses Widget - Only for Non-Admin Users */}
                 {!isAdmin && <MyCoursesWidget />}
