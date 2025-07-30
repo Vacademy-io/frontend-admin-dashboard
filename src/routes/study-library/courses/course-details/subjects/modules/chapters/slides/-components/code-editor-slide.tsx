@@ -8,7 +8,6 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import {
     Code,
@@ -21,12 +20,15 @@ import {
     Edit,
     Settings,
     ChevronDown,
+    ChevronUp,
+    Maximize2,
+    Minimize2,
+    GripVertical,
 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { toast } from 'sonner';
 
 // Import constants, types, and utilities
-import { DEFAULT_CODE } from './constants/code-editor';
 import { CodeEditorData, CodeEditorSlideProps, AllLanguagesData } from './utils/code-editor-types';
 import {
     copyCodeToClipboard,
@@ -36,6 +38,7 @@ import {
     initializeLanguageStates,
     initializeCurrentData,
 } from './utils/code-editor-utils';
+import { X } from 'phosphor-react';
 
 export const CodeEditorSlide: React.FC<CodeEditorSlideProps> = ({
     codeData,
@@ -48,8 +51,14 @@ export const CodeEditorSlide: React.FC<CodeEditorSlideProps> = ({
     const [isRunning, setIsRunning] = useState(false);
     const [waitingForInput, setWaitingForInput] = useState(false);
     const [inputValue, setInputValue] = useState<string>('');
-    const [activeTab, setActiveTab] = useState<string>('editor');
+    const [isPyodideLoading, setIsPyodideLoading] = useState(false);
 
+    // New state for output panel
+    const [isOutputExpanded, setIsOutputExpanded] = useState(false);
+    const [isOutputFullScreen, setIsOutputFullScreen] = useState(false);
+    const [outputHeight, setOutputHeight] = useState(200); // Default height in pixels
+    const [isResizing, setIsResizing] = useState(false);
+    const resizeRef = useRef<HTMLDivElement>(null);
     // Store code for each language separately using utility function
     const [languageStates, setLanguageStates] = useState<AllLanguagesData>(() =>
         initializeLanguageStates(codeData)
@@ -155,58 +164,6 @@ export const CodeEditorSlide: React.FC<CodeEditorSlideProps> = ({
         [currentData, debouncedSave, languageStates]
     );
 
-    const handleLanguageChange = useCallback(
-        (language: 'python' | 'javascript') => {
-            // Get current code from editor for most accurate state
-            let currentCode = currentData.code;
-            if (
-                editorRef.current &&
-                typeof editorRef.current === 'object' &&
-                'getValue' in editorRef.current
-            ) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                currentCode = (editorRef.current as any).getValue() || '';
-            }
-
-            // Force save current code before switching languages
-            const currentDataWithLatestCode = { ...currentData, code: currentCode };
-            forceSave(currentDataWithLatestCode);
-
-            // Create updated language states with current code
-            const updatedLanguageStates = {
-                ...languageStates,
-                [currentData.language]: {
-                    code: currentCode,
-                    lastEdited: Date.now(),
-                },
-            };
-
-            // Update language states
-            setLanguageStates(updatedLanguageStates);
-
-            // Get the stored code for the target language
-            const targetLanguageCode = updatedLanguageStates[language].code;
-
-            // Use stored code if it exists and has been edited, otherwise use default
-            const newCode = updatedLanguageStates[language].lastEdited
-                ? targetLanguageCode
-                : DEFAULT_CODE[language];
-
-            // Update immediately for smooth transition - don't use updateData for language switching
-            const newData = {
-                ...currentData,
-                language,
-                code: newCode,
-                allLanguagesData: updatedLanguageStates, // Include both languages' data with latest updates
-            };
-            setCurrentData(newData);
-
-            // Force save the new language data immediately
-            forceSave(newData);
-        },
-        [currentData, languageStates, setLanguageStates, forceSave]
-    );
-
     const handleThemeChange = useCallback(() => {
         const newTheme = currentData.theme === 'light' ? 'dark' : 'light';
         updateDataImmediate({ theme: newTheme });
@@ -302,19 +259,68 @@ export const CodeEditorSlide: React.FC<CodeEditorSlideProps> = ({
         const currentCode = getCurrentCodeFromEditor();
 
         setIsRunning(true);
-        setActiveTab('output');
-        setOutput('Running code...');
+        setIsPyodideLoading(true);
+        setIsOutputExpanded(true); // Auto-expand output when running
+        setOutput('Loading Python environment...');
 
-        executeCode(currentCode, currentData.language).then(({ output, needsInput }) => {
+        try {
+            const { output, needsInput } = await executeCode(currentCode, currentData.language);
             setOutput(output);
             setWaitingForInput(needsInput);
+        } catch (error) {
+            setOutput(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        } finally {
             setIsRunning(false);
-        });
+            setIsPyodideLoading(false);
+        }
     }, [currentData.language, getCurrentCodeFromEditor]);
 
     const handleEditorDidMount = (editor: unknown) => {
         editorRef.current = editor;
     };
+
+    // Output panel controls
+    const toggleOutputExpanded = useCallback(() => {
+        setIsOutputExpanded(!isOutputExpanded);
+        if (isOutputFullScreen) {
+            setIsOutputFullScreen(false);
+        }
+    }, [isOutputExpanded, isOutputFullScreen]);
+
+    const toggleOutputFullScreen = useCallback(() => {
+        setIsOutputFullScreen(!isOutputFullScreen);
+    }, [isOutputFullScreen]);
+
+    // Resize functionality
+    const handleResizeStart = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        setIsResizing(true);
+    }, []);
+
+    const handleResizeMove = useCallback(
+        (e: MouseEvent) => {
+            if (!isResizing) return;
+
+            const container = resizeRef.current?.parentElement;
+            if (!container) return;
+
+            const containerRect = container.getBoundingClientRect();
+            const newHeight = containerRect.bottom - e.clientY;
+
+            // Set minimum and maximum heights
+            const minHeight = 100;
+            const maxHeight = window.innerHeight * 0.8;
+
+            if (newHeight >= minHeight && newHeight <= maxHeight) {
+                setOutputHeight(newHeight);
+            }
+        },
+        [isResizing]
+    );
+
+    const handleResizeEnd = useCallback(() => {
+        setIsResizing(false);
+    }, []);
 
     // Add keyboard shortcut for running code
     useEffect(() => {
@@ -333,6 +339,18 @@ export const CodeEditorSlide: React.FC<CodeEditorSlideProps> = ({
         };
     }, [isRunning, isEditable, runCode]);
 
+    // Add resize event listeners
+    useEffect(() => {
+        if (isResizing) {
+            document.addEventListener('mousemove', handleResizeMove);
+            document.addEventListener('mouseup', handleResizeEnd);
+        }
+        return () => {
+            document.removeEventListener('mousemove', handleResizeMove);
+            document.removeEventListener('mouseup', handleResizeEnd);
+        };
+    }, [isResizing, handleResizeMove, handleResizeEnd]);
+
     // Cleanup timeout on unmount
     useEffect(() => {
         return () => {
@@ -342,180 +360,183 @@ export const CodeEditorSlide: React.FC<CodeEditorSlideProps> = ({
         };
     }, []);
 
+    // Calculate editor height based on output panel state
+    const getEditorHeight = () => {
+        if (isOutputFullScreen) return '0px';
+        if (!isOutputExpanded) return '100%';
+        return `calc(100% - ${outputHeight}px)`;
+    };
+
     return (
-        <div className="h-full p-1">
-            <Card className="h-full">
-                <CardHeader className="pb-2">
-                    <div className="flex flex-col items-center justify-between gap-2 lg:flex-row">
-                        <CardTitle className="flex items-center gap-2">
-                            <Code className="size-5" />
-                            Code Editor
-                            <span className="ml-2 rounded-full bg-gray-100 px-2 py-1 text-xs font-normal text-gray-600">
-                                {currentData.viewMode === 'edit' ? 'Edit Mode' : 'View Mode'}
-                            </span>
-                        </CardTitle>
+        <Card className="h-full">
+            <CardHeader className="pb-2">
+                <div className="flex flex-col items-center justify-between gap-2 lg:flex-row">
+                    <CardTitle className="flex items-center gap-2">
+                        <Code className="size-5" />
+                        Code Editor
+                        <span className="ml-2 rounded-full bg-gray-100 px-2 py-1 text-xs font-normal text-gray-600">
+                            {currentData.viewMode === 'edit' ? 'Edit Mode' : 'View Mode'}
+                        </span>
+                    </CardTitle>
 
-                        <div className="flex items-center gap-2">
-                            <Button
-                                onClick={runCode}
-                                disabled={isRunning || !isEditable}
-                                size="sm"
-                                className="bg-green-600 text-white hover:bg-green-700"
-                            >
-                                <Play className="mr-1 size-4" />
-                                {isRunning ? 'Running...' : 'Run'}
-                            </Button>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            onClick={runCode}
+                            disabled={isRunning || !isEditable}
+                            size="sm"
+                            className="bg-green-600 text-white hover:bg-green-700"
+                        >
+                            <Play className="mr-1 size-4" />
+                            {isRunning ? (isPyodideLoading ? 'Loading...' : 'Running...') : 'Run'}
+                        </Button>
 
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="sm">
-                                        <Settings className="mr-1 size-4" />
-                                        Settings
-                                        <ChevronDown className="ml-1 size-3" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-56">
-                                    <DropdownMenuItem className="flex items-center justify-between">
-                                        <span>View/Edit Mode</span>
-                                        <div className="flex items-center gap-1">
-                                            <Eye className="size-3" />
-                                            <Switch
-                                                checked={currentData.viewMode === 'edit'}
-                                                onCheckedChange={(checked) =>
-                                                    handleViewModeChange(checked ? 'edit' : 'view')
-                                                }
-                                                disabled={!isEditable}
-                                            />
-                                            <Edit className="size-3" />
-                                        </div>
-                                    </DropdownMenuItem>
-
-                                    <DropdownMenuSeparator />
-
-                                    <DropdownMenuItem
-                                        onClick={() => handleLanguageChange('python')}
-                                        disabled={!isEditable || currentData.viewMode === 'view'}
-                                        className={
-                                            currentData.language === 'python' ? 'bg-accent' : ''
-                                        }
-                                    >
-                                        <span>Python</span>
-                                        {currentData.language === 'python' && (
-                                            <span className="ml-auto">✓</span>
-                                        )}
-                                    </DropdownMenuItem>
-
-                                    <DropdownMenuItem
-                                        onClick={() => handleLanguageChange('javascript')}
-                                        disabled={!isEditable || currentData.viewMode === 'view'}
-                                        className={
-                                            currentData.language === 'javascript' ? 'bg-accent' : ''
-                                        }
-                                    >
-                                        <span>JavaScript</span>
-                                        {currentData.language === 'javascript' && (
-                                            <span className="ml-auto">✓</span>
-                                        )}
-                                    </DropdownMenuItem>
-
-                                    <DropdownMenuSeparator />
-
-                                    <DropdownMenuItem
-                                        onClick={handleThemeChange}
-                                        disabled={!isEditable}
-                                    >
-                                        {currentData.theme === 'light' ? (
-                                            <>
-                                                <Moon className="mr-2 size-4" />
-                                                Switch to Dark Theme
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Sun className="mr-2 size-4" />
-                                                Switch to Light Theme
-                                            </>
-                                        )}
-                                    </DropdownMenuItem>
-
-                                    <DropdownMenuSeparator />
-
-                                    <DropdownMenuItem onClick={handleCopyCode}>
-                                        <Copy className="mr-2 size-4" />
-                                        Copy Code
-                                    </DropdownMenuItem>
-
-                                    <DropdownMenuItem onClick={handleDownloadCode}>
-                                        <Download className="mr-2 size-4" />
-                                        Download Code
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-                        <div className="flex items-center justify-between px-6 pb-4">
-                            <TabsList className="grid grid-cols-2">
-                                <TabsTrigger value="editor">Code Editor</TabsTrigger>
-                                <TabsTrigger value="output" className="relative">
-                                    Output
-                                    {output && !isRunning && (
-                                        <span className="ml-1 inline-flex size-2 rounded-full bg-green-500"></span>
-                                    )}
-                                </TabsTrigger>
-                            </TabsList>
-                            <div className="hidden text-sm text-gray-500 lg:inline-block">
-                                Press Ctrl+Enter to run code
-                            </div>
-                        </div>
-
-                        <TabsContent value="editor" className="m-0 h-[500px]">
-                            <div className="h-full border-t">
-                                <Editor
-                                    height="100%"
-                                    language={currentData.language}
-                                    value={currentData.code}
-                                    theme={currentData.theme === 'dark' ? 'vs-dark' : 'light'}
-                                    onChange={handleCodeChange}
-                                    onMount={handleEditorDidMount}
-                                    options={{
-                                        readOnly: !isEditable || currentData.viewMode === 'view',
-                                        minimap: { enabled: false },
-                                        scrollBeyondLastLine: false,
-                                        automaticLayout: true,
-                                        fontSize: 14,
-                                        lineNumbers: 'on',
-                                        roundedSelection: false,
-                                        scrollbar: {
-                                            verticalScrollbarSize: 8,
-                                            horizontalScrollbarSize: 8,
-                                        },
-                                        padding: { top: 16 },
-                                        // Optimize for smooth language switching
-                                        quickSuggestions: true,
-                                        suggestOnTriggerCharacters: true,
-                                    }}
-                                />
-                            </div>
-                            <div className="border-t p-4">
-                                <Button
-                                    onClick={runCode}
-                                    disabled={isRunning || !isEditable}
-                                    size="sm"
-                                    className="bg-green-600 text-white hover:bg-green-700"
-                                >
-                                    <Play className="mr-1 size-4" />
-                                    {isRunning ? 'Running...' : 'Run'}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                    <Settings className="mr-1 size-4" />
+                                    Settings
+                                    <ChevronDown className="ml-1 size-3" />
                                 </Button>
-                            </div>
-                        </TabsContent>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56">
+                                <DropdownMenuItem className="flex items-center justify-between">
+                                    <span>View/Edit Mode</span>
+                                    <div className="flex items-center gap-1">
+                                        <Eye className="size-3" />
+                                        <Switch
+                                            checked={currentData.viewMode === 'edit'}
+                                            onCheckedChange={(checked) =>
+                                                handleViewModeChange(checked ? 'edit' : 'view')
+                                            }
+                                            disabled={!isEditable}
+                                        />
+                                        <Edit className="size-3" />
+                                    </div>
+                                </DropdownMenuItem>
 
-                        <TabsContent value="output" className="m-0 h-[500px]">
-                            <div className="flex h-full flex-col border-t">
+                                <DropdownMenuSeparator />
+
+                                <DropdownMenuItem
+                                    onClick={handleThemeChange}
+                                    disabled={!isEditable}
+                                >
+                                    {currentData.theme === 'light' ? (
+                                        <>
+                                            <Moon className="mr-2 size-4" />
+                                            Switch to Dark Theme
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Sun className="mr-2 size-4" />
+                                            Switch to Light Theme
+                                        </>
+                                    )}
+                                </DropdownMenuItem>
+
+                                <DropdownMenuSeparator />
+
+                                <DropdownMenuItem onClick={handleCopyCode}>
+                                    <Copy className="mr-2 size-4" />
+                                    Copy Code
+                                </DropdownMenuItem>
+
+                                <DropdownMenuItem onClick={handleDownloadCode}>
+                                    <Download className="mr-2 size-4" />
+                                    Download Code
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent className="p-0">
+                <div className="flex h-[550px] flex-col">
+                    {/* Code Editor Section */}
+                    <div className="flex-1 border-t" style={{ height: getEditorHeight() }}>
+                        <Editor
+                            height="100%"
+                            language={currentData.language}
+                            value={currentData.code}
+                            theme={currentData.theme === 'dark' ? 'vs-dark' : 'light'}
+                            onChange={handleCodeChange}
+                            onMount={handleEditorDidMount}
+                            options={{
+                                readOnly: !isEditable || currentData.viewMode === 'view',
+                                minimap: { enabled: false },
+                                scrollBeyondLastLine: false,
+                                automaticLayout: true,
+                                fontSize: 14,
+                                lineNumbers: 'on',
+                                roundedSelection: false,
+                                scrollbar: {
+                                    verticalScrollbarSize: 8,
+                                    horizontalScrollbarSize: 8,
+                                },
+                                padding: { top: 16 },
+                                // Optimize for smooth language switching
+                                quickSuggestions: true,
+                                suggestOnTriggerCharacters: true,
+                            }}
+                        />
+                    </div>
+
+                    {/* Output Panel */}
+                    {isOutputExpanded && (
+                        <>
+                            {/* Resize Handle */}
+                            <div
+                                ref={resizeRef}
+                                className="flex h-1 cursor-ns-resize items-center justify-center bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
+                                onMouseDown={handleResizeStart}
+                            >
+                                <GripVertical className="size-4 text-gray-500" />
+                            </div>
+
+                            {/* Output Content */}
+                            <div
+                                className="flex flex-col overflow-y-scroll border-t"
+                                style={{
+                                    height: isOutputFullScreen ? '100vh' : `${outputHeight}px`,
+                                }}
+                            >
+                                {/* Output Header */}
+                                <div className="flex items-center justify-between border-b bg-gray-50 px-4 py-2 dark:bg-gray-800">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-medium">Console</span>
+                                        {output && !isRunning && (
+                                            <span className="inline-flex size-2 rounded-full bg-green-500"></span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={toggleOutputFullScreen}
+                                            className="size-8 p-0"
+                                        >
+                                            {isOutputFullScreen ? (
+                                                <Minimize2 className="size-4" />
+                                            ) : (
+                                                <Maximize2 className="size-4" />
+                                            )}
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={toggleOutputExpanded}
+                                            className="size-8 p-0"
+                                        >
+                                            <X className="size-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {/* Output Content */}
                                 <div className="flex-1 overflow-auto bg-gray-900 p-4 font-mono text-sm text-green-400">
                                     <pre className="whitespace-pre-wrap">
-                                        {output || 'Click "Run Code" to see output here...'}
+                                        {isPyodideLoading && isRunning
+                                            ? 'Loading Python environment (this may take a few seconds on first run)...'
+                                            : output || 'Click "Run Code" to see output here...'}
                                     </pre>
                                     {waitingForInput && (
                                         <div className="mt-2 flex items-center gap-2">
@@ -536,6 +557,8 @@ export const CodeEditorSlide: React.FC<CodeEditorSlideProps> = ({
                                         </div>
                                     )}
                                 </div>
+
+                                {/* Input Controls */}
                                 {waitingForInput && (
                                     <div className="border-t border-gray-700 bg-gray-800 p-2">
                                         <div className="flex gap-2">
@@ -558,10 +581,20 @@ export const CodeEditorSlide: React.FC<CodeEditorSlideProps> = ({
                                     </div>
                                 )}
                             </div>
-                        </TabsContent>
-                    </Tabs>
-                </CardContent>
-            </Card>
-        </div>
+                        </>
+                    )}
+
+                    {/* Output Toggle Button (when collapsed) */}
+                    {!isOutputExpanded && (
+                        <div className="border-t p-2">
+                            <Button variant="outline" size="sm" onClick={toggleOutputExpanded}>
+                                <ChevronUp className="mr-1 size-4" />
+                                Show Output
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
     );
 };

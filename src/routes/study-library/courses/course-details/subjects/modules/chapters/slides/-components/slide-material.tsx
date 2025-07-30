@@ -90,7 +90,6 @@ export const SlideMaterial = ({
     const pendingStateUpdateRef = useRef<any>(null); // Store pending state updates
     const stableKeyRef = useRef<string>(''); // Stable key during operations
 
-
     const searchParams = router.state.location.search;
     const { courseId, levelId, chapterId, slideId, moduleId, subjectId, sessionId } = searchParams;
 
@@ -305,7 +304,10 @@ export const SlideMaterial = ({
                             title: activeItem.document_slide?.title || '',
                             cover_file_id: '',
                             total_pages: 1,
-                            published_data: newStatus === 'PUBLISHED' ? fileId : (activeItem.document_slide?.published_data || null), // Set published_data for non-admin auto-publish
+                            published_data:
+                                newStatus === 'PUBLISHED'
+                                    ? fileId
+                                    : activeItem.document_slide?.published_data || null, // Set published_data for non-admin auto-publish
                             published_document_total_pages: 1,
                         },
                         status: newStatus, // Use the determined status
@@ -323,7 +325,10 @@ export const SlideMaterial = ({
                                 ? {
                                       ...activeItem.document_slide,
                                       data: fileId, // Update local state with new fileId
-                                      published_data: newStatus === 'PUBLISHED' ? fileId : activeItem.document_slide.published_data, // Update published_data for auto-publish
+                                      published_data:
+                                          newStatus === 'PUBLISHED'
+                                              ? fileId
+                                              : activeItem.document_slide.published_data, // Update published_data for auto-publish
                                   }
                                 : undefined,
                         };
@@ -336,7 +341,10 @@ export const SlideMaterial = ({
                                 ? {
                                       ...activeItem.document_slide,
                                       data: fileId,
-                                      published_data: newStatus === 'PUBLISHED' ? fileId : activeItem.document_slide.published_data, // Update published_data for auto-publish
+                                      published_data:
+                                          newStatus === 'PUBLISHED'
+                                              ? fileId
+                                              : activeItem.document_slide.published_data, // Update published_data for auto-publish
                                   }
                                 : undefined,
                         };
@@ -451,7 +459,9 @@ export const SlideMaterial = ({
                 setContent(
                     <div className="flex h-[500px] flex-col items-center justify-center rounded-lg py-10">
                         <div className="text-center">
-                            <h3 className="mb-2 text-lg font-semibold text-red-600">Assignment Error</h3>
+                            <h3 className="mb-2 text-lg font-semibold text-red-600">
+                                Assignment Error
+                            </h3>
                             <p className="text-gray-600">
                                 Failed to load assignment: {errorMessage}
                             </p>
@@ -474,9 +484,9 @@ export const SlideMaterial = ({
                 // Get the appropriate fileId based on status and learner view
                 const fileId = isLearnerView
                     ? activeItem.document_slide?.published_data
-                    : (activeItem.status === 'PUBLISHED'
-                        ? activeItem.document_slide?.published_data
-                        : activeItem.document_slide?.data);
+                    : activeItem.status === 'PUBLISHED'
+                      ? activeItem.document_slide?.published_data
+                      : activeItem.document_slide?.data;
                 // Only set a new key if the id changes
                 if (!stableKeyRef.current || !stableKeyRef.current.includes(activeItem.id)) {
                     stableKeyRef.current = `slide-editor-${activeItem.id}-${Date.now()}`;
@@ -505,7 +515,6 @@ export const SlideMaterial = ({
 
                                 // If operation just completed and we have a pending update, apply it
                                 if (wasBusy && !isBusy && pendingStateUpdateRef.current) {
-
                                     const pendingUpdate = pendingStateUpdateRef.current;
                                     setActiveItem(pendingUpdate);
                                     pendingStateUpdateRef.current = null;
@@ -521,9 +530,9 @@ export const SlideMaterial = ({
             if (documentType === 'PDF') {
                 const data = isLearnerView
                     ? activeItem.document_slide?.published_data || null
-                    : (activeItem.status === 'PUBLISHED'
-                        ? activeItem.document_slide?.published_data || null
-                        : activeItem.document_slide?.data || '');
+                    : activeItem.status === 'PUBLISHED'
+                      ? activeItem.document_slide?.published_data || null
+                      : activeItem.document_slide?.data || '';
 
                 const url = await getPublicUrl(data || '');
                 setContent(<PDFViewer pdfUrl={url} />);
@@ -534,11 +543,12 @@ export const SlideMaterial = ({
                 try {
                     // In learner view, always use published_data, otherwise use existing logic
                     const rawData = isLearnerView
-                        ? activeItem.document_slide?.published_data || activeItem.document_slide?.data
-                        : (activeItem.status === 'PUBLISHED'
-                            ? activeItem.document_slide?.data ||
-                              activeItem.document_slide?.published_data
-                            : activeItem.document_slide?.data);
+                        ? activeItem.document_slide?.published_data ||
+                          activeItem.document_slide?.data
+                        : activeItem.status === 'PUBLISHED'
+                          ? activeItem.document_slide?.data ||
+                            activeItem.document_slide?.published_data
+                          : activeItem.document_slide?.data;
 
                     const notebookData = rawData
                         ? JSON.parse(rawData)
@@ -997,32 +1007,31 @@ export const SlideMaterial = ({
             }
         }
 
-       if (
-    activeItem.source_type?.toUpperCase() === 'QUIZ' ||
-    activeItem.id?.startsWith('quiz-')
-) {
-    try {
-        // For question slides, we don't need to parse data as it's already structured
-        setContent(
-            <QuizPreview
-                activeItem={activeItem}
-                routeParams={{
-                    chapterId,
-                    moduleId,
-                    subjectId,
-                    sessionId
-                }}
-            />
-        );
-    } catch (error) {
-        console.error('Error loading quiz questions:', error);
-        setContent(<div>Error loading quiz questions</div>);
-    }
-    return;
-}
-
         if (
-            activeItem.source_type?.toUpperCase() === 'QUESTION') {
+            activeItem.source_type?.toUpperCase() === 'QUIZ' ||
+            activeItem.id?.startsWith('quiz-')
+        ) {
+            try {
+                // For question slides, we don't need to parse data as it's already structured
+                setContent(
+                    <QuizPreview
+                        activeItem={activeItem}
+                        routeParams={{
+                            chapterId,
+                            moduleId,
+                            subjectId,
+                            sessionId,
+                        }}
+                    />
+                );
+            } catch (error) {
+                console.error('Error loading quiz questions:', error);
+                setContent(<div>Error loading quiz questions</div>);
+            }
+            return;
+        }
+
+        if (activeItem.source_type?.toUpperCase() === 'QUESTION') {
             setContent(<StudyLibraryQuestionsPreview activeItem={activeItem} />);
             return;
         }
@@ -1171,13 +1180,10 @@ export const SlideMaterial = ({
             if (activeItem?.source_type === 'QUIZ') {
                 try {
                     // Use the createQuizSlidePayload function to properly transform the data
-                    const payload = createQuizSlidePayload(
-                        activeItem.quiz_slide?.questions || [],
-                        {
-                            ...activeItem,
-                            status: status // Use the determined status
-                        }
-                    );
+                    const payload = createQuizSlidePayload(activeItem.quiz_slide?.questions || [], {
+                        ...activeItem,
+                        status: status, // Use the determined status
+                    });
 
                     await addUpdateQuizSlide(payload);
                     toast.success(`Quiz saved in draft successfully!`);
@@ -1438,7 +1444,7 @@ export const SlideMaterial = ({
         }
     };
 
-        const handleSaveDraftClick = async () => {
+    const handleSaveDraftClick = async () => {
         try {
             // Use custom save function if provided (for non-admin users)
             if (customSaveFunction && activeItem) {
@@ -1616,22 +1622,22 @@ export const SlideMaterial = ({
 
                                 <ActivityStatsSidebar />
 
-
                                 {(!hidePublishButtons || // Show for admin users OR
-                                    (hidePublishButtons && ( // Show for non-admin users if it's an editable slide type
-                                        activeItem?.document_slide?.type === 'DOC' ||
-                                        activeItem?.document_slide?.type === 'PDF' ||
-                                        activeItem?.document_slide?.type === 'PRESENTATION' ||
-                                        activeItem?.document_slide?.type === 'CODE' ||
-                                        activeItem?.document_slide?.type === 'JUPYTER' ||
-                                        activeItem?.document_slide?.type === 'SCRATCH' ||
-                                        activeItem?.source_type === 'QUESTION' ||
-                                        activeItem?.source_type === 'ASSIGNMENT' ||
-                                        activeItem?.source_type === 'QUIZ' ||
-                                        activeItem?.source_type === 'DOCUMENT' ||
-                                        activeItem?.source_type === 'VIDEO' // Include ALL video slides for non-admin
-                                    )) ||
-                                    (!hidePublishButtons && activeItem?.source_type === 'VIDEO' && activeItem?.splitScreenMode)) && ( // Keep split-screen condition for admin
+                                    (hidePublishButtons && // Show for non-admin users if it's an editable slide type
+                                        (activeItem?.document_slide?.type === 'DOC' ||
+                                            activeItem?.document_slide?.type === 'PDF' ||
+                                            activeItem?.document_slide?.type === 'PRESENTATION' ||
+                                            activeItem?.document_slide?.type === 'CODE' ||
+                                            activeItem?.document_slide?.type === 'JUPYTER' ||
+                                            activeItem?.document_slide?.type === 'SCRATCH' ||
+                                            activeItem?.source_type === 'QUESTION' ||
+                                            activeItem?.source_type === 'ASSIGNMENT' ||
+                                            activeItem?.source_type === 'QUIZ' ||
+                                            activeItem?.source_type === 'DOCUMENT' ||
+                                            activeItem?.source_type === 'VIDEO')) || // Include ALL video slides for non-admin
+                                    (!hidePublishButtons &&
+                                        activeItem?.source_type === 'VIDEO' &&
+                                        activeItem?.splitScreenMode)) && ( // Keep split-screen condition for admin
                                     <MyButton
                                         buttonType="secondary"
                                         scale="medium"
@@ -1654,25 +1660,26 @@ export const SlideMaterial = ({
                                 )}
 
                                 {/* Single Publish/Unpublish Button - Hidden for non-admin users */}
-                                {!hidePublishButtons && (activeItem.status === 'PUBLISHED' ? (
-                                    <MyButton
-                                        buttonType="secondary"
-                                        scale="medium"
-                                        layoutVariant="default"
-                                        onClick={() => setIsUnpublishDialogOpen(true)}
-                                    >
-                                        Unpublish
-                                    </MyButton>
-                                ) : (
-                                    <MyButton
-                                        buttonType="primary"
-                                        scale="medium"
-                                        layoutVariant="default"
-                                        onClick={() => setIsPublishDialogOpen(true)}
-                                    >
-                                        Publish
-                                    </MyButton>
-                                ))}
+                                {!hidePublishButtons &&
+                                    (activeItem.status === 'PUBLISHED' ? (
+                                        <MyButton
+                                            buttonType="secondary"
+                                            scale="medium"
+                                            layoutVariant="default"
+                                            onClick={() => setIsUnpublishDialogOpen(true)}
+                                        >
+                                            Unpublish
+                                        </MyButton>
+                                    ) : (
+                                        <MyButton
+                                            buttonType="primary"
+                                            scale="medium"
+                                            layoutVariant="default"
+                                            onClick={() => setIsPublishDialogOpen(true)}
+                                        >
+                                            Publish
+                                        </MyButton>
+                                    ))}
 
                                 {/* Keep dialogs but make them conditional */}
                                 {isUnpublishDialogOpen && (
@@ -1701,7 +1708,9 @@ export const SlideMaterial = ({
                                         isOpen={isPublishDialogOpen}
                                         setIsOpen={setIsPublishDialogOpen}
                                         handlePublishUnpublishSlide={() => {
-                                            if (activeItem?.document_slide?.type === 'PRESENTATION') {
+                                            if (
+                                                activeItem?.document_slide?.type === 'PRESENTATION'
+                                            ) {
                                                 publishExcalidrawPresentation();
                                                 setIsPublishDialogOpen(false);
                                             } else {

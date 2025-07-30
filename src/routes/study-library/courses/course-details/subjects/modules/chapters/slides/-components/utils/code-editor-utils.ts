@@ -1,11 +1,170 @@
-import axios from 'axios';
 import { SupportedLanguage, DEFAULT_CODE } from '../constants/code-editor';
 import { CodeEditorData, AllLanguagesData } from './code-editor-types';
 
 export interface CodeExecutionResult {
     output: string;
     needsInput: boolean;
+    hasError?: boolean;
 }
+
+// Pyodide instance - will be loaded lazily
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let pyodide: any = null;
+let isPyodideLoading = false;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let pyodideLoadPromise: Promise<any> | null = null;
+
+// Console output buffer
+let consoleOutput: string[] = [];
+
+// Custom stdout/stderr handler
+const stdout = (msg: unknown) => {
+    consoleOutput.push(String(msg));
+    console.log(msg);
+};
+
+// Add timeout for Pyodide loading
+const PYODIDE_LOAD_TIMEOUT = 30000; // 30 seconds
+
+/**
+ * Load Pyodide if not already loaded
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const loadPyodideInstance = async (): Promise<any> => {
+    if (pyodide) {
+        return pyodide;
+    }
+
+    if (isPyodideLoading && pyodideLoadPromise) {
+        return pyodideLoadPromise;
+    }
+
+    isPyodideLoading = true;
+    pyodideLoadPromise = new Promise((resolve, reject) => {
+        // Add timeout to prevent infinite loading
+        const timeoutId = setTimeout(() => {
+            reject(
+                new Error(
+                    'Pyodide loading timed out after 30 seconds. Please refresh the page and try again.'
+                )
+            );
+        }, PYODIDE_LOAD_TIMEOUT);
+
+        (async () => {
+            try {
+                // Use a fixed version for now - you can make this dynamic later
+                const pyodideVersion = '0.28.0';
+
+                console.log(`Loading Pyodide version: ${pyodideVersion}`);
+
+                // Dynamic import to avoid build issues
+                const { loadPyodide } = await import('pyodide');
+
+                pyodide = await loadPyodide({
+                    indexURL: `https://cdn.jsdelivr.net/pyodide/v${pyodideVersion}/full/`,
+                    stdout: stdout,
+                    stderr: stdout,
+                    checkAPIVersion: true,
+                });
+
+                console.log('Pyodide loaded successfully');
+                clearTimeout(timeoutId);
+
+                if (pyodide) {
+                    resolve(pyodide);
+                } else {
+                    reject(new Error('Pyodide failed to initialize'));
+                }
+            } catch (error) {
+                console.error('Pyodide loading error:', error);
+                clearTimeout(timeoutId);
+                reject(error);
+            }
+        })();
+    });
+
+    return pyodideLoadPromise;
+};
+
+/**
+ * Execute Python code using Pyodide
+ */
+export const executePythonWithPyodide = async (code: string): Promise<CodeExecutionResult> => {
+    try {
+        // Load Pyodide if not already loaded
+        const pyodideInstance = await loadPyodideInstance();
+
+        // Clear previous output
+        consoleOutput = [];
+
+        try {
+            // Execute code using the working approach from the GitHub repo
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const dict = pyodideInstance.globals.get('dict') as any;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const globals = dict() as any;
+
+            await pyodideInstance.loadPackagesFromImports(code);
+            await pyodideInstance.runPythonAsync(code, { globals, locals: globals });
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (globals as any).destroy();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (dict as any).destroy();
+        } catch (executionError) {
+            // Handle execution errors specifically
+            console.error('[CodeEditor] Python execution error:', executionError);
+            stdout(executionError instanceof Error ? executionError.stack : executionError);
+        } finally {
+            stdout(
+                `\n[Editor (Pyodide: v${pyodideInstance.version}): ${new Date().toLocaleString('en-us')}]`
+            );
+        }
+
+        // Combine output
+        const output = consoleOutput.join('\n');
+        const hasError = output.includes('Error:') || output.includes('Traceback');
+
+        // Check if code contains input() function
+        const needsInput = code.includes('input(');
+        if (needsInput) {
+            consoleOutput.push(
+                '\nNote: Interactive input (input()) is not supported in this environment.'
+            );
+        }
+
+        return {
+            output: output.trim() || 'Code executed successfully (no output)',
+            needsInput: false,
+            hasError,
+        };
+    } catch (error) {
+        console.error('[CodeEditor] Error loading or initializing Pyodide:', error);
+
+        // Provide more specific error messages
+        let errorMessage = 'Unknown error occurred while loading Pyodide.';
+
+        if (error instanceof Error) {
+            if (error.message.includes('timed out')) {
+                errorMessage =
+                    'Pyodide loading timed out. This might be due to slow internet connection or CDN issues. Please refresh the page and try again.';
+            } else if (error.message.includes('Failed to fetch')) {
+                errorMessage =
+                    'Failed to download Pyodide. Please check your internet connection and try again.';
+            } else if (error.message.includes('pyodide')) {
+                errorMessage = `Pyodide error: ${error.message}`;
+            } else {
+                errorMessage = `Loading error: ${error.message}`;
+            }
+        }
+
+        return {
+            output: `Pyodide Loading Error:\n${errorMessage}\n\nPlease try:\n1. Refresh the page\n2. Check your internet connection\n3. Try again in a few moments`,
+            needsInput: false,
+            hasError: true,
+        };
+    }
+};
 
 /**
  * Get the current code from the Monaco editor
@@ -45,91 +204,8 @@ export const downloadCodeAsFile = (code: string, language: SupportedLanguage): v
     URL.revokeObjectURL(url);
 };
 
-export const executeCodeWithPiston = async (code: string, language: string) => {
-    const PISTONAPI = 'https://emkc.org/api/v2/piston/execute';
-    try {
-        const response = await axios({
-            method: 'POST',
-            url: PISTONAPI,
-            data: {
-                language: language,
-                version: '*',
-                files: [
-                    {
-                        content: code,
-                    },
-                ],
-            },
-        });
-
-        if (response.status !== 200) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.data;
-
-        // Extract output from the response
-        let output = '';
-        let hasError = false;
-
-        // Check for compilation stage (for languages that need it)
-        if (result.compile) {
-            if (result.compile.code !== 0) {
-                // Compilation error
-                output =
-                    'Compilation Error:\n' +
-                    (result.compile.stderr || result.compile.output || 'Unknown compilation error');
-                hasError = true;
-            }
-        }
-
-        // Check for runtime stage
-        if (result.run) {
-            if (result.run.code !== 0) {
-                // Runtime error
-                output =
-                    'Runtime Error:\n' +
-                    (result.run.stderr || result.run.output || 'Unknown runtime error');
-                hasError = true;
-            } else {
-                // Successful execution
-                output = result.run.output || result.run.stdout || '';
-                if (result.run.stderr && result.run.stderr.trim()) {
-                    output += '\nWarnings:\n' + result.run.stderr;
-                }
-            }
-        } else {
-            output = 'No execution result received';
-            hasError = true;
-        }
-
-        // Check if code contains input() - this is a limitation for now
-        const needsInput = code.includes('input(') && !hasError;
-        if (needsInput) {
-            output += '\n\nNote: Interactive input is not supported in this online environment.';
-        }
-
-        return {
-            output: output.trim() || 'Code executed successfully (no output)',
-            needsInput: false, // We don't support interactive input with Piston
-            hasError,
-        };
-    } catch (error) {
-        console.error('[CodeEditor] Error executing code with Piston:', error);
-
-        // Fallback error message
-        return {
-            output: `Execution Error: ${
-                error instanceof Error ? error.message : 'Unknown error'
-            }\n\nPlease check your code and try again.`,
-            needsInput: false,
-            hasError: true,
-        };
-    }
-};
-
 /**
- * Execute code using Piston API
+ * Execute code using Pyodide for Python or fallback for other languages
  */
 export const executeCode = async (
     code: string,
@@ -142,16 +218,12 @@ export const executeCode = async (
         };
     }
 
-    try {
-        const result = await executeCodeWithPiston(code, language);
+    // Only support Python execution with Pyodide for now
+    if (language === 'python') {
+        return await executePythonWithPyodide(code);
+    } else {
         return {
-            output: result.output,
-            needsInput: result.needsInput,
-        };
-    } catch (error) {
-        console.error('[CodeEditor] Failed to execute code:', error);
-        return {
-            output: `Execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            output: `Language '${language}' is not supported yet. Only Python execution is available.`,
             needsInput: false,
         };
     }
@@ -236,11 +308,8 @@ export const initializeLanguageStates = (codeData?: CodeEditorData): AllLanguage
             lastEdited: currentLanguage === 'python' ? Date.now() : undefined,
         },
         javascript: {
-            code:
-                currentLanguage === 'javascript'
-                    ? currentCode || DEFAULT_CODE.javascript
-                    : DEFAULT_CODE.javascript,
-            lastEdited: currentLanguage === 'javascript' ? Date.now() : undefined,
+            code: DEFAULT_CODE.javascript,
+            lastEdited: undefined,
         },
     };
 };
@@ -252,7 +321,7 @@ export const initializeCurrentData = (
     codeData: CodeEditorData | undefined,
     languageStates: AllLanguagesData
 ): CodeEditorData => {
-    const defaultLanguage = (codeData?.language as SupportedLanguage) || 'python';
+    const defaultLanguage = 'python';
     return {
         language: defaultLanguage,
         code: languageStates[defaultLanguage].code,
