@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Heart } from 'lucide-react';
-import { currencyOptions } from '../../-constants/payments';
+import { getCurrencySymbol } from './utils/utils';
 
 interface DonationPlanPreviewProps {
     currency: string;
@@ -23,11 +23,6 @@ export const DonationPlanPreview: React.FC<DonationPlanPreviewProps> = ({
 }) => {
     const [selectedAmount, setSelectedAmount] = useState<string>('');
     const [customAmount, setCustomAmount] = useState<string>('');
-
-    const getCurrencySymbol = (currencyCode: string) => {
-        const currency = currencyOptions.find((c) => c.code === currencyCode);
-        return currency?.symbol || '$';
-    };
 
     const handleAmountSelect = (amount: string) => {
         setSelectedAmount(amount);

@@ -5,19 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { CreditCard, Calendar, DollarSign, Edit, Trash2, Globe, Eye } from 'lucide-react';
 import { PaymentPlan, PaymentPlans } from '@/types/payment';
-
-const currencySymbols: { [key: string]: string } = {
-    USD: '$',
-    EUR: '€',
-    GBP: '£',
-    INR: '₹',
-    AUD: 'A$',
-    CAD: 'C$',
-};
-
-const getCurrencySymbol = (currencyCode: string) => {
-    return currencySymbols[currencyCode] || currencyCode;
-};
+import { getCurrencySymbol } from './utils/utils';
 
 const getTypeIcon = (type: string) => {
     switch (type) {
@@ -171,15 +159,6 @@ const getPlanPriceDetails = (plan: PaymentPlan) => {
             }
             break;
         }
-
-        case PaymentPlans.FREE: {
-            if (plan.config.free?.validityDays) {
-                details.push(`Free for ${plan.config.free.validityDays} days`);
-            } else {
-                details.push('Free access');
-            }
-            break;
-        }
     }
 
     return details;
@@ -202,13 +181,12 @@ export const PaymentPlanList: React.FC<PaymentPlanListProps> = ({
     onPreview,
     deletingPlanId,
 }) => {
-    console.log('plans', plans);
     return (
         <Card className="w-full">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <CreditCard className="size-5" />
-                    Payment Plans
+                    Payment Options
                 </CardTitle>
             </CardHeader>
             <CardContent>
@@ -216,9 +194,9 @@ export const PaymentPlanList: React.FC<PaymentPlanListProps> = ({
                     {plans.length === 0 ? (
                         <div className="py-8 text-center text-gray-500">
                             <CreditCard className="mx-auto mb-4 size-12 text-gray-300" />
-                            <p>No payment plans created yet</p>
+                            <p>No payment options created yet</p>
                             <p className="text-sm">
-                                Create your first payment plan to start accepting payments
+                                Create your first payment option to start accepting payments
                             </p>
                         </div>
                     ) : (

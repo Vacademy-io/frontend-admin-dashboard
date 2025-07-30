@@ -13,7 +13,6 @@ import { CreditCard, Globe, Plus } from 'phosphor-react';
 import { useState, useEffect, useRef } from 'react';
 import { PaymentPlanList } from './PaymentPlanList';
 import { MyButton } from '@/components/design-system/button';
-import { PaymentPlanCreator } from './PaymentPlanCreator';
 import { SubscriptionPlanPreview } from './SubscriptionPlanPreview';
 import { DonationPlanPreview } from './DonationPlanPreview';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -26,15 +25,15 @@ import {
     transformLocalPlanToApiFormatArray,
 } from '@/services/payment-options';
 import { toast } from 'sonner';
-import { Switch } from '@/components/ui/switch';
 import { currencyOptions } from '../../-constants/payments';
 import { getInstituteId } from '@/constants/helper';
 import { PaymentPlan, PaymentPlans, PaymentPlanTag, PaymentPlanType } from '@/types/payment';
-import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
-import { RoleTerms, SystemTerms } from '../NamingSettings';
+import { PaymentPlanCreator } from './PaymentPlanCreator/index';
+import { getCurrencySymbol } from './utils/utils';
 
 interface Interval {
     price: string;
+    originalPrice: string;
     title?: string;
     value: number;
     unit: string;
@@ -71,11 +70,6 @@ const PaymentSettings = () => {
     const [paymentPlans, setPaymentPlans] = useState<PaymentPlan[]>([]);
     const instituteId = getInstituteId();
 
-    const getCurrencySymbol = (currencyCode: string) => {
-        const currency = currencyOptions.find((c) => c.code === currencyCode);
-        return currency?.symbol || '$';
-    };
-
     // Helper functions for plan transformations
     const transformIntervalsToSubscriptionPlans = (intervals: Interval[] = []) => {
         return intervals.reduce(
@@ -83,7 +77,7 @@ const PaymentSettings = () => {
                 ...acc,
                 [`custom${idx}`]: {
                     enabled: true,
-                    price: interval.price || '0',
+                    price: interval.originalPrice || '0',
                     interval: 'custom',
                     title: interval.title || `${interval.value} ${interval.unit} Plan`,
                     features: interval.features || [],
@@ -154,7 +148,6 @@ const PaymentSettings = () => {
             };
 
             const response = await getPaymentOptions(request);
-            console.log('response', response);
             const transformedPlans =
                 response
                     ?.map((paymentOption) => {
@@ -211,6 +204,7 @@ const PaymentSettings = () => {
                                         customIntervals: intervals,
                                     },
                                 },
+                                requireApproval: paymentOption.require_approval,
                             } as PaymentPlan;
                         } else if (paymentOption.type === PaymentPlans.FREE) {
                             // For FREE plans, we can create a plan even without payment_plans
@@ -232,6 +226,7 @@ const PaymentSettings = () => {
                                     },
                                 },
                                 isDefault: false,
+                                requireApproval: paymentOption.require_approval,
                             } as PaymentPlan;
                         } else if (paymentOption.payment_plans?.length > 0) {
                             // For other non-subscription plans, just use the first plan
@@ -253,6 +248,7 @@ const PaymentSettings = () => {
                                 type: localPlan.type as PaymentPlanType,
                                 name: paymentOption.name || '',
                                 currency: localPlan.currency || '',
+                                requireApproval: paymentOption.require_approval,
                             } as PaymentPlan;
                         }
                         return null;
@@ -349,7 +345,7 @@ const PaymentSettings = () => {
                 source: 'INSTITUTE',
                 source_id: instituteId ?? '',
                 type: plan.type.toUpperCase(),
-                require_approval: approvalOverride ?? requireApproval,
+                require_approval: plan.requireApproval ?? approvalOverride ?? requireApproval,
                 payment_plans: apiPlans,
                 payment_option_metadata_json: JSON.stringify({
                     currency: plan.currency,
@@ -533,7 +529,7 @@ const PaymentSettings = () => {
                         <div className="flex items-center justify-between">
                             <h3 className="flex items-center gap-2 text-lg font-medium text-gray-900">
                                 <Globe className="size-5 text-green-600" />
-                                Free Plans
+                                Free Options
                             </h3>
                             <Badge variant="outline" className="border-green-200 text-green-600">
                                 {getFreePlans().length} plans
@@ -561,7 +557,7 @@ const PaymentSettings = () => {
                         <div className="flex items-center justify-between">
                             <h3 className="flex items-center gap-2 text-lg font-medium text-gray-900">
                                 <CreditCard className="size-5 text-blue-600" />
-                                Paid Plans
+                                Paid Options
                             </h3>
                             <Badge variant="outline" className="border-blue-200 text-blue-600">
                                 {getPaidPlans().length} plans
@@ -589,31 +585,18 @@ const PaymentSettings = () => {
                 key={editingPlan?.id}
                 isOpen={showPaymentPlanCreator}
                 onClose={handleClosePaymentPlanCreator}
-                onSave={(plan) => handleSavePaymentPlan(plan, requireApproval)}
+                onSave={handleSavePaymentPlan}
                 editingPlan={editingPlan}
                 featuresGlobal={featuresGlobal}
                 setFeaturesGlobal={setFeaturesGlobal}
                 defaultCurrency={currency}
                 isSaving={isSaving}
-                requireApprovalCheckbox={
-                    !editingPlan && (
-                        <div className="mt-4 flex items-center gap-2">
-                            <Label htmlFor="requireApproval">
-                                Enroll{' '}
-                                {getTerminology(
-                                    RoleTerms.Learner,
-                                    SystemTerms.Learner
-                                ).toLocaleLowerCase()}
-                                s on approval
-                            </Label>
-                            <Switch
-                                id="requireApproval"
-                                checked={requireApproval}
-                                onCheckedChange={setRequireApproval}
-                            />
-                        </div>
-                    )
-                }
+                existingFreePlans={getFreePlans().map((plan) => ({
+                    id: plan.id,
+                    requireApproval: plan.requireApproval || false,
+                }))}
+                requireApproval={requireApproval}
+                setRequireApproval={setRequireApproval}
             />
 
             <Dialog open={showPlanPreview} onOpenChange={setShowPlanPreview}>
