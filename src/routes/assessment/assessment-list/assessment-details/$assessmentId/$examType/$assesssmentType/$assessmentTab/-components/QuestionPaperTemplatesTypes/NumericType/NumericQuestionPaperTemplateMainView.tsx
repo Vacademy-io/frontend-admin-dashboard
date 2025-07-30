@@ -117,7 +117,7 @@ export const NumericQuestionPaperTemplateMainView = ({
                                 <FormControl>
                                     <CollapsibleQuillEditor
                                         value={field.value}
-                                         onBlur={field.onBlur}
+                                        onBlur={field.onBlur}
                                         onChange={field.onChange}
                                     />
                                 </FormControl>
@@ -161,7 +161,6 @@ export const NumericQuestionPaperTemplateMainView = ({
                             <FormControl>
                                 <div className="flex flex-row justify-between">
                                     <div>{answersType}</div>
-
                                 </div>
                             </FormControl>
                             <FormMessage />

@@ -22,4 +22,6 @@ export const useLiveSessionStore = create<LiveSessionStep1State>((set) => ({
     setStep1Data: (data) => set({ step1Data: data }),
     clearSessionId: () => set({ sessionId: '', isEdit: false }),
     clearStep1Data: () => set({ step1Data: null }),
+    clearSessionId: () => set({ sessionId: '', isEdit: false }),
+
 }));

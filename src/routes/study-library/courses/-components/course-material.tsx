@@ -1,5 +1,5 @@
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { AddCourseButton } from '@/components/common/study-library/add-course/add-course-button';
 import useIntroJsTour from '@/hooks/use-intro';
 import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
@@ -9,20 +9,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import type { LevelType } from '@/schemas/student/student-list/institute-schema';
 import { handleGetInstituteUsersForAccessControl } from '@/routes/dashboard/-services/dashboard-services';
-import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import { useSuspenseQuery, useQuery } from '@tanstack/react-query';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
-import {
-    getAllCoursesWithFilters,
-    getAllTeacherCoursesWithFilters,
-} from '../-services/courses-services';
+import { getAllCoursesWithFilters } from '../-services/courses-services';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { useDeleteCourse } from '@/services/study-library/course-operations/delete-course';
 import { toast } from 'sonner';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import CourseListPage from './course-list-page';
+import { AdminApprovalDashboard } from './admin-approval-dashboard';
+import { AuthoredCoursesTab } from './authored-courses-tab';
+import { CourseInReviewTab } from './course-in-review-tab';
+import { useNavigate } from '@tanstack/react-router';
 
 export interface AllCourseFilters {
     status: string[];
@@ -90,24 +91,26 @@ export interface AllCoursesApiResponse {
     empty: boolean;
 }
 
-export const CourseMaterial = () => {
+interface CourseMaterialProps {
+    initialSelectedTab?: 'AuthoredCourses' | 'AllCourses' | 'CourseInReview' | 'CourseApproval';
+}
+
+export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {}) => {
     const deleteCourseMutation = useDeleteCourse();
     const { instituteDetails } = useInstituteDetailsStore();
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
+    const navigate = useNavigate();
     const [roles, setRoles] = useState<string[] | undefined>([]);
     const [allCoursesData, setAllCoursesData] = useState<AllCoursesApiResponse | null>(null);
     const [authoredCoursesData, setAuthoredCoursesData] = useState<AllCoursesApiResponse | null>(
         null
     );
-    const [courseRequestsData, setCourseRequestsData] = useState<AllCoursesApiResponse | null>(
-        null
-    );
+
     const [page, setPage] = useState(0);
     const [loading, setLoading] = useState({
         allCourses: true,
         authoredCourses: true,
-        courseRequests: true,
     });
     const [deletingCourseId, setDeletingCourseId] = useState<string | null>(null);
 
@@ -122,7 +125,23 @@ export const CourseMaterial = () => {
     );
 
     const { setNavHeading } = useNavHeadingStore();
-    const [selectedTab, setSelectedTab] = useState('AllCourses');
+    const [selectedTab, setSelectedTab] = useState<
+        'AuthoredCourses' | 'AllCourses' | 'CourseInReview' | 'CourseApproval'
+    >(initialSelectedTab || 'AuthoredCourses');
+
+    // Handle tab change with URL sync
+    const handleTabChange = (
+        newTab: 'AuthoredCourses' | 'AllCourses' | 'CourseInReview' | 'CourseApproval'
+    ) => {
+        setSelectedTab(newTab);
+        // Update URL with new tab
+        navigate({
+            to: '/study-library/courses',
+            search: { selectedTab: newTab },
+            replace: true, // Replace current history entry instead of adding new one
+        });
+    };
+    const [authoredSearchValue, setAuthoredSearchValue] = useState('');
     const [selectedFilters, setSelectedFilters] = useState<AllCourseFilters>({
         status: ['ACTIVE'],
         level_ids: [],
@@ -137,45 +156,7 @@ export const CourseMaterial = () => {
     const [sortBy, setSortBy] = useState('oldest');
     const [searchValue, setSearchValue] = useState('');
 
-    const getAllTeacherCoursesMutation = useMutation({
-        mutationFn: ({
-            page,
-            pageSize,
-            instituteId,
-            data,
-        }: {
-            page: number;
-            pageSize: number;
-            instituteId: string | undefined;
-            data: AllCourseFilters;
-        }) => getAllTeacherCoursesWithFilters(page, pageSize, instituteId, data),
-        onSuccess: (data) => {
-            setAllCoursesData(data);
-        },
-        onError: (error: unknown) => {
-            throw error;
-        },
-    });
-
-    const getAllCoursesMutation = useMutation({
-        mutationFn: ({
-            page,
-            pageSize,
-            instituteId,
-            data,
-        }: {
-            page: number;
-            pageSize: number;
-            instituteId: string | undefined;
-            data: AllCourseFilters;
-        }) => getAllCoursesWithFilters(page, pageSize, instituteId, data),
-        onSuccess: (data) => {
-            setAllCoursesData(data);
-        },
-        onError: (error: unknown) => {
-            throw error;
-        },
-    });
+    // Removed getAllCoursesMutation - now using React Query directly
 
     useIntroJsTour({
         key: StudyLibraryIntroKey.createCourseStep,
@@ -198,61 +179,7 @@ export const CourseMaterial = () => {
 
     const handlePageChange = (newPage: number = 0) => {
         setPage(newPage);
-        if (!selectedTab || !tokenData || !instituteDetails?.id || !selectedFilters) return;
-        const safeInstituteId: string = instituteDetails.id;
-        const safeSelectedFilters: AllCourseFilters = {
-            status: selectedFilters?.status ?? ['ACTIVE'],
-            level_ids: selectedFilters?.level_ids ?? [],
-            tag: selectedFilters?.tag ?? [],
-            faculty_ids: selectedFilters?.faculty_ids ?? [],
-            search_by_name: selectedFilters?.search_by_name ?? '',
-            min_percentage_completed: selectedFilters?.min_percentage_completed ?? 0,
-            max_percentage_completed: selectedFilters?.max_percentage_completed ?? 0,
-            sort_columns: selectedFilters?.sort_columns ?? { created_at: 'DESC' as const },
-        };
-
-        const teacherMutate = getAllTeacherCoursesMutation.mutate;
-        const coursesMutate = getAllCoursesMutation.mutate;
-
-        if (selectedTab === 'CourseRequests') {
-            if (typeof teacherMutate === 'function') {
-                teacherMutate({
-                    page: newPage,
-                    pageSize: 10,
-                    instituteId: safeInstituteId,
-                    data: safeSelectedFilters,
-                });
-            }
-        } else {
-            if (typeof coursesMutate === 'function') {
-                const safeStatus = safeSelectedFilters.status ?? ['ACTIVE'];
-                const safeLevelIds = safeSelectedFilters.level_ids ?? [];
-                const safeTag = safeSelectedFilters.tag ?? [];
-                const safeFacultyIds = (safeSelectedFilters.faculty_ids ?? []).filter(
-                    (id): id is string => typeof id === 'string'
-                );
-                const safeSearchByName = safeSelectedFilters.search_by_name ?? '';
-                const safeMinCompleted = safeSelectedFilters.min_percentage_completed ?? 0;
-                const safeMaxCompleted = safeSelectedFilters.max_percentage_completed ?? 0;
-                const safeSortColumns: Record<string, 'ASC' | 'DESC'> =
-                    safeSelectedFilters.sort_columns ?? { created_at: 'DESC' as const };
-                coursesMutate({
-                    page: newPage,
-                    pageSize: 10,
-                    instituteId: safeInstituteId,
-                    data: {
-                        status: safeStatus,
-                        level_ids: safeLevelIds,
-                        tag: safeTag,
-                        faculty_ids: safeFacultyIds,
-                        search_by_name: safeSearchByName,
-                        min_percentage_completed: safeMinCompleted,
-                        max_percentage_completed: safeMaxCompleted,
-                        sort_columns: safeSortColumns,
-                    },
-                });
-            }
-        }
+        // React Query will automatically refetch when page changes
     };
 
     const handleLevelChange = (levelId: string) => {
@@ -374,67 +301,91 @@ export const CourseMaterial = () => {
     const { getPublicUrl } = useFileUpload();
     const [courseImageUrls, setCourseImageUrls] = useState<Record<string, string>>({});
 
-    // Store refs to prevent stale closures
-    const selectedFiltersRef = useRef(selectedFilters);
-    useEffect(() => {
-        selectedFiltersRef.current = selectedFilters;
+    // Create stable filter key for React Query
+    const filtersKey = useMemo(() => {
+        return {
+            status: selectedFilters.status,
+            level_ids: selectedFilters.level_ids,
+            tag: selectedFilters.tag,
+            faculty_ids: selectedFilters.faculty_ids,
+            search_by_name: selectedFilters.search_by_name,
+            min_percentage_completed: selectedFilters.min_percentage_completed,
+            max_percentage_completed: selectedFilters.max_percentage_completed,
+            sort_columns: selectedFilters.sort_columns,
+        };
     }, [selectedFilters]);
 
-    const pageRef = useRef(page);
+    // Only fetch data for the active tab to prevent unnecessary API calls
+    const { data: fetchedAllCoursesData, isLoading: isLoadingAllCourses } = useQuery({
+        queryKey: ['allCourses', instituteDetails?.id, page, filtersKey],
+        queryFn: () => getAllCoursesWithFilters(page, 10, instituteDetails?.id, filtersKey),
+        enabled: !!instituteDetails?.id && selectedTab === 'AllCourses',
+        staleTime: 30000, // Data is fresh for 30 seconds
+        gcTime: 300000, // Cache for 5 minutes
+    });
+
+    const { data: fetchedAuthoredCoursesData, isLoading: isLoadingAuthoredCourses } = useQuery({
+        queryKey: ['authoredCourses', instituteDetails?.id, page, filtersKey, tokenData?.user],
+        queryFn: () => {
+            const authoredFilters = {
+                ...filtersKey,
+                faculty_ids: tokenData?.user ? [tokenData.user] : [],
+            };
+            return getAllCoursesWithFilters(page, 10, instituteDetails?.id, authoredFilters);
+        },
+        enabled: !!instituteDetails?.id && !!tokenData?.user && selectedTab === 'AuthoredCourses',
+        staleTime: 30000,
+        gcTime: 300000,
+    });
+
+    // Update local state when React Query data changes
     useEffect(() => {
-        pageRef.current = page;
-    }, [page]);
-    // Fetch all tabs data in parallel
+        if (fetchedAllCoursesData) {
+            setAllCoursesData(fetchedAllCoursesData);
+            setLoading((l) => ({ ...l, allCourses: false }));
+        }
+    }, [fetchedAllCoursesData]);
 
     useEffect(() => {
-        if (!instituteDetails?.id) return;
-        setLoading({ allCourses: true, authoredCourses: true, courseRequests: true });
-        // AllCourses
-        getAllCoursesWithFilters(
-            pageRef.current,
-            10,
-            instituteDetails.id,
-            selectedFiltersRef.current
-        )
-            .then((data) => setAllCoursesData(data))
-            .finally(() => setLoading((l) => ({ ...l, allCourses: false })));
-        // AuthoredCourses
-        const authoredFilters = {
-            ...selectedFiltersRef.current,
-            faculty_ids: tokenData?.user ? [tokenData.user] : [],
-        };
-        getAllCoursesWithFilters(pageRef.current, 10, instituteDetails.id, authoredFilters)
-            .then((data) => setAuthoredCoursesData(data))
-            .finally(() => setLoading((l) => ({ ...l, authoredCourses: false })));
-        // CourseRequests
-        getAllTeacherCoursesWithFilters(
-            pageRef.current,
-            10,
-            instituteDetails.id,
-            selectedFiltersRef.current
-        )
-            .then((data) => setCourseRequestsData(data))
-            .finally(() => setLoading((l) => ({ ...l, courseRequests: false })));
-    }, [instituteDetails?.id, page, JSON.stringify(selectedFilters)]);
+        if (fetchedAuthoredCoursesData) {
+            setAuthoredCoursesData(fetchedAuthoredCoursesData);
+            setLoading((l) => ({ ...l, authoredCourses: false }));
+        }
+    }, [fetchedAuthoredCoursesData]);
+
+    // Update loading states - only consider active tab
+    useEffect(() => {
+        setLoading({
+            allCourses: selectedTab === 'AllCourses' ? isLoadingAllCourses : false,
+            authoredCourses: selectedTab === 'AuthoredCourses' ? isLoadingAuthoredCourses : false,
+        });
+    }, [isLoadingAllCourses, isLoadingAuthoredCourses, selectedTab]);
 
     // Helper to get available tabs
     const availableTabs = useMemo(() => {
         const safeRoles = Array.isArray(roles) ? roles : [];
+        const isAdmin = safeRoles.includes('ADMIN');
+
         const tabs: { key: string; label: string; show: boolean }[] = [
-            {
-                key: 'AllCourses',
-                label: `All ${getTerminology(ContentTerms.Course, SystemTerms.Course)}s`,
-                show: true,
-            },
             {
                 key: 'AuthoredCourses',
                 label: `Authored ${getTerminology(ContentTerms.Course, SystemTerms.Course)}s`,
-                show: safeRoles.includes('ADMIN') || safeRoles.includes('TEACHER'),
+                show: true, // Show to all users
             },
             {
-                key: 'CourseRequests',
-                label: `${getTerminology(ContentTerms.Course, SystemTerms.Course)} Requests`,
-                show: safeRoles.includes('ADMIN') || safeRoles.includes('TEACHER'),
+                key: 'AllCourses',
+                label: `All ${getTerminology(ContentTerms.Course, SystemTerms.Course)}s`,
+                show: true, // Show to all users
+            },
+            {
+                key: 'CourseInReview',
+                label: `${getTerminology(ContentTerms.Course, SystemTerms.Course)}s In Review`,
+                show: !isAdmin, // Show only to non-admin users (teachers)
+            },
+            {
+                key: 'CourseApproval',
+                label: `${getTerminology(ContentTerms.Course, SystemTerms.Course)} Approval`,
+                show: isAdmin, // Show only to admin users
             },
         ];
         return tabs.filter((t) => t.show);
@@ -446,14 +397,19 @@ export const CourseMaterial = () => {
             availableTabs.length > 0 &&
             availableTabs[0]
         ) {
-            setSelectedTab(availableTabs[0]?.key);
+            setSelectedTab(
+                availableTabs[0]?.key as
+                    | 'AuthoredCourses'
+                    | 'AllCourses'
+                    | 'CourseInReview'
+                    | 'CourseApproval'
+            );
         }
     }, [availableTabs, selectedTab]);
     // Use correct data for CourseListPage
     const getCurrentTabData = () => {
         if (selectedTab === 'AllCourses') return allCoursesData;
         if (selectedTab === 'AuthoredCourses') return authoredCoursesData;
-        if (selectedTab === 'CourseRequests') return courseRequestsData;
         return null;
     };
     // Fetch public URLs for course images when current tab data changes
@@ -482,15 +438,9 @@ export const CourseMaterial = () => {
             setCourseImageUrls(urlMap);
         };
         fetchImages();
-    }, [allCoursesData, authoredCoursesData, courseRequestsData, selectedTab]);
+    }, [allCoursesData, authoredCoursesData, selectedTab]);
 
-    if (
-        isUsersLoading ||
-        loading.allCourses ||
-        loading.authoredCourses ||
-        loading.courseRequests ||
-        !instituteDetails?.id
-    ) {
+    if (isUsersLoading || loading.allCourses || loading.authoredCourses || !instituteDetails?.id) {
         return <DashboardLoader />;
     }
 
@@ -530,7 +480,18 @@ export const CourseMaterial = () => {
             </div>
 
             {/* Add Tabs Section Here */}
-            <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+            <Tabs
+                value={selectedTab}
+                onValueChange={(value) =>
+                    handleTabChange(
+                        value as
+                            | 'AuthoredCourses'
+                            | 'AllCourses'
+                            | 'CourseInReview'
+                            | 'CourseApproval'
+                    )
+                }
+            >
                 <TabsList className="inline-flex h-auto w-full justify-start gap-4 rounded-none border-b !bg-transparent p-0">
                     {availableTabs.map((tab) => (
                         <TabsTrigger
@@ -548,14 +509,27 @@ export const CourseMaterial = () => {
                 {availableTabs.map((tab) => (
                     <TabsContent key={tab.key} value={tab.key}>
                         {(() => {
-                            const data =
-                                tab.key === 'AllCourses'
-                                    ? allCoursesData
-                                    : tab.key === 'AuthoredCourses'
-                                      ? authoredCoursesData
-                                      : tab.key === 'CourseRequests'
-                                        ? courseRequestsData
-                                        : null;
+                            // Handle new tab components
+                            if (tab.key === 'AuthoredCourses') {
+                                return (
+                                    <AuthoredCoursesTab
+                                        searchValue={authoredSearchValue}
+                                        setSearchValue={setAuthoredSearchValue}
+                                    />
+                                );
+                            }
+
+                            if (tab.key === 'CourseInReview') {
+                                return <CourseInReviewTab />;
+                            }
+
+                            if (tab.key === 'CourseApproval') {
+                                return <AdminApprovalDashboard />;
+                            }
+
+                            // Handle existing All Courses tab
+                            const data = tab.key === 'AllCourses' ? allCoursesData : null;
+
                             if (!data || !data.content || data.content.length === 0) {
                                 return (
                                     <div className="flex h-40 flex-col items-center justify-center text-gray-500">

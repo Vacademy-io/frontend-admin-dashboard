@@ -42,6 +42,20 @@ export interface MyQuestion {
     reattemptCount?: string;
     status?: string;
     canSkip?: boolean;
+    // --- Add missing fields for type safety ---
+    comprehensionText?: string;
+    passage?: string;
+    parent_rich_text?: { id?: string; content?: string };
+    text?: { id?: string; content?: string };
+    text_data?: { id?: string; content?: string };
+    parentRichTextId?: string;
+    textId?: string;
+    textDataId?: string;
+    explanation_text?: { id?: string; content?: string };
+    explanation_text_data?: { id?: string; content?: string };
+    explanationTextId?: string;
+    explanationTextDataId?: string;
+    questionText?: string;
 }
 
 export interface MySingleChoiceOption {

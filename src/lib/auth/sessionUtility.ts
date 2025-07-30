@@ -8,9 +8,9 @@ import { isNullOrEmptyOrUndefined } from '../utils';
 
 // SSO Configuration
 const SSO_CONFIG = {
-    ADMIN_DOMAIN: 'dash.vacademy.io',
-    LEARNER_DOMAIN: 'learner.vacademy.io/login',
-    SHARED_DOMAIN: '.vacademy.io', // Shared cookie domain
+    ADMIN_DOMAIN: import.meta.env.VITE_ADMIN_DOMAIN || 'dash.vacademy.io',
+    LEARNER_DOMAIN: import.meta.env.VITE_LEARNER_DOMAIN || 'learner.vacademy.io/login',
+    SHARED_DOMAIN: import.meta.env.VITE_SHARED_DOMAIN || '.vacademy.io', // Shared cookie domain
     REQUIRED_ROLES: {
         ADMIN: ['ADMIN', 'TEACHER'],
         LEARNER: ['STUDENT'],
@@ -28,7 +28,9 @@ const setAuthorizationCookie = (
     token: string,
     options?: Cookies.CookieAttributes
 ): void => {
-    const isProduction = window.location.hostname.includes('vacademy.io');
+    const isProduction = window.location.hostname.includes(
+        import.meta.env.VITE_SHARED_DOMAIN?.replace('.', '') || 'vacademy.io'
+    );
 
     const defaultOptions: Cookies.CookieAttributes = {
         // Only set domain for production environments
@@ -226,7 +228,9 @@ async function refreshTokens(refreshToken: string): Promise<UnauthorizedResponse
 
             // If it's a 511 error, this might indicate a network-level auth issue
             if (error.response?.status === 511) {
-                throw new Error('Network authentication required. Please check your connection and try again.');
+                throw new Error(
+                    'Network authentication required. Please check your connection and try again.'
+                );
             }
         }
 

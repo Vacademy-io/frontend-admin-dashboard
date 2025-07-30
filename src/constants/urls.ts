@@ -1,6 +1,8 @@
-export const BASE_URL = 'https://backend-stage.vacademy.io';
-export const BASE_URL_LEARNER_DASHBOARD = 'https://learner.vacademy.io';
+export const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io';
+export const BASE_URL_LEARNER_DASHBOARD =
+    import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io';
 
+// These hardcoded institute IDs should be removed in multi-org deployment
 export const SSDC_INSTITUTE_ID = '69ca11c6-54e1-4e99-9498-50c9a4272ce6';
 export const SHUBHAM_INSTITUTE_ID = 'd0de8707-f36c-43a0-953c-019ca507c81d';
 export const CODE_CIRCLE_INSTITUTE_ID = 'dd9b9687-56ee-467a-9fc4-8c5835eae7f9';
@@ -18,7 +20,7 @@ export const REFRESH_TOKEN_URL = `${BASE_URL}/auth-service/v1/refresh-token`;
 
 export const UPLOAD_DOCS_FILE_URL = `${BASE_URL}/media-service/convert/doc-to-html`;
 export const SUBMIT_RATING_URL = `${BASE_URL}/admin-core-service/rating`;
-export const GET_ALL_USER_RATINGS = `${BASE_URL}/admin-core-service/rating/get-source-ratings`;
+export const GET_ALL_USER_RATINGS = `${BASE_URL}/admin-core-service/rating/get-source-ratings-admin`;
 export const GET_ALL_RATING_SUMMARY = `${BASE_URL}/admin-core-service/rating/summary`;
 
 export const COURSE_CATALOG_URL = `${BASE_URL}/admin-core-service/packages/v1/search`;
@@ -121,6 +123,21 @@ export const MOVE_CHAPTER = `${BASE_URL}/admin-core-service/chapter/v1/move`;
 export const ADD_COURSE = `${BASE_URL}/admin-core-service/course/v1/add-course`;
 export const DELETE_COURSE = `${BASE_URL}/admin-core-service/course/v1/delete-courses`;
 export const UPDATE_COURSE = `${BASE_URL}/admin-core-service/course/v1/update-course-details`;
+
+// Teacher Course Approval Workflow URLs
+export const TEACHER_MY_COURSES = `${BASE_URL}/admin-core-service/teacher/course-approval/v1/my-courses/detailed`;
+export const TEACHER_CREATE_EDITABLE_COPY = `${BASE_URL}/admin-core-service/teacher/course-approval/v1/create-editable-copy`;
+export const TEACHER_SUBMIT_FOR_REVIEW = `${BASE_URL}/admin-core-service/teacher/course-approval/v1/submit-for-review`;
+export const TEACHER_WITHDRAW_FROM_REVIEW = `${BASE_URL}/admin-core-service/teacher/course-approval/v1/withdraw-from-review`;
+export const TEACHER_CAN_EDIT_COURSE = `${BASE_URL}/admin-core-service/teacher/course-approval/v1/can-edit`;
+export const TEACHER_COURSE_HISTORY = `${BASE_URL}/admin-core-service/teacher/course-approval/v1/my-course-history`;
+
+// Admin Course Approval Workflow URLs
+export const ADMIN_PENDING_APPROVAL_COURSES = `${BASE_URL}/admin-core-service/admin/course-approval/v1/pending-review`;
+export const ADMIN_APPROVE_COURSE = `${BASE_URL}/admin-core-service/admin/course-approval/v1/approve`;
+export const ADMIN_REJECT_COURSE = `${BASE_URL}/admin-core-service/admin/course-approval/v1/reject`;
+export const ADMIN_COURSE_HISTORY = `${BASE_URL}/admin-core-service/admin/course-approval/v1/course-history`;
+export const ADMIN_APPROVAL_SUMMARY = `${BASE_URL}/admin-core-service/admin/course-approval/v1/approval-summary`;
 
 export const GET_SESSION_DETAILS = `${BASE_URL}/admin-core-service/sessions/v1/session-details`;
 export const ADD_SESSION = `${BASE_URL}/admin-core-service/sessions/v1/add`;
@@ -266,3 +283,21 @@ export const FINISH_SESSION_API_URL = `${BASE_URL}/community-service/engage/admi
 // Naming Settings
 export const CREATE_NAMING_SETTINGS = `${BASE_URL}/admin-core-service/institute/setting/v1/create-name-setting`;
 export const UPDATE_NAMING_SETTINGS = `${BASE_URL}/admin-core-service/institute/setting/v1/update-name-setting`;
+
+// Payment Options
+export const SAVE_PAYMENT_OPTION = `${BASE_URL}/admin-core-service/v1/payment-option`;
+export const GET_PAYMENT_OPTIONS = `${BASE_URL}/admin-core-service/v1/payment-option/get-payment-options`;
+export const MAKE_DEFAULT_PAYMENT_OPTION = `${BASE_URL}/admin-core-service/v1/payment-option/make-default-payment-option`;
+
+export const ANALYTICS_USER_ACTIVITY = `${BASE_URL}/auth-service/v1/analytics/user-activity`;
+export const ANALYTICS_ACTIVE_USERS_REALTIME = `${BASE_URL}/auth-service/v1/analytics/active-users/real-time`;
+export const ANALYTICS_ACTIVE_USERS = `${BASE_URL}/auth-service/v1/analytics/active-users`;
+export const ANALYTICS_ACTIVITY_TODAY = `${BASE_URL}/auth-service/v1/analytics/activity/today`;
+export const ANALYTICS_SERVICE_USAGE = `${BASE_URL}/auth-service/v1/analytics/service-usage`;
+export const ANALYTICS_ENGAGEMENT_TRENDS = `${BASE_URL}/auth-service/v1/analytics/engagement/trends`;
+export const ANALYTICS_MOST_ACTIVE_USERS = `${BASE_URL}/auth-service/v1/analytics/users/most-active`;
+export const ANALYTICS_CURRENTLY_ACTIVE_USERS = `${BASE_URL}/auth-service/v1/analytics/users/currently-active`;
+
+// Referral
+export const REFERRAL_API_BASE = `${BASE_URL}/admin-core-service/v1/referral-option`;
+export const REFERRAL_DELETE = `${BASE_URL}/admin-core-service/v1/referral-option/referral-option`;

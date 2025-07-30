@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Vacademy | Modern Platform for Yoga & Fitness</title>
+
+   <script src="https://cdn.tailwindcss.com"></script>
+
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+   <script src="https://unpkg.com/lucide-react@0.292.0/dist/lucide.min.js"></script>
+
+   <style>
+       body {
+           font-family: 'Inter', sans-serif;
+           background-color: #ffffff;
+       }
+       .hero-section {
+           background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQvBfzo1iROkURkRy0zX8hXPsIUmZXXsRe5tVRbq18kM-qiUevM8NPmlv6Q&s=10$0');
+           background-size: cover;
+           background-position: center;
+       }
+       .gradient-text {
+           background: linear-gradient(90deg, #2563eb, #06b6d4);
+           -webkit-background-clip: text;
+           -webkit-text-fill-color: transparent;
+       }
+       .feature-card:hover {
+           box-shadow: 0 15px 30px -5px rgba(37, 99, 235, 0.1);
+       }
+       .pricing-card {
+            border: 1px solid #e0f2fe;
+       }
+       .pricing-card:hover {
+           box-shadow: 0 20px 40px -10px rgba(37, 99, 235, 0.15);
+       }
+       .cta-button:hover {
+           box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+       }
+       /* Custom underline for links */
+       .link-underline {
+           position: relative;
+           display: inline-block;
+       }
+       .link-underline::after {
+           content: '';
+           position: absolute;
+           width: 100%;
+           transform: scaleX(0);
+           height: 2px;
+           bottom: -4px;
+           left: 0;
+           background-color: #2563eb;
+           transform-origin: bottom right;
+       }
+       .link-underline:hover::after {
+           transform: scaleX(1);
+           transform-origin: bottom left;
+       }
+   </style>
+</head>
+<body class="bg-white text-gray-700">
+
+   <section class="hero-section h-screen min-h-[600px] flex items-center justify-center text-white relative">
+       <div class="absolute inset-0 bg-black/50"></div>
+       <div class="relative text-center z-10 p-6">
+           <h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-4">
+               Empower Your Wellness Business
+           </h1>
+           <p class="text-lg md:text-xl max-w-3xl mx-auto text-gray-200 mb-8">
+               The all-in-one platform to digitize, simplify, and scale your yoga or fitness organization.
+           </p>
+           <a href="#contact" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-blue-700 cta-button">
+               Discover How
+           </a>
+       </div>
+   </section>
+
+   <section class="py-20 lg:py-28 bg-white">
+       <div class="container mx-auto px-6 max-w-4xl text-center">
+           <h2 class="text-3xl md:text-4xl font-bold mb-6">
+               Stop Juggling Tools. <span class="gradient-text">Start Building Your Empire.</span>
+           </h2>
+           <p class="text-lg text-gray-600">
+               Vacademy is a comprehensive Learning & Business Management platform built for modern yoga and fitness professionals. We blend content delivery, community engagement, branding, and automation into one centralized, purpose-driven solution.
+           </p>
+       </div>
+   </section>
+
+   <section id="features" class="py-20 lg:py-28 bg-sky-50">
+       <div class="container mx-auto px-6">
+           <div class="text-center mb-16">
+               <h2 class="text-3xl md:text-4xl font-bold mb-4">Core Features for the Modern Studio</h2>
+               <p class="text-gray-600 max-w-2xl mx-auto">Everything you need to succeed, all in one place.</p>
+           </div>
+           <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+               <div class="bg-white p-8 rounded-xl shadow-sm feature-card border border-sky-100">
+                   <i data-lucide="gem" class="w-10 h-10 text-blue-600 mb-4"></i>
+                   <h3 class="text-xl font-bold mb-2">Website & Student App</h3>
+                   <p>Deliver live & recorded classes through a beautifully designed, branded website and mobile app.</p>
+               </div>
+               <div class="bg-white p-8 rounded-xl shadow-sm feature-card border border-sky-100">
+                   <i data-lucide="palette" class="w-10 h-10 text-blue-600 mb-4"></i>
+                   <h3 class="text-xl font-bold mb-2">Your Brand, Your Platform</h3>
+                   <p>Full white-labeling with your logo, colors, and domain to build a strong digital brand.</p>
+               </div>
+               <div class="bg-white p-8 rounded-xl shadow-sm feature-card border border-sky-100">
+                   <i data-lucide="credit-card" class="w-10 h-10 text-blue-600 mb-4"></i>
+                   <h3 class="text-xl font-bold mb-2">Flexible Payments</h3>
+                   <p>Support for subscriptions, one-time workshops, class packages, and coupon codes.</p>
+               </div>
+               <div class="bg-white p-8 rounded-xl shadow-sm feature-card border border-sky-100">
+                   <i data-lucide="bar-chart-3" class="w-10 h-10 text-blue-600 mb-4"></i>
+                   <h3 class="text-xl font-bold mb-2">Activity Tracking</h3>
+                   <p>Monitor attendance and completion to provide personalized feedback and improve retention.</p>
+               </div>
+               <div class="bg-white p-8 rounded-xl shadow-sm feature-card border border-sky-100">
+                   <i data-lucide="brain-circuit" class="w-10 h-10 text-blue-600 mb-4"></i>
+                   <h3 class="text-xl font-bold mb-2">AI-Powered Intelligence</h3>
+                   <p>Leverage AI to suggest custom workouts, generate meal plans, and auto-create marketing content.</p>
+               </div>
+               <div class="bg-white p-8 rounded-xl shadow-sm feature-card border border-sky-100">
+                   <i data-lucide="users" class="w-10 h-10 text-blue-600 mb-4"></i>
+                   <h3 class="text-xl font-bold mb-2">Community & Motivation</h3>
+                   <p>Foster connection with student communities, peer interactions, and progress sharing.</p>
+               </div>
+           </div>
+       </div>
+   </section>
+
+   <section class="py-20 lg:py-28 bg-white">
+       <div class="container mx-auto px-6">
+           <div class="grid lg:grid-cols-2 gap-12 items-center">
+               <div>
+                   <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTBk665i_v-mvsnMh7tF1sk8jc7xtC09Yl_LkWO0cN16e6_H7a-zRKcZTU&s=10$0" alt="Woman doing yoga with technology" class="rounded-xl shadow-lg w-full">
+               </div>
+               <div>
+                   <h2 class="text-3xl md:text-4xl font-bold mb-6">Your Tech Backbone for Success</h2>
+                   <p class="text-lg text-gray-600 mb-8">Digitally transform your offerings with a platform that handles the hard stuff, so you can focus on what you do best.</p>
+                   <div class="space-y-6">
+                       <div class="flex items-start">
+                           <div class="flex-shrink-0 bg-blue-100 text-blue-600 rounded-full h-12 w-12 flex items-center justify-center">
+                               <i data-lucide="zap-off" class="w-6 h-6"></i>
+                           </div>
+                           <div class="ml-4">
+                               <h3 class="text-xl font-bold">Zero Tech Hassle</h3>
+                               <p class="text-gray-600 mt-1">An intuitive platform that's easy to set up and manage.</p>
+                           </div>
+                       </div>
+                       <div class="flex items-start">
+                           <div class="flex-shrink-0 bg-blue-100 text-blue-600 rounded-full h-12 w-12 flex items-center justify-center">
+                               <i data-lucide="heart" class="w-6 h-6"></i>
+                           </div>
+                           <div class="ml-4">
+                               <h3 class="text-xl font-bold">Personalized Experience</h3>
+                               <p class="text-gray-600 mt-1">Deliver tailored content and feedback to every member.</p>
+                           </div>
+                       </div>
+                       <div class="flex items-start">
+                           <div class="flex-shrink-0 bg-blue-100 text-blue-600 rounded-full h-12 w-12 flex items-center justify-center">
+                               <i data-lucide="trending-up" class="w-6 h-6"></i>
+                           </div>
+                           <div class="ml-4">
+                               <h3 class="text-xl font-bold">Higher Retention & Revenue</h3>
+                               <p class="text-gray-600 mt-1">Engage your community and unlock new income streams.</p>
+                           </div>
+                       </div>
+                   </div>
+               </div>
+           </div>
+       </div>
+   </section>
+   <section id="pricing" class="py-20 lg:py-28 bg-sky-50">
+       <div class="container mx-auto px-6">
+           <div class="text-center mb-16">
+               <h2 class="text-3xl md:text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
+               <p class="text-gray-600 max-w-2xl mx-auto">Choose the plan that's right for your business. No hidden fees.</p>
+           </div>
+           <div class="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-start">
+               <div class="bg-white p-8 rounded-xl shadow-sm pricing-card">
+                   <h3 class="text-2xl font-bold text-gray-800 mb-2">Quarterly</h3>
+                   <p class="text-gray-500 mb-6">Perfect for getting started.</p>
+                   <p class="text-4xl font-extrabold text-gray-900 mb-6">₹15,000 <span class="text-lg font-medium text-gray-500">/ 3 months</span></p>
+                   <ul class="space-y-4 text-gray-600 mb-8">
+                       <li class="flex items-center"><i data-lucide="check" class="w-5 h-5 text-blue-600 mr-3"></i>Host live & recorded sessions</li>
+                       <li class="flex items-center"><i data-lucide="check" class="w-5 h-5 text-blue-600 mr-3"></i>Offer structured programs</li>
+                       <li class="flex items-center"><i data-lucide="check" class="w-5 h-5 text-blue-600 mr-3"></i>Accept payments</li>
+                       <li class="flex items-center"><i data-lucide="check" class="w-5 h-5 text-blue-600 mr-3"></i>Track client progress</li>
+                       <li class="flex items-center"><i data-lucide="users" class="w-5 h-5 text-blue-600 mr-3"></i>Up to 200 users</li>
+                       <li class="flex items-center"><i data-lucide="plus" class="w-5 h-5 text-blue-600 mr-3"></i>Additional per-user pricing</li>
+                   </ul>
+                   <a href="#contact" class="w-full text-center bg-blue-100 text-blue-700 font-bold py-3 px-6 rounded-lg hover:bg-blue-200">Get Started</a>
+               </div>
+
+               <div class="bg-white p-8 rounded-xl shadow-lg pricing-card relative border-2 border-blue-600" style="transform: scale(1.05);">
+                   <div class="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2">
+                       <span class="bg-blue-600 text-white text-xs font-bold uppercase tracking-wider px-4 py-1 rounded-full">Best Value</span>
+                   </div>
+                   <h3 class="text-2xl font-bold text-gray-800 mb-2">Annually</h3>
+                   <p class="text-gray-500 mb-6">For businesses committed to growth.</p>
+                   <p class="text-4xl font-extrabold text-gray-900 mb-6">₹50,000 <span class="text-lg font-medium text-gray-500">/ year</span></p>
+                   <ul class="space-y-4 text-gray-600 mb-8">
+                       <li class="flex items-center"><i data-lucide="check" class="w-5 h-5 text-blue-600 mr-3"></i><strong>Everything in Quarterly, plus:</strong></li>
+                       <li class="flex items-center"><i data-lucide="check" class="w-5 h-5 text-blue-600 mr-3"></i>Advanced analytics</li>
+                       <li class="flex items-center"><i data-lucide="check" class="w-5 h-5 text-blue-600 mr-3"></i>Priority support</li>
+                       <li class="flex items-center"><i data-lucide="check" class="w-5 h-5 text-blue-600 mr-3"></i>AI-powered features</li>
+                       <li class="flex items-center"><i data-lucide="users" class="w-5 h-5 text-blue-600 mr-3"></i>Up to 200 users</li>
+                   </ul>
+                   <a href="#contact" class="w-full text-center bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 cta-button">Get Started</a>
+               </div>
+
+               <div class="bg-white p-8 rounded-xl shadow-sm pricing-card">
+                   <h3 class="text-2xl font-bold text-gray-800 mb-2">Enterprise</h3>
+                   <p class="text-gray-500 mb-6">Tailored for unique requirements.</p>
+                   <p class="text-4xl font-extrabold text-gray-900 mb-6">Custom</p>
+                   <ul class="space-y-4 text-gray-600 mb-8">
+                       <li class="flex items-center"><i data-lucide="check" class="w-5 h-5 text-blue-600 mr-3"></i><strong>Everything in Annually, plus:</strong></li>
+                       <li class="flex items-center"><i data-lucide="check" class="w-5 h-5 text-blue-600 mr-3"></i>On-demand feature development</li>
+                       <li class="flex items-center"><i data-lucide="check" class="w-5 h-5 text-blue-600 mr-3"></i>Dedicated account manager</li>
+                       <li class="flex items-center"><i data-lucide="check" class="w-5 h-5 text-blue-600 mr-3"></i>Custom user limits</li>
+                   </ul>
+                   <a href="#contact" class="w-full text-center bg-blue-100 text-blue-700 font-bold py-3 px-6 rounded-lg hover:bg-blue-200">Contact Us</a>
+               </div>
+           </div>
+       </div>
+   </section>
+
+   <section id="contact" class="py-20 lg:py-32 bg-white">
+       <div class="container mx-auto px-6 text-center max-w-3xl">
+           <h2 class="text-3xl md:text-4xl font-bold mb-4">Ready to Elevate Your Business?</h2>
+           <p class="text-lg text-gray-600 mb-8">
+               Let's talk. We'd love to show you how Vacademy can transform your yoga or fitness business online. Schedule a personalized, no-obligation demo today.
+           </p>
+           <div>
+               <a href="mailto:riya@vidyayatan.com" class="bg-blue-600 text-white font-bold py-4 px-10 rounded-full text-lg hover:bg-blue-700 cta-button">
+                   Schedule Your Demo
+               </a>
+           </div>
+           <div class="mt-12 text-gray-500 flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
+               <p><strong>Email:</strong> <a href="mailto:riya@vidyayatan.com" class="font-semibold text-blue-600 hover:text-blue-700">riya@vidyayatan.com</a></p>
+               <p><strong>Phone:</strong> <a href="tel:+919479742410" class="font-semibold text-blue-600 hover:text-blue-700">+91 9479742410</a></p>
+           </div>
+       </div>
+   </section>
+
+   <footer class="bg-sky-50 border-t border-sky-100">
+       <div class="container mx-auto px-6 py-8 text-center text-gray-500">
+           <div class="mb-4">
+               <a href="https://ai.vidyayatan.com/blog" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600">Our Blog</a>
+           </div>
+           <p>&copy; 2025 Vacademy by Vidyayatan Technologies. All Rights Reserved.</p>
+           <p class="text-sm mt-2">Serving clients across India, UK, South Africa, and beyond.</p>
+       </div>
+   </footer>
+
+   <script>
+       // Lucide Icons replacement
+       lucide.createIcons();
+   </script>
+
+</body>
+</html>

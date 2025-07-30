@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Save, RotateCcw, Settings } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import { MyButton } from '@/components/design-system/button';
 import useLocalStorage from '@/hooks/use-local-storage';
 import { IntroKey } from '@/constants/storage/introKey';
@@ -26,6 +25,7 @@ import {
     ROLE_TERMS,
     systemValueDescription,
 } from '../-constants/terms';
+import { toast } from 'sonner';
 
 export enum ContentTerms {
     Course = 'Course',
@@ -72,7 +72,6 @@ const createNameRequest = (settings: NamingSettingsType[]): NamingSettingsReques
 };
 
 export default function NamingSettings() {
-    const { toast } = useToast();
     const [settings, setSettings] = useState<NamingSettingsType[] | null>(null);
     const { getValue: getFirstTimeValue, setValue: setFirstTimeValue } = useLocalStorage<boolean>(
         IntroKey.firstTimeNamingSettings,
@@ -103,21 +102,14 @@ export default function NamingSettings() {
                     // Render defaults in UI
                     setSettings(defaultNamingSettings);
 
-                    toast({
-                        title: 'Settings Initialized',
-                        description:
-                            'Default naming conventions have been set up for your institute.',
-                    });
+                    toast.success('Settings Initialized');
                 } catch (error) {
                     console.error('Failed to create initial naming settings:', error);
                     // Still render defaults in UI even if API fails
                     setSettings(defaultNamingSettings);
-                    toast({
-                        title: 'Warning',
-                        description:
-                            'Failed to initialize naming settings on server. You can still modify settings locally.',
-                        variant: 'destructive',
-                    });
+                    toast.error(
+                        'Failed to initialize naming settings on server. You can still modify settings locally.'
+                    );
                 }
             } else {
                 // Second time onwards - load from storage
@@ -179,17 +171,10 @@ export default function NamingSettings() {
             // Save to localStorage
             setNamingSettingsStorage(settings);
             setHasChanges(false);
-            toast({
-                title: 'Settings saved',
-                description: 'Your naming conventions have been saved successfully.',
-            });
+            toast.success('Settings saved');
         } catch (error) {
             console.error('Failed to save settings:', error);
-            toast({
-                title: 'Error',
-                description: 'Failed to save settings. Please try again.',
-                variant: 'destructive',
-            });
+            toast.error('Failed to save settings. Please try again.');
         } finally {
             setIsLoading(false);
         }

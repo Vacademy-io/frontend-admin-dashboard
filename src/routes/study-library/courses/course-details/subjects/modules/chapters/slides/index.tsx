@@ -1,33 +1,10 @@
-import { LayoutContainer } from '@/components/common/layout-container/layout-container';
-import { SlideMaterial } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/slide-material';
-import { ChapterSidebarAddButton } from './-components/slides-sidebar/slides-sidebar-add-button';
-import { ChapterSidebarSlides } from './-components/slides-sidebar/slides-sidebar-slides';
-import './slides-sidebar-scrollbar.css';
-import { studyLibrarySteps } from '@/constants/intro/steps';
-import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
-import {
-    Slide,
-    slideOrderPayloadType,
-    useSlidesMutations,
-} from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
-import useIntroJsTour from '@/hooks/use-intro';
-import { InitStudyLibraryProvider } from '@/providers/study-library/init-study-library-provider';
-import { ModulesWithChaptersProvider } from '@/providers/study-library/modules-with-chapters-provider';
-import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
-import { useChapterName } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getChapterNameById';
-import { getModuleName } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById';
-import { getSubjectName } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById';
-import { ChevronRightIcon } from '@radix-ui/react-icons';
-import { useNavigate } from '@tanstack/react-router';
 import { createFileRoute } from '@tanstack/react-router';
-import { CaretLeft } from 'phosphor-react';
-import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { SaveDraftProvider } from './-context/saveDraftContext';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { AdminSlidesView } from './admin/AdminSlidesView';
+import { NonAdminSlidesView } from './non-admin/NonAdminSlidesView';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
-import { useModulesWithChaptersStore } from '@/stores/study-library/use-modules-with-chapters-store';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
-import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { useMemo } from 'react';
 
 interface ChapterSearchParams {
     courseId: string;
@@ -61,147 +38,40 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-    const { chapterId, courseId, levelId, subjectId, moduleId, sessionId } = Route.useSearch();
-    const navigate = useNavigate();
+    const searchParams = Route.useSearch();
+    const { courseId } = searchParams;
     const { studyLibraryData } = useStudyLibraryStore();
-    const { modulesWithChaptersData } = useModulesWithChaptersStore();
-    const [subjectName, setSubjectName] = useState('');
-    const [moduleName, setModuleName] = useState('');
-    const chapterName = useChapterName(chapterId);
-    const { updateSlideOrder } = useSlidesMutations(chapterId);
-    const { setNavHeading } = useNavHeadingStore();
 
-    useIntroJsTour({
-        key: StudyLibraryIntroKey.addSlidesStep,
-        steps: studyLibrarySteps.addSlidesStep,
-    });
+    // Get user role and institute ID
+    const { userRole } = useMemo(() => {
+        const accessToken = getTokenFromCookie(TokenKey.accessToken);
+        const tokenData = getTokenDecodedData(accessToken);
 
-    const handleSubjectRoute = useCallback(() => {
-        navigate({
-            to: '/study-library/courses/course-details/subjects/modules',
-            params: {},
-            search: {
-                courseId: courseId,
-                levelId: levelId,
-                subjectId: subjectId,
-                sessionId: sessionId,
-            },
-            hash: '',
-        });
-    }, [courseId, levelId, subjectId, sessionId, navigate]);
+        if (!tokenData || !tokenData.authorities) {
+            return { userRole: null };
+        }
 
-    const handleModuleRoute = useCallback(() => {
-        navigate({
-            to: '/study-library/courses/course-details/subjects/modules/chapters',
-            params: {},
-            search: {
-                courseId: courseId,
-                levelId: levelId,
-                subjectId: subjectId,
-                moduleId: moduleId,
-                sessionId: sessionId,
-            },
-            hash: '',
-        });
-    }, [courseId, levelId, subjectId, moduleId, sessionId, navigate]);
+        // Find the institute from studyLibraryData to get the correct institute ID
+        const courseData = studyLibraryData?.find((item) => item.course.id === courseId);
+        const currentInstituteId =
+            courseData?.course?.institute_id || Object.keys(tokenData.authorities)[0]; // fallback to first institute
 
-    const handleSlideOrderChange = useCallback(
-        async (slideOrderPayload: slideOrderPayloadType) => {
-            try {
-                await updateSlideOrder({
-                    chapterId: chapterId,
-                    slideOrderPayload: slideOrderPayload,
-                });
-            } catch (error) {
-                console.log('error updating slide order: ', error);
-            }
-        },
-        [chapterId, updateSlideOrder]
-    );
+        if (!currentInstituteId || !tokenData.authorities[currentInstituteId]) {
+            return { userRole: null };
+        }
 
-    useEffect(() => {
-        setSubjectName(getSubjectName(subjectId || ''));
-        setModuleName(getModuleName(moduleId || ''));
-    }, [studyLibraryData, modulesWithChaptersData, subjectId, moduleId]);
+        const roles = tokenData.authorities[currentInstituteId]?.roles || [];
+        const isAdmin = roles.includes('ADMIN');
 
-    const heading = useMemo(
-        () => (
-            <div className="flex items-center gap-4">
-                <CaretLeft onClick={() => window.history.back()} className="cursor-pointer" />
-                <div>{`${chapterName || ''} ${getTerminology(
-                    ContentTerms.Slides,
-                    SystemTerms.Slides
-                )}s`}</div>
-            </div>
-        ),
-        [chapterName]
-    );
+        return {
+            userRole: isAdmin ? 'ADMIN' : 'TEACHER',
+        };
+    }, [courseId, studyLibraryData]);
 
-    const SidebarComponent = useMemo(
-        () => (
-            <div className="flex w-full flex-col items-center">
-                <div className={`flex w-full flex-col gap-6 px-3 pb-3 `}>
-                    <div className="flex flex-wrap items-center gap-1 text-neutral-500">
-                        <p onClick={handleSubjectRoute} className="cursor-pointer ">
-                            {subjectName}
-                        </p>
-                        <ChevronRightIcon className={`size-4 `} />
-                        <p onClick={handleModuleRoute} className="cursor-pointer ">
-                            {moduleName}
-                        </p>
-                        <ChevronRightIcon className={`size-4 `} />
-                        <p className="cursor-pointer text-primary-500">{chapterName}</p>
-                    </div>
-                    <div className="flex w-full flex-col items-center gap-6 pb-10">
-                        <ChapterSidebarSlides handleSlideOrderChange={handleSlideOrderChange} />
-                    </div>
-                </div>
-                <div className="fixed bottom-0 flex w-[280px] items-center justify-center bg-primary-50 pb-3">
-                    <ChapterSidebarAddButton />
-                </div>
-            </div>
-        ),
-        [
-            subjectName,
-            moduleName,
-            chapterName,
-            handleSubjectRoute,
-            handleModuleRoute,
-            handleSlideOrderChange,
-        ]
-    );
-
-    useEffect(() => {
-        setNavHeading(heading);
-    }, [heading, setNavHeading]);
-
-    const getCurrentEditorHTMLContentRef = useRef<() => string>(() => '');
-    const saveDraftRef = useRef(async (slide: Slide) => {
-        console.log('slide for saving draft: ', slide);
-    });
-
-    return (
-        <SaveDraftProvider
-            getCurrentEditorHTMLContent={() => getCurrentEditorHTMLContentRef.current()}
-            saveDraft={(slide) => saveDraftRef.current(slide)}
-        >
-            <LayoutContainer
-                internalSidebarComponent={SidebarComponent}
-                hasInternalSidebarComponent={true}
-            >
-                <InitStudyLibraryProvider>
-                    <ModulesWithChaptersProvider>
-                        <SidebarProvider defaultOpen={false}>
-                            <SlideMaterial
-                                setGetCurrentEditorHTMLContent={(fn) =>
-                                    (getCurrentEditorHTMLContentRef.current = fn)
-                                }
-                                setSaveDraft={(fn) => (saveDraftRef.current = fn)}
-                            />
-                        </SidebarProvider>
-                    </ModulesWithChaptersProvider>
-                </InitStudyLibraryProvider>
-            </LayoutContainer>
-        </SaveDraftProvider>
-    );
+    // Route to appropriate view based on user role
+    if (userRole === 'ADMIN') {
+        return <AdminSlidesView {...searchParams} />;
+    } else {
+        return <NonAdminSlidesView {...searchParams} />;
+    }
 }

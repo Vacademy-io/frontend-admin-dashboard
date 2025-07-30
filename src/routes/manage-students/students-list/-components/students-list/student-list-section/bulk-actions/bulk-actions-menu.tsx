@@ -66,11 +66,13 @@ export const BulkActionsMenu = ({ selectedStudents, trigger }: BulkActionsMenuPr
                 break;
             case 'Create Certificate':
                 // Navigate to certificate generation with selected students
-                router.navigate({ 
+                router.navigate({
                     to: '/certificate-generation/student-data',
-                    search: { 
-                        students: encodeURIComponent(JSON.stringify(validStudents.map(s => s.user_id))) 
-                    }
+                    search: {
+                        students: encodeURIComponent(
+                            JSON.stringify(validStudents.map((s) => s.user_id))
+                        ),
+                    },
                 });
                 break;
         }

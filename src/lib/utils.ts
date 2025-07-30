@@ -44,7 +44,7 @@ export const goToWhatsappSupport = () => {
  * Opens the user's default email client to send a support request.
  */
 export const goToMailSupport = () => {
-    const supportEmail = 'hello@vacademy.io';
+    const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL || 'hello@vacademy.io';
     const subject = encodeURIComponent('Support Request');
     const body = encodeURIComponent('I need help with: \n[Describe your issue here]');
 

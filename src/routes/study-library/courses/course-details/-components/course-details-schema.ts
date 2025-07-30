@@ -34,6 +34,7 @@ const instructorSchema = z.object({
 // Define the schema for level details within a session
 const levelDetailsSchema = z.object({
     id: z.string().uuid(), // Assuming IDs are UUIDs
+    newLevel: z.boolean(),
     name: z.string().min(1, { message: 'Level name is required.' }),
     duration_in_days: z
         .number()
@@ -61,6 +62,7 @@ const sessionDetailsSchema = z.object({
     id: z.string().uuid(), // Assuming IDs are UUIDs
     session_name: z.string().min(1, { message: 'Session name is required.' }),
     status: z.string().min(1, { message: 'Status name is required.' }),
+    newSession: z.boolean(),
     start_date: z
         .string()
         .regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Start date must be in YYYY-MM-DD format.' }), // Simple date string validation
@@ -138,6 +140,7 @@ export const courseDetailsSchema = z.object({
         courseBannerMediaPreview: z.string(),
         courseMediaPreview: z.string(),
         courseHtmlDescription: z.string(),
+        created_by_user_id: z.string().optional(),
         instructors: z
             .array(instructorSchema)
             .min(1, { message: 'At least one instructor is required.' }),

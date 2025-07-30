@@ -223,7 +223,13 @@ const QuizPreview = ({ activeItem, routeParams }: QuizPreviewProps) => {
     const handleEdit = (index: number) => {
         console.log('[QuizPreview] handleEdit called with index:', index);
         const question = form.getValues(`questions.${index}`);
-        console.log('[QuizPreview] Question to edit:', question);
+        // Prefill CMCQS/CMCQM options for edit dialog just like MCQ types
+        if (question.questionType === 'CMCQS' && question.singleChoiceOptions) {
+            question.csingleChoiceOptions = question.singleChoiceOptions;
+        }
+        if (question.questionType === 'CMCQM' && question.multipleChoiceOptions) {
+            question.cmultipleChoiceOptions = question.multipleChoiceOptions;
+        }
         editForm.reset({ ...form.getValues(), questions: [question] });
         setEditIndex(index);
         console.log('[QuizPreview] Edit index set to:', index);
@@ -452,8 +458,11 @@ const QuizPreview = ({ activeItem, routeParams }: QuizPreviewProps) => {
                                 );
                             })
                     ) : (
-                        <div className="flex flex-col items-center justify-center py-12 text-center">
-                            <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-slate-100">
+                        <div
+                            className="flex cursor-pointer flex-col items-center justify-center rounded-lg py-12 text-center transition-colors duration-200 hover:bg-slate-50"
+                            onClick={() => setIsQuestionTypeDialogOpen(true)}
+                        >
+                            <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-slate-100 transition-colors duration-200 hover:bg-slate-200">
                                 <Plus size={24} className="text-slate-400" />
                             </div>
                             <h3 className="mb-2 text-lg font-medium text-slate-600">

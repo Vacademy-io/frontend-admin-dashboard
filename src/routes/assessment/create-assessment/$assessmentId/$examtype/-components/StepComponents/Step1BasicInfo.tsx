@@ -38,6 +38,7 @@ import { useAccessControlStore } from '../../-utils/zustand-global-states/step4-
 import { Steps } from '@/types/assessments/assessment-data-type';
 import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { convertCapitalToTitleCase } from '@/lib/utils';
 
 export function convertDateFormat(dateStr: string) {
     if (dateStr === '') return '';
@@ -364,7 +365,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                 labelStyle="font-thin"
                                 options={SubjectFilterData.map((option, index) => ({
                                     value: option.name,
-                                    label: option.name,
+                                    label: convertCapitalToTitleCase(option.name),
                                     _id: index,
                                 }))}
                                 control={form.control}

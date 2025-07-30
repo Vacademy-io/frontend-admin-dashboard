@@ -20,7 +20,7 @@ export const AddCourseButton = () => {
                 </MyButton>
             }
             heading={`Add ${getTerminology(ContentTerms.Course, SystemTerms.Course)}`}
-            dialogWidth="w-[400px]"
+            dialogWidth="w-[500px]"
             open={openDialog}
             onOpenChange={handleOpenChange}
             isTour

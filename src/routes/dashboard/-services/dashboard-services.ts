@@ -12,6 +12,14 @@ import {
     UPDATE_USER_INVITATION_URL,
     GET_ALL_FACULTY,
     GET_DOUBTS,
+    ANALYTICS_USER_ACTIVITY,
+    ANALYTICS_ACTIVE_USERS_REALTIME,
+    ANALYTICS_ACTIVE_USERS,
+    ANALYTICS_ACTIVITY_TODAY,
+    ANALYTICS_SERVICE_USAGE,
+    ANALYTICS_ENGAGEMENT_TRENDS,
+    ANALYTICS_MOST_ACTIVE_USERS,
+    ANALYTICS_CURRENTLY_ACTIVE_USERS,
 } from '@/constants/urls';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { RoleTypeSelectedFilter } from '../-components/RoleTypeComponent';
@@ -27,7 +35,10 @@ import { getModifiedAdminRoles } from '../-utils/helper';
 import { UserRole } from '@/services/student-list-section/getAdminDetails';
 import { inviteTeacherSchema } from '../-components/AddTeachers';
 import { queryOptions } from '@tanstack/react-query';
-import { DoubtFilter, PaginatedDoubtResponse } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-types/get-doubts-type';
+import {
+    DoubtFilter,
+    PaginatedDoubtResponse,
+} from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-types/get-doubts-type';
 
 export interface FacultyFilterParams {
     name?: string;
@@ -395,12 +406,102 @@ export const getUnresolvedDoubtsCount = (instituteId: string, batchIds: string[]
                 `${GET_DOUBTS}?pageNo=0&pageSize=1`,
                 filter
             );
-            
+
             return {
                 count: response.data.total_elements,
-                hasUnresolvedDoubts: response.data.total_elements > 0
+                hasUnresolvedDoubts: response.data.total_elements > 0,
             };
         },
         enabled: !!instituteId && batchIds.length > 0,
     });
+};
+
+export const fetchAnalyticsUserActivity = async (instituteId: string, token?: string) => {
+    const response = await authenticatedAxiosInstance({
+        method: 'GET',
+        url: ANALYTICS_USER_ACTIVITY,
+        params: { instituteId },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    return response.data;
+};
+
+export const fetchAnalyticsActiveUsersRealtime = async (instituteId: string, token?: string) => {
+    const response = await authenticatedAxiosInstance({
+        method: 'GET',
+        url: ANALYTICS_ACTIVE_USERS_REALTIME,
+        params: { instituteId },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    return response.data;
+};
+
+export const fetchAnalyticsActiveUsers = async (instituteId: string, token?: string) => {
+    const response = await authenticatedAxiosInstance({
+        method: 'GET',
+        url: ANALYTICS_ACTIVE_USERS,
+        params: { instituteId },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    return response.data;
+};
+
+export const fetchAnalyticsActivityToday = async (instituteId: string, token?: string) => {
+    const response = await authenticatedAxiosInstance({
+        method: 'GET',
+        url: ANALYTICS_ACTIVITY_TODAY,
+        params: { instituteId },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    return response.data;
+};
+
+export const fetchAnalyticsServiceUsage = async (instituteId: string, token?: string) => {
+    const response = await authenticatedAxiosInstance({
+        method: 'GET',
+        url: ANALYTICS_SERVICE_USAGE,
+        params: { instituteId },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    return response.data;
+};
+
+export const fetchAnalyticsEngagementTrends = async (
+    instituteId: string,
+    token?: string,
+    startDate?: string,
+    endDate?: string
+) => {
+    const response = await authenticatedAxiosInstance({
+        method: 'GET',
+        url: ANALYTICS_ENGAGEMENT_TRENDS,
+        params: { instituteId, startDate, endDate },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    return response.data;
+};
+
+export const fetchAnalyticsMostActiveUsers = async (
+    instituteId: string,
+    token?: string,
+    limit = 10,
+    offset = 0
+) => {
+    const response = await authenticatedAxiosInstance({
+        method: 'GET',
+        url: ANALYTICS_MOST_ACTIVE_USERS,
+        params: { instituteId, limit, offset },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    return response.data;
+};
+
+export const fetchAnalyticsCurrentlyActiveUsers = async (instituteId: string, token?: string) => {
+    const response = await authenticatedAxiosInstance({
+        method: 'GET',
+        url: ANALYTICS_CURRENTLY_ACTIVE_USERS,
+        params: { instituteId },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    return response.data;
 };

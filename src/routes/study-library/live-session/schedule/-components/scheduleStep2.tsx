@@ -7,7 +7,7 @@ import { MyRadioButton } from '@/components/design-system/radio';
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { AccessType, InputType } from '../../-constants/enums';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { MyDropdown } from '@/components/common/students/enroll-manually/dropdownForPackageItems';
 import { DropdownValueType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
 import { DropdownItemType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
@@ -52,15 +52,25 @@ export default function ScheduleStep2() {
     // Get the institute details at component level
     const { instituteDetails } = useInstituteDetailsStore();
 
+    /**
+     * This ref helps us ensure that the heavy edit-mode form pre-population
+     * logic executes only ONCE. Without this, `form.setValue` & `setCurrentSession`
+     * could run on every re-render if any object reference in `sessionDetails` or
+     * `instituteDetails` changes (even when the actual data is identical), leading
+     * to an infinite render-refresh cycle in dev (observed as the app “refreshing
+     * again and again”).
+     */
+    const hasInitialisedEditState = useRef(false);
+
     useEffect(() => {
         if (!sessionId) {
-            console.log("here " , sessionId)
+            console.log('here ', sessionId);
             navigate({ to: '/study-library/live-session' });
         }
     }, [sessionId, navigate]);
 
     useEffect(() => {
-        if (sessionDetails) {
+        if (sessionDetails && !hasInitialisedEditState.current) {
             form.setValue(
                 'accessType',
                 sessionDetails?.schedule?.access_type === 'public'
@@ -97,42 +107,85 @@ export default function ScheduleStep2() {
             });
 
             form.setValue('notifySettings', defaultNotifySettings);
+
+            // ------------------------------------------------------------------
+            // NEW: Pre-populate selected levels (batches) when editing a PRIVATE class
+            // ------------------------------------------------------------------
+            if (
+                sessionDetails.schedule.access_type === 'private' &&
+                instituteDetails &&
+                sessionDetails.schedule.package_session_ids?.length > 0
+            ) {
+                const selectedLevelsFromPackages = sessionDetails.schedule.package_session_ids
+                    .map((pkgId) => {
+                        const batch = instituteDetails.batches_for_sessions.find(
+                            (b) => b.id === pkgId
+                        );
+                        if (!batch) return null;
+                        return {
+                            courseId: batch.package_dto.id,
+                            sessionId: batch.session.id,
+                            levelId: batch.level.id,
+                        };
+                    })
+                    .filter(Boolean) as {
+                    courseId: string;
+                    sessionId: string;
+                    levelId: string;
+                }[];
+
+                if (selectedLevelsFromPackages.length) {
+                    form.setValue('selectedLevels', selectedLevelsFromPackages);
+
+                    // Also set the currentSession dropdown so that UI immediately shows relevant levels
+                    const firstSessionId = selectedLevelsFromPackages[0]!.sessionId;
+                    const matchingSession = sessionList.find((s) => s.id === firstSessionId);
+                    if (matchingSession) {
+                        setCurrentSession(matchingSession);
+                    }
+                }
+            }
+
+            // Mark initialisation done so this block never runs again
+            hasInitialisedEditState.current = true;
         }
-    }, [sessionDetails]);
+    }, [sessionDetails, instituteDetails]);
 
-    const sessionList: DropdownItemType[] = Array.from(
-        new Map(
-            (
-                studyLibraryData?.flatMap((item) =>
-                    item.sessions.map((session) => ({
-                        name: session.session_dto.session_name,
-                        id: session.session_dto.id,
-                    }))
-                ) ?? []
-            ).map((item) => [item.id, item])
-        ).values()
+    // Prepare session data first
+    const sessionList: DropdownItemType[] = useMemo(
+        () =>
+            Array.from(
+                new Map(
+                    (
+                        studyLibraryData?.flatMap((item) =>
+                            item.sessions.map((session) => ({
+                                name: session.session_dto.session_name,
+                                id: session.session_dto.id,
+                            }))
+                        ) ?? []
+                    ).map((item) => [item.id, item])
+                ).values()
+            ),
+        [studyLibraryData]
     );
 
-    const courses = studyLibraryData?.flatMap((item) =>
-        item.sessions.map((session) => ({
-            courseName: item.course.package_name,
-            courseId: item.course.id,
-            sessionId: session.session_dto.id,
-            levels: session.level_with_details.map((level) => ({
-                name: level.name,
-                id: level.id,
-            })),
-        }))
+    const courses = useMemo(
+        () =>
+            studyLibraryData?.flatMap((item) =>
+                item.sessions.map((session) => ({
+                    courseName: item.course.package_name,
+                    courseId: item.course.id,
+                    sessionId: session.session_dto.id,
+                    levels: session.level_with_details.map((level) => ({
+                        name: level.name,
+                        id: level.id,
+                    })),
+                }))
+            ),
+        [studyLibraryData]
     );
 
-    const initialSession: DropdownItemType | undefined = {
-        id: sessionList[0]?.id || '',
-        name: sessionList[0]?.name || '',
-    };
-    const [currentSession, setCurrentSession] = useState<DropdownItemType | undefined>(
-        () => initialSession
-    );
-
+    // Initialize form with default values
     const form = useForm<z.infer<typeof addParticipantsSchema>>({
         resolver: zodResolver(addParticipantsSchema),
         defaultValues: {
@@ -157,12 +210,103 @@ export default function ScheduleStep2() {
             fields: [],
         },
     });
+
+    // Set up current session
+    const [currentSession, setCurrentSession] = useState<DropdownItemType | undefined>(() =>
+        sessionList.length > 0 ? sessionList[0] : undefined
+    );
+
+    // Update form when session details are available
+    useEffect(() => {
+        if (!sessionDetails || !instituteDetails) return;
+
+        // Set access type
+        form.setValue(
+            'accessType',
+            sessionDetails.schedule.access_type === 'public'
+                ? AccessType.PUBLIC
+                : AccessType.PRIVATE
+        );
+
+        // Set notification settings
+        const defaultNotifySettings = {
+            onCreate: false,
+            beforeLive: false,
+            beforeLiveTime: [] as { time: string }[],
+            onLive: false,
+        };
+
+        let mail = false;
+        let whatsapp = false;
+
+        sessionDetails.notifications?.addedNotificationActions.forEach((action) => {
+            const { type, notify, notifyBy, time } = action;
+
+            if (type === 'ON_CREATE') {
+                defaultNotifySettings.onCreate = notify;
+            } else if (type === 'ON_LIVE') {
+                defaultNotifySettings.onLive = notify;
+            } else if (type === 'BEFORE_LIVE') {
+                defaultNotifySettings.beforeLive = notify;
+                if (time) {
+                    defaultNotifySettings.beforeLiveTime = [{ time }];
+                }
+            }
+
+            // Merge mail & whatsapp flags
+            mail = mail || notifyBy.mail;
+            whatsapp = whatsapp || notifyBy.whatsapp;
+        });
+
+        form.setValue('notifySettings', defaultNotifySettings);
+        form.setValue('notifyBy', { mail, whatsapp });
+
+        // Load previously selected levels for PRIVATE sessions
+        if (
+            sessionDetails.schedule.access_type === 'private' &&
+            sessionDetails.schedule.package_session_ids &&
+            sessionDetails.schedule.package_session_ids.length > 0
+        ) {
+            // Initialize array for selected levels
+            const selectedLevels: { courseId: string; sessionId: string; levelId: string }[] = [];
+
+            // Process each package_session_id
+            sessionDetails.schedule.package_session_ids.forEach((packageSessionId) => {
+                // Find the matching batch in institute details
+                const matchingBatch = instituteDetails.batches_for_sessions.find(
+                    (batch) => batch.id === packageSessionId
+                );
+
+                if (matchingBatch) {
+                    selectedLevels.push({
+                        courseId: matchingBatch.package_dto.id,
+                        sessionId: matchingBatch.session.id,
+                        levelId: matchingBatch.level.id,
+                    });
+                }
+            });
+
+            // Set the selected levels in the form
+            if (selectedLevels.length > 0) {
+                form.setValue('selectedLevels', selectedLevels);
+
+                // If we have any selections, set the current session to match the first selected level
+                const firstSelectedLevel = selectedLevels[0];
+                const matchingSession = sessionList.find(
+                    (session) => session.id === firstSelectedLevel?.sessionId
+                );
+                if (matchingSession) {
+                    setCurrentSession(matchingSession);
+                }
+            }
+        }
+    }, [sessionDetails, instituteDetails, sessionList, form]);
+
     const addCustomFieldform = useForm<z.infer<typeof addCustomFiledSchema>>({
         resolver: zodResolver(addCustomFiledSchema),
         defaultValues: {
             fieldType: 'text',
             options: [],
-            // options: [{ optionField: 'Option 1' }, { optionField: 'Option 2' }],
         },
     });
 
@@ -195,6 +339,7 @@ export default function ScheduleStep2() {
         if (isEditState) {
             if (accessType === AccessType.PUBLIC) {
                 const fields =
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     sessionDetails?.notifications?.addedFields.map((field: any) => ({
                         id: field.id,
                         label: field.label,
@@ -206,11 +351,14 @@ export default function ScheduleStep2() {
                 form.setValue('fields', fields);
                 form.setValue(
                     'joinLink',
-                    `https://learner.vacademy.io/register/live-class?sessionId=${sessionId}`
+                    `${import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io'}/register/live-class?sessionId=${sessionId}`
                 );
             } else {
                 form.setValue('fields', []);
-                form.setValue('joinLink', 'https://learner.vacademy.io/study-library/live-class');
+                form.setValue(
+                    'joinLink',
+                    `${import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io'}/study-library/live-class`
+                );
             }
             return;
         }
@@ -224,11 +372,14 @@ export default function ScheduleStep2() {
             ]);
             form.setValue(
                 'joinLink',
-                `https://learner.vacademy.io/register/live-class?sessionId=${sessionId}`
+                `${import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io'}/register/live-class?sessionId=${sessionId}`
             );
         } else {
             form.setValue('fields', []);
-            form.setValue('joinLink', 'https://learner.vacademy.io/study-library/live-class');
+            form.setValue(
+                'joinLink',
+                `${import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io'}/study-library/live-class`
+            );
         }
     }, [accessType]);
     const {
@@ -270,7 +421,6 @@ export default function ScheduleStep2() {
         try {
             const response = await createLiveSessionStep2(body);
             console.log('API Response:', response);
-            // Invalidate session queries so list page shows fresh data
             await queryClient.invalidateQueries({ queryKey: ['liveSessions'] });
             await queryClient.invalidateQueries({ queryKey: ['upcomingSessions'] });
             await queryClient.invalidateQueries({ queryKey: ['pastSessions'] });

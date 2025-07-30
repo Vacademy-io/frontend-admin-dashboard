@@ -5,6 +5,8 @@ import {
     SHUBHAM_INSTITUTE_ID,
 } from '@/constants/urls';
 import { SidebarItemsType } from '@/types/layout-container/layout-container-types';
+import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 export function getModuleFlags(
     sub_modules:
@@ -17,6 +19,30 @@ export function getModuleFlags(
     };
 }
 
+/**
+ * Filters sidebar items based on user role
+ * Removes admin-only items for non-admin users
+ */
+export function filterSidebarByRole(menuList: SidebarItemsType[]): SidebarItemsType[] {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const userRoles = getUserRoles(accessToken);
+    const isAdmin = userRoles.includes('ADMIN');
+
+    // If user is admin, return all items
+    if (isAdmin) {
+        return menuList;
+    }
+
+    // For non-admin users, filter out admin-only items
+    const adminOnlyIds = [
+        'learner-insights',      // Learner Live Activities
+        'manage-institute',      // Institute settings
+        'settings'               // Settings
+    ];
+
+    return menuList.filter(item => !adminOnlyIds.includes(item.id));
+}
+
 export function filterMenuList(
     subModules: { assess: boolean | undefined; lms: boolean | undefined },
     menuList: SidebarItemsType[]
@@ -27,6 +53,9 @@ export function filterMenuList(
     });
 }
 
+/**
+ * Filters menu items based on institute-specific rules
+ */
 export function filterMenuItems(menuList: SidebarItemsType[], instituteId: string | undefined) {
     if (instituteId === CODE_CIRCLE_INSTITUTE_ID || instituteId === SSDC_INSTITUTE_ID) {
         return menuList.filter(
@@ -52,7 +81,9 @@ export function filterMenuItems(menuList: SidebarItemsType[], instituteId: strin
             (item) =>
                 item.id === 'dashboard' ||
                 item.id === 'student-mangement' ||
-                item.id === 'live-classes'
+                item.id === 'live-classes' ||
+                item.id === 'settings' ||
+                item.id === 'attendance-tracker'
         );
     }
 

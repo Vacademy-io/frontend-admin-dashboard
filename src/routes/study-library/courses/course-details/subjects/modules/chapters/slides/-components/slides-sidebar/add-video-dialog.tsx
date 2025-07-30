@@ -12,6 +12,7 @@ import { useContentStore } from '@/routes/study-library/courses/course-details/s
 import { useEffect, useRef, useState } from 'react';
 import { YoutubeLogo, CheckCircle, PlayCircle } from '@phosphor-icons/react';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { getSlideStatusForUser } from '../../non-admin/hooks/useNonAdminSlides';
 
 const formSchema = z.object({
     videoUrl: z
@@ -134,6 +135,7 @@ export const AddVideoDialog = ({ openState }: { openState?: (open: boolean) => v
         setIsVideoUploading(true);
         try {
             const slideId = crypto.randomUUID();
+            const slideStatus = getSlideStatusForUser();
             const response: string = await addUpdateVideoSlide({
                 id: slideId,
                 title: data.videoName || 'YouTube Video',
@@ -146,11 +148,11 @@ export const AddVideoDialog = ({ openState }: { openState?: (open: boolean) => v
                     url: data.videoUrl,
                     title: data.videoName || 'YouTube Video',
                     video_length_in_millis: duration,
-                    published_url: null,
-                    published_video_length_in_millis: 0,
+                    published_url: slideStatus === 'PUBLISHED' ? data.videoUrl : null,
+                    published_video_length_in_millis: slideStatus === 'PUBLISHED' ? duration : 0,
                     source_type: 'VIDEO',
                 },
-                status: 'DRAFT',
+                status: slideStatus,
                 new_slide: true,
                 notify: false,
             });
@@ -221,11 +223,11 @@ export const AddVideoDialog = ({ openState }: { openState?: (open: boolean) => v
                                             className="w-full rounded-lg border border-neutral-300 px-4 py-3 pr-10 text-sm"
                                             required
                                         />
-                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 transform">
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
                                             {isValidUrl ? (
-                                                <CheckCircle className="h-5 w-5 text-green-500" />
+                                                <CheckCircle className="size-5 text-green-500" />
                                             ) : (
-                                                <YoutubeLogo className="h-5 w-5 text-neutral-400" />
+                                                <YoutubeLogo className="size-5 text-neutral-400" />
                                             )}
                                         </div>
                                     </div>
@@ -237,14 +239,14 @@ export const AddVideoDialog = ({ openState }: { openState?: (open: boolean) => v
                     {videoPreview && (
                         <div className="rounded-xl border bg-neutral-50 p-4 duration-500 animate-in fade-in slide-in-from-bottom-2">
                             <div className="flex items-center gap-3">
-                                <div className="relative flex-shrink-0">
+                                <div className="relative shrink-0">
                                     <img
                                         src={videoPreview.thumbnail}
                                         alt="Video thumbnail"
                                         className="h-12 w-16 rounded-lg object-cover"
                                     />
                                     <div className="absolute inset-0 flex items-center justify-center">
-                                        <PlayCircle className="h-6 w-6 text-white drop-shadow-lg" />
+                                        <PlayCircle className="size-6 text-white drop-shadow-lg" />
                                     </div>
                                 </div>
                                 <div className="min-w-0 flex-1">
@@ -278,12 +280,12 @@ export const AddVideoDialog = ({ openState }: { openState?: (open: boolean) => v
                     >
                         {isVideoUploading ? (
                             <div className="flex items-center justify-center gap-2">
-                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                                <div className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                                 Adding Video...
                             </div>
                         ) : (
                             <div className="flex items-center justify-center gap-2">
-                                <YoutubeLogo className="h-4 w-4" />
+                                <YoutubeLogo className="size-4" />
                                 Add YouTube Video
                             </div>
                         )}

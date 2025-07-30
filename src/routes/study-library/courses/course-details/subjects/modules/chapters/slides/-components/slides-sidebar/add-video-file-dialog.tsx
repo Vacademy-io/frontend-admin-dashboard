@@ -14,6 +14,7 @@ import { useContentStore } from '@/routes/study-library/courses/course-details/s
 import { useState } from 'react';
 import { UploadFileInS3 } from '@/services/upload_file';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { getSlideStatusForUser } from '../../non-admin/hooks/useNonAdminSlides';
 
 const formSchema = z.object({
     videoName: z.string().min(1, 'File name is required'),
@@ -117,6 +118,7 @@ export const AddVideoFileDialog = ({ openState }: { openState?: (open: boolean) 
             );
 
             const slideId = crypto.randomUUID();
+            const slideStatus = getSlideStatusForUser();
             const response = await addUpdateVideoSlide({
                 id: slideId,
                 title: data.videoName,
@@ -129,11 +131,11 @@ export const AddVideoFileDialog = ({ openState }: { openState?: (open: boolean) 
                     url: fileId ?? null,
                     title: data.videoName,
                     video_length_in_millis: 0,
-                    published_url: null,
-                    published_video_length_in_millis: 0,
+                    published_url: slideStatus === 'PUBLISHED' ? (fileId ?? null) : null,
+                    published_video_length_in_millis: slideStatus === 'PUBLISHED' ? 0 : 0,
                     source_type: 'FILE_ID',
                 },
-                status: 'DRAFT',
+                status: slideStatus,
                 new_slide: true,
                 notify: false,
             });
@@ -230,7 +232,7 @@ export const AddVideoFileDialog = ({ openState }: { openState?: (open: boolean) 
                 >
                     {isUploading ? (
                         <div className="flex items-center justify-center gap-2">
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                            <div className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                             Uploading...
                         </div>
                     ) : (

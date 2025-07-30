@@ -36,9 +36,10 @@ interface MinimalSessionDetails {
     // other fields from SlideEditorComponent's sessionDetails state if needed
 }
 
-const MOVE_SLIDE_API_URL = 'https://backend-stage.vacademy.io/community-service/engage/admin/move';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io';
+const MOVE_SLIDE_API_URL = `${BACKEND_URL}/community-service/engage/admin/move`;
 // Define ADMIN_SSE_URL_BASE (copied from ParticipantsSidePanel)
-const ADMIN_SSE_URL_BASE = 'https://backend-stage.vacademy.io/community-service/engage/admin/';
+const ADMIN_SSE_URL_BASE = `${BACKEND_URL}/community-service/engage/admin/`;
 
 interface ActualPresentationDisplayProps {
     slides: AppSlide[];
@@ -52,7 +53,7 @@ interface ActualPresentationDisplayProps {
     onResumeAudio?: () => void;
     onDownloadAudio?: (format?: 'webm' | 'mp3') => void;
     recordingDuration?: number;
-   
+
 
     // Props that will be passed to ParticipantsSidePanel if it's rendered as a child
     // and needs to be controlled from here regarding its visibility.
@@ -75,7 +76,7 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
     onDownloadAudio,
     recordingDuration,
     // Defaulting these if not provided, though they might be controlled by a parent of ActualPresentationDisplay
-    isParticipantsPanelOpen = false, 
+    isParticipantsPanelOpen = false,
     onToggleParticipantsPanel,
     onAddQuickQuestion,
     onGenerateTranscript,
@@ -122,7 +123,7 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
         }
 
         setSseStatus('connecting');
-        setParticipantsList([]); 
+        setParticipantsList([]);
         console.log(`[ActualPresentationDisplay] SSE init. Session ID: ${sessionId}`);
         const sseUrl = `${ADMIN_SSE_URL_BASE}${sessionId}`;
         console.log(`[ActualPresentationDisplay] SSE connecting to: ${sseUrl}`);
@@ -165,7 +166,7 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
                 } else {
                     console.warn("[ActualPresentationDisplay] 'participants' data received is not an array:", newParticipants);
                      // Still update refs even if data is not an array to prevent stale comparisons on next valid array
-                    previousParticipantsRef.current = Array.isArray(newParticipants) ? newParticipants : []; 
+                    previousParticipantsRef.current = Array.isArray(newParticipants) ? newParticipants : [];
                 }
             } catch (error) {
                 console.error("[ActualPresentationDisplay] Error parsing 'participants' data:", error);
@@ -251,10 +252,10 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
 
     const currentSlideIndex = slides.findIndex((s) => s.id === currentSlideId);
     const currentSlideData = slides[currentSlideIndex];
-    const isQuestionSlideForResponses = 
-        currentSlideData?.type === SlideTypeEnum.Quiz || 
+    const isQuestionSlideForResponses =
+        currentSlideData?.type === SlideTypeEnum.Quiz ||
         currentSlideData?.type === SlideTypeEnum.Feedback;
-    
+
     // Calculate total recommendations count
     const totalRecommendations = recommendationBatches.reduce((sum, batch) => sum + batch.slides.length, 0);
 
@@ -343,7 +344,7 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-900/10 via-transparent to-purple-900/10 pointer-events-none" />
                 <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse" />
                 <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-                
+
                 <div className="relative z-10 text-center">
                     <div className="mb-6 p-4 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 w-fit mx-auto">
                         <Tv2 size={48} className="text-orange-400" />
@@ -354,8 +355,8 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
                     <p className="text-white/60 mb-8 max-w-md">
                         No slide to display or slide not found. Please check your presentation content.
                     </p>
-                    <Button 
-                        onClick={onVoltExit} 
+                    <Button
+                        onClick={onVoltExit}
                         className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 border border-red-400/30 text-white font-semibold backdrop-blur-sm transition-all duration-300 ease-out hover:scale-105 shadow-lg shadow-red-500/25 px-6 py-3 rounded-xl"
                     >
                         <X size={16} className="mr-2" />
@@ -372,7 +373,7 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
             <div className="absolute inset-0 bg-gradient-to-r from-blue-900/10 via-transparent to-purple-900/10 pointer-events-none" />
             <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse" />
             <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-            
+
             <LiveSessionActionBar
                 inviteCode={liveSessionData?.invite_code || 'N/A'}
                 currentSlideIndex={currentSlideIndex}
@@ -380,9 +381,9 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
                 participantsCount={participantsList.length}
                 onToggleParticipantsView={() => onToggleParticipantsPanel && onToggleParticipantsPanel()}
                 isParticipantsPanelOpen={isParticipantsPanelOpen}
-                onToggleWhiteboard={() => setIsWhiteboardOpen(!isWhiteboardOpen)} 
-                isWhiteboardOpen={isWhiteboardOpen} 
-                onEndSession={onVoltExit} 
+                onToggleWhiteboard={() => setIsWhiteboardOpen(!isWhiteboardOpen)}
+                isWhiteboardOpen={isWhiteboardOpen}
+                onEndSession={onVoltExit}
                 isAudioRecording={isAudioRecording}
                 isAudioPaused={isAudioPaused}
                 onPauseAudio={onPauseAudio}
@@ -405,7 +406,7 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
                         <div className="h-full w-full bg-white/95 backdrop-blur-sm rounded-2xl lg:rounded-3xl shadow-2xl border border-white/20 overflow-hidden transition-all duration-500 ease-out transform hover:shadow-3xl">
                             {/* Subtle border glow */}
                             <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-transparent to-purple-500/10 rounded-2xl lg:rounded-3xl opacity-50" />
-                            
+
                             {/* Slide content */}
                             <div className="relative h-full w-full p-1">
                  {currentSlideId && (
@@ -417,7 +418,7 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
                         </div>
                     </div>
                 </div>
-                
+
                 {isQuestionSlideForResponses && liveSessionData && currentSlideData && (
                     <div className="absolute inset-0 transition-all duration-300 ease-in-out">
                     <ResponseOverlay sessionId={liveSessionData.session_id} slideData={currentSlideData} />
@@ -429,16 +430,16 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
             <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-[1002] transition-all duration-300 ease-in-out">
                 <div className="flex items-center gap-3 bg-black/20 backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-3 shadow-2xl">
                     {/* Previous button */}
-                <Button 
-                    onClick={goToPreviousSlide} 
+                <Button
+                    onClick={goToPreviousSlide}
                     disabled={currentSlideIndex === 0}
-                    variant="ghost" 
+                    variant="ghost"
                     size="icon"
                         className="h-12 w-12 rounded-xl bg-white/10 hover:bg-white/20 disabled:bg-white/5 border border-white/10 text-white hover:text-white disabled:text-white/30 transition-all duration-200 ease-out hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed shadow-lg"
                  >
                         <ChevronLeft size={24} className="transition-transform duration-200 group-hover:-translate-x-0.5" />
                 </Button>
-                    
+
                     {/* Slide counter with modern styling */}
                     <div className="px-6 py-2 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10">
                         <span className="text-white font-medium text-sm lg:text-base tracking-wide">
@@ -447,26 +448,26 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
                             <span className="font-mono text-white/80">{slides.length}</span>
                         </span>
                     </div>
-                    
+
                     {/* Fullscreen toggle */}
-                <Button 
-                    onClick={toggleFullscreen} 
-                    variant="ghost" 
-                    size="icon" 
+                <Button
+                    onClick={toggleFullscreen}
+                    variant="ghost"
+                    size="icon"
                         className="h-12 w-12 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white hover:text-white transition-all duration-200 ease-out hover:scale-105 shadow-lg"
                     title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
                 >
-                        {isFullscreen ? 
-                            <Minimize size={20} className="transition-transform duration-200" /> : 
+                        {isFullscreen ?
+                            <Minimize size={20} className="transition-transform duration-200" /> :
                             <Maximize size={20} className="transition-transform duration-200" />
                         }
                 </Button>
-                    
+
                     {/* Next button */}
-                <Button 
-                    onClick={goToNextSlide} 
+                <Button
+                    onClick={goToNextSlide}
                     disabled={currentSlideIndex === slides.length - 1}
-                    variant="ghost" 
+                    variant="ghost"
                     size="icon"
                         className="h-12 w-12 rounded-xl bg-white/10 hover:bg-white/20 disabled:bg-white/5 border border-white/10 text-white hover:text-white disabled:text-white/30 transition-all duration-200 ease-out hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed shadow-lg"
                 >
@@ -487,7 +488,7 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
                 <div className={`fixed inset-0 z-[1004] transition-all duration-300 ease-in-out ${isParticipantsPanelOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
                     {/* Backdrop */}
                     <div className={`absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity duration-300 ${isParticipantsPanelOpen ? 'opacity-100' : 'opacity-0'}`} />
-                    
+
                 <ParticipantsSidePanel
                     sessionId={liveSessionData.session_id}
                         isOpen={isParticipantsPanelOpen}
@@ -504,7 +505,7 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
                 <div className={`fixed inset-0 z-[1005] transition-all duration-300 ease-in-out ${isWhiteboardOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
                     {/* Backdrop */}
                     <div className={`absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity duration-300 ${isWhiteboardOpen ? 'opacity-100' : 'opacity-0'}`} />
-                    
+
                 <SessionExcalidrawOverlay
                     sessionId={liveSessionData.session_id}
                     isOpen={isWhiteboardOpen}
@@ -517,7 +518,7 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
             <div className={`fixed inset-0 z-[1007] transition-all duration-300 ease-in-out ${isRecommendationsPanelOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
                 {/* Backdrop */}
                 <div className={`absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity duration-300 ${isRecommendationsPanelOpen ? 'opacity-100' : 'opacity-0'}`} />
-                
+
                 <RecommendationsSidePanel
                     isOpen={isRecommendationsPanelOpen}
                     onClose={() => setIsRecommendationsPanelOpen(false)}
@@ -527,4 +528,4 @@ export const ActualPresentationDisplay: React.FC<ActualPresentationDisplayProps>
             </div>
         </div>
     );
-}; 
+};

@@ -26,12 +26,14 @@ import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtili
 import { TokenKey } from '@/constants/auth/tokens';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { RoleTypeExceptStudent } from '@/constants/dummy-data';
+import { CourseSettingsData } from '@/types/course-settings';
 
 interface Level {
     id: string;
     name: string;
     userIds: Instructor[];
     batchId: string;
+    newLevel?: boolean;
 }
 
 interface Session {
@@ -40,6 +42,7 @@ interface Session {
     startDate: string;
     levels: Level[];
     batchId?: string;
+    newSession?: boolean;
 }
 
 interface Instructor {
@@ -61,6 +64,7 @@ export const step2Schema = z.object({
                 id: z.string(),
                 name: z.string(),
                 startDate: z.string(),
+                newSession: z.boolean().default(false),
                 levels: z.array(
                     z.object({
                         id: z.string(),
@@ -76,6 +80,7 @@ export const step2Schema = z.object({
                                 })
                             )
                             .default([]),
+                        newLevel: z.boolean().default(false),
                     })
                 ),
             })
@@ -159,6 +164,62 @@ type ExistingBatch = {
     group?: Group;
 };
 
+// Add this helper function before AddCourseStep2
+function getAllSessionLevelsForInstructor(
+    sessions: Session[],
+    hasSessions: string,
+    hasLevels: string
+): Array<{
+    sessionId: string;
+    sessionName: string;
+    levelId: string;
+    levelName: string;
+    batchId?: string;
+}> {
+    const allSessionLevels: Array<{
+        sessionId: string;
+        sessionName: string;
+        levelId: string;
+        levelName: string;
+        batchId?: string;
+    }> = [];
+    if (hasSessions === 'yes' && hasLevels === 'yes') {
+        sessions.forEach((session: Session) => {
+            session.levels.forEach((level: Level) => {
+                allSessionLevels.push({
+                    sessionId: session.id,
+                    sessionName: session.name,
+                    levelId: level.id,
+                    levelName: level.name,
+                    batchId: level.batchId,
+                });
+            });
+        });
+    } else if (hasSessions === 'yes' && hasLevels !== 'yes') {
+        sessions.forEach((session: Session) => {
+            allSessionLevels.push({
+                sessionId: session.id,
+                sessionName: session.name,
+                levelId: 'DEFAULT',
+                levelName: '',
+            });
+        });
+    } else if (hasSessions !== 'yes' && hasLevels === 'yes') {
+        const standaloneSession = sessions.find((s: Session) => s.id === 'DEFAULT');
+        if (standaloneSession) {
+            standaloneSession.levels.forEach((level: Level) => {
+                allSessionLevels.push({
+                    sessionId: 'DEFAULT',
+                    sessionName: '',
+                    levelId: level.id,
+                    levelName: level.name,
+                });
+            });
+        }
+    }
+    return allSessionLevels;
+}
+
 export const AddCourseStep2 = ({
     onBack,
     onSubmit,
@@ -166,6 +227,9 @@ export const AddCourseStep2 = ({
     isLoading = false,
     disableCreate = false,
     isEdit,
+    courseSettings,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    settingsLoading = false,
 }: {
     onBack: () => void;
     onSubmit: (data: Step2Data) => void;
@@ -173,6 +237,8 @@ export const AddCourseStep2 = ({
     isLoading?: boolean;
     disableCreate?: boolean;
     isEdit?: boolean;
+    courseSettings?: CourseSettingsData;
+    settingsLoading?: boolean;
 }) => {
     const { instituteDetails } = useInstituteDetailsStore();
     const existingBatches = instituteDetails?.batches_for_sessions || [];
@@ -180,10 +246,21 @@ export const AddCourseStep2 = ({
     const tokenData = getTokenDecodedData(accessToken);
 
     const instituteId = getInstituteId();
-    const [hasLevels, setHasLevels] = useState(initialData?.hasLevels || 'yes');
-    const [hasSessions, setHasSessions] = useState(
-        instituteId === CODE_CIRCLE_INSTITUTE_ID ? 'no' : initialData?.hasSessions || 'yes'
-    );
+
+    // Determine initial values based on course settings
+    const getInitialHasLevels = () => {
+        if (courseSettings?.courseStructure?.enableLevels === false) return 'no';
+        return initialData?.hasLevels || 'yes';
+    };
+
+    const getInitialHasSessions = () => {
+        if (courseSettings?.courseStructure?.enableSessions === false) return 'no';
+        if (instituteId === CODE_CIRCLE_INSTITUTE_ID) return 'no';
+        return initialData?.hasSessions || 'yes';
+    };
+
+    const [hasLevels, setHasLevels] = useState(getInitialHasLevels());
+    const [hasSessions, setHasSessions] = useState(getInitialHasSessions());
     const [sessions, setSessions] = useState<Session[]>(
         (initialData?.sessions || []).map((session) => ({
             ...session,
@@ -206,9 +283,19 @@ export const AddCourseStep2 = ({
     const [instructorMappings, setInstructorMappings] = useState<InstructorMapping[]>([]);
     const [instructors, setInstructors] = useState<Instructor[]>([]);
 
-    const [publishToCatalogue, setPublishToCatalogue] = useState(
-        initialData?.publishToCatalogue ? (initialData?.publishToCatalogue ? true : false) : true
-    );
+    const [publishToCatalogue, setPublishToCatalogue] = useState(() => {
+        // If initialData exists, use it
+        if (initialData?.publishToCatalogue !== undefined) {
+            return initialData.publishToCatalogue;
+        }
+        // If autoPublishToCatalogue is true, auto-publish
+        if (courseSettings?.catalogueSettings?.autoPublishToCatalogue) {
+            return true;
+        }
+        // Default behavior based on catalogueMode
+        const catalogueMode = courseSettings?.catalogueSettings?.catalogueMode || 'ask';
+        return catalogueMode === 'ask' ? true : false;
+    });
 
     const [showAssignmentCard, setShowAssignmentCard] = useState(false);
     const [selectedSessionLevels, setSelectedSessionLevels] = useState<
@@ -221,10 +308,10 @@ export const AddCourseStep2 = ({
         }>
     >([]);
 
-    const [addSessionMode, setAddSessionMode] = useState<'new' | 'existing'>('new');
+    const [addSessionMode, setAddSessionMode] = useState<'new' | 'existing'>('existing');
     const [selectedExistingBatchIds, setSelectedExistingBatchIds] = useState<string[]>([]);
     // Add state for addLevelMode and selectedExistingLevelBatchIds
-    const [addLevelMode, setAddLevelMode] = useState<'new' | 'existing'>('new');
+    const [addLevelMode, setAddLevelMode] = useState<'new' | 'existing'>('existing');
     const [selectedExistingLevelBatchIds, setSelectedExistingLevelBatchIds] = useState<string[]>(
         []
     );
@@ -235,6 +322,13 @@ export const AddCourseStep2 = ({
     // Filter available existing batches (exclude used ones)
     const availableExistingBatches = existingBatches.filter(
         (batch: ExistingBatch) => !usedExistingBatchIds.has(batch.id)
+    );
+
+    // Add this before the return statement in AddCourseStep2
+    const standaloneSession = sessions.find((s) => s.id === 'DEFAULT');
+    const standaloneLevelIds = standaloneSession ? standaloneSession.levels.map((l) => l.id) : [];
+    const availableExistingBatchesForStandalone = availableExistingBatches.filter(
+        (batch) => !standaloneLevelIds.includes(batch.level.id)
     );
 
     const form = useForm<Step2Data>({
@@ -250,18 +344,26 @@ export const AddCourseStep2 = ({
         },
     });
 
+    console.log(form.getValues());
+
     // Session management functions
     const addSession = () => {
         if (newSessionName.trim() && newSessionStartDate) {
-            const newSession: Session = {
+            const randomBatchId =
+                typeof crypto !== 'undefined' && crypto.randomUUID
+                    ? crypto.randomUUID()
+                    : Date.now().toString() + Math.random().toString(36).substring(2);
+            const newSession: Session & { newSession: boolean } = {
                 id: Date.now().toString(),
                 name: newSessionName.trim(),
                 startDate: newSessionStartDate,
                 levels: [],
+                batchId: randomBatchId,
+                newSession: true,
             };
             const updatedSessions = [...sessions, newSession];
             setSessions(updatedSessions);
-            form.setValue('sessions', updatedSessions);
+            form.setValue('sessions', ensureNewSessionAndLevelFlags(updatedSessions));
             setNewSessionName('');
             setNewSessionStartDate('');
             setShowAddSession(false);
@@ -270,13 +372,19 @@ export const AddCourseStep2 = ({
 
     const removeSession = (batchId: string) => {
         if (!batchId) return;
-        const updatedSessions = sessions.filter((session) => session.batchId !== batchId);
+        // Remove the session with the given batchId
+        const updatedSessions = sessions.filter(
+            (session) => (session.batchId || session.id) !== batchId
+        );
         setSessions(updatedSessions);
-        form.setValue('sessions', updatedSessions);
+        form.setValue('sessions', ensureNewSessionAndLevelFlags(updatedSessions));
+        // Remove all sessionLevels for this session from all instructors
         setInstructorMappings((prev) =>
             prev.map((instructor) => ({
                 ...instructor,
-                sessionLevels: instructor.sessionLevels.filter((sl) => sl.batchId !== batchId),
+                sessionLevels: instructor.sessionLevels.filter(
+                    (sl) => sl.batchId !== batchId && sl.sessionId !== batchId
+                ),
             }))
         );
         setUsedExistingBatchIds((prev) => {
@@ -289,11 +397,12 @@ export const AddCourseStep2 = ({
     const addLevel = (sessionId: string, levelName: string, levelId?: string) => {
         if (levelName.trim()) {
             const id = levelId || Date.now().toString();
-            const newLevel: Level = {
+            const newLevel: Level & { newLevel: boolean } = {
                 id,
                 name: levelName.trim(),
                 userIds: [],
                 batchId: id,
+                newLevel: true,
             };
             const updatedSessions = sessions.map((session) =>
                 session.id === sessionId
@@ -301,7 +410,7 @@ export const AddCourseStep2 = ({
                     : session
             );
             setSessions(updatedSessions);
-            form.setValue('sessions', updatedSessions);
+            form.setValue('sessions', ensureNewSessionAndLevelFlags(updatedSessions));
         }
     };
 
@@ -316,11 +425,14 @@ export const AddCourseStep2 = ({
                 : session
         );
         setSessions(updatedSessions);
-        form.setValue('sessions', updatedSessions);
+        form.setValue('sessions', ensureNewSessionAndLevelFlags(updatedSessions));
+        // Remove this level from all instructors
         setInstructorMappings((prev) =>
             prev.map((instructor) => ({
                 ...instructor,
-                sessionLevels: instructor.sessionLevels.filter((sl) => sl.batchId !== batchId),
+                sessionLevels: instructor.sessionLevels.filter(
+                    (sl) => sl.batchId !== batchId && sl.levelId !== batchId
+                ),
             }))
         );
         setUsedExistingBatchIds((prev) => {
@@ -403,7 +515,7 @@ export const AddCourseStep2 = ({
                     });
                 });
             } else if (hasSessions !== 'yes' && hasLevels === 'yes') {
-                const standaloneSession = sessions.find((s: Session) => s.id === 'standalone');
+                const standaloneSession = sessions.find((s: Session) => s.id === 'DEFAULT');
                 if (standaloneSession) {
                     standaloneSession.levels.forEach((level: Level) => {
                         allSessionLevels.push({
@@ -444,6 +556,7 @@ export const AddCourseStep2 = ({
                                     name: '',
                                     userIds: [newInstructor],
                                     batchId: 'DEFAULT',
+                                    newLevel: true,
                                 },
                             ];
                         } else {
@@ -459,7 +572,7 @@ export const AddCourseStep2 = ({
                     });
                 } else if (hasSessions !== 'yes' && hasLevels === 'yes') {
                     const standaloneSession = updatedSessions.find(
-                        (s: Session) => s.id === 'standalone'
+                        (s: Session) => s.id === 'DEFAULT'
                     );
                     if (standaloneSession) {
                         standaloneSession.levels?.forEach((level: Level) => {
@@ -469,6 +582,7 @@ export const AddCourseStep2 = ({
                         });
                     }
                 }
+                form.setValue('sessions', ensureNewSessionAndLevelFlags(updatedSessions));
                 return updatedSessions;
             });
             // ---------------------------------------------------------
@@ -523,28 +637,35 @@ export const AddCourseStep2 = ({
     const addStandaloneLevel = () => {
         if (newLevelName.trim()) {
             const id = Date.now().toString();
-            const dummySession: Session = {
-                id: 'standalone',
-                name: 'Standalone',
+            const dummySession: Session & { newSession: boolean } = {
+                id: 'DEFAULT',
+                name: 'DEFAULT',
                 startDate: new Date().toISOString(),
                 levels: [],
+                newSession: true,
             };
-            const newLevel: Level = {
+            const newLevel: Level & { newLevel: boolean } = {
                 id,
                 name: newLevelName.trim(),
                 userIds: [],
                 batchId: id,
+                newLevel: true,
             };
-            const standaloneSession = sessions.find((s) => s.id === 'standalone');
+            const standaloneSession = sessions.find((s) => s.id === 'DEFAULT');
             if (!standaloneSession) {
                 setSessions([{ ...dummySession, levels: [newLevel] }]);
+                form.setValue(
+                    'sessions',
+                    ensureNewSessionAndLevelFlags([{ ...dummySession, levels: [newLevel] }])
+                );
             } else {
                 const updatedSessions = sessions.map((session) =>
-                    session.id === 'standalone'
+                    session.id === 'DEFAULT'
                         ? { ...session, levels: [...session.levels, newLevel] }
                         : session
                 );
                 setSessions(updatedSessions);
+                form.setValue('sessions', ensureNewSessionAndLevelFlags(updatedSessions));
             }
             setNewLevelName('');
             setShowAddLevel(false);
@@ -555,7 +676,7 @@ export const AddCourseStep2 = ({
     const removeStandaloneLevel = (batchId: string) => {
         if (!batchId) return;
         const updatedSessions = sessions.map((session) =>
-            session.id === 'standalone'
+            session.id === 'DEFAULT'
                 ? {
                       ...session,
                       levels: session.levels.filter((level) => level.batchId !== batchId),
@@ -563,6 +684,16 @@ export const AddCourseStep2 = ({
                 : session
         );
         setSessions(updatedSessions);
+        form.setValue('sessions', ensureNewSessionAndLevelFlags(updatedSessions));
+        // Remove this level from all instructors
+        setInstructorMappings((prev) =>
+            prev.map((instructor) => ({
+                ...instructor,
+                sessionLevels: instructor.sessionLevels.filter(
+                    (sl) => sl.batchId !== batchId && sl.levelId !== batchId
+                ),
+            }))
+        );
         setUsedExistingBatchIds((prev) => {
             const newSet = new Set(prev);
             newSet.delete(batchId);
@@ -653,7 +784,9 @@ export const AddCourseStep2 = ({
                                 const level = session.levels.find((l: Level) => l.id === levelId);
                                 if (
                                     level &&
-                                    !level.userIds.some((i) => i.id === instructorObj.id)
+                                    !level.userIds.some(
+                                        (i: Instructor) => i.id === instructorObj.id
+                                    )
                                 ) {
                                     level.userIds.push(instructorObj);
                                 }
@@ -672,7 +805,7 @@ export const AddCourseStep2 = ({
                                 } else if (
                                     session.levels[0] &&
                                     !session.levels[0].userIds.some(
-                                        (i) => i.id === instructorObj.id
+                                        (i: Instructor) => i.id === instructorObj.id
                                     )
                                 ) {
                                     // Add to existing default level
@@ -683,13 +816,16 @@ export const AddCourseStep2 = ({
                     } else if (hasLevels === 'yes') {
                         // Handle levels-only case
                         const standaloneSession = updatedSessions.find(
-                            (s: Session) => s.id === 'standalone'
+                            (s: Session) => s.id === 'DEFAULT'
                         );
                         if (standaloneSession) {
                             const level = standaloneSession.levels.find(
                                 (l: Level) => l.id === levelId
                             );
-                            if (level && !level.userIds.some((i) => i.id === instructorObj.id)) {
+                            if (
+                                level &&
+                                !level.userIds.some((i: Instructor) => i.id === instructorObj.id)
+                            ) {
                                 level.userIds.push(instructorObj);
                             }
                         }
@@ -698,7 +834,7 @@ export const AddCourseStep2 = ({
             }
 
             setSessions(updatedSessions);
-            form.setValue('sessions', updatedSessions);
+            form.setValue('sessions', ensureNewSessionAndLevelFlags(updatedSessions));
             form.setValue('selectedInstructors', selectedInstructors);
 
             // Update instructor mappings
@@ -729,17 +865,26 @@ export const AddCourseStep2 = ({
 
     useEffect(() => {
         if (initialData) {
-            setSelectedInstructors(form.getValues('selectedInstructors'));
-            // Aggregate instructor mappings from session data
-            const instructorMappingsFromSessions: InstructorMapping[] = [];
+            // Deduplicate selected instructors by id
+            const initialSelectedInstructors = form.getValues('selectedInstructors') || [];
+            const dedupedSelectedInstructors = initialSelectedInstructors.filter(
+                (instructor, idx, arr) => arr.findIndex((i) => i.id === instructor.id) === idx
+            );
+            setSelectedInstructors(dedupedSelectedInstructors);
+            // Normalize session id for standalone levels
             const sessionsWithBatchIdLevels =
                 form.getValues('sessions')?.map((session) => ({
                     ...session,
+                    id: hasSessions !== 'yes' && hasLevels === 'yes' ? 'DEFAULT' : session.id,
+                    name: hasSessions !== 'yes' && hasLevels === 'yes' ? 'DEFAULT' : session.name,
                     levels: session.levels.map((level) => ({
                         ...level,
                         batchId: (level as Level).batchId || level.id,
                     })),
                 })) || [];
+            setSessions(sessionsWithBatchIdLevels);
+            // Aggregate instructor mappings from session data
+            const instructorMappingsFromSessions: InstructorMapping[] = [];
             sessionsWithBatchIdLevels.forEach((session) => {
                 session.levels?.forEach((level) => {
                     level.userIds?.forEach((instructor) => {
@@ -755,7 +900,7 @@ export const AddCourseStep2 = ({
                             (m) => m.id === instructor.id
                         );
                         if (mapping) {
-                            // Only add if not already present
+                            // Only add if not already present (dedupe by sessionId+levelId)
                             if (
                                 !mapping.sessionLevels.some(
                                     (sl) => sl.sessionId === session.id && sl.levelId === level.id
@@ -773,7 +918,25 @@ export const AddCourseStep2 = ({
                     });
                 });
             });
-            setInstructorMappings(instructorMappingsFromSessions);
+            // Merge mappings for instructors with the same id (in case of duplicates)
+            const mergedMappings: InstructorMapping[] = [];
+            instructorMappingsFromSessions.forEach((mapping) => {
+                const existing = mergedMappings.find((m) => m.id === mapping.id);
+                if (existing) {
+                    // Merge and dedupe sessionLevels
+                    const allSessionLevels = [...existing.sessionLevels, ...mapping.sessionLevels];
+                    existing.sessionLevels = allSessionLevels.filter(
+                        (sl, idx, arr) =>
+                            arr.findIndex(
+                                (item) =>
+                                    item.sessionId === sl.sessionId && item.levelId === sl.levelId
+                            ) === idx
+                    );
+                } else {
+                    mergedMappings.push({ ...mapping });
+                }
+            });
+            setInstructorMappings(mergedMappings);
         }
     }, [initialData]);
 
@@ -781,10 +944,32 @@ export const AddCourseStep2 = ({
     useEffect(() => {
         form.setValue('hasLevels', hasLevels);
         form.setValue('hasSessions', hasSessions);
-        form.setValue('sessions', sessions);
+        form.setValue('sessions', ensureNewSessionAndLevelFlags(sessions));
         form.setValue('instructors', instructors);
         form.setValue('publishToCatalogue', publishToCatalogue);
     }, [hasLevels, hasSessions, sessions, instructors, publishToCatalogue, form]);
+
+    // Effect to handle course settings changes
+    useEffect(() => {
+        if (courseSettings?.courseStructure?.enableSessions === false && hasSessions === 'yes') {
+            setHasSessions('no');
+        }
+        if (courseSettings?.courseStructure?.enableLevels === false && hasLevels === 'yes') {
+            setHasLevels('no');
+        }
+        // Auto-set course depth when fixCourseDepth is true
+        if (courseSettings?.courseStructure?.fixCourseDepth) {
+            const defaultDepth = courseSettings.courseStructure.defaultDepth || 3;
+            form.setValue('levelStructure', defaultDepth);
+        }
+        // Auto-set catalogue publishing when autoPublishToCatalogue is true
+        if (
+            courseSettings?.catalogueSettings?.autoPublishToCatalogue &&
+            !initialData?.publishToCatalogue
+        ) {
+            setPublishToCatalogue(true);
+        }
+    }, [courseSettings, hasSessions, hasLevels, form, initialData]);
 
     useEffect(() => {
         fetchInstituteDashboardUsers(instituteId, {
@@ -792,28 +977,82 @@ export const AddCourseStep2 = ({
             status: [{ id: '1', name: 'ACTIVE' }],
         })
             .then((res) => {
-                setInstructors(
-                    res
-                        .map((instructor: UserRolesDataEntry) => ({
-                            id: instructor.id,
-                            email: instructor.email,
-                            name: instructor.full_name,
-                            profilePicId: instructor.profile_pic_file_id,
-                            roles: instructor.roles?.map((role) => role.role_name) || [],
-                        }))
-                        .filter((instr: UserRolesDataEntry) => {
-                            return instr.id !== tokenData?.user;
-                        })
-                );
+                const allInstructors = res.map((instructor: UserRolesDataEntry) => ({
+                    id: instructor.id,
+                    email: instructor.email,
+                    name: instructor.full_name,
+                    profilePicId: instructor.profile_pic_file_id,
+                    roles: instructor.roles?.map((role) => role.role_name) || [],
+                }));
+
+                setInstructors(allInstructors);
+
+                // Auto-add the current logged-in user as an instructor if they're in the list
+                if (tokenData?.email && !isEdit) {
+                    const currentUser = allInstructors.find(
+                        (instructor: Instructor) => instructor.email === tokenData.email
+                    );
+
+                    if (currentUser) {
+                        // Add current user to selected instructors automatically
+                        setSelectedInstructors([currentUser]);
+                    }
+                }
             })
             .catch((err) => {
                 console.log(err);
             });
-    }, []);
+    }, [tokenData?.email, isEdit]);
+
+    // Auto-assign current user to all sessions and levels when creating a new course
+    useEffect(() => {
+        if (
+            !isEdit &&
+            tokenData?.email &&
+            selectedInstructors.length === 1 &&
+            sessions.length > 0
+        ) {
+            const currentUser = selectedInstructors[0];
+
+            if (currentUser?.email === tokenData.email && instructorMappings.length === 0) {
+                // Auto-assign current user to all sessions and levels
+                const updatedSessions = sessions.map((session) => ({
+                    ...session,
+                    levels: session.levels.map((level) => ({
+                        ...level,
+                        userIds: [...level.userIds, currentUser],
+                    })),
+                }));
+
+                setSessions(updatedSessions);
+
+                // Add to instructor mappings
+                const allSessionLevels = getAllSessionLevelsForInstructor(
+                    updatedSessions,
+                    hasSessions,
+                    hasLevels
+                );
+
+                setInstructorMappings([
+                    {
+                        id: currentUser.id,
+                        email: currentUser.email,
+                        sessionLevels: allSessionLevels,
+                    },
+                ]);
+            }
+        }
+    }, [
+        tokenData?.email,
+        selectedInstructors.length,
+        sessions.length,
+        instructorMappings.length,
+        isEdit,
+    ]);
 
     // Effect to update form when sessions change
     useEffect(() => {
-        form.setValue('sessions', sessions);
+        form.setValue('sessions', ensureNewSessionAndLevelFlags(sessions));
     }, [sessions, form]);
 
     return (
@@ -847,7 +1086,7 @@ export const AddCourseStep2 = ({
                                                 ContentTerms.Course,
                                                 SystemTerms.Course
                                             )}{' '}
-                                            the , its structure—including{' '}
+                                            , its structure—including{' '}
                                             {getTerminology(
                                                 ContentTerms.Session,
                                                 SystemTerms.Session
@@ -864,46 +1103,150 @@ export const AddCourseStep2 = ({
                                 )}
 
                                 {/* Structure Selection */}
-                                {!isEdit && (
+                                {!isEdit && !courseSettings?.courseStructure?.fixCourseDepth && (
                                     <div>
                                         <h3 className="mb-3 text-base font-medium text-gray-900">
                                             Select course structure that is suitable for your
                                             institute
                                         </h3>
-                                        <AddCourseStep2StructureTypes form={form} />
+                                        <AddCourseStep2StructureTypes
+                                            form={form}
+                                            courseSettings={courseSettings}
+                                        />
                                     </div>
                                 )}
 
-                                {instituteId !== CODE_CIRCLE_INSTITUTE_ID && (
-                                    <>
-                                        {!isEdit && <Separator className="bg-gray-200" />}
+                                {/* Fixed Course Depth Indicator */}
+                                {!isEdit && courseSettings?.courseStructure?.fixCourseDepth && (
+                                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+                                        <div className="flex items-center gap-2">
+                                            <div className="size-4 rounded-full bg-blue-500"></div>
+                                            <p className="text-sm font-medium text-blue-900">
+                                                Course Structure:{' '}
+                                                {courseSettings.courseStructure.defaultDepth}-Level
+                                                Structure
+                                            </p>
+                                        </div>
+                                        <p className="mt-1 text-xs text-blue-700">
+                                            Course structure is pre-configured by your institute
+                                            settings.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {instituteId !== CODE_CIRCLE_INSTITUTE_ID &&
+                                    !isEdit &&
+                                    courseSettings?.courseStructure?.enableSessions !== false && (
+                                        <>
+                                            {!isEdit && <Separator className="bg-gray-200" />}
+                                            <div className="space-y-2">
+                                                <Label className="block text-base font-medium text-gray-900">
+                                                    Contains{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Session,
+                                                        SystemTerms.Session
+                                                    )}
+                                                    s?
+                                                </Label>
+                                                <p className="text-sm text-gray-600">
+                                                    {getTerminology(
+                                                        ContentTerms.Session,
+                                                        SystemTerms.Session
+                                                    )}{' '}
+                                                    organize a{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Course,
+                                                        SystemTerms.Course
+                                                    ).toLocaleLowerCase()}{' '}
+                                                    into different batches or time periods. For eg:
+                                                    January 2025 Batch, February 2025 Batch
+                                                </p>
+                                                <RadioGroup
+                                                    value={hasSessions}
+                                                    onValueChange={(value) => {
+                                                        setHasSessions(value);
+                                                        // Clear sessions when switching to 'no'
+                                                        if (value === 'no') {
+                                                            setSessions(
+                                                                sessions.map((session) => ({
+                                                                    ...session,
+                                                                    levels: [],
+                                                                }))
+                                                            );
+                                                        }
+                                                    }}
+                                                    className="flex gap-6"
+                                                >
+                                                    <div className="flex items-center space-x-2">
+                                                        <RadioGroupItem
+                                                            value="yes"
+                                                            id="sessions-yes"
+                                                        />
+                                                        <Label
+                                                            htmlFor="sessions-yes"
+                                                            className="text-sm font-normal"
+                                                        >
+                                                            Yes
+                                                        </Label>
+                                                    </div>
+                                                    <div className="flex items-center space-x-2">
+                                                        <RadioGroupItem
+                                                            value="no"
+                                                            id="sessions-no"
+                                                        />
+                                                        <Label
+                                                            htmlFor="sessions-no"
+                                                            className="text-sm font-normal"
+                                                        >
+                                                            No
+                                                        </Label>
+                                                    </div>
+                                                </RadioGroup>
+                                            </div>
+                                        </>
+                                    )}
+
+                                {!isEdit &&
+                                    courseSettings?.courseStructure?.enableLevels !== false && (
+                                        <Separator className="bg-gray-200" />
+                                    )}
+
+                                {/* Contains Levels Radio */}
+                                {!isEdit &&
+                                    courseSettings?.courseStructure?.enableLevels !== false && (
                                         <div className="space-y-2">
                                             <Label className="block text-base font-medium text-gray-900">
                                                 Contains{' '}
                                                 {getTerminology(
-                                                    ContentTerms.Session,
-                                                    SystemTerms.Session
+                                                    ContentTerms.Level,
+                                                    SystemTerms.Level
                                                 )}
                                                 s?
                                             </Label>
                                             <p className="text-sm text-gray-600">
                                                 {getTerminology(
-                                                    ContentTerms.Session,
-                                                    SystemTerms.Session
+                                                    ContentTerms.Level,
+                                                    SystemTerms.Level
                                                 )}{' '}
                                                 organize a{' '}
                                                 {getTerminology(
                                                     ContentTerms.Course,
                                                     SystemTerms.Course
                                                 ).toLocaleLowerCase()}{' '}
-                                                into different batches or time periods. For eg:
-                                                January 2025 Batch, February 2025 Batch
+                                                into structured learning stages. These stages may
+                                                represent increasing difficulty, different modules,
+                                                or key milestones within the{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Course,
+                                                    SystemTerms.Course
+                                                ).toLocaleLowerCase()}{' '}
+                                                . For eg: Basic, Advanced
                                             </p>
                                             <RadioGroup
-                                                value={hasSessions}
+                                                value={hasLevels}
                                                 onValueChange={(value) => {
-                                                    setHasSessions(value);
-                                                    // Clear sessions when switching to 'no'
+                                                    setHasLevels(value);
+                                                    // Clear levels when switching to 'no'
                                                     if (value === 'no') {
                                                         setSessions(
                                                             sessions.map((session) => ({
@@ -916,18 +1259,18 @@ export const AddCourseStep2 = ({
                                                 className="flex gap-6"
                                             >
                                                 <div className="flex items-center space-x-2">
-                                                    <RadioGroupItem value="yes" id="sessions-yes" />
+                                                    <RadioGroupItem value="yes" id="levels-yes" />
                                                     <Label
-                                                        htmlFor="sessions-yes"
+                                                        htmlFor="levels-yes"
                                                         className="text-sm font-normal"
                                                     >
                                                         Yes
                                                     </Label>
                                                 </div>
                                                 <div className="flex items-center space-x-2">
-                                                    <RadioGroupItem value="no" id="sessions-no" />
+                                                    <RadioGroupItem value="no" id="levels-no" />
                                                     <Label
-                                                        htmlFor="sessions-no"
+                                                        htmlFor="levels-no"
                                                         className="text-sm font-normal"
                                                     >
                                                         No
@@ -935,69 +1278,7 @@ export const AddCourseStep2 = ({
                                                 </div>
                                             </RadioGroup>
                                         </div>
-                                    </>
-                                )}
-
-                                <Separator className="bg-gray-200" />
-
-                                {/* Contains Levels Radio */}
-                                <div className="space-y-2">
-                                    <Label className="block text-base font-medium text-gray-900">
-                                        Contains{' '}
-                                        {getTerminology(ContentTerms.Level, SystemTerms.Level)}s?
-                                    </Label>
-                                    <p className="text-sm text-gray-600">
-                                        {getTerminology(ContentTerms.Level, SystemTerms.Level)}{' '}
-                                        organize a{' '}
-                                        {getTerminology(
-                                            ContentTerms.Course,
-                                            SystemTerms.Course
-                                        ).toLocaleLowerCase()}{' '}
-                                        into structured learning stages. These stages may represent
-                                        increasing difficulty, different modules, or key milestones
-                                        within the{' '}
-                                        {getTerminology(
-                                            ContentTerms.Course,
-                                            SystemTerms.Course
-                                        ).toLocaleLowerCase()}{' '}
-                                        . For eg: Basic, Advanced
-                                    </p>
-                                    <RadioGroup
-                                        value={hasLevels}
-                                        onValueChange={(value) => {
-                                            setHasLevels(value);
-                                            // Clear levels when switching to 'no'
-                                            if (value === 'no') {
-                                                setSessions(
-                                                    sessions.map((session) => ({
-                                                        ...session,
-                                                        levels: [],
-                                                    }))
-                                                );
-                                            }
-                                        }}
-                                        className="flex gap-6"
-                                    >
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="yes" id="levels-yes" />
-                                            <Label
-                                                htmlFor="levels-yes"
-                                                className="text-sm font-normal"
-                                            >
-                                                Yes
-                                            </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="no" id="levels-no" />
-                                            <Label
-                                                htmlFor="levels-no"
-                                                className="text-sm font-normal"
-                                            >
-                                                No
-                                            </Label>
-                                        </div>
-                                    </RadioGroup>
-                                </div>
+                                    )}
 
                                 {/* Info message when both are No */}
                                 {hasSessions !== 'yes' && hasLevels !== 'yes' && (
@@ -1089,6 +1370,32 @@ export const AddCourseStep2 = ({
                                                         >
                                                             <div className="flex items-center space-x-2">
                                                                 <RadioGroupItem
+                                                                    value="existing"
+                                                                    id="add-session-existing"
+                                                                />
+                                                                <Label
+                                                                    htmlFor="add-session-existing"
+                                                                    className="text-sm font-normal"
+                                                                >
+                                                                    {hasSessions === 'yes' &&
+                                                                    hasLevels === 'yes'
+                                                                        ? `Existing ${getTerminology(
+                                                                              ContentTerms.Session,
+                                                                              SystemTerms.Session
+                                                                          )}s`
+                                                                        : hasSessions === 'yes'
+                                                                          ? `Existing ${getTerminology(
+                                                                                ContentTerms.Session,
+                                                                                SystemTerms.Session
+                                                                            )}s`
+                                                                          : `Existing ${getTerminology(
+                                                                                ContentTerms.Level,
+                                                                                SystemTerms.Level
+                                                                            )}s`}
+                                                                </Label>
+                                                            </div>
+                                                            <div className="flex items-center space-x-2">
+                                                                <RadioGroupItem
                                                                     value="new"
                                                                     id="add-session-new"
                                                                 />
@@ -1112,32 +1419,6 @@ export const AddCourseStep2 = ({
                                                                                 ContentTerms.Level,
                                                                                 SystemTerms.Level
                                                                             )}`}
-                                                                </Label>
-                                                            </div>
-                                                            <div className="flex items-center space-x-2">
-                                                                <RadioGroupItem
-                                                                    value="existing"
-                                                                    id="add-session-existing"
-                                                                />
-                                                                <Label
-                                                                    htmlFor="add-session-existing"
-                                                                    className="text-sm font-normal"
-                                                                >
-                                                                    {hasSessions === 'yes' &&
-                                                                    hasLevels === 'yes'
-                                                                        ? `Existing ${getTerminology(
-                                                                              ContentTerms.Session,
-                                                                              SystemTerms.Session
-                                                                          )}s`
-                                                                        : hasSessions === 'yes'
-                                                                          ? `Existing ${getTerminology(
-                                                                                ContentTerms.Session,
-                                                                                SystemTerms.Session
-                                                                            )}s`
-                                                                          : `Existing ${getTerminology(
-                                                                                ContentTerms.Level,
-                                                                                SystemTerms.Level
-                                                                            )}s`}
                                                                 </Label>
                                                             </div>
                                                         </RadioGroup>
@@ -1309,17 +1590,14 @@ export const AddCourseStep2 = ({
                                                                                                     className="size-4"
                                                                                                 />
                                                                                                 <span className="text-sm text-gray-700">
-                                                                                                    {
-                                                                                                        batch
-                                                                                                            .session
-                                                                                                            .session_name
-                                                                                                    }{' '}
-                                                                                                    -{' '}
-                                                                                                    {
-                                                                                                        batch
-                                                                                                            .level
-                                                                                                            .level_name
-                                                                                                    }
+                                                                                                    {hasSessions ===
+                                                                                                        'yes' &&
+                                                                                                    hasLevels ===
+                                                                                                        'yes'
+                                                                                                        ? `${batch.session.session_name} - ${batch.level.level_name}`
+                                                                                                        : batch
+                                                                                                              .session
+                                                                                                              .session_name}
                                                                                                 </span>
                                                                                             </div>
                                                                                         )
@@ -1434,11 +1712,14 @@ export const AddCourseStep2 = ({
                                                                                                     className="size-4"
                                                                                                 />
                                                                                                 <span className="text-sm text-gray-700">
-                                                                                                    {
-                                                                                                        batch
-                                                                                                            .session
-                                                                                                            .session_name
-                                                                                                    }
+                                                                                                    {hasSessions ===
+                                                                                                        'yes' &&
+                                                                                                    hasLevels ===
+                                                                                                        'yes'
+                                                                                                        ? `${batch.session.session_name} - ${batch.level.level_name}`
+                                                                                                        : batch
+                                                                                                              .session
+                                                                                                              .session_name}
                                                                                                 </span>
                                                                                             </div>
                                                                                         )
@@ -1533,7 +1814,7 @@ export const AddCourseStep2 = ({
                                                                                                             )
                                                                                                         ) {
                                                                                                             setSelectedExistingBatchIds(
-                                                                                                                selectedExistingBatchIds.filter(
+                                                                                                                selectedExistingLevelBatchIds.filter(
                                                                                                                     (
                                                                                                                         id
                                                                                                                     ) =>
@@ -1542,9 +1823,9 @@ export const AddCourseStep2 = ({
                                                                                                                 )
                                                                                                             );
                                                                                                         } else {
-                                                                                                            setSelectedExistingBatchIds(
+                                                                                                            setSelectedExistingLevelBatchIds(
                                                                                                                 [
-                                                                                                                    ...selectedExistingBatchIds,
+                                                                                                                    ...selectedExistingLevelBatchIds,
                                                                                                                     batch.id,
                                                                                                                 ]
                                                                                                             );
@@ -1651,6 +1932,8 @@ export const AddCourseStep2 = ({
                                                                                         levels: [],
                                                                                         batchId:
                                                                                             batch.id, // <-- set batchId here
+                                                                                        newSession:
+                                                                                            false,
                                                                                     };
                                                                                     newSessions.push(
                                                                                         session
@@ -1677,6 +1960,8 @@ export const AddCourseStep2 = ({
                                                                                                 [],
                                                                                             batchId:
                                                                                                 batch.id, // <-- set batchId here
+                                                                                            newLevel:
+                                                                                                false,
                                                                                         }
                                                                                     );
                                                                                 }
@@ -1773,6 +2058,8 @@ export const AddCourseStep2 = ({
                                                                                             levels: [],
                                                                                             batchId:
                                                                                                 batch.id, // <-- set batchId here
+                                                                                            newSession:
+                                                                                                false,
                                                                                         }
                                                                                     );
                                                                                 }
@@ -1825,7 +2112,7 @@ export const AddCourseStep2 = ({
                                                                                         .find(
                                                                                             (s) =>
                                                                                                 s.id ===
-                                                                                                'standalone'
+                                                                                                'DEFAULT'
                                                                                         )
                                                                                         ?.levels.some(
                                                                                             (l) =>
@@ -1845,6 +2132,8 @@ export const AddCourseStep2 = ({
                                                                                         userIds: [],
                                                                                         batchId:
                                                                                             batch.id, // <-- set batchId here
+                                                                                        newLevel:
+                                                                                            false,
                                                                                     });
                                                                                 }
                                                                             }
@@ -1854,7 +2143,7 @@ export const AddCourseStep2 = ({
                                                                             sessions.find(
                                                                                 (s) =>
                                                                                     s.id ===
-                                                                                    'standalone'
+                                                                                    'DEFAULT'
                                                                             );
                                                                         if (standaloneSession) {
                                                                             standaloneSession.levels =
@@ -1870,11 +2159,13 @@ export const AddCourseStep2 = ({
                                                                         } else {
                                                                             setSessions([
                                                                                 {
-                                                                                    id: 'standalone',
-                                                                                    name: 'Standalone',
+                                                                                    id: 'DEFAULT',
+                                                                                    name: 'DEFAULT',
                                                                                     startDate:
                                                                                         new Date().toISOString(),
                                                                                     levels: newLevels,
+                                                                                    newSession:
+                                                                                        true,
                                                                                 },
                                                                             ]);
                                                                         }
@@ -2024,22 +2315,6 @@ export const AddCourseStep2 = ({
                                                         >
                                                             <div className="flex items-center space-x-2">
                                                                 <RadioGroupItem
-                                                                    value="new"
-                                                                    id="add-level-new"
-                                                                />
-                                                                <Label
-                                                                    htmlFor="add-level-new"
-                                                                    className="text-sm font-normal"
-                                                                >
-                                                                    New{' '}
-                                                                    {getTerminology(
-                                                                        ContentTerms.Level,
-                                                                        SystemTerms.Level
-                                                                    )}
-                                                                </Label>
-                                                            </div>
-                                                            <div className="flex items-center space-x-2">
-                                                                <RadioGroupItem
                                                                     value="existing"
                                                                     id="add-level-existing"
                                                                 />
@@ -2053,6 +2328,22 @@ export const AddCourseStep2 = ({
                                                                         SystemTerms.Level
                                                                     )}
                                                                     s
+                                                                </Label>
+                                                            </div>
+                                                            <div className="flex items-center space-x-2">
+                                                                <RadioGroupItem
+                                                                    value="new"
+                                                                    id="add-level-new"
+                                                                />
+                                                                <Label
+                                                                    htmlFor="add-level-new"
+                                                                    className="text-sm font-normal"
+                                                                >
+                                                                    New{' '}
+                                                                    {getTerminology(
+                                                                        ContentTerms.Level,
+                                                                        SystemTerms.Level
+                                                                    )}
                                                                 </Label>
                                                             </div>
                                                         </RadioGroup>
@@ -2086,7 +2377,7 @@ export const AddCourseStep2 = ({
                                                                 )}
                                                                 s
                                                             </Label>
-                                                            {availableExistingBatches.length ===
+                                                            {availableExistingBatchesForStandalone.length ===
                                                             0 ? (
                                                                 <div className="text-sm text-gray-500">
                                                                     No existing{' '}
@@ -2101,22 +2392,22 @@ export const AddCourseStep2 = ({
                                                                     <div className="mb-2 flex items-center">
                                                                         <Checkbox
                                                                             checked={
-                                                                                availableExistingBatches.length >
+                                                                                availableExistingBatchesForStandalone.length >
                                                                                     0 &&
                                                                                 selectedExistingLevelBatchIds.length ===
-                                                                                    availableExistingBatches.length
+                                                                                    availableExistingBatchesForStandalone.length
                                                                             }
                                                                             onCheckedChange={() => {
                                                                                 if (
                                                                                     selectedExistingLevelBatchIds.length ===
-                                                                                    availableExistingBatches.length
+                                                                                    availableExistingBatchesForStandalone.length
                                                                                 ) {
                                                                                     setSelectedExistingLevelBatchIds(
                                                                                         []
                                                                                     );
                                                                                 } else {
                                                                                     setSelectedExistingLevelBatchIds(
-                                                                                        availableExistingBatches.map(
+                                                                                        availableExistingBatchesForStandalone.map(
                                                                                             (
                                                                                                 b: ExistingBatch
                                                                                             ) =>
@@ -2132,7 +2423,7 @@ export const AddCourseStep2 = ({
                                                                         </span>
                                                                     </div>
                                                                     <div className="max-h-48 space-y-1 overflow-y-auto">
-                                                                        {availableExistingBatches.map(
+                                                                        {availableExistingBatchesForStandalone.map(
                                                                             (
                                                                                 batch: ExistingBatch
                                                                             ) => (
@@ -2225,7 +2516,7 @@ export const AddCourseStep2 = ({
                                                                                     .find(
                                                                                         (s) =>
                                                                                             s.id ===
-                                                                                            'standalone'
+                                                                                            'DEFAULT'
                                                                                     )
                                                                                     ?.levels.some(
                                                                                         (l) =>
@@ -2244,6 +2535,7 @@ export const AddCourseStep2 = ({
                                                                                     userIds: [],
                                                                                     batchId:
                                                                                         batch.id, // <-- set batchId here
+                                                                                    newLevel: false,
                                                                                 });
                                                                             }
                                                                         }
@@ -2252,8 +2544,7 @@ export const AddCourseStep2 = ({
                                                                     const standaloneSession =
                                                                         sessions.find(
                                                                             (s) =>
-                                                                                s.id ===
-                                                                                'standalone'
+                                                                                s.id === 'DEFAULT'
                                                                         );
                                                                     if (standaloneSession) {
                                                                         standaloneSession.levels = [
@@ -2268,11 +2559,12 @@ export const AddCourseStep2 = ({
                                                                     } else {
                                                                         setSessions([
                                                                             {
-                                                                                id: 'standalone',
-                                                                                name: 'Standalone',
+                                                                                id: 'DEFAULT',
+                                                                                name: 'DEFAULT',
                                                                                 startDate:
                                                                                     new Date().toISOString(),
                                                                                 levels: newLevels,
+                                                                                newSession: true,
                                                                             },
                                                                         ]);
                                                                     }
@@ -2330,7 +2622,7 @@ export const AddCourseStep2 = ({
 
                                         {/* Level Cards */}
                                         {sessions
-                                            .find((s) => s.id === 'standalone')
+                                            .find((s) => s.id === 'DEFAULT')
                                             ?.levels.map((level) => (
                                                 <div
                                                     key={level.batchId}
@@ -2406,18 +2698,11 @@ export const AddCourseStep2 = ({
 
                                     <div className="flex flex-col gap-4">
                                         <MultiSelectDropdown
-                                            options={instructors
-                                                ?.filter(
-                                                    (instructor) =>
-                                                        !selectedInstructors?.some(
-                                                            (si) => si.id === instructor.id
-                                                        )
-                                                )
-                                                ?.map((instructor) => ({
-                                                    id: instructor.id,
-                                                    name: instructor.name,
-                                                    email: instructor.email,
-                                                }))}
+                                            options={instructors?.map((instructor) => ({
+                                                id: instructor.id,
+                                                name: instructor.name,
+                                                email: instructor.email,
+                                            }))}
                                             selected={selectedInstructors?.map((instructor) => ({
                                                 id: instructor.id,
                                                 name: instructor.name,
@@ -2440,7 +2725,169 @@ export const AddCourseStep2 = ({
                                                             };
                                                         })
                                                         ?.filter((i) => i.id && i.email && i.name);
+
                                                 setSelectedInstructors(selectedInstructorsList);
+                                                form.setValue(
+                                                    'selectedInstructors',
+                                                    selectedInstructorsList
+                                                );
+
+                                                // For each selected instructor, ensure they are assigned to sessions/levels
+                                                selectedInstructorsList.forEach((instructor) => {
+                                                    const allSessionLevels =
+                                                        getAllSessionLevelsForInstructor(
+                                                            sessions,
+                                                            hasSessions,
+                                                            hasLevels
+                                                        );
+                                                    setInstructorMappings((prev) => [
+                                                        ...prev.filter(
+                                                            (m) => m.id !== instructor.id
+                                                        ),
+                                                        {
+                                                            id: instructor.id,
+                                                            email: instructor.email,
+                                                            sessionLevels: allSessionLevels,
+                                                        },
+                                                    ]);
+                                                    // Also update sessions state to reflect assignment
+                                                    setSessions((prevSessions) => {
+                                                        const updatedSessions = JSON.parse(
+                                                            JSON.stringify(prevSessions)
+                                                        );
+                                                        if (
+                                                            hasSessions === 'yes' &&
+                                                            hasLevels === 'yes'
+                                                        ) {
+                                                            updatedSessions.forEach(
+                                                                (session: Session) => {
+                                                                    session.levels.forEach(
+                                                                        (level: Level) => {
+                                                                            if (
+                                                                                !level.userIds.some(
+                                                                                    (
+                                                                                        i: Instructor
+                                                                                    ) =>
+                                                                                        i.id ===
+                                                                                        instructor.id
+                                                                                )
+                                                                            ) {
+                                                                                level.userIds.push(
+                                                                                    instructor
+                                                                                );
+                                                                            }
+                                                                        }
+                                                                    );
+                                                                }
+                                                            );
+                                                        } else if (
+                                                            hasSessions === 'yes' &&
+                                                            hasLevels !== 'yes'
+                                                        ) {
+                                                            updatedSessions.forEach(
+                                                                (session: Session) => {
+                                                                    if (
+                                                                        session.levels.length === 0
+                                                                    ) {
+                                                                        session.levels = [
+                                                                            {
+                                                                                id: 'DEFAULT',
+                                                                                name: '',
+                                                                                userIds: [
+                                                                                    instructor,
+                                                                                ],
+                                                                                batchId: 'DEFAULT',
+                                                                                newLevel: true,
+                                                                            },
+                                                                        ];
+                                                                    } else {
+                                                                        if (
+                                                                            session.levels[0]
+                                                                                ?.userIds &&
+                                                                            !session.levels[0].userIds.some(
+                                                                                (i: Instructor) =>
+                                                                                    i.id ===
+                                                                                    instructor.id
+                                                                            )
+                                                                        ) {
+                                                                            session.levels[0].userIds.push(
+                                                                                instructor
+                                                                            );
+                                                                        }
+                                                                    }
+                                                                }
+                                                            );
+                                                        } else if (
+                                                            hasSessions !== 'yes' &&
+                                                            hasLevels === 'yes'
+                                                        ) {
+                                                            const standaloneSession =
+                                                                updatedSessions.find(
+                                                                    (s: Session) =>
+                                                                        s.id === 'DEFAULT'
+                                                                );
+                                                            if (standaloneSession) {
+                                                                standaloneSession.levels?.forEach(
+                                                                    (level: Level) => {
+                                                                        if (
+                                                                            !level.userIds.some(
+                                                                                (i: Instructor) =>
+                                                                                    i.id ===
+                                                                                    instructor.id
+                                                                            )
+                                                                        ) {
+                                                                            level.userIds.push(
+                                                                                instructor
+                                                                            );
+                                                                        }
+                                                                    }
+                                                                );
+                                                            }
+                                                        }
+                                                        form.setValue(
+                                                            'sessions',
+                                                            ensureNewSessionAndLevelFlags(
+                                                                updatedSessions
+                                                            )
+                                                        );
+                                                        return updatedSessions;
+                                                    });
+                                                });
+
+                                                // Automatically open assignment card for newly selected instructors
+                                                // Find newly added instructors (those not in previous selection)
+                                                const previousInstructorIds =
+                                                    selectedInstructors?.map((i) => i.id) || [];
+                                                const newlyAddedInstructors =
+                                                    selectedInstructorsList.filter(
+                                                        (instructor) =>
+                                                            !previousInstructorIds.includes(
+                                                                instructor.id
+                                                            )
+                                                    );
+
+                                                // If there are newly added instructors, open the assignment card for the first one
+                                                if (newlyAddedInstructors.length > 0) {
+                                                    const firstNewInstructor =
+                                                        newlyAddedInstructors[0];
+                                                    if (firstNewInstructor) {
+                                                        setSelectedInstructorId(
+                                                            firstNewInstructor.id
+                                                        );
+                                                        setSelectedInstructorEmail(
+                                                            firstNewInstructor.email
+                                                        );
+                                                        // Calculate session levels directly instead of relying on instructorMappings
+                                                        const allSessionLevels =
+                                                            getAllSessionLevelsForInstructor(
+                                                                sessions,
+                                                                hasSessions,
+                                                                hasLevels
+                                                            );
+                                                        setSelectedSessionLevels(allSessionLevels);
+                                                        setShowAssignmentCard(true);
+                                                    }
+                                                }
                                             }}
                                             placeholder="Select instructor emails"
                                             className="w-full"
@@ -2551,81 +2998,88 @@ export const AddCourseStep2 = ({
                                                                                     : 'Assign'}
                                                                             </MyButton>
                                                                         )}
-                                                                        <MyButton
-                                                                            type="button"
-                                                                            buttonType="text"
-                                                                            scale="medium"
-                                                                            layoutVariant="icon"
-                                                                            onClick={() => {
-                                                                                // 1. Remove from selectedInstructors
-                                                                                const updatedInstructors =
-                                                                                    (
-                                                                                        selectedInstructors: Instructor[]
-                                                                                    ) =>
-                                                                                        selectedInstructors.filter(
-                                                                                            (i) =>
-                                                                                                i.id !==
-                                                                                                instructor.id
-                                                                                        );
-                                                                                setSelectedInstructors(
-                                                                                    updatedInstructors
-                                                                                );
-                                                                                form.setValue(
-                                                                                    'selectedInstructors',
-                                                                                    updatedInstructors(
-                                                                                        selectedInstructors
-                                                                                    )
-                                                                                );
-                                                                                // 2. Remove from all sessions -> levels -> userIds
-                                                                                const updatedSessions =
-                                                                                    form
-                                                                                        .getValues(
-                                                                                            'sessions'
+                                                                        {instructor.id !==
+                                                                            tokenData?.user && (
+                                                                            <MyButton
+                                                                                type="button"
+                                                                                buttonType="text"
+                                                                                scale="medium"
+                                                                                layoutVariant="icon"
+                                                                                onClick={() => {
+                                                                                    // 1. Remove from selectedInstructors
+                                                                                    const updatedInstructors =
+                                                                                        (
+                                                                                            selectedInstructors: Instructor[]
+                                                                                        ) =>
+                                                                                            selectedInstructors.filter(
+                                                                                                (
+                                                                                                    i
+                                                                                                ) =>
+                                                                                                    i.id !==
+                                                                                                    instructor.id
+                                                                                            );
+                                                                                    setSelectedInstructors(
+                                                                                        updatedInstructors
+                                                                                    );
+                                                                                    form.setValue(
+                                                                                        'selectedInstructors',
+                                                                                        updatedInstructors(
+                                                                                            selectedInstructors
                                                                                         )
-                                                                                        .map(
-                                                                                            (
-                                                                                                session
-                                                                                            ) => ({
-                                                                                                ...session,
-                                                                                                levels: session.levels.map(
-                                                                                                    (
-                                                                                                        level
-                                                                                                    ) => ({
-                                                                                                        ...level,
-                                                                                                        userIds:
-                                                                                                            level.userIds.filter(
-                                                                                                                (
-                                                                                                                    user
-                                                                                                                ) =>
-                                                                                                                    user.id !==
-                                                                                                                    instructor.id
-                                                                                                            ),
-                                                                                                    })
-                                                                                                ),
-                                                                                            })
-                                                                                        );
-                                                                                form.setValue(
-                                                                                    'sessions',
-                                                                                    updatedSessions,
-                                                                                    {
-                                                                                        shouldDirty:
-                                                                                            true,
-                                                                                    }
-                                                                                );
+                                                                                    );
+                                                                                    // 2. Remove from all sessions -> levels -> userIds
+                                                                                    const updatedSessions =
+                                                                                        form
+                                                                                            .getValues(
+                                                                                                'sessions'
+                                                                                            )
+                                                                                            .map(
+                                                                                                (
+                                                                                                    session
+                                                                                                ) => ({
+                                                                                                    ...session,
+                                                                                                    levels: session.levels.map(
+                                                                                                        (
+                                                                                                            level
+                                                                                                        ) => ({
+                                                                                                            ...level,
+                                                                                                            userIds:
+                                                                                                                level.userIds.filter(
+                                                                                                                    (
+                                                                                                                        user
+                                                                                                                    ) =>
+                                                                                                                        user.id !==
+                                                                                                                        instructor.id
+                                                                                                                ),
+                                                                                                        })
+                                                                                                    ),
+                                                                                                })
+                                                                                            );
+                                                                                    form.setValue(
+                                                                                        'sessions',
+                                                                                        updatedSessions,
+                                                                                        {
+                                                                                            shouldDirty:
+                                                                                                true,
+                                                                                        }
+                                                                                    );
 
-                                                                                setInstructorMappings(
-                                                                                    (prev) =>
-                                                                                        prev.filter(
-                                                                                            (m) =>
-                                                                                                m.id !==
-                                                                                                instructor.id
-                                                                                        )
-                                                                                );
-                                                                            }}
-                                                                            className="!size-6 text-red-600 hover:text-red-700"
-                                                                        >
-                                                                            <Trash2 className="size-3" />
-                                                                        </MyButton>
+                                                                                    setInstructorMappings(
+                                                                                        (prev) =>
+                                                                                            prev.filter(
+                                                                                                (
+                                                                                                    m
+                                                                                                ) =>
+                                                                                                    m.id !==
+                                                                                                    instructor.id
+                                                                                            )
+                                                                                    );
+                                                                                }}
+                                                                                className="!size-6 text-red-600 hover:text-red-700"
+                                                                            >
+                                                                                <Trash2 className="size-3" />
+                                                                            </MyButton>
+                                                                        )}
                                                                     </div>
                                                                 </div>
 
@@ -2936,7 +3390,7 @@ export const AddCourseStep2 = ({
                                                                                         sessions.find(
                                                                                             (s) =>
                                                                                                 s.id ===
-                                                                                                'standalone'
+                                                                                                'DEFAULT'
                                                                                         );
                                                                                     const levels =
                                                                                         standaloneSession?.levels ||
@@ -3127,45 +3581,79 @@ export const AddCourseStep2 = ({
                                     </div>
                                 </div>
 
-                                <Separator className="bg-gray-200" />
+                                {courseSettings?.catalogueSettings?.autoPublishToCatalogue ? (
+                                    <>
+                                        <Separator className="bg-gray-200" />
 
-                                {/* Course Catalogue Section */}
-                                <div className="space-y-2">
-                                    <div className="flex items-center space-x-3">
-                                        <Checkbox
-                                            id="publish-catalogue"
-                                            checked={publishToCatalogue}
-                                            onCheckedChange={handlePublishChange}
-                                            className="data-[state=checked]:border-[#3B82F6] data-[state=checked]:bg-[#3B82F6]"
-                                        />
-                                        <Label
-                                            htmlFor="publish-catalogue"
-                                            className="text-base font-medium text-gray-900"
-                                        >
-                                            Publish to{' '}
-                                            {getTerminology(
-                                                ContentTerms.Course,
-                                                SystemTerms.Course
-                                            )}{' '}
-                                            Catalogue
-                                        </Label>
-                                    </div>
-                                    <p className="ml-7 text-sm text-gray-600">
-                                        The{' '}
-                                        {getTerminology(
-                                            ContentTerms.Course,
-                                            SystemTerms.Course
-                                        ).toLocaleLowerCase()}{' '}
-                                        will be added to the{' '}
-                                        {getTerminology(
-                                            ContentTerms.Course,
-                                            SystemTerms.Course
-                                        ).toLocaleLowerCase()}{' '}
-                                        catalogue which will be viewed by the learners.
-                                    </p>
-                                </div>
+                                        {/* Auto Publish Indicator */}
+                                        <div className="rounded-lg border border-green-200 bg-green-50 p-3">
+                                            <div className="flex items-center gap-2">
+                                                <div className="size-4 rounded-full bg-green-500"></div>
+                                                <p className="text-sm font-medium text-green-900">
+                                                    Auto-Publishing to{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Course,
+                                                        SystemTerms.Course
+                                                    )}{' '}
+                                                    Catalogue
+                                                </p>
+                                            </div>
+                                            <p className="mt-1 text-xs text-green-700">
+                                                This{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Course,
+                                                    SystemTerms.Course
+                                                ).toLowerCase()}{' '}
+                                                will be automatically published to the catalogue as
+                                                per your institute settings.
+                                            </p>
+                                        </div>
 
-                                <Separator className="bg-gray-200" />
+                                        <Separator className="bg-gray-200" />
+                                    </>
+                                ) : (
+                                    <>
+                                        <Separator className="bg-gray-200" />
+
+                                        {/* Course Catalogue Section */}
+                                        <div className="space-y-2">
+                                            <div className="flex items-center space-x-3">
+                                                <Checkbox
+                                                    id="publish-catalogue"
+                                                    checked={publishToCatalogue}
+                                                    onCheckedChange={handlePublishChange}
+                                                    className="data-[state=checked]:border-[#3B82F6] data-[state=checked]:bg-[#3B82F6]"
+                                                />
+                                                <Label
+                                                    htmlFor="publish-catalogue"
+                                                    className="text-base font-medium text-gray-900"
+                                                >
+                                                    Publish to{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Course,
+                                                        SystemTerms.Course
+                                                    )}{' '}
+                                                    Catalogue
+                                                </Label>
+                                            </div>
+                                            <p className="ml-7 text-sm text-gray-600">
+                                                The{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Course,
+                                                    SystemTerms.Course
+                                                ).toLocaleLowerCase()}{' '}
+                                                will be added to the{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Course,
+                                                    SystemTerms.Course
+                                                ).toLocaleLowerCase()}{' '}
+                                                catalogue which will be viewed by the learners.
+                                            </p>
+                                        </div>
+
+                                        <Separator className="bg-gray-200" />
+                                    </>
+                                )}
                             </CardContent>
                         </Card>
                     </div>
@@ -3199,8 +3687,8 @@ export const AddCourseStep2 = ({
                                         : hasSessions === 'yes'
                                           ? sessions.length === 0
                                           : hasLevels === 'yes'
-                                            ? !sessions.find((s) => s.id === 'standalone') ||
-                                              sessions.find((s) => s.id === 'standalone')?.levels
+                                            ? !sessions.find((s) => s.id === 'DEFAULT') ||
+                                              sessions.find((s) => s.id === 'DEFAULT')?.levels
                                                   .length === 0
                                             : false)
                                 }
@@ -3255,7 +3743,7 @@ const SessionCard: React.FC<{
 }) => {
     const [showAddLevel, setShowAddLevel] = useState(false);
     const [newLevelName, setNewLevelName] = useState('');
-    const [addLevelMode, setAddLevelMode] = useState<'new' | 'existing'>('new');
+    const [addLevelMode, setAddLevelMode] = useState<'new' | 'existing'>('existing');
     const [selectedExistingLevelBatchIds, setSelectedExistingLevelBatchIds] = useState<string[]>(
         []
     );
@@ -3339,18 +3827,6 @@ const SessionCard: React.FC<{
                                     >
                                         <div className="flex items-center space-x-2">
                                             <RadioGroupItem
-                                                value="new"
-                                                id={`add-level-new-${session.id}`}
-                                            />
-                                            <Label
-                                                htmlFor={`add-level-new-${session.id}`}
-                                                className="text-sm font-normal"
-                                            >
-                                                New Level
-                                            </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem
                                                 value="existing"
                                                 id={`add-level-existing-${session.id}`}
                                             />
@@ -3359,6 +3835,18 @@ const SessionCard: React.FC<{
                                                 className="text-sm font-normal"
                                             >
                                                 Existing Levels
+                                            </Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem
+                                                value="new"
+                                                id={`add-level-new-${session.id}`}
+                                            />
+                                            <Label
+                                                htmlFor={`add-level-new-${session.id}`}
+                                                className="text-sm font-normal"
+                                            >
+                                                New Level
                                             </Label>
                                         </div>
                                     </RadioGroup>
@@ -3582,6 +4070,18 @@ function ensureBatchIdInLevels(sessions: Session[]): Session[] {
         levels: session.levels.map((level) => ({
             ...level,
             batchId: (level as Level).batchId || level.id,
+        })),
+    }));
+}
+
+// Utility to deeply ensure newSession and newLevel are always present and boolean
+function ensureNewSessionAndLevelFlags(sessions: Session[]) {
+    return sessions.map((session) => ({
+        ...session,
+        newSession: session.newSession === true,
+        levels: session.levels.map((level) => ({
+            ...level,
+            newLevel: level.newLevel === true,
         })),
     }));
 }

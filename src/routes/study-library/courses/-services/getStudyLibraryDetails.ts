@@ -18,14 +18,19 @@ export const fetchStudyLibraryDetails = async () => {
 };
 
 export const useStudyLibraryQuery = () => {
-    const setStudyLibraryData = useStudyLibraryStore((state) => state.setStudyLibraryData);
+    const { setStudyLibraryData, setInitLoading } = useStudyLibraryStore();
 
     return {
         queryKey: ['GET_INIT_STUDY_LIBRARY'],
         queryFn: async () => {
-            const data = await fetchStudyLibraryDetails();
-            setStudyLibraryData(data);
-            return data;
+            setInitLoading(true);
+            try {
+                const data = await fetchStudyLibraryDetails();
+                setStudyLibraryData(data);
+                return data;
+            } finally {
+                setInitLoading(false);
+            }
         },
         staleTime: 3600000,
     };
