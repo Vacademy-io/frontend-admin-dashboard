@@ -272,7 +272,7 @@ export function convertInviteData(
                     levelId: selectedBatches[0]?.levelId || '',
                     sessionId: selectedBatches[0]?.sessionId || '',
                 }),
-                payment_option: getMatchingPaymentPlanForAPIs(
+                payment_option: getMatchingPaymentAndReferralPlanForAPIs(
                     paymentPlans,
                     data.selectedPlan?.id || '',
                     referralProgramDetails,
@@ -493,7 +493,7 @@ export function getMatchingPaymentPlan(data: PaymentOption[], id: string) {
     }
 }
 
-export function getMatchingPaymentPlanForAPIs(
+export function getMatchingPaymentAndReferralPlanForAPIs(
     data: PaymentOption[],
     id: string,
     referralProgramDetails: ReferralData[],
