@@ -45,7 +45,6 @@ import { TokenKey } from '@/constants/auth/tokens';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from '@/svgs';
-import { getModuleFlags } from '@/components/common/layout-container/sidebar/helper';
 
 // Analytics Widgets
 import RealTimeActiveUsersWidget from './-components/analytics-widgets/RealTimeActiveUsersWidget';
@@ -268,6 +267,7 @@ export function DashboardComponent() {
     const { data: adminDetails } = useSuspenseQuery(handleGetAdminDetails());
     const { showForInstitutes } = useInstituteDetailsStore();
     const subModules = getModuleFlags(instituteDetails?.sub_modules);
+    const router = useRouter();
 
     // Role detection
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
@@ -313,10 +313,6 @@ export function DashboardComponent() {
         });
     };
 
-    const router = useRouter();
-
-    // Missing state variables and computed values
-    const subModules = getModuleFlags(data?.sub_modules);
     const [roleTypeCount, setRoleTypeCount] = useState({
         ADMIN: 0,
         'COURSE CREATOR': 0,
