@@ -1,7 +1,7 @@
 import { ENROLL_INVITE_URL, GET_SINGLE_INVITE_DETAILS } from '@/constants/urls';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { InviteLinkFormValues } from '../GenerateInviteLinkSchema';
-import { convertInviteData, PaymentOption } from '../-utils/helper';
+import { convertInviteData, PaymentOption, ReferralData } from '../-utils/helper';
 import { getInstituteId } from '@/constants/helper';
 
 export interface Course {
@@ -22,6 +22,7 @@ export const handleEnrollInvite = async ({
     selectedBatches,
     getPackageSessionId,
     paymentsData,
+    referralProgramDetails,
 }: {
     data: InviteLinkFormValues;
     selectedCourse: Course | null;
@@ -36,13 +37,15 @@ export const handleEnrollInvite = async ({
         sessionId: string;
     }) => void;
     paymentsData: PaymentOption[];
+    referralProgramDetails: ReferralData[];
 }) => {
     const convertedData = convertInviteData(
         data,
         selectedCourse,
         selectedBatches,
         getPackageSessionId,
-        paymentsData
+        paymentsData,
+        referralProgramDetails
     );
     const response = await authenticatedAxiosInstance({
         method: 'POST',

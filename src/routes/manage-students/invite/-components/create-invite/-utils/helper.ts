@@ -2,6 +2,7 @@ import { getInstituteId } from '@/constants/helper';
 import { InviteLinkFormValues } from '../GenerateInviteLinkSchema';
 import { CustomField } from '../../../-schema/InviteFormSchema';
 import { IndividualInviteLinkDetails } from '@/types/study-library/individual-invite-interface';
+import { PaymentPlanApi } from '@/types/payment';
 
 export interface ReferralData {
     id: string;
@@ -91,7 +92,7 @@ export interface PaymentOption {
     tag: string; // restrict more if tag values are known
     type: string; // assuming these are the possible types
     require_approval: boolean;
-    payment_plans: string[]; // You can replace `any` with a specific `PaymentPlan` interface if available
+    payment_plans: PaymentPlanApi[]; // Payment plans array
     payment_option_metadata_json: string; // or parsed as: PaymentOptionMetadata if you want to parse it
 }
 
@@ -224,7 +225,8 @@ export function convertInviteData(
         levelId: string;
         sessionId: string;
     }) => void,
-    paymentPlans: PaymentOption[]
+    paymentPlans: PaymentOption[],
+    referralProgramDetails: ReferralData[]
 ) {
     const instituteId = getInstituteId();
     const jsonMetaData = {
@@ -270,7 +272,12 @@ export function convertInviteData(
                     levelId: selectedBatches[0]?.levelId || '',
                     sessionId: selectedBatches[0]?.sessionId || '',
                 }),
-                payment_option: getMatchingPaymentPlan(paymentPlans, data.selectedPlan?.id || ''),
+                payment_option: getMatchingPaymentPlanForAPIs(
+                    paymentPlans,
+                    data.selectedPlan?.id || '',
+                    referralProgramDetails,
+                    data.selectedReferralId
+                ),
             },
         ],
     };
@@ -484,6 +491,26 @@ export function getMatchingPaymentPlan(data: PaymentOption[], id: string) {
                 ) || [],
         };
     }
+}
+
+export function getMatchingPaymentPlanForAPIs(
+    data: PaymentOption[],
+    id: string,
+    referralProgramDetails: ReferralData[],
+    referralId: string
+) {
+    const referralProgram = referralProgramDetails.find((item) => item.id === referralId);
+    const item = data.find((item) => item.id === id);
+
+    return {
+        ...item,
+        payment_plans: item?.payment_plans?.map((plan) => {
+            return {
+                ...plan,
+                referral_option: referralProgram,
+            };
+        }),
+    };
 }
 
 export function getPaymentOptionBySessionId(

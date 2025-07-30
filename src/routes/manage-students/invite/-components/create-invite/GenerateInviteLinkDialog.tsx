@@ -47,6 +47,7 @@ import {
     getPaymentOptionBySessionId,
     ReTransformCustomFields,
 } from './-utils/helper';
+import { handleGetReferralProgramDetails } from './-services/referral-services';
 
 const GenerateInviteLinkDialog = ({
     showSummaryDialog,
@@ -65,6 +66,7 @@ const GenerateInviteLinkDialog = ({
                   queryFn: () => null,
               }
     );
+    const { data: referralProgramDetails } = useSuspenseQuery(handleGetReferralProgramDetails());
     const { data: paymentsData } = useSuspenseQuery(handleGetPaymentDetails());
     const { studyLibraryData } = useStudyLibraryStore();
 
@@ -196,6 +198,7 @@ const GenerateInviteLinkDialog = ({
                 selectedBatches,
                 getPackageSessionId,
                 paymentsData,
+                referralProgramDetails,
             });
         },
         onSuccess: () => {
@@ -638,7 +641,7 @@ const GenerateInviteLinkDialog = ({
                 ),
                 discounts: [],
                 selectedDiscountId: 'none',
-                referralPrograms: [],
+                selectedReferral: {},
                 selectedReferralId: 'r1',
                 restrictToSameBatch:
                     safeJsonParse(inviteLinkDetails?.web_page_meta_data_json, {})
