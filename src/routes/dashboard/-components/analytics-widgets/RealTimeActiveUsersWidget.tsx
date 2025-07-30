@@ -1,10 +1,8 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { motion, useSpring, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { fetchAnalyticsActiveUsersRealtime } from '../../-services/dashboard-services';
 import { useEffect, useState } from 'react';
-import { useTheme } from '@/providers/theme/theme-provider';
-import { getInstituteId } from '@/constants/helper';
 import { Eye, ArrowUp } from 'phosphor-react';
 import { AnalyticsErrorDisplay } from './AnalyticsErrorDisplay';
 
@@ -44,8 +42,6 @@ interface RealTimeActiveUsersWidgetProps {
 }
 
 export default function RealTimeActiveUsersWidget({ instituteId }: RealTimeActiveUsersWidgetProps) {
-    const { primaryColor } = useTheme();
-
     const {
         data: activeUsersCount,
         isLoading,
@@ -97,7 +93,7 @@ export default function RealTimeActiveUsersWidget({ instituteId }: RealTimeActiv
             <Card className="relative h-full overflow-hidden border-2 border-primary-200 bg-gradient-to-br from-primary-50 to-primary-100 shadow-lg transition-all duration-300 hover:shadow-xl">
                 {/* Animated background pulse */}
                 <motion.div
-                    className="to-primary-600/10 absolute inset-0 bg-gradient-to-r from-primary-500/10"
+                    className="absolute inset-0 bg-gradient-to-r from-primary-400/10 to-primary-500/10"
                     animate={{
                         opacity: [0.3, 0.6, 0.3],
                     }}
@@ -108,19 +104,13 @@ export default function RealTimeActiveUsersWidget({ instituteId }: RealTimeActiv
                     }}
                 />
 
-                <CardHeader className="relative z-10 pb-2">
+                <CardHeader className="relative pb-2">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <motion.div
-                                animate={{ rotate: [0, 360] }}
-                                transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-                                className="rounded-full bg-primary-500/20 p-2"
-                            >
-                                <Eye size={20} className="text-primary-600" />
-                            </motion.div>
-                            <CardTitle className="text-primary-700 text-lg font-bold">
-                                Real-Time Active
-                            </CardTitle>
+                            <div className="rounded-full bg-primary-300/20 p-2">
+                                <Eye size={20} className="text-primary-400" />
+                            </div>
+                            <CardTitle className="text-lg font-bold">Real-Time Active</CardTitle>
                         </div>
                         <motion.div
                             animate={{ scale: [1, 1.1, 1] }}
@@ -128,19 +118,19 @@ export default function RealTimeActiveUsersWidget({ instituteId }: RealTimeActiv
                             className="size-3 rounded-full bg-green-500 shadow-lg"
                         />
                     </div>
-                    <CardDescription className="text-primary-600/80 text-sm">
+                    <CardDescription className="text-sm text-gray-800/80">
                         Users currently online
                     </CardDescription>
                 </CardHeader>
 
-                <CardContent className="relative z-10 pt-0">
+                <CardContent className="relative pt-0">
                     <div className="flex items-center justify-between">
                         <div>
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6, delay: 0.2 }}
-                                className="text-primary-700 mb-1 text-4xl font-bold"
+                                className="mb-1 text-4xl font-bold text-primary-500"
                             >
                                 {isLoading ? (
                                     <motion.div
@@ -160,7 +150,7 @@ export default function RealTimeActiveUsersWidget({ instituteId }: RealTimeActiv
                                     />
                                 )}
                             </motion.div>
-                            <div className="text-primary-600/70 flex items-center gap-1 text-xs">
+                            <div className="flex items-center gap-1 text-xs">
                                 <ArrowUp size={12} />
                                 <span>Live updates</span>
                             </div>

@@ -2,6 +2,8 @@ import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/ca
 import { MyButton } from '@/components/design-system/button';
 import { Plus, Users, UserPlus } from 'phosphor-react';
 import { useNavigate } from '@tanstack/react-router';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 export default function EnrollLearnersWidget() {
     const navigate = useNavigate();
@@ -24,9 +26,16 @@ export default function EnrollLearnersWidget() {
                 <div className="flex items-center gap-2">
                     <UserPlus size={18} className="text-primary-500" weight="duotone" />
                     <div>
-                        <CardTitle className="text-sm font-semibold">Enroll Learners</CardTitle>
+                        <CardTitle className="text-sm font-semibold">
+                            Enroll {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}s
+                        </CardTitle>
                         <CardDescription className="mt-1 text-xs text-neutral-600">
-                            Manage student enrollment and invitations
+                            Manage{' '}
+                            {getTerminology(
+                                RoleTerms.Learner,
+                                SystemTerms.Learner
+                            ).toLocaleLowerCase()}{' '}
+                            enrollment and invitations
                         </CardDescription>
                     </div>
                 </div>
@@ -42,7 +51,7 @@ export default function EnrollLearnersWidget() {
                         onClick={handleInviteStudents}
                     >
                         <Plus size={16} />
-                        Invite New Students
+                        Invite New {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}s
                     </MyButton>
 
                     <MyButton
@@ -54,7 +63,7 @@ export default function EnrollLearnersWidget() {
                         onClick={handleManageStudents}
                     >
                         <Users size={16} />
-                        Manage Students List
+                        Manage {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}s List
                     </MyButton>
 
                     <MyButton

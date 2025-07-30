@@ -2,6 +2,8 @@ import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/ca
 import { MyButton } from '@/components/design-system/button';
 import { BookOpen, VideoCamera, Folder } from 'phosphor-react';
 import { useNavigate } from '@tanstack/react-router';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 export default function LearningCenterWidget() {
     const navigate = useNavigate();
@@ -27,7 +29,7 @@ export default function LearningCenterWidget() {
         },
         {
             icon: VideoCamera,
-            title: 'Live Sessions',
+            title: getTerminology(ContentTerms.LiveSession, SystemTerms.LiveSession),
             description: 'Manage live teaching sessions',
             action: handleManageSessions,
         },
@@ -47,7 +49,17 @@ export default function LearningCenterWidget() {
                     <div>
                         <CardTitle className="text-sm font-semibold">Learning Center</CardTitle>
                         <CardDescription className="mt-1 text-xs text-neutral-600">
-                            Manage courses, sessions, and study materials
+                            Manage{' '}
+                            {getTerminology(
+                                ContentTerms.Course,
+                                SystemTerms.Course
+                            ).toLocaleLowerCase()}
+                            s,{' '}
+                            {getTerminology(
+                                ContentTerms.Session,
+                                SystemTerms.Session
+                            ).toLocaleLowerCase()}
+                            s, and study materials
                         </CardDescription>
                     </div>
                 </div>
