@@ -2853,6 +2853,41 @@ export const AddCourseStep2 = ({
                                                         return updatedSessions;
                                                     });
                                                 });
+
+                                                // Automatically open assignment card for newly selected instructors
+                                                // Find newly added instructors (those not in previous selection)
+                                                const previousInstructorIds =
+                                                    selectedInstructors?.map((i) => i.id) || [];
+                                                const newlyAddedInstructors =
+                                                    selectedInstructorsList.filter(
+                                                        (instructor) =>
+                                                            !previousInstructorIds.includes(
+                                                                instructor.id
+                                                            )
+                                                    );
+
+                                                // If there are newly added instructors, open the assignment card for the first one
+                                                if (newlyAddedInstructors.length > 0) {
+                                                    const firstNewInstructor =
+                                                        newlyAddedInstructors[0];
+                                                    if (firstNewInstructor) {
+                                                        setSelectedInstructorId(
+                                                            firstNewInstructor.id
+                                                        );
+                                                        setSelectedInstructorEmail(
+                                                            firstNewInstructor.email
+                                                        );
+                                                        // Calculate session levels directly instead of relying on instructorMappings
+                                                        const allSessionLevels =
+                                                            getAllSessionLevelsForInstructor(
+                                                                sessions,
+                                                                hasSessions,
+                                                                hasLevels
+                                                            );
+                                                        setSelectedSessionLevels(allSessionLevels);
+                                                        setShowAssignmentCard(true);
+                                                    }
+                                                }
                                             }}
                                             placeholder="Select instructor emails"
                                             className="w-full"
