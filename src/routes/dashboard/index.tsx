@@ -42,8 +42,8 @@ import { ContentTerms, RoleTerms, SystemTerms } from '../settings/-components/Na
 
 import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
 import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from '@/svgs';
 
 // Analytics Widgets
@@ -281,6 +281,13 @@ export function DashboardComponent() {
     const { data: assessmentCount, isLoading: isAssessmentCountLoading } = useSuspenseQuery(
         getAssessmentsCountsData(instituteDetails?.id)
     );
+    const [roleTypeCount, setRoleTypeCount] = useState({
+        ADMIN: 0,
+        'COURSE CREATOR': 0,
+        'ASSESSMENT CREATOR': 0,
+        EVALUATOR: 0,
+        TEACHER: 0,
+    });
     const navigate = useNavigate();
     const { setNavHeading } = useNavHeadingStore();
 
@@ -312,14 +319,6 @@ export function DashboardComponent() {
             },
         });
     };
-
-    const [roleTypeCount, setRoleTypeCount] = useState({
-        ADMIN: 0,
-        'COURSE CREATOR': 0,
-        'ASSESSMENT CREATOR': 0,
-        EVALUATOR: 0,
-        TEACHER: 0,
-    });
 
     const handleEnrollButtonClick = () => {
         navigate({ to: '/manage-students/invite' });
