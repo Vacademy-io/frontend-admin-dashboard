@@ -17,16 +17,10 @@ export const handleOAuthLogin = (provider: OAuthProvider, options: OAuthLoginOpt
 
         const redirectPath = isSignup ? '/signup/oauth/callback' : '/login/oauth/redirect';
 
-    const stateObj = {
-      from: `${window.location.origin}/login/oauth/redirect?assess=${assess}&lms=${lms}`,
-      account_type: isSignup
-        ? assess
-          ? 'assess'
-          : lms
-          ? 'lms'
-          : ''
-        : '',
-    };
+        const stateObj = {
+            from: `${window.location.origin}/login/oauth/redirect?assess=${assess}&lms=${lms}`,
+            account_type: isSignup ? (assess ? 'assess' : lms ? 'lms' : '') : '',
+        };
 
         const base64State = btoa(JSON.stringify(stateObj));
 

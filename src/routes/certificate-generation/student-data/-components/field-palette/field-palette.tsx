@@ -1,6 +1,16 @@
 import { useDraggable } from '@dnd-kit/core';
-import { AvailableField, CertificateGenerationSession } from '@/types/certificate/certificate-types';
-import { Hash, User, EnvelopeSimple, Calendar, Database, DotsSixVertical } from '@phosphor-icons/react';
+import {
+    AvailableField,
+    CertificateGenerationSession,
+} from '@/types/certificate/certificate-types';
+import {
+    Hash,
+    User,
+    EnvelopeSimple,
+    Calendar,
+    Database,
+    DotsSixVertical,
+} from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 
 interface FieldPaletteProps {
@@ -20,9 +30,11 @@ const DraggableField = ({ field }: DraggableFieldProps) => {
         },
     });
 
-    const style = transform ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-    } : undefined;
+    const style = transform
+        ? {
+              transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+          }
+        : undefined;
 
     const getFieldIcon = () => {
         switch (field.type) {
@@ -68,41 +80,49 @@ const DraggableField = ({ field }: DraggableFieldProps) => {
             )}
         >
             <div className="rounded-md bg-white/50 p-1">
-                <Icon className={cn(
-                    'size-4',
-                    color === 'blue' && 'text-blue-600',
-                    color === 'green' && 'text-green-600',
-                    color === 'gray' && 'text-neutral-600'
-                )} />
-            </div>
-            
-            <div className="flex-1 min-w-0">
-                <p className={cn(
-                    'text-sm font-medium truncate',
-                    color === 'blue' && 'text-blue-800',
-                    color === 'green' && 'text-green-800',
-                    color === 'gray' && 'text-neutral-800'
-                )}>
-                    {field.displayName}
-                </p>
-                {field.sampleValue && (
-                    <p className={cn(
-                        'text-xs truncate',
+                <Icon
+                    className={cn(
+                        'size-4',
                         color === 'blue' && 'text-blue-600',
                         color === 'green' && 'text-green-600',
                         color === 'gray' && 'text-neutral-600'
-                    )}>
+                    )}
+                />
+            </div>
+
+            <div className="min-w-0 flex-1">
+                <p
+                    className={cn(
+                        'truncate text-sm font-medium',
+                        color === 'blue' && 'text-blue-800',
+                        color === 'green' && 'text-green-800',
+                        color === 'gray' && 'text-neutral-800'
+                    )}
+                >
+                    {field.displayName}
+                </p>
+                {field.sampleValue && (
+                    <p
+                        className={cn(
+                            'truncate text-xs',
+                            color === 'blue' && 'text-blue-600',
+                            color === 'green' && 'text-green-600',
+                            color === 'gray' && 'text-neutral-600'
+                        )}
+                    >
                         {field.sampleValue}
                     </p>
                 )}
             </div>
 
-            <div className={cn(
-                'opacity-0 group-hover:opacity-100 transition-opacity',
-                color === 'blue' && 'text-blue-500',
-                color === 'green' && 'text-green-500',
-                color === 'gray' && 'text-neutral-500'
-            )}>
+            <div
+                className={cn(
+                    'opacity-0 transition-opacity group-hover:opacity-100',
+                    color === 'blue' && 'text-blue-500',
+                    color === 'green' && 'text-green-500',
+                    color === 'gray' && 'text-neutral-500'
+                )}
+            >
                 <DotsSixVertical className="size-4" />
             </div>
         </div>
@@ -179,35 +199,36 @@ export const FieldPalette = ({ session }: FieldPaletteProps) => {
     ];
 
     // CSV fields from uploaded data
-    const csvFields: AvailableField[] = session.csvHeaders?.slice(3).map((header) => {
-        // Try to infer field type and get sample value
-        const sampleRow = session.uploadedCsvData?.[0];
-        const sampleValue = sampleRow?.[header];
-        
-        let fieldType: 'text' | 'number' | 'date' = 'text';
-        if (typeof sampleValue === 'number') {
-            fieldType = 'number';
-        } else if (typeof sampleValue === 'string') {
-            // Simple date detection
-            const dateRegex = /^\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4}|\d{2}-\d{2}-\d{4}$/;
-            if (dateRegex.test(sampleValue)) {
-                fieldType = 'date';
-            }
-            // Number detection for string numbers
-            else if (!isNaN(Number(sampleValue)) && sampleValue.trim() !== '') {
-                fieldType = 'number';
-            }
-        }
+    const csvFields: AvailableField[] =
+        session.csvHeaders?.slice(3).map((header) => {
+            // Try to infer field type and get sample value
+            const sampleRow = session.uploadedCsvData?.[0];
+            const sampleValue = sampleRow?.[header];
 
-        return {
-            name: header,
-            displayName: header.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-            type: fieldType,
-            isRequired: false,
-            source: 'csv' as const,
-            sampleValue: sampleValue?.toString() || 'Sample data',
-        };
-    }) || [];
+            let fieldType: 'text' | 'number' | 'date' = 'text';
+            if (typeof sampleValue === 'number') {
+                fieldType = 'number';
+            } else if (typeof sampleValue === 'string') {
+                // Simple date detection
+                const dateRegex = /^\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4}|\d{2}-\d{2}-\d{4}$/;
+                if (dateRegex.test(sampleValue)) {
+                    fieldType = 'date';
+                }
+                // Number detection for string numbers
+                else if (!isNaN(Number(sampleValue)) && sampleValue.trim() !== '') {
+                    fieldType = 'number';
+                }
+            }
+
+            return {
+                name: header,
+                displayName: header.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+                type: fieldType,
+                isRequired: false,
+                source: 'csv' as const,
+                sampleValue: sampleValue?.toString() || 'Sample data',
+            };
+        }) || [];
 
     const allFields = [...systemFields, ...csvFields];
 
@@ -216,15 +237,14 @@ export const FieldPalette = ({ session }: FieldPaletteProps) => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-neutral-700">Available Fields</h3>
-                <div className="text-xs text-neutral-500">
-                    {allFields.length} fields available
-                </div>
+                <div className="text-xs text-neutral-500">{allFields.length} fields available</div>
             </div>
 
             {/* Instructions */}
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
                 <p className="text-xs text-blue-700">
-                    <strong>Instructions:</strong> Drag fields from this panel onto the PDF template to position them where you want the data to appear on the certificate.
+                    <strong>Instructions:</strong> Drag fields from this panel onto the PDF template
+                    to position them where you want the data to appear on the certificate.
                 </p>
             </div>
 
@@ -262,9 +282,11 @@ export const FieldPalette = ({ session }: FieldPaletteProps) => {
             {csvFields.length === 0 && (
                 <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
                     <div className="text-center">
-                        <Database className="mx-auto size-8 text-amber-600 mb-2" />
-                        <p className="text-sm font-medium text-amber-800">No CSV Fields Available</p>
-                        <p className="text-xs text-amber-700 mt-1">
+                        <Database className="mx-auto mb-2 size-8 text-amber-600" />
+                        <p className="text-sm font-medium text-amber-800">
+                            No CSV Fields Available
+                        </p>
+                        <p className="mt-1 text-xs text-amber-700">
                             Upload a CSV file in Step 1 to see additional fields for mapping
                         </p>
                     </div>
@@ -273,7 +295,7 @@ export const FieldPalette = ({ session }: FieldPaletteProps) => {
 
             {/* Field Legend */}
             <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3">
-                <h4 className="text-xs font-medium text-neutral-600 mb-2">Field Types</h4>
+                <h4 className="mb-2 text-xs font-medium text-neutral-600">Field Types</h4>
                 <div className="space-y-1">
                     <div className="flex items-center gap-2 text-xs text-neutral-600">
                         <div className="size-2 rounded-full bg-blue-500"></div>
@@ -287,4 +309,4 @@ export const FieldPalette = ({ session }: FieldPaletteProps) => {
             </div>
         </div>
     );
-}; 
+};

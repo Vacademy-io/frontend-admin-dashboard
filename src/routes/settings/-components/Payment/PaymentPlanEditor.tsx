@@ -14,7 +14,8 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Plus, Trash2, Info } from 'lucide-react';
 import { currencyOptions } from '../../-constants/payments';
-import { PaymentPlan } from '@/types/payment';
+import { PaymentPlan, PaymentPlans } from '@/types/payment';
+import { getCurrencySymbol } from './utils/utils';
 
 interface CustomInterval {
     value: number;
@@ -44,11 +45,6 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
 }) => {
     const [planData, setPlanData] = useState<PaymentPlan>(editingPlan);
     const [currentStep, setCurrentStep] = useState(1);
-
-    const getCurrencySymbol = (currencyCode: string) => {
-        const currency = currencyOptions.find((c) => c.code === currencyCode);
-        return currency?.symbol || '$';
-    };
 
     // Initialize form data when editing
     useEffect(() => {
@@ -115,7 +111,7 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
 
         // Validate free plan
         if (
-            planData.type === 'free' &&
+            planData.type === PaymentPlans.FREE &&
             (!planData.config?.free?.validityDays || planData.config.free.validityDays <= 0)
         ) {
             return;
@@ -128,7 +124,7 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
         if (currentStep === 1 && planData.type && planData.name) {
             setCurrentStep(2);
         } else if (currentStep === 2) {
-            if (planData.type === 'free' || planData.type === 'donation') {
+            if (planData.type === PaymentPlans.FREE || planData.type === PaymentPlans.DONATION) {
                 handleSave();
             } else {
                 setCurrentStep(3);
@@ -142,42 +138,14 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
         }
     };
 
-    const getStepTitle = () => {
-        switch (currentStep) {
-            case 1:
-                return 'Edit Payment Plan Type';
-            case 2:
-                if (planData.type === 'donation') {
-                    return 'Configure Donation Settings';
-                }
-                if (planData.type === 'free') {
-                    return 'Configure Free Plan Settings';
-                }
-                return 'Configure Plan Details';
-            case 3:
-                return 'Manage Discounts & Coupons';
-            default:
-                return 'Edit Payment Plan';
-        }
-    };
-
     const getTotalSteps = () => {
-        if (planData.type === 'free') return 2;
-        if (planData.type === 'donation') return 2;
+        if (planData.type === PaymentPlans.FREE) return 1;
+        if (planData.type === PaymentPlans.DONATION) return 2;
         return 3;
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-lg font-semibold">Edit Payment Plan</h2>
-                    <p className="text-sm text-gray-600">
-                        Step {currentStep} of {getTotalSteps()} - {getStepTitle()}
-                    </p>
-                </div>
-            </div>
-
+        <div className="mt-4 space-y-6">
             {/* Step 1: Basic Plan Information */}
             {currentStep === 1 && (
                 <div className="space-y-6">
@@ -232,7 +200,7 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
             {/* Step 2: Plan Configuration */}
             {currentStep === 2 && (
                 <div className="space-y-6">
-                    {planData.type === 'subscription' && (
+                    {planData.type === PaymentPlans.SUBSCRIPTION && (
                         <Card>
                             <CardHeader>
                                 <CardTitle>Subscription Plan Configuration</CardTitle>
@@ -499,7 +467,7 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
                         </Card>
                     )}
 
-                    {planData.type === 'upfront' && (
+                    {planData.type === PaymentPlans.UPFRONT && (
                         <Card>
                             <CardHeader>
                                 <CardTitle>One-Time Payment Configuration</CardTitle>
@@ -527,7 +495,7 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
                         </Card>
                     )}
 
-                    {planData.type === 'donation' && (
+                    {planData.type === PaymentPlans.DONATION && (
                         <Card>
                             <CardHeader>
                                 <CardTitle>Donation Configuration</CardTitle>
@@ -588,34 +556,6 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
                             </CardContent>
                         </Card>
                     )}
-
-                    {planData.type === 'free' && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Free Plan Configuration</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div>
-                                    <Label>Validity Period (Days) *</Label>
-                                    <Input
-                                        type="number"
-                                        value={planData.config?.free?.validityDays || ''}
-                                        onChange={(e) =>
-                                            updateConfig({
-                                                free: {
-                                                    ...planData.config?.free,
-                                                    validityDays: parseInt(e.target.value) || 0,
-                                                },
-                                            })
-                                        }
-                                        className="mt-1"
-                                        min="1"
-                                        max="365"
-                                    />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
                 </div>
             )}
 
@@ -630,7 +570,7 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
                             </p>
                         </CardHeader>
                         <CardContent>
-                            {planData.type === 'subscription' &&
+                            {planData.type === PaymentPlans.SUBSCRIPTION &&
                             planData.config?.subscription?.customIntervals ? (
                                 <div className="overflow-x-auto">
                                     <table className="w-full border-collapse border border-gray-200">
@@ -828,7 +768,7 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
                                         </tbody>
                                     </table>
                                 </div>
-                            ) : planData.type === 'upfront' ? (
+                            ) : planData.type === PaymentPlans.UPFRONT ? (
                                 <div className="overflow-x-auto">
                                     <table className="w-full border-collapse border border-gray-200">
                                         <thead>
@@ -1063,13 +1003,14 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
                     </Button>
                     {currentStep < getTotalSteps() ||
                     (currentStep === 2 &&
-                        (planData.type === 'free' || planData.type === 'donation')) ? (
+                        (planData.type === PaymentPlans.FREE ||
+                            planData.type === PaymentPlans.DONATION)) ? (
                         <Button
                             onClick={handleNext}
                             disabled={
                                 (currentStep === 1 && (!planData.name || !planData.type)) ||
                                 (currentStep === 2 &&
-                                    planData.type === 'free' &&
+                                    planData.type === PaymentPlans.FREE &&
                                     (!planData.config?.free?.validityDays ||
                                         planData.config.free.validityDays <= 0)) ||
                                 isSaving
@@ -1081,8 +1022,8 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
                                     <div className="mr-2 size-4 animate-spin rounded-full border-b-2 border-white"></div>
                                     Saving...
                                 </>
-                            ) : (planData.type === 'free' && currentStep === 2) ||
-                              (planData.type === 'donation' && currentStep === 2) ? (
+                            ) : (planData.type === PaymentPlans.FREE && currentStep === 2) ||
+                              (planData.type === PaymentPlans.DONATION && currentStep === 2) ? (
                                 'Update Plan'
                             ) : (
                                 'Next'

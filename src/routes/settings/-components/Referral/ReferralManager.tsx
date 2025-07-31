@@ -27,7 +27,6 @@ interface ReferralManagerProps {
     onCreateProgram: () => void;
     onEditProgram: (program: UnifiedReferralSettingsType) => void;
     onDeleteProgram: (programId: string) => void;
-    onSetDefaultProgram: (programId: string) => void;
     onDuplicateProgram: (program: UnifiedReferralSettingsType) => void;
 }
 
@@ -36,7 +35,6 @@ export const ReferralManager: React.FC<ReferralManagerProps> = ({
     onCreateProgram,
     onEditProgram,
     onDeleteProgram,
-    // onSetDefaultProgram, // Unused parameter
     onDuplicateProgram,
 }) => {
     const [selectedProgram, setSelectedProgram] = useState<UnifiedReferralSettingsType | null>(
@@ -92,15 +90,10 @@ export const ReferralManager: React.FC<ReferralManagerProps> = ({
             {programs.length === 0 ? (
                 <Card className="py-12 text-center">
                     <CardContent>
-                        <TrendingUp className="mx-auto mb-4 size-16 text-gray-300" />
                         <h3 className="mb-2 text-lg font-medium">No referral programs created</h3>
                         <p className="mb-4 text-gray-600">
                             Create your first referral program to start incentivizing referrals
                         </p>
-                        <Button onClick={onCreateProgram}>
-                            <Plus className="mr-2 size-4" />
-                            Create Your First Program
-                        </Button>
                     </CardContent>
                 </Card>
             ) : (
@@ -260,6 +253,7 @@ export const ReferralManager: React.FC<ReferralManagerProps> = ({
                                     >
                                         <Edit className="size-4" />
                                     </Button>
+
                                     <Button
                                         variant="outline"
                                         size="sm"

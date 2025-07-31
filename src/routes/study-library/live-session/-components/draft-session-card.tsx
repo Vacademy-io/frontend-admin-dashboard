@@ -16,8 +16,9 @@ import { useNavigate } from '@tanstack/react-router';
 import { useSessionDetailsStore } from '../-store/useSessionDetailsStore';
 import { useQueryClient } from '@tanstack/react-query';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DeleteRecurringDialog from './delete-recurring-dialog';
+import type { SessionBySessionIdResponse } from '../-services/utils';
 
 interface DraftSessionCardProps {
     session: DraftSession;
@@ -25,10 +26,22 @@ interface DraftSessionCardProps {
 
 export default function DraftSessionCard({ session }: DraftSessionCardProps) {
     const queryClient = useQueryClient();
+    // Local state for fetched session details
+    const [scheduleInfo, setScheduleInfo] = useState<SessionBySessionIdResponse['schedule'] | null>(null);
+
     const joinLink =
         session.registration_form_link_for_public_sessions ||
         `${BASE_URL_LEARNER_DASHBOARD}/register/live-class?sessionId=${session.session_id}`;
-    const formattedDateTime = `${session.meeting_date} ${session.start_time}`;
+    // Fetch detailed session info for draft to get accurate date/time
+    useEffect(() => {
+        getSessionBySessionId(session.session_id)
+            .then((res) => setScheduleInfo(res.schedule))
+            .catch((err) => console.error('Failed to fetch draft session details:', err));
+    }, [session.session_id]);
+    const displayDate = scheduleInfo?.meeting_date ?? session.meeting_date;
+    const displayTime = scheduleInfo?.start_time ?? session.start_time;
+    const formattedDateTime = `${displayDate || ''} ${displayTime || ''}`.trim();
+
     const navigate = useNavigate();
     const { setSessionId } = useLiveSessionStore();
     const { setSessionDetails } = useSessionDetailsStore();
@@ -124,12 +137,12 @@ export default function DraftSessionCard({ session }: DraftSessionCardProps) {
 
                 <div className="flex items-center gap-2">
                     <span className="text-black">Start Date & Time:</span>
-                    <span>{formattedDateTime}</span>
+                    <span>{formattedDateTime || 'N/A'}</span>
                 </div>
 
                 <div className="flex items-center gap-2">
                     <span className="text-black">Last Entry:</span>
-                    <span>{session.last_entry_time}</span>
+                    <span>{scheduleInfo?.last_entry_time ?? session.last_entry_time ?? 'N/A'}</span>
                 </div>
 
                 <div className="flex items-center gap-2">

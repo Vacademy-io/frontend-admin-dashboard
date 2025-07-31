@@ -1,8 +1,13 @@
 import type {
     AssignmentSlidePayload,
+    QuizSlidePayload,
     Slide,
 } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
-import { generateUniqueAssignmentSlideTitle } from '../../-helper/slide-naming-utils';
+import {
+    generateUniqueAssignmentSlideTitle,
+    generateUniqueQuizSlideTitle,
+} from '../../-helper/slide-naming-utils';
+import { getSlideStatusForUser } from '../../non-admin/hooks/useNonAdminSlides';
 
 export function createAssignmentSlidePayload(
     allSlides: Slide[] = [],
@@ -25,6 +30,8 @@ export function createAssignmentSlidePayload(
         isValidISO: /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(isoDate),
     });
 
+    const slideStatus = getSlideStatusForUser();
+
     return {
         id: slideId,
         source_id: '',
@@ -32,7 +39,7 @@ export function createAssignmentSlidePayload(
         title: title,
         image_file_id: '',
         description: 'Assignment',
-        status: 'DRAFT',
+        status: slideStatus,
         slide_order: 0,
         video_slide: null,
         document_slide: null,
@@ -56,6 +63,52 @@ export function createAssignmentSlidePayload(
             questions: [],
         },
         quiz_slide: null,
+        is_loaded: true,
+        new_slide: true,
+    };
+}
+
+/**
+ * Creates a payload for a new quiz slide without questions
+ */
+export function createQuizSlidePayload(
+    allSlides: Slide[] = [],
+    titleOverride?: string
+): QuizSlidePayload {
+    const slideId = crypto.randomUUID();
+    const title =
+        titleOverride?.trim() || generateUniqueQuizSlideTitle(allSlides) || 'Untitled Quiz';
+
+    console.log('[Quiz Payload] Creating quiz slide payload:', {
+        title,
+        slideId,
+    });
+
+    const slideStatus = getSlideStatusForUser();
+
+    return {
+        id: slideId,
+        source_id: '',
+        source_type: 'QUIZ',
+        title: title,
+        image_file_id: '',
+        description: 'Quiz',
+        status: slideStatus,
+        slide_order: 0,
+        video_slide: null,
+        document_slide: null,
+        question_slide: null,
+        assignment_slide: null,
+        quiz_slide: {
+            id: crypto.randomUUID(),
+            title: title,
+            description: {
+                id: '',
+                content: '',
+                type: 'TEXT',
+            },
+            questions: [],
+        },
         is_loaded: true,
         new_slide: true,
     };

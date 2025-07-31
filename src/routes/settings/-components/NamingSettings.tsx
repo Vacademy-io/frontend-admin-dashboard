@@ -31,10 +31,10 @@ export enum ContentTerms {
     Course = 'Course',
     Level = 'Level',
     Session = 'Session',
-    Subjects = 'Subjects',
-    Modules = 'Modules',
-    Chapters = 'Chapters',
-    Slides = 'Slides',
+    Subjects = 'Subject',
+    Modules = 'Module',
+    Chapters = 'Chapter',
+    Slides = 'Slide',
     LiveSession = 'LiveSession',
 }
 
@@ -47,13 +47,13 @@ export enum RoleTerms {
     Learner = 'Learner',
 }
 export enum SystemTerms {
-    Course = 'Courses',
+    Course = 'Course',
     Level = 'Level',
     Session = 'Session',
-    Subjects = 'Subjects',
-    Modules = 'Modules',
-    Chapters = 'Chapters',
-    Slides = 'Slides',
+    Subjects = 'Subject',
+    Modules = 'Module',
+    Chapters = 'Chapter',
+    Slides = 'Slide',
     LiveSession = 'Live Session',
     Admin = 'Admin',
     Teacher = 'Teacher',

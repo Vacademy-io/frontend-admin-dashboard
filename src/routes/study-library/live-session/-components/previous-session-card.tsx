@@ -2,6 +2,10 @@ import { LockSimple } from 'phosphor-react';
 import { Badge } from '@/components/ui/badge';
 import { LiveSession } from '../schedule/-services/utils';
 import { useMemo, useState } from 'react';
+import Papa from 'papaparse';
+import { toast } from 'sonner';
+import { DownloadSimple } from 'phosphor-react';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { MyDialog } from '@/components/design-system/dialog';
 import { fetchSessionDetails, SessionDetailsResponse } from '../-hooks/useSessionDetails';
 import { MyButton } from '@/components/design-system/button';
@@ -21,6 +25,8 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
     const [openDialog, setOpenDialog] = useState<boolean>(false);
     const [scheduledSessionDetails, setScheduleSessionDetails] =
         useState<SessionDetailsResponse | null>(null);
+    const [isAttendanceExporting, setIsAttendanceExporting] = useState<boolean>(false);
+    // using Sonner toast for notifications
 
     const { mutate: fetchReport, data: reportResponse, isPending, error } = useLiveSessionReport();
     const { showForInstitutes } = useInstituteDetailsStore();
@@ -69,6 +75,27 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
         page_size: 10,
         total_elements: 0,
         last: true,
+    };
+
+    const handleExportPastAttendance = () => {
+        setIsAttendanceExporting(true);
+        const csvData = tableData.content.map(item => ({
+            index: item.index,
+            username: item.username,
+            attendanceStatus: item.attendanceStatus === 'PRESENT' ? 'Present' : 'Absent',
+        }));
+        const csv = Papa.unparse(csvData);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `past_attendance_session_${session.session_id}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        setIsAttendanceExporting(false);
+        toast.success('Attendance report downloaded successfully.');
     };
 
     const duration = useMemo(() => {
@@ -160,9 +187,6 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
                                         {scheduledSessionDetails?.scheduleStartTime}
                                     </p>
                                 </div>
-                                <MyButton type="button" buttonType="secondary">
-                                    Export
-                                </MyButton>
                             </div>
 
                             {/* Basic Details */}
@@ -189,7 +213,7 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
                                         <span className="font-bold">Duration:</span>
                                         <span>{duration}</span>
                                     </div>
-                                    {/* 
+                                    {/*
                                     <div className="flex gap-2">
                                         <span className="font-bold">Time Zone:</span>
                                         <span>{}</span>
@@ -249,7 +273,25 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
                             </div>
 
                             <div className="mt-4 rounded-lg">
-                                <h3 className="mb-2 text-lg font-semibold">Attendance</h3>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-lg font-semibold">Attendance</h3>
+                                    <MyButton
+                                        type="button"
+                                        scale="medium"
+                                        buttonType="primary"
+                                        className="flex items-center"
+                                        onClick={handleExportPastAttendance}
+                                    >
+                                        {isAttendanceExporting ? (
+                                            <DashboardLoader />
+                                        ) : (
+                                            <>
+                                                <DownloadSimple size={20} className="mr-2" />
+                                                CSV
+                                            </>
+                                        )}
+                                    </MyButton>
+                                </div>
                                 <MyTable
                                     data={tableData}
                                     columns={reportColumns}

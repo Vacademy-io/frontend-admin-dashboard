@@ -9,11 +9,10 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { CreditCard, Globe, Plus, ArrowClockwise } from 'phosphor-react';
+import { CreditCard, Globe, Plus } from 'phosphor-react';
 import { useState, useEffect, useRef } from 'react';
 import { PaymentPlanList } from './PaymentPlanList';
 import { MyButton } from '@/components/design-system/button';
-import { PaymentPlanCreator } from './PaymentPlanCreator';
 import { SubscriptionPlanPreview } from './SubscriptionPlanPreview';
 import { DonationPlanPreview } from './DonationPlanPreview';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -21,24 +20,20 @@ import { Eye, Loader2 } from 'lucide-react';
 import {
     savePaymentOption,
     getPaymentOptions,
-    transformLocalPlanToApiFormat,
     transformApiPlanToLocalFormat,
     makeDefaultPaymentOption,
+    transformLocalPlanToApiFormatArray,
 } from '@/services/payment-options';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { currencyOptions } from '../../-constants/payments';
 import { getInstituteId } from '@/constants/helper';
-import { PaymentPlan, PaymentPlanTag, PaymentPlanType } from '@/types/payment';
-
-const toPaymentPlanTag = (tag: string | null): PaymentPlanTag => {
-    if (tag === 'default' || tag === 'free' || tag === null) return tag as PaymentPlanTag;
-    return 'free';
-};
+import { PaymentPlan, PaymentPlans, PaymentPlanTag, PaymentPlanType } from '@/types/payment';
+import { PaymentPlanCreator } from './PaymentPlanCreator/index';
+import { getCurrencySymbol } from './utils/utils';
 
 interface Interval {
     price: string;
+    originalPrice: string;
     title?: string;
     value: number;
     unit: string;
@@ -75,11 +70,6 @@ const PaymentSettings = () => {
     const [paymentPlans, setPaymentPlans] = useState<PaymentPlan[]>([]);
     const instituteId = getInstituteId();
 
-    const getCurrencySymbol = (currencyCode: string) => {
-        const currency = currencyOptions.find((c) => c.code === currencyCode);
-        return currency?.symbol || '$';
-    };
-
     // Helper functions for plan transformations
     const transformIntervalsToSubscriptionPlans = (intervals: Interval[] = []) => {
         return intervals.reduce(
@@ -87,7 +77,7 @@ const PaymentSettings = () => {
                 ...acc,
                 [`custom${idx}`]: {
                     enabled: true,
-                    price: interval.price || '0',
+                    price: interval.originalPrice || '0',
                     interval: 'custom',
                     title: interval.title || `${interval.value} ${interval.unit} Plan`,
                     features: interval.features || [],
@@ -145,7 +135,12 @@ const PaymentSettings = () => {
         setIsLoading(true);
         try {
             const request = {
-                types: ['subscription', 'upfront', 'donation', 'free'],
+                types: [
+                    PaymentPlans.SUBSCRIPTION,
+                    PaymentPlans.UPFRONT,
+                    PaymentPlans.DONATION,
+                    PaymentPlans.FREE,
+                ],
                 source: 'INSTITUTE',
                 source_id: instituteId ?? '',
                 require_approval: true,
@@ -154,26 +149,111 @@ const PaymentSettings = () => {
 
             const response = await getPaymentOptions(request);
             const transformedPlans =
-                response?.flatMap((paymentOption) => {
-                    if (paymentOption.payment_plans?.length > 0) {
-                        return paymentOption.payment_plans.map((plan) => {
-                            const planWithMetadata = {
-                                ...plan,
+                response
+                    ?.map((paymentOption) => {
+                        if (paymentOption.type === PaymentPlans.SUBSCRIPTION) {
+                            // Aggregate all intervals
+                            const intervals = paymentOption.payment_plans.map((plan) => ({
+                                price: plan.actual_price, // discounted price
+                                originalPrice: plan.elevated_price, // original price
+                                title: plan.name || '',
+                                value: plan.validity_in_days,
+                                unit: 'days', // or 'months', depending on your logic
+                                features: JSON.parse(plan.feature_json || '[]'),
+                            }));
+                            // Use the first plan for other fields
+                            const basePlan = paymentOption.payment_plans[0];
+                            if (!basePlan)
+                                return {
+                                    id: paymentOption.id || '',
+                                    tag: paymentOption.tag as PaymentPlanTag,
+                                    type: paymentOption.type as PaymentPlanType,
+                                    name: paymentOption.name || '',
+                                    config: {
+                                        subscription: {
+                                            customIntervals: [],
+                                        },
+                                        free: {
+                                            validityDays: 320,
+                                        },
+                                    },
+                                };
+
+                            const localPlan = transformApiPlanToLocalFormat({
+                                ...basePlan,
+                                name: basePlan.name || '',
+                                currency: basePlan.currency || '',
+                                feature_json: basePlan.feature_json || '[]',
                                 payment_option_metadata_json:
                                     paymentOption.payment_option_metadata_json,
                                 type: paymentOption.type,
-                            };
-                            const localPlan = transformApiPlanToLocalFormat(planWithMetadata);
+                            });
+                            // Set all intervals in config
                             return {
                                 ...localPlan,
-                                id: paymentOption.id,
+                                id: paymentOption.id || '',
                                 tag: paymentOption.tag as PaymentPlanTag,
                                 type: localPlan.type as PaymentPlanType,
-                            };
-                        });
-                    }
-                    return [];
-                }) || [];
+                                name: paymentOption.name || '',
+                                currency: localPlan.currency || '',
+                                config: {
+                                    ...localPlan.config,
+                                    subscription: {
+                                        ...((localPlan.config && localPlan.config.subscription) ||
+                                            {}),
+                                        customIntervals: intervals,
+                                    },
+                                },
+                                requireApproval: paymentOption.require_approval,
+                            } as PaymentPlan;
+                        } else if (paymentOption.type === PaymentPlans.FREE) {
+                            // For FREE plans, we can create a plan even without payment_plans
+                            const metadata = paymentOption.payment_option_metadata_json
+                                ? JSON.parse(paymentOption.payment_option_metadata_json)
+                                : {};
+
+                            return {
+                                id: paymentOption.id || '',
+                                tag: paymentOption.tag as PaymentPlanTag,
+                                type: PaymentPlans.FREE as PaymentPlanType,
+                                name: paymentOption.name || '',
+                                currency: metadata.currency || 'GBP',
+                                features: metadata.features || [],
+                                config: {
+                                    ...metadata.config,
+                                    free: {
+                                        validityDays: metadata.freeData?.validityDays || 30,
+                                    },
+                                },
+                                isDefault: false,
+                                requireApproval: paymentOption.require_approval,
+                            } as PaymentPlan;
+                        } else if (paymentOption.payment_plans?.length > 0) {
+                            // For other non-subscription plans, just use the first plan
+                            const plan = paymentOption.payment_plans[0];
+                            if (!plan) return null;
+                            const localPlan = transformApiPlanToLocalFormat({
+                                ...plan,
+                                name: paymentOption.name || '',
+                                currency: plan.currency || '',
+                                feature_json: plan.feature_json || '[]',
+                                payment_option_metadata_json:
+                                    paymentOption.payment_option_metadata_json,
+                                type: paymentOption.type,
+                            });
+                            return {
+                                ...localPlan,
+                                id: paymentOption.id || '',
+                                tag: paymentOption.tag as PaymentPlanTag,
+                                type: localPlan.type as PaymentPlanType,
+                                name: paymentOption.name || '',
+                                currency: localPlan.currency || '',
+                                requireApproval: paymentOption.require_approval,
+                            } as PaymentPlan;
+                        }
+                        return null;
+                    })
+                    .filter((plan): plan is PaymentPlan => plan !== null) || [];
 
             setPaymentPlans(
                 transformedPlans.map((plan) => ({
@@ -183,6 +263,8 @@ const PaymentSettings = () => {
                     config: plan.config || {},
                     tag: plan.tag as PaymentPlanTag,
                     type: plan.type as PaymentPlanType,
+                    name: plan.name || '',
+                    currency: plan.currency || '',
                 }))
             );
 
@@ -252,37 +334,39 @@ const PaymentSettings = () => {
 
     const handleSavePaymentPlan = async (plan: PaymentPlan, approvalOverride?: boolean) => {
         setIsSaving(true);
+        console.log('plan', plan);
         try {
-            const apiPlan = transformLocalPlanToApiFormat(plan);
+            const apiPlans = transformLocalPlanToApiFormatArray(plan);
+
             const paymentOptionRequest = {
-                id: plan.id, // Use the plan ID directly (either existing or new)
+                id: editingPlan?.id || undefined,
                 name: plan.name,
                 status: 'ACTIVE',
                 source: 'INSTITUTE',
                 source_id: instituteId ?? '',
-                type: plan.type,
-                require_approval: approvalOverride ?? requireApproval,
-                payment_plans: [apiPlan],
+                type: plan.type.toUpperCase(),
+                require_approval: plan.requireApproval ?? approvalOverride ?? requireApproval,
+                payment_plans: apiPlans,
                 payment_option_metadata_json: JSON.stringify({
                     currency: plan.currency,
                     features: plan.features || [],
                     config: plan.config,
                     subscriptionData:
-                        plan.type === 'subscription'
+                        plan.type === PaymentPlans.SUBSCRIPTION
                             ? {
                                   customIntervals: plan.config?.subscription?.customIntervals || [],
                                   planDiscounts: plan.config?.planDiscounts || {},
                               }
                             : undefined,
                     upfrontData:
-                        plan.type === 'upfront'
+                        plan.type === PaymentPlans.UPFRONT
                             ? {
                                   fullPrice: plan.config?.upfront?.fullPrice,
                                   planDiscounts: plan.config?.planDiscounts || {},
                               }
                             : undefined,
                     donationData:
-                        plan.type === 'donation'
+                        plan.type === PaymentPlans.DONATION
                             ? {
                                   suggestedAmounts: plan.config?.donation?.suggestedAmounts,
                                   minimumAmount: plan.config?.donation?.minimumAmount,
@@ -290,7 +374,7 @@ const PaymentSettings = () => {
                               }
                             : undefined,
                     freeData:
-                        plan.type === 'free'
+                        plan.type === PaymentPlans.FREE
                             ? {
                                   validityDays: plan.config?.free?.validityDays,
                               }
@@ -314,9 +398,9 @@ const PaymentSettings = () => {
                         {
                             ...transformedPlan,
                             tag:
-                                transformedPlan.type === 'free'
+                                transformedPlan.type === PaymentPlans.FREE
                                     ? 'free'
-                                    : transformedPlan.type === 'donation'
+                                    : transformedPlan.type === PaymentPlans.DONATION
                                       ? 'donation'
                                       : 'default',
                         } as PaymentPlan,
@@ -325,11 +409,15 @@ const PaymentSettings = () => {
                     setPaymentPlans((plans) => [...plans, plan]);
                 }
                 toast.success('Payment plan created successfully');
+                // Refresh the list from the API after creating a new plan
+                await loadPaymentOptions();
             }
 
             setEditingPlan(null);
             setShowPaymentPlanCreator(false);
             setRequireApproval(false);
+            // Clear features after successfully creating/updating a plan
+            setFeaturesGlobal([]);
         } catch (error) {
             handleError(error, 'save payment plan');
         } finally {
@@ -356,14 +444,18 @@ const PaymentSettings = () => {
 
     // Filtering: use only type, never tag
     const getFreePlans = () =>
-        paymentPlans.filter((plan) => plan.type === 'free' || plan.type === 'donation');
+        paymentPlans.filter(
+            (plan) => plan.type === PaymentPlans.FREE || plan.type === PaymentPlans.DONATION
+        );
     const getPaidPlans = () =>
-        paymentPlans.filter((plan) => plan.type === 'subscription' || plan.type === 'upfront');
+        paymentPlans.filter(
+            (plan) => plan.type === PaymentPlans.SUBSCRIPTION || plan.type === PaymentPlans.UPFRONT
+        );
 
     const renderPlanPreview = () => {
         if (!previewingPlan) return null;
 
-        if (previewingPlan.type === 'subscription') {
+        if (previewingPlan.type === PaymentPlans.SUBSCRIPTION) {
             return (
                 <SubscriptionPlanPreview
                     currency={previewingPlan.currency}
@@ -376,7 +468,7 @@ const PaymentSettings = () => {
             );
         }
 
-        if (previewingPlan.type === 'donation') {
+        if (previewingPlan.type === PaymentPlans.DONATION) {
             return (
                 <DonationPlanPreview
                     currency={previewingPlan.currency}
@@ -409,16 +501,6 @@ const PaymentSettings = () => {
                                 <Plus className="size-4" />
                                 Add Payment Plan
                             </MyButton>
-                            <Button
-                                onClick={loadPaymentOptions}
-                                disabled={isLoading || isSaving}
-                                variant="outline"
-                                className="border hover:border-primary-500 hover:bg-primary-50"
-                            >
-                                <ArrowClockwise
-                                    className={`size-4 ${isLoading ? 'animate-spin' : ''}`}
-                                />
-                            </Button>
                         </div>
                     </div>
                 </CardHeader>
@@ -447,7 +529,7 @@ const PaymentSettings = () => {
                         <div className="flex items-center justify-between">
                             <h3 className="flex items-center gap-2 text-lg font-medium text-gray-900">
                                 <Globe className="size-5 text-green-600" />
-                                Free Plans
+                                Free Options
                             </h3>
                             <Badge variant="outline" className="border-green-200 text-green-600">
                                 {getFreePlans().length} plans
@@ -475,7 +557,7 @@ const PaymentSettings = () => {
                         <div className="flex items-center justify-between">
                             <h3 className="flex items-center gap-2 text-lg font-medium text-gray-900">
                                 <CreditCard className="size-5 text-blue-600" />
-                                Paid Plans
+                                Paid Options
                             </h3>
                             <Badge variant="outline" className="border-blue-200 text-blue-600">
                                 {getPaidPlans().length} plans
@@ -487,10 +569,7 @@ const PaymentSettings = () => {
                             </div>
                         ) : (
                             <PaymentPlanList
-                                plans={getPaidPlans().map((plan) => ({
-                                    ...plan,
-                                    tag: toPaymentPlanTag(plan.tag),
-                                }))}
+                                plans={getPaidPlans()}
                                 onEdit={handleEditPlan}
                                 onDelete={handleDeletePlan}
                                 onSetDefault={handleSetDefaultPlan}
@@ -506,24 +585,18 @@ const PaymentSettings = () => {
                 key={editingPlan?.id}
                 isOpen={showPaymentPlanCreator}
                 onClose={handleClosePaymentPlanCreator}
-                onSave={(plan) => handleSavePaymentPlan(plan, requireApproval)}
+                onSave={handleSavePaymentPlan}
                 editingPlan={editingPlan}
                 featuresGlobal={featuresGlobal}
                 setFeaturesGlobal={setFeaturesGlobal}
                 defaultCurrency={currency}
                 isSaving={isSaving}
-                requireApprovalCheckbox={
-                    !editingPlan && (
-                        <div className="mt-4 flex items-center gap-2">
-                            <Label htmlFor="requireApproval">Send for approval</Label>
-                            <Switch
-                                id="requireApproval"
-                                checked={requireApproval}
-                                onCheckedChange={setRequireApproval}
-                            />
-                        </div>
-                    )
-                }
+                existingFreePlans={getFreePlans().map((plan) => ({
+                    id: plan.id,
+                    requireApproval: plan.requireApproval || false,
+                }))}
+                requireApproval={requireApproval}
+                setRequireApproval={setRequireApproval}
             />
 
             <Dialog open={showPlanPreview} onOpenChange={setShowPlanPreview}>

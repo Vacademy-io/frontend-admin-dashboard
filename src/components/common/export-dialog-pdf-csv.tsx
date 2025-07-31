@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { MyButton } from '../design-system/button';
-import { Export } from 'phosphor-react';
+import { Export, DownloadSimple } from 'phosphor-react';
 import { DashboardLoader } from '../core/dashboard-loader';
 
 const ExportDialogPDFCSV = ({
@@ -31,31 +31,45 @@ const ExportDialogPDFCSV = ({
                     Export
                 </MyButton>
             </DialogTrigger>
-            <DialogContent className="flex flex-col !p-0">
+            <DialogContent className="flex flex-col !p-0 w-[300px]">
                 <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
                     Export
                 </h1>
-                <div className="mb-4 flex flex-col items-center justify-center gap-4">
+                <div className="flex items-center justify-center p-4 gap-4">
                     {isEnablePDF && (
                         <MyButton
                             type="button"
-                            scale="large"
+                            scale="medium"
                             buttonType="secondary"
-                            className="font-medium"
+                            className="flex items-center justify-center"
                             onClick={handleExportPDF}
                         >
-                            {isPDFLoading ? <DashboardLoader /> : 'PDF'}
+                            {isPDFLoading ? (
+                                <DashboardLoader />
+                            ) : (
+                                <>
+                                    <DownloadSimple size={20} className="mr-2" />
+                                    PDF
+                                </>
+                            )}
                         </MyButton>
                     )}
                     {isEnableCSV && (
                         <MyButton
                             type="button"
-                            scale="large"
-                            buttonType="secondary"
-                            className="font-medium"
+                            scale="medium"
+                            buttonType="primary"
+                            className="flex items-center justify-center"
                             onClick={handleExportCSV}
                         >
-                            {isCSVLoading ? <DashboardLoader /> : 'CSV'}
+                            {isCSVLoading ? (
+                                <DashboardLoader />
+                            ) : (
+                                <>
+                                    <DownloadSimple size={20} className="mr-2" />
+                                    CSV
+                                </>
+                            )}
                         </MyButton>
                     )}
                 </div>

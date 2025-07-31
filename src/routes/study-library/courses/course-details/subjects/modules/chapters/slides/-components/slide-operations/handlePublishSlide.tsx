@@ -165,13 +165,10 @@ export const handlePublishSlide = async (
     if (activeItem?.source_type === 'QUIZ') {
         try {
             // Use the createQuizSlidePayload function to properly transform the data
-            const payload = createQuizSlidePayload(
-                activeItem.quiz_slide?.questions || [],
-                {
-                    ...activeItem,
-                    status: 'PUBLISHED' // Override status to PUBLISHED
-                }
-            );
+            const payload = createQuizSlidePayload(activeItem.quiz_slide?.questions || [], {
+                ...activeItem,
+                status: 'PUBLISHED', // Override status to PUBLISHED
+            });
 
             // Call the API to publish the quiz slide
             await addUpdateQuizSlide(payload);

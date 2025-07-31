@@ -1,8 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
-import { ImageTemplate, FieldMapping, CertificateStudentData } from '@/types/certificate/certificate-types';
+import {
+    ImageTemplate,
+    FieldMapping,
+    CertificateStudentData,
+} from '@/types/certificate/certificate-types';
 import { certificateGenerationService } from '../../-services/pdf-generation-service';
 import { MyButton } from '@/components/design-system/button';
-import { Eye, Download, CaretLeft, CaretRight, Users, Star, Image, ArrowClockwise } from '@phosphor-icons/react';
+import {
+    Eye,
+    Download,
+    CaretLeft,
+    CaretRight,
+    Users,
+    Star,
+    Image,
+    ArrowClockwise,
+} from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 
 interface CertificatePreviewProps {
@@ -28,12 +41,15 @@ export const CertificatePreview = ({
     const currentStudent = selectedStudents[currentStudentIndex];
 
     // Generate input data for current student
-    const generateInputData = (student: CertificateStudentData, csvRow?: Record<string, string | number>) => {
+    const generateInputData = (
+        student: CertificateStudentData,
+        csvRow?: Record<string, string | number>
+    ) => {
         const inputs: Record<string, string> = {};
 
         fieldMappings.forEach((mapping) => {
             let value = '';
-            
+
             // Try to get value from various sources
             switch (mapping.fieldName) {
                 case 'user_id':
@@ -62,7 +78,10 @@ export const CertificatePreview = ({
                     // Try CSV data first, then student dynamic fields
                     if (csvRow && csvRow[mapping.fieldName] !== undefined) {
                         value = csvRow[mapping.fieldName]?.toString() || '';
-                    } else if (student.dynamicFields && student.dynamicFields[mapping.fieldName] !== undefined) {
+                    } else if (
+                        student.dynamicFields &&
+                        student.dynamicFields[mapping.fieldName] !== undefined
+                    ) {
                         value = student.dynamicFields[mapping.fieldName]?.toString() || '';
                     } else {
                         value = `Sample ${mapping.displayName}`;
@@ -84,9 +103,10 @@ export const CertificatePreview = ({
             setPreviewError(null);
 
             // Get CSV row for current student
-            const csvRow = csvData?.find(row => 
-                row.user_id === currentStudent.user_id ||
-                row.enrollment_number === currentStudent.institute_enrollment_id
+            const csvRow = csvData?.find(
+                (row) =>
+                    row.user_id === currentStudent.user_id ||
+                    row.enrollment_number === currentStudent.institute_enrollment_id
             );
 
             // Generate input data
@@ -102,7 +122,9 @@ export const CertificatePreview = ({
             setPreviewImageUrl(previewDataUrl);
         } catch (error) {
             console.error('Failed to generate preview:', error);
-            setPreviewError('Failed to generate certificate preview. Please check your field mappings.');
+            setPreviewError(
+                'Failed to generate certificate preview. Please check your field mappings.'
+            );
         } finally {
             setIsGeneratingPreview(false);
         }
@@ -119,11 +141,11 @@ export const CertificatePreview = ({
 
     // Navigation functions
     const handlePrevStudent = () => {
-        setCurrentStudentIndex(prev => Math.max(0, prev - 1));
+        setCurrentStudentIndex((prev) => Math.max(0, prev - 1));
     };
 
     const handleNextStudent = () => {
-        setCurrentStudentIndex(prev => Math.min(selectedStudents.length - 1, prev + 1));
+        setCurrentStudentIndex((prev) => Math.min(selectedStudents.length - 1, prev + 1));
     };
 
     const handleDownloadPreview = async () => {
@@ -131,9 +153,10 @@ export const CertificatePreview = ({
 
         try {
             // Get CSV row for current student
-            const csvRow = csvData?.find(row => 
-                row.user_id === currentStudent.user_id ||
-                row.enrollment_number === currentStudent.institute_enrollment_id
+            const csvRow = csvData?.find(
+                (row) =>
+                    row.user_id === currentStudent.user_id ||
+                    row.enrollment_number === currentStudent.institute_enrollment_id
             );
 
             // Generate certificate
@@ -166,11 +189,11 @@ export const CertificatePreview = ({
         return (
             <div className="rounded-lg border border-amber-200 bg-amber-50 p-8">
                 <div className="text-center">
-                    <div className="rounded-full bg-amber-100 p-4 mx-auto mb-4 w-fit">
+                    <div className="mx-auto mb-4 w-fit rounded-full bg-amber-100 p-4">
                         <Eye className="size-8 text-amber-600" />
                     </div>
-                    <h3 className="text-lg font-medium text-amber-800 mb-2">No Fields Mapped</h3>
-                    <p className="text-sm text-amber-700 mb-4">
+                    <h3 className="mb-2 text-lg font-medium text-amber-800">No Fields Mapped</h3>
+                    <p className="mb-4 text-sm text-amber-700">
                         Add fields to your certificate template to see a preview.
                     </p>
                     <div className="flex items-center justify-center gap-2 text-xs text-amber-600">
@@ -191,7 +214,9 @@ export const CertificatePreview = ({
                         <Eye className="size-5 text-green-600" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-semibold text-neutral-700">Certificate Preview</h3>
+                        <h3 className="text-lg font-semibold text-neutral-700">
+                            Certificate Preview
+                        </h3>
                         <p className="text-sm text-neutral-500">
                             Preview how certificates will look with real student data
                         </p>
@@ -210,16 +235,16 @@ export const CertificatePreview = ({
                         >
                             <CaretLeft className="size-4" />
                         </MyButton>
-                        
-                        <div className="text-center px-2">
+
+                        <div className="px-2 text-center">
                             <div className="text-xs font-medium text-neutral-700">
                                 {currentStudentIndex + 1} of {selectedStudents.length}
                             </div>
-                            <div className="text-xs text-neutral-500 truncate max-w-32">
+                            <div className="max-w-32 truncate text-xs text-neutral-500">
                                 {currentStudent?.full_name}
                             </div>
                         </div>
-                        
+
                         <MyButton
                             buttonType="secondary"
                             scale="small"
@@ -239,7 +264,9 @@ export const CertificatePreview = ({
                         disabled={isGeneratingPreview}
                         className="text-sm"
                     >
-                        <ArrowClockwise className={cn("size-4", isGeneratingPreview && "animate-spin")} />
+                        <ArrowClockwise
+                            className={cn('size-4', isGeneratingPreview && 'animate-spin')}
+                        />
                     </MyButton>
 
                     <MyButton
@@ -249,7 +276,7 @@ export const CertificatePreview = ({
                         disabled={!previewImageUrl || isGeneratingPreview}
                         className="text-sm"
                     >
-                        <Download className="size-4 mr-2" />
+                        <Download className="mr-2 size-4" />
                         Download Preview
                     </MyButton>
                 </div>
@@ -265,49 +292,64 @@ export const CertificatePreview = ({
                         <h4 className="text-sm font-medium text-blue-800">
                             Previewing: {currentStudent?.full_name}
                         </h4>
-                        <div className="mt-1 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-blue-700">
-                            <span><strong>ID:</strong> {currentStudent?.user_id}</span>
-                            <span><strong>Email:</strong> {currentStudent?.email}</span>
-                            <span><strong>Enrollment:</strong> {currentStudent?.institute_enrollment_id}</span>
-                            <span><strong>Institute:</strong> {currentStudent?.linked_institute_name}</span>
+                        <div className="mt-1 grid grid-cols-2 gap-2 text-xs text-blue-700 md:grid-cols-4">
+                            <span>
+                                <strong>ID:</strong> {currentStudent?.user_id}
+                            </span>
+                            <span>
+                                <strong>Email:</strong> {currentStudent?.email}
+                            </span>
+                            <span>
+                                <strong>Enrollment:</strong>{' '}
+                                {currentStudent?.institute_enrollment_id}
+                            </span>
+                            <span>
+                                <strong>Institute:</strong> {currentStudent?.linked_institute_name}
+                            </span>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Certificate Image Preview */}
-            <div className={cn(
-                'relative rounded-lg border border-neutral-200 bg-white shadow-sm overflow-hidden',
-                isLoading && 'opacity-50'
-            )}>
+            <div
+                className={cn(
+                    'relative overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm',
+                    isLoading && 'opacity-50'
+                )}
+            >
                 {(isGeneratingPreview || previewError || !previewImageUrl) && (
-                    <div className="absolute inset-0 flex items-center justify-center z-10 bg-white/90">
-                        <div className="text-center p-8">
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90">
+                        <div className="p-8 text-center">
                             {previewError ? (
                                 <>
-                                    <div className="rounded-full bg-red-100 p-4 mx-auto mb-3 w-fit">
+                                    <div className="mx-auto mb-3 w-fit rounded-full bg-red-100 p-4">
                                         <Eye className="size-8 text-red-600" />
                                     </div>
-                                    <h4 className="text-lg font-medium text-red-800 mb-2">Preview Error</h4>
-                                    <p className="text-sm text-red-700 mb-4">{previewError}</p>
+                                    <h4 className="mb-2 text-lg font-medium text-red-800">
+                                        Preview Error
+                                    </h4>
+                                    <p className="mb-4 text-sm text-red-700">{previewError}</p>
                                     <MyButton
                                         buttonType="secondary"
                                         scale="small"
                                         onClick={handleRefreshPreview}
                                         className="text-sm"
                                     >
-                                        <ArrowClockwise className="size-4 mr-2" />
+                                        <ArrowClockwise className="mr-2 size-4" />
                                         Retry
                                     </MyButton>
                                 </>
                             ) : isGeneratingPreview ? (
                                 <>
-                                    <div className="size-8 animate-spin rounded-full border-2 border-neutral-300 border-t-blue-600 mx-auto mb-3" />
-                                    <p className="text-sm text-neutral-600">Generating certificate preview...</p>
+                                    <div className="mx-auto mb-3 size-8 animate-spin rounded-full border-2 border-neutral-300 border-t-blue-600" />
+                                    <p className="text-sm text-neutral-600">
+                                        Generating certificate preview...
+                                    </p>
                                 </>
                             ) : (
                                 <>
-                                    <div className="rounded-full bg-neutral-100 p-4 mx-auto mb-3 w-fit">
+                                    <div className="mx-auto mb-3 w-fit rounded-full bg-neutral-100 p-4">
                                         <Image className="size-8 text-neutral-600" />
                                     </div>
                                     <p className="text-sm text-neutral-600">No preview available</p>
@@ -319,11 +361,11 @@ export const CertificatePreview = ({
 
                 {/* Certificate Image */}
                 {previewImageUrl && (
-                    <div className="p-4 flex items-center justify-center bg-gray-50">
-                        <img 
-                            src={previewImageUrl} 
+                    <div className="flex items-center justify-center bg-gray-50 p-4">
+                        <img
+                            src={previewImageUrl}
                             alt="Certificate preview"
-                            className="max-w-full max-h-96 object-contain border border-neutral-300 rounded shadow-lg bg-white"
+                            className="max-h-96 max-w-full rounded border border-neutral-300 bg-white object-contain shadow-lg"
                         />
                     </div>
                 )}
@@ -331,24 +373,30 @@ export const CertificatePreview = ({
 
             {/* Field Values Summary */}
             <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-4">
-                <h4 className="text-sm font-medium text-neutral-700 mb-3">
+                <h4 className="mb-3 text-sm font-medium text-neutral-700">
                     Field Values for {currentStudent?.full_name}
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
                     {fieldMappings.map((mapping) => {
-                        const csvRow = csvData?.find(row => 
-                            row.user_id === currentStudent?.user_id ||
-                            row.enrollment_number === currentStudent?.institute_enrollment_id
+                        const csvRow = csvData?.find(
+                            (row) =>
+                                row.user_id === currentStudent?.user_id ||
+                                row.enrollment_number === currentStudent?.institute_enrollment_id
                         );
-                        const inputs = currentStudent ? generateInputData(currentStudent, csvRow) : {};
+                        const inputs = currentStudent
+                            ? generateInputData(currentStudent, csvRow)
+                            : {};
                         const value = inputs[mapping.id];
 
                         return (
-                            <div key={mapping.id} className="rounded-md border border-neutral-200 bg-white p-2">
-                                <div className="text-xs font-medium text-neutral-700 truncate">
+                            <div
+                                key={mapping.id}
+                                className="rounded-md border border-neutral-200 bg-white p-2"
+                            >
+                                <div className="truncate text-xs font-medium text-neutral-700">
                                     {mapping.displayName}
                                 </div>
-                                <div className="text-xs text-neutral-600 truncate mt-1">
+                                <div className="mt-1 truncate text-xs text-neutral-600">
                                     {value || 'No value'}
                                 </div>
                             </div>
@@ -358,4 +406,4 @@ export const CertificatePreview = ({
             </div>
         </div>
     );
-}; 
+};

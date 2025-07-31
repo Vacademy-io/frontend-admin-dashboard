@@ -12,10 +12,10 @@ import {
     PaymentPlanType,
     PaymentPlanApi,
     PaymentOptionApi,
+    PaymentPlans,
 } from '@/types/payment';
 
 export interface SavePaymentOptionRequest {
-    id: string;
     name: string;
     status: string;
     source: string;
@@ -95,7 +95,7 @@ export const transformLocalPlanToApiFormat = (localPlan: PaymentPlan): PaymentPl
     let validityDays = localPlan.validityDays || 365;
 
     if (
-        localPlan.type === 'subscription' &&
+        localPlan.type === PaymentPlans.SUBSCRIPTION &&
         localPlan.config?.subscription?.customIntervals &&
         localPlan.config.subscription.customIntervals.length > 0
     ) {
@@ -109,19 +109,19 @@ export const transformLocalPlanToApiFormat = (localPlan: PaymentPlan): PaymentPl
                 validityDays = firstInterval.value;
             }
         }
-    } else if (localPlan.type === 'upfront' && localPlan.config?.upfront?.fullPrice) {
+    } else if (localPlan.type === PaymentPlans.UPFRONT && localPlan.config?.upfront?.fullPrice) {
         actualPrice = parseFloat(localPlan.config.upfront.fullPrice);
         elevatedPrice = actualPrice;
-    } else if (localPlan.type === 'donation') {
+    } else if (localPlan.type === PaymentPlans.DONATION) {
         actualPrice = parseFloat(localPlan.config?.donation?.minimumAmount || '0');
         elevatedPrice = actualPrice;
-    } else if (localPlan.type === 'free') {
+    } else if (localPlan.type === PaymentPlans.FREE) {
         actualPrice = 0;
         elevatedPrice = 0;
     }
 
     return {
-        id: localPlan.id || '',
+        id: undefined,
         name: localPlan.name || '',
         status: 'ACTIVE',
         validity_in_days: validityDays,
@@ -130,7 +130,7 @@ export const transformLocalPlanToApiFormat = (localPlan: PaymentPlan): PaymentPl
         currency: localPlan.currency || 'GBP',
         description: localPlan.name || '',
         tag: localPlan.tag || 'free',
-        type: localPlan.type || 'subscription',
+        type: localPlan.type.toUpperCase() as PaymentPlanType,
         feature_json: JSON.stringify(localPlan.features || []),
     };
 };
@@ -148,9 +148,9 @@ export const transformApiPlanToLocalFormat = (apiPlan: PaymentPlanApi): PaymentP
         }
     }
     return {
-        id: apiPlan.id,
+        id: apiPlan.id || '',
         name: apiPlan.name,
-        type: apiPlan.type as PaymentPlanType,
+        type: apiPlan.type.toUpperCase() as PaymentPlanType,
         tag: apiPlan.tag as PaymentPlanTag,
         currency: apiPlan.currency,
         isDefault: false,
@@ -158,6 +158,70 @@ export const transformApiPlanToLocalFormat = (apiPlan: PaymentPlanApi): PaymentP
         validityDays: apiPlan.validity_in_days,
         config,
     };
+};
+
+export const transformLocalPlanToApiFormatArray = (localPlan: PaymentPlan): PaymentPlanApi[] => {
+    if (
+        localPlan.type === PaymentPlans.SUBSCRIPTION &&
+        localPlan.config?.subscription?.customIntervals
+    ) {
+        const planDiscounts = localPlan.config?.planDiscounts || {};
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return localPlan.config.subscription.customIntervals.map((interval: any, idx: number) => {
+            const originalPrice = parseFloat(String(interval.price || '0'));
+            let discountedPrice = originalPrice;
+            const discount = planDiscounts[`interval_${idx}`];
+            if (discount && discount.type !== 'none' && discount.amount) {
+                if (discount.type === 'percentage') {
+                    discountedPrice = originalPrice * (1 - parseFloat(discount.amount) / 100);
+                } else if (discount.type === 'fixed') {
+                    discountedPrice = originalPrice - parseFloat(discount.amount);
+                }
+                if (discountedPrice < 0) discountedPrice = 0;
+            }
+            return {
+                name: interval.title || '',
+                status: 'ACTIVE',
+                validity_in_days: 365,
+                actual_price: discountedPrice,
+                elevated_price: originalPrice,
+                currency: localPlan.currency || 'GBP',
+                description: localPlan.name || '',
+                tag: localPlan.tag || 'free',
+                type: (localPlan.type?.toUpperCase() as PaymentPlanType) || 'SUBSCRIPTION',
+                feature_json: JSON.stringify(interval.features || localPlan.features || []),
+            };
+        });
+    }
+    if (localPlan.type === PaymentPlans.UPFRONT && localPlan.config?.upfront?.fullPrice) {
+        const originalPrice = parseFloat(localPlan.config.upfront.fullPrice);
+        let discountedPrice = originalPrice;
+        const discount = localPlan.config?.planDiscounts?.upfront;
+        if (discount && discount.type !== 'none' && discount.amount) {
+            if (discount.type === 'percentage') {
+                discountedPrice = originalPrice * (1 - parseFloat(discount.amount) / 100);
+            } else if (discount.type === 'fixed') {
+                discountedPrice = originalPrice - parseFloat(discount.amount);
+            }
+            if (discountedPrice < 0) discountedPrice = 0;
+        }
+        return [
+            {
+                name: localPlan.name,
+                status: 'ACTIVE',
+                validity_in_days: 365,
+                actual_price: discountedPrice,
+                elevated_price: originalPrice,
+                currency: localPlan.currency || 'GBP',
+                description: localPlan.name || '',
+                tag: localPlan.tag || 'free',
+                type: (localPlan.type?.toUpperCase() as PaymentPlanType) || 'UPFRONT',
+                feature_json: JSON.stringify(localPlan.features || []),
+            },
+        ];
+    }
+    // For other types, just use the existing function
+    return [transformLocalPlanToApiFormat(localPlan)];
 };
 
 export const makeDefaultPaymentOption = async ({

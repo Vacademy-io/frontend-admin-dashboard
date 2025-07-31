@@ -50,7 +50,8 @@ function LearnerInsightsComponent() {
             <div className="mb-6">
                 <h1 className="text-xl font-semibold text-gray-900">Learner Live Activities</h1>
                 <p className="mt-1 text-sm text-gray-600">
-                    Monitor real-time learner engagement and activity patterns across your institute.
+                    Monitor real-time learner engagement and activity patterns across your
+                    institute.
                 </p>
             </div>
 

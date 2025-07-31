@@ -7,6 +7,7 @@ import { Route } from '../..';
 import { useSlidesMutations } from '../../-hooks/use-slides';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { CheckCircle, File } from 'phosphor-react';
+import { getSlideStatusForUser } from '../../non-admin/hooks/useNonAdminSlides';
 
 const AddAssignmentDialog = ({
     openState,
@@ -68,6 +69,7 @@ const AddAssignmentDialog = ({
     const handleAddAssignment = async (title: string | undefined) => {
         setIsAssignmentAdding(true);
         try {
+            const slideStatus = getSlideStatusForUser();
             const response: string = await updateAssignmentOrder({
                 id: crypto.randomUUID(),
                 source_id: '',
@@ -75,7 +77,7 @@ const AddAssignmentDialog = ({
                 title: title || '',
                 image_file_id: '',
                 description: '',
-                status: 'DRAFT',
+                status: slideStatus,
                 slide_order: 0, // Always insert at top
                 assignment_slide: {
                     id: crypto.randomUUID(),

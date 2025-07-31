@@ -36,10 +36,10 @@ export const TagInput: React.FC<TagInputProps> = ({ tags, onChange, placeholder 
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="h-4 w-4 p-0 hover:bg-blue-200"
+                            className="size-4 p-0 hover:bg-blue-200"
                             onClick={() => removeTag(index)}
                         >
-                            <X className="h-3 w-3" />
+                            <X className="size-3" />
                         </Button>
                     </span>
                 ))}

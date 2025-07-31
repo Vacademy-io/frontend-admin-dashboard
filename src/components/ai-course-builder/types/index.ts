@@ -129,7 +129,6 @@ export interface ExcalidrawSceneData {
     files?: Record<string, any>; // BinaryFiles
 }
 
-
 // ----- UI State & Props -----
 export interface UserSession {
     username: string;
@@ -139,4 +138,4 @@ export interface UserSession {
     currentSlide: Slide | null;
     sseStatus: 'connecting' | 'connected' | 'reconnecting' | 'disconnected' | 'error';
     error: string | null;
-} 
+}

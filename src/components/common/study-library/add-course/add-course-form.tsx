@@ -25,6 +25,7 @@ import { getTerminology } from '../../layout-container/sidebar/utils';
 import { CourseDetailsFormValues } from '@/routes/study-library/courses/course-details/-components/course-details-schema';
 import { useUpdateCourse } from '@/services/study-library/course-operations/update-course';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useCourseSettings } from '@/hooks/useCourseSettings';
 
 export interface Level {
     id: string;
@@ -42,7 +43,12 @@ export type Step1Data = z.infer<typeof step1Schema>;
 export type Step2Data = z.infer<typeof step2Schema>;
 
 // Combined form data type
-export interface CourseFormData extends Step1Data, Step2Data {}
+export interface CourseFormData extends Step1Data, Step2Data {
+    status?: string;
+    created_by_user_id?: string;
+    original_course_id?: string | null;
+    version_number?: number;
+}
 
 // Main wrapper component
 export const AddCourseForm = ({
@@ -56,6 +62,7 @@ export const AddCourseForm = ({
     const addSubjectMutation = useAddSubject();
     const addModuleMutation = useAddModule();
     const addChapterMutation = useAddChapter();
+    const { settings: courseSettings, loading: settingsLoading } = useCourseSettings();
 
     const navigate = useNavigate();
     const addCourseMutation = useAddCourse();
@@ -286,7 +293,7 @@ export const AddCourseForm = ({
 
                             toast.success(
                                 `${getTerminology(ContentTerms.Course, SystemTerms.Course)}` +
-                                    'created successfully'
+                                    ' created successfully'
                             );
                             setIsOpen(false);
                             setStep(1);
@@ -353,6 +360,8 @@ export const AddCourseForm = ({
                         <AddCourseStep1
                             onNext={handleStep1Submit}
                             initialData={formData as Step1Data}
+                            courseSettings={courseSettings}
+                            settingsLoading={settingsLoading}
                         />
                     ) : (
                         <AddCourseStep2
@@ -362,6 +371,8 @@ export const AddCourseForm = ({
                             isLoading={isCreating}
                             disableCreate={isCreating}
                             isEdit={isEdit}
+                            courseSettings={courseSettings}
+                            settingsLoading={settingsLoading}
                         />
                     )}
                 </div>

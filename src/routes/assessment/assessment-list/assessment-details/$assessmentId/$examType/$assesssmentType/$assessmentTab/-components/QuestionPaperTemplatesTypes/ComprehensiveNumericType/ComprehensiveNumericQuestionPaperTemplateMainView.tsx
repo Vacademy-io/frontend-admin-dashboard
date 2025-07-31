@@ -47,7 +47,11 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
         onBlur: () => void;
     }
 
-    const CollapsibleQuillEditor: React.FC<CollapsibleQuillEditorProps> = ({ value, onChange, onBlur }) => {
+    const CollapsibleQuillEditor: React.FC<CollapsibleQuillEditorProps> = ({
+        value,
+        onChange,
+        onBlur,
+    }) => {
         return (
             <div className="">
                 {!isExpanded ? (
@@ -217,7 +221,6 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                             <FormControl>
                                 <div className="flex flex-row justify-between">
                                     <div>{answersType}</div>
-
                                 </div>
                             </FormControl>
                             <FormMessage />

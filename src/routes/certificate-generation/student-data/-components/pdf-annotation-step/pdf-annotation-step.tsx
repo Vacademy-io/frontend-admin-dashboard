@@ -1,8 +1,22 @@
 import { useState, useMemo } from 'react';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
-import { CertificateGenerationSession, ImageTemplate, FieldMapping, AvailableField } from '@/types/certificate/certificate-types';
+import {
+    CertificateGenerationSession,
+    ImageTemplate,
+    FieldMapping,
+    AvailableField,
+} from '@/types/certificate/certificate-types';
 import { MyButton } from '@/components/design-system/button';
-import { ArrowLeft, Upload, FileText, PaintBrush, Certificate, Download, Eye, Star } from '@phosphor-icons/react';
+import {
+    ArrowLeft,
+    Upload,
+    FileText,
+    PaintBrush,
+    Certificate,
+    Download,
+    Eye,
+    Star,
+} from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 import { nanoid } from 'nanoid';
 import { PdfUploadSection } from '../pdf-upload/pdf-upload-section';
@@ -31,41 +45,98 @@ export const PdfAnnotationStep = ({
     // Get available fields for mapping
     const availableFields: AvailableField[] = useMemo(() => {
         const systemFields: AvailableField[] = [
-            { name: 'user_id', displayName: 'User ID', type: 'text', isRequired: true, source: 'system', sampleValue: 'USR001' },
-            { name: 'enrollment_number', displayName: 'Enrollment Number', type: 'text', isRequired: true, source: 'system', sampleValue: 'ENR2024001' },
-            { name: 'student_name', displayName: 'Student Name', type: 'text', isRequired: true, source: 'system', sampleValue: 'John Doe' },
-            { name: 'full_name', displayName: 'Full Name', type: 'text', isRequired: false, source: 'system', sampleValue: 'John Michael Doe' },
-            { name: 'email', displayName: 'Email Address', type: 'text', isRequired: false, source: 'system', sampleValue: 'john.doe@example.com' },
-            { name: 'mobile_number', displayName: 'Mobile Number', type: 'text', isRequired: false, source: 'system', sampleValue: '+1 (555) 123-4567' },
-            { name: 'institute_name', displayName: 'Institute Name', type: 'text', isRequired: false, source: 'system', sampleValue: 'University of Technology' },
-            { name: 'completion_date', displayName: 'Completion Date', type: 'date', isRequired: false, source: 'system', sampleValue: new Date().toLocaleDateString() },
+            {
+                name: 'user_id',
+                displayName: 'User ID',
+                type: 'text',
+                isRequired: true,
+                source: 'system',
+                sampleValue: 'USR001',
+            },
+            {
+                name: 'enrollment_number',
+                displayName: 'Enrollment Number',
+                type: 'text',
+                isRequired: true,
+                source: 'system',
+                sampleValue: 'ENR2024001',
+            },
+            {
+                name: 'student_name',
+                displayName: 'Student Name',
+                type: 'text',
+                isRequired: true,
+                source: 'system',
+                sampleValue: 'John Doe',
+            },
+            {
+                name: 'full_name',
+                displayName: 'Full Name',
+                type: 'text',
+                isRequired: false,
+                source: 'system',
+                sampleValue: 'John Michael Doe',
+            },
+            {
+                name: 'email',
+                displayName: 'Email Address',
+                type: 'text',
+                isRequired: false,
+                source: 'system',
+                sampleValue: 'john.doe@example.com',
+            },
+            {
+                name: 'mobile_number',
+                displayName: 'Mobile Number',
+                type: 'text',
+                isRequired: false,
+                source: 'system',
+                sampleValue: '+1 (555) 123-4567',
+            },
+            {
+                name: 'institute_name',
+                displayName: 'Institute Name',
+                type: 'text',
+                isRequired: false,
+                source: 'system',
+                sampleValue: 'University of Technology',
+            },
+            {
+                name: 'completion_date',
+                displayName: 'Completion Date',
+                type: 'date',
+                isRequired: false,
+                source: 'system',
+                sampleValue: new Date().toLocaleDateString(),
+            },
         ];
 
-        const csvFields: AvailableField[] = session.csvHeaders?.slice(3).map((header) => {
-            const sampleRow = session.uploadedCsvData?.[0];
-            const sampleValue = sampleRow?.[header];
-            
-            let fieldType: 'text' | 'number' | 'date' = 'text';
-            if (typeof sampleValue === 'number') {
-                fieldType = 'number';
-            } else if (typeof sampleValue === 'string') {
-                const dateRegex = /^\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4}|\d{2}-\d{2}-\d{4}$/;
-                if (dateRegex.test(sampleValue)) {
-                    fieldType = 'date';
-                } else if (!isNaN(Number(sampleValue)) && sampleValue.trim() !== '') {
-                    fieldType = 'number';
-                }
-            }
+        const csvFields: AvailableField[] =
+            session.csvHeaders?.slice(3).map((header) => {
+                const sampleRow = session.uploadedCsvData?.[0];
+                const sampleValue = sampleRow?.[header];
 
-            return {
-                name: header,
-                displayName: header.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-                type: fieldType,
-                isRequired: false,
-                source: 'csv' as const,
-                sampleValue: sampleValue?.toString() || 'Sample data',
-            };
-        }) || [];
+                let fieldType: 'text' | 'number' | 'date' = 'text';
+                if (typeof sampleValue === 'number') {
+                    fieldType = 'number';
+                } else if (typeof sampleValue === 'string') {
+                    const dateRegex = /^\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4}|\d{2}-\d{2}-\d{4}$/;
+                    if (dateRegex.test(sampleValue)) {
+                        fieldType = 'date';
+                    } else if (!isNaN(Number(sampleValue)) && sampleValue.trim() !== '') {
+                        fieldType = 'number';
+                    }
+                }
+
+                return {
+                    name: header,
+                    displayName: header.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+                    type: fieldType,
+                    isRequired: false,
+                    source: 'csv' as const,
+                    sampleValue: sampleValue?.toString() || 'Sample data',
+                };
+            }) || [];
 
         return [...systemFields, ...csvFields];
     }, [session.csvHeaders, session.uploadedCsvData]);
@@ -109,15 +180,15 @@ export const PdfAnnotationStep = ({
     // Handle drag end
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
-        
+
         if (over && over.id === 'image-editor' && active.data.current?.type === 'field') {
             const field = active.data.current.field as AvailableField;
-            
+
             // For initial placement, use a default position within the image bounds
             // The user can then drag it to the exact position they want
             const defaultX = session.imageTemplate ? session.imageTemplate.width * 0.3 : 100;
             const defaultY = session.imageTemplate ? session.imageTemplate.height * 0.3 : 100;
-            
+
             const newMapping: FieldMapping = {
                 id: nanoid(),
                 fieldName: field.name,
@@ -139,17 +210,21 @@ export const PdfAnnotationStep = ({
                     padding: 4,
                 },
             };
-            
+
             const updatedMappings = [...(session.fieldMappings || []), newMapping];
             onSessionUpdate({ fieldMappings: updatedMappings });
         }
-        
+
         setActiveDragField(null);
     };
 
     // Handle certificate generation
     const handleGenerateCertificates = async () => {
-        if (!session.imageTemplate || !session.fieldMappings || session.fieldMappings.length === 0) {
+        if (
+            !session.imageTemplate ||
+            !session.fieldMappings ||
+            session.fieldMappings.length === 0
+        ) {
             alert('Please upload a template and map some fields first.');
             return;
         }
@@ -159,7 +234,7 @@ export const PdfAnnotationStep = ({
             setGenerationProgress({ completed: 0, total: session.selectedStudents.length });
 
             console.log('Starting certificate generation...');
-            
+
             const result = await certificateGenerationService.generateBulkCertificates(
                 session.imageTemplate,
                 session.fieldMappings,
@@ -185,11 +260,15 @@ export const PdfAnnotationStep = ({
             await downloadManager.downloadGenerationResult(result, false); // Individual downloads for now
             downloadManager.downloadGenerationSummary(result);
 
-            alert(`Certificate generation completed!\nSuccessful: ${result.successCount}\nErrors: ${result.errorCount}`);
+            alert(
+                `Certificate generation completed!\nSuccessful: ${result.successCount}\nErrors: ${result.errorCount}`
+            );
         } catch (error) {
             console.error('Certificate generation failed:', error);
-            alert(`Certificate generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-            
+            alert(
+                `Certificate generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+            );
+
             onSessionUpdate({
                 generationProgress: {
                     total: session.selectedStudents.length,
@@ -203,11 +282,12 @@ export const PdfAnnotationStep = ({
     };
 
     // Check if we can generate certificates
-    const canGenerateCertificates = session.imageTemplate && 
-                                  session.fieldMappings && 
-                                  session.fieldMappings.length > 0 && 
-                                  session.selectedStudents.length > 0 && 
-                                  !isGenerating;
+    const canGenerateCertificates =
+        session.imageTemplate &&
+        session.fieldMappings &&
+        session.fieldMappings.length > 0 &&
+        session.selectedStudents.length > 0 &&
+        !isGenerating;
 
     return (
         <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -245,7 +325,9 @@ export const PdfAnnotationStep = ({
                                         activeView === key
                                             ? 'bg-white text-purple-600 shadow-sm'
                                             : 'text-neutral-600 hover:text-neutral-700',
-                                        key === 'design' && !session.imageTemplate && 'opacity-50 cursor-not-allowed'
+                                        key === 'design' &&
+                                            !session.imageTemplate &&
+                                            'cursor-not-allowed opacity-50'
                                     )}
                                 >
                                     <Icon className="size-4" />
@@ -265,18 +347,23 @@ export const PdfAnnotationStep = ({
                                         Generating Certificates...
                                     </p>
                                     <p className="text-xs text-blue-600">
-                                        {generationProgress.completed} of {generationProgress.total} completed
+                                        {generationProgress.completed} of {generationProgress.total}{' '}
+                                        completed
                                     </p>
                                 </div>
                                 <div className="text-sm font-medium text-blue-700">
-                                    {Math.round((generationProgress.completed / generationProgress.total) * 100)}%
+                                    {Math.round(
+                                        (generationProgress.completed / generationProgress.total) *
+                                            100
+                                    )}
+                                    %
                                 </div>
                             </div>
                             <div className="mt-2 h-2 rounded-full bg-blue-200">
-                                <div 
+                                <div
                                     className="h-2 rounded-full bg-blue-600 transition-all duration-300"
-                                    style={{ 
-                                        width: `${(generationProgress.completed / generationProgress.total) * 100}%` 
+                                    style={{
+                                        width: `${(generationProgress.completed / generationProgress.total) * 100}%`,
                                     }}
                                 />
                             </div>
@@ -285,18 +372,17 @@ export const PdfAnnotationStep = ({
                 </div>
 
                 {/* Main Content */}
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
                     {/* Left Sidebar - Field Palette */}
-                    {(activeView === 'design' || activeView === 'preview') && session.imageTemplate && (
-                        <div className="lg:col-span-1">
-                            <FieldPalette session={session} />
-                        </div>
-                    )}
+                    {(activeView === 'design' || activeView === 'preview') &&
+                        session.imageTemplate && (
+                            <div className="lg:col-span-1">
+                                <FieldPalette session={session} />
+                            </div>
+                        )}
 
                     {/* Main Content Area */}
-                    <div className={cn(
-                        activeView === 'upload' ? 'col-span-1' : 'lg:col-span-3'
-                    )}>
+                    <div className={cn(activeView === 'upload' ? 'col-span-1' : 'lg:col-span-3')}>
                         {/* Upload View */}
                         {activeView === 'upload' && (
                             <PdfUploadSection
@@ -350,7 +436,7 @@ export const PdfAnnotationStep = ({
                                 {session.fieldMappings.length} fields mapped
                             </div>
                         )}
-                        
+
                         <MyButton
                             buttonType="primary"
                             scale="medium"
@@ -381,15 +467,30 @@ export const PdfAnnotationStep = ({
                                 <Star className="size-5 text-blue-600" />
                             </div>
                             <div>
-                                <h3 className="text-sm font-medium text-blue-800 mb-2">
+                                <h3 className="mb-2 text-sm font-medium text-blue-800">
                                     Getting Started with Certificate Generation
                                 </h3>
-                                <ol className="text-xs text-blue-700 space-y-1 list-decimal list-inside">
-                                    <li>Upload a certificate template (PDF or image) using the upload area above</li>
-                                    <li>Switch to "Design" view to map data fields onto your template</li>
-                                    <li>Drag fields from the palette onto the template where you want data to appear</li>
-                                    <li>Use "Preview" to see how certificates will look with real student data</li>
-                                    <li>Click "Generate Certificates" to create and download all certificates</li>
+                                <ol className="list-inside list-decimal space-y-1 text-xs text-blue-700">
+                                    <li>
+                                        Upload a certificate template (PDF or image) using the
+                                        upload area above
+                                    </li>
+                                    <li>
+                                        Switch to "Design" view to map data fields onto your
+                                        template
+                                    </li>
+                                    <li>
+                                        Drag fields from the palette onto the template where you
+                                        want data to appear
+                                    </li>
+                                    <li>
+                                        Use "Preview" to see how certificates will look with real
+                                        student data
+                                    </li>
+                                    <li>
+                                        Click "Generate Certificates" to create and download all
+                                        certificates
+                                    </li>
                                 </ol>
                             </div>
                         </div>
@@ -404,12 +505,10 @@ export const PdfAnnotationStep = ({
                         <div className="text-sm font-medium text-blue-800">
                             {activeDragField.displayName}
                         </div>
-                        <div className="text-xs text-blue-600">
-                            {activeDragField.sampleValue}
-                        </div>
+                        <div className="text-xs text-blue-600">{activeDragField.sampleValue}</div>
                     </div>
                 ) : null}
             </DragOverlay>
         </DndContext>
     );
-}; 
+};

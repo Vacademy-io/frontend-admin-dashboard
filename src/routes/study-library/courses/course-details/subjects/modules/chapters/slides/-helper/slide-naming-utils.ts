@@ -85,7 +85,7 @@ export function generateUniqueSlideTitle(
     customPrefix?: string
 ): string {
     const typeForNaming = customPrefix || slideType;
-    const existingTitles = new Set(allSlides.map(slide => slide.title?.trim() || ''));
+    const existingTitles = new Set(allSlides.map((slide) => slide.title?.trim() || ''));
 
     let counter = 1;
     let candidateTitle = `${typeForNaming} ${counter}`;
@@ -146,4 +146,11 @@ export function generateUniqueQuestionSlideTitle(allSlides: Slide[]): string {
  */
 export function generateUniqueAssignmentSlideTitle(allSlides: Slide[]): string {
     return generateUniqueSlideTitle(allSlides, SLIDE_TYPE_NAMES.ASSIGNMENT);
+}
+
+/**
+ * Generate a unique slide name for quiz slides
+ */
+export function generateUniqueQuizSlideTitle(allSlides: Slide[]): string {
+    return generateUniqueSlideTitle(allSlides, 'Quiz');
 }

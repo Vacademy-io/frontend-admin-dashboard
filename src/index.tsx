@@ -12,6 +12,7 @@ import { routeTree } from './routeTree.gen';
 import './i18n';
 import { Toaster } from './components/ui/sonner';
 import { ThemeProvider } from './providers/theme/theme-provider';
+import { CourseSettingsProvider } from './providers/course-settings-provider';
 import { initializeAmplitude } from './lib/amplitude';
 
 // Initialize Amplitude Analytics
@@ -46,10 +47,12 @@ if (!rootElement.innerHTML) {
             {/* <ThemeProvider defaultTheme="light" storageKey="ui-theme"> */}
             <ThemeProvider>
                 <QueryClientProvider client={queryClient}>
-                    <SidebarProvider>
-                        <RouterProvider router={router} />
-                        <Toaster />
-                    </SidebarProvider>
+                    <CourseSettingsProvider>
+                        <SidebarProvider>
+                            <RouterProvider router={router} />
+                            <Toaster />
+                        </SidebarProvider>
+                    </CourseSettingsProvider>
                 </QueryClientProvider>
             </ThemeProvider>
             {/* </ThemeProvider> */}

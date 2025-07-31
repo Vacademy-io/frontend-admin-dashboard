@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Check, X, Calendar } from 'lucide-react';
 import { MyButton } from '@/components/design-system/button';
+import { getCurrencySymbol } from './utils/utils';
 
 interface SubscriptionPlan {
     enabled: boolean;
@@ -40,19 +41,6 @@ interface DiscountCoupon {
     expiryDate?: string;
     applicablePlans: string[];
 }
-
-const currencySymbols: { [key: string]: string } = {
-    USD: '$',
-    EUR: '€',
-    GBP: '£',
-    INR: '₹',
-    AUD: 'A$',
-    CAD: 'C$',
-};
-
-const getCurrencySymbol = (currencyCode: string) => {
-    return currencySymbols[currencyCode] || currencyCode;
-};
 
 const formatCustomInterval = (value: number, unit: string) => {
     const unitStr = value === 1 ? unit.slice(0, -1) : unit; // Remove 's' for singular

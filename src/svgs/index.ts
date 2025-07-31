@@ -13,6 +13,7 @@ export { default as Person } from './person.svg';
 export { default as VacademyLogo } from './vacademy-logo.svg';
 export { default as Vacademy } from './vacademy.svg';
 export { default as VacademyAssessLogo } from './vacademy-assess-logo.svg';
+export { default as Thunder } from './thunder.svg';
 export { default as VacademyLMSLogo } from './vacademy-lms-logo.svg';
 export { default as OnboardingFrame } from './onboarding-frame.svg';
 export { default as OnboardingSignup } from './onboarding-signup.svg';

@@ -22,6 +22,7 @@ export interface LiveSession {
     subject: string;
     meeting_link: string;
     registration_form_link_for_public_sessions: string;
+    allow_rewind?: boolean | null;
 }
 
 export interface SessionsByDate {
@@ -78,6 +79,8 @@ export interface Schedule {
     session_end_date: string;
     access_type: string;
     waiting_room_time: number | null;
+    allow_rewind: boolean | null;
+    allow_play_pause: boolean | null;
     thumbnail_file_id: string | null;
     background_score_file_id: string | null;
     session_streaming_service_type: string | null;

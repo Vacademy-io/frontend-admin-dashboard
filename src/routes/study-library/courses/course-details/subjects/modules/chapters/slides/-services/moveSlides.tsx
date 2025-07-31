@@ -9,15 +9,27 @@ export const useMoveSlide = () => {
         mutationFn: async ({
             slideId,
             oldChapterId,
+            oldModuleId,
+            oldSubjectId,
+            oldPackageSessionId,
             newChapterId,
+            newModuleId,
+            newSubjectId,
+            newPackageSessionId,
         }: {
             slideId: string;
             oldChapterId: string;
+            oldModuleId: string;
+            oldSubjectId: string;
+            oldPackageSessionId: string;
             newChapterId: string;
+            newModuleId: string;
+            newSubjectId: string;
+            newPackageSessionId: string;
         }) => {
             try {
                 await authenticatedAxiosInstance.post(
-                    `${MOVE_SLIDE}?slideId=${slideId}&oldChapterId=${oldChapterId}&newChapterId=${newChapterId}`
+                    `${MOVE_SLIDE}?slideId=${slideId}&oldChapterId=${oldChapterId}&oldModuleId=${oldModuleId}&oldSubjectId=${oldSubjectId}&oldPackageSessionId=${oldPackageSessionId}&newChapterId=${newChapterId}&newModuleId=${newModuleId}&newSubjectId=${newSubjectId}&newPackageSessionId=${newPackageSessionId}`
                 );
             } catch {
                 throw new Error('Failed to move slide');

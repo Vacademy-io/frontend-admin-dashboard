@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { SubjectType, useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { useStudyLibraryContext } from '@/providers/study-library/init-study-library-provider';
 import { getCourseSubjects } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects';
 import { useGetPackageSessionId } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId';
 import useIntroJsTour from '@/hooks/use-intro';
@@ -63,6 +64,10 @@ import { TeachersList } from '../subjects/-components/teacher-list';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { useFileUpload } from '@/hooks/use-file-upload';
+import { convertCapitalToTitleCase } from '@/lib/utils';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey, Authority } from '@/constants/auth/tokens';
+import { useCourseSettings } from '@/hooks/useCourseSettings';
 
 // Interfaces (assuming these are unchanged)
 export interface Chapter {
@@ -168,6 +173,40 @@ export const CourseStructureDetails = ({
     const { getSessionFromPackage, getPackageSessionId } = useInstituteDetailsStore();
     const { studyLibraryData } = useStudyLibraryStore();
     const { setActiveItem } = useContentStore();
+    const { isInitLoading } = useStudyLibraryContext();
+    const {
+        settings: courseSettings,
+        loading: settingsLoading,
+        error: settingsError,
+    } = useCourseSettings();
+
+    // Check user permissions for editing
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const isAdmin =
+        tokenData?.authorities &&
+        Object.values(tokenData.authorities).some(
+            (auth: Authority) => Array.isArray(auth?.roles) && auth.roles.includes('ADMIN')
+        );
+    const currentUserId = tokenData?.user;
+
+    // Get course status from study library data
+    const courseData = studyLibraryData?.find((item) => item.course.id === searchParams.courseId);
+    const courseStatus = courseData?.course?.status;
+    const courseCreatedBy = courseData?.course?.createdByUserId;
+    const isOwnCourse = courseCreatedBy === currentUserId;
+
+    // Determine if user can edit structure
+    // For draft courses, allow editing if:
+    // 1. User is admin, OR
+    // 2. User is the course creator and course is in DRAFT status, OR
+    // 3. If createdByUserId is not available, allow editing for DRAFT status (fallback for authored courses)
+    const canEditStructure =
+        isAdmin ||
+        (isOwnCourse && courseStatus === 'DRAFT') ||
+        (!courseCreatedBy && courseStatus === 'DRAFT');
+    const isPublishedCourse = courseStatus === 'ACTIVE';
+    const isInReviewCourse = courseStatus === 'IN_REVIEW';
 
     const courseId: string = searchParams.courseId || '';
     const levelId: string = selectedLevel || '';
@@ -206,9 +245,53 @@ export const CourseStructureDetails = ({
         }
     }, [sessionList, selectedSession]);
 
-    const [selectedTab, setSelectedTab] = useState<string>(TabType.OUTLINE);
+    // Use localStorage to persist selected tab across re-renders and page refreshes
+    const getStorageKey = () => `course-structure-tab-${courseId}`;
+
+    const [selectedTab, setSelectedTab] = useState<string>(() => {
+        // Initialize from localStorage first
+        const stored = localStorage.getItem(getStorageKey());
+        if (stored) return stored;
+
+        // If settings are still loading or failed, use safe default
+        if (settingsLoading || settingsError) {
+            return TabType.OUTLINE; // Safe default - always show Outline first when settings fail
+        }
+
+        // Use course settings to determine default tab
+        const defaultViewMode = courseSettings?.courseViewSettings?.defaultViewMode;
+        if (defaultViewMode === 'structure') {
+            return TabType.CONTENT_STRUCTURE;
+        }
+        return TabType.OUTLINE; // Default fallback
+    });
+
+    // Effect to update tab selection when settings load
+    useEffect(() => {
+        // Don't override if user has already selected a tab (localStorage exists)
+        const stored = localStorage.getItem(getStorageKey());
+        if (stored) return;
+
+        // Only set default tab after settings have loaded successfully
+        if (!settingsLoading && !settingsError) {
+            const defaultViewMode = courseSettings?.courseViewSettings?.defaultViewMode;
+            if (defaultViewMode === 'structure') {
+                setSelectedTab(TabType.CONTENT_STRUCTURE);
+            } else {
+                setSelectedTab(TabType.OUTLINE);
+            }
+        }
+    }, [
+        settingsLoading,
+        settingsError,
+        courseSettings?.courseViewSettings?.defaultViewMode,
+        courseId,
+    ]);
+
     const handleTabChange = (value: string) => {
         setSelectedTab(value);
+        // Save to localStorage
+        localStorage.setItem(getStorageKey(), value);
         // Reset navigation when switching to Content Structure tab
         if (value === TabType.CONTENT_STRUCTURE) {
             resetNavigation();
@@ -408,6 +491,58 @@ export const CourseStructureDetails = ({
         }
     }, [subjectModulesMap, packageSessionIds, fetchSlides]);
 
+    // Auto-expand items based on course settings (only for outline tab)
+    useEffect(() => {
+        // Only proceed if settings have loaded successfully
+        if (settingsLoading || settingsError) {
+            return; // Use default collapsed state if settings fail - safer fallback
+        }
+
+        const defaultState = courseSettings?.outlineSettings?.defaultState;
+        if (defaultState === 'expanded' && selectedTab === TabType.OUTLINE) {
+            // Expand subjects (always applicable)
+            if (subjects && subjects.length > 0) {
+                const allSubjectIds = new Set(subjects.map((subject) => subject.id));
+                setOpenSubjects(allSubjectIds);
+            }
+
+            // Expand modules and chapters if they exist
+            if (Object.keys(subjectModulesMap).length > 0) {
+                // Expand all modules
+                const allModuleIds = new Set<string>();
+                Object.values(subjectModulesMap).forEach((moduleList) => {
+                    moduleList.forEach((moduleData) => {
+                        allModuleIds.add(moduleData.module.id);
+                    });
+                });
+                setOpenModules(allModuleIds);
+
+                // Expand all chapters
+                const allChapterIds = new Set<string>();
+                Object.values(subjectModulesMap).forEach((moduleList) => {
+                    moduleList.forEach((moduleData) => {
+                        moduleData.chapters.forEach((chapterData) => {
+                            allChapterIds.add(chapterData.chapter.id);
+                        });
+                    });
+                });
+                setOpenChapters(allChapterIds);
+            }
+        } else if (defaultState === 'collapsed') {
+            // Ensure everything is collapsed
+            setOpenSubjects(new Set());
+            setOpenModules(new Set());
+            setOpenChapters(new Set());
+        }
+    }, [
+        settingsLoading,
+        settingsError,
+        courseSettings?.outlineSettings?.defaultState,
+        subjectModulesMap,
+        subjects,
+        selectedTab,
+    ]);
+
     // Load direct slides for 2-depth courses
     useEffect(() => {
         const loadDirectSlides = async () => {
@@ -550,14 +685,19 @@ export const CourseStructureDetails = ({
             setActiveItem(slide);
         }
 
-        // For 2-depth courses, we need dummy values for the route structure
+        // Get real subject, module, and chapter IDs for 2-depth
+        const realSubjectId = subjects[0]?.id || '';
+        const moduleWithChapters = subjectModulesMap[realSubjectId]?.[0];
+        const realModuleId = moduleWithChapters?.module.id || '';
+        const realChapterId = moduleWithChapters?.chapters?.[0]?.chapter.id || '';
+
         const navigationParams = {
             courseId: router.state.location.search.courseId ?? '',
             levelId: selectedLevel,
-            subjectId: 'direct-course-slides', // Dummy subject ID for 2-depth
-            moduleId: 'direct-course-module', // Dummy module ID for 2-depth
-            chapterId: 'direct-course-chapter', // Dummy chapter ID for 2-depth
-            slideId: slideId || '', // Empty for new slide
+            subjectId: realSubjectId,
+            moduleId: realModuleId,
+            chapterId: realChapterId,
+            slideId: slideId || '',
             sessionId: selectedSession,
         };
 
@@ -673,7 +813,7 @@ export const CourseStructureDetails = ({
                 {/* Scrollable content */}
                 <div className="px-6 pb-2">
                     <div className="max-w-3xl space-y-1 rounded-lg border border-gray-200 px-2">
-                        {courseStructure === 5 && (
+                        {courseStructure === 5 && canEditStructure && (
                             <AddSubjectButton isTextButton onAddSubject={handleAddSubject} />
                         )}
                         {courseStructure === 5 &&
@@ -714,7 +854,9 @@ export const CourseStructureDetails = ({
                                                     className="truncate"
                                                     title={subject.subject_name}
                                                 >
-                                                    {subject.subject_name}
+                                                    {convertCapitalToTitleCase(
+                                                        subject.subject_name
+                                                    )}
                                                 </span>
                                             </div>
                                             <MyButton
@@ -739,11 +881,13 @@ export const CourseStructureDetails = ({
                                                     <div className="sticky top-0 flex h-full flex-col items-center" />
                                                 </div>
 
-                                                <AddModulesButton
-                                                    isTextButton
-                                                    subjectId={subject.id}
-                                                    onAddModuleBySubjectId={handleAddModule}
-                                                />
+                                                {canEditStructure && (
+                                                    <AddModulesButton
+                                                        isTextButton
+                                                        subjectId={subject.id}
+                                                        onAddModuleBySubjectId={handleAddModule}
+                                                    />
+                                                )}
                                                 {(subjectModulesMap[subject.id] ?? []).map(
                                                     (mod, modIdx) => {
                                                         const isModuleOpen = openModules.has(
@@ -787,7 +931,10 @@ export const CourseStructureDetails = ({
                                                                                     .module_name
                                                                             }
                                                                         >
-                                                                            {mod.module.module_name}
+                                                                            {convertCapitalToTitleCase(
+                                                                                mod.module
+                                                                                    .module_name
+                                                                            )}
                                                                         </span>
                                                                     </div>
                                                                     <MyButton
@@ -887,11 +1034,11 @@ export const CourseStructureDetails = ({
                                                                                                             .chapter_name
                                                                                                     }
                                                                                                 >
-                                                                                                    {
+                                                                                                    {convertCapitalToTitleCase(
                                                                                                         ch
                                                                                                             .chapter
                                                                                                             .chapter_name
-                                                                                                    }
+                                                                                                    )}
                                                                                                 </span>
                                                                                             </div>
                                                                                             <MyButton
@@ -1076,11 +1223,13 @@ export const CourseStructureDetails = ({
                                                     <div className="sticky top-0 flex h-full flex-col items-center" />
                                                 </div>
 
-                                                <AddModulesButton
-                                                    isTextButton
-                                                    subjectId={subject.id}
-                                                    onAddModuleBySubjectId={handleAddModule}
-                                                />
+                                                {canEditStructure && (
+                                                    <AddModulesButton
+                                                        isTextButton
+                                                        subjectId={subject.id}
+                                                        onAddModuleBySubjectId={handleAddModule}
+                                                    />
+                                                )}
                                                 {(subjectModulesMap[subject.id] ?? []).map(
                                                     (mod, modIdx) => {
                                                         const isModuleOpen = openModules.has(
@@ -1124,7 +1273,10 @@ export const CourseStructureDetails = ({
                                                                                     .module_name
                                                                             }
                                                                         >
-                                                                            {mod.module.module_name}
+                                                                            {convertCapitalToTitleCase(
+                                                                                mod.module
+                                                                                    .module_name
+                                                                            )}
                                                                         </span>
                                                                     </div>
                                                                 </CollapsibleTrigger>
@@ -1202,11 +1354,11 @@ export const CourseStructureDetails = ({
                                                                                                             .chapter_name
                                                                                                     }
                                                                                                 >
-                                                                                                    {
+                                                                                                    {convertCapitalToTitleCase(
                                                                                                         ch
                                                                                                             .chapter
                                                                                                             .chapter_name
-                                                                                                    }
+                                                                                                    )}
                                                                                                 </span>
                                                                                             </div>
                                                                                             <MyButton
@@ -1480,11 +1632,11 @@ export const CourseStructureDetails = ({
                                                                                                             .chapter_name
                                                                                                     }
                                                                                                 >
-                                                                                                    {
+                                                                                                    {convertCapitalToTitleCase(
                                                                                                         ch
                                                                                                             .chapter
                                                                                                             .chapter_name
-                                                                                                    }
+                                                                                                    )}
                                                                                                 </span>
                                                                                             </div>
                                                                                             <MyButton
@@ -1655,49 +1807,70 @@ export const CourseStructureDetails = ({
 
                         {courseStructure === 2 && (
                             <div className="space-y-1.5">
-                                <MyButton
-                                    buttonType="text"
-                                    onClick={() => handleDirectSlideNavigation()}
-                                    className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
-                                >
-                                    <Plus
-                                        size={14}
-                                        weight="bold"
-                                        className="text-primary-400 group-hover:text-primary-500"
-                                    />
-                                    <span className="font-medium">
-                                        Add{' '}
-                                        {getTerminology(ContentTerms.Slides, SystemTerms.Slides)}
-                                    </span>
-                                </MyButton>
-
-                                {directSlides.length === 0 ? (
-                                    <div className="px-2 py-1 text-xs text-gray-400">
-                                        No {getTerminology(ContentTerms.Slides, SystemTerms.Slides)}{' '}
-                                        in this course.
-                                    </div>
-                                ) : (
-                                    directSlides.map((slide, sIdx) => (
-                                        <div
-                                            key={slide.id}
-                                            className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
-                                            onClick={() => {
-                                                handleDirectSlideNavigation(slide.id);
-                                            }}
-                                        >
-                                            <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
-                                                S{sIdx + 1}
-                                            </span>
-                                            {getIcon(
-                                                slide.source_type,
-                                                slide.document_slide?.type,
-                                                '3'
-                                            )}
-                                            <span className="truncate" title={slide.title}>
-                                                {slide.title || `Slide ${sIdx + 1}`}
-                                            </span>
-                                        </div>
-                                    ))
+                                {Object.entries(subjectModulesMap).flatMap(([subjectId, modules]) =>
+                                    modules.flatMap((mod) =>
+                                        mod.chapters.flatMap((ch) => [
+                                            // Add Slide button for this chapter (now before slides)
+                                            <MyButton
+                                                key={`add-slide-${ch.chapter.id}`}
+                                                buttonType="text"
+                                                onClick={() =>
+                                                    handleSlideNavigation(
+                                                        subjectId,
+                                                        mod.module.id,
+                                                        ch.chapter.id,
+                                                        '' // Empty slideId for new slide
+                                                    )
+                                                }
+                                                className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
+                                            >
+                                                <Plus
+                                                    size={14}
+                                                    weight="bold"
+                                                    className="text-primary-400 group-hover:text-primary-500"
+                                                />
+                                                <span className="font-medium">
+                                                    Add{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Slides,
+                                                        SystemTerms.Slides
+                                                    )}
+                                                </span>
+                                            </MyButton>,
+                                            // Slides for this chapter
+                                            ...(chapterSlidesMap[ch.chapter.id] ?? []).map(
+                                                (slide, sIdx) => (
+                                                    <div
+                                                        key={slide.id}
+                                                        className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
+                                                        onClick={() => {
+                                                            handleSlideNavigation(
+                                                                subjectId,
+                                                                mod.module.id,
+                                                                ch.chapter.id,
+                                                                slide.id
+                                                            );
+                                                        }}
+                                                    >
+                                                        <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
+                                                            S{sIdx + 1}
+                                                        </span>
+                                                        {getIcon(
+                                                            slide.source_type,
+                                                            slide.document_slide?.type,
+                                                            '3'
+                                                        )}
+                                                        <span
+                                                            className="truncate"
+                                                            title={slide.title}
+                                                        >
+                                                            {slide.title || `Slide ${sIdx + 1}`}
+                                                        </span>
+                                                    </div>
+                                                )
+                                            ),
+                                        ])
+                                    )
                                 )}
                             </div>
                         )}
@@ -1804,7 +1977,7 @@ export const CourseStructureDetails = ({
                                         className="mb-1 truncate text-sm font-medium text-gray-800"
                                         title={subject.subject_name}
                                     >
-                                        {subject.subject_name}
+                                        {convertCapitalToTitleCase(subject.subject_name)}
                                     </h4>
 
                                     {/* Subject Number */}
@@ -1858,7 +2031,7 @@ export const CourseStructureDetails = ({
                                             className="mb-1 truncate text-sm font-medium text-gray-800"
                                             title={mod.module.module_name}
                                         >
-                                            {mod.module.module_name}
+                                            {convertCapitalToTitleCase(mod.module.module_name)}
                                         </h4>
 
                                         {/* Module Number */}
@@ -1918,7 +2091,7 @@ export const CourseStructureDetails = ({
                                             className="mb-1 truncate text-sm font-medium text-gray-800"
                                             title={mod.module.module_name}
                                         >
-                                            {mod.module.module_name}
+                                            {convertCapitalToTitleCase(mod.module.module_name)}
                                         </h4>
 
                                         {/* Module Number */}
@@ -1983,7 +2156,7 @@ export const CourseStructureDetails = ({
                                         className="mb-1 truncate text-sm font-medium text-gray-800"
                                         title={ch.chapter.chapter_name}
                                     >
-                                        {ch.chapter.chapter_name}
+                                        {convertCapitalToTitleCase(ch.chapter.chapter_name)}
                                     </h4>
 
                                     {/* Chapter Number */}
@@ -2047,7 +2220,7 @@ export const CourseStructureDetails = ({
                                             className="mb-1 truncate text-sm font-medium text-gray-800"
                                             title={ch.chapter.chapter_name}
                                         >
-                                            {ch.chapter.chapter_name}
+                                            {convertCapitalToTitleCase(ch.chapter.chapter_name)}
                                         </h4>
 
                                         {/* Chapter Number */}
@@ -2214,13 +2387,82 @@ export const CourseStructureDetails = ({
         <DashboardLoader />
     ) : (
         <div className="flex size-full flex-col gap-3 rounded-lg bg-white py-4 text-neutral-700">
+            {/* Restriction Message */}
+            {!canEditStructure && (
+                <div className="mx-4 rounded-md border border-orange-200 bg-orange-50 p-3">
+                    <div className="flex items-center gap-2">
+                        <div className="font-medium text-orange-600">
+                            Editing Restricted: This course is{' '}
+                            {isPublishedCourse
+                                ? 'published'
+                                : isInReviewCourse
+                                  ? 'under review'
+                                  : 'restricted'}
+                            .
+                        </div>
+                        <div className="text-sm text-orange-600">
+                            {isPublishedCourse
+                                ? 'Go to My Courses to create an editable copy.'
+                                : isInReviewCourse
+                                  ? "You cannot edit the content while it's under review."
+                                  : 'You cannot edit this content.'}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <Tabs value={selectedTab} onValueChange={handleTabChange} className="w-full">
                 <div className="overflow-x-auto border-b border-gray-200">
                     <TabsList
                         className="h-auto min-w-max flex-nowrap bg-transparent p-0"
                         style={{ display: 'flex', justifyContent: 'left' }}
                     >
-                        {tabs.map((tab) => (
+                        {(() => {
+                            // Reorder tabs based on course settings
+                            let reorderedTabs = [...tabs];
+
+                            // If settings are loading or failed, use default order (Outline first as fallback)
+                            if (settingsLoading || settingsError) {
+                                const outlineTab = reorderedTabs.find(
+                                    (tab) => tab.value === 'OUTLINE'
+                                );
+                                const otherTabs = reorderedTabs.filter(
+                                    (tab) => tab.value !== 'OUTLINE'
+                                );
+                                if (outlineTab) {
+                                    reorderedTabs = [outlineTab, ...otherTabs];
+                                }
+                            } else {
+                                const defaultViewMode =
+                                    courseSettings?.courseViewSettings?.defaultViewMode;
+
+                                if (defaultViewMode === 'structure') {
+                                    // Move Content Structure to first position
+                                    const structureTab = reorderedTabs.find(
+                                        (tab) => tab.value === 'CONTENT_STRUCTURE'
+                                    );
+                                    const otherTabs = reorderedTabs.filter(
+                                        (tab) => tab.value !== 'CONTENT_STRUCTURE'
+                                    );
+                                    if (structureTab) {
+                                        reorderedTabs = [structureTab, ...otherTabs];
+                                    }
+                                } else {
+                                    // Move Outline to first position (default behavior)
+                                    const outlineTab = reorderedTabs.find(
+                                        (tab) => tab.value === 'OUTLINE'
+                                    );
+                                    const otherTabs = reorderedTabs.filter(
+                                        (tab) => tab.value !== 'OUTLINE'
+                                    );
+                                    if (outlineTab) {
+                                        reorderedTabs = [outlineTab, ...otherTabs];
+                                    }
+                                }
+                            }
+
+                            return reorderedTabs;
+                        })().map((tab) => (
                             <TabsTrigger
                                 key={tab.value}
                                 value={tab.value}
@@ -2236,7 +2478,20 @@ export const CourseStructureDetails = ({
                     value={selectedTab}
                     className="mt-4 overflow-hidden rounded-r-md"
                 >
-                    {tabContent[selectedTab as TabType]}
+                    <div className="relative">
+                        {/* Loading overlay */}
+                        {isInitLoading && (
+                            <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+                                <div className="flex flex-col items-center gap-3">
+                                    <DashboardLoader size={24} />
+                                    <div className="text-sm font-medium text-gray-600">
+                                        Updating course structure...
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {tabContent[selectedTab as TabType]}
+                    </div>
                 </TabsContent>
             </Tabs>
 
