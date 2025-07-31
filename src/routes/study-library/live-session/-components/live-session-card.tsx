@@ -52,11 +52,14 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
         useState<SessionDetailsResponse | null>(null);
     const queryClient = useQueryClient();
     const { showForInstitutes } = useInstituteDetailsStore();
-    const { mutate: fetchReport, data: reportResponse, isPending, error } = useLiveSessionReport();
+    // Use mutateAsync to ensure data is fetched before opening dialog
+    const { mutateAsync: fetchReportAsync, data: reportResponse, isPending, error } = useLiveSessionReport();
 
-    const joinLink =
+    // Include allow_rewind toggle when constructing join link
+    const baseLink =
         session.registration_form_link_for_public_sessions ||
         `${BASE_URL_LEARNER_DASHBOARD}/register/live-class?sessionId=${session.session_id}`;
+    const joinLink = `${baseLink}${baseLink.includes('?') ? '&' : '?'}allowRewind=${session.allow_rewind}&allowPlayPause=${session.allow_play_pause}`;
     const formattedDateTime = `${session.meeting_date} ${session.start_time}`;
 
     const navigate = useNavigate();
@@ -127,19 +130,22 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
         last: true,
     };
 
-    const fetchSessionDetail = async () => {
-        const response = await fetchSessionDetails(session.schedule_id);
-        setScheduleSessionDetails(response);
-        fetchReport({
-            sessionId: session.session_id,
-            scheduleId: session.schedule_id,
-            accessType: session.access_level,
-        });
+    // Fetch details and report, then open dialog
+    const handleOpenDialog = async () => {
+        try {
+            const details = await fetchSessionDetails(session.schedule_id);
+            setScheduleSessionDetails(details);
+            await fetchReportAsync({
+                sessionId: session.session_id,
+                scheduleId: session.schedule_id,
+                accessType: session.access_level,
+            });
+            setOpenDialog(true);
+        } catch (err) {
+            console.error('Error loading participant details:', err);
+        }
     };
-    const handleOpenDialog = () => {
-        fetchSessionDetail();
-        setOpenDialog(!openDialog);
-    };
+
     const handleOpenDeleteDialog = () => {
         setOpenDeleteDialog(!openDeleteDialog);
     };
@@ -294,9 +300,9 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                 </div>
             </div>
             <MyDialog
-                heading="Attendance Report"
+                heading="Participant Details"
                 open={openDialog}
-                onOpenChange={handleOpenDialog}
+                onOpenChange={(open) => setOpenDialog(open)}
                 className="w-[80vw] max-w-4xl"
             >
                 <div className="flex h-full flex-col gap-3 p-4 text-sm">
