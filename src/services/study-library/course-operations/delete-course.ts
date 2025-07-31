@@ -10,11 +10,16 @@ export const useDeleteCourse = () => {
             return authenticatedAxiosInstance.delete(`${DELETE_COURSE}`, { data: [courseId] });
         },
         onSuccess: () => {
+            // Invalidate existing queries
             queryClient.invalidateQueries({ queryKey: ['GET_INIT_STUDY_LIBRARY'] });
             queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
             queryClient.invalidateQueries({ queryKey: ['students'] });
             queryClient.invalidateQueries({ queryKey: ['GET_SESSION_DATA'] });
             queryClient.invalidateQueries({ queryKey: ['GET_BATCHES'] });
+
+            // Invalidate course list queries used in CourseMaterial component
+            queryClient.invalidateQueries({ queryKey: ['allCourses'] });
+            queryClient.invalidateQueries({ queryKey: ['authoredCourses'] });
         },
     });
 };
