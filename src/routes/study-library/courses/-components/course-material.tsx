@@ -14,7 +14,7 @@ import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { getAllCoursesWithFilters } from '../-services/courses-services';
-import { useFileUpload } from '@/hooks/use-file-upload';
+
 import { useDeleteCourse } from '@/services/study-library/course-operations/delete-course';
 import { toast } from 'sonner';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
@@ -24,6 +24,8 @@ import { AdminApprovalDashboard } from './admin-approval-dashboard';
 import { AuthoredCoursesTab } from './authored-courses-tab';
 import { CourseInReviewTab } from './course-in-review-tab';
 import { useNavigate } from '@tanstack/react-router';
+import { useImageCache } from '@/hooks/use-image-cache';
+import { fetchMultipleImagesWithCache } from '@/utils/image-cache-utils';
 
 export interface AllCourseFilters {
     status: string[];
@@ -113,6 +115,13 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
         authoredCourses: true,
     });
     const [deletingCourseId, setDeletingCourseId] = useState<string | null>(null);
+    const [instructorProfilePicUrls, setInstructorProfilePicUrls] = useState<
+        Record<string, string>
+    >({});
+    const [isLoadingImages, setIsLoadingImages] = useState(false);
+
+    // Image cache hook
+    const imageCache = useImageCache();
 
     const { data: accessControlUsers, isLoading: isUsersLoading } = useSuspenseQuery(
         handleGetInstituteUsersForAccessControl(instituteDetails?.id, {
@@ -298,7 +307,6 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
         }
     }, [instituteDetails?.id]);
 
-    const { getPublicUrl } = useFileUpload();
     const [courseImageUrls, setCourseImageUrls] = useState<Record<string, string>>({});
 
     // Create stable filter key for React Query
@@ -412,30 +420,62 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
         if (selectedTab === 'AuthoredCourses') return authoredCoursesData;
         return null;
     };
-    // Fetch public URLs for course images when current tab data changes
+    // Fetch public URLs for course images and instructor profile pictures when current tab data changes
     useEffect(() => {
         const fetchImages = async () => {
-            const data = getCurrentTabData();
-            const contentArr: CourseItem[] = Array.isArray(data?.content)
-                ? data?.content?.filter((course): course is CourseItem => !!course) ?? []
-                : [];
-            const urlPromises = contentArr?.map(async (course) => {
-                const { id = '', course_preview_image_media_id = '' } = course;
-                if (course_preview_image_media_id) {
-                    const url = await getPublicUrl(course_preview_image_media_id);
-                    return { id, url };
-                }
-                if (id) {
-                    return { id, url: '' };
-                }
-                return { id: '', url: '' };
-            });
-            const results = await Promise.all(urlPromises);
-            const urlMap: Record<string, string> = {};
-            results.forEach(({ id, url }) => {
-                if (id) urlMap[id] = url || '';
-            });
-            setCourseImageUrls(urlMap);
+            setIsLoadingImages(true);
+            try {
+                const data = getCurrentTabData();
+                const contentArr: CourseItem[] = Array.isArray(data?.content)
+                    ? data?.content?.filter((course): course is CourseItem => !!course) ?? []
+                    : [];
+
+                // Prepare course images for caching
+                const courseImages = contentArr
+                    .filter((course) => course.course_preview_image_media_id)
+                    .map((course) => ({
+                        id: course.id,
+                        fileId: course.course_preview_image_media_id,
+                    }));
+
+                // Prepare instructor images for caching
+                const instructorImages: Array<{ id: string; fileId: string }> = [];
+                contentArr.forEach((course) => {
+                    course.instructors?.forEach((instructor) => {
+                        if (instructor.profile_pic_file_id && instructor.id) {
+                            instructorImages.push({
+                                id: instructor.id,
+                                fileId: instructor.profile_pic_file_id,
+                            });
+                        }
+                    });
+                });
+
+                // Fetch all images with caching
+                const [courseResults, instructorResults] = await Promise.all([
+                    fetchMultipleImagesWithCache(courseImages, imageCache),
+                    fetchMultipleImagesWithCache(instructorImages, imageCache),
+                ]);
+
+                // Build course image URL map
+                const courseUrlMap: Record<string, string> = {};
+                courseResults.forEach(({ id, url }) => {
+                    if (id) courseUrlMap[id] = url || '';
+                });
+
+                // Build instructor profile URL map
+                const instructorUrlMap: Record<string, string> = {};
+                instructorResults.forEach(({ id, url }) => {
+                    if (id) instructorUrlMap[id] = url || '';
+                });
+
+                setCourseImageUrls(courseUrlMap);
+                setInstructorProfilePicUrls(instructorUrlMap);
+            } catch (error) {
+                console.error('Error fetching images:', error);
+            } finally {
+                setIsLoadingImages(false);
+            }
         };
         fetchImages();
     }, [allCoursesData, authoredCoursesData, selectedTab]);
@@ -562,6 +602,8 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
                                     setSortBy={setSortBy}
                                     allCourses={data}
                                     courseImageUrls={courseImageUrls}
+                                    instructorProfilePicUrls={instructorProfilePicUrls}
+                                    isLoadingImages={isLoadingImages}
                                     handleCourseDelete={handleCourseDelete}
                                     page={page}
                                     handlePageChange={handlePageChange}
