@@ -23,6 +23,12 @@ import { Sidebar, SidebarContent, SidebarHeader, useSidebar } from '@/components
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Calendar } from '@/components/ui/calendar';
 import { format, subDays, subMonths, subYears, startOfDay } from 'date-fns';
+import {
+    getStudentAttendanceReport,
+    StudentSchedule,
+    getBatchSessionAttendanceReport,
+    BatchStudentReport,
+} from '../live-session/-services/utils';
 import { MyPagination } from '@/components/design-system/pagination';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon } from '@radix-ui/react-icons';
@@ -34,9 +40,8 @@ export const Route = createFileRoute('/study-library/attendance-tracker/')({
     component: RouteComponent,
 });
 
-// Mock class attendance data
 interface ClassAttendanceItem {
-    id: number;
+    id: string;
     className: string;
     date: string;
     time: string;
@@ -47,12 +52,11 @@ type ClassAttendanceData = {
     [key: string]: ClassAttendanceItem[];
 };
 
-// Student interface for the attendance tracker
 interface AttendanceStudent {
-    id: string;
+    id: string; // studentId
     name: string;
-    username: string;
-    batch: string;
+    username?: string;
+    batch: string; // batchSessionId or label
     mobileNumber: string;
     email: string;
     attendedClasses: number;
@@ -567,499 +571,87 @@ const StudentDetailsSidebar = () => {
     );
 };
 
-const classAttendanceData: ClassAttendanceData = {
-    '1': [
-        {
-            id: 1,
-            className: 'Algebra Basics',
-            date: 'Jan 15, 2024',
-            time: '10:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 2,
-            className: 'Geometry Intro',
-            date: 'Jan 16, 2024',
-            time: '11:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 3,
-            className: 'Calculus 101',
-            date: 'Jan 17, 2024',
-            time: '09:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 4,
-            className: 'Statistics',
-            date: 'Jan 18, 2024',
-            time: '10:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 5,
-            className: 'Linear Algebra',
-            date: 'Jan 19, 2024',
-            time: '11:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 6,
-            className: 'Trigonometry',
-            date: 'Jan 20, 2024',
-            time: '09:30 AM',
-            status: 'Absent',
-        },
-    ],
-    '2': [
-        {
-            id: 1,
-            className: 'Algebra Basics',
-            date: 'Jan 15, 2024',
-            time: '10:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 2,
-            className: 'Geometry Intro',
-            date: 'Jan 16, 2024',
-            time: '11:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 3,
-            className: 'Calculus 101',
-            date: 'Jan 17, 2024',
-            time: '09:00 AM',
-            status: 'Absent',
-        },
-    ],
-    '3': [
-        {
-            id: 1,
-            className: 'Algebra Basics',
-            date: 'Jan 15, 2024',
-            time: '10:00 AM',
-            status: 'Absent',
-        },
-        {
-            id: 2,
-            className: 'Geometry Intro',
-            date: 'Jan 16, 2024',
-            time: '11:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 3,
-            className: 'Calculus 101',
-            date: 'Jan 17, 2024',
-            time: '09:00 AM',
-            status: 'Present',
-        },
-    ],
-    '4': [
-        {
-            id: 1,
-            className: 'Advanced Physics',
-            date: 'Feb 10, 2024',
-            time: '09:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 2,
-            className: 'Quantum Mechanics',
-            date: 'Feb 12, 2024',
-            time: '10:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 3,
-            className: 'Thermodynamics',
-            date: 'Feb 14, 2024',
-            time: '11:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 4,
-            className: 'Electromagnetism',
-            date: 'Feb 16, 2024',
-            time: '09:30 AM',
-            status: 'Absent',
-        },
-        {
-            id: 5,
-            className: 'Optics',
-            date: 'Feb 18, 2024',
-            time: '10:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 6,
-            className: 'Nuclear Physics',
-            date: 'Feb 20, 2024',
-            time: '11:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 7,
-            className: 'Relativity',
-            date: 'Feb 22, 2024',
-            time: '09:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 8,
-            className: 'Astrophysics',
-            date: 'Feb 24, 2024',
-            time: '10:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 9,
-            className: 'Particle Physics',
-            date: 'Feb 26, 2024',
-            time: '11:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 10,
-            className: 'Fluid Mechanics',
-            date: 'Feb 28, 2024',
-            time: '09:30 AM',
-            status: 'Absent',
-        },
-    ],
-    '5': [
-        {
-            id: 1,
-            className: 'Organic Chemistry',
-            date: 'Mar 05, 2024',
-            time: '09:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 2,
-            className: 'Inorganic Chemistry',
-            date: 'Mar 07, 2024',
-            time: '10:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 3,
-            className: 'Physical Chemistry',
-            date: 'Mar 09, 2024',
-            time: '11:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 4,
-            className: 'Analytical Chemistry',
-            date: 'Mar 11, 2024',
-            time: '09:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 5,
-            className: 'Biochemistry',
-            date: 'Mar 13, 2024',
-            time: '10:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 6,
-            className: 'Environmental Chemistry',
-            date: 'Mar 15, 2024',
-            time: '11:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 7,
-            className: 'Polymer Chemistry',
-            date: 'Mar 17, 2024',
-            time: '09:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 8,
-            className: 'Medicinal Chemistry',
-            date: 'Mar 19, 2024',
-            time: '10:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 9,
-            className: 'Nuclear Chemistry',
-            date: 'Mar 21, 2024',
-            time: '11:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 10,
-            className: 'Computational Chemistry',
-            date: 'Mar 23, 2024',
-            time: '09:30 AM',
-            status: 'Present',
-        },
-    ],
-    '6': [
-        {
-            id: 1,
-            className: 'Cell Biology',
-            date: 'Apr 02, 2024',
-            time: '09:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 2,
-            className: 'Molecular Biology',
-            date: 'Apr 04, 2024',
-            time: '10:30 AM',
-            status: 'Absent',
-        },
-        {
-            id: 3,
-            className: 'Genetics',
-            date: 'Apr 06, 2024',
-            time: '11:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 4,
-            className: 'Microbiology',
-            date: 'Apr 08, 2024',
-            time: '09:30 AM',
-            status: 'Absent',
-        },
-        {
-            id: 5,
-            className: 'Immunology',
-            date: 'Apr 10, 2024',
-            time: '10:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 6,
-            className: 'Ecology',
-            date: 'Apr 12, 2024',
-            time: '11:30 AM',
-            status: 'Absent',
-        },
-        {
-            id: 7,
-            className: 'Evolutionary Biology',
-            date: 'Apr 14, 2024',
-            time: '09:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 8,
-            className: 'Physiology',
-            date: 'Apr 16, 2024',
-            time: '10:30 AM',
-            status: 'Absent',
-        },
-    ],
-    '7': [
-        {
-            id: 1,
-            className: 'Data Structures',
-            date: 'May 03, 2024',
-            time: '09:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 2,
-            className: 'Algorithms',
-            date: 'May 05, 2024',
-            time: '10:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 3,
-            className: 'Database Systems',
-            date: 'May 07, 2024',
-            time: '11:00 AM',
-            status: 'Absent',
-        },
-        {
-            id: 4,
-            className: 'Operating Systems',
-            date: 'May 09, 2024',
-            time: '09:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 5,
-            className: 'Computer Networks',
-            date: 'May 11, 2024',
-            time: '10:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 6,
-            className: 'Artificial Intelligence',
-            date: 'May 13, 2024',
-            time: '11:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 7,
-            className: 'Machine Learning',
-            date: 'May 15, 2024',
-            time: '09:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 8,
-            className: 'Computer Graphics',
-            date: 'May 17, 2024',
-            time: '10:30 AM',
-            status: 'Absent',
-        },
-    ],
-    '8': [
-        {
-            id: 1,
-            className: 'World History',
-            date: 'Jun 01, 2024',
-            time: '09:00 AM',
-            status: 'Absent',
-        },
-        {
-            id: 2,
-            className: 'Geography',
-            date: 'Jun 03, 2024',
-            time: '10:30 AM',
-            status: 'Absent',
-        },
-        {
-            id: 3,
-            className: 'Political Science',
-            date: 'Jun 05, 2024',
-            time: '11:00 AM',
-            status: 'Absent',
-        },
-        {
-            id: 4,
-            className: 'Economics',
-            date: 'Jun 07, 2024',
-            time: '09:30 AM',
-            status: 'Absent',
-        },
-        {
-            id: 5,
-            className: 'Sociology',
-            date: 'Jun 09, 2024',
-            time: '10:00 AM',
-            status: 'Absent',
-        },
-    ],
-};
-
-// Mock data for student attendance
-const mockStudentData = [
-    {
-        id: '1',
-        name: 'John Smith',
-        username: 'john5553',
-        batch: '7th course 3',
-        mobileNumber: '+1-9876543210',
-        email: 'john.smith@email.com',
-        attendedClasses: 5,
-        totalClasses: 6,
-        attendancePercentage: 83,
-    },
-    {
-        id: '2',
-        name: 'Sarah Johnson',
-        username: 'sarah4708',
-        batch: '7th course 3',
-        mobileNumber: '+44-712345678901',
-        email: 'sarah.johnson@email.com',
-        attendedClasses: 2,
-        totalClasses: 3,
-        attendancePercentage: 67,
-    },
-    {
-        id: '3',
-        name: 'Mike Davis',
-        username: 'mike5737',
-        batch: '7th course 3',
-        mobileNumber: '+91-9123456789',
-        email: 'mike.davis@email.com',
-        attendedClasses: 2,
-        totalClasses: 3,
-        attendancePercentage: 67,
-    },
-    {
-        id: '4',
-        name: 'Emma Wilson',
-        username: 'emma2234',
-        batch: '8th course 2',
-        mobileNumber: '+1-8765432109',
-        email: 'emma.wilson@email.com',
-        attendedClasses: 8,
-        totalClasses: 10,
-        attendancePercentage: 80,
-    },
-    {
-        id: '5',
-        name: 'Raj Patel',
-        username: 'raj9876',
-        batch: '8th course 2',
-        mobileNumber: '+91-8765432109',
-        email: 'raj.patel@email.com',
-        attendedClasses: 10,
-        totalClasses: 10,
-        attendancePercentage: 100,
-    },
-    {
-        id: '6',
-        name: 'Sophia Chen',
-        username: 'sophia3456',
-        batch: '9th course 1',
-        mobileNumber: '+86-1234567890',
-        email: 'sophia.chen@email.com',
-        attendedClasses: 3,
-        totalClasses: 8,
-        attendancePercentage: 38,
-    },
-    {
-        id: '7',
-        name: 'Carlos Rodriguez',
-        username: 'carlos7890',
-        batch: '9th course 1',
-        mobileNumber: '+34-6123456789',
-        email: 'carlos.rodriguez@email.com',
-        attendedClasses: 6,
-        totalClasses: 8,
-        attendancePercentage: 75,
-    },
-    {
-        id: '8',
-        name: 'Aisha Khan',
-        username: 'aisha4321',
-        batch: '10th course 4',
-        mobileNumber: '+92-3001234567',
-        email: 'aisha.khan@email.com',
-        attendedClasses: 0,
-        totalClasses: 5,
-        attendancePercentage: 0,
-    },
-];
+// runtime generated from API. fallback empty.
+const classAttendanceData: ClassAttendanceData = {};
 
 // Attendance Modal Component
 interface AttendanceModalProps {
     isOpen: boolean;
     onClose: () => void;
-    student: (typeof mockStudentData)[0] | null;
+    student: AttendanceStudent | null;
+    batchId: string;
+    startDate?: Date;
+    endDate?: Date;
 }
 
-const AttendanceModal = ({ isOpen, onClose, student }: AttendanceModalProps) => {
+const AttendanceModal = ({
+    isOpen,
+    onClose,
+    student,
+    batchId,
+    startDate,
+    endDate,
+}: AttendanceModalProps) => {
+    const [loading, setLoading] = useState(false);
+    const [studentClasses, setStudentClasses] = useState<ClassAttendanceItem[]>([]);
+    const [overallAttendance, setOverallAttendance] = useState<number | null>(null);
+
+    useEffect(() => {
+        const showAttendance = async () => {
+            if (!student || !isOpen) return;
+
+            // 1️⃣ Reuse sessions that were already fetched with the batch call.
+            const cached = classAttendanceData[student.id];
+            if (cached && cached.length) {
+                setStudentClasses(cached);
+                const attended = cached.filter((c) => c.status === 'Present').length;
+                setOverallAttendance(Math.round((attended / cached.length) * 100));
+                return; // no extra API call needed ✔️
+            }
+
+            // 2️⃣ Fallback – fetch from student-report endpoint.
+            try {
+                setLoading(true);
+                const start = startDate ? format(startDate, 'yyyy-MM-dd') : '2020-01-01';
+                const end = endDate
+                    ? format(endDate, 'yyyy-MM-dd')
+                    : format(new Date(), 'yyyy-MM-dd');
+
+                const report = await getStudentAttendanceReport(
+                    student.id,
+                    batchId !== '' ? batchId : undefined,
+                    start,
+                    end
+                );
+
+                setOverallAttendance(Math.round(report.attendancePercentage));
+
+                const transformed: ClassAttendanceItem[] = report.schedules.map(
+                    (s: StudentSchedule) => ({
+                        id: s.scheduleId,
+                        className: s.sessionTitle,
+                        date: s.meetingDate,
+                        time: s.startTime,
+                        status: s.attendanceStatus === 'PRESENT' ? 'Present' : 'Absent',
+                    })
+                );
+
+                // cache for next time
+                classAttendanceData[student.id] = transformed;
+                setStudentClasses(transformed);
+            } catch (err) {
+                console.error('Failed to fetch attendance report', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        showAttendance();
+    }, [student, batchId, startDate, endDate, isOpen]);
+
     if (!student) return null;
 
-    const studentClasses = classAttendanceData[student.id] || [];
+    // while data is loading, we can show spinner
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -1074,39 +666,43 @@ const AttendanceModal = ({ isOpen, onClose, student }: AttendanceModalProps) => 
                     {/* Overall Attendance */}
                     <div className="rounded-lg bg-primary-50 p-4 text-center">
                         <div className="text-4xl font-bold text-primary-500">
-                            {student.attendancePercentage}%
+                            {overallAttendance !== null ? `${overallAttendance}%` : '--'}
                         </div>
                         <div className="mt-2 text-base text-neutral-600">Overall Attendance</div>
                     </div>
 
                     {/* Class List */}
                     <div className="flex flex-col gap-3 overflow-y-auto">
-                        {studentClasses.map((classItem) => (
-                            <div
-                                key={classItem.id}
-                                className="rounded-lg border border-neutral-200 p-4"
-                            >
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <h3 className="text-base font-medium text-neutral-800">
-                                            {classItem.className}
-                                        </h3>
-                                        <p className="text-sm text-neutral-600">
-                                            {classItem.date} • {classItem.time}
-                                        </p>
-                                    </div>
-                                    <div
-                                        className={`rounded-full px-3 py-1 text-xs font-medium ${
-                                            classItem.status === 'Present'
-                                                ? 'bg-success-50 text-success-600'
-                                                : 'bg-danger-100 text-danger-600'
-                                        }`}
-                                    >
-                                        {classItem.status}
+                        {loading ? (
+                            <p className="text-center text-neutral-500">Loading...</p>
+                        ) : (
+                            studentClasses.map((classItem) => (
+                                <div
+                                    key={classItem.id}
+                                    className="rounded-lg border border-neutral-200 p-4"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h3 className="text-base font-medium text-neutral-800">
+                                                {classItem.className}
+                                            </h3>
+                                            <p className="text-sm text-neutral-600">
+                                                {classItem.date} • {classItem.time}
+                                            </p>
+                                        </div>
+                                        <div
+                                            className={`rounded-full px-3 py-1 text-xs font-medium ${
+                                                classItem.status === 'Present'
+                                                    ? 'bg-success-50 text-success-600'
+                                                    : 'bg-danger-100 text-danger-600'
+                                            }`}
+                                        >
+                                            {classItem.status}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
                 </div>
             </DialogContent>
@@ -1119,7 +715,11 @@ function RouteComponent() {
     const [startDate, setStartDate] = useState<Date | undefined>(undefined);
     const [endDate, setEndDate] = useState<Date | undefined>(undefined);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedBatch, setSelectedBatch] = useState('All Batches');
+    // By default select the batch that the backend team has confirmed contains data so that
+    // administrators immediately see attendance information without having to pick a filter.
+    // If more batches are added to the dropdown this default can be removed.
+    const [selectedBatch, setSelectedBatch] = useState('14b2df53-4fda-4c18-9ddf-f3e69508f3cc');
+    const [selectedBatchLabel, setSelectedBatchLabel] = useState('8th course 2');
     const [selectedClass, setSelectedClass] = useState('All Live Classes');
     const [attendanceFilter, setAttendanceFilter] = useState('All');
     const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -1173,9 +773,8 @@ function RouteComponent() {
 
     // State for modal
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedStudent, setSelectedStudent] = useState<(typeof mockStudentData)[0] | null>(
-        null
-    );
+    const [studentsData, setStudentsData] = useState<AttendanceStudent[]>([]);
+    const [selectedStudent, setSelectedStudent] = useState<AttendanceStudent | null>(null);
 
     // State for sidebar
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -1187,42 +786,100 @@ function RouteComponent() {
         setNavHeading('Attendance Tracker');
     }, [setNavHeading]);
 
+    // Add new useEffect to load batch session report
+
+    useEffect(() => {
+        const fetchBatchAttendance = async () => {
+            // Clear cached sessions on filter change to avoid stale data
+            Object.keys(classAttendanceData).forEach((sid) => {
+                delete classAttendanceData[sid];
+            });
+            // always attempt; backend treats empty batchSessionId as all
+            try {
+                const start = startDate ? format(startDate, 'yyyy-MM-dd') : '2020-01-01';
+                const end = endDate
+                    ? format(endDate, 'yyyy-MM-dd')
+                    : format(new Date(), 'yyyy-MM-dd');
+                const report = await getBatchSessionAttendanceReport(selectedBatch, start, end);
+
+                // Map to AttendanceStudent
+                const mapped: AttendanceStudent[] = report.map((stu: BatchStudentReport) => {
+                    const total = stu.sessions.length;
+                    const attended = stu.sessions.filter(
+                        (s) => s.attendanceStatus === 'PRESENT'
+                    ).length;
+                    const percent = total > 0 ? Math.round((attended / total) * 100) : 0;
+
+                    // store sessions for modal
+                    classAttendanceData[stu.studentId] = stu.sessions.map((sess) => ({
+                        id: sess.scheduleId,
+                        className: sess.title,
+                        date: sess.meetingDate,
+                        time: sess.startTime,
+                        status: sess.attendanceStatus === 'PRESENT' ? 'Present' : 'Absent',
+                    }));
+
+                    return {
+                        id: stu.studentId,
+                        name: stu.fullName,
+                        username: '',
+                        batch: selectedBatchLabel,
+                        mobileNumber: stu.mobileNumber,
+                        email: stu.email,
+                        attendedClasses: attended,
+                        totalClasses: total,
+                        attendancePercentage: percent,
+                    };
+                });
+
+                setStudentsData(mapped);
+            } catch (err) {
+                console.error('Failed to fetch batch attendance', err);
+            } finally {
+                /* no-op */
+            }
+        };
+
+        fetchBatchAttendance();
+    }, [selectedBatch, startDate, endDate]);
+
     // Function to clear all filters
     const clearFilters = () => {
         setStartDate(undefined);
         setEndDate(undefined);
         setSearchQuery('');
-        setSelectedBatch('All Batches');
+        setSelectedBatch('');
+        setSelectedBatchLabel('All Batches');
         setSelectedClass('All Live Classes');
         setAttendanceFilter('All');
     };
 
     // Function to handle View More click
-    const handleViewMoreClick = (student: (typeof mockStudentData)[0]) => {
+    const handleViewMoreClick = (student: AttendanceStudent) => {
         setSelectedStudent(student);
         setIsModalOpen(true); // Open modal for attendance view
     };
 
     // Function to handle student details view (eye icon in first column)
-    const handleViewDetailsClick = (student: (typeof mockStudentData)[0]) => {
+    const handleViewDetailsClick = (student: AttendanceStudent) => {
         setSelectedStudent(student);
         setIsSidebarOpen(true); // Open sidebar for detailed profile
     };
 
     // Apply filters to student data
     const filteredStudents: AttendanceStudent[] = useMemo(() => {
-        const res = mockStudentData.filter((student) => {
+        const res = studentsData.filter((student) => {
             // Search filter (case-insensitive)
             const searchLower = searchQuery.toLowerCase();
             const matchesSearch =
                 searchQuery === '' ||
                 student.name.toLowerCase().includes(searchLower) ||
-                student.username.toLowerCase().includes(searchLower) ||
+                student.username?.toLowerCase().includes(searchLower) ||
                 student.email.toLowerCase().includes(searchLower) ||
                 student.mobileNumber.toLowerCase().includes(searchLower);
 
             // Batch filter
-            const matchesBatch = selectedBatch === 'All Batches' || student.batch === selectedBatch;
+            const matchesBatch = selectedBatch === '' || student.batch === selectedBatchLabel;
 
             // Class filter - simplified for mock data
             const matchesClass = selectedClass === 'All Live Classes';
@@ -1241,7 +898,7 @@ function RouteComponent() {
 
         // Ensure we actually return the filtered array
         return res;
-    }, [searchQuery, selectedBatch, selectedClass, attendanceFilter]);
+    }, [searchQuery, selectedBatch, selectedClass, attendanceFilter, studentsData]);
 
     // Pagination helpers
     const totalPages = Math.max(1, Math.ceil(filteredStudents.length / pageSize));
@@ -1256,12 +913,12 @@ function RouteComponent() {
         paginatedStudents.length > 0 && paginatedStudents.every((s) => rowSelections[s.id]);
 
     // Placeholder export functions
-    const exportAccountDetails = (sel: typeof mockStudentData) => {
+    const exportAccountDetails = (sel: AttendanceStudent[]) => {
         // TODO: implement actual export
         console.log('Exporting account details for', sel.length, 'students');
     };
 
-    const exportFullData = (sel: typeof mockStudentData) => {
+    const exportFullData = (sel: AttendanceStudent[]) => {
         console.log('Exporting full data for', sel.length, 'students');
     };
 
@@ -1321,13 +978,13 @@ function RouteComponent() {
                                     <PopoverTrigger asChild>
                                         <button
                                             className={`flex h-9 w-full items-center justify-between overflow-hidden truncate whitespace-nowrap rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 ${
-                                                selectedBatch !== 'All Batches'
+                                                selectedBatch !== ''
                                                     ? 'text-neutral-900'
                                                     : 'text-neutral-500'
                                             }`}
                                         >
-                                            {selectedBatch !== 'All Batches' ? (
-                                                selectedBatch
+                                            {selectedBatch !== '' ? (
+                                                selectedBatchLabel
                                             ) : (
                                                 <>Select batch</>
                                             )}
@@ -1339,23 +996,29 @@ function RouteComponent() {
                                             <h4 className="mb-1 text-xs font-medium text-neutral-500">
                                                 Select batch
                                             </h4>
-                                            {[
-                                                'All Batches',
-                                                '7th course 3',
-                                                '8th course 2',
-                                                '9th course 1',
-                                                '10th course 4',
-                                            ].map((batch) => (
+                                            {(
+                                                [
+                                                    { id: '', label: 'All Batches' },
+                                                    {
+                                                        id: '14b2df53-4fda-4c18-9ddf-f3e69508f3cc',
+                                                        label: '8th course 2',
+                                                    },
+                                                    // add more {id,label} pairs here as backend provides
+                                                ] as { id: string; label: string }[]
+                                            ).map((opt) => (
                                                 <button
-                                                    key={batch}
-                                                    onClick={() => setSelectedBatch(batch)}
+                                                    key={opt.id || opt.label}
+                                                    onClick={() => {
+                                                        setSelectedBatch(opt.id);
+                                                        setSelectedBatchLabel(opt.label);
+                                                    }}
                                                     className={`w-full rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-left text-xs hover:border-neutral-300 hover:bg-neutral-50 ${
-                                                        selectedBatch === batch
+                                                        selectedBatch === opt.id
                                                             ? 'text-primary-600 bg-primary-50'
                                                             : ''
                                                     }`}
                                                 >
-                                                    {batch}
+                                                    {opt.label}
                                                 </button>
                                             ))}
                                         </div>
@@ -1513,7 +1176,7 @@ function RouteComponent() {
                                 </svg>
                             </button>
 
-                            {filteredStudents.length !== mockStudentData.length && (
+                            {filteredStudents.length !== studentsData.length && (
                                 <button
                                     onClick={clearFilters}
                                     className="ml-auto inline-flex h-9 items-center justify-center gap-1 rounded-md bg-neutral-100 px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-200"
@@ -1605,12 +1268,12 @@ function RouteComponent() {
                                 <span className="font-medium text-neutral-700">
                                     {filteredStudents.length}
                                 </span>
-                                {filteredStudents.length !== mockStudentData.length && (
+                                {filteredStudents.length !== studentsData.length && (
                                     <>
                                         {' '}
                                         of{' '}
                                         <span className="font-medium text-neutral-700">
-                                            {mockStudentData.length}
+                                            {studentsData.length}
                                         </span>
                                     </>
                                 )}{' '}
@@ -1849,6 +1512,9 @@ function RouteComponent() {
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
                     student={selectedStudent}
+                    batchId={selectedBatch}
+                    startDate={startDate}
+                    endDate={endDate}
                 />
 
                 {/* Student Details Sidebar with SidebarProvider */}
