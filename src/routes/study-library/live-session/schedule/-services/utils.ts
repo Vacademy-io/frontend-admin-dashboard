@@ -40,8 +40,6 @@ export interface LiveSession {
     subject: string;
     meeting_link: string;
     registration_form_link_for_public_sessions: string;
-    allow_rewind?: boolean | null;
-    allow_play_pause?: boolean | null;
 }
 
 export const createLiveSessionStep1 = async (data: LiveSessionStep1RequestDTO) => {
