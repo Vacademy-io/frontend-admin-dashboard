@@ -269,14 +269,16 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
             </div>
 
             <div className="flex justify-between">
-                <div className="flex items-center gap-2 text-sm text-neutral-500">
+                <div className="flex items-center gap-4 overflow-hidden text-sm text-neutral-500">
                     <h1 className="!font-normal text-black">Join Link:</h1>
-                    <span className="px-3 py-2 text-sm underline">{joinLink}</span>
+                    <span className="flex-1 truncate px-2 py-1 text-sm underline" title={joinLink}>
+                        {joinLink}
+                    </span>
                     <MyButton
                         type="button"
                         scale="small"
                         buttonType="secondary"
-                        className="h-8 min-w-8"
+                        className="mr-4 h-8 min-w-8"
                         onClick={(e) => {
                             e.stopPropagation();
                             copyToClipboard(joinLink);
