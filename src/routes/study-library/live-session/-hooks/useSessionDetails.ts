@@ -18,7 +18,7 @@ export interface SessionDetailsResponse {
     registrationFormLinkForPublicSessions: string | null;
     createdByUserId: string;
     title: string;
-    descriptionHtml: string;
+    descriptionHtml: string | null;
     notificationEmailMessage: string | null;
     attendanceEmailMessage: string | null;
     coverFileId: string | null;
@@ -27,12 +27,15 @@ export interface SessionDetailsResponse {
     backgroundScoreFileId: string;
     status: string;
     recurrenceType: string;
-    recurrenceKey: string;
+    recurrenceKey: string | null;
     meetingDate: string;
     scheduleStartTime: string;
     scheduleLastEntryTime: string;
     customMeetingLink: string;
     customWaitingRoomMediaId: string | null;
+    // add playback control flags
+    allowRewind?: boolean | string | null;
+    allowPlayPause?: boolean | string | null;
 }
 
 export const fetchSessionDetails = async (scheduleId: string): Promise<SessionDetailsResponse> => {

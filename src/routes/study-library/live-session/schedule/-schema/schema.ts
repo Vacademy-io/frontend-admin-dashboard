@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { z } from 'zod';
 import { AccessType, RecurringType } from '../../-constants/enums';
 
@@ -35,6 +36,7 @@ const sessionDetailsSchema = z.object({
         )
         .optional(),
     link: z.string().url('Invalid URL').optional().or(z.literal('')),
+    countAttendanceDaily: z.boolean().optional(),
 });
 
 export const weeklyClassSchema = z.object({

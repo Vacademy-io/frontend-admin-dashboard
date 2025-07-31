@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable tailwindcss/no-custom-classname */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { MyButton } from '@/components/design-system/button';
@@ -96,6 +98,7 @@ export default function ScheduleStep1() {
                         durationHours: '',
                         durationMinutes: '',
                         link: '',
+                        countAttendanceDaily: false,
                     },
                 ],
             })),
@@ -501,7 +504,7 @@ export default function ScheduleStep1() {
         Object.values(errors).forEach((error) => {
             if (error?.message) {
                 toast.error(error.message, {
-                    icon: <XCircle size={20} className="text-red-500" />
+                    icon: <XCircle size={20} className="text-red-500" />,
                 });
             }
         });
@@ -513,7 +516,13 @@ export default function ScheduleStep1() {
         const daySchedule = schedule?.[dayIndex];
         if (!daySchedule) return;
         // Determine session to copy:
-        const defaultSession = { startTime: '', durationHours: '', durationMinutes: '', link: '' };
+        const defaultSession = {
+            startTime: '',
+            durationHours: '',
+            durationMinutes: '',
+            link: '',
+            countAttendanceDaily: false,
+        };
         // Pick source session (with optional props)
         const rawSession =
             (dayIndex === 0
@@ -527,6 +536,7 @@ export default function ScheduleStep1() {
             durationHours: rawSession.durationHours || '',
             durationMinutes: rawSession.durationMinutes || '',
             link: rawSession.link || '',
+            countAttendanceDaily: rawSession.countAttendanceDaily || false,
         };
         const updatedSessions = [...daySchedule.sessions, sessionToCopy];
         form.setValue(`recurringSchedule.${dayIndex}.sessions`, updatedSessions, {
@@ -1181,6 +1191,9 @@ export default function ScheduleStep1() {
                                 <th className="border px-2 py-1 text-left">Start Time</th>
                                 <th className="border px-2 py-1 text-left">Duration</th>
                                 <th className="border px-2 py-1 text-left">Live Class Link</th>
+                                <th className="border px-2 py-1 text-center">
+                                    Count attendance daily
+                                </th>
                                 <th className="border px-2 py-1 text-center">Actions</th>
                             </tr>
                         </thead>
@@ -1190,7 +1203,7 @@ export default function ScheduleStep1() {
                                 // for each day, render a header row, its sessions, then a separator
                                 return [
                                     <tr key={`${dayField.day}-header`} className="bg-primary-50">
-                                        <td colSpan={5} className="px-2 py-1">
+                                        <td colSpan={6} className="px-2 py-1">
                                             <div className="flex items-center justify-between">
                                                 <span className="text-primary-800 font-semibold uppercase">
                                                     {WEEK_DAYS.find((d) => d.label === dayField.day)
@@ -1371,15 +1384,26 @@ export default function ScheduleStep1() {
                                                                         size="small"
                                                                         {...field}
                                                                         onBlur={(e) => {
-                                                                            const url = e.target.value;
+                                                                            const url =
+                                                                                e.target.value;
                                                                             field.onBlur();
                                                                             try {
                                                                                 new URL(url);
                                                                             } catch {
                                                                                 if (url) {
-                                                                                    toast.error('Invalid URL', {
-                                                                                        icon: <XCircle size={20} className="text-red-500" />
-                                                                                    });
+                                                                                    toast.error(
+                                                                                        'Invalid URL',
+                                                                                        {
+                                                                                            icon: (
+                                                                                                <XCircle
+                                                                                                    size={
+                                                                                                        20
+                                                                                                    }
+                                                                                                    className="text-red-500"
+                                                                                                />
+                                                                                            ),
+                                                                                        }
+                                                                                    );
                                                                                 }
                                                                             }
                                                                         }}
@@ -1388,8 +1412,9 @@ export default function ScheduleStep1() {
                                                                 <FormMessage className="text-danger-600">
                                                                     {
                                                                         form.formState.errors
-                                                                            .recurringSchedule?.[dayIndex]
-                                                                            ?.sessions?.[sessionIndex]
+                                                                            .recurringSchedule?.[
+                                                                            dayIndex
+                                                                        ]?.sessions?.[sessionIndex]
                                                                             ?.link?.message
                                                                     }
                                                                 </FormMessage>
@@ -1400,7 +1425,22 @@ export default function ScheduleStep1() {
                                                     <span className="text-gray-400">-</span>
                                                 )}
                                             </td>
-
+                                            <td className="border px-2 py-1 text-center align-top">
+                                                {isSelect && sessionIndex === 0 ? (
+                                                    <Controller
+                                                        control={control}
+                                                        name={`recurringSchedule.${dayIndex}.sessions.${sessionIndex}.countAttendanceDaily`}
+                                                        render={({ field }) => (
+                                                            <Switch
+                                                                checked={field.value}
+                                                                onCheckedChange={field.onChange}
+                                                            />
+                                                        )}
+                                                    />
+                                                ) : (
+                                                    <span className="text-gray-400">-</span>
+                                                )}
+                                            </td>
                                             <td className="border px-2 py-1 text-center align-top">
                                                 {isSelect && sessionIndex > 0 ? (
                                                     <Trash
@@ -1417,7 +1457,7 @@ export default function ScheduleStep1() {
                                         </tr>
                                     )),
                                     <tr key={`${dayField.day}-separator`}>
-                                        <td colSpan={5} className="p-0">
+                                        <td colSpan={6} className="p-0">
                                             <hr className="border-t border-gray-300" />
                                         </td>
                                     </tr>,

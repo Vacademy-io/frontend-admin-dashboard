@@ -15,6 +15,10 @@ import {
     Plus,
     PencilSimpleLine,
 } from 'phosphor-react';
+import RoleTypeComponent from './-components/RoleTypeComponent';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
+import { DashboardCreateCourse, CreateAssessmentDashboardLogo } from '@/svgs';
 import { CompletionStatusComponent } from './-components/CompletionStatusComponent';
 import { IntroKey } from '@/constants/storage/introKey';
 import useIntroJsTour from '@/hooks/use-intro';
@@ -281,6 +285,14 @@ export function DashboardComponent() {
     const { data: assessmentCount, isLoading: isAssessmentCountLoading } = useSuspenseQuery(
         getAssessmentsCountsData(instituteDetails?.id)
     );
+    const [roleTypeCount, setRoleTypeCount] = useState({
+        ADMIN: 0,
+        'COURSE CREATOR': 0,
+        'ASSESSMENT CREATOR': 0,
+        EVALUATOR: 0,
+        TEACHER: 0,
+    });
+    const subModules = useMemo(() => data?.subModules ?? {}, [data]);
     const navigate = useNavigate();
     const { setNavHeading } = useNavHeadingStore();
 
@@ -337,6 +349,7 @@ export function DashboardComponent() {
             to: '/ai-center',
         });
     };
+    const handleEnrollButtonClick = () => navigate({ to: '/manage-students/invite' });
 
     useEffect(() => {
         // Slightly more compact nav heading
