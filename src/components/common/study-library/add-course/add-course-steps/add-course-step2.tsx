@@ -324,11 +324,43 @@ export const AddCourseStep2 = ({
         (batch: ExistingBatch) => !usedExistingBatchIds.has(batch.id)
     );
 
+    // Helper function to deduplicate sessions by name when hasSessions is 'yes' and hasLevels is not 'yes'
+    const getDeduplicatedSessions = (batches: ExistingBatch[]) => {
+        if (hasSessions === 'yes' && hasLevels !== 'yes') {
+            const seenSessionNames = new Set<string>();
+            return batches.filter((batch) => {
+                const sessionName = batch.session.session_name;
+                if (seenSessionNames.has(sessionName)) {
+                    return false;
+                }
+                seenSessionNames.add(sessionName);
+                return true;
+            });
+        }
+        return batches;
+    };
+
+    // Helper function to deduplicate levels by name when hasSessions is not 'yes' and hasLevels is 'yes'
+    const getDeduplicatedLevels = (batches: ExistingBatch[]) => {
+        if (hasSessions !== 'yes' && hasLevels === 'yes') {
+            const seenLevelNames = new Set<string>();
+            return batches.filter((batch) => {
+                const levelName = batch.level.level_name;
+                if (seenLevelNames.has(levelName)) {
+                    return false;
+                }
+                seenLevelNames.add(levelName);
+                return true;
+            });
+        }
+        return batches;
+    };
+
     // Add this before the return statement in AddCourseStep2
     const standaloneSession = sessions.find((s) => s.id === 'DEFAULT');
     const standaloneLevelIds = standaloneSession ? standaloneSession.levels.map((l) => l.id) : [];
-    const availableExistingBatchesForStandalone = availableExistingBatches.filter(
-        (batch) => !standaloneLevelIds.includes(batch.level.id)
+    const availableExistingBatchesForStandalone = getDeduplicatedLevels(
+        availableExistingBatches.filter((batch) => !standaloneLevelIds.includes(batch.level.id))
     );
 
     const form = useForm<Step2Data>({
@@ -1618,8 +1650,9 @@ export const AddCourseStep2 = ({
                                                                             )}
                                                                             s
                                                                         </Label>
-                                                                        {availableExistingBatches.length ===
-                                                                        0 ? (
+                                                                        {getDeduplicatedSessions(
+                                                                            availableExistingBatches
+                                                                        ).length === 0 ? (
                                                                             <div className="text-sm text-gray-500">
                                                                                 No existing sessions
                                                                                 found.
@@ -1629,22 +1662,33 @@ export const AddCourseStep2 = ({
                                                                                 <div className="mb-2 flex items-center">
                                                                                     <Checkbox
                                                                                         checked={
-                                                                                            availableExistingBatches.length >
+                                                                                            getDeduplicatedSessions(
+                                                                                                availableExistingBatches
+                                                                                            )
+                                                                                                .length >
                                                                                                 0 &&
                                                                                             selectedExistingBatchIds.length ===
-                                                                                                availableExistingBatches.length
+                                                                                                getDeduplicatedSessions(
+                                                                                                    availableExistingBatches
+                                                                                                )
+                                                                                                    .length
                                                                                         }
                                                                                         onCheckedChange={() => {
                                                                                             if (
                                                                                                 selectedExistingBatchIds.length ===
-                                                                                                availableExistingBatches.length
+                                                                                                getDeduplicatedSessions(
+                                                                                                    availableExistingBatches
+                                                                                                )
+                                                                                                    .length
                                                                                             ) {
                                                                                                 setSelectedExistingBatchIds(
                                                                                                     []
                                                                                                 );
                                                                                             } else {
                                                                                                 setSelectedExistingBatchIds(
-                                                                                                    availableExistingBatches.map(
+                                                                                                    getDeduplicatedSessions(
+                                                                                                        availableExistingBatches
+                                                                                                    ).map(
                                                                                                         (
                                                                                                             b: ExistingBatch
                                                                                                         ) =>
@@ -1656,13 +1700,18 @@ export const AddCourseStep2 = ({
                                                                                         className="mr-2 size-4"
                                                                                         style={{
                                                                                             display:
-                                                                                                availableExistingBatches.length ===
+                                                                                                getDeduplicatedSessions(
+                                                                                                    availableExistingBatches
+                                                                                                )
+                                                                                                    .length ===
                                                                                                 0
                                                                                                     ? 'none'
                                                                                                     : undefined,
                                                                                         }}
                                                                                     />
-                                                                                    {availableExistingBatches.length >
+                                                                                    {getDeduplicatedSessions(
+                                                                                        availableExistingBatches
+                                                                                    ).length >
                                                                                         0 && (
                                                                                         <span className="text-sm font-medium text-gray-700">
                                                                                             Select
@@ -1671,7 +1720,9 @@ export const AddCourseStep2 = ({
                                                                                     )}
                                                                                 </div>
                                                                                 <div className="max-h-48 space-y-1 overflow-y-auto">
-                                                                                    {availableExistingBatches.map(
+                                                                                    {getDeduplicatedSessions(
+                                                                                        availableExistingBatches
+                                                                                    ).map(
                                                                                         (
                                                                                             batch: ExistingBatch
                                                                                         ) => (
