@@ -20,6 +20,7 @@ export const useDeleteCourse = () => {
             // Invalidate course list queries used in CourseMaterial component
             queryClient.invalidateQueries({ queryKey: ['allCourses'] });
             queryClient.invalidateQueries({ queryKey: ['authoredCourses'] });
+            queryClient.invalidateQueries({ queryKey: ['my-courses'] });
         },
     });
 };

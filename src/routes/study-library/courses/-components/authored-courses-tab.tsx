@@ -12,6 +12,7 @@ import {
     Calendar,
     GraduationCap,
     Users,
+    TrashSimple,
 } from 'phosphor-react';
 import { toast } from 'sonner';
 import { useNavigate } from '@tanstack/react-router';
@@ -21,6 +22,18 @@ import { formatDistanceToNow } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
+import { useDeleteCourse } from '@/services/study-library/course-operations/delete-course';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface PackageEntity {
     id: string;
@@ -87,6 +100,7 @@ interface DetailedCourseResponse {
 // Grouped course interface for display
 interface GroupedCourse {
     id: string;
+    packageId: string; // Package ID for deletion
     packageName: string;
     status: 'DRAFT' | 'IN_REVIEW' | 'ACTIVE';
     updatedAt: string;
@@ -115,6 +129,11 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
     const navigate = useNavigate();
     const [filteredCourses, setFilteredCourses] = useState<GroupedCourse[]>([]);
     const [copyingCourseId, setCopyingCourseId] = useState<string | null>(null);
+    const [deletingCourseId, setDeletingCourseId] = useState<string | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState<string | null>(null);
+
+    // Delete course mutation
+    const deleteCourseMutation = useDeleteCourse();
 
     // Get current user data
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
@@ -178,6 +197,7 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
             if (!groupedMap.has(courseId)) {
                 groupedMap.set(courseId, {
                     id: courseId,
+                    packageId: course.id, // Store the package ID for deletion
                     packageName: course.packageName,
                     status: course.status,
                     updatedAt: course.updatedAt,
@@ -245,6 +265,35 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
 
     const handleSubmitForReview = (courseId: string) => {
         submitReviewMutation.mutate(courseId);
+    };
+
+    const handleDeleteCourse = (courseId: string) => {
+        // Find the course to get the packageId
+        const course = filteredCourses.find((c) => c.id === courseId);
+        if (!course) {
+            toast.error('Course not found');
+            return;
+        }
+
+        console.log('Deleting course:', { courseId, packageId: course.packageId });
+
+        setDeletingCourseId(courseId);
+        setDeleteDialogOpen(null); // Close the dialog
+        deleteCourseMutation.mutate(course.packageId, {
+            onSuccess: () => {
+                toast.success('Course deleted successfully');
+                refetch();
+                setDeletingCourseId(null);
+            },
+            onError: (error: unknown) => {
+                const errMsg =
+                    error && typeof error === 'object' && 'message' in error
+                        ? (error as { message?: string }).message
+                        : undefined;
+                toast.error(errMsg || 'Failed to delete course');
+                setDeletingCourseId(null);
+            },
+        });
     };
 
     const canCreateCopy = (course: GroupedCourse) => {
@@ -506,6 +555,71 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                                             )}
                                         </div>
                                     )}
+
+                                    {/* Delete Button */}
+                                    <AlertDialog
+                                        open={deleteDialogOpen === course.id}
+                                        onOpenChange={(open) => {
+                                            if (open) {
+                                                setDeleteDialogOpen(course.id);
+                                            } else {
+                                                setDeleteDialogOpen(null);
+                                            }
+                                        }}
+                                    >
+                                        <AlertDialogTrigger asChild>
+                                            <MyButton
+                                                size="sm"
+                                                className="h-8 w-full bg-red-600 text-xs text-white hover:bg-red-700"
+                                                disabled={deletingCourseId === course.id}
+                                            >
+                                                {deletingCourseId === course.id ? (
+                                                    <CircleNotch
+                                                        size={12}
+                                                        className="animate-spin"
+                                                    />
+                                                ) : (
+                                                    <>
+                                                        <TrashSimple size={12} className="mr-1" />
+                                                        Delete
+                                                    </>
+                                                )}
+                                            </MyButton>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>
+                                                    Are you sure you want to delete this course?
+                                                </AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action cannot be undone. This will
+                                                    permanently delete your course and remove your
+                                                    course data from our servers.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel
+                                                    disabled={deletingCourseId === course.id}
+                                                >
+                                                    Cancel
+                                                </AlertDialogCancel>
+                                                <AlertDialogAction
+                                                    onClick={() => handleDeleteCourse(course.id)}
+                                                    disabled={deletingCourseId === course.id}
+                                                    className="bg-red-600 text-white hover:bg-red-700"
+                                                >
+                                                    {deletingCourseId === course.id ? (
+                                                        <CircleNotch
+                                                            size={12}
+                                                            className="animate-spin"
+                                                        />
+                                                    ) : (
+                                                        'Delete'
+                                                    )}
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </div>
                             </CardContent>
                         </Card>
