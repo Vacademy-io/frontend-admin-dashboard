@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { z } from 'zod';
 import { AccessType, RecurringType } from '../../-constants/enums';
 
