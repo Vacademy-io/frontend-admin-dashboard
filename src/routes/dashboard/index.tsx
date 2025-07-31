@@ -281,6 +281,7 @@ export function DashboardComponent() {
     const { data: assessmentCount, isLoading: isAssessmentCountLoading } = useSuspenseQuery(
         getAssessmentsCountsData(instituteDetails?.id)
     );
+
     const [roleTypeCount, setRoleTypeCount] = useState({
         ADMIN: 0,
         'COURSE CREATOR': 0,
@@ -288,6 +289,7 @@ export function DashboardComponent() {
         EVALUATOR: 0,
         TEACHER: 0,
     });
+
     const navigate = useNavigate();
     const { setNavHeading } = useNavHeadingStore();
 
