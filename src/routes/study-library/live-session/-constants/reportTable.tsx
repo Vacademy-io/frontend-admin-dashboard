@@ -26,8 +26,7 @@ export const reportColumns: ColumnDef<ReportTableData>[] = [
         accessorKey: 'attendanceStatus',
         header: 'Attendance Status',
         cell: ({ row }) => {
-            const raw = row.original.attendanceStatus;
-            const status = raw ? raw.toString().toUpperCase() : '';
+            const status = row.original.attendanceStatus;
             if (status === 'PRESENT') {
                 return (
                     <div className="flex items-center gap-2 text-success-600">

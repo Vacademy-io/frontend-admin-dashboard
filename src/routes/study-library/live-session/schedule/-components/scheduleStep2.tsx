@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useForm, Controller, FormProvider, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -41,7 +39,6 @@ const TimeOptions = [
 ];
 
 export default function ScheduleStep2() {
-    const { clearSessionId, clearStep1Data } = useLiveSessionStore();
     const { studyLibraryData } = useStudyLibraryStore();
     const [addCustomFieldDialog, setAddCustomFieldDialog] = useState<boolean>(false);
     const queryClient = useQueryClient();
@@ -428,8 +425,6 @@ export default function ScheduleStep2() {
             await queryClient.invalidateQueries({ queryKey: ['upcomingSessions'] });
             await queryClient.invalidateQueries({ queryKey: ['pastSessions'] });
             await queryClient.invalidateQueries({ queryKey: ['draftSessions'] });
-            clearSessionId();
-            clearStep1Data();
             navigate({ to: '/study-library/live-session' });
         } catch (error) {
             console.error('Error submitting form:', error);
