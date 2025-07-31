@@ -99,13 +99,19 @@ export const AIVideoSlidePreview: React.FC<AIVideoSlidePreviewProps> = ({
         }
 
         if (sourceType === 'YOUTUBE') {
-            return <AIYouTubePlayer videoUrl={videoUrl} />;
+            return (
+                <AIYouTubePlayer
+                    key={`youtube-player-${activeItem.id}-${videoUrl}`}
+                    videoUrl={videoUrl}
+                />
+            );
         }
 
         // For FILE_ID or other video types
         return (
             <div className="video-player">
                 <video
+                    key={`video-player-${activeItem.id}-${videoUrl}`}
                     controls
                     width="100%"
                     height="400"
