@@ -50,10 +50,13 @@ import {
     Globe,
     ChevronRight,
     Search,
+    Sparkles,
+    Brain,
 } from 'lucide-react';
 import './styles/ChatView.css';
 import { useMemo } from 'react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useSidebar } from '@/components/ui/sidebar';
 import TodoList from '../todo/TodoList';
 // Gemini API integration temporarily disabled – using local mock responses instead
 // import { sendChatMessage, sendChatMessageStreaming, type ChatApiRequest, type ChatApiResponse } from '@/services/aiCourseApi';
@@ -234,6 +237,14 @@ const ChatView: React.FC<ChatViewProps> = ({
     // Get current user data for avatar
     const { currentUser } = useCurrentUser();
 
+    // Sidebar control for collapsing after intro
+    const { setOpen: setSidebarOpen, open: sidebarOpen } = useSidebar();
+
+    // Track sidebar state changes for debugging if needed
+    // useEffect(() => {
+    //     console.log('📊 Sidebar state from hook changed:', { sidebarOpen });
+    // }, [sidebarOpen]);
+
     // Use props if provided, otherwise use local state
     const messages = propMessages ?? localMessages;
     const setMessages = propSetMessages ?? setLocalMessages;
@@ -261,6 +272,13 @@ const ChatView: React.FC<ChatViewProps> = ({
     const [contextSearchQuery, setContextSearchQuery] = useState('');
     const [selectedContextOptions, setSelectedContextOptions] = useState<string[]>([]);
     const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+    const [showCinematicIntro, setShowCinematicIntro] = useState(() => {
+        // Only show intro if there are no existing messages
+        return !propMessages || propMessages.length === 0;
+    });
+    const [introPhase, setIntroPhase] = useState(0); // 0: initial, 1: logo, 2: text, 3: complete
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [hasCollapsedSidebar, setHasCollapsedSidebar] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -369,13 +387,60 @@ const ChatView: React.FC<ChatViewProps> = ({
         }
     }, [messages, scrollToBottomIfAtBottom, forceScrollToBottom]);
 
+    // Cinematic intro timing
+    useEffect(() => {
+        if (!showCinematicIntro) return;
+
+        const timers = [
+            // Phase 1: Show logo after 500ms
+            setTimeout(() => setIntroPhase(1), 500),
+            // Phase 2: Show text after 1.5s
+            setTimeout(() => setIntroPhase(2), 1500),
+            // Phase 3: Complete intro after 3.5s
+            setTimeout(() => setIntroPhase(3), 3500),
+            // Hide intro after 4s
+            setTimeout(() => setShowCinematicIntro(false), 4000),
+        ];
+
+        return () => timers.forEach((timer) => clearTimeout(timer));
+    }, [showCinematicIntro]);
+
+    // Initialize sidebar state for AI course creator - ONLY on mount
+    useEffect(() => {
+        setSidebarOpen(true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Empty dependency array - only run on mount
+
+    // Separate effect to handle sidebar collapse when intro ends
+    useEffect(() => {
+        if (showCinematicIntro || hasCollapsedSidebar) {
+            return;
+        }
+
+        const collapseTimer = setTimeout(() => {
+            setSidebarOpen(false);
+            setSidebarCollapsed(true);
+            setHasCollapsedSidebar(true); // Mark that we've handled the collapse AFTER it happens
+            // Remove animation class after animation completes
+            setTimeout(() => setSidebarCollapsed(false), 500);
+        }, 500); // Small delay after intro ends
+
+        return () => clearTimeout(collapseTimer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [showCinematicIntro, hasCollapsedSidebar]); // Only depend on these two state values
+
     // Set initial textarea height on mount
     useEffect(() => {
         resetTextareaHeight();
 
         // Make test function available in console for debugging (only once)
-        if (typeof window !== 'undefined' && !(window as any).testApiCall) {
-            (window as any).testApiCall = testApiEndpoint;
+        interface WindowWithTestApi extends Window {
+            testApiCall?: typeof testApiEndpoint;
+        }
+        const windowWithTestApi = window as WindowWithTestApi;
+
+        if (typeof window !== 'undefined' && !windowWithTestApi.testApiCall) {
+            windowWithTestApi.testApiCall = testApiEndpoint;
             console.log('🔧 Debug tool: Run "window.testApiCall()" in console to test API');
         }
     }, []);
@@ -442,6 +507,16 @@ const ChatView: React.FC<ChatViewProps> = ({
             }
             return newMessages;
         });
+
+        // Hide cinematic intro when first message is sent
+        if (showCinematicIntro) {
+            setShowCinematicIntro(false);
+            setHasCollapsedSidebar(true); // Mark that we've handled the collapse via user action
+            // Also collapse the sidebar immediately since user is interacting
+            setSidebarOpen(false);
+            setSidebarCollapsed(true);
+            setTimeout(() => setSidebarCollapsed(false), 500);
+        }
         setPrompt('');
         setUploadedFiles([]);
         setCodePrompt({
@@ -601,7 +676,7 @@ I can now generate specific content for any module or create detailed assessment
             const jsonStr = payload.slice(start, end + 1);
             const data = JSON.parse(jsonStr);
             if (data?.modifications && Array.isArray(data.modifications) && onModifications) {
-                onModifications(data.modifications as any);
+                onModifications(data.modifications as Modification[]);
             }
             if (data?.todos && Array.isArray(data.todos) && onTodos) {
                 onTodos(data.todos);
@@ -798,9 +873,43 @@ I can now generate specific content for any module or create detailed assessment
 
     return (
         <div
-            className={`ai-chat-container ${isFullScreen ? 'fullscreen-chat' : ''}`}
+            className={`ai-chat-container compact-mode ${isFullScreen ? 'fullscreen-chat' : ''} ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}
             style={isFullScreen ? { height: '100%', display: 'flex', flexDirection: 'column' } : {}}
         >
+            {/* Cinematic Intro */}
+            {showCinematicIntro && (
+                <div className="cinematic-intro">
+                    <div className="intro-overlay"></div>
+                    <div className="intro-content">
+                        {/* Phase 1: Logo Animation */}
+                        <div className={`intro-logo ${introPhase >= 1 ? 'visible' : ''}`}>
+                            <div className="logo-container">
+                                <Brain className="logo-icon" />
+                                <Sparkles className="sparkle-1" />
+                                <Sparkles className="sparkle-2" />
+                                <Sparkles className="sparkle-3" />
+                            </div>
+                        </div>
+
+                        {/* Phase 2: Text Animation */}
+                        <div className={`intro-text ${introPhase >= 2 ? 'visible' : ''}`}>
+                            <h1 className="intro-title">
+                                <span className="text-gradient">AI Course Creator</span>
+                            </h1>
+                            <p className="intro-subtitle">
+                                Transforming ideas into interactive learning experiences
+                            </p>
+                        </div>
+
+                        {/* Phase 3: Loading bar */}
+                        <div className={`intro-loader ${introPhase >= 3 ? 'complete' : ''}`}>
+                            <div className="loader-bar"></div>
+                            <p className="loader-text">Initializing AI Assistant...</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Quick Start templates removed for full-width chat area */}
 
             {/* Todo Progress List */}
@@ -820,11 +929,15 @@ I can now generate specific content for any module or create detailed assessment
                 {showWelcome && (
                     <div className="welcome-overlay">
                         <h2 className="welcome-title">
-                            Welcome to <span className="text-primary">AI-Course Creation</span>
+                            Welcome to{' '}
+                            <span style={{ color: 'hsl(var(--primary-500))' }}>
+                                AI-Course Creation
+                            </span>
                         </h2>
                         <p className="welcome-text">
                             Try one of the prompts below, or start typing your own.
                         </p>
+
                         <div className="welcome-prompts">
                             {EXAMPLE_PROMPTS.slice(0, 6).map((example, idx) => (
                                 <button

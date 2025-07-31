@@ -5,7 +5,25 @@ export interface Modification {
     action: 'ADD' | 'UPDATE' | 'DELETE';
     targetType: 'COURSE' | 'SUBJECT' | 'MODULE' | 'CHAPTER' | 'SLIDE';
     parentPath: string | null;
-    node: any; // Raw node coming from AI
+    node: any; // Raw node coming from AI or manual creation
+
+    // Enhanced fields for rich slide data
+    creation_method?: 'AI_GENERATED' | 'MANUALLY_CREATED';
+    slide_data?: {
+        id: string;
+        title: string;
+        source_type: string;
+        status: string;
+        chapter_id?: string;
+        chapter_name?: string;
+        video_slide?: any;
+        document_slide?: any;
+        quiz_slide?: any;
+        assignment_slide?: any;
+        question_slide?: any;
+        is_ai_generated?: boolean;
+        manual_modifications?: boolean;
+    };
 }
 
 /**

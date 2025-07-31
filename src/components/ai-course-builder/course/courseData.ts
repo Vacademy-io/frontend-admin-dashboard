@@ -1,11 +1,27 @@
 export interface Slide {
     id: string;
     name: string;
-    type: 'pdf' | 'text' | 'code' | 'youtube' | 'html' | 'assessment' | 'document' | 'video';
+    title: string;
+    type:
+        | 'pdf'
+        | 'text'
+        | 'code'
+        | 'youtube'
+        | 'html'
+        | 'assessment'
+        | 'document'
+        | 'video'
+        | 'presentation'
+        | 'quiz'
+        | 'assignment';
+    source_type: 'VIDEO' | 'DOCUMENT' | 'QUIZ' | 'ASSIGNMENT' | 'QUESTION' | 'PRESENTATION' | 'PDF';
     key?: string;
     depth?: number;
     path?: string;
     content?: string;
+    status?: 'DRAFT' | 'PUBLISHED';
+    slide_order?: number;
+    is_ai_generated?: boolean;
 }
 
 export interface Chapter {

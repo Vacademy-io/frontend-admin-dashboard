@@ -68,6 +68,8 @@ export default defineConfig({
             external: (id) => {
                 // Handle problematic dependencies
                 if (id.includes('woff2-wasm')) return true;
+                // Don't externalize pyodide - it needs to be bundled
+                if (id.includes('pyodide')) return false;
                 return false;
             },
             onLog(level, log, handler) {
@@ -82,11 +84,31 @@ export default defineConfig({
                     // Router and state management
                     'routing-vendor': ['react-router-dom', '@tanstack/react-router', 'zustand'],
                     // All PDF related libraries together to avoid dependency issues
-                    'pdf-vendor': ['pdfjs-dist', 'pdf-lib', '@pdfme/generator', '@pdfme/common', 'pako'],
+                    'pdf-vendor': [
+                        'pdfjs-dist',
+                        'pdf-lib',
+                        '@pdfme/generator',
+                        '@pdfme/common',
+                        'pako',
+                    ],
                     // UI components
-                    'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select', '@radix-ui/react-toast', 'lucide-react'],
+                    'ui-vendor': [
+                        '@radix-ui/react-dialog',
+                        '@radix-ui/react-dropdown-menu',
+                        '@radix-ui/react-select',
+                        '@radix-ui/react-toast',
+                        'lucide-react',
+                    ],
                     // Utilities and data handling
-                    'utils-vendor': ['lodash', 'date-fns', 'axios', 'clsx', 'class-variance-authority'],
+                    'utils-vendor': [
+                        'lodash',
+                        'date-fns',
+                        'axios',
+                        'clsx',
+                        'class-variance-authority',
+                    ],
+                    // Pyodide in its own chunk due to large size and WebAssembly dependencies
+                    'pyodide-vendor': ['pyodide'],
                 },
             },
             onwarn: (warning, warn) => {
@@ -106,12 +128,16 @@ export default defineConfig({
         },
         chunkSizeWarningLimit: 1000,
         assetsInlineLimit: 0, // Disable asset inlining to prevent issues
+        worker: {
+            format: 'es',
+        },
     },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),
         },
     },
+    assetsInclude: ['**/*.wasm'],
     test: {
         globals: true,
         environment: 'happy-dom',
@@ -120,14 +146,14 @@ export default defineConfig({
     },
     server: {
         headers: {
-            'Cross-Origin-Embedder-Policy': 'unsafe-none',
-            'Cross-Origin-Opener-Policy': 'unsafe-none',
+            'Cross-Origin-Embedder-Policy': 'credentialless',
+            'Cross-Origin-Opener-Policy': 'same-origin',
             'Cross-Origin-Resource-Policy': 'cross-origin',
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
             'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization',
             'Content-Security-Policy':
-                "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; frame-src *; frame-ancestors 'self' https://www.youtube.com https://youtube.com https://*.youtube.com;",
+                "default-src * 'unsafe-inline' 'unsafe-eval' data: blob: wasm:; worker-src * blob:; frame-src *; frame-ancestors 'self' https://www.youtube.com https://youtube.com https://*.youtube.com;",
         },
         proxy: {
             '/youtube': {
@@ -147,16 +173,8 @@ export default defineConfig({
         },
     },
     optimizeDeps: {
-        exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
-        include: [
-            'react',
-            'react-dom',
-            'react-router-dom',
-            'axios',
-            'lodash',
-            'date-fns',
-            'pako',
-        ],
+        exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util', 'pyodide'],
+        include: ['react', 'react-dom', 'react-router-dom', 'axios', 'lodash', 'date-fns', 'pako'],
         esbuildOptions: {
             target: 'esnext',
             supported: {

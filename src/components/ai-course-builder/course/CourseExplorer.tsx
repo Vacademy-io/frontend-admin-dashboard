@@ -14,6 +14,19 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import {
+    createPresentationSlidePayload,
+    createDocumentSlidePayload,
+    createPdfSlidePayload,
+    createVideoSlidePayload,
+    createQuizSlidePayload,
+    createAssignmentSlidePayload,
+    createQuestionSlidePayload,
+    slideTypeOptions,
+    convertAISlideToRichSlide,
+} from '../lib/slidePayloads';
+import type { Slide as RichSlide } from '../types/index';
+import { Modification } from '../lib/applyModifications';
 
 interface SelectedItem {
     type: 'course' | 'subject' | 'module' | 'chapter' | 'slide';
@@ -26,13 +39,30 @@ interface CourseExplorerProps {
     onItemSelect?: (item: SelectedItem | null) => void;
     data?: Subject[]; // optional prop for external course data
     setData?: React.Dispatch<React.SetStateAction<Subject[]>>; // optional setter from parent
+    onModifications?: (modifications: Modification[]) => void; // callback for modification tracking
 }
+
+// Helper function to get style classes for slide types
+const getSlideTypeStyle = (type: string): string => {
+    const styleMap: Record<string, string> = {
+        pdf: 'bg-red-100 text-red-700 hover:bg-red-200',
+        video: 'bg-blue-100 text-blue-700 hover:bg-blue-200',
+        document: 'bg-green-100 text-green-700 hover:bg-green-200',
+        assessment: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200',
+        quiz: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200',
+        presentation: 'bg-purple-100 text-purple-700 hover:bg-purple-200',
+        assignment: 'bg-orange-100 text-orange-700 hover:bg-orange-200',
+        question: 'bg-pink-100 text-pink-700 hover:bg-pink-200',
+    };
+    return styleMap[type] || 'bg-gray-100 text-gray-700 hover:bg-gray-200';
+};
 
 const CourseExplorer: React.FC<CourseExplorerProps> = ({
     selectedItem: externalSelectedItem,
     onItemSelect,
     data,
     setData,
+    onModifications,
 }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [internalSelectedItem, setInternalSelectedItem] = useState<SelectedItem | null>(null);
@@ -143,18 +173,36 @@ const CourseExplorer: React.FC<CourseExplorerProps> = ({
                 // ----- Ensure / update slide layer -----
                 let slide = chapter.slides.find((s) => s.path?.endsWith(slideSeg));
                 if (!slide) {
-                    slide = {
-                        id: `${slideSeg}-${Date.now()}`,
+                    // Create a rich slide using the conversion function for AI-generated content
+                    const aiSlideData = {
                         name: detail.name,
-                        path: detail.path,
                         type: detail.slideType ?? 'document',
                         content: detail.content,
+                    };
+
+                    // Convert to rich slide format to ensure proper UI treatment
+                    const richSlide = convertAISlideToRichSlide(aiSlideData, chapter.name);
+
+                    // Create the course data slide with rich properties
+                    slide = {
+                        id: richSlide.id,
+                        name: detail.name,
+                        title: richSlide.title,
+                        path: detail.path,
+                        type: detail.slideType ?? 'document',
+                        source_type: richSlide.source_type,
+                        content: detail.content,
+                        status: richSlide.status,
+                        slide_order: richSlide.slide_order,
+                        is_ai_generated: true, // Mark as AI-generated
                     } as Slide;
                     chapter.slides.push(slide);
                 } else {
                     slide.name = detail.name;
+                    slide.title = detail.name;
                     slide.content = detail.content ?? slide.content;
                     slide.type = detail.slideType ?? slide.type;
+                    slide.is_ai_generated = true; // Mark existing slide as AI-modified
                 }
 
                 return updated;
@@ -274,11 +322,20 @@ const CourseExplorer: React.FC<CourseExplorerProps> = ({
         );
     };
 
-    // Insert a new slide; if it's a video, place it after the last existing video in the chapter
+    // Insert a new slide with rich structure and track modifications
     const addSlide = (
         chapterId: string,
         name: string,
-        type: 'pdf' | 'text' | 'video' | 'assessment' = 'text'
+        type:
+            | 'pdf'
+            | 'text'
+            | 'video'
+            | 'assessment'
+            | 'presentation'
+            | 'quiz'
+            | 'assignment'
+            | 'question'
+            | 'document' = 'text'
     ) => {
         updateCourseData((prev) =>
             prev.map((sub) => ({
@@ -288,11 +345,96 @@ const CourseExplorer: React.FC<CourseExplorerProps> = ({
                     chapters: mod.chapters.map((chap) => {
                         if (chap.id !== chapterId) return chap;
 
+                        // Find chapter name for slide creation
+                        const chapterName = chap.name;
+                        const existingSlides = chap.slides;
+
+                        // Create rich slide payload based on type
+                        let richSlidePayload: RichSlide;
+                        switch (type) {
+                            case 'presentation':
+                                richSlidePayload = createPresentationSlidePayload(
+                                    chapterName,
+                                    existingSlides as RichSlide[],
+                                    name
+                                );
+                                break;
+                            case 'pdf':
+                                richSlidePayload = createPdfSlidePayload(
+                                    chapterName,
+                                    existingSlides as RichSlide[],
+                                    name
+                                );
+                                break;
+                            case 'video':
+                                richSlidePayload = createVideoSlidePayload(
+                                    chapterName,
+                                    existingSlides as RichSlide[],
+                                    name
+                                );
+                                break;
+                            case 'quiz':
+                            case 'assessment':
+                                richSlidePayload = createQuizSlidePayload(
+                                    chapterName,
+                                    existingSlides as RichSlide[],
+                                    name
+                                );
+                                break;
+                            case 'assignment':
+                                richSlidePayload = createAssignmentSlidePayload(
+                                    chapterName,
+                                    existingSlides as RichSlide[],
+                                    name
+                                );
+                                break;
+                            case 'question':
+                                richSlidePayload = createQuestionSlidePayload(
+                                    chapterName,
+                                    existingSlides as RichSlide[],
+                                    name
+                                );
+                                break;
+                            case 'document':
+                            case 'text':
+                            default:
+                                richSlidePayload = createDocumentSlidePayload(
+                                    chapterName,
+                                    existingSlides as RichSlide[],
+                                    name
+                                );
+                                break;
+                        }
+
+                        // Convert to simple slide for CourseExplorer compatibility
                         const newSlide: Slide = {
-                            id: genId('sl'),
-                            name,
-                            type,
+                            id: richSlidePayload.id,
+                            name: richSlidePayload.title,
+                            title: richSlidePayload.title,
+                            type: type,
+                            source_type: richSlidePayload.source_type,
+                            status: richSlidePayload.status,
+                            slide_order: richSlidePayload.slide_order,
+                            is_ai_generated: false,
                         };
+
+                        // Create modification for tracking
+                        const modification: Modification = {
+                            action: 'ADD',
+                            targetType: 'SLIDE',
+                            parentPath: `${chap.id}`,
+                            node: {
+                                ...richSlidePayload,
+                                creation_method: 'MANUALLY_CREATED',
+                                chapter_id: chapterId,
+                                chapter_name: chapterName,
+                            },
+                        };
+
+                        // Notify parent about modification
+                        if (onModifications) {
+                            onModifications([modification]);
+                        }
 
                         // Determine insertion position
                         let newSlides: Slide[];
@@ -347,7 +489,15 @@ const CourseExplorer: React.FC<CourseExplorerProps> = ({
     // Add dialog preset for specific slide type within a chapter
     const openAddSlideForType = (
         chapterId: string,
-        type: 'pdf' | 'video' | 'document' | 'assessment'
+        type:
+            | 'pdf'
+            | 'video'
+            | 'document'
+            | 'assessment'
+            | 'presentation'
+            | 'quiz'
+            | 'assignment'
+            | 'question'
     ) => {
         setDialogMode('add');
         setDialogTarget('slide');
@@ -395,9 +545,26 @@ const CourseExplorer: React.FC<CourseExplorerProps> = ({
     const [dialogTargetId, setDialogTargetId] = useState<string>('');
     const [dialogName, setDialogName] = useState<string>('');
     const [dialogSlideType, setDialogSlideType] = useState<
-        '' | 'pdf' | 'video' | 'document' | 'assessment'
+        | ''
+        | 'pdf'
+        | 'video'
+        | 'document'
+        | 'assessment'
+        | 'presentation'
+        | 'quiz'
+        | 'assignment'
+        | 'question'
     >('');
-    const allSlideTypes = ['pdf', 'video', 'document', 'assessment'] as const;
+    const allSlideTypes = [
+        'pdf',
+        'video',
+        'document',
+        'assessment',
+        'presentation',
+        'quiz',
+        'assignment',
+        'question',
+    ] as const;
     const [allowedSlideTypes, setAllowedSlideTypes] = useState<(typeof allSlideTypes)[number][]>([
         ...allSlideTypes,
     ]);
@@ -918,40 +1085,24 @@ const CourseExplorer: React.FC<CourseExplorerProps> = ({
                             <span className="font-medium">
                                 Type of slide <span className="text-red-500">*</span>
                             </span>
-                            <div className="mt-1 flex items-center gap-2">
-                                {(
-                                    [
-                                        {
-                                            val: 'pdf',
-                                            label: 'PDF',
-                                            style: 'bg-red-100 text-red-700',
-                                        },
-                                        {
-                                            val: 'video',
-                                            label: 'VID',
-                                            style: 'bg-blue-100 text-blue-700',
-                                        },
-                                        {
-                                            val: 'document',
-                                            label: 'DOC',
-                                            style: 'bg-green-100 text-green-700',
-                                        },
-                                        {
-                                            val: 'assessment',
-                                            label: 'Assessment',
-                                            style: 'bg-yellow-100 text-yellow-700',
-                                        },
-                                    ] as const
-                                ).map((t) => {
+                            <div className="mt-1 flex flex-wrap items-center gap-2">
+                                {slideTypeOptions.map((option) => {
+                                    const t = {
+                                        val: option.value as typeof dialogSlideType,
+                                        label: option.label,
+                                        icon: option.icon,
+                                        style: getSlideTypeStyle(option.value),
+                                    };
                                     const disabled = !allowedSlideTypes.includes(t.val);
                                     return (
                                         <button
                                             key={t.val}
                                             disabled={disabled}
                                             onClick={() => !disabled && setDialogSlideType(t.val)}
-                                            className={`rounded px-2 py-1 text-xs font-semibold ${t.style} ${dialogSlideType === t.val ? 'ring-2 ring-black/50' : ''} ${disabled ? 'cursor-not-allowed opacity-30' : ''}`}
+                                            className={`flex items-center gap-1 rounded px-3 py-2 text-xs font-semibold ${t.style} ${dialogSlideType === t.val ? 'ring-2 ring-black/50' : ''} ${disabled ? 'cursor-not-allowed opacity-30' : ''}`}
                                         >
-                                            {t.label}
+                                            <span>{t.icon}</span>
+                                            <span>{t.label}</span>
                                         </button>
                                     );
                                 })}

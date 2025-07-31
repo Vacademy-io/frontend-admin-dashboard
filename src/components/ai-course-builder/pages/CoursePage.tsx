@@ -175,9 +175,15 @@ const CoursePage = () => {
                         setData={setCourseData}
                         selectedItem={selectedItem}
                         onItemSelect={(item) => setSelectedItem(item)}
+                        onModifications={handleModifications}
                     />
                 }
-                middlePane={<DetailView selectedItem={detailSelectedItem} />}
+                middlePane={
+                    <DetailView
+                        selectedItem={detailSelectedItem}
+                        onModifications={handleModifications}
+                    />
+                }
                 rightPane={
                     <ChatView
                         onChatStart={handleChatStart}

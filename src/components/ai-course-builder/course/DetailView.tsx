@@ -1,14 +1,12 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import type { Subject, Module, Chapter, Slide } from './courseData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import './styles/DetailView.css';
 import {
     Settings,
     User,
-    Eye,
     Edit,
     Trash2,
     Save,
@@ -21,9 +19,27 @@ import {
     FileText,
     ExternalLink,
     CheckCircle,
-    Clock,
-    Star,
 } from 'lucide-react';
+
+// Import rich slide editing components from manual system
+// NOTE: Using AI-specific VideoSlidePreview to avoid routing context issues
+import AIVideoSlidePreview from '../components/AIVideoSlidePreview';
+import StudyLibraryAssignmentPreview from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/assignment-preview';
+import QuizPreview from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/QuizPreview';
+import { StudyLibraryQuestionsPreview } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/questions-preview';
+// import { SplitScreenSlide } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/split-screen-slide';
+// import ExcalidrawApp from '@/components/common/excalidraw/excalidraw-app';
+// import { YooptaEditorPreview } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/yoopta-editor-preview';
+import PDFViewer from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/pdf-viewer';
+
+// Import AI component styles
+import '../components/styles/AIVideoComponents.css';
+
+// Import types from manual system
+import type { Slide as ManualSlide } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
+
+// Import modification types
+import type { Modification } from '../lib/applyModifications';
 
 // Types for the DetailView
 interface DetailViewProps {
@@ -32,6 +48,7 @@ interface DetailViewProps {
         id: string;
         data: Subject | Module | Chapter | Slide;
     } | null;
+    onModifications?: (modifications: Modification[]) => void;
 }
 
 type ViewMode = 'admin' | 'student';
@@ -89,7 +106,7 @@ Feel free to replace this content with detailed explanations, examples, or any s
     },
 };
 
-const DetailView: React.FC<DetailViewProps> = ({ selectedItem }) => {
+const DetailView: React.FC<DetailViewProps> = ({ selectedItem, onModifications }) => {
     const [viewMode, setViewMode] = useState<ViewMode>('student');
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState('');
@@ -160,7 +177,7 @@ const DetailView: React.FC<DetailViewProps> = ({ selectedItem }) => {
         </div>
     );
 
-    const renderAdminControls = (slideType: string) => (
+    const renderAdminControls = () => (
         <div className="admin-controls">
             <div className="admin-toolbar">
                 <Button size="sm" variant="outline" onClick={handleEdit}>
@@ -202,7 +219,7 @@ const DetailView: React.FC<DetailViewProps> = ({ selectedItem }) => {
                         </div>
                     </div>
 
-                    {viewMode === 'admin' && renderAdminControls('pdf')}
+                    {viewMode === 'admin' && renderAdminControls()}
                 </div>
 
                 <div className="pdf-toolbar">
@@ -274,7 +291,7 @@ const DetailView: React.FC<DetailViewProps> = ({ selectedItem }) => {
                         </div>
                     </div>
 
-                    {viewMode === 'admin' && renderAdminControls('video')}
+                    {viewMode === 'admin' && renderAdminControls()}
                 </div>
 
                 <div className="video-content">
@@ -334,7 +351,7 @@ const DetailView: React.FC<DetailViewProps> = ({ selectedItem }) => {
                         </div>
                     </div>
 
-                    {viewMode === 'admin' && renderAdminControls('document')}
+                    {viewMode === 'admin' && renderAdminControls()}
                 </div>
 
                 <div className="document-content">
@@ -392,7 +409,7 @@ const DetailView: React.FC<DetailViewProps> = ({ selectedItem }) => {
                         </div>
                     </div>
 
-                    {viewMode === 'admin' && renderAdminControls('assessment')}
+                    {viewMode === 'admin' && renderAdminControls()}
                 </div>
 
                 <div className="assessment-content">
@@ -559,7 +576,305 @@ const DetailView: React.FC<DetailViewProps> = ({ selectedItem }) => {
         );
     };
 
-    const renderSlideContent = (slide: Slide) => {
+    // Helper function to convert AI slide to manual system format
+    const convertToManualSlideFormat = (slide: Slide): ManualSlide => {
+        return {
+            id: slide.id,
+            source_id: (slide as any).source_id || '',
+            source_type: (slide as any).source_type || 'DOCUMENT',
+            title: slide.title || slide.name,
+            image_file_id: '',
+            description: '',
+            status: slide.status || 'DRAFT',
+            slide_order: slide.slide_order || 0,
+            created_at: null,
+            updated_at: null,
+            is_loaded: true,
+            new_slide: false,
+            notify: false,
+
+            // Type-specific slide data (from rich slide payloads)
+            video_slide:
+                slide.source_type === 'VIDEO'
+                    ? {
+                          id: crypto.randomUUID(),
+                          description: slide.title || slide.name,
+                          title: slide.title || slide.name,
+                          url: '',
+                          video_length_in_millis: 0,
+                          published_url: '',
+                          published_video_length_in_millis: 0,
+                          source_type: 'VIDEO',
+                          questions: [],
+                      }
+                    : null,
+
+            document_slide:
+                slide.source_type === 'DOCUMENT' ||
+                slide.source_type === 'PRESENTATION' ||
+                slide.source_type === 'PDF'
+                    ? {
+                          id: crypto.randomUUID(),
+                          type:
+                              slide.source_type === 'PRESENTATION'
+                                  ? 'PRESENTATION'
+                                  : slide.source_type === 'PDF'
+                                    ? 'PDF'
+                                    : 'DOCUMENT',
+                          data: slide.content || '',
+                          title: slide.title || slide.name,
+                          cover_file_id: '',
+                          total_pages: 1,
+                          published_data: '',
+                          published_document_total_pages: 1,
+                      }
+                    : null,
+
+            quiz_slide:
+                slide.source_type === 'QUIZ'
+                    ? {
+                          id: crypto.randomUUID(),
+                          title: slide.title || slide.name,
+                          description: { id: '', content: '', type: 'TEXT' },
+                          questions: [],
+                      }
+                    : null,
+
+            assignment_slide:
+                slide.source_type === 'ASSIGNMENT'
+                    ? {
+                          id: crypto.randomUUID(),
+                          parent_rich_text: { id: '', content: '', type: 'TEXT' },
+                          text_data: { id: '', content: '', type: 'TEXT' },
+                          live_date: new Date().toISOString(),
+                          end_date: new Date().toISOString(),
+                          re_attempt_count: 0,
+                          comma_separated_media_ids: '',
+                          questions: [],
+                      }
+                    : null,
+
+            question_slide:
+                slide.source_type === 'QUESTION'
+                    ? {
+                          id: crypto.randomUUID(),
+                          parent_rich_text: { id: '', content: '', type: 'TEXT' },
+                          text_data: { id: '', content: '', type: 'TEXT' },
+                          explanation_text_data: { id: '', content: '', type: 'TEXT' },
+                          media_id: '',
+                          question_response_type: 'OPTION',
+                          question_type: 'MCQ',
+                          access_level: 'INSTITUTE',
+                          auto_evaluation_json: '',
+                          evaluation_type: 'AUTO',
+                          default_question_time_mins: 1,
+                          re_attempt_count: 0,
+                          points: 1,
+                          options: [],
+                          source_type: 'QUESTION',
+                      }
+                    : null,
+        } as ManualSlide;
+    };
+
+    const renderRichSlideContent = (slide: Slide) => {
+        const manualSlide = convertToManualSlideFormat(slide);
+        const sourceType = (slide as any).source_type;
+
+        try {
+            // Handle VIDEO slides
+            if (sourceType === 'VIDEO') {
+                return (
+                    <div className="rich-slide-content">
+                        <div className="slide-header">
+                            <h2 className="slide-title">{slide.title || slide.name}</h2>
+                            <span className="slide-type-badge video">📹 Video</span>
+                        </div>
+                        <div className="slide-content-wrapper">
+                            <AIVideoSlidePreview
+                                activeItem={manualSlide}
+                                onSlideUpdate={(updatedSlide) => {
+                                    console.log('Video slide updated:', updatedSlide);
+
+                                    if (onModifications && selectedItem?.type === 'slide') {
+                                        // Create a modification for the slide update
+                                        const modification: Modification = {
+                                            action: 'UPDATE',
+                                            targetType: 'SLIDE',
+                                            parentPath: null, // Will be determined by applyModifications
+                                            node: {
+                                                id: slide.id,
+                                                title: updatedSlide.title,
+                                                source_type: updatedSlide.source_type,
+                                                status: updatedSlide.status,
+                                                video_slide: updatedSlide.video_slide,
+                                                document_slide: updatedSlide.document_slide,
+                                                quiz_slide: updatedSlide.quiz_slide,
+                                                assignment_slide: updatedSlide.assignment_slide,
+                                                question_slide: updatedSlide.question_slide,
+                                            },
+                                            creation_method: 'MANUALLY_CREATED',
+                                            slide_data: {
+                                                id: updatedSlide.id,
+                                                title: updatedSlide.title,
+                                                source_type: updatedSlide.source_type || 'VIDEO',
+                                                status: updatedSlide.status || 'DRAFT',
+                                                video_slide: updatedSlide.video_slide,
+                                                document_slide: updatedSlide.document_slide,
+                                                quiz_slide: updatedSlide.quiz_slide,
+                                                assignment_slide: updatedSlide.assignment_slide,
+                                                question_slide: updatedSlide.question_slide,
+                                                is_ai_generated:
+                                                    (slide as any).is_ai_generated || false,
+                                                manual_modifications: true,
+                                            },
+                                        };
+
+                                        onModifications([modification]);
+                                    }
+                                }}
+                            />
+                        </div>
+                    </div>
+                );
+            }
+
+            // Handle ASSIGNMENT slides
+            if (sourceType === 'ASSIGNMENT') {
+                return (
+                    <div className="rich-slide-content">
+                        <div className="slide-header">
+                            <h2 className="slide-title">{slide.title || slide.name}</h2>
+                            <span className="slide-type-badge assignment">✍️ Assignment</span>
+                        </div>
+                        <div className="slide-content-wrapper">
+                            <StudyLibraryAssignmentPreview activeItem={manualSlide} />
+                        </div>
+                    </div>
+                );
+            }
+
+            // Handle QUIZ slides
+            if (sourceType === 'QUIZ') {
+                return (
+                    <div className="rich-slide-content">
+                        <div className="slide-header">
+                            <h2 className="slide-title">{slide.title || slide.name}</h2>
+                            <span className="slide-type-badge quiz">❓ Quiz</span>
+                        </div>
+                        <div className="slide-content-wrapper">
+                            <QuizPreview
+                                activeItem={manualSlide}
+                                routeParams={{
+                                    chapterId: 'ai-chapter',
+                                    moduleId: 'ai-module',
+                                    subjectId: 'ai-subject',
+                                    sessionId: 'ai-session',
+                                }}
+                            />
+                        </div>
+                    </div>
+                );
+            }
+
+            // Handle QUESTION slides
+            if (sourceType === 'QUESTION') {
+                return (
+                    <div className="rich-slide-content">
+                        <div className="slide-header">
+                            <h2 className="slide-title">{slide.title || slide.name}</h2>
+                            <span className="slide-type-badge question">❔ Question</span>
+                        </div>
+                        <div className="slide-content-wrapper">
+                            <StudyLibraryQuestionsPreview activeItem={manualSlide} />
+                        </div>
+                    </div>
+                );
+            }
+
+            // Handle PRESENTATION slides
+            if (sourceType === 'PRESENTATION') {
+                return (
+                    <div className="rich-slide-content">
+                        <div className="slide-header">
+                            <h2 className="slide-title">{slide.title || slide.name}</h2>
+                            <span className="slide-type-badge presentation">📊 Presentation</span>
+                        </div>
+                        <div className="slide-content-wrapper">
+                            <div className="presentation-placeholder">
+                                <p>Presentation editing interface coming soon...</p>
+                                <p>
+                                    This will integrate with Excalidraw for interactive
+                                    presentations.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Handle PDF slides
+            if (sourceType === 'PDF') {
+                return (
+                    <div className="rich-slide-content">
+                        <div className="slide-header">
+                            <h2 className="slide-title">{slide.title || slide.name}</h2>
+                            <span className="slide-type-badge pdf">📑 PDF</span>
+                        </div>
+                        <div className="slide-content-wrapper">
+                            <PDFViewer pdfUrl="" />
+                        </div>
+                    </div>
+                );
+            }
+
+            // Handle DOCUMENT slides and fallback
+            return (
+                <div className="rich-slide-content">
+                    <div className="slide-header">
+                        <h2 className="slide-title">{slide.title || slide.name}</h2>
+                        <span className="slide-type-badge document">📄 Document</span>
+                    </div>
+                    <div className="slide-content-wrapper">
+                        <div className="document-placeholder">
+                            <p>Rich text editing interface coming soon...</p>
+                            <p>This will integrate with Yoopta Editor for rich document editing.</p>
+                            {slide.content && (
+                                <div className="content-preview">
+                                    <h4>Content Preview:</h4>
+                                    <pre>{slide.content}</pre>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        } catch (error) {
+            console.error('Error rendering rich slide content:', error);
+            return (
+                <div className="slide-error">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>{slide.title || slide.name}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="error-content">
+                                <p className="error-message">Failed to load slide content</p>
+                                <p className="error-details">Type: {sourceType || slide.type}</p>
+                                <details className="error-debug">
+                                    <summary>Debug Info</summary>
+                                    <pre>{JSON.stringify(slide, null, 2)}</pre>
+                                </details>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            );
+        }
+    };
+
+    // Legacy slide content renderer for backward compatibility
+    const renderLegacySlideContent = (slide: Slide) => {
         switch (slide.type) {
             case 'pdf':
                 return renderPDFViewer(slide);
@@ -584,12 +899,21 @@ const DetailView: React.FC<DetailViewProps> = ({ selectedItem }) => {
                             <CardContent>
                                 <p>Content type: {slide.type}</p>
                                 <p>This content type will be implemented soon.</p>
-                                {viewMode === 'admin' && renderAdminControls(slide.type)}
+                                {viewMode === 'admin' && renderAdminControls()}
                             </CardContent>
                         </Card>
                     </div>
                 );
         }
+    };
+
+    const renderSlideContent = (slide: Slide) => {
+        // Use rich slide content if slide has source_type (new format)
+        if ((slide as any).source_type) {
+            return renderRichSlideContent(slide);
+        }
+        // Fall back to legacy renderer for old format slides
+        return renderLegacySlideContent(slide);
     };
 
     const renderNonSlideContent = () => {

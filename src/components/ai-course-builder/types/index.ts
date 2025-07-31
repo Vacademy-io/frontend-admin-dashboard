@@ -50,21 +50,182 @@ export enum SlideSourceType {
     // Add other types if backend supports, e.g., 'feedback' might use 'question' structure
 }
 
+// Rich text data structure
+export interface TextData {
+    id: string;
+    type: string;
+    content: string;
+}
+
+// Option interface for questions
+export interface Option {
+    id: string;
+    text: TextData;
+    explanation_text_data: TextData;
+    media_id: string;
+}
+
+// Video question interface
+export interface VideoQuestion {
+    id: string;
+    parent_rich_text: TextData;
+    text_data: TextData;
+    explanation_text_data: TextData;
+    media_id: string;
+    question_response_type: string;
+    question_type: string;
+    access_level: string;
+    auto_evaluation_json: string;
+    evaluation_type: string;
+    question_time_in_millis: number;
+    question_order: number;
+    status: string;
+    options: Option[];
+    new_question: boolean;
+}
+
+// Video slide interface
+export interface VideoSlide {
+    id: string;
+    description: string;
+    title: string;
+    url: string;
+    video_length_in_millis: number;
+    published_url: string;
+    published_video_length_in_millis: number;
+    source_type: string;
+    embedded_type?: string;
+    embedded_data?: string;
+    questions: VideoQuestion[];
+}
+
+// Document slide interface
+export interface DocumentSlide {
+    id: string;
+    type: string;
+    data: string;
+    title: string;
+    cover_file_id: string;
+    total_pages: number;
+    published_data: string;
+    published_document_total_pages: number;
+}
+
+// Assignment question interface
+export interface AssignmentQuestion {
+    id: string;
+    text_data: TextData;
+    question_order: number;
+    status: string;
+    new_question: boolean;
+    question_type: string;
+}
+
+// Assignment slide interface
+export interface AssignmentSlide {
+    id: string;
+    parent_rich_text: TextData;
+    text_data: TextData;
+    live_date: string;
+    end_date: string;
+    re_attempt_count: number;
+    comma_separated_media_ids: string;
+    questions: AssignmentQuestion[];
+}
+
+// Quiz slide question interface
+export interface QuizSlideQuestion {
+    id: string;
+    question_type: string;
+    question_response_type: string;
+    text_data: TextData;
+    explanation_text_data: TextData;
+    media_id: string;
+    question_order: number;
+    status: string;
+    new_question: boolean;
+    options: {
+        id: string;
+        text: TextData;
+        explanation_text_data: TextData;
+        option_order: number;
+        status: string;
+        new_option: boolean;
+        media_id: string;
+    }[];
+}
+
+// Quiz slide interface
+export interface QuizSlide {
+    id: string;
+    title: string;
+    description: TextData;
+    questions: QuizSlideQuestion[];
+    parent_rich_text?: TextData;
+    explanation_text_data?: TextData;
+    media_id?: string;
+    question_response_type?: string;
+    access_level?: string;
+    evaluation_type?: string;
+    default_question_time_mins?: number;
+    re_attempt_count?: number;
+    source_type?: string;
+}
+
+// Question slide interface
+export interface QuestionSlide {
+    id: string;
+    parent_rich_text: TextData;
+    text_data: TextData;
+    explanation_text_data: TextData;
+    media_id: string;
+    question_response_type: string;
+    question_type: string;
+    access_level: string;
+    auto_evaluation_json: string;
+    evaluation_type: string;
+    default_question_time_mins: number;
+    re_attempt_count: number;
+    points: number;
+    options: any[];
+    source_type: string;
+}
+
+// Enhanced Slide interface with rich structure
 export interface Slide {
     id: string;
-    presentation_id: string | null;
+    source_id: string;
+    source_type: 'VIDEO' | 'DOCUMENT' | 'QUIZ' | 'ASSIGNMENT' | 'QUESTION' | 'PRESENTATION' | 'PDF';
     title: string;
-    source_id: string; // For Excalidraw, this is the file ID
-    source: SlideSourceType | string; // "excalidraw", "question"
-    status: string | null;
-    interaction_status: string;
+    image_file_id: string;
+    description: string;
+    status: 'DRAFT' | 'PUBLISHED';
     slide_order: number;
-    default_time: number;
-    content: string; // For Excalidraw, this is also the file ID. For Question, could be question_id or content_id.
-    created_at: string | null;
-    updated_at: string | null;
-    added_question: AddedQuestion | null; // Present if source is "question"
-    updated_question: AddedQuestion | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+    is_loaded?: boolean;
+    new_slide?: boolean;
+    notify?: boolean;
+
+    // Type-specific slide data
+    video_slide?: VideoSlide | null;
+    document_slide?: DocumentSlide | null;
+    quiz_slide?: QuizSlide | null;
+    assignment_slide?: AssignmentSlide | null;
+    question_slide?: QuestionSlide | null;
+
+    // AI-specific metadata
+    is_ai_generated?: boolean;
+    ai_content?: string; // Original AI-generated content
+    manual_modifications?: boolean;
+
+    // Legacy compatibility
+    content?: string;
+    presentation_id?: string | null;
+    interaction_status?: string;
+    default_time?: number;
+    added_question?: AddedQuestion | null;
+    updated_question?: AddedQuestion | null;
 }
 
 export interface PresentationSlides {
