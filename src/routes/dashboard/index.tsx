@@ -15,10 +15,6 @@ import {
     Plus,
     PencilSimpleLine,
 } from 'phosphor-react';
-import RoleTypeComponent from './-components/RoleTypeComponent';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
-import { DashboardCreateCourse, CreateAssessmentDashboardLogo } from '@/svgs';
 import { CompletionStatusComponent } from './-components/CompletionStatusComponent';
 import { IntroKey } from '@/constants/storage/introKey';
 import useIntroJsTour from '@/hooks/use-intro';
@@ -46,8 +42,8 @@ import { ContentTerms, RoleTerms, SystemTerms } from '../settings/-components/Na
 
 import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
 import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from '@/svgs';
 
 // Analytics Widgets
@@ -292,7 +288,6 @@ export function DashboardComponent() {
         EVALUATOR: 0,
         TEACHER: 0,
     });
-    const subModules = useMemo(() => data?.subModules ?? {}, [data]);
     const navigate = useNavigate();
     const { setNavHeading } = useNavHeadingStore();
 
@@ -325,14 +320,6 @@ export function DashboardComponent() {
         });
     };
 
-    const [roleTypeCount, setRoleTypeCount] = useState({
-        ADMIN: 0,
-        'COURSE CREATOR': 0,
-        'ASSESSMENT CREATOR': 0,
-        EVALUATOR: 0,
-        TEACHER: 0,
-    });
-
     const handleEnrollButtonClick = () => {
         navigate({ to: '/manage-students/invite' });
     };
@@ -349,7 +336,6 @@ export function DashboardComponent() {
             to: '/ai-center',
         });
     };
-    const handleEnrollButtonClick = () => navigate({ to: '/manage-students/invite' });
 
     useEffect(() => {
         // Slightly more compact nav heading
