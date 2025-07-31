@@ -388,6 +388,9 @@ export function DashboardComponent() {
                             </CardTitle>
                             {/* Smaller title */}
                             <EditDashboardProfileComponent isEdit={false} />
+                        </div>
+                    </CardHeader>
+                </Card>
 
                 {/* My Courses Widget - Only for Non-Admin Users */}
                 {!isAdmin && <MyCoursesWidget />}
