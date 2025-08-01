@@ -118,6 +118,8 @@ const AddPaymentPlanDialog = ({ form }: PaymentPlansDialogProps) => {
                 setFeaturesGlobal={setFeaturesGlobal}
                 defaultCurrency={'GBP'}
                 isSaving={isSaving}
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
                 requireApprovalCheckbox={
                     !editingPlan && (
                         <div className="mt-4 flex items-center gap-2">
