@@ -210,9 +210,9 @@ const GenerateInviteLinkDialog = ({
                 duration: 2000,
             });
             form.reset();
-            selectCourseForm.reset();
+            selectCourseForm?.reset();
             setShowSummaryDialog(false);
-            setDialogOpen(false);
+            setDialogOpen?.(false);
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
