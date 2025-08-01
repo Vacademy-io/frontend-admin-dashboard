@@ -6,6 +6,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import NamingSettings from './-components/NamingSettings';
 import PaymentSettings from './-components/Payment/PaymentSettings';
 import ReferralSettings from './-components/Referral/ReferralSettings';
+import TabSettings from './-components/Tab/TabSettings';
+import CourseSettings from './-components/Course/CourseSettings';
 
 export const Route = createFileRoute('/settings/')({
     component: () => (
@@ -16,7 +18,7 @@ export const Route = createFileRoute('/settings/')({
 });
 
 function RouteComponent() {
-    const [selectedTab, setSelectedTab] = useState('naming-settings');
+    const [selectedTab, setSelectedTab] = useState('tab-settings');
     const { setNavHeading } = useNavHeadingStore();
 
     useEffect(() => {
@@ -28,6 +30,20 @@ function RouteComponent() {
             <Tabs value={selectedTab} onValueChange={setSelectedTab}>
                 <div className="flex items-center justify-between">
                     <TabsList className="mb-2 inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
+                        <TabsTrigger
+                            value="tab-settings"
+                            className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                selectedTab === 'tab-settings'
+                                    ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                    : 'border-none bg-transparent'
+                            }`}
+                        >
+                            <span
+                                className={`${selectedTab === 'tab-settings' ? 'text-primary-500' : ''}`}
+                            >
+                                Tab Settings
+                            </span>
+                        </TabsTrigger>
                         <TabsTrigger
                             value="naming-settings"
                             className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
@@ -70,8 +86,25 @@ function RouteComponent() {
                                 Referral Settings
                             </span>
                         </TabsTrigger>
+                        <TabsTrigger
+                            value="course-settings"
+                            className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                selectedTab === 'course-settings'
+                                    ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                    : 'border-none bg-transparent'
+                            }`}
+                        >
+                            <span
+                                className={`${selectedTab === 'course-settings' ? 'text-primary-500' : ''}`}
+                            >
+                                Course Settings
+                            </span>
+                        </TabsTrigger>
                     </TabsList>
                 </div>
+                <TabsContent value="tab-settings">
+                    <TabSettings isTab />
+                </TabsContent>
                 <TabsContent value="naming-settings">
                     <NamingSettings />
                 </TabsContent>
@@ -80,6 +113,9 @@ function RouteComponent() {
                 </TabsContent>
                 <TabsContent value="referral-settings">
                     <ReferralSettings />
+                </TabsContent>
+                <TabsContent value="course-settings">
+                    <CourseSettings />
                 </TabsContent>
             </Tabs>
         </>

@@ -103,11 +103,19 @@ export default function SessionListPage() {
     const filteredLive = useMemo(
         () =>
             liveSessions?.filter((s) => {
+                // Exclude sessions that have expired by date/time
+                const expiryDateTime = new Date(`${s.meeting_date}T${s.last_entry_time}`);
+                if (expiryDateTime < new Date()) return false;
                 const matchName = s.title.toLowerCase().includes(searchQuery.toLowerCase());
                 const date = new Date(s.meeting_date);
                 const matchDate =
                     (!startDate || date >= startDate) && (!endDate || date <= endDate);
-                const matchType = !meetingTypeFilter || s.recurrence_type === meetingTypeFilter;
+                const matchType =
+                    !meetingTypeFilter ||
+                    (meetingTypeFilter === 'custom'
+                        ? s.recurrence_type === RecurringType.WEEKLY
+                        : s.recurrence_type === meetingTypeFilter
+                    );
                 const matchSubject = !subjectFilter || s.subject === subjectFilter;
                 const matchAccess = !accessFilter || s.access_level === accessFilter;
                 return matchName && matchDate && matchType && matchSubject && matchAccess;
@@ -131,7 +139,12 @@ export default function SessionListPage() {
                     matchName &&
                     (!startDate || date >= startDate) &&
                     (!endDate || date <= endDate) &&
-                    (!meetingTypeFilter || s.recurrence_type === meetingTypeFilter) &&
+                    (!meetingTypeFilter ||
+                        (meetingTypeFilter === 'custom'
+                            ? s.recurrence_type === RecurringType.WEEKLY
+                            : s.recurrence_type === meetingTypeFilter
+                        )
+                    ) &&
                     (!subjectFilter || s.subject === subjectFilter) &&
                     (!accessFilter || s.access_level === accessFilter)
                 );
@@ -155,7 +168,12 @@ export default function SessionListPage() {
                     matchName &&
                     (!startDate || date >= startDate) &&
                     (!endDate || date <= endDate) &&
-                    (!meetingTypeFilter || s.recurrence_type === meetingTypeFilter) &&
+                    (!meetingTypeFilter ||
+                        (meetingTypeFilter === 'custom'
+                            ? s.recurrence_type === RecurringType.WEEKLY
+                            : s.recurrence_type === meetingTypeFilter
+                        )
+                    ) &&
                     (!subjectFilter || s.subject === subjectFilter) &&
                     (!accessFilter || s.access_level === accessFilter)
                 );
@@ -179,7 +197,12 @@ export default function SessionListPage() {
                     matchName &&
                     (!startDate || (date && date >= startDate)) &&
                     (!endDate || (date && date <= endDate)) &&
-                    (!meetingTypeFilter || d.recurrence_type === meetingTypeFilter) &&
+                    (!meetingTypeFilter ||
+                        (meetingTypeFilter === 'custom'
+                            ? d.recurrence_type === RecurringType.WEEKLY
+                            : d.recurrence_type === meetingTypeFilter
+                        )
+                    ) &&
                     (!subjectFilter || d.subject === subjectFilter) &&
                     (!accessFilter || d.access_level === accessFilter)
                 );
@@ -318,10 +341,10 @@ export default function SessionListPage() {
                                 </h4>
                                 {[
                                     { label: 'All', value: '' },
-                                    ...Object.values(RecurringType).map((r) => ({
-                                        label: r,
-                                        value: r,
-                                    })),
+                                    // explicit meeting type options
+                                    { label: 'once', value: RecurringType.ONCE },
+                                    { label: 'weekly', value: RecurringType.WEEKLY },
+                                    { label: 'custom', value: 'custom' },
                                 ].map((opt) => (
                                     <button
                                         key={opt.label}

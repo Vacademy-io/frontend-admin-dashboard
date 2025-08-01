@@ -41,6 +41,7 @@ export interface PaymentPlan {
     config: any;
     features?: string[];
     validityDays?: number;
+    requireApproval?: boolean;
 }
 
 export enum PaymentPlans {

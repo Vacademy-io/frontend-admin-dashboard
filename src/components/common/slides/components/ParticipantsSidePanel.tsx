@@ -74,31 +74,35 @@ export const ParticipantsSidePanel: React.FC<ParticipantsSidePanelProps> = ({
         // Uses sseStatus from props
         if (sseStatus === 'connecting') {
             return (
-                <div className="flex items-center gap-1.5 bg-yellow-500/20 border border-yellow-400/30 rounded-lg px-2 py-1 backdrop-blur-sm">
+                <div className="flex items-center gap-1.5 rounded-lg border border-yellow-400/30 bg-yellow-500/20 px-2 py-1 backdrop-blur-sm">
                     <Loader2 size={14} className="animate-spin text-yellow-400" />
-                    <span className="text-xs font-medium text-yellow-300 hidden lg:inline">Connecting</span>
+                    <span className="hidden text-xs font-medium text-yellow-300 lg:inline">
+                        Connecting
+                    </span>
                 </div>
             );
         }
         if (sseStatus === 'connected') {
             return (
-                <div className="flex items-center gap-1.5 bg-green-500/20 border border-green-400/30 rounded-lg px-2 py-1 backdrop-blur-sm">
+                <div className="flex items-center gap-1.5 rounded-lg border border-green-400/30 bg-green-500/20 px-2 py-1 backdrop-blur-sm">
                     <Wifi size={14} className="text-green-400" />
-                    <span className="text-xs font-medium text-green-300 hidden lg:inline">Live</span>
+                    <span className="hidden text-xs font-medium text-green-300 lg:inline">
+                        Live
+                    </span>
                 </div>
             );
         }
         return (
-            <div className="flex items-center gap-1.5 bg-red-500/20 border border-red-400/30 rounded-lg px-2 py-1 backdrop-blur-sm">
+            <div className="flex items-center gap-1.5 rounded-lg border border-red-400/30 bg-red-500/20 px-2 py-1 backdrop-blur-sm">
                 <WifiOff size={14} className="text-red-400" />
-                <span className="text-xs font-medium text-red-300 hidden lg:inline">Offline</span>
+                <span className="hidden text-xs font-medium text-red-300 lg:inline">Offline</span>
             </div>
         );
     };
 
     return (
         <div
-            className="fixed right-0 top-0 z-[1000] flex h-screen w-80 sm:w-96 flex-col border-l border-white/20 bg-black/20 backdrop-blur-xl shadow-2xl transition-transform duration-500 ease-out"
+            className="fixed right-0 top-0 z-[1000] flex h-screen w-80 flex-col border-l border-white/20 bg-black/20 shadow-2xl backdrop-blur-xl transition-transform duration-500 ease-out sm:w-96"
             style={{
                 transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
                 height: `calc(100vh - ${topOffset})`, // Adjusted to use topOffset correctly if header is outside
@@ -106,27 +110,27 @@ export const ParticipantsSidePanel: React.FC<ParticipantsSidePanelProps> = ({
             }}
         >
             {/* Enhanced background effects */}
-            <div className="absolute inset-0 bg-gradient-to-b from-slate-900/50 via-slate-800/30 to-slate-900/50 pointer-events-none" />
-            <div className="absolute top-1/4 right-0 w-32 h-64 bg-blue-500/5 blur-2xl" />
-            <div className="absolute bottom-1/4 left-0 w-32 h-64 bg-purple-500/5 blur-2xl" />
-            
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-slate-900/50 via-slate-800/30 to-slate-900/50" />
+            <div className="absolute right-0 top-1/4 h-64 w-32 bg-blue-500/5 blur-2xl" />
+            <div className="absolute bottom-1/4 left-0 h-64 w-32 bg-purple-500/5 blur-2xl" />
+
             {/* Enhanced header */}
-            <div className="relative z-10 flex shrink-0 items-center justify-between border-b border-white/10 bg-white/10 backdrop-blur-sm p-4 shadow-lg">
+            <div className="relative z-10 flex shrink-0 items-center justify-between border-b border-white/10 bg-white/10 p-4 shadow-lg backdrop-blur-sm">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg">
+                    <div className="rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 p-2 shadow-lg">
                         <Users size={20} className="text-white" />
                     </div>
                     <div>
-                        <h3 className="font-bold text-white text-lg flex items-center gap-2">
+                        <h3 className="flex items-center gap-2 text-lg font-bold text-white">
                             Participants
-                            <span className="px-2 py-1 bg-white/20 backdrop-blur-sm rounded-lg text-sm font-mono">
-                    {sseStatus === 'connected' ? (
-                        participants.length
-                    ) : (
-                        <span className="text-xs font-normal italic">...</span>
-                    )}
-                    </span>
-                </h3>
+                            <span className="rounded-lg bg-white/20 px-2 py-1 font-mono text-sm backdrop-blur-sm">
+                                {sseStatus === 'connected' ? (
+                                    participants.length
+                                ) : (
+                                    <span className="text-xs font-normal italic">...</span>
+                                )}
+                            </span>
+                        </h3>
                         <div className="mt-1">
                             <StatusIndicator />
                         </div>
@@ -136,137 +140,156 @@ export const ParticipantsSidePanel: React.FC<ParticipantsSidePanelProps> = ({
                     variant="ghost"
                     size="icon"
                     onClick={onClose}
-                    className="rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200 hover:scale-105"
+                    className="rounded-xl text-white/70 transition-all duration-200 hover:scale-105 hover:bg-white/10 hover:text-white"
                 >
                     <X size={20} />
                 </Button>
             </div>
 
-            <ScrollArea className="grow relative z-10">
+            <ScrollArea className="relative z-10 grow">
                 <div className="space-y-3 p-4">
                     {/* Enhanced loading state */}
                     {sseStatus === 'connecting' && participants.length === 0 && (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
                             <div className="relative mb-4">
-                                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                                <div className="flex size-12 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg">
                                     <Loader2 className="animate-spin text-white" size={24} />
                                 </div>
-                                <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl animate-pulse" />
+                                <div className="absolute inset-0 animate-pulse rounded-full bg-blue-500/20 blur-xl" />
                             </div>
-                            <p className="text-white font-medium mb-1">Loading participants...</p>
-                            <p className="text-white/60 text-sm">Connecting to live session</p>
+                            <p className="mb-1 font-medium text-white">Loading participants...</p>
+                            <p className="text-sm text-white/60">Connecting to live session</p>
                         </div>
                     )}
-                    
+
                     {/* Enhanced disconnected state */}
                     {sseStatus === 'disconnected' && participants.length === 0 && (
-                        <div className="flex flex-col items-center justify-center rounded-2xl border border-red-400/30 bg-red-500/10 backdrop-blur-sm p-6 text-center shadow-lg">
+                        <div className="flex flex-col items-center justify-center rounded-2xl border border-red-400/30 bg-red-500/10 p-6 text-center shadow-lg backdrop-blur-sm">
                             <div className="relative mb-4">
-                                <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg">
+                                <div className="flex size-12 items-center justify-center rounded-full bg-gradient-to-r from-red-500 to-red-600 shadow-lg">
                                     <WifiOff size={24} className="text-white" />
                                 </div>
-                                <div className="absolute inset-0 bg-red-500/20 rounded-full blur-xl" />
+                                <div className="absolute inset-0 rounded-full bg-red-500/20 blur-xl" />
                             </div>
-                            <p className="text-red-300 font-semibold mb-2">Connection Lost</p>
-                            <p className="text-red-200/80 text-sm leading-relaxed">
+                            <p className="mb-2 font-semibold text-red-300">Connection Lost</p>
+                            <p className="text-sm leading-relaxed text-red-200/80">
                                 Attempting to reconnect to participant updates...
                             </p>
                         </div>
                     )}
-                    
+
                     {/* Enhanced empty state */}
                     {sseStatus === 'connected' && participants.length === 0 && (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
                             <div className="relative mb-4">
-                                <div className="w-16 h-16 bg-gradient-to-r from-slate-600 to-slate-700 rounded-2xl flex items-center justify-center shadow-xl">
+                                <div className="flex size-16 items-center justify-center rounded-2xl bg-gradient-to-r from-slate-600 to-slate-700 shadow-xl">
                                     <Users size={32} className="text-white/80" />
                                 </div>
-                                <div className="absolute inset-0 bg-slate-500/10 rounded-2xl blur-xl" />
+                                <div className="absolute inset-0 rounded-2xl bg-slate-500/10 blur-xl" />
                             </div>
-                            <p className="text-white font-medium mb-2">Waiting for participants</p>
-                            <p className="text-white/60 text-sm leading-relaxed max-w-xs">
+                            <p className="mb-2 font-medium text-white">Waiting for participants</p>
+                            <p className="max-w-xs text-sm leading-relaxed text-white/60">
                                 Share the session code for participants to join this live session.
                             </p>
                         </div>
                     )}
-                    
+
                     {/* Enhanced participant list */}
                     {participants.length > 0 &&
                         participants.map((p, index) => (
                             <div
                                 key={p.user_id || p.username + index}
-                                className="group relative rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-4 shadow-lg transition-all duration-300 hover:bg-white/10 hover:border-white/20 hover:shadow-xl hover:scale-[1.02]"
+                                className="group relative rounded-2xl border border-white/10 bg-white/5 p-4 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:border-white/20 hover:bg-white/10 hover:shadow-xl"
                             >
                                 {/* Subtle gradient overlay */}
-                                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-purple-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                
+                                <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/5 via-transparent to-purple-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
                                 <div className="relative flex flex-col">
-                                    <div className="flex items-center justify-between mb-2">
+                                    <div className="mb-2 flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             {/* Avatar */}
-                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white shadow-lg ${
-                                                p.status?.toLowerCase() === 'active' 
-                                                    ? 'bg-gradient-to-r from-green-500 to-green-600' 
-                                                    : 'bg-gradient-to-r from-slate-500 to-slate-600'
-                                            }`}>
+                                            <div
+                                                className={`flex size-10 items-center justify-center rounded-full font-bold text-white shadow-lg ${
+                                                    p.status?.toLowerCase() === 'active'
+                                                        ? 'bg-gradient-to-r from-green-500 to-green-600'
+                                                        : 'bg-gradient-to-r from-slate-500 to-slate-600'
+                                                }`}
+                                            >
                                                 {(p.name || p.username).charAt(0).toUpperCase()}
                                             </div>
-                                            
-                                            <div className="flex-1 min-w-0">
-                                    <span
-                                                    className="block font-semibold text-white text-sm truncate"
-                                        title={p.username}
-                                    >
-                                        {p.name || p.username}
-                                    </span>
+
+                                            <div className="min-w-0 flex-1">
+                                                <span
+                                                    className="block truncate text-sm font-semibold text-white"
+                                                    title={p.username}
+                                                >
+                                                    {p.name || p.username}
+                                                </span>
                                                 {p.email && (
-                                                    <span className="block text-white/60 text-xs truncate">
+                                                    <span className="block truncate text-xs text-white/60">
                                                         {p.email}
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
-                                        
+
                                         {/* Enhanced status badge */}
-                                        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border backdrop-blur-sm ${
+                                        <div
+                                            className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold backdrop-blur-sm ${
                                                 p.status?.toLowerCase() === 'active'
-                                                ? 'border-green-400/30 bg-green-500/20 text-green-300'
+                                                    ? 'border-green-400/30 bg-green-500/20 text-green-300'
                                                     : p.status?.toLowerCase() === 'inactive' ||
-                                                    p.status?.toLowerCase() === 'inactive_disconnected'
-                                                  ? 'border-yellow-400/30 bg-yellow-500/20 text-yellow-300'
-                                                  : 'border-slate-400/30 bg-slate-500/20 text-slate-300'
-                                        }`}>
+                                                        p.status?.toLowerCase() ===
+                                                            'inactive_disconnected'
+                                                      ? 'border-yellow-400/30 bg-yellow-500/20 text-yellow-300'
+                                                      : 'border-slate-400/30 bg-slate-500/20 text-slate-300'
+                                            }`}
+                                        >
                                             {p.status?.toLowerCase() === 'active' ? (
                                                 <UserCheck size={12} />
                                             ) : (
                                                 <UserX size={12} />
                                             )}
                                             <span className="capitalize tracking-wide">
-                                                {p.status ? p.status.toLowerCase().replace('_', ' ') : 'Unknown'}
-                                    </span>
-                                </div>
+                                                {p.status
+                                                    ? p.status.toLowerCase().replace('_', ' ')
+                                                    : 'Unknown'}
+                                            </span>
+                                        </div>
                                     </div>
-                                    
+
                                     {/* Enhanced time information */}
-                                {(p.status?.toLowerCase() === 'inactive' ||
-                                    p.status?.toLowerCase() === 'inactive_disconnected') &&
-                                    p.last_active_at && (
-                                            <div className="flex items-center gap-2 mt-2 px-3 py-2 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10">
-                                                <Clock size={12} className="text-yellow-400 flex-shrink-0" />
-                                                <span className="text-white/70 text-xs">
-                                                    Last active: <span className="font-medium text-white/90">{formatDateTime(p.last_active_at)}</span>
+                                    {(p.status?.toLowerCase() === 'inactive' ||
+                                        p.status?.toLowerCase() === 'inactive_disconnected') &&
+                                        p.last_active_at && (
+                                            <div className="mt-2 flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 backdrop-blur-sm">
+                                                <Clock
+                                                    size={12}
+                                                    className="shrink-0 text-yellow-400"
+                                                />
+                                                <span className="text-xs text-white/70">
+                                                    Last active:{' '}
+                                                    <span className="font-medium text-white/90">
+                                                        {formatDateTime(p.last_active_at)}
+                                                    </span>
                                                 </span>
                                             </div>
                                         )}
                                     {p.status?.toLowerCase() === 'active' && p.joined_at && (
-                                        <div className="flex items-center gap-2 mt-2 px-3 py-2 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10">
-                                            <UserCheck size={12} className="text-green-400 flex-shrink-0" />
-                                            <span className="text-white/70 text-xs">
-                                                Joined: <span className="font-medium text-white/90">{formatDateTime(p.joined_at)}</span>
+                                        <div className="mt-2 flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 backdrop-blur-sm">
+                                            <UserCheck
+                                                size={12}
+                                                className="shrink-0 text-green-400"
+                                            />
+                                            <span className="text-xs text-white/70">
+                                                Joined:{' '}
+                                                <span className="font-medium text-white/90">
+                                                    {formatDateTime(p.joined_at)}
+                                                </span>
                                             </span>
                                         </div>
                                     )}
-                                    </div>
+                                </div>
                             </div>
                         ))}
                 </div>

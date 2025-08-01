@@ -202,7 +202,9 @@ export const StudentsListSection = () => {
                 packageSessionId: search.package_session_id,
             });
             const batchName =
-                convertCapitalToTitleCase(details?.level.level_name || '') + ' ' + convertCapitalToTitleCase(details?.package_dto.package_name || '');
+                convertCapitalToTitleCase(details?.level.level_name || '') +
+                ' ' +
+                convertCapitalToTitleCase(details?.package_dto.package_name || '');
             setColumnFilters((prev) => [
                 ...prev,
                 {

@@ -9,8 +9,8 @@ export interface ReportTableData {
 export interface RegistrationTableData {
     index: number;
     username: string;
-    phoneNumber:string;
-    email:string;
+    phoneNumber: string;
+    email: string;
 }
 
 export const reportColumns: ColumnDef<ReportTableData>[] = [
@@ -26,7 +26,8 @@ export const reportColumns: ColumnDef<ReportTableData>[] = [
         accessorKey: 'attendanceStatus',
         header: 'Attendance Status',
         cell: ({ row }) => {
-            const status = row.original.attendanceStatus;
+            const raw = row.original.attendanceStatus;
+            const status = raw ? raw.toString().toUpperCase() : '';
             if (status === 'PRESENT') {
                 return (
                     <div className="flex items-center gap-2 text-success-600">

@@ -1,10 +1,12 @@
+/* eslint-disable tailwindcss/no-custom-classname */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { MyButton } from '@/components/design-system/button';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Separator } from '@radix-ui/react-separator';
 import { Controller, FieldErrors, FormProvider, useForm, useWatch } from 'react-hook-form';
-import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { z } from 'zod';
 import { MyInput } from '@/components/design-system/input';
 import SelectField from '@/components/design-system/select-field';
@@ -33,6 +35,8 @@ import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtili
 import { TokenKey } from '@/constants/auth/tokens';
 import { UploadFileInS3 } from '@/services/upload_file';
 import { Switch } from '@/components/ui/switch';
+import { toast } from 'sonner';
+import { XCircle } from 'phosphor-react';
 import {
     Select,
     SelectContent,
@@ -62,7 +66,7 @@ const STREAMING_OPTIONS = [
 export default function ScheduleStep1() {
     // Hooks and State
     const navigate = useNavigate();
-    const { setSessionId } = useLiveSessionStore();
+    const { setSessionId, step1Data, setStep1Data } = useLiveSessionStore();
     const { sessionDetails } = useSessionDetailsStore();
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [selectedMusicFile, setSelectedMusicFile] = useState<File | null>(null);
@@ -79,7 +83,7 @@ export default function ScheduleStep1() {
     // Form Setup
     const form = useForm<z.infer<typeof sessionFormSchema>>({
         resolver: zodResolver(sessionFormSchema),
-        defaultValues: {
+        defaultValues: step1Data || {
             title: '',
             meetingType:
                 sessionDetails?.schedule?.recurrence_type === 'weekly'
@@ -94,6 +98,7 @@ export default function ScheduleStep1() {
                         durationHours: '',
                         durationMinutes: '',
                         link: '',
+                        countAttendanceDaily: false,
                     },
                 ],
             })),
@@ -114,23 +119,86 @@ export default function ScheduleStep1() {
         },
         mode: 'onChange',
     });
+    // Auto-update "Select days" dropdown when days are toggled manually
+    const recurringSchedule = useWatch({
+        control: form.control,
+        name: 'recurringSchedule',
+    });
+    useEffect(() => {
+        if (!recurringSchedule) return;
+        const selectedDays = recurringSchedule.filter((day) => day.isSelect).map((day) => day.day);
+        const allDays = WEEK_DAYS.map((d) => d.label);
+        const weekdays = allDays.slice(0, 5);
+        const monToSat = allDays.slice(0, 6);
+        let newType: 'everyday' | 'weekday' | 'exceptSunday' | 'custom';
+        if (selectedDays.length === allDays.length) {
+            newType = 'everyday';
+        } else if (monToSat.every((day) => selectedDays.includes(day))) {
+            newType = 'exceptSunday';
+        } else if (weekdays.every((day) => selectedDays.includes(day))) {
+            newType = 'weekday';
+        } else {
+            newType = 'custom';
+        }
+        if (scheduleType !== newType) {
+            setScheduleType(newType);
+        }
+    }, [recurringSchedule]);
+    // Auto-fill link, duration, and start time for newly selected days
+    const prevSelectedDaysRef = useRef<string[]>([]);
+    useEffect(() => {
+        if (!recurringSchedule) return;
+        const selectedDays = recurringSchedule.filter((d) => d.isSelect).map((d) => d.day);
+        const newDays = selectedDays.filter((d) => !prevSelectedDaysRef.current.includes(d));
+        if (newDays.length) {
+            const defaultStartDateTime = form.getValues('startTime') || '';
+            const startTimeVal = defaultStartDateTime.split('T')[1] || '';
+            const dh = form.getValues('durationHours');
+            const dm = form.getValues('durationMinutes');
+            const lnk = form.getValues('defaultLink');
+            newDays.forEach((dayLabel) => {
+                const idx = recurringSchedule.findIndex((d) => d.day === dayLabel);
+                if (idx !== -1) {
+                    form.setValue(`recurringSchedule.${idx}.sessions.0.startTime`, startTimeVal);
+                    form.setValue(`recurringSchedule.${idx}.sessions.0.durationHours`, dh);
+                    form.setValue(`recurringSchedule.${idx}.sessions.0.durationMinutes`, dm);
+                    form.setValue(`recurringSchedule.${idx}.sessions.0.link`, lnk);
+                }
+            });
+        }
+        prevSelectedDaysRef.current = selectedDays;
+    }, [recurringSchedule]);
 
     useEffect(() => {
         const durationHours = form.watch('durationHours');
         const durationMinutes = form.watch('durationMinutes');
         const link = form.watch('defaultLink');
-        const updatedSchedule = form.getValues('recurringSchedule')?.map((day) => ({
-            ...day,
-            sessions: day.sessions.map((session) => ({
-                ...session,
-                durationHours,
-                durationMinutes,
-                link,
-            })),
-        }));
-
+        const defaultStartDateTime = form.watch('startTime') || '';
+        const startTimeValue = defaultStartDateTime.split('T')[1] || '';
+        const updatedSchedule = form.getValues('recurringSchedule')?.map((day) => {
+            if (!day.isSelect) return day;
+            return {
+                ...day,
+                sessions: day.sessions.map((session, idx) =>
+                    idx === 0
+                        ? {
+                              ...session,
+                              startTime: startTimeValue,
+                              durationHours,
+                              durationMinutes,
+                              link,
+                          }
+                        : session
+                ),
+            };
+        });
         form.setValue('recurringSchedule', updatedSchedule);
-    }, [form.watch('durationHours'), form.watch('durationMinutes'), form.watch('defaultLink')]);
+    }, [
+        form.watch('durationHours'),
+        form.watch('durationMinutes'),
+        form.watch('defaultLink'),
+        form.watch('startTime'),
+    ]);
 
     useEffect(() => {
         const subscription = form.watch((value, { name }) => {
@@ -223,8 +291,17 @@ export default function ScheduleStep1() {
                     String(sessionDetails.schedule.waiting_room_time)
                 );
             }
+            // Populate playback settings toggles
+            form.setValue('allowRewind', sessionDetails.schedule.allow_rewind ?? false);
+            form.setValue('allowPause', sessionDetails.schedule.allow_play_pause ?? false);
         }
     }, [sessionDetails]);
+
+    useEffect(() => {
+        if (step1Data) {
+            form.reset(step1Data);
+        }
+    }, [step1Data]);
 
     const { control, watch } = form;
     // Watch the selected streaming platform to conditionally render/disable options
@@ -329,7 +406,6 @@ export default function ScheduleStep1() {
         }
     }, [isMeetPlatform]);
     const meetingType = useWatch({ control, name: 'meetingType' });
-    const recurringSchedule = watch('recurringSchedule');
 
     // Auth and Institute Data
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
@@ -414,6 +490,8 @@ export default function ScheduleStep1() {
         try {
             const response = await createLiveSessionStep1(body);
             setSessionId(response.id);
+            setStep1Data(data);
+            console.log(response.id);
             navigate({ to: '/study-library/live-session/schedule/step2' });
         } catch (error) {
             console.error(error);
@@ -422,27 +500,45 @@ export default function ScheduleStep1() {
 
     const onError = (errors: FieldErrors<typeof sessionFormSchema>) => {
         console.log('Validation errors:', errors);
+        // Show toast for each field with a red error icon
+        Object.values(errors).forEach((error) => {
+            if (error?.message) {
+                toast.error(error.message, {
+                    icon: <XCircle size={20} className="text-red-500" />,
+                });
+            }
+        });
     };
 
     // Recurring Schedule Handlers
     const addSessionToDay = (dayIndex: number) => {
-        const currentSchedule = form.getValues('recurringSchedule');
-        const daySchedule = currentSchedule?.[dayIndex];
+        const schedule = form.getValues('recurringSchedule');
+        const daySchedule = schedule?.[dayIndex];
         if (!daySchedule) return;
-        const dh = form.getValues('durationHours');
-        const dm = form.getValues('durationMinutes');
-        const l = form.getValues('defaultLink');
-
-        const updatedSessions = [
-            ...daySchedule.sessions,
-            {
-                startTime: '',
-                durationHours: dh,
-                durationMinutes: dm,
-                link: l,
-            },
-        ];
-
+        // Determine session to copy:
+        const defaultSession = {
+            startTime: '',
+            durationHours: '',
+            durationMinutes: '',
+            link: '',
+            countAttendanceDaily: false,
+        };
+        // Pick source session (with optional props)
+        const rawSession =
+            (dayIndex === 0
+                ? daySchedule.sessions[0]
+                : (schedule[0]?.sessions || [])[daySchedule.sessions.length]) ||
+            (dayIndex === 0 ? defaultSession : schedule[0]?.sessions[0]) ||
+            defaultSession;
+        // Normalize fields to strings
+        const sessionToCopy = {
+            startTime: rawSession.startTime || '',
+            durationHours: rawSession.durationHours || '',
+            durationMinutes: rawSession.durationMinutes || '',
+            link: rawSession.link || '',
+            countAttendanceDaily: rawSession.countAttendanceDaily || false,
+        };
+        const updatedSessions = [...daySchedule.sessions, sessionToCopy];
         form.setValue(`recurringSchedule.${dayIndex}.sessions`, updatedSessions, {
             shouldDirty: true,
             shouldValidate: true,
@@ -569,6 +665,34 @@ export default function ScheduleStep1() {
         });
     };
 
+    // *** NEW: helper to propagate a field's value across all selected recurring days ***
+    const propagateToOtherDays = (
+        fieldKey: 'startTime' | 'link',
+        value: string,
+        sourceDayIndex: number,
+        sessionIndex: number
+    ) => {
+        // Only auto‐propagate for the first session (index 0)
+        if (sessionIndex !== 0) return;
+        const schedule = form.getValues('recurringSchedule');
+        if (!schedule) return;
+
+        schedule.forEach((day, idx) => {
+            if (idx !== sourceDayIndex && day.isSelect) {
+                // Ensure the target session exists
+                if (day.sessions[sessionIndex]) {
+                    form.setValue(
+                        `recurringSchedule.${idx}.sessions.${sessionIndex}.${fieldKey}` as any,
+                        value,
+                        {
+                            shouldDirty: true,
+                        }
+                    );
+                }
+            }
+        });
+    };
+
     // Render Functions
     const renderBasicInformation = () => (
         <div className="flex flex-col gap-6">
@@ -610,7 +734,6 @@ export default function ScheduleStep1() {
                         ]}
                         control={form.control}
                         className="mt-[8px] w-56 font-thin"
-                        required
                     />
                 )}
             </div>
@@ -680,14 +803,29 @@ export default function ScheduleStep1() {
                                     required
                                     inputType="datetime-local"
                                     input={field.value}
-                                    onChangeFunction={field.onChange}
+                                    onChangeFunction={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                        field.onChange(e);
+                                        const dateTime = e.target.value;
+                                        const timeValue = dateTime.split('T')[1] || '';
+                                        const schedule = form.getValues('recurringSchedule') || [];
+                                        schedule.forEach((day, idx) => {
+                                            if (day.isSelect) {
+                                                form.setValue(
+                                                    `recurringSchedule.${idx}.sessions.0.startTime`,
+                                                    timeValue
+                                                );
+                                            }
+                                        });
+                                    }}
                                 />
                             </FormControl>
                         </FormItem>
                     )}
                 />
                 <div>
-                    <div>duration</div>
+                    <FormLabel className="text-sm font-medium">
+                        Duration<span className="text-danger-600">*</span>
+                    </FormLabel>
                     <div className="mt-2 flex flex-row items-center gap-2">
                         <FormField
                             control={control}
@@ -696,6 +834,7 @@ export default function ScheduleStep1() {
                                 <FormItem>
                                     <FormControl>
                                         <MyInput
+                                            required
                                             inputType="text"
                                             inputPlaceholder="00"
                                             input={field.value}
@@ -729,6 +868,7 @@ export default function ScheduleStep1() {
                                 <FormItem>
                                     <FormControl>
                                         <MyInput
+                                            required
                                             inputType="text"
                                             inputPlaceholder="00"
                                             input={field.value}
@@ -847,7 +987,8 @@ export default function ScheduleStep1() {
                     <div className="text-sm font-medium">
                         Live Streaming Platform
                         <span className="ml-1 text-xs font-normal text-neutral-500">
-                            (Do you want the students to view the class in the learner app, or do you want to redirect them to the app that is hosting the live session?)
+                            (Do you want the students to view the class in the learner app, or do
+                            you want to redirect them to the app that is hosting the live session?)
                         </span>
                     </div>
                     <FormField
@@ -1015,208 +1156,323 @@ export default function ScheduleStep1() {
     const renderRecurringSchedule = () =>
         meetingType === RecurringType.WEEKLY && (
             <>
-                <div className="flex w-fit flex-col items-start justify-start gap-4">
-                    <div className="flex flex-row items-center gap-2">
-                        <Select
-                            value={scheduleType || ''}
-                            onValueChange={(
-                                value: 'everyday' | 'weekday' | 'exceptSunday' | 'custom'
-                            ) => {
-                                setScheduleType(value);
-                                if (value === 'everyday') {
-                                    toggleEveryDay();
-                                } else if (value === 'weekday') {
-                                    toggleMonToFri();
-                                } else if (value === 'exceptSunday') {
-                                    toggleMonToSat();
-                                } else if (value === 'custom') {
-                                    toggleCustom();
-                                }
-                            }}
-                        >
-                            <SelectTrigger className="w-[120px]">
-                                <SelectValue placeholder="Select days" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="everyday">Every day</SelectItem>
-                                <SelectItem value="weekday">Mon-Fri</SelectItem>
-                                <SelectItem value="exceptSunday">Mon-Sat</SelectItem>
-                                <SelectItem value="custom">Custom</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <div className="w-[100px]">Start Time</div>
-                        <div className="w-[200px]">Duration</div>
-                        <div>Live Class link</div>
-                    </div>
+                {/* Recurring Schedule header with days selector */}
+                <div className="mb-2 flex items-center justify-between">
+                    <h2 className="text-xl font-semibold">Recurring Schedule</h2>
+                    <Select
+                        value={scheduleType || ''}
+                        onValueChange={(
+                            value: 'everyday' | 'weekday' | 'exceptSunday' | 'custom'
+                        ) => {
+                            setScheduleType(value);
+                            if (value === 'everyday') toggleEveryDay();
+                            else if (value === 'weekday') toggleMonToFri();
+                            else if (value === 'exceptSunday') toggleMonToSat();
+                            else if (value === 'custom') toggleCustom();
+                        }}
+                    >
+                        <SelectTrigger className="w-[120px]">
+                            <SelectValue placeholder="Select days" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="everyday">Every day</SelectItem>
+                            <SelectItem value="weekday">Mon-Fri</SelectItem>
+                            <SelectItem value="exceptSunday">Mon-Sat</SelectItem>
+                            <SelectItem value="custom">Custom</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
-
-                {recurringSchedule?.map((dayField, dayIndex) => {
-                    const isSelect = watch(`recurringSchedule.${dayIndex}.isSelect`);
-                    return (
-                        <div key={dayField.day} className="flex flex-col">
-                            <div className="flex flex-row gap-4">
-                                <button
-                                    type="button"
-                                    className={`flex h-9 w-24 cursor-pointer items-center justify-center rounded-lg border px-2 py-1 text-center ${
-                                        isSelect
-                                            ? 'border-primary-500 bg-primary-100'
-                                            : 'border-gray-300'
-                                    }`}
-                                    onClick={() =>
-                                        form.setValue(
-                                            `recurringSchedule.${dayIndex}.isSelect`,
-                                            !isSelect
-                                        )
-                                    }
-                                >
-                                    {WEEK_DAYS.find((d) => d.label === dayField.day)?.value ??
-                                        dayField.day}
-                                </button>
-                                <div className="flex flex-col gap-4 ">
-                                    {isSelect &&
-                                        dayField.sessions.map((session, sessionIndex) => (
-                                            <div
-                                                key={`${dayField.day}-${sessionIndex}`}
-                                                className="flex flex-row items-center gap-2"
-                                            >
-                                                <SelectField
-                                                    label=""
-                                                    name={`recurringSchedule.${dayIndex}.sessions.${sessionIndex}.startTime`}
-                                                    labelStyle="font-thin"
-                                                    options={timeOptions?.map((option, index) => ({
-                                                        value: option,
-                                                        label: option,
-                                                        _id: index,
-                                                    }))}
-                                                    control={form.control}
-                                                    className="w-[100px] -translate-y-1 font-thin"
-                                                />
-                                                <div className="flex flex-row items-center gap-2">
-                                                    <FormField
-                                                        control={control}
-                                                        name={`recurringSchedule.${dayIndex}.sessions.${sessionIndex}.durationHours`}
-                                                        render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormControl>
-                                                                    <MyInput
-                                                                        inputType="text"
-                                                                        inputPlaceholder="00"
-                                                                        input={field.value}
-                                                                        onKeyPress={(e) => {
-                                                                            if (
-                                                                                !/[0-9]/.test(e.key)
-                                                                            ) {
-                                                                                e.preventDefault();
-                                                                            }
-                                                                        }}
-                                                                        onChangeFunction={(e) => {
-                                                                            let inputValue =
-                                                                                e.target.value.replace(
-                                                                                    /[^0-9]/g,
-                                                                                    ''
-                                                                                );
-                                                                            const numValue =
-                                                                                parseInt(
-                                                                                    inputValue
-                                                                                );
-                                                                            if (numValue > 24) {
-                                                                                inputValue = '24';
-                                                                            }
-                                                                            field.onChange(
-                                                                                inputValue
-                                                                            );
-                                                                        }}
-                                                                        className="w-11 p-2"
-                                                                    />
-                                                                </FormControl>
-                                                            </FormItem>
-                                                        )}
-                                                    />
-                                                    <div>hrs :</div>
-                                                    <FormField
-                                                        control={control}
-                                                        name={`recurringSchedule.${dayIndex}.sessions.${sessionIndex}.durationMinutes`}
-                                                        render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormControl>
-                                                                    <MyInput
-                                                                        inputType="text"
-                                                                        inputPlaceholder="00"
-                                                                        input={field.value}
-                                                                        onKeyPress={(e) => {
-                                                                            if (
-                                                                                !/[0-9]/.test(e.key)
-                                                                            ) {
-                                                                                e.preventDefault();
-                                                                            }
-                                                                        }}
-                                                                        onChangeFunction={(e) => {
-                                                                            let inputValue =
-                                                                                e.target.value.replace(
-                                                                                    /[^0-9]/g,
-                                                                                    ''
-                                                                                );
-                                                                            const numValue =
-                                                                                parseInt(
-                                                                                    inputValue
-                                                                                );
-                                                                            if (numValue > 59) {
-                                                                                inputValue = '59';
-                                                                            }
-                                                                            field.onChange(
-                                                                                inputValue
-                                                                            );
-                                                                        }}
-                                                                        className="w-11 p-2"
-                                                                    />
-                                                                </FormControl>
-                                                            </FormItem>
-                                                        )}
-                                                    />
-                                                    <div>mins</div>
-                                                </div>
-                                                <FormField
-                                                    control={control}
-                                                    name={`recurringSchedule.${dayIndex}.sessions.${sessionIndex}.link`}
-                                                    render={({ field }) => (
-                                                        <MyInput
-                                                            inputType="text"
-                                                            input={field.value}
-                                                            placeholder="Live Link"
-                                                            onChangeFunction={field.onChange}
-                                                        />
-                                                    )}
-                                                />
-                                                <Trash
-                                                    className="m-0 size-6 cursor-pointer p-0 text-red-500"
-                                                    onClick={() =>
-                                                        removeSessionFromDay(dayIndex, sessionIndex)
-                                                    }
-                                                />
+                {/* Recurring schedule table */}
+                <div className="overflow-auto">
+                    <table className="min-w-full table-auto border-separate border-spacing-y-2">
+                        <thead className="bg-gray-100">
+                            <tr>
+                                <th className="border px-2 py-1 text-left">Day</th>
+                                <th className="border px-2 py-1 text-left">Start Time</th>
+                                <th className="border px-2 py-1 text-left">Duration</th>
+                                <th className="border px-2 py-1 text-left">Live Class Link</th>
+                                <th className="border px-2 py-1 text-center">
+                                    Count attendance daily
+                                </th>
+                                <th className="border px-2 py-1 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {recurringSchedule?.map((dayField, dayIndex) => {
+                                const isSelect = watch(`recurringSchedule.${dayIndex}.isSelect`);
+                                // for each day, render a header row, its sessions, then a separator
+                                return [
+                                    <tr key={`${dayField.day}-header`} className="bg-primary-50">
+                                        <td colSpan={6} className="px-2 py-1">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-primary-800 font-semibold uppercase">
+                                                    {WEEK_DAYS.find((d) => d.label === dayField.day)
+                                                        ?.value ?? dayField.day}
+                                                </span>
+                                                {isSelect && (
+                                                    <MyButton
+                                                        type="button"
+                                                        buttonType="text"
+                                                        onClick={() => addSessionToDay(dayIndex)}
+                                                        className="text-sm text-primary-500"
+                                                    >
+                                                        + Add session
+                                                    </MyButton>
+                                                )}
                                             </div>
-                                        ))}
-                                </div>
-                            </div>
-                            {isSelect && (
-                                <MyButton
-                                    type="button"
-                                    buttonType="text"
-                                    onClick={() => addSessionToDay(dayIndex)}
-                                    className="m-0 p-0 text-start text-sm text-primary-500"
-                                >
-                                    + Add session
-                                </MyButton>
-                            )}
-                        </div>
-                    );
-                })}
+                                        </td>
+                                    </tr>,
+                                    ...dayField.sessions.map((session, sessionIndex) => (
+                                        <tr key={`${dayField.day}-${sessionIndex}`}>
+                                            <td className="border px-2 py-1 align-top">
+                                                <button
+                                                    type="button"
+                                                    className={`rounded px-2 py-1 ${
+                                                        isSelect
+                                                            ? 'text-primary-700 bg-primary-100'
+                                                            : 'bg-transparent text-gray-700'
+                                                    }`}
+                                                    onClick={() =>
+                                                        form.setValue(
+                                                            `recurringSchedule.${dayIndex}.isSelect`,
+                                                            !isSelect
+                                                        )
+                                                    }
+                                                >
+                                                    {WEEK_DAYS.find((d) => d.label === dayField.day)
+                                                        ?.value ?? dayField.day}
+                                                </button>
+                                            </td>
+
+                                            <td className="border px-2 py-1 align-top">
+                                                {isSelect ? (
+                                                    <SelectField
+                                                        label=""
+                                                        name={`recurringSchedule.${dayIndex}.sessions.${sessionIndex}.startTime`}
+                                                        labelStyle="font-thin"
+                                                        options={timeOptions?.map(
+                                                            (option, idx) => ({
+                                                                value: option,
+                                                                label: option,
+                                                                _id: idx,
+                                                            })
+                                                        )}
+                                                        control={form.control}
+                                                        className="w-[100px] -translate-y-1 font-thin"
+                                                        onSelect={(value) =>
+                                                            propagateToOtherDays(
+                                                                'startTime',
+                                                                value,
+                                                                dayIndex,
+                                                                sessionIndex
+                                                            )
+                                                        }
+                                                    />
+                                                ) : (
+                                                    <span className="text-gray-400">-</span>
+                                                )}
+                                            </td>
+
+                                            <td className="border px-2 py-1 align-top">
+                                                {isSelect ? (
+                                                    <div className="flex items-center gap-1">
+                                                        <FormField
+                                                            control={control}
+                                                            name={`recurringSchedule.${dayIndex}.sessions.${sessionIndex}.durationHours`}
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormControl>
+                                                                        <MyInput
+                                                                            inputType="text"
+                                                                            inputPlaceholder="00"
+                                                                            input={field.value}
+                                                                            onKeyPress={(e) => {
+                                                                                if (
+                                                                                    !/[0-9]/.test(
+                                                                                        e.key
+                                                                                    )
+                                                                                )
+                                                                                    e.preventDefault();
+                                                                            }}
+                                                                            onChangeFunction={(
+                                                                                e
+                                                                            ) => {
+                                                                                let val =
+                                                                                    e.target.value.replace(
+                                                                                        /[^0-9]/g,
+                                                                                        ''
+                                                                                    );
+                                                                                const num =
+                                                                                    parseInt(val);
+                                                                                if (num > 24)
+                                                                                    val = '24';
+                                                                                field.onChange(val);
+                                                                            }}
+                                                                            className="w-11 p-2"
+                                                                        />
+                                                                    </FormControl>
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                        <span>hrs</span>
+                                                        <FormField
+                                                            control={control}
+                                                            name={`recurringSchedule.${dayIndex}.sessions.${sessionIndex}.durationMinutes`}
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormControl>
+                                                                        <MyInput
+                                                                            inputType="text"
+                                                                            inputPlaceholder="00"
+                                                                            input={field.value}
+                                                                            onKeyPress={(e) => {
+                                                                                if (
+                                                                                    !/[0-9]/.test(
+                                                                                        e.key
+                                                                                    )
+                                                                                )
+                                                                                    e.preventDefault();
+                                                                            }}
+                                                                            onChangeFunction={(
+                                                                                e
+                                                                            ) => {
+                                                                                let val =
+                                                                                    e.target.value.replace(
+                                                                                        /[^0-9]/g,
+                                                                                        ''
+                                                                                    );
+                                                                                const num =
+                                                                                    parseInt(val);
+                                                                                if (num > 59)
+                                                                                    val = '59';
+                                                                                field.onChange(val);
+                                                                            }}
+                                                                            className="w-11 p-2"
+                                                                        />
+                                                                    </FormControl>
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                        <span>mins</span>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-gray-400">-</span>
+                                                )}
+                                            </td>
+
+                                            <td className="border px-2 py-1 align-top">
+                                                {isSelect ? (
+                                                    <FormField
+                                                        control={control}
+                                                        name={`recurringSchedule.${dayIndex}.sessions.${sessionIndex}.link`}
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormControl>
+                                                                    <MyInput
+                                                                        inputType="text"
+                                                                        inputPlaceholder="Live Link"
+                                                                        input={field.value}
+                                                                        onChangeFunction={(e) => {
+                                                                            field.onChange(e);
+                                                                            propagateToOtherDays(
+                                                                                'link',
+                                                                                e.target.value,
+                                                                                dayIndex,
+                                                                                sessionIndex
+                                                                            );
+                                                                        }}
+                                                                        size="small"
+                                                                        {...field}
+                                                                        onBlur={(e) => {
+                                                                            const url =
+                                                                                e.target.value;
+                                                                            field.onBlur();
+                                                                            try {
+                                                                                new URL(url);
+                                                                            } catch {
+                                                                                if (url) {
+                                                                                    toast.error(
+                                                                                        'Invalid URL',
+                                                                                        {
+                                                                                            icon: (
+                                                                                                <XCircle
+                                                                                                    size={
+                                                                                                        20
+                                                                                                    }
+                                                                                                    className="text-red-500"
+                                                                                                />
+                                                                                            ),
+                                                                                        }
+                                                                                    );
+                                                                                }
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                </FormControl>
+                                                                <FormMessage className="text-danger-600">
+                                                                    {
+                                                                        form.formState.errors
+                                                                            .recurringSchedule?.[
+                                                                            dayIndex
+                                                                        ]?.sessions?.[sessionIndex]
+                                                                            ?.link?.message
+                                                                    }
+                                                                </FormMessage>
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                ) : (
+                                                    <span className="text-gray-400">-</span>
+                                                )}
+                                            </td>
+                                            <td className="border px-2 py-1 text-center align-top">
+                                                {isSelect && sessionIndex === 0 ? (
+                                                    <Controller
+                                                        control={control}
+                                                        name={`recurringSchedule.${dayIndex}.sessions.${sessionIndex}.countAttendanceDaily`}
+                                                        render={({ field }) => (
+                                                            <Switch
+                                                                checked={field.value}
+                                                                onCheckedChange={field.onChange}
+                                                            />
+                                                        )}
+                                                    />
+                                                ) : (
+                                                    <span className="text-gray-400">-</span>
+                                                )}
+                                            </td>
+                                            <td className="border px-2 py-1 text-center align-top">
+                                                {isSelect && sessionIndex > 0 ? (
+                                                    <Trash
+                                                        className="cursor-pointer text-red-500"
+                                                        onClick={() =>
+                                                            removeSessionFromDay(
+                                                                dayIndex,
+                                                                sessionIndex
+                                                            )
+                                                        }
+                                                    />
+                                                ) : null}
+                                            </td>
+                                        </tr>
+                                    )),
+                                    <tr key={`${dayField.day}-separator`}>
+                                        <td colSpan={6} className="p-0">
+                                            <hr className="border-t border-gray-300" />
+                                        </td>
+                                    </tr>,
+                                ];
+                            })}
+                        </tbody>
+                    </table>
+                </div>
             </>
         );
 
     return (
         <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(onSubmit, onError)} className="flex flex-col gap-8">
-                <div className="m-0 flex items-center justify-between p-0 sticky top-[72px] z-[9] bg-white border-b border-neutral-200 py-2">
+                <div className="sticky top-[72px] z-[9] m-0 flex items-center justify-between border-b border-neutral-200 bg-white p-0 py-2">
                     <h1>Live Session Information</h1>
                     <MyButton type="submit" scale="large" buttonType="primary">
                         Next

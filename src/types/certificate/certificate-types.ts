@@ -173,4 +173,4 @@ export interface CanvasRenderingContext {
     ctx: CanvasRenderingContext2D;
     width: number;
     height: number;
-} 
+}

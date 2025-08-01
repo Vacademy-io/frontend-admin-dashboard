@@ -83,7 +83,9 @@ const BatchCard = ({ batch }: batchCardProps) => {
             <div className="flex flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
                 <div className="flex flex-col gap-3">
                     <div className="flex items-start justify-between">
-                        <p className="text-lg font-semibold text-neutral-700">{convertCapitalToTitleCase(batch.batch_name)}</p>
+                        <p className="text-lg font-semibold text-neutral-700">
+                            {convertCapitalToTitleCase(batch.batch_name)}
+                        </p>
                         <MyButton
                             buttonType="text"
                             layoutVariant="icon"

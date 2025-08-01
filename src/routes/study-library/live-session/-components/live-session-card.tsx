@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import QRCode from 'react-qr-code';
 import { MyDialog } from '@/components/design-system/dialog';
 import { Copy, DownloadSimple, LockSimple, DotsThree } from 'phosphor-react';
@@ -16,6 +17,8 @@ import { handleDownloadQRCode } from '@/routes/homework-creation/create-assessme
 import { useQueryClient } from '@tanstack/react-query';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useState } from 'react';
+import { toast } from 'sonner';
+import Papa from 'papaparse';
 import { fetchSessionDetails, SessionDetailsResponse } from '../-hooks/useSessionDetails';
 import { useLiveSessionReport } from '../-hooks/useLiveSessionReport';
 import { useLiveSessionStore } from '../schedule/-store/sessionIdstore';
@@ -42,16 +45,27 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
     const [openDialog, setOpenDialog] = useState<boolean>(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
     const [selectedTab, setSelectedTab] = useState<string>('Registration');
+    const [isRegistrationExporting, setIsRegistrationExporting] = useState<boolean>(false);
+    const [isAttendanceExporting, setIsAttendanceExporting] = useState<boolean>(false);
+    // using Sonner toast for notifications
 
     const [scheduledSessionDetails, setScheduleSessionDetails] =
         useState<SessionDetailsResponse | null>(null);
     const queryClient = useQueryClient();
     const { showForInstitutes } = useInstituteDetailsStore();
-    const { mutate: fetchReport, data: reportResponse, isPending, error } = useLiveSessionReport();
+    // Use mutateAsync to ensure data is fetched before opening dialog
+    const {
+        mutateAsync: fetchReportAsync,
+        data: reportResponse,
+        isPending,
+        error,
+    } = useLiveSessionReport();
 
-    const joinLink =
+    // Include allow_rewind toggle when constructing join link
+    const baseLink =
         session.registration_form_link_for_public_sessions ||
         `${BASE_URL_LEARNER_DASHBOARD}/register/live-class?sessionId=${session.session_id}`;
+    const joinLink = `${baseLink}${baseLink.includes('?') ? '&' : '?'}allowRewind=${session.allow_rewind}&allowPlayPause=${session.allow_play_pause}`;
     const formattedDateTime = `${session.meeting_date} ${session.start_time}`;
 
     const navigate = useNavigate();
@@ -83,6 +97,8 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
         } catch (error) {
             console.error('Error deleting session:', error);
         }
+        // Close the confirmation dialog automatically
+        setOpenDeleteDialog(false);
     };
 
     const convertToReportTableData = (data: LiveSessionReport[]) => {
@@ -120,21 +136,60 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
         last: true,
     };
 
-    const fetchSessionDetail = async () => {
-        const response = await fetchSessionDetails(session.schedule_id);
-        setScheduleSessionDetails(response);
-        fetchReport({
-            sessionId: session.session_id,
-            scheduleId: session.schedule_id,
-            accessType: session.access_level,
-        });
+    // Fetch details and report, then open dialog
+    const handleOpenDialog = async () => {
+        try {
+            const details = await fetchSessionDetails(session.schedule_id);
+            setScheduleSessionDetails(details);
+            await fetchReportAsync({
+                sessionId: session.session_id,
+                scheduleId: session.schedule_id,
+                accessType: session.access_level,
+            });
+            setOpenDialog(true);
+        } catch (err) {
+            console.error('Error loading participant details:', err);
+        }
     };
-    const handleOpenDialog = () => {
-        fetchSessionDetail();
-        setOpenDialog(!openDialog);
-    };
+
     const handleOpenDeleteDialog = () => {
         setOpenDeleteDialog(!openDeleteDialog);
+    };
+    // Adding export handlers
+    const handleExportRegistration = () => {
+        setIsRegistrationExporting(true);
+        const csv = Papa.unparse(tableData.content);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `registrations_session_${session.session_id}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        setIsRegistrationExporting(false);
+        toast.success('Registrations downloaded successfully.');
+    };
+    const handleExportAttendance = () => {
+        setIsAttendanceExporting(true);
+        const csvData = tableAttendanceData.content.map((item) => ({
+            index: item.index,
+            username: item.username,
+            attendanceStatus: item.attendanceStatus === 'PRESENT' ? 'Present' : 'Absent',
+        }));
+        const csv = Papa.unparse(csvData);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `attendance_session_${session.session_id}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        setIsAttendanceExporting(false);
+        toast.success('Attendance report downloaded successfully.');
     };
 
     return (
@@ -173,7 +228,7 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                                     handleOpenDialog();
                                 }}
                             >
-                                View Registration List
+                                View Participant Details
                             </DropdownMenuItem>
                             <DropdownMenuItem
                                 className="cursor-pointer"
@@ -214,14 +269,16 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
             </div>
 
             <div className="flex justify-between">
-                <div className="flex items-center gap-2 text-sm text-neutral-500">
+                <div className="flex items-center gap-4 overflow-hidden text-sm text-neutral-500">
                     <h1 className="!font-normal text-black">Join Link:</h1>
-                    <span className="px-3 py-2 text-sm underline">{joinLink}</span>
+                    <span className="flex-1 truncate px-2 py-1 text-sm underline" title={joinLink}>
+                        {joinLink}
+                    </span>
                     <MyButton
                         type="button"
                         scale="small"
                         buttonType="secondary"
-                        className="h-8 min-w-8"
+                        className="mr-4 h-8 min-w-8"
                         onClick={(e) => {
                             e.stopPropagation();
                             copyToClipboard(joinLink);
@@ -251,9 +308,9 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                 </div>
             </div>
             <MyDialog
-                heading="Attendance Report"
+                heading="Participant Details"
                 open={openDialog}
-                onOpenChange={handleOpenDialog}
+                onOpenChange={(open) => setOpenDialog(open)}
                 className="w-[80vw] max-w-4xl"
             >
                 <div className="flex h-full flex-col gap-3 p-4 text-sm">
@@ -291,7 +348,30 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                                     <DashboardLoader />
                                 ) : (
                                     <>
-                                        <h3 className="mb-2 text-lg font-semibold">Registrations</h3>
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="mb-2 text-lg font-semibold">
+                                                Registrations
+                                            </h3>
+                                            <MyButton
+                                                type="button"
+                                                scale="large"
+                                                buttonType="secondary"
+                                                className="flex items-center font-medium"
+                                                onClick={handleExportRegistration}
+                                            >
+                                                {isRegistrationExporting ? (
+                                                    <DashboardLoader></DashboardLoader>
+                                                ) : (
+                                                    <>
+                                                        <DownloadSimple
+                                                            size={20}
+                                                            className="mr-2"
+                                                        />
+                                                        Export
+                                                    </>
+                                                )}
+                                            </MyButton>
+                                        </div>
                                         <MyTable
                                             data={tableData}
                                             columns={registrationColumns}
@@ -309,7 +389,30 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                                     <DashboardLoader />
                                 ) : (
                                     <>
-                                        <h3 className="mb-2 text-lg font-semibold">Attendance</h3>
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="mb-2 text-lg font-semibold">
+                                                Attendance
+                                            </h3>
+                                            <MyButton
+                                                type="button"
+                                                scale="large"
+                                                buttonType="secondary"
+                                                className="flex items-center font-medium"
+                                                onClick={handleExportAttendance}
+                                            >
+                                                {isAttendanceExporting ? (
+                                                    <DashboardLoader></DashboardLoader>
+                                                ) : (
+                                                    <>
+                                                        <DownloadSimple
+                                                            size={20}
+                                                            className="mr-2"
+                                                        />
+                                                        Export
+                                                    </>
+                                                )}
+                                            </MyButton>
+                                        </div>
                                         <MyTable
                                             data={tableAttendanceData}
                                             columns={reportColumns}
@@ -333,8 +436,10 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                 className="w-fit max-w-4xl"
             >
                 <div className="flex h-full flex-col gap-3 p-4 ">
-                    <div className="text-lg">Do you want to delete every class for this session</div>
-                    <div className="flex flex-row gap-4 justify-between items-center">
+                    <div className="text-lg">
+                        Do you want to delete every class for this session
+                    </div>
+                    <div className="flex flex-row items-center justify-between gap-4">
                         <MyButton
                             onClick={() => {
                                 handleDelete('session');

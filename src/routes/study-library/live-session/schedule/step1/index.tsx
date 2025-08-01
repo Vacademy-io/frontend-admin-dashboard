@@ -6,23 +6,30 @@ import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore
 import { CaretLeft } from 'phosphor-react';
 import ScheduleStep1 from '../-components/scheduleStep1';
 import { useNavigate } from '@tanstack/react-router';
+import { useLiveSessionStore } from '../-store/sessionIdstore';
 export const Route = createFileRoute('/study-library/live-session/schedule/step1/')({
     component: RouteComponent,
 });
 
 function RouteComponent() {
     const { setNavHeading } = useNavHeadingStore();
+    const { clearSessionId, clearStep1Data } = useLiveSessionStore();
     const navigate = useNavigate();
 
     const heading = (
         <div className="flex items-center gap-4">
-            <CaretLeft onClick={() => navigate({ to: '/study-library/live-session' })} className="cursor-pointer" />
+            <CaretLeft
+                onClick={() => navigate({ to: '/study-library/live-session' })}
+                className="cursor-pointer"
+            />
             <div>Schedule Live Sessions</div>
         </div>
     );
 
     useEffect(() => {
         setNavHeading(heading);
+        clearSessionId();
+        clearStep1Data();
     }, []);
     return (
         <LayoutContainer>

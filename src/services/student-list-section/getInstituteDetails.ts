@@ -1,5 +1,8 @@
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
-import { InstituteDetailsType } from '@/schemas/student/student-list/institute-schema';
+import {
+    InstituteDetailsType,
+    SubModuleType,
+} from '@/schemas/student/student-list/institute-schema';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { HOLISTIC_INSTITUTE_ID, INIT_INSTITUTE } from '@/constants/urls';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
@@ -27,6 +30,10 @@ export const useInstituteQuery = () => {
         StorageKey.NAMING_SETTINGS,
         null
     );
+    const { setValue: setModules } = useLocalStorage<SubModuleType[] | null>(
+        StorageKey.MODULES,
+        null
+    );
     const { setPrimaryColor } = useTheme();
 
     return {
@@ -41,6 +48,9 @@ export const useInstituteQuery = () => {
                 if (!isNullOrEmptyOrUndefined(instituteSettings)) {
                     const namingSettings = instituteSettings.setting.NAMING_SETTING;
                     setValue(namingSettings.data.data);
+                }
+                if (!isNullOrEmptyOrUndefined(data)) {
+                    setModules(data.sub_modules);
                 }
             } catch (error) {
                 console.error('Error setting naming settings:', error);

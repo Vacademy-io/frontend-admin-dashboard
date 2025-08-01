@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Plus, Trash2, Info } from 'lucide-react';
 import { currencyOptions } from '../../-constants/payments';
 import { PaymentPlan, PaymentPlans } from '@/types/payment';
+import { getCurrencySymbol } from './utils/utils';
 
 interface CustomInterval {
     value: number;
@@ -44,11 +45,6 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
 }) => {
     const [planData, setPlanData] = useState<PaymentPlan>(editingPlan);
     const [currentStep, setCurrentStep] = useState(1);
-
-    const getCurrencySymbol = (currencyCode: string) => {
-        const currency = currencyOptions.find((c) => c.code === currencyCode);
-        return currency?.symbol || '$';
-    };
 
     // Initialize form data when editing
     useEffect(() => {
@@ -142,42 +138,14 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
         }
     };
 
-    const getStepTitle = () => {
-        switch (currentStep) {
-            case 1:
-                return 'Edit Payment Plan Type';
-            case 2:
-                if (planData.type === PaymentPlans.DONATION) {
-                    return 'Configure Donation Settings';
-                }
-                if (planData.type === PaymentPlans.FREE) {
-                    return 'Configure Free Plan Settings';
-                }
-                return 'Configure Plan Details';
-            case 3:
-                return 'Manage Discounts & Coupons';
-            default:
-                return 'Edit Payment Plan';
-        }
-    };
-
     const getTotalSteps = () => {
-        if (planData.type === PaymentPlans.FREE) return 2;
+        if (planData.type === PaymentPlans.FREE) return 1;
         if (planData.type === PaymentPlans.DONATION) return 2;
         return 3;
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-lg font-semibold">Edit Payment Plan</h2>
-                    <p className="text-sm text-gray-600">
-                        Step {currentStep} of {getTotalSteps()} - {getStepTitle()}
-                    </p>
-                </div>
-            </div>
-
+        <div className="mt-4 space-y-6">
             {/* Step 1: Basic Plan Information */}
             {currentStep === 1 && (
                 <div className="space-y-6">
@@ -584,34 +552,6 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
                                         }
                                     />
                                     <Label>Allow custom amounts</Label>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {planData.type === PaymentPlans.FREE && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Free Plan Configuration</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div>
-                                    <Label>Validity Period (Days) *</Label>
-                                    <Input
-                                        type="number"
-                                        value={planData.config?.free?.validityDays || ''}
-                                        onChange={(e) =>
-                                            updateConfig({
-                                                free: {
-                                                    ...planData.config?.free,
-                                                    validityDays: parseInt(e.target.value) || 0,
-                                                },
-                                            })
-                                        }
-                                        className="mt-1"
-                                        min="1"
-                                        max="365"
-                                    />
                                 </div>
                             </CardContent>
                         </Card>

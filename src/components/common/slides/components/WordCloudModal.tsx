@@ -32,7 +32,10 @@ export const WordCloudModal: React.FC<WordCloudModalProps> = ({ isOpen, onClose,
     useEffect(() => {
         if (isOpen) {
             console.log('[WordCloud] Modal opened. Responses:', responses.length);
-            console.log('[WordCloud] Text answers:', responses.map(r => r.response_data?.text_answer).filter(Boolean));
+            console.log(
+                '[WordCloud] Text answers:',
+                responses.map((r) => r.response_data?.text_answer).filter(Boolean)
+            );
         }
     }, [isOpen, responses]);
 
@@ -61,18 +64,21 @@ export const WordCloudModal: React.FC<WordCloudModalProps> = ({ isOpen, onClose,
         }
 
         const observer = resizeObserverRef.current;
-        
+
         // Use a timeout to ensure the DOM is ready
         const timeoutId = setTimeout(() => {
-        const currentRef = containerRef.current;
+            const currentRef = containerRef.current;
             if (currentRef) {
                 console.log('[WordCloud] Starting ResizeObserver on container');
-            observer.observe(currentRef);
-                
+                observer.observe(currentRef);
+
                 // Also manually get initial size as a backup
                 const rect = currentRef.getBoundingClientRect();
                 if (rect.width > 0 && rect.height > 0) {
-                    console.log('[WordCloud] Manual size detection:', { width: rect.width, height: rect.height });
+                    console.log('[WordCloud] Manual size detection:', {
+                        width: rect.width,
+                        height: rect.height,
+                    });
                     setSize({ width: rect.width, height: rect.height });
                 }
             }
@@ -106,12 +112,156 @@ export const WordCloudModal: React.FC<WordCloudModalProps> = ({ isOpen, onClose,
 
         // Professional stop words to filter out
         const stopWords = new Set([
-            'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'can', 'cannot', 'cant', 'wont', 'dont', 'doesnt', 'didnt', 'isnt', 'arent', 'wasnt', 'werent', 'hasnt', 'havent', 'hadnt', 'wouldnt', 'couldnt', 'shouldnt', 'mightnt', 'mustnt',
-            'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'her', 'its', 'our', 'their', 'mine', 'yours', 'hers', 'ours', 'theirs',
-            'this', 'that', 'these', 'those', 'here', 'there', 'where', 'when', 'why', 'how', 'what', 'which', 'who', 'whom', 'whose',
-            'a', 'an', 'some', 'any', 'all', 'each', 'every', 'no', 'none', 'both', 'either', 'neither', 'one', 'two', 'three', 'first', 'second', 'last', 'next', 'previous',
-            'very', 'much', 'many', 'more', 'most', 'less', 'least', 'few', 'little', 'big', 'small', 'large', 'good', 'bad', 'best', 'worst', 'better', 'worse',
-            'yes', 'no', 'ok', 'okay', 'well', 'just', 'only', 'also', 'too', 'so', 'then', 'now', 'again', 'once', 'always', 'never', 'sometimes', 'often', 'usually', 'maybe', 'perhaps', 'probably'
+            'the',
+            'and',
+            'or',
+            'but',
+            'in',
+            'on',
+            'at',
+            'to',
+            'for',
+            'of',
+            'with',
+            'by',
+            'is',
+            'are',
+            'was',
+            'were',
+            'be',
+            'been',
+            'being',
+            'have',
+            'has',
+            'had',
+            'do',
+            'does',
+            'did',
+            'will',
+            'would',
+            'could',
+            'should',
+            'may',
+            'might',
+            'must',
+            'can',
+            'cannot',
+            'cant',
+            'wont',
+            'dont',
+            'doesnt',
+            'didnt',
+            'isnt',
+            'arent',
+            'wasnt',
+            'werent',
+            'hasnt',
+            'havent',
+            'hadnt',
+            'wouldnt',
+            'couldnt',
+            'shouldnt',
+            'mightnt',
+            'mustnt',
+            'i',
+            'you',
+            'he',
+            'she',
+            'it',
+            'we',
+            'they',
+            'me',
+            'him',
+            'her',
+            'us',
+            'them',
+            'my',
+            'your',
+            'his',
+            'her',
+            'its',
+            'our',
+            'their',
+            'mine',
+            'yours',
+            'hers',
+            'ours',
+            'theirs',
+            'this',
+            'that',
+            'these',
+            'those',
+            'here',
+            'there',
+            'where',
+            'when',
+            'why',
+            'how',
+            'what',
+            'which',
+            'who',
+            'whom',
+            'whose',
+            'a',
+            'an',
+            'some',
+            'any',
+            'all',
+            'each',
+            'every',
+            'no',
+            'none',
+            'both',
+            'either',
+            'neither',
+            'one',
+            'two',
+            'three',
+            'first',
+            'second',
+            'last',
+            'next',
+            'previous',
+            'very',
+            'much',
+            'many',
+            'more',
+            'most',
+            'less',
+            'least',
+            'few',
+            'little',
+            'big',
+            'small',
+            'large',
+            'good',
+            'bad',
+            'best',
+            'worst',
+            'better',
+            'worse',
+            'yes',
+            'no',
+            'ok',
+            'okay',
+            'well',
+            'just',
+            'only',
+            'also',
+            'too',
+            'so',
+            'then',
+            'now',
+            'again',
+            'once',
+            'always',
+            'never',
+            'sometimes',
+            'often',
+            'usually',
+            'maybe',
+            'perhaps',
+            'probably',
         ]);
 
         const wordCounts: { [key: string]: number } = {};
@@ -122,15 +272,16 @@ export const WordCloudModal: React.FC<WordCloudModalProps> = ({ isOpen, onClose,
             .replace(/[^\w\s]/g, '') // Remove punctuation
             .replace(/\b\d+\b/g, '') // Remove standalone numbers
             .split(/\s+/)
-            .filter(word => word.trim().length > 0); // Remove empty strings
+            .filter((word) => word.trim().length > 0); // Remove empty strings
 
         console.log('[WordCloud] All words after initial processing:', words);
 
         words.forEach((word, index) => {
             console.log(`[WordCloud] Processing word ${index}: "${word}"`);
-            
+
             // More stringent filtering for professional appearance
-            if (word && 
+            if (
+                word &&
                 word.length >= 3 && // Minimum 3 characters
                 word.length <= 20 && // Maximum 20 characters to avoid very long words
                 !stopWords.has(word.toLowerCase()) && // Check stop words in lowercase
@@ -140,14 +291,16 @@ export const WordCloudModal: React.FC<WordCloudModalProps> = ({ isOpen, onClose,
                 // Always use lowercase as the key to avoid case duplicates
                 const normalizedWord = word.toLowerCase();
                 wordCounts[normalizedWord] = (wordCounts[normalizedWord] || 0) + 1;
-                console.log(`[WordCloud] Added word: "${normalizedWord}" (count: ${wordCounts[normalizedWord]})`);
+                console.log(
+                    `[WordCloud] Added word: "${normalizedWord}" (count: ${wordCounts[normalizedWord]})`
+                );
             } else {
                 console.log(`[WordCloud] Filtered out word: "${word}" - reasons:`, {
                     tooShort: word.length < 3,
                     tooLong: word.length > 20,
                     isStopWord: stopWords.has(word.toLowerCase()),
                     isNumber: /^\d+$/.test(word),
-                    hasNonLetters: !/^[a-zA-Z]+$/.test(word)
+                    hasNonLetters: !/^[a-zA-Z]+$/.test(word),
                 });
             }
         });
@@ -155,9 +308,9 @@ export const WordCloudModal: React.FC<WordCloudModalProps> = ({ isOpen, onClose,
         console.log('[WordCloud] Final word counts before sorting:', wordCounts);
 
         const result = Object.entries(wordCounts)
-            .map(([text, value]) => ({ 
+            .map(([text, value]) => ({
                 text: text.charAt(0).toUpperCase() + text.slice(1), // Capitalize for display
-                value 
+                value,
             }))
             .sort((a, b) => b.value - a.value) // Sort by frequency
             .slice(0, 40); // Limit to top 40 words for better visual appearance
@@ -172,9 +325,9 @@ export const WordCloudModal: React.FC<WordCloudModalProps> = ({ isOpen, onClose,
     const fontSize: WordCloudProps['fontSize'] = (word) => {
         const minSize = 32; // Increased from 16
         const maxSize = 80; // Increased from 48
-        
+
         if (words.length === 0) return minSize;
-        
+
         const values = words.map((w) => w.value);
         const minValue = Math.min(...values);
         const maxValue = Math.max(...values);
@@ -191,7 +344,7 @@ export const WordCloudModal: React.FC<WordCloudModalProps> = ({ isOpen, onClose,
 
     const colors = [
         '#1f2937', // Dark gray
-        '#374151', // Medium gray  
+        '#374151', // Medium gray
         '#4f46e5', // Professional indigo
         '#059669', // Professional green
         '#dc2626', // Professional red
@@ -211,30 +364,31 @@ export const WordCloudModal: React.FC<WordCloudModalProps> = ({ isOpen, onClose,
         sizeValues: size,
         hasWords: words.length > 0,
         wordCount: words.length,
-        shouldRender: shouldRenderCloud
+        shouldRender: shouldRenderCloud,
     });
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="w-[95vw] sm:w-full max-w-3xl p-0 bg-white/95 backdrop-blur-xl border-white/20 shadow-2xl rounded-2xl overflow-hidden">
+            <DialogContent className="w-[95vw] max-w-3xl overflow-hidden rounded-2xl border-white/20 bg-white/95 p-0 shadow-2xl backdrop-blur-xl sm:w-full">
                 {/* Enhanced background effects */}
-                <div className="absolute inset-0 bg-gradient-to-br from-teal-50/50 via-white to-emerald-50/50 pointer-events-none" />
-                <div className="absolute top-0 right-1/4 w-48 h-48 bg-teal-500/5 rounded-full blur-3xl" />
-                <div className="absolute bottom-0 left-1/4 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl" />
-                
-                <DialogHeader className="relative z-10 border-b border-slate-200/50 p-6 pb-4 bg-white/80 backdrop-blur-sm">
-                    <DialogTitle className="flex items-center text-2xl lg:text-3xl font-bold text-slate-800">
-                        <div className="p-2 mr-3 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-xl shadow-lg">
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-teal-50/50 via-white to-emerald-50/50" />
+                <div className="absolute right-1/4 top-0 size-48 rounded-full bg-teal-500/5 blur-3xl" />
+                <div className="absolute bottom-0 left-1/4 size-48 rounded-full bg-emerald-500/5 blur-3xl" />
+
+                <DialogHeader className="relative z-10 border-b border-slate-200/50 bg-white/80 p-6 pb-4 backdrop-blur-sm">
+                    <DialogTitle className="flex items-center text-2xl font-bold text-slate-800 lg:text-3xl">
+                        <div className="mr-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 p-2 shadow-lg">
                             <Cloud className="text-white" size={24} />
                         </div>
                         <span className="bg-gradient-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent">
-                        Response Word Cloud
+                            Response Word Cloud
                         </span>
                     </DialogTitle>
                     <DialogDescription className="mt-2 text-slate-600">
-                        Visual representation of the most frequently used words in participant responses.
+                        Visual representation of the most frequently used words in participant
+                        responses.
                         {words.length > 0 && (
-                            <span className="inline-flex items-center gap-1 ml-2 px-2 py-1 bg-teal-100/80 backdrop-blur-sm rounded-lg border border-teal-200/50">
+                            <span className="ml-2 inline-flex items-center gap-1 rounded-lg border border-teal-200/50 bg-teal-100/80 px-2 py-1 backdrop-blur-sm">
                                 <Hash size={14} className="text-teal-600" />
                                 <span className="font-semibold text-teal-700">{words.length}</span>
                                 <span className="text-teal-600">unique words</span>
@@ -244,27 +398,27 @@ export const WordCloudModal: React.FC<WordCloudModalProps> = ({ isOpen, onClose,
                 </DialogHeader>
 
                 <div className="relative z-10 p-6">
-                    <div 
-                        ref={containerRef} 
-                        className="h-[500px] w-full rounded-2xl border border-slate-200/50 bg-white/50 backdrop-blur-sm shadow-inner overflow-hidden"
+                    <div
+                        ref={containerRef}
+                        className="h-[500px] w-full overflow-hidden rounded-2xl border border-slate-200/50 bg-white/50 shadow-inner backdrop-blur-sm"
                     >
-                    {shouldRenderCloud ? (
-                            <div className="relative w-full h-full">
+                        {shouldRenderCloud ? (
+                            <div className="relative size-full">
                                 {/* Subtle background pattern */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-teal-50/30 via-transparent to-emerald-50/30 rounded-2xl" />
-                        <WordCloud
-                            words={words}
-                            width={size.width}
-                            height={size.height}
-                            fontSize={fontSize}
-                            font="Inter"
-                            fill={(_, index) => colors[index % colors.length] || '#000'}
-                        />
+                                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-teal-50/30 via-transparent to-emerald-50/30" />
+                                <WordCloud
+                                    words={words}
+                                    width={size.width}
+                                    height={size.height}
+                                    fontSize={fontSize}
+                                    font="Inter"
+                                    fill={(_, index) => colors[index % colors.length] || '#000'}
+                                />
                             </div>
-                    ) : (
+                        ) : (
                             <div className="flex h-full flex-col items-center justify-center text-center">
                                 <div className="mb-6">
-                                    <div className="w-16 h-16 bg-gradient-to-r from-teal-300 to-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                    <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-2xl bg-gradient-to-r from-teal-300 to-emerald-400 shadow-lg">
                                         {words.length === 0 ? (
                                             <MessageSquare className="text-white" size={32} />
                                         ) : (
@@ -272,40 +426,42 @@ export const WordCloudModal: React.FC<WordCloudModalProps> = ({ isOpen, onClose,
                                         )}
                                     </div>
                                 </div>
-                            {words.length === 0 ? (
-                                <>
-                                        <p className="text-slate-500 text-lg font-medium mb-2">
-                                            No text responses submitted yet
-                                    </p>
-                                        <p className="text-slate-400 text-sm max-w-md leading-relaxed">
-                                            The word cloud will appear here once participants respond with text answers. 
-                                            Words will be sized based on their frequency.
-                                    </p>
-                                </>
-                            ) : (
+                                {words.length === 0 ? (
                                     <>
-                                        <p className="text-slate-500 text-lg font-medium mb-2">
+                                        <p className="mb-2 text-lg font-medium text-slate-500">
+                                            No text responses submitted yet
+                                        </p>
+                                        <p className="max-w-md text-sm leading-relaxed text-slate-400">
+                                            The word cloud will appear here once participants
+                                            respond with text answers. Words will be sized based on
+                                            their frequency.
+                                        </p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="mb-2 text-lg font-medium text-slate-500">
                                             Calculating layout...
                                         </p>
-                                        <p className="text-slate-400 text-sm">
+                                        <p className="text-sm text-slate-400">
                                             Please wait while we generate your word cloud.
                                         </p>
                                         {/* Debug info */}
                                         <div className="mt-4 text-xs text-slate-400">
-                                            Words: {words.length} | Size: {size ? `${size.width}x${size.height}` : 'detecting...'}
+                                            Words: {words.length} | Size:{' '}
+                                            {size ? `${size.width}x${size.height}` : 'detecting...'}
                                         </div>
                                     </>
-                            )}
-                        </div>
-                    )}
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                <DialogFooter className="relative z-10 rounded-b-2xl border-t border-slate-200/50 bg-white/80 backdrop-blur-sm p-4">
-                    <Button 
-                        onClick={onClose} 
+                <DialogFooter className="relative z-10 rounded-b-2xl border-t border-slate-200/50 bg-white/80 p-4 backdrop-blur-sm">
+                    <Button
+                        onClick={onClose}
                         variant="outline"
-                        className="bg-white/80 backdrop-blur-sm border-slate-300 hover:bg-white hover:border-teal-400 text-slate-700 hover:text-teal-700 font-semibold transition-all duration-200 hover:scale-105 rounded-xl"
+                        className="rounded-xl border-slate-300 bg-white/80 font-semibold text-slate-700 backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:border-teal-400 hover:bg-white hover:text-teal-700"
                     >
                         Close
                     </Button>

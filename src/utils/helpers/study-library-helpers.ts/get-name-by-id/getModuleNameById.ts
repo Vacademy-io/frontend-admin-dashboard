@@ -13,5 +13,7 @@ export const getModuleName = (moduleId: string): string => {
         (moduleWithChapters) => moduleWithChapters.module.id === moduleId
     );
 
-    return moduleData?.module.module_name ? convertCapitalToTitleCase(moduleData.module.module_name) : '';
+    return moduleData?.module.module_name
+        ? convertCapitalToTitleCase(moduleData.module.module_name)
+        : '';
 };

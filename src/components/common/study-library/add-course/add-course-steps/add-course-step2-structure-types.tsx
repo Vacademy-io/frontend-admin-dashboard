@@ -15,6 +15,7 @@ import { UseFormReturn } from 'react-hook-form';
 import { Step2Data } from './add-course-step2';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { CourseSettingsData } from '@/types/course-settings';
 
 // Types and mockCourses remain the same as in your previous version
 // ... (Slide, Chapter, Module, Subject, Course, mockCourses types) ...
@@ -504,21 +505,36 @@ const CourseCard: React.FC<CourseCardProps> = ({
     );
 };
 
-function AddCourseStep2StructureTypes({ form }: { form: UseFormReturn<Step2Data> }) {
+function AddCourseStep2StructureTypes({
+    form,
+    courseSettings,
+}: {
+    form: UseFormReturn<Step2Data>;
+    courseSettings?: CourseSettingsData;
+}) {
+    // Get default depth from settings or fallback to 3
+    const defaultDepth = courseSettings?.courseStructure?.defaultDepth || 3;
+    const fixCourseDepth = courseSettings?.courseStructure?.fixCourseDepth || false;
+
     const [selectedCourseId, setSelectedCourseId] = useState<number | null>(
-        form.getValues('levelStructure') || 2
-    ); // Default to first course selected
+        form.getValues('levelStructure') || defaultDepth
+    ); // Default to settings or first course selected
 
     const handleCourseSelect = (courseId: number) => {
         setSelectedCourseId(courseId);
         form.setValue('levelStructure', courseId);
     };
 
+    // Filter courses based on settings
+    const availableCourses = fixCourseDepth
+        ? mockCourses.filter((course) => course.level === defaultDepth)
+        : mockCourses;
+
     return (
         <div className="overflow-x-hidden  text-gray-800 dark:bg-neutral-950 dark:text-gray-200">
             <div className="container mx-auto px-3 py-4  ">
                 <main className="grid grid-cols-1 gap-4 md:gap-5 lg:grid-cols-2">
-                    {mockCourses.map((course, index) => (
+                    {availableCourses.map((course, index) => (
                         <CourseCard
                             key={course.id}
                             course={course}

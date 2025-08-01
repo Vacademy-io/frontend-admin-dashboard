@@ -1,12 +1,12 @@
 import { jsPDF } from 'jspdf';
-import { 
-    ImageTemplate, 
-    FieldMapping, 
-    CertificateStudentData, 
+import {
+    ImageTemplate,
+    FieldMapping,
+    CertificateStudentData,
     CertificateGenerationResult,
     GeneratedCertificate,
     CertificateGenerationError,
-    CanvasRenderingContext
+    CanvasRenderingContext,
 } from '@/types/certificate/certificate-types';
 
 export class ImageCertificateGenerationService {
@@ -14,7 +14,7 @@ export class ImageCertificateGenerationService {
     private createCanvas(width: number, height: number): CanvasRenderingContext {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        
+
         if (!ctx) {
             throw new Error('Failed to get canvas 2D context');
         }
@@ -36,17 +36,25 @@ export class ImageCertificateGenerationService {
     }
 
     // Apply text styling to canvas context
-    private applyTextStyle(ctx: CanvasRenderingContext2D, fieldStyle: FieldMapping['style'], scale: number = 1) {
+    private applyTextStyle(
+        ctx: CanvasRenderingContext2D,
+        fieldStyle: FieldMapping['style'],
+        scale: number = 1
+    ) {
         const fontSize = fieldStyle.fontSize * scale;
         const fontWeight = fieldStyle.fontWeight || 'normal';
         const fontFamily = fieldStyle.fontFamily || 'Arial, sans-serif';
-        
+
         ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
         ctx.fillStyle = fieldStyle.fontColor || '#000000';
-        ctx.textAlign = fieldStyle.alignment === 'center' ? 'center' : 
-                       fieldStyle.alignment === 'right' ? 'right' : 'left';
+        ctx.textAlign =
+            fieldStyle.alignment === 'center'
+                ? 'center'
+                : fieldStyle.alignment === 'right'
+                  ? 'right'
+                  : 'left';
         ctx.textBaseline = 'top';
-        
+
         // Add background if specified
         if (fieldStyle.backgroundColor && fieldStyle.backgroundColor !== 'transparent') {
             ctx.globalCompositeOperation = 'source-over';
@@ -55,9 +63,9 @@ export class ImageCertificateGenerationService {
 
     // Draw text field on canvas
     private drawTextField(
-        ctx: CanvasRenderingContext2D, 
-        text: string, 
-        mapping: FieldMapping, 
+        ctx: CanvasRenderingContext2D,
+        text: string,
+        mapping: FieldMapping,
         scale: number = 1
     ) {
         const x = mapping.position.x * scale;
@@ -69,14 +77,14 @@ export class ImageCertificateGenerationService {
         // Draw background if specified
         if (mapping.style.backgroundColor && mapping.style.backgroundColor !== 'transparent') {
             ctx.fillStyle = mapping.style.backgroundColor;
-            ctx.fillRect(x - padding, y - padding, width + (padding * 2), height + (padding * 2));
+            ctx.fillRect(x - padding, y - padding, width + padding * 2, height + padding * 2);
         }
 
         // Draw border if specified
         if (mapping.style.borderColor) {
             ctx.strokeStyle = mapping.style.borderColor;
             ctx.lineWidth = 1;
-            ctx.strokeRect(x - padding, y - padding, width + (padding * 2), height + (padding * 2));
+            ctx.strokeRect(x - padding, y - padding, width + padding * 2, height + padding * 2);
         }
 
         // Apply text styling
@@ -85,19 +93,19 @@ export class ImageCertificateGenerationService {
         // Calculate text position based on alignment
         let textX = x;
         if (mapping.style.alignment === 'center') {
-            textX = x + (width / 2);
+            textX = x + width / 2;
         } else if (mapping.style.alignment === 'right') {
             textX = x + width;
         }
 
         // Handle text wrapping if needed
-        const maxWidth = width - (padding * 2);
+        const maxWidth = width - padding * 2;
         const lines = this.wrapText(ctx, text, maxWidth);
-        const lineHeight = (mapping.style.fontSize * scale) * 1.2;
+        const lineHeight = mapping.style.fontSize * scale * 1.2;
 
         // Draw each line
         lines.forEach((line, index) => {
-            const textY = y + (index * lineHeight) + padding;
+            const textY = y + index * lineHeight + padding;
             ctx.fillText(line, textX, textY);
         });
     }
@@ -129,15 +137,15 @@ export class ImageCertificateGenerationService {
 
     // Generate input data for a student
     private generateInputData(
-        student: CertificateStudentData, 
-        fieldMappings: FieldMapping[], 
+        student: CertificateStudentData,
+        fieldMappings: FieldMapping[],
         csvRow?: Record<string, string | number>
     ): Record<string, string> {
         const inputs: Record<string, string> = {};
 
         fieldMappings.forEach((mapping) => {
             let value = '';
-            
+
             // Try to get value from various sources
             switch (mapping.fieldName) {
                 case 'user_id':
@@ -166,7 +174,10 @@ export class ImageCertificateGenerationService {
                     // Try CSV data first, then student dynamic fields
                     if (csvRow && csvRow[mapping.fieldName] !== undefined) {
                         value = csvRow[mapping.fieldName]!.toString();
-                    } else if (student.dynamicFields && student.dynamicFields[mapping.fieldName] !== undefined) {
+                    } else if (
+                        student.dynamicFields &&
+                        student.dynamicFields[mapping.fieldName] !== undefined
+                    ) {
                         value = student.dynamicFields[mapping.fieldName]!.toString();
                     } else {
                         // Fallback to a default value
@@ -190,51 +201,57 @@ export class ImageCertificateGenerationService {
         try {
             // Load the template image
             const templateImage = await this.loadImage(imageTemplate.imageDataUrl);
-            
+
             // Create canvas with template dimensions
             const { canvas, ctx } = this.createCanvas(imageTemplate.width, imageTemplate.height);
-            
+
             // Draw the template image
             ctx.drawImage(templateImage, 0, 0, imageTemplate.width, imageTemplate.height);
-            
+
             // Generate input data for the student
             const inputs = this.generateInputData(student, fieldMappings, csvRow);
-            
+
             // Draw each field on the canvas
             fieldMappings.forEach((mapping) => {
                 const value = inputs[mapping.id] || '';
                 this.drawTextField(ctx, value, mapping, 1);
             });
-            
+
             // Convert canvas to image blob
             const imageBlob = await new Promise<Blob>((resolve, reject) => {
-                canvas.toBlob((blob) => {
-                    if (blob) {
-                        resolve(blob);
-                    } else {
-                        reject(new Error('Failed to convert canvas to blob'));
-                    }
-                }, 'image/png', 1.0);
+                canvas.toBlob(
+                    (blob) => {
+                        if (blob) {
+                            resolve(blob);
+                        } else {
+                            reject(new Error('Failed to convert canvas to blob'));
+                        }
+                    },
+                    'image/png',
+                    1.0
+                );
             });
-            
+
             // Convert canvas to PDF
             const pdf = new jsPDF({
                 orientation: imageTemplate.width > imageTemplate.height ? 'landscape' : 'portrait',
                 unit: 'px',
-                format: [imageTemplate.width, imageTemplate.height]
+                format: [imageTemplate.width, imageTemplate.height],
             });
-            
+
             // Add image to PDF
             const imageDataUrl = canvas.toDataURL('image/png', 1.0);
             pdf.addImage(imageDataUrl, 'PNG', 0, 0, imageTemplate.width, imageTemplate.height);
-            
+
             // Convert PDF to blob
             const pdfBlob = pdf.output('blob');
-            
+
             return { pdfBlob, imageBlob };
         } catch (error) {
             console.error('Error generating single certificate:', error);
-            throw new Error(`Failed to generate certificate for ${student.full_name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            throw new Error(
+                `Failed to generate certificate for ${student.full_name}: ${error instanceof Error ? error.message : 'Unknown error'}`
+            );
         }
     }
 
@@ -256,14 +273,15 @@ export class ImageCertificateGenerationService {
         const batchSize = 3; // Smaller batch size for image processing
         for (let i = 0; i < students.length; i += batchSize) {
             const batch = students.slice(i, i + batchSize);
-            
+
             // Process batch in parallel
             const batchPromises = batch.map(async (student) => {
                 try {
                     // Find corresponding CSV row
-                    const csvRow = csvData?.find(row => 
-                        row.user_id === student.user_id ||
-                        row.enrollment_number === student.institute_enrollment_id
+                    const csvRow = csvData?.find(
+                        (row) =>
+                            row.user_id === student.user_id ||
+                            row.enrollment_number === student.institute_enrollment_id
                     );
 
                     // Generate certificate
@@ -286,11 +304,16 @@ export class ImageCertificateGenerationService {
 
                     completedCount++;
                     onProgress?.(completedCount, students.length);
-                    
-                    console.log(`Generated certificate ${completedCount}/${students.length}: ${student.full_name}`);
+
+                    console.log(
+                        `Generated certificate ${completedCount}/${students.length}: ${student.full_name}`
+                    );
                 } catch (error) {
-                    console.error(`Failed to generate certificate for ${student.full_name}:`, error);
-                    
+                    console.error(
+                        `Failed to generate certificate for ${student.full_name}:`,
+                        error
+                    );
+
                     errors.push({
                         studentId: student.user_id || '',
                         studentName: student.full_name || 'Unknown',
@@ -307,11 +330,13 @@ export class ImageCertificateGenerationService {
 
             // Small delay between batches to prevent overwhelming the browser
             if (i + batchSize < students.length) {
-                await new Promise(resolve => setTimeout(resolve, 200));
+                await new Promise((resolve) => setTimeout(resolve, 200));
             }
         }
 
-        console.log(`Bulk generation completed: ${certificates.length} successful, ${errors.length} errors`);
+        console.log(
+            `Bulk generation completed: ${certificates.length} successful, ${errors.length} errors`
+        );
 
         return {
             success: errors.length === 0,
@@ -332,24 +357,26 @@ export class ImageCertificateGenerationService {
         try {
             // Load the template image
             const templateImage = await this.loadImage(imageTemplate.imageDataUrl);
-            
+
             // Create canvas with template dimensions
             const { canvas, ctx } = this.createCanvas(imageTemplate.width, imageTemplate.height);
-            
+
             // Draw the template image
             ctx.drawImage(templateImage, 0, 0, imageTemplate.width, imageTemplate.height);
-            
+
             // Draw each field with sample data
             fieldMappings.forEach((mapping) => {
                 const value = sampleData[mapping.id] || mapping.displayName || 'Sample Text';
                 this.drawTextField(ctx, value, mapping, 1);
             });
-            
+
             // Return as data URL for preview
             return canvas.toDataURL('image/png', 1.0);
         } catch (error) {
             console.error('Error generating preview certificate:', error);
-            throw new Error(`Failed to generate preview: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            throw new Error(
+                `Failed to generate preview: ${error instanceof Error ? error.message : 'Unknown error'}`
+            );
         }
     }
 }
@@ -358,4 +385,4 @@ export class ImageCertificateGenerationService {
 export const certificateGenerationService = new ImageCertificateGenerationService();
 
 // Legacy export for backward compatibility
-export const pdfGenerationService = certificateGenerationService; 
+export const pdfGenerationService = certificateGenerationService;

@@ -175,7 +175,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
                                         <FormItem className="w-full">
                                             <FormControl>
                                                 <MainViewQuillEditor
-                                                 onBlur={field.onBlur}
+                                                    onBlur={field.onBlur}
                                                     value={field.value}
                                                     onChange={field.onChange}
                                                 />
@@ -228,7 +228,8 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
                                         <FormItem className="w-full">
                                             <FormControl>
                                                 <MainViewQuillEditor
-                                                    value={field.value} onBlur={field.onBlur}
+                                                    value={field.value}
+                                                    onBlur={field.onBlur}
                                                     onChange={field.onChange}
                                                 />
                                             </FormControl>
@@ -283,7 +284,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
                                             <FormControl>
                                                 <MainViewQuillEditor
                                                     value={field.value}
-                                                     onBlur={field.onBlur}
+                                                    onBlur={field.onBlur}
                                                     onChange={field.onChange}
                                                 />
                                             </FormControl>

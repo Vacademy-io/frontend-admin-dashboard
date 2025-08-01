@@ -5,6 +5,8 @@ import {
     GET_DRAFT_SESSIONS,
     GET_SESSION_BY_SESSION_ID,
     LIVE_SESSION_REPORT_BY_SESSION_ID,
+    STUDENT_ATTENDANCE_REPORT,
+    BATCH_SESSION_ATTENDANCE_REPORT,
 } from '@/constants/urls';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 
@@ -20,6 +22,7 @@ export interface LiveSession {
     subject: string;
     meeting_link: string;
     registration_form_link_for_public_sessions: string;
+    allow_rewind?: boolean | null;
 }
 
 export interface SessionsByDate {
@@ -76,6 +79,8 @@ export interface Schedule {
     session_end_date: string;
     access_type: string;
     waiting_room_time: number | null;
+    allow_rewind: boolean | null;
+    allow_play_pause: boolean | null;
     thumbnail_file_id: string | null;
     background_score_file_id: string | null;
     session_streaming_service_type: string | null;
@@ -211,5 +216,89 @@ export const getLiveSessionReport = async (
             accessType,
         },
     });
+    return response.data;
+};
+
+export interface StudentSchedule {
+    scheduleId: string;
+    meetingDate: string;
+    startTime: string;
+    lastEntryTime: string;
+    sessionId: string;
+    sessionTitle: string;
+    subject: string | null;
+    sessionStatus: string;
+    accessLevel: string;
+    attendanceStatus: 'PRESENT' | 'ABSENT';
+}
+
+export interface StudentAttendanceReport {
+    userId: string;
+    attendancePercentage: number;
+    schedules: StudentSchedule[];
+}
+
+export const getStudentAttendanceReport = async (
+    userId: string,
+    batchId?: string,
+    startDate?: string,
+    endDate?: string
+): Promise<StudentAttendanceReport> => {
+    const params: Record<string, string> = { userId };
+
+    if (batchId) params.batchId = batchId;
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+
+    const response = await authenticatedAxiosInstance.get<StudentAttendanceReport>(
+        STUDENT_ATTENDANCE_REPORT,
+        { params }
+    );
+    return response.data;
+};
+
+export interface BatchStudentSession {
+    scheduleId: string;
+    sessionId: string;
+    title: string;
+    meetingDate: string;
+    startTime: string;
+    lastEntryTime: string;
+    attendanceStatus: string | null; // 'PRESENT' | 'ABSENT' | null
+    attendanceDetails: string | null;
+    attendanceTimestamp: string | null;
+}
+
+export interface BatchStudentReport {
+    studentId: string;
+    fullName: string;
+    email: string;
+    mobileNumber: string;
+    gender: string;
+    dateOfBirth: string | null;
+    instituteEnrollmentNumber: string;
+    enrollmentStatus: string;
+    sessions: BatchStudentSession[];
+}
+
+export const getBatchSessionAttendanceReport = async (
+    batchSessionId?: string,
+    startDate?: string,
+    endDate?: string
+): Promise<BatchStudentReport[]> => {
+    const params: Record<string, string> = {};
+
+    // Only attach batchSessionId when a specific batch is selected.
+    if (batchSessionId) {
+        params.batchSessionId = batchSessionId;
+    }
+
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+
+    const response = await authenticatedAxiosInstance.get<BatchStudentReport[]>(
+        BATCH_SESSION_ATTENDANCE_REPORT,
+        { params }
+    );
     return response.data;
 };

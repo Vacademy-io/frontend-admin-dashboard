@@ -95,7 +95,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
         if (rank === 1) return <Medal className="text-gray-400" size={20} />;
         if (rank === 2) return <Medal className="text-amber-700" size={20} />;
         return (
-            <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center">
+            <div className="flex size-6 items-center justify-center rounded-full bg-slate-200">
                 <span className="text-xs font-bold text-slate-600">{rank + 1}</span>
             </div>
         );
@@ -119,7 +119,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
         }
 
         const slideOptions = slideData?.elements?.singleChoiceOptions || [];
-        
+
         // First, try to find by exact ID match
         let selectedOption = slideOptions.find(
             (opt: { id: string; name: string }) => opt.id === selectedId
@@ -128,24 +128,30 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
         // If not found by ID, this might be a case where we have database IDs vs temp IDs
         // Let's try to find a reasonable fallback
         if (!selectedOption) {
-            console.log(`[Leaderboard] Option with ID ${selectedId} not found in slide options:`, slideOptions);
-            
+            console.log(
+                `[Leaderboard] Option with ID ${selectedId} not found in slide options:`,
+                slideOptions
+            );
+
             // Try to match by index if the selectedId looks like a database UUID
             // This is a fallback for when temp IDs don't match database IDs
             if (selectedId.includes('-') && selectedId.length > 10) {
                 // Check if we have responses from other users to see a pattern
                 const allSelectedIds = responses
-                    .map(r => r.response_data?.selected_option_ids?.[0])
+                    .map((r) => r.response_data?.selected_option_ids?.[0])
                     .filter(Boolean);
-                
+
                 const uniqueSelectedIds = [...new Set(allSelectedIds)];
-                
+
                 // If we have unique IDs that match the number of options, map by index
                 if (uniqueSelectedIds.length <= slideOptions.length) {
                     const selectedIndex = uniqueSelectedIds.indexOf(selectedId);
                     if (selectedIndex >= 0 && selectedIndex < slideOptions.length) {
                         selectedOption = slideOptions[selectedIndex];
-                        console.log(`[Leaderboard] Matched by index ${selectedIndex}:`, selectedOption);
+                        console.log(
+                            `[Leaderboard] Matched by index ${selectedIndex}:`,
+                            selectedOption
+                        );
                     }
                 }
             }
@@ -155,16 +161,16 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
             // Get the option index for display
             const optionIndex = slideOptions.findIndex((opt: any) => opt.id === selectedOption.id);
             const optionLetter = optionIndex >= 0 ? String.fromCharCode(65 + optionIndex) : '?';
-            
+
             return (
                 <div className="flex items-start gap-2">
-                    <div className="flex items-center justify-center w-5 h-5 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-bold rounded-full shadow-sm flex-shrink-0 mt-0.5">
+                    <div className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-xs font-bold text-white shadow-sm">
                         {optionLetter}
                     </div>
-                <div
+                    <div
                         className="prose prose-sm max-w-none flex-1"
-                    dangerouslySetInnerHTML={{ __html: selectedOption.name }}
-                />
+                        dangerouslySetInnerHTML={{ __html: selectedOption.name }}
+                    />
                 </div>
             );
         }
@@ -179,26 +185,28 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="w-[95vw] sm:w-full max-w-3xl p-0 bg-white/95 backdrop-blur-xl border-white/20 shadow-2xl rounded-2xl overflow-hidden">
+            <DialogContent className="w-[95vw] max-w-3xl overflow-hidden rounded-2xl border-white/20 bg-white/95 p-0 shadow-2xl backdrop-blur-xl sm:w-full">
                 {/* Enhanced background effects */}
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 via-white to-yellow-50/50 pointer-events-none" />
-                <div className="absolute top-0 right-1/4 w-48 h-48 bg-orange-500/5 rounded-full blur-3xl" />
-                <div className="absolute bottom-0 left-1/4 w-48 h-48 bg-yellow-500/5 rounded-full blur-3xl" />
-                
-                <DialogHeader className="relative z-10 border-b border-slate-200/50 p-6 pb-4 bg-white/80 backdrop-blur-sm">
-                    <DialogTitle className="flex items-center text-2xl lg:text-3xl font-bold text-slate-800">
-                        <div className="p-2 mr-3 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-xl shadow-lg">
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-orange-50/50 via-white to-yellow-50/50" />
+                <div className="absolute right-1/4 top-0 size-48 rounded-full bg-orange-500/5 blur-3xl" />
+                <div className="absolute bottom-0 left-1/4 size-48 rounded-full bg-yellow-500/5 blur-3xl" />
+
+                <DialogHeader className="relative z-10 border-b border-slate-200/50 bg-white/80 p-6 pb-4 backdrop-blur-sm">
+                    <DialogTitle className="flex items-center text-2xl font-bold text-slate-800 lg:text-3xl">
+                        <div className="mr-3 rounded-xl bg-gradient-to-r from-orange-500 to-yellow-500 p-2 shadow-lg">
                             <Trophy className="text-white" size={24} />
                         </div>
                         <span className="bg-gradient-to-r from-orange-600 to-yellow-600 bg-clip-text text-transparent">
-                        Live Leaderboard
+                            Live Leaderboard
                         </span>
                     </DialogTitle>
                     <DialogDescription className="mt-2 text-slate-600">
-                        Responses sorted by correctness and speed. 
-                        <span className="inline-flex items-center gap-1 ml-2 px-2 py-1 bg-orange-100/80 backdrop-blur-sm rounded-lg border border-orange-200/50">
+                        Responses sorted by correctness and speed.
+                        <span className="ml-2 inline-flex items-center gap-1 rounded-lg border border-orange-200/50 bg-orange-100/80 px-2 py-1 backdrop-blur-sm">
                             <Target size={14} className="text-orange-600" />
-                            <span className="font-semibold text-orange-700">{responses.length}</span>
+                            <span className="font-semibold text-orange-700">
+                                {responses.length}
+                            </span>
                             <span className="text-orange-600">participants</span>
                         </span>
                     </DialogDescription>
@@ -211,7 +219,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
                                 <div
                                     key={res.username + res.submitted_at}
                                     className={cn(
-                                        'group relative flex flex-col rounded-2xl border p-4 transition-all duration-300 ease-out hover:scale-[1.01] shadow-sm hover:shadow-lg backdrop-blur-sm',
+                                        'group relative flex flex-col rounded-2xl border p-4 shadow-sm backdrop-blur-sm transition-all duration-300 ease-out hover:scale-[1.01] hover:shadow-lg',
                                         res.is_correct === true
                                             ? 'border-green-200/50 bg-green-50/80 hover:border-green-300/50'
                                             : res.is_correct === false
@@ -220,48 +228,58 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
                                     )}
                                 >
                                     {/* Subtle gradient overlay */}
-                                    <div className={cn(
-                                        'absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300',
-                                        res.is_correct === true
-                                            ? 'bg-gradient-to-r from-green-500/5 via-transparent to-green-500/5'
-                                            : res.is_correct === false
-                                              ? 'bg-gradient-to-r from-red-500/5 via-transparent to-red-500/5'
-                                              : 'bg-gradient-to-r from-slate-500/5 via-transparent to-slate-500/5'
-                                    )} />
-                                    
+                                    <div
+                                        className={cn(
+                                            'absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100',
+                                            res.is_correct === true
+                                                ? 'bg-gradient-to-r from-green-500/5 via-transparent to-green-500/5'
+                                                : res.is_correct === false
+                                                  ? 'bg-gradient-to-r from-red-500/5 via-transparent to-red-500/5'
+                                                  : 'bg-gradient-to-r from-slate-500/5 via-transparent to-slate-500/5'
+                                        )}
+                                    />
+
                                     <div className="relative flex items-center justify-between">
                                         <div className="flex items-center gap-4">
                                             <div className="flex w-8 items-center justify-center">
                                                 {getRankIcon(index)}
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <div className="p-2 bg-slate-100/80 backdrop-blur-sm rounded-lg border border-slate-200/50">
+                                                <div className="rounded-lg border border-slate-200/50 bg-slate-100/80 p-2 backdrop-blur-sm">
                                                     <User className="text-slate-500" size={16} />
                                                 </div>
-                                                <span className="font-semibold text-slate-700 group-hover:text-slate-800 transition-colors duration-200">
+                                                <span className="font-semibold text-slate-700 transition-colors duration-200 group-hover:text-slate-800">
                                                     {res.username}
                                                 </span>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4 sm:gap-6">
-                                            <div className={cn(
-                                                'p-2 rounded-lg border backdrop-blur-sm',
-                                                res.is_correct === true
-                                                    ? 'bg-green-100/80 border-green-200/50'
-                                                    : res.is_correct === false
-                                                      ? 'bg-red-100/80 border-red-200/50'
-                                                      : 'bg-slate-100/80 border-slate-200/50'
-                                            )}>
-                                            {res.is_correct === true ? (
-                                                    <CheckCircle className="text-green-600" size={18} />
-                                            ) : res.is_correct === false ? (
+                                            <div
+                                                className={cn(
+                                                    'rounded-lg border p-2 backdrop-blur-sm',
+                                                    res.is_correct === true
+                                                        ? 'border-green-200/50 bg-green-100/80'
+                                                        : res.is_correct === false
+                                                          ? 'border-red-200/50 bg-red-100/80'
+                                                          : 'border-slate-200/50 bg-slate-100/80'
+                                                )}
+                                            >
+                                                {res.is_correct === true ? (
+                                                    <CheckCircle
+                                                        className="text-green-600"
+                                                        size={18}
+                                                    />
+                                                ) : res.is_correct === false ? (
                                                     <XCircle className="text-red-600" size={18} />
-                                            ) : (
-                                                    <MinusCircle className="text-slate-600" size={18} />
-                                            )}
+                                                ) : (
+                                                    <MinusCircle
+                                                        className="text-slate-600"
+                                                        size={18}
+                                                    />
+                                                )}
                                             </div>
                                             <div
-                                                className="flex items-center gap-2 px-3 py-2 bg-slate-100/80 backdrop-blur-sm rounded-lg border border-slate-200/50"
+                                                className="flex items-center gap-2 rounded-lg border border-slate-200/50 bg-slate-100/80 px-3 py-2 backdrop-blur-sm"
                                                 title="Response Time"
                                             >
                                                 <Clock className="text-slate-500" size={16} />
@@ -273,13 +291,13 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
                                     </div>
                                     <div className="relative mt-3 border-t border-dashed border-slate-300/60 pl-12 pt-3">
                                         <div className="flex items-start gap-3">
-                                            <div className="p-1.5 bg-slate-100/80 backdrop-blur-sm rounded-lg border border-slate-200/50">
-                                            <MessageSquare
+                                            <div className="rounded-lg border border-slate-200/50 bg-slate-100/80 p-1.5 backdrop-blur-sm">
+                                                <MessageSquare
                                                     size={14}
                                                     className="text-slate-500"
-                                            />
+                                                />
                                             </div>
-                                            <div className="text-sm text-slate-800 flex-1">
+                                            <div className="flex-1 text-sm text-slate-800">
                                                 {getResponseText(res)}
                                             </div>
                                         </div>
@@ -289,22 +307,27 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
                         ) : (
                             <div className="py-16 text-center">
                                 <div className="mb-6">
-                                    <div className="w-16 h-16 bg-gradient-to-r from-slate-300 to-slate-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                    <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-2xl bg-gradient-to-r from-slate-300 to-slate-400 shadow-lg">
                                         <Trophy className="text-white" size={32} />
                                     </div>
                                 </div>
-                                <p className="text-slate-500 text-lg font-medium mb-2">No responses yet</p>
-                                <p className="text-slate-400 text-sm">The leaderboard will update as participants submit their answers.</p>
+                                <p className="mb-2 text-lg font-medium text-slate-500">
+                                    No responses yet
+                                </p>
+                                <p className="text-sm text-slate-400">
+                                    The leaderboard will update as participants submit their
+                                    answers.
+                                </p>
                             </div>
                         )}
                     </div>
                 </ScrollArea>
 
-                <DialogFooter className="relative z-10 rounded-b-2xl border-t border-slate-200/50 bg-white/80 backdrop-blur-sm p-4">
-                    <Button 
-                        onClick={onClose} 
+                <DialogFooter className="relative z-10 rounded-b-2xl border-t border-slate-200/50 bg-white/80 p-4 backdrop-blur-sm">
+                    <Button
+                        onClick={onClose}
                         variant="outline"
-                        className="bg-white/80 backdrop-blur-sm border-slate-300 hover:bg-white hover:border-orange-400 text-slate-700 hover:text-orange-700 font-semibold transition-all duration-200 hover:scale-105 rounded-xl"
+                        className="rounded-xl border-slate-300 bg-white/80 font-semibold text-slate-700 backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:border-orange-400 hover:bg-white hover:text-orange-700"
                     >
                         Close
                     </Button>

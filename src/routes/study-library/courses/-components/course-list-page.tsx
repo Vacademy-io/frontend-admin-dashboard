@@ -28,6 +28,7 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { convertCapitalToTitleCase } from '@/lib/utils';
+import { CourseImageShimmer, InstructorAvatarShimmer } from '@/components/ui/shimmer';
 
 interface CourseListPageProps {
     selectedFilters: AllCourseFilters;
@@ -48,6 +49,8 @@ interface CourseListPageProps {
     setSortBy: React.Dispatch<React.SetStateAction<string>>;
     allCourses: AllCoursesApiResponse | null;
     courseImageUrls: Record<string, string>;
+    instructorProfilePicUrls: Record<string, string>;
+    isLoadingImages: boolean;
     handleCourseDelete: (courseId: string) => void;
     page: number;
     handlePageChange: (newPage: number) => void;
@@ -73,6 +76,8 @@ const CourseListPage = ({
     setSortBy,
     allCourses,
     courseImageUrls,
+    instructorProfilePicUrls,
+    isLoadingImages,
     handleCourseDelete,
     page,
     handlePageChange,
@@ -272,7 +277,9 @@ const CourseListPage = ({
                                         className={`animate-fade-in group relative flex h-fit flex-col rounded-lg border border-neutral-200 bg-white p-0 shadow-sm transition-transform duration-500 hover:scale-[1.025] hover:shadow-md`}
                                     >
                                         {/* Course Banner Image */}
-                                        {courseImageUrls[course.id] && (
+                                        {isLoadingImages ? (
+                                            <CourseImageShimmer />
+                                        ) : courseImageUrls[course.id] ? (
                                             <div className="flex size-full w-full items-center justify-center overflow-hidden rounded-lg px-3 pb-0 pt-4">
                                                 <img
                                                     src={
@@ -281,10 +288,10 @@ const CourseListPage = ({
                                                         'https://images.pexels.com/photos/31530661/pexels-photo-31530661.jpeg'
                                                     }
                                                     alt={course.package_name}
-                                                    className="object-fit rounded-lg bg-white p-2 transition-transform duration-300 group-hover:scale-105"
+                                                    className="rounded-lg bg-white object-cover p-2 transition-transform duration-300 group-hover:scale-105"
                                                 />
                                             </div>
-                                        )}
+                                        ) : null}
                                         <div className="flex flex-col gap-1 p-4">
                                             <div className="flex items-center justify-between">
                                                 <div className="text-lg font-extrabold text-neutral-800">
@@ -293,7 +300,8 @@ const CourseListPage = ({
                                                 <div
                                                     className={`rounded-lg bg-gray-100 p-1 px-2 text-xs font-semibold text-gray-700`}
                                                 >
-                                                    {convertCapitalToTitleCase(course.level_name) || 'Level'}
+                                                    {convertCapitalToTitleCase(course.level_name) ||
+                                                        'Level'}
                                                 </div>
                                             </div>
                                             {/* Description section */}
@@ -318,17 +326,21 @@ const CourseListPage = ({
                                                         : 'flex items-center gap-2'
                                                 }
                                             >
-                                                {instructors?.map((inst: CourseInstructor) => (
-                                                    <img
-                                                        key={inst.id}
-                                                        src={
-                                                            inst.profile_pic_file_id ||
-                                                            'https://randomuser.me/api/portraits/lego/1.jpg'
-                                                        }
-                                                        alt={inst.full_name}
-                                                        className="-ml-2 size-7 rounded-full border border-neutral-200 object-cover first:ml-0"
-                                                    />
-                                                ))}
+                                                {instructors?.map((inst: CourseInstructor) =>
+                                                    isLoadingImages ? (
+                                                        <InstructorAvatarShimmer key={inst.id} />
+                                                    ) : (
+                                                        <img
+                                                            key={inst.id}
+                                                            src={
+                                                                instructorProfilePicUrls[inst.id] ||
+                                                                'https://randomuser.me/api/portraits/lego/1.jpg'
+                                                            }
+                                                            alt={inst.full_name}
+                                                            className="-ml-2 size-7 rounded-full border border-neutral-200 object-cover first:ml-0"
+                                                        />
+                                                    )
+                                                )}
                                                 <span className="ml-2 text-xs text-neutral-600">
                                                     {instructors
                                                         ?.map(
