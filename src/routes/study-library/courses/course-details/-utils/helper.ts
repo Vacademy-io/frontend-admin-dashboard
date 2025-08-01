@@ -191,6 +191,68 @@ export const transformApiDataToCourseData = async (apiData: CourseWithSessionsTy
     }
 };
 
+export const transformApiDataToCourseDataForInvite = async (apiData: CourseWithSessionsType) => {
+    if (!apiData) return null;
+
+    // Local cache for fileId -> publicUrl
+    const fileUrlCache: Record<string, string> = {};
+    async function getUrlOnce(fileId: string | null | undefined): Promise<string> {
+        if (!fileId) return '';
+        if (fileUrlCache[fileId] !== undefined) return fileUrlCache[fileId] ?? '';
+        const url = (await getPublicUrl(fileId)) ?? '';
+        fileUrlCache[fileId] = url;
+        return url;
+    }
+
+    try {
+        const courseMediaImage = isJson(apiData.course.course_media_id)
+            ? JSON.parse(apiData.course.course_media_id)
+            : apiData.course.course_media_id;
+
+        const coursePreviewImageMediaId = await getUrlOnce(
+            apiData.course.course_preview_image_media_id ?? ''
+        );
+        const courseBannerMediaId = await getUrlOnce(apiData.course.course_banner_media_id ?? '');
+
+        let courseMediaPreview = '';
+        if (isJson(apiData.course.course_media_id) && courseMediaImage.type === 'youtube') {
+            courseMediaPreview = courseMediaImage.id;
+        } else {
+            courseMediaPreview = await getUrlOnce(
+                isJson(apiData.course.course_media_id)
+                    ? courseMediaImage.id ?? ''
+                    : apiData.course.course_media_id ?? ''
+            );
+        }
+
+        return {
+            id: apiData.course.id,
+            title: apiData.course.package_name,
+            description: apiData.course.course_html_description, // Remove HTML tags
+            tags: apiData.course.tags?.split(',').map((tag) => tag.trim()) || [],
+            imageUrl: '', // Use the preview image as the main image
+            courseStructure: apiData.course.course_depth,
+            whatYoullLearn: apiData.course.why_learn,
+            whyLearn: apiData.course.why_learn,
+            whoShouldLearn: apiData.course.who_should_learn,
+            aboutTheCourse: apiData.course.about_the_course,
+            packageName: apiData.course.package_name,
+            coursePreviewImageMediaId: apiData.course.course_preview_image_media_id,
+            courseBannerMediaId: apiData.course.course_banner_media_id,
+            courseMediaId: {
+                type: isJson(apiData.course.course_media_id) ? courseMediaImage.type : '',
+                id: isJson(apiData.course.course_media_id) ? courseMediaImage.id : '',
+            },
+            coursePreviewImageMediaPreview: coursePreviewImageMediaId,
+            courseBannerMediaPreview: courseBannerMediaId,
+            courseMediaPreview: courseMediaPreview ?? '',
+        };
+    } catch (error) {
+        console.error('Error getting public URLs:', error);
+        return null;
+    }
+};
+
 // Function to get instructors by sessionId and levelId
 export function getInstructorsBySessionAndLevel(
     sessionsData: Session[],
