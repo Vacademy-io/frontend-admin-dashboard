@@ -6,8 +6,8 @@ import { getInstituteId } from '@/constants/helper';
 import { PaymentPlan } from '@/types/payment';
 import { InviteLinkFormValues } from './GenerateInviteLinkSchema';
 import { UseFormReturn } from 'react-hook-form';
-import { PaymentPlanCreator } from '@/routes/settings/-components/Payment/PaymentPlanCreator';
 import { useEffect, useState } from 'react';
+import { PaymentPlanCreator } from '@/routes/settings/-components/Payment/PaymentPlanCreator';
 
 interface PaymentPlansDialogProps {
     form: UseFormReturn<InviteLinkFormValues>;
