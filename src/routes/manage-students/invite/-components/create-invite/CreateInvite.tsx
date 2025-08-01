@@ -387,6 +387,7 @@ const CreateInvite = () => {
                         selectedBatches={selectedBatches}
                         showSummaryDialog={showSummaryDialog}
                         setShowSummaryDialog={setShowSummaryDialog}
+                        setDialogOpen={setDialogOpen}
                     />
                 </Dialog>
             </div>

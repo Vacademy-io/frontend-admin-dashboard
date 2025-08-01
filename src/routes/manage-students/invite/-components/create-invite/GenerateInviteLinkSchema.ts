@@ -46,6 +46,7 @@ export interface GenerateInviteLinkDialogProps {
     inviteLinkId?: string;
     singlePackageSessionId?: boolean;
     isEditInviteLink?: boolean;
+    setDialogOpen: (open: boolean) => void;
 }
 
 const testInputFieldSchema = z.object({

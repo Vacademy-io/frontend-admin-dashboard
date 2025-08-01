@@ -57,6 +57,7 @@ const GenerateInviteLinkDialog = ({
     inviteLinkId,
     singlePackageSessionId,
     isEditInviteLink,
+    setDialogOpen,
 }: GenerateInviteLinkDialogProps) => {
     const { data: inviteLinkDetails } = useSuspenseQuery(
         singlePackageSessionId && inviteLinkId
@@ -202,13 +203,14 @@ const GenerateInviteLinkDialog = ({
             });
         },
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['GET_INVITE_LINKS'] });
             toast.success('Your invite link has been created successfully!', {
                 className: 'success-toast',
                 duration: 2000,
             });
             form.reset();
             setShowSummaryDialog(false);
-            queryClient.invalidateQueries({ queryKey: ['inviteList'] });
+            setDialogOpen(false);
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
