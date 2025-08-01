@@ -45,7 +45,10 @@ export const SUB_MODULE_SIDEBAR_MAPPING: Record<
     LMS_TEAM_MANAGMENT: { itemId: 'manage-institute', subItemIds: ['teams'] },
     LMS_INVITE: { itemId: 'student-mangement', subItemIds: ['invite'] },
     LMS_REQUEST: { itemId: 'student-mangement', subItemIds: ['enroll-requests'] },
-    LMS_LIVE_SESSION: { itemId: 'study-library', subItemIds: ['live-session'] },
+    LMS_LIVE_SESSION: [
+        { itemId: 'study-library', subItemIds: ['live-session'] },
+        { itemId: 'live-classes', subItemIds: [] },
+    ],
     LMS_LEARNING_REPORT: { itemId: 'study-library', subItemIds: ['reports'] },
     LMS_ATTENDANCE_TRACKER: [
         { itemId: 'study-library', subItemIds: ['attendance-tracker'] },
