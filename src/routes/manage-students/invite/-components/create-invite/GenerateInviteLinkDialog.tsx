@@ -58,6 +58,7 @@ const GenerateInviteLinkDialog = ({
     singlePackageSessionId,
     isEditInviteLink,
     setDialogOpen,
+    selectCourseForm,
 }: GenerateInviteLinkDialogProps) => {
     const { data: inviteLinkDetails } = useSuspenseQuery(
         singlePackageSessionId && inviteLinkId
@@ -209,6 +210,7 @@ const GenerateInviteLinkDialog = ({
                 duration: 2000,
             });
             form.reset();
+            selectCourseForm.reset();
             setShowSummaryDialog(false);
             setDialogOpen(false);
         },

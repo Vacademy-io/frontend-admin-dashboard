@@ -1,5 +1,5 @@
 import { MyButton } from '@/components/design-system/button';
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { Plus, X, CaretDown, Check } from 'phosphor-react';
 import {
     Dialog,
@@ -12,40 +12,47 @@ import GenerateInviteLinkDialog from './GenerateInviteLinkDialog';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useStudyLibraryQuery } from '@/routes/study-library/courses/-services/getStudyLibraryDetails';
 import { transformApiDataToDummyStructure } from './-utils/helper';
-
-type Level = { levelId: string; levelName: string };
-type Session = { sessionId: string; sessionName: string; levels: Level[] };
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+    createInviteSchema,
+    CreateInviteFormValues,
+    defaultCreateInviteValues,
+    Course,
+    Session,
+    Level,
+    Batch,
+} from './CreateInviteSchema';
 
 type DummyBatchesType = {
     [key: string]: Session[];
 };
-
-interface Batch {
-    sessionId: string;
-    levelId: string;
-    sessionName: string;
-    levelName: string;
-}
-
-interface Course {
-    id: string;
-    name: string;
-}
 
 const CreateInvite = () => {
     const { data: studyLibraryCoursesData } = useSuspenseQuery(useStudyLibraryQuery());
     const dummyCourses = transformApiDataToDummyStructure(studyLibraryCoursesData).dummyCourses;
     const dummyBatches = transformApiDataToDummyStructure(studyLibraryCoursesData).dummyBatches;
     const dummyBatchesTyped: DummyBatchesType = dummyBatches;
-    const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-    const [showCourseDropdown, setShowCourseDropdown] = useState(false);
-    const [selectedSession, setSelectedSession] = useState<Session | null>(null);
-    const [showSessionDropdown, setShowSessionDropdown] = useState(false);
-    const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
-    const [showLevelDropdown, setShowLevelDropdown] = useState(false);
-    const [selectedBatches, setSelectedBatches] = useState<Batch[]>([]);
-    const [showSummaryDialog, setShowSummaryDialog] = useState(false);
-    const [dialogOpen, setDialogOpen] = useState(false);
+
+    // Initialize form with react-hook-form
+    const form = useForm<CreateInviteFormValues>({
+        resolver: zodResolver(createInviteSchema),
+        defaultValues: defaultCreateInviteValues,
+        mode: 'onChange',
+    });
+
+    const { watch, setValue } = form;
+
+    // Watch form values
+    const selectedCourse = watch('selectedCourse');
+    const selectedSession = watch('selectedSession');
+    const selectedLevel = watch('selectedLevel');
+    const selectedBatches = watch('selectedBatches');
+    const showCourseDropdown = watch('showCourseDropdown');
+    const showSessionDropdown = watch('showSessionDropdown');
+    const showLevelDropdown = watch('showLevelDropdown');
+    const showSummaryDialog = watch('showSummaryDialog');
+    const dialogOpen = watch('dialogOpen');
 
     // Refs for dropdowns
     const courseDropdownRef = useRef<HTMLDivElement>(null);
@@ -53,39 +60,45 @@ const CreateInvite = () => {
     const levelDropdownRef = useRef<HTMLDivElement>(null);
 
     const handleSelectCourse = (course: Course): void => {
-        setSelectedCourse(course);
-        setSelectedSession(null);
-        setSelectedLevel(null);
-        setSelectedBatches([]);
-        setShowCourseDropdown(false);
+        setValue('selectedCourse', course);
+        setValue('selectedSession', null);
+        setValue('selectedLevel', null);
+        setValue('selectedBatches', []);
+        setValue('showCourseDropdown', false);
     };
+
     const handleSelectSession = (session: Session): void => {
-        setSelectedSession(session);
-        setSelectedLevel(null);
-        setShowSessionDropdown(false);
+        setValue('selectedSession', session);
+        setValue('selectedLevel', null);
+        setValue('showSessionDropdown', false);
     };
+
     const handleSelectLevel = (level: Level): void => {
-        setSelectedLevel(level);
-        setShowLevelDropdown(false);
+        setValue('selectedLevel', level);
+        setValue('showLevelDropdown', false);
     };
+
     const handleAddBatch = (): void => {
         if (selectedSession && selectedLevel) {
-            setSelectedBatches((prev: Batch[]) => [
-                ...prev,
-                {
-                    sessionId: selectedSession.sessionId,
-                    levelId: selectedLevel.levelId,
-                    sessionName: selectedSession.sessionName,
-                    levelName: selectedLevel.levelName,
-                },
-            ]);
-            setSelectedSession(null);
-            setSelectedLevel(null);
+            const newBatch: Batch = {
+                sessionId: selectedSession.sessionId,
+                levelId: selectedLevel.levelId,
+                sessionName: selectedSession.sessionName,
+                levelName: selectedLevel.levelName,
+            };
+            setValue('selectedBatches', [...selectedBatches, newBatch]);
+            setValue('selectedSession', null);
+            setValue('selectedLevel', null);
         }
     };
+
     const handleRemoveBatch = (idx: number): void => {
-        setSelectedBatches((prev: Batch[]) => prev.filter((_, i) => i !== idx));
+        setValue(
+            'selectedBatches',
+            selectedBatches.filter((_, i) => i !== idx)
+        );
     };
+
     const sessions: Session[] = selectedCourse ? dummyBatchesTyped[selectedCourse.id] || [] : [];
     const levels: Level[] = selectedSession ? selectedSession.levels : [];
 
@@ -97,12 +110,12 @@ const CreateInvite = () => {
                 courseDropdownRef.current &&
                 !courseDropdownRef.current.contains(e.target as Node)
             ) {
-                setShowCourseDropdown(false);
+                setValue('showCourseDropdown', false);
             }
         }
         document.addEventListener('mousedown', handleClick);
         return () => document.removeEventListener('mousedown', handleClick);
-    }, [showCourseDropdown]);
+    }, [showCourseDropdown, setValue]);
 
     // Click outside for session dropdown
     useEffect(() => {
@@ -112,29 +125,29 @@ const CreateInvite = () => {
                 sessionDropdownRef.current &&
                 !sessionDropdownRef.current.contains(e.target as Node)
             ) {
-                setShowSessionDropdown(false);
+                setValue('showSessionDropdown', false);
             }
         }
         document.addEventListener('mousedown', handleClick);
         return () => document.removeEventListener('mousedown', handleClick);
-    }, [showSessionDropdown]);
+    }, [showSessionDropdown, setValue]);
 
     // Click outside for level dropdown
     useEffect(() => {
         if (!showLevelDropdown) return;
         function handleClick(e: MouseEvent) {
             if (levelDropdownRef.current && !levelDropdownRef.current.contains(e.target as Node)) {
-                setShowLevelDropdown(false);
+                setValue('showLevelDropdown', false);
             }
         }
         document.addEventListener('mousedown', handleClick);
         return () => document.removeEventListener('mousedown', handleClick);
-    }, [showLevelDropdown]);
+    }, [showLevelDropdown, setValue]);
 
     return (
         <>
             <div>
-                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <Dialog open={dialogOpen} onOpenChange={(open) => setValue('dialogOpen', open)}>
                     <DialogTrigger asChild>
                         <MyButton
                             type="button"
@@ -156,7 +169,9 @@ const CreateInvite = () => {
                             <div className="relative" ref={courseDropdownRef}>
                                 <button
                                     className="flex w-full items-center justify-between rounded-lg border bg-white px-3 py-2 shadow-sm transition-all duration-150 hover:shadow-md"
-                                    onClick={() => setShowCourseDropdown((v) => !v)}
+                                    onClick={() =>
+                                        setValue('showCourseDropdown', !showCourseDropdown)
+                                    }
                                     type="button"
                                 >
                                     <span
@@ -209,7 +224,10 @@ const CreateInvite = () => {
                                             className={`flex w-full items-center justify-between rounded-lg border bg-white px-3 py-2 shadow-sm transition-all duration-150 ${selectedBatches.length > 0 ? 'cursor-not-allowed opacity-50' : 'hover:shadow-md'}`}
                                             onClick={() =>
                                                 selectedBatches.length === 0 &&
-                                                setShowSessionDropdown((v) => !v)
+                                                setValue(
+                                                    'showSessionDropdown',
+                                                    !showSessionDropdown
+                                                )
                                             }
                                             type="button"
                                             disabled={selectedBatches.length > 0}
@@ -264,7 +282,7 @@ const CreateInvite = () => {
                                             onClick={() =>
                                                 selectedSession &&
                                                 selectedBatches.length === 0 &&
-                                                setShowLevelDropdown((v) => !v)
+                                                setValue('showLevelDropdown', !showLevelDropdown)
                                             }
                                             type="button"
                                             disabled={
@@ -365,7 +383,7 @@ const CreateInvite = () => {
                                 type="button"
                                 scale="medium"
                                 buttonType="secondary"
-                                onClick={() => setDialogOpen(false)}
+                                onClick={() => setValue('dialogOpen', false)}
                                 className="bg-neutral-100 hover:border-none hover:bg-neutral-200"
                             >
                                 Cancel
@@ -375,7 +393,7 @@ const CreateInvite = () => {
                                 scale="medium"
                                 buttonType="primary"
                                 disable={selectedBatches.length === 0}
-                                onClick={() => setShowSummaryDialog(true)}
+                                onClick={() => setValue('showSummaryDialog', true)}
                             >
                                 Continue
                             </MyButton>
@@ -386,8 +404,9 @@ const CreateInvite = () => {
                         selectedCourse={selectedCourse}
                         selectedBatches={selectedBatches}
                         showSummaryDialog={showSummaryDialog}
-                        setShowSummaryDialog={setShowSummaryDialog}
-                        setDialogOpen={setDialogOpen}
+                        setShowSummaryDialog={(open) => setValue('showSummaryDialog', open)}
+                        setDialogOpen={(open) => setValue('dialogOpen', open)}
+                        selectCourseForm={form}
                     />
                 </Dialog>
             </div>

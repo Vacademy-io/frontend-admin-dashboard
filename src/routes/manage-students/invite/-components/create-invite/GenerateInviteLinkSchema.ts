@@ -1,6 +1,8 @@
 // Dummy related courses data
+import { UseFormReturn } from 'react-hook-form';
 import { z, z as zod } from 'zod';
 import { z as zodDiscount } from 'zod';
+import { CreateInviteFormValues } from './CreateInviteSchema';
 
 export const relatedCourses = [
     {
@@ -47,6 +49,7 @@ export interface GenerateInviteLinkDialogProps {
     singlePackageSessionId?: boolean;
     isEditInviteLink?: boolean;
     setDialogOpen: (open: boolean) => void;
+    selectCourseForm: UseFormReturn<CreateInviteFormValues>;
 }
 
 const testInputFieldSchema = z.object({
