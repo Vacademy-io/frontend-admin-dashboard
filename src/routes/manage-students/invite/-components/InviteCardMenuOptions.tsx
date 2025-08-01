@@ -3,7 +3,6 @@ import { MyButton } from '@/components/design-system/button';
 import { DotsThree } from 'phosphor-react';
 import { useRef, useState } from 'react';
 import { MyDialog } from '@/components/design-system/dialog';
-import { InviteLinkType } from '../-types/invite-link-types';
 import { InviteForm } from '../-schema/InviteFormSchema';
 import { CreateInviteDialog } from './create-invite/CreateInviteDialog';
 import { useUpdateInviteLinkStatus } from '../-services/update-invite-link-status';
@@ -14,13 +13,16 @@ import { useInviteFormContext } from '../-context/useInviteFormContext';
 import { useUpdateInvite } from '../-services/update-invite';
 import formDataToRequestData from '../-utils/formDataToRequestData';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { InviteLinkDataInterface } from '@/schemas/study-library/invite-links-schema';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface InviteCardMenuOptionsProps {
-    invite: InviteLinkType;
+    invite: InviteLinkDataInterface;
     onEdit: (updatedInvite: InviteForm) => void;
 }
 
 export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) => {
+    const queryClient = useQueryClient();
     const dropdownList = ['edit', 'delete'];
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -33,7 +35,7 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
     const formSubmitRef = useRef<() => void>(() => {});
     const { getDetailsFromPackageSessionId, getPackageSessionId } = useInstituteDetailsStore();
 
-    const onDeleteInvite = async (invite: InviteLinkType) => {
+    const onDeleteInvite = async (invite: InviteLinkDataInterface) => {
         try {
             await updateInviteStatusMutation.mutateAsync({
                 requestBody: {
@@ -41,6 +43,7 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
                     status: 'DELETED',
                 },
             });
+            queryClient.invalidateQueries({ queryKey: ['inviteList'] });
             toast.success('Invite deleted!');
             setOpenDeleteDialog(false);
         } catch {
@@ -104,7 +107,6 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
                     <DotsThree />
                 </MyButton>
             </MyDropdown>
-
             <CreateInviteDialog
                 initialValues={initialValues}
                 open={openEditDialog}

@@ -185,7 +185,15 @@ function getAllSessionLevelsForInstructor(
     }> = [];
     if (hasSessions === 'yes' && hasLevels === 'yes') {
         sessions.forEach((session: Session) => {
+            // Filter out default sessions
+            if (session.name.toLowerCase() === 'default') {
+                return;
+            }
             session.levels.forEach((level: Level) => {
+                // Filter out default levels
+                if (level.name.toLowerCase() === 'default') {
+                    return;
+                }
                 allSessionLevels.push({
                     sessionId: session.id,
                     sessionName: session.name,
@@ -197,6 +205,10 @@ function getAllSessionLevelsForInstructor(
         });
     } else if (hasSessions === 'yes' && hasLevels !== 'yes') {
         sessions.forEach((session: Session) => {
+            // Filter out default sessions
+            if (session.name.toLowerCase() === 'default') {
+                return;
+            }
             allSessionLevels.push({
                 sessionId: session.id,
                 sessionName: session.name,
@@ -208,6 +220,10 @@ function getAllSessionLevelsForInstructor(
         const standaloneSession = sessions.find((s: Session) => s.id === 'DEFAULT');
         if (standaloneSession) {
             standaloneSession.levels.forEach((level: Level) => {
+                // Filter out default levels
+                if (level.name.toLowerCase() === 'default') {
+                    return;
+                }
                 allSessionLevels.push({
                     sessionId: 'DEFAULT',
                     sessionName: '',
@@ -319,9 +335,12 @@ export const AddCourseStep2 = ({
     // Add state to track used existing batches
     const [usedExistingBatchIds, setUsedExistingBatchIds] = useState<Set<string>>(new Set());
 
-    // Filter available existing batches (exclude used ones)
+    // Filter available existing batches (exclude used ones and default sessions/levels)
     const availableExistingBatches = existingBatches.filter(
-        (batch: ExistingBatch) => !usedExistingBatchIds.has(batch.id)
+        (batch: ExistingBatch) =>
+            !usedExistingBatchIds.has(batch.id) &&
+            batch.session.session_name.toLowerCase() !== 'default' &&
+            batch.level.level_name.toLowerCase() !== 'default'
     );
 
     // Helper function to deduplicate sessions by name when hasSessions is 'yes' and hasLevels is not 'yes'
@@ -330,6 +349,10 @@ export const AddCourseStep2 = ({
             const seenSessionNames = new Set<string>();
             return batches.filter((batch) => {
                 const sessionName = batch.session.session_name;
+                // Filter out default sessions
+                if (sessionName.toLowerCase() === 'default') {
+                    return false;
+                }
                 if (seenSessionNames.has(sessionName)) {
                     return false;
                 }
@@ -346,6 +369,10 @@ export const AddCourseStep2 = ({
             const seenLevelNames = new Set<string>();
             return batches.filter((batch) => {
                 const levelName = batch.level.level_name;
+                // Filter out default levels
+                if (levelName.toLowerCase() === 'default') {
+                    return false;
+                }
                 if (seenLevelNames.has(levelName)) {
                     return false;
                 }
@@ -3810,7 +3837,8 @@ const SessionCard: React.FC<{
     // Get existing levels for this specific session that are not already added
     const getExistingLevelsForSession = (sessionId: string) => {
         const allBatchesForSession = existingBatches.filter(
-            (batch) => batch.session.id === sessionId
+            (batch) =>
+                batch.session.id === sessionId && batch.level.level_name.toLowerCase() !== 'default'
         );
         // Filter out levels that are already added to this session
         return allBatchesForSession.filter(

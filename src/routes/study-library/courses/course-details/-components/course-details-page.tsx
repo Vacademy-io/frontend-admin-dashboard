@@ -44,6 +44,7 @@ import { getTerminology } from '@/components/common/layout-container/sidebar/uti
 import { AddCourseForm } from '@/components/common/study-library/add-course/add-course-form';
 import { MyButton } from '@/components/design-system/button';
 import { getPublicUrl } from '@/services/upload_file';
+import InviteDetailsComponent from './invite-details-component';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey, Authority } from '@/constants/auth/tokens';
@@ -830,102 +831,93 @@ export const CourseDetailsPage = () => {
                     {/* Left Column - 2/3 width */}
                     <div className="flex w-full grow flex-col xl:w-2/3">
                         {/* Session and Level Selectors */}
-                        {sessionOptions.length > 1 ||
-                        (sessionOptions.length === 1 &&
-                            sessionOptions[0]?.label?.toLowerCase() !== 'default') ||
-                        levelOptions.length > 1 ||
-                        (levelOptions.length === 1 &&
-                            levelOptions[0]?.label?.toLowerCase() !== 'default') ? (
-                            <div className="container mx-auto px-0 pb-3 lg:pb-4">
-                                <div className="flex flex-col gap-3 sm:flex-row sm:items-center lg:gap-4">
-                                    {sessionOptions.length === 1 ? (
-                                        sessionOptions[0]?.label?.toLowerCase() !== 'default' && (
-                                            <div className="flex flex-col gap-1">
-                                                <label className="text-xs font-medium text-gray-700">
-                                                    {sessionOptions[0]?.label}
-                                                </label>
-                                            </div>
-                                        )
-                                    ) : sessionOptions.length > 1 ? (
+                        <div className="container mx-auto px-0 pb-3 lg:pb-4">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center lg:gap-4">
+                                {sessionOptions.length === 1 ? (
+                                    sessionOptions[0]?.label !== 'default' && (
                                         <div className="flex flex-col gap-1">
                                             <label className="text-xs font-medium text-gray-700">
-                                                {getTerminology(
-                                                    ContentTerms.Session,
-                                                    SystemTerms.Session
-                                                )}
+                                                {sessionOptions[0]?.label}
                                             </label>
-                                            <Select
-                                                value={selectedSession}
-                                                onValueChange={handleSessionChange}
-                                            >
-                                                <SelectTrigger className="h-8 w-full rounded-md text-sm sm:w-40 lg:w-48">
-                                                    <SelectValue
-                                                        placeholder={`Select ${getTerminology(
-                                                            ContentTerms.Session,
-                                                            SystemTerms.Session
-                                                        )}`}
-                                                    />
-                                                </SelectTrigger>
-                                                <SelectContent className="rounded-md">
-                                                    {sessionOptions.map((option) => (
-                                                        <SelectItem
-                                                            key={option._id}
-                                                            value={option.value}
-                                                            className="text-sm"
-                                                        >
-                                                            {option.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
                                         </div>
-                                    ) : null}
-                                    {levelOptions.length === 1 ? (
-                                        levelOptions[0]?.label?.toLowerCase() !== 'default' && (
-                                            <div className="flex flex-col gap-1">
-                                                <label className="text-xs font-medium text-gray-700">
-                                                    {levelOptions[0]?.label}
-                                                </label>
-                                            </div>
-                                        )
-                                    ) : levelOptions.length > 1 ? (
+                                    )
+                                ) : (
+                                    <div className="flex flex-col gap-1">
+                                        <label className="text-xs font-medium text-gray-700">
+                                            {getTerminology(
+                                                ContentTerms.Session,
+                                                SystemTerms.Session
+                                            )}
+                                        </label>
+                                        <Select
+                                            value={selectedSession}
+                                            onValueChange={handleSessionChange}
+                                        >
+                                            <SelectTrigger className="h-8 w-full rounded-md text-sm sm:w-40 lg:w-48">
+                                                <SelectValue
+                                                    placeholder={`Select ${getTerminology(
+                                                        ContentTerms.Session,
+                                                        SystemTerms.Session
+                                                    )}`}
+                                                />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-md">
+                                                {sessionOptions.map((option) => (
+                                                    <SelectItem
+                                                        key={option._id}
+                                                        value={option.value}
+                                                        className="text-sm"
+                                                    >
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+                                {levelOptions.length === 1 ? (
+                                    levelOptions[0]?.label !== 'default' && (
                                         <div className="flex flex-col gap-1">
                                             <label className="text-xs font-medium text-gray-700">
-                                                {getTerminology(
-                                                    ContentTerms.Level,
-                                                    SystemTerms.Level
-                                                )}
+                                                {levelOptions[0]?.label}
                                             </label>
-                                            <Select
-                                                value={selectedLevel}
-                                                onValueChange={handleLevelChange}
-                                                disabled={!selectedSession}
-                                            >
-                                                <SelectTrigger className="h-8 w-full rounded-md text-sm sm:w-40 lg:w-48">
-                                                    <SelectValue
-                                                        placeholder={`Select ${getTerminology(
-                                                            ContentTerms.Level,
-                                                            SystemTerms.Level
-                                                        )}`}
-                                                    />
-                                                </SelectTrigger>
-                                                <SelectContent className="rounded-md">
-                                                    {levelOptions.map((option) => (
-                                                        <SelectItem
-                                                            key={option._id}
-                                                            value={option.value}
-                                                            className="text-sm"
-                                                        >
-                                                            {option.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
                                         </div>
-                                    ) : null}
-                                </div>
+                                    )
+                                ) : (
+                                    <div className="flex flex-col gap-1">
+                                        <label className="text-xs font-medium text-gray-700">
+                                            {getTerminology(ContentTerms.Level, SystemTerms.Level)}
+                                        </label>
+                                        <Select
+                                            value={selectedLevel}
+                                            onValueChange={handleLevelChange}
+                                            disabled={!selectedSession}
+                                        >
+                                            <SelectTrigger className="h-8 w-full rounded-md text-sm sm:w-40 lg:w-48">
+                                                <SelectValue
+                                                    placeholder={`Select ${getTerminology(
+                                                        ContentTerms.Level,
+                                                        SystemTerms.Level
+                                                    )}`}
+                                                />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-md">
+                                                {levelOptions.map((option) => (
+                                                    <SelectItem
+                                                        key={option._id}
+                                                        value={option.value}
+                                                        className="text-sm"
+                                                    >
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
                             </div>
-                        ) : null}
+                            <InviteDetailsComponent form={form} />
+                        </div>
 
                         <CourseStructureDetails
                             selectedSession={selectedSession}

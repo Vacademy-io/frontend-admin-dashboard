@@ -23,6 +23,8 @@ export const SUBMIT_RATING_URL = `${BASE_URL}/admin-core-service/rating`;
 export const GET_ALL_USER_RATINGS = `${BASE_URL}/admin-core-service/rating/get-source-ratings-admin`;
 export const GET_ALL_RATING_SUMMARY = `${BASE_URL}/admin-core-service/rating/summary`;
 
+export const GET_REFERRAL_LIST_URL = `${BASE_URL}/admin-core-service/v1/referral-option`;
+
 export const COURSE_CATALOG_URL = `${BASE_URL}/admin-core-service/packages/v1/search`;
 export const COURSE_CATALOG_TEACHER_URL = `${BASE_URL}/admin-core-service/v1/package/package-request/search`;
 export const GET_DASHBOARD_URL = `${BASE_URL}/admin-core-service/institute/v1/get-dashboard`;
@@ -98,6 +100,8 @@ export const ACKNOWLEDGE_FOR_PUBLIC_URL = `${BASE_URL}/media-service/acknowledge
 
 export const INIT_STUDY_LIBRARY = `${BASE_URL}/admin-core-service/v1/study-library/init`;
 export const GET_MODULES_WITH_CHAPTERS = `${BASE_URL}/admin-core-service/v1/study-library/modules-with-chapters`;
+export const ENROLL_INVITE_URL = `${BASE_URL}/admin-core-service/v1/enroll-invite`;
+export const GET_PAYMENTS_URL = `${BASE_URL}/admin-core-service/v1/payment-option/get-payment-options`;
 
 export const ADD_LEVEL = `${BASE_URL}/admin-core-service/level/v1/add-level`;
 export const UPDATE_LEVEL = `${BASE_URL}/admin-core-service/level/v1/update-level`;
@@ -167,6 +171,9 @@ export const GET_STUDENT_SLIDE_PROGRESS = `${BASE_URL}/admin-core-service/slide/
 export const COPY_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/copy`;
 export const MOVE_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/move`;
 export const GET_SLIDES_COUNT = `${BASE_URL}/admin-core-service/slide/v1/slide-counts-by-source-type`;
+export const GET_INVITE_LINKS = `${BASE_URL}/admin-core-service/v1/enroll-invite/get-enroll-invite`;
+export const MAKE_INVITE_LINK_DEFAULT = `${BASE_URL}/admin-core-service/v1/enroll-invite/update-default-enroll-invite-config`;
+export const GET_SINGLE_INVITE_DETAILS = `${BASE_URL}/admin-core-service/v1/enroll-invite/{instituteId}/{enrollInviteId}`;
 
 export const PDF_WORKER_URL = `https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`;
 
@@ -297,6 +304,11 @@ export const ANALYTICS_SERVICE_USAGE = `${BASE_URL}/auth-service/v1/analytics/se
 export const ANALYTICS_ENGAGEMENT_TRENDS = `${BASE_URL}/auth-service/v1/analytics/engagement/trends`;
 export const ANALYTICS_MOST_ACTIVE_USERS = `${BASE_URL}/auth-service/v1/analytics/users/most-active`;
 export const ANALYTICS_CURRENTLY_ACTIVE_USERS = `${BASE_URL}/auth-service/v1/analytics/users/currently-active`;
+
+
+export const STUDENT_ATTENDANCE_REPORT = `${BASE_URL}/admin-core-service/live-session-report/student-report`;
+export const PUBLIC_REGISTRATION_REPORT = `${BASE_URL}/admin-core-service/live-session-report/publicregistration`;
+export const BATCH_SESSION_ATTENDANCE_REPORT = `${BASE_URL}/admin-core-service/live-session-report/by-batch-session`;
 
 // Referral
 export const REFERRAL_API_BASE = `${BASE_URL}/admin-core-service/v1/referral-option`;

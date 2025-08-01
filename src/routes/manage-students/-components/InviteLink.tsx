@@ -5,7 +5,7 @@ import { MyButton } from '@/components/design-system/button';
 import { toast } from 'sonner';
 import { useState } from 'react';
 
-export const InviteLink = ({ inviteCode, linkLen }: { inviteCode: string; linkLen?: number }) => {
+export const InviteLink = ({ inviteCode }: { inviteCode: string }) => {
     const [copySuccess, setCopySuccess] = useState<string | null>(null);
     const handleCopyClick = (link: string) => {
         navigator.clipboard
@@ -22,7 +22,7 @@ export const InviteLink = ({ inviteCode, linkLen }: { inviteCode: string; linkLe
             });
     };
     return (
-        <>
+        <div className="flex items-center gap-4">
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger>
@@ -32,7 +32,7 @@ export const InviteLink = ({ inviteCode, linkLen }: { inviteCode: string; linkLe
                             rel="noopener noreferrer"
                             className="text-body text-neutral-600 underline hover:text-primary-500"
                         >
-                            {`${createInviteLink(inviteCode).slice(0, linkLen || 32)}..`}
+                            {`${createInviteLink(inviteCode)}`}
                         </a>
                     </TooltipTrigger>
                     <TooltipContent className="cursor-pointer border border-neutral-300 bg-neutral-50 text-neutral-600 hover:text-primary-500">
@@ -61,6 +61,6 @@ export const InviteLink = ({ inviteCode, linkLen }: { inviteCode: string; linkLe
                     </div>
                 )}
             </div>
-        </>
+        </div>
     );
 };
