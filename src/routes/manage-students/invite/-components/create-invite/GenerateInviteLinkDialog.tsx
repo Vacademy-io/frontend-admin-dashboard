@@ -1,5 +1,6 @@
 import { MyButton } from '@/components/design-system/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { LoadingSpinner } from '@/components/ai-course-builder/LoadingSpinner';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
@@ -746,9 +747,18 @@ const GenerateInviteLinkDialog = ({
                         buttonType="primary"
                         className="p-5"
                         onClick={handleSubmit(onSubmit, onInvalid)}
-                        disable={!form.watch('name')}
+                        disable={!form.watch('name') || handleSubmitRatingMutation.isPending}
                     >
-                        {isEditInviteLink ? 'Update Invite Link' : 'Create Invite Link'}
+                        {handleSubmitRatingMutation.isPending ? (
+                            <div className="flex items-center gap-2">
+                                <LoadingSpinner size={16} />
+                                {isEditInviteLink ? 'Updating...' : 'Creating...'}
+                            </div>
+                        ) : isEditInviteLink ? (
+                            'Update Invite Link'
+                        ) : (
+                            'Create Invite Link'
+                        )}
                     </MyButton>
                 </div>
             </DialogContent>
