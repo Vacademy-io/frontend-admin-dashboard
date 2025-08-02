@@ -252,7 +252,7 @@ const LiveClassesWidget: React.FC<LiveClassesWidgetProps> = ({ instituteId }) =>
     };
 
     return (
-        <Card className="bg-neutral-50 shadow-none">
+        <Card className="w-full bg-neutral-50 shadow-none">
             <CardHeader className="p-3 sm:p-4">
                 <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <CardTitle className="text-sm font-semibold sm:mb-0">Live Classes</CardTitle>
