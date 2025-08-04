@@ -74,9 +74,9 @@ export const SplashScreen = ({ children, isAnimationEnabled }: SplashScreenProps
                     >
                         {getSubdomain() === HOLISTIC_SUBDOMAIN ? (
                             <img
-                                src="/holistic-logo.png"
+                                src="/holistic-logo.svg"
                                 alt="Holistic Login"
-                                className="size-2/3"
+                                className="size-2/3 rounded-full"
                             />
                         ) : (
                             <Vacademy className="size-full" />
@@ -84,7 +84,7 @@ export const SplashScreen = ({ children, isAnimationEnabled }: SplashScreenProps
                     </motion.div>
                 </motion.div>
                 {getSubdomain() === HOLISTIC_SUBDOMAIN ? (
-                    <img src="/holistic-login.png" alt="Holistic Login" className="size-2/3" />
+                    <img src="/holistic-login.svg" alt="Holistic Login" className="size-2/3" />
                 ) : (
                     <LoginImage />
                 )}
