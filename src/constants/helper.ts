@@ -1,5 +1,6 @@
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from './auth/tokens';
+import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
 
 export const convertToLocalDateTime = (dateString: string): string => {
     if (!dateString) return '';
@@ -33,10 +34,7 @@ export function extractDateTime(utcDate: string) {
 }
 
 export function getInstituteId() {
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const data = getTokenDecodedData(accessToken);
-    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
-    return INSTITUTE_ID;
+    return getCurrentInstituteId();
 }
 
 export function getDateFromUTCString(utcString: string): string {

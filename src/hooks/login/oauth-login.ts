@@ -11,7 +11,6 @@ interface OAuthLoginOptions {
 }
 
 export const handleOAuthLogin = (provider: OAuthProvider, options: OAuthLoginOptions = {}) => {
-    console.log('handle Outh Login');
     try {
         const { isSignup = false, assess = false, lms = false } = options;
 
@@ -28,31 +27,24 @@ export const handleOAuthLogin = (provider: OAuthProvider, options: OAuthLoginOpt
             base64State
         )}`;
 
-        console.log('[OAuthLogin] Redirecting to:', loginUrl);
-        console.log('[OAuthLogin] Encoded State:', stateObj);
-
         window.location.href = loginUrl;
     } catch (error) {
         console.error('[OAuthLogin] Error during OAuth login initiation:', error);
         toast.error('Failed to initiate login. Please try again.');
     }
 };
+import { shouldBlockStudentLogin, getInstituteSelectionResult, setSelectedInstitute } from '@/lib/auth/instituteUtils';
+import { removeCookiesAndLogout } from '@/lib/auth/sessionUtility';
+
 export const handleLoginOAuthCallback = async () => {
-    const urlParams = new URLSearchParams(window.location.search);
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
 
-    const error = urlParams.get('error');
-    const message = urlParams.get('message');
-    const stateEncoded = urlParams.get('state');
-    const accessToken = urlParams.get('accessToken');
-    const refreshToken = urlParams.get('refreshToken');
-
-    console.log('[OAuthCallback] URL Params:', {
-        error,
-        message,
-        stateEncoded,
-        accessToken,
-        refreshToken,
-    });
+        const error = urlParams.get('error');
+        const message = urlParams.get('message');
+        const stateEncoded = urlParams.get('state');
+        const accessToken = urlParams.get('accessToken');
+        const refreshToken = urlParams.get('refreshToken');
 
     if (error === 'true' || message) {
         const errorMsg = message || 'OAuth Authentication failed.';
@@ -61,41 +53,77 @@ export const handleLoginOAuthCallback = async () => {
             duration: 5000,
         });
 
-        console.error('[OAuthCallback] Error:', decodeURIComponent(errorMsg));
-
-        // Optional: Redirect to a custom login error page if needed
-        // window.location.href = '/login?oauthError=1';
-
         return { success: false };
     }
 
-    let redirectUrl = '/dashboard';
-
-    if (stateEncoded) {
-        try {
-            const decodedState = JSON.parse(atob(decodeURIComponent(stateEncoded)));
-            console.log('[OAuthCallback] Decoded state:', decodedState);
-
-            if (decodedState?.from) {
-                redirectUrl = decodedState.from;
-            }
-        } catch (err) {
-            console.warn('[OAuthCallback] Failed to decode state. Using fallback redirect:', err);
-        }
-    }
-
     if (accessToken && refreshToken) {
-        console.log('[OAuthCallback] Setting tokens and redirecting...');
+        console.log('[OAuthCallback] Processing OAuth tokens...');
+        console.log('[OAuthCallback] Access token:', accessToken);
+        console.log('[OAuthCallback] Refresh token:', refreshToken);
+
+        // Set tokens in cookies (same as username/password flow)
         setAuthorizationCookie(TokenKey.accessToken, accessToken);
         setAuthorizationCookie(TokenKey.refreshToken, refreshToken);
 
-        console.log('[OAuthCallback] Redirecting to:', redirectUrl);
-        window.location.href = redirectUrl;
+        const shouldBlock = shouldBlockStudentLogin();
+        console.log('[OAuthCallback] Should block student login:', shouldBlock);
 
-        return { success: true };
+        if (shouldBlock) {
+            console.log('[OAuthCallback] BLOCKING STUDENT LOGIN - USER TYPE: STUDENT ONLY');
+            // Clear tokens
+            removeCookiesAndLogout();
+
+            toast.error('Access Denied', {
+                description: 'Students are not allowed to access the admin portal. Please contact your administrator.',
+                duration: 5000,
+            });
+
+            setTimeout(() => {
+                window.location.href = '/login?error=student_access_denied';
+            }, 2000);
+            return { success: false };
+        }
+
+        // Check if user needs to select an institute (same logic as username/password)
+        const instituteResult = getInstituteSelectionResult();
+        console.log('[OAuthCallback] Institute selection result:', instituteResult);
+
+        if (instituteResult.shouldShowSelection) {
+            console.log('[OAuthCallback] Should show institute selection - USER TYPE: MULTI-INSTITUTE USER');
+            // Tokens are already set in cookies, just redirect to institute selection
+            return { success: true, shouldShowInstituteSelection: true };
+        }
+
+        // User has only one institute - auto-select and redirect to dashboard
+        console.log('[OAuthCallback] Single institute, auto-selecting - USER TYPE: ' + (instituteResult.primaryRole || 'UNKNOWN') + ' (SINGLE INSTITUTE)');
+        if (instituteResult.selectedInstitute) {
+            console.log('[OAuthCallback] Auto-selecting institute:', instituteResult.selectedInstitute.id);
+            setSelectedInstitute(instituteResult.selectedInstitute.id);
+        }
+
+        // Determine redirect URL
+        let redirectUrl = '/dashboard';
+
+        if (stateEncoded) {
+            try {
+                const decodedState = JSON.parse(atob(decodeURIComponent(stateEncoded)));
+
+                if (decodedState?.from) {
+                    redirectUrl = decodedState.from;
+                }
+            } catch (err) {
+                console.warn('[OAuthCallback] Failed to decode state. Using fallback redirect:', err);
+            }
+        }
+
+        console.log('[OAuthCallback] Redirecting to:', redirectUrl);
+        return { success: true, redirectUrl };
     }
 
-    toast.error('Login failed. Missing tokens.');
-    console.warn('[OAuthCallback] Tokens missing in URL.');
-    return { success: false };
+        toast.error('Login failed. Missing tokens.');
+        return { success: false };
+    } catch (error) {
+        console.error('[OAuthCallback] Error in OAuth callback:', error);
+        return { success: false, error: error.message };
+    }
 };

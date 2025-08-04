@@ -56,8 +56,18 @@ export const Route = createRootRouteWithContext<{
         }
 
         // If user is authenticated and tries to access login page,
-        // redirect to dashboard
+        // redirect to dashboard (unless showing institute selection)
         if (isAuthenticated() && location.pathname.startsWith('/login')) {
+            // Allow access if showing institute selection
+            if (typeof location.search === 'string' && location.search.includes('showInstituteSelection=true')) {
+                return;
+            }
+
+            // Also check if search is an object with the parameter
+            if (typeof location.search === 'object' && location.search && 'showInstituteSelection' in location.search) {
+                return;
+            }
+
             throw redirect({
                 to: '/dashboard',
             });

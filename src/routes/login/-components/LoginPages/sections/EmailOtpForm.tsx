@@ -25,10 +25,11 @@ import { TokenKey } from '@/constants/auth/tokens';
 import {
     setAuthorizationCookie,
     getUserRoles,
-    generateSSOUrl,
-    SSO_CONFIG,
+    removeCookiesAndLogout,
 } from '@/lib/auth/sessionUtility';
 import { LOGIN_OTP, REQUEST_OTP } from '@/constants/urls';
+import { shouldBlockStudentLogin, getInstituteSelectionResult, setSelectedInstitute } from '@/lib/auth/instituteUtils';
+import { trackEvent } from '@/lib/amplitude';
 
 const emailSchema = z.object({
     email: z.string().email({ message: 'Invalid email address' }),
@@ -205,29 +206,49 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
     const handlePostLoginRedirect = (userRoles: string[]) => {
         console.log('User roles after login:', userRoles);
 
-        // Check if user has both STUDENT and other roles
-        const hasStudentRole = userRoles.includes('STUDENT');
-        const hasAdminRole = userRoles.some((role) => ['ADMIN', 'TEACHER'].includes(role));
+        // Check if user should be blocked from logging in (only has STUDENT role)
+        if (shouldBlockStudentLogin()) {
+            console.log('User only has STUDENT role, blocking login');
 
-        if (hasStudentRole && hasAdminRole) {
-            // User has both roles - stay on admin dashboard
-            console.log('User has multiple roles, staying on admin dashboard');
-            navigate({ to: '/dashboard' });
-        } else if (hasStudentRole && !hasAdminRole) {
-            // User only has STUDENT role - redirect to learner platform
-            console.log('User only has STUDENT role, redirecting to learner platform');
-            const ssoUrl = generateSSOUrl(SSO_CONFIG.LEARNER_DOMAIN, '/dashboard');
-            if (ssoUrl) {
-                window.location.href = ssoUrl;
-            } else {
-                // Fallback: direct redirect
-                window.location.href = `https://${SSO_CONFIG.LEARNER_DOMAIN}`;
-            }
-        } else {
-            // User has admin roles - stay on admin dashboard
-            console.log('User has admin roles, staying on admin dashboard');
-            navigate({ to: '/dashboard' });
+            // Track blocked login attempt
+            trackEvent('Login Blocked', {
+                login_method: 'email_otp',
+                reason: 'student_only_role',
+                user_roles: userRoles,
+                timestamp: new Date().toISOString(),
+            });
+
+            // Clear tokens and show error
+            removeCookiesAndLogout();
+
+            toast.error('Access Denied', {
+                description: 'Students are not allowed to access the admin portal. Please contact your administrator.',
+                className: 'error-toast',
+                duration: 5000,
+            });
+
+            return;
         }
+
+        // Check if user needs to select an institute
+        const instituteResult = getInstituteSelectionResult();
+
+        if (instituteResult.shouldShowSelection) {
+            console.log('User has multiple institutes, showing selection');
+            // For email OTP, we'll redirect to institute selection page
+            window.location.href = '/login?showInstituteSelection=true';
+            return;
+        }
+
+        // User has only one institute or no valid institutes
+        if (instituteResult.selectedInstitute) {
+            console.log('Auto-selecting institute:', instituteResult.selectedInstitute.id);
+            setSelectedInstitute(instituteResult.selectedInstitute.id);
+        }
+
+        // Navigate to dashboard
+        console.log('Navigating to dashboard');
+        navigate({ to: '/dashboard' });
     };
 
     const onEmailSubmit = (data: EmailFormValues) => {

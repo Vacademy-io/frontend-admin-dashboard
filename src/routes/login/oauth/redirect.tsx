@@ -12,13 +12,37 @@ function OAuthRedirectHandler() {
 
     useEffect(() => {
         const processOAuth = async () => {
-            const result = await handleLoginOAuthCallback();
+            try {
+                const result = await handleLoginOAuthCallback();
 
             if (result.success) {
-                navigate({ to: '/dashboard' });
+                // Check if we need to redirect to institute selection
+                const urlParams = new URLSearchParams(window.location.search);
+                const error = urlParams.get('error');
+
+                if (error === 'student_access_denied') {
+                    navigate({ to: '/login?error=student_access_denied' });
+                    return;
+                }
+
+                // Check if result indicates institute selection is needed
+                if (result.shouldShowInstituteSelection) {
+                    // Use window.location.href to ensure navigation happens
+                    window.location.href = '/login?showInstituteSelection=true';
+                    return;
+                }
+
+                // Use the redirect URL from the result or default to dashboard
+                const redirectUrl = result.redirectUrl || '/dashboard';
+                navigate({ to: redirectUrl });
                 return;
             } else {
                 toast.error('OAuth failed. Redirecting to login...');
+                navigate({ to: '/login' });
+            }
+            } catch (error) {
+                console.error('[OAuthRedirect] Error processing OAuth:', error);
+                toast.error('OAuth processing failed. Redirecting to login...');
                 navigate({ to: '/login' });
             }
         };

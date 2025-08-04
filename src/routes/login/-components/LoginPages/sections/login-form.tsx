@@ -18,8 +18,7 @@ import {
     setAuthorizationCookie,
     handleSSOLogin,
     getUserRoles,
-    generateSSOUrl,
-    SSO_CONFIG,
+    removeCookiesAndLogout,
 } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { Link2Icon } from 'lucide-react';
@@ -29,6 +28,9 @@ import { FcGoogle } from 'react-icons/fc';
 import { EmailLogin } from './EmailOtpForm';
 import { useState } from 'react';
 import { amplitudeEvents, identifyUser, trackEvent } from '@/lib/amplitude';
+import { InstituteSelection } from './InstituteSelection';
+import { getInstituteSelectionResult, setSelectedInstitute, shouldBlockStudentLogin } from '@/lib/auth/instituteUtils';
+import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
 
 type FormValues = z.infer<typeof loginSchema>;
 
@@ -37,6 +39,7 @@ export function LoginForm() {
     const { hasSeenAnimation, setHasSeenAnimation } = useAnimationStore();
     const navigate = useNavigate();
     const [isEmailLogin, setIsEmailLogin] = useState(false);
+    const [showInstituteSelection, setShowInstituteSelection] = useState(false);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(loginSchema),
@@ -55,7 +58,27 @@ export function LoginForm() {
         }
     }, [hasSeenAnimation, setHasSeenAnimation]);
 
-    useEffect(() => {
+            useEffect(() => {
+        // Check for error parameters from OAuth
+        const urlParams = new URLSearchParams(window.location.search);
+        const error = urlParams.get('error');
+        const showInstituteSelection = urlParams.get('showInstituteSelection');
+
+        if (error === 'student_access_denied') {
+            toast.error('Access Denied', {
+                description: 'Students are not allowed to access the admin portal. Please contact your administrator.',
+                className: 'error-toast',
+                duration: 5000,
+            });
+            return;
+        }
+
+        // Check if we should show institute selection from URL parameter
+        if (showInstituteSelection === 'true') {
+            setShowInstituteSelection(true);
+            return;
+        }
+
         // Handle SSO login from URL parameters
         const ssoLoginSuccess = handleSSOLogin();
 
@@ -76,7 +99,7 @@ export function LoginForm() {
             }, 100);
             return;
         }
-        const urlParams = new URLSearchParams(window.location.search);
+
         const accessToken = urlParams.get('accessToken');
         const refreshToken = urlParams.get('refreshToken');
 
@@ -101,35 +124,72 @@ export function LoginForm() {
             setTimeout(() => {
                 handlePostLoginRedirect(userRoles);
             }, 100);
+        } else {
+            // Check if we have tokens in cookies and need to show institute selection
+            const cookieAccessToken = getTokenFromCookie(TokenKey.accessToken);
+            if (cookieAccessToken) {
+                console.log('[LoginForm] Found access token in cookies:', cookieAccessToken);
+
+                // Check if user needs to select an institute
+                const instituteResult = getInstituteSelectionResult();
+                console.log('[LoginForm] Institute selection result from cookies:', instituteResult);
+
+                if (instituteResult.shouldShowSelection) {
+                    console.log('[LoginForm] Should show institute selection from cookies - USER TYPE: MULTI-INSTITUTE USER');
+                    setShowInstituteSelection(true);
+                    return;
+                } else {
+                    console.log('[LoginForm] No institute selection needed - USER TYPE: ' + (instituteResult.primaryRole || 'UNKNOWN') + ' (SINGLE INSTITUTE)');
+                }
+            }
         }
     }, [navigate, queryClient]);
 
-    const handlePostLoginRedirect = (userRoles: string[]) => {
-        console.log('User roles after login:', userRoles);
+        const handlePostLoginRedirect = (userRoles: string[]) => {
+        console.log('[handlePostLoginRedirect] User roles:', userRoles);
 
-        // Check if user has both STUDENT and other roles
-        const hasStudentRole = userRoles.includes('STUDENT');
-        const hasAdminRole = userRoles.some((role) => ['ADMIN', 'TEACHER'].includes(role));
+        // Check if user should be blocked from logging in (only has STUDENT role)
+        if (shouldBlockStudentLogin()) {
+            console.log('[handlePostLoginRedirect] BLOCKING STUDENT LOGIN - USER TYPE: STUDENT ONLY');
+            // Track blocked login attempt
+            trackEvent('Login Blocked', {
+                login_method: 'username_password',
+                reason: 'student_only_role',
+                user_roles: userRoles,
+                timestamp: new Date().toISOString(),
+            });
 
-        if (hasStudentRole && hasAdminRole) {
-            // User has both roles - stay on admin dashboard
-            console.log('User has multiple roles, staying on admin dashboard');
-            navigate({ to: '/dashboard' });
-        } else if (hasStudentRole && !hasAdminRole) {
-            // User only has STUDENT role - redirect to learner platform
-            console.log('User only has STUDENT role, redirecting to learner platform');
-            const ssoUrl = generateSSOUrl(SSO_CONFIG.LEARNER_DOMAIN, '/dashboard');
-            if (ssoUrl) {
-                window.location.href = ssoUrl;
-            } else {
-                // Fallback: direct redirect
-                window.location.href = `https://${SSO_CONFIG.LEARNER_DOMAIN}`;
-            }
-        } else {
-            // User has admin roles - stay on admin dashboard
-            console.log('User has admin roles, staying on admin dashboard');
-            navigate({ to: '/dashboard' });
+            // Clear tokens and show error
+            removeCookiesAndLogout();
+
+            toast.error('Access Denied', {
+                description: 'Students are not allowed to access the admin portal. Please contact your administrator.',
+                className: 'error-toast',
+                duration: 5000,
+            });
+
+            return;
         }
+
+        // Check if user needs to select an institute
+        const instituteResult = getInstituteSelectionResult();
+        console.log('[handlePostLoginRedirect] Institute selection result:', instituteResult);
+
+        if (instituteResult.shouldShowSelection) {
+            console.log('[handlePostLoginRedirect] Should show institute selection - USER TYPE: MULTI-INSTITUTE USER');
+            setShowInstituteSelection(true);
+            return;
+        }
+
+        // User has only one institute or no valid institutes
+        if (instituteResult.selectedInstitute) {
+            console.log('[handlePostLoginRedirect] Auto-selecting institute:', instituteResult.selectedInstitute.id);
+            setSelectedInstitute(instituteResult.selectedInstitute.id);
+        }
+
+        // Navigate to dashboard
+        console.log('[handlePostLoginRedirect] Navigating to dashboard - USER TYPE: ' + (instituteResult.primaryRole || 'UNKNOWN') + ' (SINGLE INSTITUTE)');
+        navigate({ to: '/dashboard' });
     };
 
     const mutation = useMutation({
@@ -212,6 +272,19 @@ export function LoginForm() {
     const handleSwitchToUsername = () => {
         setIsEmailLogin(false);
     };
+
+    const handleInstituteSelect = (instituteId: string) => {
+        setSelectedInstitute(instituteId);
+        setShowInstituteSelection(false);
+
+        // Navigate to dashboard after institute selection
+        navigate({ to: '/dashboard' });
+    };
+
+    // Show institute selection if needed
+    if (showInstituteSelection) {
+        return <InstituteSelection onInstituteSelect={handleInstituteSelect} />;
+    }
 
     return (
         <SplashScreen isAnimationEnabled={!hasSeenAnimation}>
