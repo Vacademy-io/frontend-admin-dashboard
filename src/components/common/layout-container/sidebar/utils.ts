@@ -11,11 +11,11 @@ import {
 } from '@phosphor-icons/react';
 import { SidebarItemsType } from '../../../../types/layout-container/layout-container-types';
 import { GearSix, Lightning, Notepad, NotePencil, UsersFour } from 'phosphor-react';
-import { getInstituteId } from '@/constants/helper';
 import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 import { StorageKey } from '@/constants/storage/storage';
 import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
-import { NamingSettingsType } from '@/routes/settings/-constants/terms';
+import { NamingSettingsType, SettingsTabs } from '@/routes/settings/-constants/terms';
+import { getInstituteId } from '@/constants/helper';
 
 // Utility function to get naming settings from localStorage
 const getNamingSettings = (): NamingSettingsType[] => {
@@ -80,25 +80,21 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemLink: '/manage-students/students-list',
                 subItemId: 'students-list',
             },
-            ...(getInstituteId() !== HOLISTIC_INSTITUTE_ID
-                ? [
-                      {
-                          subItem: 'Enroll Requests',
-                          subItemLink: '/manage-students/enroll-requests',
-                          subItemId: 'enroll-requests',
-                      },
-                      {
-                          subItem: 'Invite',
-                          subItemLink: '/manage-students/invite',
-                          subItemId: 'invite',
-                      },
-                  ]
-                : []),
+            {
+                subItem: 'Enroll Requests',
+                subItemLink: '/manage-students/enroll-requests',
+                subItemId: 'enroll-requests',
+            },
+            {
+                subItem: 'Invite',
+                subItemLink: '/manage-students/invite',
+                subItemId: 'invite',
+            },
         ],
     },
     {
         icon: MonitorPlay,
-        title: 'Live Classes',
+        title: getTerminology(ContentTerms.LiveSession, SystemTerms.LiveSession),
         id: 'live-classes',
         to: '/study-library/live-session',
         showForInstitute: HOLISTIC_INSTITUTE_ID,
@@ -217,6 +213,9 @@ export const SidebarItemsData: SidebarItemsType[] = [
         icon: GearSix,
         id: 'settings',
         title: 'Settings',
-        to: '/settings',
+        to:
+            getInstituteId() === HOLISTIC_INSTITUTE_ID
+                ? `/settings?selectedTab=${SettingsTabs.Payment}`
+                : `/settings?selectedTab=${SettingsTabs.Tab}`,
     },
 ];

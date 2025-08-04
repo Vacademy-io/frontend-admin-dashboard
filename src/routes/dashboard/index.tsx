@@ -55,6 +55,7 @@ import EnrollLearnersWidget from './-components/EnrollLearnersWidget';
 import LearningCenterWidget from './-components/LearningCenterWidget';
 import AssessmentCenterWidget from './-components/AssessmentCenterWidget';
 import RoleTypeComponent from './-components/RoleTypeComponent';
+import { SettingsTabs } from '../settings/-constants/terms';
 
 export const Route = createFileRoute('/dashboard/')({
     component: DashboardPage,
@@ -424,29 +425,36 @@ export function DashboardComponent() {
                                 </CardDescription>
                             </CardHeader>
 
-                            <CardHeader className="p-4">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex flex-col">
-                                        <CardTitle className="text-sm font-semibold">
+                            {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
+                                <CardHeader className="p-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex flex-col">
+                                            <CardTitle className="text-sm font-semibold">
+                                                Naming Settings
+                                            </CardTitle>
+                                            <CardDescription className="text-xs">
+                                                Customize the naming conventions used throughout
+                                                your institute
+                                            </CardDescription>
+                                        </div>
+                                        <MyButton
+                                            type="button"
+                                            scale="medium"
+                                            buttonType="secondary"
+                                            layoutVariant="default"
+                                            className="text-sm"
+                                            onClick={() =>
+                                                navigate({
+                                                    to: '/settings',
+                                                    search: { selectedTab: SettingsTabs.Naming },
+                                                })
+                                            }
+                                        >
                                             Naming Settings
-                                        </CardTitle>
-                                        <CardDescription className="text-xs">
-                                            Customize the naming conventions used throughout your
-                                            institute
-                                        </CardDescription>
+                                        </MyButton>
                                     </div>
-                                    <MyButton
-                                        type="button"
-                                        scale="medium"
-                                        buttonType="secondary"
-                                        layoutVariant="default"
-                                        className="text-sm"
-                                        onClick={() => navigate({ to: '/settings' })}
-                                    >
-                                        Naming Settings
-                                    </MyButton>
-                                </div>
-                            </CardHeader>
+                                </CardHeader>
+                            )}
                         </Card>
 
                         {/* Analytics Widgets - Admin Only */}

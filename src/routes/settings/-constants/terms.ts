@@ -80,3 +80,11 @@ export const systemValueDescription = {
         'Student is the user role that can has access to the courses of the platform. For eg: Student, Learner',
     LiveSession: 'Live Session of the course. For eg: Live Session 1, Live Session 2',
 };
+
+export const enum SettingsTabs {
+    Tab = 'tab',
+    Naming = 'naming',
+    Payment = 'payment',
+    Referral = 'referral',
+    Course = 'course',
+}

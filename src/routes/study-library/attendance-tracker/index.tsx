@@ -40,6 +40,7 @@ import {
 } from '@/routes/manage-institute/batches/-types/manage-batches-types';
 import { DateRange } from 'react-day-picker';
 import { Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 export const Route = createFileRoute('/study-library/attendance-tracker/')({
     component: RouteComponent,
@@ -716,16 +717,30 @@ const AttendanceModal = ({
 };
 
 function RouteComponent() {
-    // State for filters
-    const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-    const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+    const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 7));
+    const [endDate, setEndDate] = useState<Date | undefined>(new Date());
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedLiveSessions, setSelectedLiveSessions] = useState<string[]>([]);
     const [attendanceFilter, setAttendanceFilter] = useState('All');
-    const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
+    const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({
+        from: subDays(new Date(), 7),
+        to: new Date(),
+    });
     const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
     const { currentSession, sessionList, handleSessionChange } = useStudentFilters();
     const { data: batches } = useGetBatchesQuery({ sessionId: currentSession.id });
+    const [page, setPage] = useState(0);
+    const [rowSelections, setRowSelections] = useState<Record<string, boolean>>({});
+    const [sortConfig, setSortConfig] = useState<{
+        key: string | null;
+        direction: 'asc' | 'desc';
+    }>({
+        key: null,
+        direction: 'asc',
+    });
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedStudent, setSelectedStudent] = useState<AttendanceStudent | null>(null);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     // Extract batch options for dropdown
     const batchOptions = useMemo(() => {
@@ -757,23 +772,6 @@ function RouteComponent() {
         }
     }, [batchOptions, selectedBatchId]);
 
-    // Pagination state
-    const pageSize = 5;
-    const [page, setPage] = useState(0);
-
-    // Row selection state for checkbox column
-    const [rowSelections, setRowSelections] = useState<Record<string, boolean>>({});
-
-    // Sorting state
-    const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>(
-        {
-            key: null,
-            direction: 'asc',
-        }
-    );
-
-    // handleSort removed; dropdown now directly sets sortConfig
-
     const sortIconFor = (key: string) => {
         if (sortConfig.key !== key) return <CaretUpDown className="inline" />;
         return sortConfig.direction === 'asc' ? (
@@ -786,7 +784,7 @@ function RouteComponent() {
     const toggleSelectAll = (checked: boolean) => {
         if (checked) {
             const newSelections: Record<string, boolean> = {};
-            paginatedStudents.forEach((s: { id: string | number }) => {
+            studentsData.forEach((s: { id: string | number }) => {
                 newSelections[s.id] = true;
             });
             setRowSelections(newSelections);
@@ -804,14 +802,6 @@ function RouteComponent() {
         });
     };
 
-    // State for modal
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedStudent, setSelectedStudent] = useState<AttendanceStudent | null>(null);
-
-    // State for sidebar
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-    // Set the navigation heading
     const { setNavHeading } = useNavHeadingStore();
 
     useEffect(() => {
@@ -824,7 +814,6 @@ function RouteComponent() {
         setEndDate(dateRange.to);
     }, [dateRange]);
 
-    // Prepare filter request for attendance service
     const filterRequest = useMemo(
         () => ({
             name: searchQuery,
@@ -843,7 +832,7 @@ function RouteComponent() {
         error,
     } = useGetAttendance({
         pageNo: page,
-        pageSize,
+        pageSize: 10,
         filterRequest,
     });
 
@@ -920,36 +909,12 @@ function RouteComponent() {
         setIsSidebarOpen(true); // Open sidebar for detailed profile
     };
 
-    // Apply client-side filters (server-side filtering is handled by the attendance service)
-    const filteredStudents: AttendanceStudent[] = useMemo(() => {
-        const res = studentsData.filter((student) => {
-            // Attendance percentage filter (client-side only)
-            const matchesAttendance =
-                attendanceFilter === 'All' ||
-                (attendanceFilter === 'Above 75%' && student.attendancePercentage >= 75) ||
-                (attendanceFilter === '50% - 75%' &&
-                    student.attendancePercentage >= 50 &&
-                    student.attendancePercentage < 75) ||
-                (attendanceFilter === 'Below 50%' && student.attendancePercentage < 50);
-
-            return matchesAttendance;
-        });
-
-        return res;
-    }, [attendanceFilter, studentsData]);
-
     // Pagination helpers - with server-side pagination
     const totalPages = attendanceData?.pages?.[0]?.totalPages || 1;
     const totalElements = attendanceData?.pages?.[0]?.totalElements || 0;
 
-    const paginatedStudents: AttendanceStudent[] = useMemo(() => {
-        // Since filtering is now done server-side, we return the filtered students directly
-        return filteredStudents;
-    }, [filteredStudents]);
-
-    // All rows selected checker
     const allRowsSelected =
-        paginatedStudents.length > 0 && paginatedStudents.every((s) => rowSelections[s.id]);
+        studentsData.length > 0 && studentsData.every((s) => rowSelections[s.id]);
 
     // Placeholder export functions
     const exportAccountDetails = (sel: AttendanceStudent[]) => {
@@ -979,16 +944,19 @@ function RouteComponent() {
                         Track and manage student attendance for live classes
                     </p>
 
-                    {/* Enhanced Filters Section */}
                     <div className="rounded-lg border border-neutral-200 bg-white p-4">
-                        {/* Search and Quick Filters Row */}
                         <div className="mb-4 flex flex-wrap items-center gap-3">
-                            {/* Search with Icon */}
+                            <MyDropdown
+                                currentValue={currentSession}
+                                dropdownList={sessionList}
+                                placeholder="Select Session"
+                                handleChange={handleSessionChange}
+                            />
                             <div className="relative min-w-[240px] flex-1">
                                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                     <Search />
                                 </div>
-                                <input
+                                <Input
                                     type="text"
                                     placeholder="Search students..."
                                     value={searchQuery}
@@ -996,14 +964,6 @@ function RouteComponent() {
                                     className="h-9 w-full rounded-md border border-neutral-300 bg-white py-2 pl-10 pr-3 text-sm text-neutral-900 placeholder:text-neutral-500 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                                 />
                             </div>
-
-                            <MyDropdown
-                                currentValue={currentSession}
-                                dropdownList={sessionList}
-                                placeholder="Select Session"
-                                handleChange={handleSessionChange}
-                            />
-
                             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                                 {/* Date Range */}
                                 <RangeDateFilter range={dateRange} onChange={setDateRange} />
@@ -1042,9 +1002,9 @@ function RouteComponent() {
                                     <>
                                         Showing{' '}
                                         <span className="font-medium text-neutral-700">
-                                            {paginatedStudents.length}
+                                            {studentsData.length}
                                         </span>
-                                        {totalElements > paginatedStudents.length && (
+                                        {totalElements > studentsData.length && (
                                             <>
                                                 {' '}
                                                 of{' '}
@@ -1170,8 +1130,8 @@ function RouteComponent() {
                                                     </div>
                                                 </td>
                                             </tr>
-                                        ) : paginatedStudents.length > 0 ? (
-                                            paginatedStudents.map((student) => (
+                                        ) : studentsData.length > 0 ? (
+                                            studentsData.map((student) => (
                                                 <tr
                                                     key={student.id}
                                                     className="border-b border-neutral-200 text-sm text-neutral-600 hover:bg-neutral-50"
@@ -1314,7 +1274,7 @@ function RouteComponent() {
                                         <MyDropdown
                                             dropdownList={['Export Account Details', 'Export Data']}
                                             onSelect={(value) => {
-                                                const sel = filteredStudents.filter(
+                                                const sel = studentsData.filter(
                                                     (s) => rowSelections[s.id]
                                                 );
                                                 if (value === 'Export Account Details') {
