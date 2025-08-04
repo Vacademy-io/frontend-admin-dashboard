@@ -23,20 +23,31 @@ import { Sidebar, SidebarContent, SidebarHeader, useSidebar } from '@/components
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Calendar } from '@/components/ui/calendar';
 import { format, subDays, subMonths, subYears, startOfDay } from 'date-fns';
+import { getStudentAttendanceReport, StudentSchedule } from '../live-session/-services/utils';
+import { useGetAttendance, ContentType } from './-services/attendance';
 import { MyPagination } from '@/components/design-system/pagination';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon } from '@radix-ui/react-icons';
-import { MyDropdown } from '@/components/design-system/dropdown';
-import { CaretUpDown, CaretDown, CaretUp } from '@phosphor-icons/react';
+
+import { CaretUpDown, CaretDown, CaretUp, CaretDownIcon } from '@phosphor-icons/react';
+import { MyDropdown } from '@/components/common/students/enroll-manually/dropdownForPackageItems';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useGetBatchesQuery } from '@/routes/manage-institute/batches/-services/get-batches';
+import { useStudentFilters } from '@/routes/manage-students/students-list/-hooks/useStudentFilters';
+import {
+    BatchType,
+    batchWithStudentDetails,
+} from '@/routes/manage-institute/batches/-types/manage-batches-types';
+import { DateRange } from 'react-day-picker';
+import { Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 export const Route = createFileRoute('/study-library/attendance-tracker/')({
     component: RouteComponent,
 });
 
-// Mock class attendance data
 interface ClassAttendanceItem {
-    id: number;
+    id: string;
     className: string;
     date: string;
     time: string;
@@ -47,12 +58,11 @@ type ClassAttendanceData = {
     [key: string]: ClassAttendanceItem[];
 };
 
-// Student interface for the attendance tracker
 interface AttendanceStudent {
-    id: string;
+    id: string; // studentId
     name: string;
-    username: string;
-    batch: string;
+    username?: string;
+    batch: string; // batchSessionId or label
     mobileNumber: string;
     email: string;
     attendedClasses: number;
@@ -567,499 +577,87 @@ const StudentDetailsSidebar = () => {
     );
 };
 
-const classAttendanceData: ClassAttendanceData = {
-    '1': [
-        {
-            id: 1,
-            className: 'Algebra Basics',
-            date: 'Jan 15, 2024',
-            time: '10:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 2,
-            className: 'Geometry Intro',
-            date: 'Jan 16, 2024',
-            time: '11:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 3,
-            className: 'Calculus 101',
-            date: 'Jan 17, 2024',
-            time: '09:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 4,
-            className: 'Statistics',
-            date: 'Jan 18, 2024',
-            time: '10:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 5,
-            className: 'Linear Algebra',
-            date: 'Jan 19, 2024',
-            time: '11:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 6,
-            className: 'Trigonometry',
-            date: 'Jan 20, 2024',
-            time: '09:30 AM',
-            status: 'Absent',
-        },
-    ],
-    '2': [
-        {
-            id: 1,
-            className: 'Algebra Basics',
-            date: 'Jan 15, 2024',
-            time: '10:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 2,
-            className: 'Geometry Intro',
-            date: 'Jan 16, 2024',
-            time: '11:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 3,
-            className: 'Calculus 101',
-            date: 'Jan 17, 2024',
-            time: '09:00 AM',
-            status: 'Absent',
-        },
-    ],
-    '3': [
-        {
-            id: 1,
-            className: 'Algebra Basics',
-            date: 'Jan 15, 2024',
-            time: '10:00 AM',
-            status: 'Absent',
-        },
-        {
-            id: 2,
-            className: 'Geometry Intro',
-            date: 'Jan 16, 2024',
-            time: '11:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 3,
-            className: 'Calculus 101',
-            date: 'Jan 17, 2024',
-            time: '09:00 AM',
-            status: 'Present',
-        },
-    ],
-    '4': [
-        {
-            id: 1,
-            className: 'Advanced Physics',
-            date: 'Feb 10, 2024',
-            time: '09:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 2,
-            className: 'Quantum Mechanics',
-            date: 'Feb 12, 2024',
-            time: '10:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 3,
-            className: 'Thermodynamics',
-            date: 'Feb 14, 2024',
-            time: '11:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 4,
-            className: 'Electromagnetism',
-            date: 'Feb 16, 2024',
-            time: '09:30 AM',
-            status: 'Absent',
-        },
-        {
-            id: 5,
-            className: 'Optics',
-            date: 'Feb 18, 2024',
-            time: '10:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 6,
-            className: 'Nuclear Physics',
-            date: 'Feb 20, 2024',
-            time: '11:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 7,
-            className: 'Relativity',
-            date: 'Feb 22, 2024',
-            time: '09:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 8,
-            className: 'Astrophysics',
-            date: 'Feb 24, 2024',
-            time: '10:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 9,
-            className: 'Particle Physics',
-            date: 'Feb 26, 2024',
-            time: '11:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 10,
-            className: 'Fluid Mechanics',
-            date: 'Feb 28, 2024',
-            time: '09:30 AM',
-            status: 'Absent',
-        },
-    ],
-    '5': [
-        {
-            id: 1,
-            className: 'Organic Chemistry',
-            date: 'Mar 05, 2024',
-            time: '09:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 2,
-            className: 'Inorganic Chemistry',
-            date: 'Mar 07, 2024',
-            time: '10:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 3,
-            className: 'Physical Chemistry',
-            date: 'Mar 09, 2024',
-            time: '11:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 4,
-            className: 'Analytical Chemistry',
-            date: 'Mar 11, 2024',
-            time: '09:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 5,
-            className: 'Biochemistry',
-            date: 'Mar 13, 2024',
-            time: '10:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 6,
-            className: 'Environmental Chemistry',
-            date: 'Mar 15, 2024',
-            time: '11:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 7,
-            className: 'Polymer Chemistry',
-            date: 'Mar 17, 2024',
-            time: '09:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 8,
-            className: 'Medicinal Chemistry',
-            date: 'Mar 19, 2024',
-            time: '10:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 9,
-            className: 'Nuclear Chemistry',
-            date: 'Mar 21, 2024',
-            time: '11:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 10,
-            className: 'Computational Chemistry',
-            date: 'Mar 23, 2024',
-            time: '09:30 AM',
-            status: 'Present',
-        },
-    ],
-    '6': [
-        {
-            id: 1,
-            className: 'Cell Biology',
-            date: 'Apr 02, 2024',
-            time: '09:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 2,
-            className: 'Molecular Biology',
-            date: 'Apr 04, 2024',
-            time: '10:30 AM',
-            status: 'Absent',
-        },
-        {
-            id: 3,
-            className: 'Genetics',
-            date: 'Apr 06, 2024',
-            time: '11:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 4,
-            className: 'Microbiology',
-            date: 'Apr 08, 2024',
-            time: '09:30 AM',
-            status: 'Absent',
-        },
-        {
-            id: 5,
-            className: 'Immunology',
-            date: 'Apr 10, 2024',
-            time: '10:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 6,
-            className: 'Ecology',
-            date: 'Apr 12, 2024',
-            time: '11:30 AM',
-            status: 'Absent',
-        },
-        {
-            id: 7,
-            className: 'Evolutionary Biology',
-            date: 'Apr 14, 2024',
-            time: '09:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 8,
-            className: 'Physiology',
-            date: 'Apr 16, 2024',
-            time: '10:30 AM',
-            status: 'Absent',
-        },
-    ],
-    '7': [
-        {
-            id: 1,
-            className: 'Data Structures',
-            date: 'May 03, 2024',
-            time: '09:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 2,
-            className: 'Algorithms',
-            date: 'May 05, 2024',
-            time: '10:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 3,
-            className: 'Database Systems',
-            date: 'May 07, 2024',
-            time: '11:00 AM',
-            status: 'Absent',
-        },
-        {
-            id: 4,
-            className: 'Operating Systems',
-            date: 'May 09, 2024',
-            time: '09:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 5,
-            className: 'Computer Networks',
-            date: 'May 11, 2024',
-            time: '10:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 6,
-            className: 'Artificial Intelligence',
-            date: 'May 13, 2024',
-            time: '11:30 AM',
-            status: 'Present',
-        },
-        {
-            id: 7,
-            className: 'Machine Learning',
-            date: 'May 15, 2024',
-            time: '09:00 AM',
-            status: 'Present',
-        },
-        {
-            id: 8,
-            className: 'Computer Graphics',
-            date: 'May 17, 2024',
-            time: '10:30 AM',
-            status: 'Absent',
-        },
-    ],
-    '8': [
-        {
-            id: 1,
-            className: 'World History',
-            date: 'Jun 01, 2024',
-            time: '09:00 AM',
-            status: 'Absent',
-        },
-        {
-            id: 2,
-            className: 'Geography',
-            date: 'Jun 03, 2024',
-            time: '10:30 AM',
-            status: 'Absent',
-        },
-        {
-            id: 3,
-            className: 'Political Science',
-            date: 'Jun 05, 2024',
-            time: '11:00 AM',
-            status: 'Absent',
-        },
-        {
-            id: 4,
-            className: 'Economics',
-            date: 'Jun 07, 2024',
-            time: '09:30 AM',
-            status: 'Absent',
-        },
-        {
-            id: 5,
-            className: 'Sociology',
-            date: 'Jun 09, 2024',
-            time: '10:00 AM',
-            status: 'Absent',
-        },
-    ],
-};
-
-// Mock data for student attendance
-const mockStudentData = [
-    {
-        id: '1',
-        name: 'John Smith',
-        username: 'john5553',
-        batch: '7th course 3',
-        mobileNumber: '+1-9876543210',
-        email: 'john.smith@email.com',
-        attendedClasses: 5,
-        totalClasses: 6,
-        attendancePercentage: 83,
-    },
-    {
-        id: '2',
-        name: 'Sarah Johnson',
-        username: 'sarah4708',
-        batch: '7th course 3',
-        mobileNumber: '+44-712345678901',
-        email: 'sarah.johnson@email.com',
-        attendedClasses: 2,
-        totalClasses: 3,
-        attendancePercentage: 67,
-    },
-    {
-        id: '3',
-        name: 'Mike Davis',
-        username: 'mike5737',
-        batch: '7th course 3',
-        mobileNumber: '+91-9123456789',
-        email: 'mike.davis@email.com',
-        attendedClasses: 2,
-        totalClasses: 3,
-        attendancePercentage: 67,
-    },
-    {
-        id: '4',
-        name: 'Emma Wilson',
-        username: 'emma2234',
-        batch: '8th course 2',
-        mobileNumber: '+1-8765432109',
-        email: 'emma.wilson@email.com',
-        attendedClasses: 8,
-        totalClasses: 10,
-        attendancePercentage: 80,
-    },
-    {
-        id: '5',
-        name: 'Raj Patel',
-        username: 'raj9876',
-        batch: '8th course 2',
-        mobileNumber: '+91-8765432109',
-        email: 'raj.patel@email.com',
-        attendedClasses: 10,
-        totalClasses: 10,
-        attendancePercentage: 100,
-    },
-    {
-        id: '6',
-        name: 'Sophia Chen',
-        username: 'sophia3456',
-        batch: '9th course 1',
-        mobileNumber: '+86-1234567890',
-        email: 'sophia.chen@email.com',
-        attendedClasses: 3,
-        totalClasses: 8,
-        attendancePercentage: 38,
-    },
-    {
-        id: '7',
-        name: 'Carlos Rodriguez',
-        username: 'carlos7890',
-        batch: '9th course 1',
-        mobileNumber: '+34-6123456789',
-        email: 'carlos.rodriguez@email.com',
-        attendedClasses: 6,
-        totalClasses: 8,
-        attendancePercentage: 75,
-    },
-    {
-        id: '8',
-        name: 'Aisha Khan',
-        username: 'aisha4321',
-        batch: '10th course 4',
-        mobileNumber: '+92-3001234567',
-        email: 'aisha.khan@email.com',
-        attendedClasses: 0,
-        totalClasses: 5,
-        attendancePercentage: 0,
-    },
-];
+// runtime generated from API. fallback empty.
+const classAttendanceData: ClassAttendanceData = {};
 
 // Attendance Modal Component
 interface AttendanceModalProps {
     isOpen: boolean;
     onClose: () => void;
-    student: (typeof mockStudentData)[0] | null;
+    student: AttendanceStudent | null;
+    batchId: string;
+    startDate?: Date;
+    endDate?: Date;
 }
 
-const AttendanceModal = ({ isOpen, onClose, student }: AttendanceModalProps) => {
+const AttendanceModal = ({
+    isOpen,
+    onClose,
+    student,
+    batchId,
+    startDate,
+    endDate,
+}: AttendanceModalProps) => {
+    const [loading, setLoading] = useState(false);
+    const [studentClasses, setStudentClasses] = useState<ClassAttendanceItem[]>([]);
+    const [overallAttendance, setOverallAttendance] = useState<number | null>(null);
+
+    useEffect(() => {
+        const showAttendance = async () => {
+            if (!student || !isOpen) return;
+
+            // 1️⃣ Reuse sessions that were already fetched with the batch call.
+            const cached = classAttendanceData[student.id];
+            if (cached && cached.length) {
+                setStudentClasses(cached);
+                const attended = cached.filter((c) => c.status === 'Present').length;
+                setOverallAttendance(Math.round((attended / cached.length) * 100));
+                return; // no extra API call needed ✔️
+            }
+
+            // 2️⃣ Fallback – fetch from student-report endpoint.
+            try {
+                setLoading(true);
+                const start = startDate ? format(startDate, 'yyyy-MM-dd') : '2020-01-01';
+                const end = endDate
+                    ? format(endDate, 'yyyy-MM-dd')
+                    : format(new Date(), 'yyyy-MM-dd');
+
+                const report = await getStudentAttendanceReport(
+                    student.id,
+                    batchId !== '' ? batchId : undefined,
+                    start,
+                    end
+                );
+
+                setOverallAttendance(Math.round(report.attendancePercentage));
+
+                const transformed: ClassAttendanceItem[] = report.schedules.map(
+                    (s: StudentSchedule) => ({
+                        id: s.scheduleId,
+                        className: s.sessionTitle,
+                        date: s.meetingDate,
+                        time: s.startTime,
+                        status: s.attendanceStatus === 'PRESENT' ? 'Present' : 'Absent',
+                    })
+                );
+
+                // cache for next time
+                classAttendanceData[student.id] = transformed;
+                setStudentClasses(transformed);
+            } catch (err) {
+                console.error('Failed to fetch attendance report', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        showAttendance();
+    }, [student, batchId, startDate, endDate, isOpen]);
+
     if (!student) return null;
 
-    const studentClasses = classAttendanceData[student.id] || [];
+    // while data is loading, we can show spinner
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -1074,39 +672,43 @@ const AttendanceModal = ({ isOpen, onClose, student }: AttendanceModalProps) => 
                     {/* Overall Attendance */}
                     <div className="rounded-lg bg-primary-50 p-4 text-center">
                         <div className="text-4xl font-bold text-primary-500">
-                            {student.attendancePercentage}%
+                            {overallAttendance !== null ? `${overallAttendance}%` : '--'}
                         </div>
                         <div className="mt-2 text-base text-neutral-600">Overall Attendance</div>
                     </div>
 
                     {/* Class List */}
                     <div className="flex flex-col gap-3 overflow-y-auto">
-                        {studentClasses.map((classItem) => (
-                            <div
-                                key={classItem.id}
-                                className="rounded-lg border border-neutral-200 p-4"
-                            >
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <h3 className="text-base font-medium text-neutral-800">
-                                            {classItem.className}
-                                        </h3>
-                                        <p className="text-sm text-neutral-600">
-                                            {classItem.date} • {classItem.time}
-                                        </p>
-                                    </div>
-                                    <div
-                                        className={`rounded-full px-3 py-1 text-xs font-medium ${
-                                            classItem.status === 'Present'
-                                                ? 'bg-success-50 text-success-600'
-                                                : 'bg-danger-100 text-danger-600'
-                                        }`}
-                                    >
-                                        {classItem.status}
+                        {loading ? (
+                            <p className="text-center text-neutral-500">Loading...</p>
+                        ) : (
+                            studentClasses.map((classItem) => (
+                                <div
+                                    key={classItem.id}
+                                    className="rounded-lg border border-neutral-200 p-4"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h3 className="text-base font-medium text-neutral-800">
+                                                {classItem.className}
+                                            </h3>
+                                            <p className="text-sm text-neutral-600">
+                                                {classItem.date} • {classItem.time}
+                                            </p>
+                                        </div>
+                                        <div
+                                            className={`rounded-full px-3 py-1 text-xs font-medium ${
+                                                classItem.status === 'Present'
+                                                    ? 'bg-success-50 text-success-600'
+                                                    : 'bg-danger-100 text-danger-600'
+                                            }`}
+                                        >
+                                            {classItem.status}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
                 </div>
             </DialogContent>
@@ -1115,31 +717,60 @@ const AttendanceModal = ({ isOpen, onClose, student }: AttendanceModalProps) => 
 };
 
 function RouteComponent() {
-    // State for filters
-    const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-    const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+    const [startDate, setStartDate] = useState<Date | undefined>(subDays(new Date(), 7));
+    const [endDate, setEndDate] = useState<Date | undefined>(new Date());
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedBatch, setSelectedBatch] = useState('All Batches');
-    const [selectedClass, setSelectedClass] = useState('All Live Classes');
+    const [selectedLiveSessions, setSelectedLiveSessions] = useState<string[]>([]);
     const [attendanceFilter, setAttendanceFilter] = useState('All');
-    const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-
-    // Pagination state
-    const pageSize = 5;
+    const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({
+        from: subDays(new Date(), 7),
+        to: new Date(),
+    });
+    const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+    const { currentSession, sessionList, handleSessionChange } = useStudentFilters();
+    const { data: batches } = useGetBatchesQuery({ sessionId: currentSession.id });
     const [page, setPage] = useState(0);
-
-    // Row selection state for checkbox column
     const [rowSelections, setRowSelections] = useState<Record<string, boolean>>({});
+    const [sortConfig, setSortConfig] = useState<{
+        key: string | null;
+        direction: 'asc' | 'desc';
+    }>({
+        key: null,
+        direction: 'asc',
+    });
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedStudent, setSelectedStudent] = useState<AttendanceStudent | null>(null);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    // Sorting state
-    const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' }>(
-        {
-            key: null,
-            direction: 'asc',
+    // Extract batch options for dropdown
+    const batchOptions = useMemo(() => {
+        if (!batches || !Array.isArray(batches)) return [{ label: 'All Batches', value: null }];
+
+        const extractedBatches = batches.flatMap((batchData: batchWithStudentDetails) =>
+            batchData.batches.map((batch: BatchType) => ({
+                label: `${batch.batch_name} (${batch.invite_code})`,
+                value: batch.package_session_id,
+            }))
+        );
+
+        return [{ label: 'All Batches', value: null }, ...extractedBatches];
+    }, [batches]);
+
+    // Reset batch selection when session changes
+    useEffect(() => {
+        setSelectedBatchId(null);
+    }, [currentSession.id]);
+
+    // Set the first batch as default when batches are loaded
+    useEffect(() => {
+        if (batchOptions.length > 1 && selectedBatchId === null) {
+            // Set the first actual batch (skip "All Batches" option)
+            const firstBatch = batchOptions[1];
+            if (firstBatch && firstBatch.value) {
+                setSelectedBatchId(firstBatch.value);
+            }
         }
-    );
-
-    // handleSort removed; dropdown now directly sets sortConfig
+    }, [batchOptions, selectedBatchId]);
 
     const sortIconFor = (key: string) => {
         if (sortConfig.key !== key) return <CaretUpDown className="inline" />;
@@ -1153,7 +784,7 @@ function RouteComponent() {
     const toggleSelectAll = (checked: boolean) => {
         if (checked) {
             const newSelections: Record<string, boolean> = {};
-            paginatedStudents.forEach((s: { id: string | number }) => {
+            studentsData.forEach((s: { id: string | number }) => {
                 newSelections[s.id] = true;
             });
             setRowSelections(newSelections);
@@ -1171,97 +802,127 @@ function RouteComponent() {
         });
     };
 
-    // State for modal
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedStudent, setSelectedStudent] = useState<(typeof mockStudentData)[0] | null>(
-        null
-    );
-
-    // State for sidebar
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-    // Set the navigation heading
     const { setNavHeading } = useNavHeadingStore();
 
     useEffect(() => {
         setNavHeading('Attendance Tracker');
     }, [setNavHeading]);
 
+    // Sync dateRange with individual date states for backwards compatibility
+    useEffect(() => {
+        setStartDate(dateRange.from);
+        setEndDate(dateRange.to);
+    }, [dateRange]);
+
+    const filterRequest = useMemo(
+        () => ({
+            name: searchQuery,
+            start_date: startDate ? format(startDate, 'yyyy-MM-dd') : '2020-01-01',
+            end_date: endDate ? format(endDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+            batch_ids: selectedBatchId ? [selectedBatchId] : null,
+            live_session_ids: selectedLiveSessions.length > 0 ? selectedLiveSessions : null,
+        }),
+        [searchQuery, startDate, endDate, selectedBatchId, selectedLiveSessions]
+    );
+
+    // Use attendance service hook
+    const {
+        data: attendanceData,
+        isLoading,
+        error,
+    } = useGetAttendance({
+        pageNo: page,
+        pageSize: 10,
+        filterRequest,
+    });
+
+    // Get selected batch label for display
+    const selectedBatchLabel = useMemo(() => {
+        if (!selectedBatchId) return 'All Batches';
+        const batch = batchOptions.find((opt) => opt.value === selectedBatchId);
+        return batch?.label || 'All Batches';
+    }, [selectedBatchId, batchOptions]);
+
+    // Process attendance data to match current table structure
+    const studentsData = useMemo(() => {
+        if (!attendanceData?.pages) return [];
+
+        const allStudents: AttendanceStudent[] = [];
+
+        attendanceData.pages.forEach((pageData) => {
+            if (pageData?.content) {
+                const mappedStudents = pageData.content.map((student: ContentType) => {
+                    const total = student.sessions.length;
+                    const attended = student.sessions.filter(
+                        (s) => s.attendanceStatus === 'PRESENT'
+                    ).length;
+                    const percent = total > 0 ? Math.round((attended / total) * 100) : 0;
+
+                    // Store sessions for modal
+                    classAttendanceData[student.studentId] = student.sessions.map((sess) => ({
+                        id: sess.scheduleId,
+                        className: sess.title,
+                        date: sess.meetingDate,
+                        time: sess.startTime,
+                        status: sess.attendanceStatus === 'PRESENT' ? 'Present' : 'Absent',
+                    }));
+
+                    return {
+                        id: student.studentId,
+                        name: student.fullName,
+                        username: student.instituteEnrollmentNumber || '',
+                        batch: selectedBatchLabel,
+                        mobileNumber: student.mobileNumber,
+                        email: student.email,
+                        attendedClasses: attended,
+                        totalClasses: total,
+                        attendancePercentage: percent,
+                    };
+                });
+                allStudents.push(...mappedStudents);
+            }
+        });
+
+        return allStudents;
+    }, [attendanceData, selectedBatchLabel]);
+
     // Function to clear all filters
     const clearFilters = () => {
         setStartDate(undefined);
         setEndDate(undefined);
+        setDateRange({});
         setSearchQuery('');
-        setSelectedBatch('All Batches');
-        setSelectedClass('All Live Classes');
+        setSelectedBatchId(null);
+        setSelectedLiveSessions([]);
         setAttendanceFilter('All');
     };
 
     // Function to handle View More click
-    const handleViewMoreClick = (student: (typeof mockStudentData)[0]) => {
+    const handleViewMoreClick = (student: AttendanceStudent) => {
         setSelectedStudent(student);
         setIsModalOpen(true); // Open modal for attendance view
     };
 
     // Function to handle student details view (eye icon in first column)
-    const handleViewDetailsClick = (student: (typeof mockStudentData)[0]) => {
+    const handleViewDetailsClick = (student: AttendanceStudent) => {
         setSelectedStudent(student);
         setIsSidebarOpen(true); // Open sidebar for detailed profile
     };
 
-    // Apply filters to student data
-    const filteredStudents: AttendanceStudent[] = useMemo(() => {
-        const res = mockStudentData.filter((student) => {
-            // Search filter (case-insensitive)
-            const searchLower = searchQuery.toLowerCase();
-            const matchesSearch =
-                searchQuery === '' ||
-                student.name.toLowerCase().includes(searchLower) ||
-                student.username.toLowerCase().includes(searchLower) ||
-                student.email.toLowerCase().includes(searchLower) ||
-                student.mobileNumber.toLowerCase().includes(searchLower);
+    // Pagination helpers - with server-side pagination
+    const totalPages = attendanceData?.pages?.[0]?.totalPages || 1;
+    const totalElements = attendanceData?.pages?.[0]?.totalElements || 0;
 
-            // Batch filter
-            const matchesBatch = selectedBatch === 'All Batches' || student.batch === selectedBatch;
-
-            // Class filter - simplified for mock data
-            const matchesClass = selectedClass === 'All Live Classes';
-
-            // Attendance percentage filter
-            const matchesAttendance =
-                attendanceFilter === 'All' ||
-                (attendanceFilter === 'Above 75%' && student.attendancePercentage >= 75) ||
-                (attendanceFilter === '50% - 75%' &&
-                    student.attendancePercentage >= 50 &&
-                    student.attendancePercentage < 75) ||
-                (attendanceFilter === 'Below 50%' && student.attendancePercentage < 50);
-
-            return matchesSearch && matchesBatch && matchesClass && matchesAttendance;
-        });
-
-        // Ensure we actually return the filtered array
-        return res;
-    }, [searchQuery, selectedBatch, selectedClass, attendanceFilter]);
-
-    // Pagination helpers
-    const totalPages = Math.max(1, Math.ceil(filteredStudents.length / pageSize));
-
-    const paginatedStudents: AttendanceStudent[] = useMemo(() => {
-        const startIdx = page * pageSize;
-        return filteredStudents.slice(startIdx, startIdx + pageSize);
-    }, [filteredStudents, page, pageSize]);
-
-    // All rows selected checker
     const allRowsSelected =
-        paginatedStudents.length > 0 && paginatedStudents.every((s) => rowSelections[s.id]);
+        studentsData.length > 0 && studentsData.every((s) => rowSelections[s.id]);
 
     // Placeholder export functions
-    const exportAccountDetails = (sel: typeof mockStudentData) => {
+    const exportAccountDetails = (sel: AttendanceStudent[]) => {
         // TODO: implement actual export
         console.log('Exporting account details for', sel.length, 'students');
     };
 
-    const exportFullData = (sel: typeof mockStudentData) => {
+    const exportFullData = (sel: AttendanceStudent[]) => {
         console.log('Exporting full data for', sel.length, 'students');
     };
 
@@ -1283,30 +944,19 @@ function RouteComponent() {
                         Track and manage student attendance for live classes
                     </p>
 
-                    {/* Enhanced Filters Section */}
                     <div className="rounded-lg border border-neutral-200 bg-white p-4">
-                        {/* Search and Quick Filters Row */}
                         <div className="mb-4 flex flex-wrap items-center gap-3">
-                            {/* Search with Icon */}
+                            <MyDropdown
+                                currentValue={currentSession}
+                                dropdownList={sessionList}
+                                placeholder="Select Session"
+                                handleChange={handleSessionChange}
+                            />
                             <div className="relative min-w-[240px] flex-1">
                                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="16"
-                                        height="16"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        className="text-neutral-400"
-                                    >
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <path d="m21 21-4.3-4.3"></path>
-                                    </svg>
+                                    <Search />
                                 </div>
-                                <input
+                                <Input
                                     type="text"
                                     placeholder="Search students..."
                                     value={searchQuery}
@@ -1314,307 +964,58 @@ function RouteComponent() {
                                     className="h-9 w-full rounded-md border border-neutral-300 bg-white py-2 pl-10 pr-3 text-sm text-neutral-900 placeholder:text-neutral-500 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                                 />
                             </div>
+                            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                                {/* Date Range */}
+                                <RangeDateFilter range={dateRange} onChange={setDateRange} />
 
-                            {/* Batch Filter */}
-                            <div className="w-[180px]">
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <button
-                                            className={`flex h-9 w-full items-center justify-between overflow-hidden truncate whitespace-nowrap rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 ${
-                                                selectedBatch !== 'All Batches'
-                                                    ? 'text-neutral-900'
-                                                    : 'text-neutral-500'
-                                            }`}
-                                        >
-                                            {selectedBatch !== 'All Batches' ? (
-                                                selectedBatch
-                                            ) : (
-                                                <>Select batch</>
-                                            )}
-                                            <CaretDown className="ml-2 size-4 text-neutral-500" />
-                                        </button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-3" align="start">
-                                        <div className="flex flex-col gap-2">
-                                            <h4 className="mb-1 text-xs font-medium text-neutral-500">
-                                                Select batch
-                                            </h4>
-                                            {[
-                                                'All Batches',
-                                                '7th course 3',
-                                                '8th course 2',
-                                                '9th course 1',
-                                                '10th course 4',
-                                            ].map((batch) => (
-                                                <button
-                                                    key={batch}
-                                                    onClick={() => setSelectedBatch(batch)}
-                                                    className={`w-full rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-left text-xs hover:border-neutral-300 hover:bg-neutral-50 ${
-                                                        selectedBatch === batch
-                                                            ? 'text-primary-600 bg-primary-50'
-                                                            : ''
-                                                    }`}
-                                                >
-                                                    {batch}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </PopoverContent>
-                                </Popover>
+                                {/* Batch */}
+                                <BatchDropdown
+                                    label="Batch"
+                                    value={selectedBatchLabel}
+                                    options={batchOptions}
+                                    onSelect={(batchId) => setSelectedBatchId(batchId)}
+                                />
                             </div>
 
-                            {/* Date Range Picker */}
-                            <div className="w-[220px]">
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <button
-                                            className={`flex h-9 w-full items-center justify-between overflow-hidden truncate whitespace-nowrap rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 ${
-                                                startDate || endDate
-                                                    ? 'text-neutral-900'
-                                                    : 'text-neutral-500'
-                                            }`}
-                                        >
-                                            {startDate && endDate ? (
-                                                <>
-                                                    {format(startDate, 'dd/MM/yy')} -{' '}
-                                                    {format(endDate, 'dd/MM/yy')}
-                                                </>
-                                            ) : startDate ? (
-                                                <>From {format(startDate, 'dd/MM/yy')}</>
-                                            ) : (
-                                                <>Select date range</>
-                                            )}
-                                            <CalendarIcon className="ml-2 size-4 text-neutral-500" />
-                                        </button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-3" align="start">
-                                        <div className="flex gap-3">
-                                            <Calendar
-                                                mode="range"
-                                                className="border-r border-neutral-100 pr-3"
-                                                selected={{
-                                                    from: startDate,
-                                                    to: endDate,
-                                                }}
-                                                onSelect={(range) => {
-                                                    setStartDate(range?.from);
-                                                    setEndDate(range?.to);
-                                                }}
-                                                initialFocus
-                                            />
-
-                                            {/* Quick Presets */}
-                                            <div className="flex flex-col gap-2 pt-1">
-                                                <h4 className="mb-1 text-xs font-medium text-neutral-500">
-                                                    Quick Select
-                                                </h4>
-                                                {[
-                                                    {
-                                                        label: 'Past Day',
-                                                        from: startOfDay(subDays(new Date(), 1)),
-                                                    },
-                                                    {
-                                                        label: 'Past Week',
-                                                        from: startOfDay(subDays(new Date(), 7)),
-                                                    },
-                                                    {
-                                                        label: 'Past Month',
-                                                        from: startOfDay(subMonths(new Date(), 1)),
-                                                    },
-                                                    {
-                                                        label: 'Past 6 Months',
-                                                        from: startOfDay(subMonths(new Date(), 6)),
-                                                    },
-                                                    {
-                                                        label: 'Past Year',
-                                                        from: startOfDay(subYears(new Date(), 1)),
-                                                    },
-                                                ].map((preset) => (
-                                                    <button
-                                                        key={preset.label}
-                                                        onClick={() => {
-                                                            setStartDate(preset.from);
-                                                            setEndDate(new Date());
-                                                        }}
-                                                        className="w-full rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-left text-xs hover:border-neutral-300 hover:bg-neutral-50"
-                                                    >
-                                                        {preset.label}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
-
-                            {/* Attendance Filter */}
-                            <div className="w-[180px]">
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <button
-                                            className={`flex h-9 w-full items-center justify-between overflow-hidden truncate whitespace-nowrap rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 ${
-                                                attendanceFilter !== 'All'
-                                                    ? 'text-neutral-900'
-                                                    : 'text-neutral-500'
-                                            }`}
-                                        >
-                                            {attendanceFilter !== 'All' ? (
-                                                attendanceFilter
-                                            ) : (
-                                                <>Select attendance %</>
-                                            )}
-                                            <CaretDown className="ml-2 size-4 text-neutral-500" />
-                                        </button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-3" align="start">
-                                        <div className="flex flex-col gap-2">
-                                            <h4 className="mb-1 text-xs font-medium text-neutral-500">
-                                                Select attendance %
-                                            </h4>
-                                            {['All', 'Above 75%', '50% - 75%', 'Below 50%'].map(
-                                                (filter) => (
-                                                    <button
-                                                        key={filter}
-                                                        onClick={() => setAttendanceFilter(filter)}
-                                                        className={`w-full rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-left text-xs hover:border-neutral-300 hover:bg-neutral-50 ${
-                                                            attendanceFilter === filter
-                                                                ? 'text-primary-600 bg-primary-50'
-                                                                : ''
-                                                        }`}
-                                                    >
-                                                        {filter}
-                                                    </button>
-                                                )
-                                            )}
-                                        </div>
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
-
-                            {/* Advanced Filters Toggle Button */}
-                            <button
-                                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                                className="inline-flex h-9 items-center justify-center gap-1 rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
-                            >
-                                {showAdvancedFilters ? 'Hide' : 'Show'} Advanced Filters
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    className={`transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`}
-                                >
-                                    <polyline points="6 9 12 15 18 9"></polyline>
-                                </svg>
-                            </button>
-
-                            {filteredStudents.length !== mockStudentData.length && (
+                            {(searchQuery ||
+                                startDate ||
+                                endDate ||
+                                selectedBatchId ||
+                                selectedLiveSessions.length > 0 ||
+                                attendanceFilter !== 'All') && (
                                 <button
                                     onClick={clearFilters}
                                     className="ml-auto inline-flex h-9 items-center justify-center gap-1 rounded-md bg-neutral-100 px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-200"
                                 >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    >
-                                        <path d="M18 6 6 18"></path>
-                                        <path d="m6 6 12 12"></path>
-                                    </svg>
+                                    <X />
                                     Clear Filters
                                 </button>
                             )}
                         </div>
 
-                        {/* Advanced Filters Section */}
-                        {showAdvancedFilters && (
-                            <div className="mb-4 rounded-md border border-neutral-100 bg-neutral-50 p-3">
-                                <div className="mb-2 flex items-center justify-between">
-                                    <h4 className="text-xs font-medium text-neutral-700">
-                                        Advanced Filters
-                                    </h4>
-                                </div>
-                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                                    {/* Class Filter */}
-                                    <div>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <button
-                                                    className={`flex h-8 w-full items-center justify-between overflow-hidden truncate whitespace-nowrap rounded-md border border-neutral-300 bg-white px-3 py-1 text-sm text-neutral-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 ${
-                                                        selectedClass !== 'All Live Classes'
-                                                            ? 'text-neutral-900'
-                                                            : 'text-neutral-500'
-                                                    }`}
-                                                >
-                                                    {selectedClass !== 'All Live Classes' ? (
-                                                        selectedClass
-                                                    ) : (
-                                                        <>Select live class</>
-                                                    )}
-                                                    <CaretDown className="ml-2 size-4 text-neutral-500" />
-                                                </button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-3" align="start">
-                                                <div className="flex flex-col gap-2">
-                                                    <h4 className="mb-1 text-xs font-medium text-neutral-500">
-                                                        Select live class
-                                                    </h4>
-                                                    {[
-                                                        'All Live Classes',
-                                                        'Physics',
-                                                        'Chemistry',
-                                                        'Mathematics',
-                                                    ].map((classOption) => (
-                                                        <button
-                                                            key={classOption}
-                                                            onClick={() =>
-                                                                setSelectedClass(classOption)
-                                                            }
-                                                            className={`w-full rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-left text-xs hover:border-neutral-300 hover:bg-neutral-50 ${
-                                                                selectedClass === classOption
-                                                                    ? 'text-primary-600 bg-primary-50'
-                                                                    : ''
-                                                            }`}
-                                                        >
-                                                            {classOption}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
                         {/* Students Count */}
                         <div className="flex items-center justify-between text-xs text-neutral-500">
                             <span>
-                                Showing{' '}
-                                <span className="font-medium text-neutral-700">
-                                    {filteredStudents.length}
-                                </span>
-                                {filteredStudents.length !== mockStudentData.length && (
+                                {isLoading ? (
+                                    'Loading students...'
+                                ) : (
                                     <>
-                                        {' '}
-                                        of{' '}
+                                        Showing{' '}
                                         <span className="font-medium text-neutral-700">
-                                            {mockStudentData.length}
+                                            {studentsData.length}
                                         </span>
+                                        {totalElements > studentsData.length && (
+                                            <>
+                                                {' '}
+                                                of{' '}
+                                                <span className="font-medium text-neutral-700">
+                                                    {totalElements}
+                                                </span>
+                                            </>
+                                        )}{' '}
+                                        students
                                     </>
-                                )}{' '}
-                                students
+                                )}
                             </span>
                         </div>
                     </div>
@@ -1668,8 +1069,69 @@ function RouteComponent() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {paginatedStudents.length > 0 ? (
-                                            paginatedStudents.map((student) => (
+                                        {isLoading ? (
+                                            <tr>
+                                                <td
+                                                    colSpan={8}
+                                                    className="p-8 text-center text-neutral-500"
+                                                >
+                                                    <div className="flex flex-col items-center">
+                                                        <div className="mb-3 size-8 animate-spin rounded-full border-2 border-neutral-300 border-t-primary-500"></div>
+                                                        <p className="text-lg font-medium">
+                                                            Loading students...
+                                                        </p>
+                                                        <p className="mt-1 text-sm">
+                                                            Please wait while we fetch attendance
+                                                            data
+                                                        </p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ) : error ? (
+                                            <tr>
+                                                <td
+                                                    colSpan={8}
+                                                    className="p-8 text-center text-neutral-500"
+                                                >
+                                                    <div className="flex flex-col items-center">
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            width="40"
+                                                            height="40"
+                                                            viewBox="0 0 24 24"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            strokeWidth="1"
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            className="mb-3 text-red-300"
+                                                        >
+                                                            <circle cx="12" cy="12" r="10"></circle>
+                                                            <line
+                                                                x1="12"
+                                                                y1="8"
+                                                                x2="12"
+                                                                y2="12"
+                                                            ></line>
+                                                            <line
+                                                                x1="12"
+                                                                y1="16"
+                                                                x2="12.01"
+                                                                y2="16"
+                                                            ></line>
+                                                        </svg>
+                                                        <p className="text-lg font-medium text-red-600">
+                                                            Error loading attendance data
+                                                        </p>
+                                                        <p className="mt-1 text-sm">
+                                                            Please try refreshing the page or
+                                                            adjusting your filters
+                                                        </p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ) : studentsData.length > 0 ? (
+                                            studentsData.map((student) => (
                                                 <tr
                                                     key={student.id}
                                                     className="border-b border-neutral-200 text-sm text-neutral-600 hover:bg-neutral-50"
@@ -1812,7 +1274,7 @@ function RouteComponent() {
                                         <MyDropdown
                                             dropdownList={['Export Account Details', 'Export Data']}
                                             onSelect={(value) => {
-                                                const sel = filteredStudents.filter(
+                                                const sel = studentsData.filter(
                                                     (s) => rowSelections[s.id]
                                                 );
                                                 if (value === 'Export Account Details') {
@@ -1849,6 +1311,9 @@ function RouteComponent() {
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
                     student={selectedStudent}
+                    batchId={selectedBatchId || ''}
+                    startDate={startDate}
+                    endDate={endDate}
                 />
 
                 {/* Student Details Sidebar with SidebarProvider */}
@@ -1862,5 +1327,125 @@ function RouteComponent() {
                 </SidebarProvider>
             </LayoutContainer>
         </StudentSidebarContext.Provider>
+    );
+}
+
+interface RangeDateFilterProps {
+    range: { from?: Date; to?: Date };
+    onChange: (r: { from?: Date; to?: Date }) => void;
+}
+
+function RangeDateFilter({ range, onChange }: RangeDateFilterProps) {
+    const { from, to } = range;
+    return (
+        <div className="w-full">
+            <Popover>
+                <PopoverTrigger asChild>
+                    <button
+                        className={`flex h-9 w-full items-center justify-between rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm ${
+                            from || to ? 'text-neutral-900' : 'text-neutral-500'
+                        } focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500`}
+                    >
+                        {from && to ? (
+                            <>
+                                {format(from, 'dd/MM/yy')} - {format(to, 'dd/MM/yy')}
+                            </>
+                        ) : from ? (
+                            <>From {format(from, 'dd/MM/yy')}</>
+                        ) : (
+                            <>Select date range</>
+                        )}
+                        <CalendarIcon className="ml-2 size-4 text-neutral-500" />
+                    </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-3" align="start">
+                    <div className="flex gap-3">
+                        <Calendar
+                            mode="range"
+                            selected={range as DateRange}
+                            onSelect={(sel: { from?: Date; to?: Date } | undefined) =>
+                                onChange(sel || {})
+                            }
+                            className="border-r border-neutral-100 pr-3"
+                        />
+                        {/* Quick presets */}
+                        <div className="flex flex-col gap-2 pt-1">
+                            <h4 className="mb-1 text-xs font-medium text-neutral-500">
+                                Quick Select
+                            </h4>
+                            {[
+                                { label: 'Past Day', from: startOfDay(subDays(new Date(), 1)) },
+                                {
+                                    label: 'Past Week',
+                                    from: startOfDay(subDays(new Date(), 7)),
+                                },
+                                {
+                                    label: 'Past Month',
+                                    from: startOfDay(subMonths(new Date(), 1)),
+                                },
+                                {
+                                    label: 'Past 6 Months',
+                                    from: startOfDay(subMonths(new Date(), 6)),
+                                },
+                                {
+                                    label: 'Past Year',
+                                    from: startOfDay(subYears(new Date(), 1)),
+                                },
+                            ].map((preset) => (
+                                <button
+                                    key={preset.label}
+                                    onClick={() => onChange({ from: preset.from, to: new Date() })}
+                                    className="w-full rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-left text-xs hover:border-neutral-300 hover:bg-neutral-50"
+                                >
+                                    {preset.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </PopoverContent>
+            </Popover>
+        </div>
+    );
+}
+
+interface BatchDropdownProps {
+    label: string;
+    value: string;
+    options: Array<{ label: string; value: string | null }>;
+    onSelect: (batchId: string | null) => void;
+}
+
+function BatchDropdown({ label, value, options, onSelect }: BatchDropdownProps) {
+    return (
+        <div className="w-full">
+            <Popover>
+                <PopoverTrigger asChild>
+                    <button
+                        className={`flex h-9 w-full items-center justify-between rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm ${
+                            value !== 'All Batches' ? 'text-neutral-900' : 'text-neutral-500'
+                        } focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500`}
+                    >
+                        {value || label}
+                        <CaretDownIcon className="ml-2 size-4 text-neutral-500" />
+                    </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-3" align="start">
+                    <div className="flex flex-col gap-2">
+                        <h4 className="mb-1 text-xs font-medium text-neutral-500">{label}</h4>
+                        {options.map((opt) => (
+                            <button
+                                key={opt.value || 'all'}
+                                onClick={() => onSelect(opt.value)}
+                                className={`w-full rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-left text-xs hover:border-neutral-300 hover:bg-neutral-50 ${
+                                    value === opt.label ? 'text-primary-600 bg-primary-50' : ''
+                                }`}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </div>
+                </PopoverContent>
+            </Popover>
+        </div>
     );
 }

@@ -44,6 +44,7 @@ import { getTerminology } from '@/components/common/layout-container/sidebar/uti
 import { AddCourseForm } from '@/components/common/study-library/add-course/add-course-form';
 import { MyButton } from '@/components/design-system/button';
 import { getPublicUrl } from '@/services/upload_file';
+import InviteDetailsComponent from './invite-details-component';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey, Authority } from '@/constants/auth/tokens';
@@ -915,6 +916,7 @@ export const CourseDetailsPage = () => {
                                     </div>
                                 )}
                             </div>
+                            <InviteDetailsComponent form={form} />
                         </div>
 
                         <CourseStructureDetails

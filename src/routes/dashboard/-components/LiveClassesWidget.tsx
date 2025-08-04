@@ -252,7 +252,7 @@ const LiveClassesWidget: React.FC<LiveClassesWidgetProps> = ({ instituteId }) =>
     };
 
     return (
-        <Card className="bg-neutral-50 shadow-none">
+        <Card className="w-full bg-neutral-50 shadow-none">
             <CardHeader className="p-3 sm:p-4">
                 <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <CardTitle className="text-sm font-semibold sm:mb-0">Live Classes</CardTitle>
@@ -269,11 +269,10 @@ const LiveClassesWidget: React.FC<LiveClassesWidgetProps> = ({ instituteId }) =>
                     </MyButton>
                 </div>
             </CardHeader>
-            <div className="flex flex-col gap-3 p-3 sm:gap-4 sm:p-4 lg:flex-row lg:gap-6">
-                {/* Image container - hidden on very small screens, smaller on mobile */}
+            <div className="flex flex-col gap-2 p-3 sm:gap-4 sm:p-4 lg:flex-row lg:gap-6">
                 <div className="hidden shrink-0 items-center justify-center sm:flex sm:w-20 lg:w-auto">
                     <img
-                        src="/liveclass.svg"
+                        src="/yoga.png"
                         alt="Live classes illustration"
                         className="h-16 w-auto sm:h-20 lg:h-32"
                     />

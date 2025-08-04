@@ -105,19 +105,15 @@ export function LoginForm() {
     }, [navigate, queryClient]);
 
     const handlePostLoginRedirect = (userRoles: string[]) => {
-        console.log('User roles after login:', userRoles);
-
         // Check if user has both STUDENT and other roles
         const hasStudentRole = userRoles.includes('STUDENT');
         const hasAdminRole = userRoles.some((role) => ['ADMIN', 'TEACHER'].includes(role));
 
         if (hasStudentRole && hasAdminRole) {
             // User has both roles - stay on admin dashboard
-            console.log('User has multiple roles, staying on admin dashboard');
             navigate({ to: '/dashboard' });
         } else if (hasStudentRole && !hasAdminRole) {
             // User only has STUDENT role - redirect to learner platform
-            console.log('User only has STUDENT role, redirecting to learner platform');
             const ssoUrl = generateSSOUrl(SSO_CONFIG.LEARNER_DOMAIN, '/dashboard');
             if (ssoUrl) {
                 window.location.href = ssoUrl;
@@ -127,7 +123,6 @@ export function LoginForm() {
             }
         } else {
             // User has admin roles - stay on admin dashboard
-            console.log('User has admin roles, staying on admin dashboard');
             navigate({ to: '/dashboard' });
         }
     };

@@ -27,11 +27,16 @@ export function getAllowedSidebarItems(subModules: SubModuleType[] | undefined):
     subModules.forEach((subModule) => {
         const mapping = SUB_MODULE_SIDEBAR_MAPPING[subModule.sub_module];
         if (mapping) {
-            if (mapping.itemId) {
-                allowedItems.add(mapping.itemId);
-            } else if (mapping.itemIds) {
-                mapping.itemIds.forEach((id) => allowedItems.add(id));
-            }
+            // Handle both single object and array of mappings
+            const mappings = Array.isArray(mapping) ? mapping : [mapping];
+
+            mappings.forEach((map) => {
+                if (map.itemId) {
+                    allowedItems.add(map.itemId);
+                } else if (map.itemIds) {
+                    map.itemIds.forEach((id) => allowedItems.add(id));
+                }
+            });
         }
     });
 
@@ -84,15 +89,20 @@ export function getAllowedSubItems(
     subModules.forEach((subModule) => {
         const mapping = SUB_MODULE_SIDEBAR_MAPPING[subModule.sub_module];
         if (mapping) {
-            if (mapping.itemId && mapping.itemId === itemId) {
-                if (Array.isArray(mapping.subItemIds)) {
-                    mapping.subItemIds.forEach((subItem) => allowedSubItems.add(subItem));
+            // Handle both single object and array of mappings
+            const mappings = Array.isArray(mapping) ? mapping : [mapping];
+
+            mappings.forEach((map) => {
+                if (map.itemId && map.itemId === itemId) {
+                    if (Array.isArray(map.subItemIds)) {
+                        map.subItemIds.forEach((subItem: string) => allowedSubItems.add(subItem));
+                    }
+                } else if (map.itemIds && map.itemIds.includes(itemId)) {
+                    if (Array.isArray(map.subItemIds)) {
+                        map.subItemIds.forEach((subItem: string) => allowedSubItems.add(subItem));
+                    }
                 }
-            } else if (mapping.itemIds && mapping.itemIds.includes(itemId)) {
-                if (Array.isArray(mapping.subItemIds)) {
-                    mapping.subItemIds.forEach((subItem) => allowedSubItems.add(subItem));
-                }
-            }
+            });
         }
     });
 

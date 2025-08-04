@@ -13,7 +13,6 @@ import {
     BookOpen,
     Eye,
     Plus,
-    PencilSimpleLine,
 } from 'phosphor-react';
 import { CompletionStatusComponent } from './-components/CompletionStatusComponent';
 import { IntroKey } from '@/constants/storage/introKey';
@@ -42,8 +41,8 @@ import { ContentTerms, RoleTerms, SystemTerms } from '../settings/-components/Na
 
 import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
 import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from '@/svgs';
 
 // Analytics Widgets
@@ -56,6 +55,7 @@ import EnrollLearnersWidget from './-components/EnrollLearnersWidget';
 import LearningCenterWidget from './-components/LearningCenterWidget';
 import AssessmentCenterWidget from './-components/AssessmentCenterWidget';
 import RoleTypeComponent from './-components/RoleTypeComponent';
+import { SettingsTabs } from '../settings/-constants/terms';
 
 export const Route = createFileRoute('/dashboard/')({
     component: DashboardPage,
@@ -281,6 +281,13 @@ export function DashboardComponent() {
     const { data: assessmentCount, isLoading: isAssessmentCountLoading } = useSuspenseQuery(
         getAssessmentsCountsData(instituteDetails?.id)
     );
+    const [roleTypeCount, setRoleTypeCount] = useState({
+        ADMIN: 0,
+        'COURSE CREATOR': 0,
+        'ASSESSMENT CREATOR': 0,
+        EVALUATOR: 0,
+        TEACHER: 0,
+    });
     const navigate = useNavigate();
     const { setNavHeading } = useNavHeadingStore();
 
@@ -312,14 +319,6 @@ export function DashboardComponent() {
             },
         });
     };
-
-    const [roleTypeCount, setRoleTypeCount] = useState({
-        ADMIN: 0,
-        'COURSE CREATOR': 0,
-        'ASSESSMENT CREATOR': 0,
-        EVALUATOR: 0,
-        TEACHER: 0,
-    });
 
     const handleEnrollButtonClick = () => {
         navigate({ to: '/manage-students/invite' });
@@ -392,29 +391,14 @@ export function DashboardComponent() {
             )}
             {/* Main content */}
             <div className="mt-5 flex w-full flex-col gap-4">
-                {/* Unresolved Doubts Widget - conditionally rendered if there are unresolved doubts */}
-                <UnresolvedDoubtsWidget instituteId={instituteDetails?.id || ''} />
-                <Card className="grow bg-neutral-50 shadow-none">
-                    <CardHeader className="p-4">
-                        {/* Reduced padding */}
-                        <div className="flex items-center justify-between">
-                            <CardTitle className="text-sm font-semibold">
-                                Complete your institute profile
-                            </CardTitle>
-                            {/* Smaller title */}
-                            <EditDashboardProfileComponent isEdit={false} />
-                        </div>
-                    </CardHeader>
-                </Card>
-
                 {/* My Courses Widget - Only for Non-Admin Users */}
                 {!isAdmin && <MyCoursesWidget />}
 
                 {/* Unresolved Doubts Widget */}
-                {subModules.lms ||
-                    (subModules.assess && (
+                {(subModules.lms || subModules.assess) &&
+                    !showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
                         <UnresolvedDoubtsWidget instituteId={instituteDetails?.id || ''} />
-                    ))}
+                    )}
 
                 {/* Admin Only Widgets */}
                 {isAdmin && (
@@ -441,41 +425,56 @@ export function DashboardComponent() {
                                 </CardDescription>
                             </CardHeader>
 
-                            <CardHeader className="p-4">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex flex-col">
-                                        <CardTitle className="text-sm font-semibold">
+                            {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
+                                <CardHeader className="p-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex flex-col">
+                                            <CardTitle className="text-sm font-semibold">
+                                                Naming Settings
+                                            </CardTitle>
+                                            <CardDescription className="text-xs">
+                                                Customize the naming conventions used throughout
+                                                your institute
+                                            </CardDescription>
+                                        </div>
+                                        <MyButton
+                                            type="button"
+                                            scale="medium"
+                                            buttonType="secondary"
+                                            layoutVariant="default"
+                                            className="text-sm"
+                                            onClick={() =>
+                                                navigate({
+                                                    to: '/settings',
+                                                    search: { selectedTab: SettingsTabs.Naming },
+                                                })
+                                            }
+                                        >
                                             Naming Settings
-                                        </CardTitle>
-                                        <CardDescription className="text-xs">
-                                            Customize the naming conventions used throughout your
-                                            institute
-                                        </CardDescription>
+                                        </MyButton>
                                     </div>
-                                    <MyButton
-                                        type="button"
-                                        scale="medium"
-                                        buttonType="secondary"
-                                        layoutVariant="default"
-                                        className="text-sm"
-                                        onClick={() => navigate({ to: '/settings' })}
-                                    >
-                                        Naming Settings
-                                    </MyButton>
-                                </div>
-                            </CardHeader>
+                                </CardHeader>
+                            )}
                         </Card>
 
                         {/* Analytics Widgets - Admin Only */}
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
-                            <RealTimeActiveUsersWidget instituteId={instituteDetails?.id || ''} />
-                            <CurrentlyActiveUsersWidget instituteId={instituteDetails?.id || ''} />
-                            <UserActivitySummaryWidget instituteId={instituteDetails?.id || ''} />
-                        </div>
+                        {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+                                <RealTimeActiveUsersWidget
+                                    instituteId={instituteDetails?.id || ''}
+                                />
+                                <CurrentlyActiveUsersWidget
+                                    instituteId={instituteDetails?.id || ''}
+                                />
+                                <UserActivitySummaryWidget
+                                    instituteId={instituteDetails?.id || ''}
+                                />
+                            </div>
+                        )}
 
                         {/* Institute Overview Widget - Admin Only */}
 
-                        {subModules.lms && (
+                        {subModules.lms && !showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
                             <Card className="grow bg-neutral-50 shadow-none">
                                 <CardHeader className="p-4">
                                     <CardTitle className="text-sm font-semibold">
@@ -533,16 +532,18 @@ export function DashboardComponent() {
                 )}
 
                 {/* Dashboard Action Widgets */}
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    {(subModules.lms || subModules.assess) && <EnrollLearnersWidget />}
-                    {subModules.lms && <LearningCenterWidget />}
-                    {subModules.assess && (
-                        <AssessmentCenterWidget
-                            assessmentCount={assessmentCount?.assessment_count || 0}
-                            questionPaperCount={assessmentCount?.question_paper_count || 0}
-                        />
-                    )}
-                </div>
+                {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                        {(subModules.lms || subModules.assess) && <EnrollLearnersWidget />}
+                        {subModules.lms && <LearningCenterWidget />}
+                        {subModules.assess && (
+                            <AssessmentCenterWidget
+                                assessmentCount={assessmentCount?.assessment_count || 0}
+                                questionPaperCount={assessmentCount?.question_paper_count || 0}
+                            />
+                        )}
+                    </div>
+                )}
 
                 {/* AI Features Card - Moved to Bottom for All Users */}
                 {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
@@ -868,92 +869,7 @@ export function DashboardComponent() {
                             </Card>
                         )}
                         {showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
-                            <Card className="flex-1 border border-gray-200 bg-neutral-50 shadow-sm">
-                                <CardHeader className="p-4">
-                                    <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                        <CardTitle className="text-sm font-semibold sm:mb-0">
-                                            Live Classes
-                                        </CardTitle>
-                                        <MyButton
-                                            type="submit"
-                                            scale="small"
-                                            buttonType="secondary"
-                                            layoutVariant="default"
-                                            className="w-full px-3 py-1.5 text-xs sm:w-auto"
-                                        >
-                                            <Plus size={16} />
-                                            Add Live Class
-                                        </MyButton>
-                                    </div>
-                                    <div className="mt-4 flex flex-col gap-4 md:flex-row">
-                                        <CardDescription>
-                                            <img
-                                                src="/yoga.png"
-                                                alt="yoga"
-                                                className="h-auto w-full max-w-[180px] sm:max-w-[200px]"
-                                            />
-                                        </CardDescription>
-
-                                        <CardDescription className="flex-1 space-y-3">
-                                            <div className="flex items-center justify-around rounded-lg border bg-gray-50 p-2">
-                                                <div className="flex flex-col items-center gap-3">
-                                                    <span className="text-xs">Upcoming</span>
-                                                    <span className="mt-1 text-sm font-medium text-primary-500">
-                                                        6:00 am
-                                                    </span>
-                                                </div>
-                                                <div className="flex flex-col items-center gap-2">
-                                                    <span className="font-medium text-gray-900">
-                                                        Morning Batch 1
-                                                    </span>
-                                                    <div className="flex gap-x-2">
-                                                        <span className="rounded border p-2 text-xs">
-                                                            https://live/789xy
-                                                        </span>
-                                                        <button className="rounded border p-1 hover:bg-gray-200">
-                                                            <PencilSimpleLine
-                                                                size={16}
-                                                                className="text-gray-600"
-                                                            />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center justify-around rounded-lg border bg-gray-50 p-2">
-                                                <div className="flex flex-col items-center gap-3">
-                                                    <span className="text-xs">Upcoming</span>
-                                                    <span className="mt-1 text-sm font-medium text-primary-500">
-                                                        7:00 am
-                                                    </span>
-                                                </div>
-                                                <div className="flex flex-col items-center gap-2">
-                                                    <span className="font-medium text-gray-900">
-                                                        Morning Batch 1
-                                                    </span>
-                                                    <div className="flex gap-x-2">
-                                                        <span className="rounded border p-2 text-xs">
-                                                            https://live/789xy
-                                                        </span>
-                                                        <button className="rounded border p-1 hover:bg-gray-200">
-                                                            <PencilSimpleLine
-                                                                size={16}
-                                                                className="text-gray-600"
-                                                            />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* More classes indicator */}
-                                            <div className="py-2 text-center">
-                                                <span className="text-sm text-gray-500">
-                                                    +4 More
-                                                </span>
-                                            </div>
-                                        </CardDescription>
-                                    </div>
-                                </CardHeader>
-                            </Card>
+                            <LiveClassesWidget instituteId={instituteDetails?.id || ''} />
                         )}
                         {subModules.assess && (
                             <Card className="flex-1 grow bg-neutral-50 shadow-none">
@@ -1071,14 +987,6 @@ export function DashboardComponent() {
                             </Card>
                         )}
                     </div>
-                </div>
-                {/* Live Classes Widget at bottom in half-width column */}
-                <div className="flex flex-col gap-4 md:flex-row">
-                    <div className="flex-1">
-                        <LiveClassesWidget instituteId={instituteDetails?.id || ''} />
-                    </div>
-                    {/* empty placeholder for right half */}
-                    <div className="flex-1"></div>
                 </div>
             </div>
         </>
