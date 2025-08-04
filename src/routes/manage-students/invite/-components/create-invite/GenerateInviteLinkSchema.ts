@@ -58,8 +58,16 @@ const testInputFieldSchema = z.object({
     name: z.string(),
     oldKey: z.boolean(),
     isRequired: z.boolean(),
-    key: z.string(),
-    order: z.number(),
+    key: z
+        .string()
+        .nullable()
+        .optional()
+        .transform((val) => val ?? ''),
+    order: z
+        .number()
+        .nullable()
+        .optional()
+        .transform((val) => val ?? 0),
     options: z
         .array(
             z.object({
@@ -78,13 +86,34 @@ export const inviteLinkSchema = z.object({
     messageTemplate: z.enum(['standard', 'review', 'custom']).optional(),
     customMessage: z.string().optional(),
     id: z.string().optional(),
-    course: z.string().optional(),
-    description: z.string().optional(),
-    learningOutcome: z.string().optional(),
-    aboutCourse: z.string().optional(),
-    targetAudience: z.string().optional(),
-    coursePreview: z.string().optional(),
-    courseBanner: z.string().optional(),
+    course: z
+        .string()
+        .nullable()
+        .transform((val) => val ?? ''),
+    description: z
+        .string()
+        .nullable()
+        .transform((val) => val ?? ''),
+    learningOutcome: z
+        .string()
+        .nullable()
+        .transform((val) => val ?? ''),
+    aboutCourse: z
+        .string()
+        .nullable()
+        .transform((val) => val ?? ''),
+    targetAudience: z
+        .string()
+        .nullable()
+        .transform((val) => val ?? ''),
+    coursePreview: z
+        .string()
+        .nullable()
+        .transform((val) => val ?? ''),
+    courseBanner: z
+        .string()
+        .nullable()
+        .transform((val) => val ?? ''),
     courseMedia: z.object({
         type: z.string().optional(),
         id: z.string().optional(),
