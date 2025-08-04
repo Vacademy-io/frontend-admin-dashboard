@@ -25,30 +25,14 @@ export const getInstitutesFromToken = (): Institute[] => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
 
     if (!accessToken) {
-        console.log('[getInstitutesFromToken] No access token found');
         return [];
     }
-
-    console.log('[getInstitutesFromToken] Access token:', accessToken);
 
     const tokenData = getTokenDecodedData(accessToken);
 
     if (!tokenData || !tokenData.authorities) {
-        console.log('[getInstitutesFromToken] No token data or authorities found');
         return [];
     }
-
-    console.log('[getInstitutesFromToken] Token data:', tokenData);
-    console.log('[getInstitutesFromToken] Authorities:', tokenData.authorities);
-
-    // Log user information
-    console.log('[getInstitutesFromToken] User info:', {
-        fullname: tokenData.fullname,
-        email: tokenData.email,
-        username: tokenData.username,
-        sub: tokenData.sub,
-        is_root_user: tokenData.is_root_user
-    });
 
     const institutes = Object.entries(tokenData.authorities).map(([instituteId, authority]) => ({
         id: instituteId,
@@ -56,24 +40,6 @@ export const getInstitutesFromToken = (): Institute[] => {
         roles: authority.roles || [],
         permissions: authority.permissions || [],
     }));
-
-    console.log('[getInstitutesFromToken] Parsed institutes:', institutes);
-
-    // Log user type summary
-    const allRoles = institutes.flatMap(inst => inst.roles);
-    const uniqueRoles = [...new Set(allRoles)];
-    const hasAdmin = uniqueRoles.includes('ADMIN');
-    const hasTeacher = uniqueRoles.includes('TEACHER');
-    const hasStudent = uniqueRoles.includes('STUDENT');
-
-    console.log('[getInstitutesFromToken] User type summary:', {
-        totalInstitutes: institutes.length,
-        allRoles: uniqueRoles,
-        isAdmin: hasAdmin,
-        isTeacher: hasTeacher,
-        isStudent: hasStudent,
-        userType: hasAdmin ? 'ADMIN' : hasTeacher ? 'TEACHER' : hasStudent ? 'STUDENT' : 'UNKNOWN'
-    });
 
     return institutes;
 };
@@ -87,29 +53,27 @@ export const getValidInstitutes = (institutes: Institute[]): Institute[] => {
     return institutes.filter((institute) => {
         const roles = institute.roles;
 
-        // If user has ADMIN role, include the institute
-        if (roles.includes('ADMIN')) return true;
-
-        // If user has TEACHER role, include the institute
-        if (roles.includes('TEACHER')) return true;
-
         // If user only has STUDENT role, exclude the institute
         if (roles.length === 1 && roles[0] === 'STUDENT') return false;
 
-        // If user has STUDENT + other roles, include the institute
-        return roles.length > 1;
+        // Include institute if user has any role other than just STUDENT
+        return true;
     });
 };
 
 /**
  * Determine the primary role for an institute
- * Priority: ADMIN > TEACHER > STUDENT
+ * Priority: ADMIN > first non-STUDENT role in array
  */
 export const getPrimaryRole = (roles: string[]): string => {
+    // If ADMIN role is present, always return ADMIN
     if (roles.includes('ADMIN')) return 'ADMIN';
-    if (roles.includes('TEACHER')) return 'TEACHER';
-    if (roles.includes('STUDENT')) return 'STUDENT';
-    return roles[0] || 'UNKNOWN';
+
+    // Find the first non-STUDENT role in the array
+    const nonStudentRole = roles.find(role => role !== 'STUDENT');
+
+    // Return the first non-STUDENT role, or UNKNOWN if only STUDENT roles exist
+    return nonStudentRole || 'UNKNOWN';
 };
 
 /**
@@ -120,33 +84,13 @@ export const shouldBlockStudentLogin = (): boolean => {
     const institutes = getInstitutesFromToken();
     const validInstitutes = getValidInstitutes(institutes);
 
-    console.log('[shouldBlockStudentLogin] All institutes:', institutes);
-    console.log('[shouldBlockStudentLogin] Valid institutes:', validInstitutes);
-
     // If no valid institutes, user should be blocked (only has STUDENT role)
     if (validInstitutes.length === 0) {
-        console.log('[shouldBlockStudentLogin] No valid institutes, blocking login - USER TYPE: STUDENT ONLY');
         return true;
     }
 
-    // Check if user only has STUDENT role in all institutes
-    const hasNonStudentRole = validInstitutes.some((institute) => {
-        const roles = institute.roles;
-        const hasAdminOrTeacher = roles.includes('ADMIN') || roles.includes('TEACHER');
-        console.log(`[shouldBlockStudentLogin] Institute ${institute.id} roles: ${roles.join(', ')}, hasAdminOrTeacher: ${hasAdminOrTeacher}`);
-        return hasAdminOrTeacher;
-    });
-
-    console.log('[shouldBlockStudentLogin] Has non-student role:', hasNonStudentRole);
-    console.log('[shouldBlockStudentLogin] Should block:', !hasNonStudentRole);
-
-    if (!hasNonStudentRole) {
-        console.log('[shouldBlockStudentLogin] BLOCKING LOGIN - USER TYPE: STUDENT ONLY');
-    } else {
-        console.log('[shouldBlockStudentLogin] ALLOWING LOGIN - USER TYPE: ADMIN/TEACHER');
-    }
-
-    return !hasNonStudentRole;
+    // User has at least one valid institute (not just STUDENT role)
+    return false;
 };
 
 /**
@@ -157,11 +101,7 @@ export const getInstituteSelectionResult = (): InstituteSelectionResult => {
     const institutes = getInstitutesFromToken();
     const validInstitutes = getValidInstitutes(institutes);
 
-    console.log('[getInstituteSelectionResult] All institutes:', institutes);
-    console.log('[getInstituteSelectionResult] Valid institutes:', validInstitutes);
-
     if (validInstitutes.length === 0) {
-        console.log('[getInstituteSelectionResult] No valid institutes, should not show selection - USER TYPE: STUDENT ONLY');
         return {
             shouldShowSelection: false,
             institutes: [],
@@ -172,10 +112,6 @@ export const getInstituteSelectionResult = (): InstituteSelectionResult => {
         const institute = validInstitutes[0];
         const primaryRole = getPrimaryRole(institute.roles);
 
-        console.log('[getInstituteSelectionResult] Single institute found:', institute);
-        console.log('[getInstituteSelectionResult] Primary role:', primaryRole);
-        console.log('[getInstituteSelectionResult] Should not show selection - USER TYPE: ' + primaryRole + ' (SINGLE INSTITUTE)');
-
         return {
             shouldShowSelection: false,
             institutes: validInstitutes,
@@ -184,7 +120,6 @@ export const getInstituteSelectionResult = (): InstituteSelectionResult => {
         };
     }
 
-    console.log('[getInstituteSelectionResult] Multiple institutes found, should show selection - USER TYPE: MULTI-INSTITUTE USER');
     return {
         shouldShowSelection: true,
         institutes: validInstitutes,

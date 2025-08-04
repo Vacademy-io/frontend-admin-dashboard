@@ -29,7 +29,6 @@ export const handleOAuthLogin = (provider: OAuthProvider, options: OAuthLoginOpt
 
         window.location.href = loginUrl;
     } catch (error) {
-        console.error('[OAuthLogin] Error during OAuth login initiation:', error);
         toast.error('Failed to initiate login. Please try again.');
     }
 };
@@ -57,19 +56,13 @@ export const handleLoginOAuthCallback = async () => {
     }
 
     if (accessToken && refreshToken) {
-        console.log('[OAuthCallback] Processing OAuth tokens...');
-        console.log('[OAuthCallback] Access token:', accessToken);
-        console.log('[OAuthCallback] Refresh token:', refreshToken);
-
         // Set tokens in cookies (same as username/password flow)
         setAuthorizationCookie(TokenKey.accessToken, accessToken);
         setAuthorizationCookie(TokenKey.refreshToken, refreshToken);
 
         const shouldBlock = shouldBlockStudentLogin();
-        console.log('[OAuthCallback] Should block student login:', shouldBlock);
 
         if (shouldBlock) {
-            console.log('[OAuthCallback] BLOCKING STUDENT LOGIN - USER TYPE: STUDENT ONLY');
             // Clear tokens
             removeCookiesAndLogout();
 
@@ -86,18 +79,14 @@ export const handleLoginOAuthCallback = async () => {
 
         // Check if user needs to select an institute (same logic as username/password)
         const instituteResult = getInstituteSelectionResult();
-        console.log('[OAuthCallback] Institute selection result:', instituteResult);
 
         if (instituteResult.shouldShowSelection) {
-            console.log('[OAuthCallback] Should show institute selection - USER TYPE: MULTI-INSTITUTE USER');
             // Tokens are already set in cookies, just redirect to institute selection
             return { success: true, shouldShowInstituteSelection: true };
         }
 
         // User has only one institute - auto-select and redirect to dashboard
-        console.log('[OAuthCallback] Single institute, auto-selecting - USER TYPE: ' + (instituteResult.primaryRole || 'UNKNOWN') + ' (SINGLE INSTITUTE)');
         if (instituteResult.selectedInstitute) {
-            console.log('[OAuthCallback] Auto-selecting institute:', instituteResult.selectedInstitute.id);
             setSelectedInstitute(instituteResult.selectedInstitute.id);
         }
 
@@ -112,18 +101,16 @@ export const handleLoginOAuthCallback = async () => {
                     redirectUrl = decodedState.from;
                 }
             } catch (err) {
-                console.warn('[OAuthCallback] Failed to decode state. Using fallback redirect:', err);
+                // Failed to decode state, using fallback redirect
             }
         }
 
-        console.log('[OAuthCallback] Redirecting to:', redirectUrl);
         return { success: true, redirectUrl };
     }
 
         toast.error('Login failed. Missing tokens.');
         return { success: false };
     } catch (error) {
-        console.error('[OAuthCallback] Error in OAuth callback:', error);
         return { success: false, error: error.message };
     }
 };

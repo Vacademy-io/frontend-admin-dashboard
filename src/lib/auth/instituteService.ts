@@ -19,8 +19,11 @@ export const fetchInstituteDetailsById = async (instituteId: string): Promise<In
             url: `${INIT_INSTITUTE}/${instituteId}`,
         });
         return response.data;
-    } catch (error) {
-        console.error(`Error fetching institute details for ID ${instituteId}:`, error);
+    } catch (error: any) {
+        // Don't log 403 errors as they're expected for some institutes
+        if (error?.response?.status !== 403) {
+            console.error(`Error fetching institute details for ID ${instituteId}:`, error);
+        }
         throw error;
     }
 };
@@ -37,8 +40,11 @@ export const fetchMultipleInstituteDetails = async (instituteIds: string[]): Pro
             try {
                 const details = await fetchInstituteDetailsById(instituteId);
                 return { id: instituteId, details };
-            } catch (error) {
-                console.error(`Failed to fetch details for institute ${instituteId}:`, error);
+            } catch (error: any) {
+                // Don't log 403 errors as they're expected for some institutes
+                if (error?.response?.status !== 403) {
+                    console.error(`Failed to fetch details for institute ${instituteId}:`, error);
+                }
                 return { id: instituteId, details: null };
             }
         });
@@ -63,5 +69,6 @@ export const getInstituteName = (instituteDetails: InstituteDetailsType | null, 
     if (instituteDetails?.institute_name) {
         return instituteDetails.institute_name;
     }
+    // Provide a more user-friendly fallback name
     return `Institute ${instituteId.slice(0, 8)}...`;
 };

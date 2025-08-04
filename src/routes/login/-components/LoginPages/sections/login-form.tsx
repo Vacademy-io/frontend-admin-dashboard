@@ -58,7 +58,7 @@ export function LoginForm() {
         }
     }, [hasSeenAnimation, setHasSeenAnimation]);
 
-            useEffect(() => {
+    useEffect(() => {
         // Check for error parameters from OAuth
         const urlParams = new URLSearchParams(window.location.search);
         const error = urlParams.get('error');
@@ -128,29 +128,20 @@ export function LoginForm() {
             // Check if we have tokens in cookies and need to show institute selection
             const cookieAccessToken = getTokenFromCookie(TokenKey.accessToken);
             if (cookieAccessToken) {
-                console.log('[LoginForm] Found access token in cookies:', cookieAccessToken);
-
                 // Check if user needs to select an institute
                 const instituteResult = getInstituteSelectionResult();
-                console.log('[LoginForm] Institute selection result from cookies:', instituteResult);
 
                 if (instituteResult.shouldShowSelection) {
-                    console.log('[LoginForm] Should show institute selection from cookies - USER TYPE: MULTI-INSTITUTE USER');
                     setShowInstituteSelection(true);
                     return;
-                } else {
-                    console.log('[LoginForm] No institute selection needed - USER TYPE: ' + (instituteResult.primaryRole || 'UNKNOWN') + ' (SINGLE INSTITUTE)');
                 }
             }
         }
     }, [navigate, queryClient]);
 
-        const handlePostLoginRedirect = (userRoles: string[]) => {
-        console.log('[handlePostLoginRedirect] User roles:', userRoles);
-
+    const handlePostLoginRedirect = (userRoles: string[]) => {
         // Check if user should be blocked from logging in (only has STUDENT role)
         if (shouldBlockStudentLogin()) {
-            console.log('[handlePostLoginRedirect] BLOCKING STUDENT LOGIN - USER TYPE: STUDENT ONLY');
             // Track blocked login attempt
             trackEvent('Login Blocked', {
                 login_method: 'username_password',
@@ -173,22 +164,18 @@ export function LoginForm() {
 
         // Check if user needs to select an institute
         const instituteResult = getInstituteSelectionResult();
-        console.log('[handlePostLoginRedirect] Institute selection result:', instituteResult);
 
         if (instituteResult.shouldShowSelection) {
-            console.log('[handlePostLoginRedirect] Should show institute selection - USER TYPE: MULTI-INSTITUTE USER');
             setShowInstituteSelection(true);
             return;
         }
 
         // User has only one institute or no valid institutes
         if (instituteResult.selectedInstitute) {
-            console.log('[handlePostLoginRedirect] Auto-selecting institute:', instituteResult.selectedInstitute.id);
             setSelectedInstitute(instituteResult.selectedInstitute.id);
         }
 
         // Navigate to dashboard
-        console.log('[handlePostLoginRedirect] Navigating to dashboard - USER TYPE: ' + (instituteResult.primaryRole || 'UNKNOWN') + ' (SINGLE INSTITUTE)');
         navigate({ to: '/dashboard' });
     };
 
@@ -235,8 +222,6 @@ export function LoginForm() {
             }
         },
         onError: (error) => {
-            console.error('Login error:', error);
-
             // Track login error
             trackEvent('Login Failed', {
                 login_method: 'username_password',

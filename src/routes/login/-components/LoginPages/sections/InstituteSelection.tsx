@@ -61,14 +61,10 @@ export function InstituteSelection({ onInstituteSelect }: InstituteSelectionProp
             // Filter out institutes where user is only a STUDENT
             const validInstitutes = instituteList.filter((institute) => {
                 const roles = institute.roles;
-                // If user has ADMIN role, include the institute
-                if (roles.includes('ADMIN')) return true;
-                // If user has TEACHER role, include the institute
-                if (roles.includes('TEACHER')) return true;
                 // If user only has STUDENT role, exclude the institute
                 if (roles.length === 1 && roles[0] === 'STUDENT') return false;
-                // If user has STUDENT + other roles, include the institute
-                return roles.length > 1;
+                // Include institute if user has any role other than just STUDENT
+                return true;
             });
 
             if (validInstitutes.length === 0) {
@@ -136,7 +132,7 @@ export function InstituteSelection({ onInstituteSelect }: InstituteSelectionProp
 
             setInstitutes(updatedInstitutes);
         } catch (error) {
-            console.error('Error fetching institute details:', error);
+            // Don't log errors as they're handled gracefully with fallback names
             // Keep the original institutes with fallback names
         } finally {
             setIsLoadingDetails(false);
@@ -144,11 +140,14 @@ export function InstituteSelection({ onInstituteSelect }: InstituteSelectionProp
     };
 
     const getPrimaryRole = (roles: string[]): string => {
-        // Priority: ADMIN > TEACHER > STUDENT
+        // If ADMIN role is present, always return ADMIN
         if (roles.includes('ADMIN')) return 'ADMIN';
-        if (roles.includes('TEACHER')) return 'TEACHER';
-        if (roles.includes('STUDENT')) return 'STUDENT';
-        return roles[0] || 'UNKNOWN';
+
+        // Find the first non-STUDENT role in the array
+        const nonStudentRole = roles.find(role => role !== 'STUDENT');
+
+        // Return the first non-STUDENT role, or UNKNOWN if only STUDENT roles exist
+        return nonStudentRole || 'UNKNOWN';
     };
 
     const getRoleIcon = (role: string) => {
@@ -194,8 +193,6 @@ export function InstituteSelection({ onInstituteSelect }: InstituteSelectionProp
         }
 
         const primaryRole = getPrimaryRole(institute.roles);
-
-
 
         trackEvent('Institute Selected', {
             institute_id: selectedInstitute,
@@ -294,7 +291,7 @@ export function InstituteSelection({ onInstituteSelect }: InstituteSelectionProp
                                                     setIsDropdownOpen(false);
                                                 }}
                                             >
-                                                                                                <div className="flex items-center justify-between">
+                                                <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
                                                         <Building2 className="h-5 w-5 text-gray-600" />
                                                         <div>

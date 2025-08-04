@@ -41,7 +41,6 @@ function OAuthRedirectHandler() {
                 navigate({ to: '/login' });
             }
             } catch (error) {
-                console.error('[OAuthRedirect] Error processing OAuth:', error);
                 toast.error('OAuth processing failed. Redirecting to login...');
                 navigate({ to: '/login' });
             }

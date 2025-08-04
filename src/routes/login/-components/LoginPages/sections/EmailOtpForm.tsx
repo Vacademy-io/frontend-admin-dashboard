@@ -92,11 +92,6 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
 
     const sendOtpMutation = useMutation({
         mutationFn: (email: string) => {
-            console.log('[OTP Request] Sending request:', {
-                url: REQUEST_OTP,
-                email: email,
-            });
-
             return axios.post(
                 REQUEST_OTP,
                 { email },
@@ -112,24 +107,12 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
             setIsLoading(true);
         },
         onSuccess: (response) => {
-            console.log('[OTP Request] Success response:', response.data);
             setIsLoading(false);
             setIsOtpSent(true);
             startTimer();
             toast.success('OTP sent successfully');
         },
         onError: (error: AxiosError) => {
-            console.error('[OTP Request] Error:', error);
-
-            // Log detailed error information
-            if (error.response) {
-                console.error('[OTP Request] Response error:', {
-                    status: error.response.status,
-                    statusText: error.response.statusText,
-                    data: error.response.data,
-                });
-            }
-
             setIsLoading(false);
             toast.error('This email is not registered', {
                 description: 'Please try again with a registered email',
@@ -140,12 +123,6 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
 
     const verifyOtpMutation = useMutation({
         mutationFn: (data: { email: string; otp: string }) => {
-            console.log('[OTP Verification] Sending request:', {
-                url: LOGIN_OTP,
-                email: data.email,
-                otp: data.otp,
-            });
-
             // Prepare request body according to backend API specification
             const requestBody = {
                 user_name: data.email, // Using email as username
@@ -156,8 +133,6 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
                 otp: data.otp,
             };
 
-            console.log('[OTP Verification] Request body:', requestBody);
-
             return axios.post(LOGIN_OTP, requestBody, {
                 headers: {
                     'Content-Type': 'application/json',
@@ -166,7 +141,6 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
             });
         },
         onSuccess: (response) => {
-            console.log('[OTP Verification] Success response:', response.data);
 
             // Store tokens in cookies
             setAuthorizationCookie(TokenKey.accessToken, response.data.accessToken);
@@ -184,17 +158,6 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
             }, 100);
         },
         onError: (error: AxiosError) => {
-            console.error('[OTP Verification] Error:', error);
-
-            // Log detailed error information
-            if (error.response) {
-                console.error('[OTP Verification] Response error:', {
-                    status: error.response.status,
-                    statusText: error.response.statusText,
-                    data: error.response.data,
-                });
-            }
-
             toast.error('Invalid OTP', {
                 description: 'Please check your OTP and try again',
                 duration: 3000,
@@ -204,12 +167,8 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
     });
 
     const handlePostLoginRedirect = (userRoles: string[]) => {
-        console.log('User roles after login:', userRoles);
-
         // Check if user should be blocked from logging in (only has STUDENT role)
         if (shouldBlockStudentLogin()) {
-            console.log('User only has STUDENT role, blocking login');
-
             // Track blocked login attempt
             trackEvent('Login Blocked', {
                 login_method: 'email_otp',
@@ -234,7 +193,6 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
         const instituteResult = getInstituteSelectionResult();
 
         if (instituteResult.shouldShowSelection) {
-            console.log('User has multiple institutes, showing selection');
             // For email OTP, we'll redirect to institute selection page
             window.location.href = '/login?showInstituteSelection=true';
             return;
@@ -242,12 +200,10 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
 
         // User has only one institute or no valid institutes
         if (instituteResult.selectedInstitute) {
-            console.log('Auto-selecting institute:', instituteResult.selectedInstitute.id);
             setSelectedInstitute(instituteResult.selectedInstitute.id);
         }
 
         // Navigate to dashboard
-        console.log('Navigating to dashboard');
         navigate({ to: '/dashboard' });
     };
 
