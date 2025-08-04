@@ -593,21 +593,61 @@ export const CourseStructureDetails = ({
                 break;
             case 'module':
                 if (item.subjectId) {
-                    deleteModuleMutation.mutate({
-                        subjectId: item.subjectId,
-                        moduleId: item.id,
-                        commaSeparatedPackageSessionIds: packageSessionIds,
-                    });
+                    deleteModuleMutation.mutate(
+                        {
+                            subjectId: item.subjectId,
+                            moduleId: item.id,
+                            commaSeparatedPackageSessionIds: packageSessionIds,
+                        },
+                        {
+                            onSuccess: async () => {
+                                // Update local state after successful deletion - same as add module
+                                const updatedSubjects = getCourseSubjects(
+                                    courseId,
+                                    selectedSession || '',
+                                    levelId
+                                );
+                                if (updatedSubjects.length > 0 && packageSessionIds) {
+                                    const updatedModulesMap = await fetchModules({
+                                        subjects: updatedSubjects,
+                                        packageSessionIds,
+                                    });
+                                    setSubjectModulesMap(updatedModulesMap);
+                                }
+                                setSubjects(updatedSubjects);
+                            },
+                        }
+                    );
                 }
                 break;
             case 'chapter':
                 if (item.subjectId && item.moduleId) {
-                    deleteChapterMutation.mutate({
-                        moduleId: item.moduleId,
-                        subjectId: item.subjectId,
-                        packageSessionIds,
-                        chapterIds: [item.id],
-                    });
+                    deleteChapterMutation.mutate(
+                        {
+                            moduleId: item.moduleId,
+                            subjectId: item.subjectId,
+                            packageSessionIds,
+                            chapterIds: [item.id],
+                        },
+                        {
+                            onSuccess: async () => {
+                                // Update local state after successful chapter deletion
+                                const updatedSubjects = getCourseSubjects(
+                                    courseId,
+                                    selectedSession || '',
+                                    levelId
+                                );
+                                if (updatedSubjects.length > 0 && packageSessionIds) {
+                                    const updatedModulesMap = await fetchModules({
+                                        subjects: updatedSubjects,
+                                        packageSessionIds,
+                                    });
+                                    setSubjectModulesMap(updatedModulesMap);
+                                }
+                                setSubjects(updatedSubjects);
+                            },
+                        }
+                    );
                 }
                 break;
         }
@@ -1548,7 +1588,6 @@ export const CourseStructureDetails = ({
                                                         const isModuleOpen = openModules.has(
                                                             mod.module.id
                                                         );
-
                                                         return (
                                                             <Collapsible
                                                                 key={mod.module.id}
