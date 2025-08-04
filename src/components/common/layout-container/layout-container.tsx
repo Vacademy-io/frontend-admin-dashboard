@@ -17,6 +17,7 @@ export const LayoutContainer = ({
     sideBarData,
     internalSidebarComponent,
     hasInternalSidebarComponent = false,
+    customSidebarControl = false,
 }: {
     children?: React.ReactNode;
     className?: string;
@@ -27,12 +28,16 @@ export const LayoutContainer = ({
     sideBarData?: { title: string; listIconText: string; searchParam: string };
     hasInternalSidebarComponent?: boolean;
     internalSidebarComponent?: React.ReactNode;
+    customSidebarControl?: boolean;
 }) => {
     const { open, setOpen } = useSidebar();
     useEffect(() => {
+        // Skip automatic sidebar control if customSidebarControl is enabled
+        if (customSidebarControl) return;
+
         const isCollapse = !(internalSideBar || hasInternalSidebarComponent);
         setOpen(isCollapse);
-    }, [internalSideBar, hasInternalSidebarComponent]);
+    }, [internalSideBar, hasInternalSidebarComponent, customSidebarControl]);
     return (
         <div className={`flex w-full`}>
             <div className={`flex  ${open ? 'gap-12' : 'gap-16'}`}>

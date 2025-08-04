@@ -1,10 +1,15 @@
 export const SUB_MODULE_SIDEBAR_MAPPING: Record<
     string,
-    {
-        itemId?: string;
-        itemIds?: string[];
-        subItemIds?: string[] | 'ALL_SUB_ITEMS';
-    }
+    | {
+          itemId?: string;
+          itemIds?: string[];
+          subItemIds?: string[] | 'ALL_SUB_ITEMS';
+      }
+    | Array<{
+          itemId?: string;
+          itemIds?: string[];
+          subItemIds?: string[] | 'ALL_SUB_ITEMS';
+      }>
 > = {
     // ASSESS
     SEE_ASSESSMENT: { itemId: 'assessment-centre', subItemIds: ['assessment-list'] },
@@ -40,9 +45,15 @@ export const SUB_MODULE_SIDEBAR_MAPPING: Record<
     LMS_TEAM_MANAGMENT: { itemId: 'manage-institute', subItemIds: ['teams'] },
     LMS_INVITE: { itemId: 'student-mangement', subItemIds: ['invite'] },
     LMS_REQUEST: { itemId: 'student-mangement', subItemIds: ['enroll-requests'] },
-    LMS_LIVE_SESSION: { itemId: 'study-library', subItemIds: ['live-session'] },
+    LMS_LIVE_SESSION: [
+        { itemId: 'study-library', subItemIds: ['live-session'] },
+        { itemId: 'live-classes', subItemIds: [] },
+    ],
     LMS_LEARNING_REPORT: { itemId: 'study-library', subItemIds: ['reports'] },
-    LMS_ATTENDANCE_TRACKER: { itemId: 'study-library', subItemIds: ['attendance-tracker'] },
+    LMS_ATTENDANCE_TRACKER: [
+        { itemId: 'study-library', subItemIds: ['attendance-tracker'] },
+        { itemId: 'attendance-tracker', subItemIds: [] },
+    ],
     LMS_DOUBT_MANAGEMENT: { itemId: 'study-library', subItemIds: ['doubt-management'] },
     LMS_COMMUNITY_CENTRE: { itemId: 'community-centre', subItemIds: [] },
     LMS_DASHBOARD: { itemId: 'dashboard', subItemIds: [] },

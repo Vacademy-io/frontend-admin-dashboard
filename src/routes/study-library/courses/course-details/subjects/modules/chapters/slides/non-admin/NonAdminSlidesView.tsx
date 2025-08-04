@@ -31,6 +31,7 @@ import { useLearnerViewStore } from '../-stores/learner-view-store';
 import { useNonAdminSlides } from './hooks/useNonAdminSlides';
 import { SendForApprovalButton } from './components/ApprovalWorkflow/SendForApprovalButton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { PreviewChangesButton } from '@/components/study-library/course-comparison/PreviewChangesButton';
 
 interface NonAdminSlidesViewProps {
     courseId: string;
@@ -64,6 +65,7 @@ export function NonAdminSlidesView({
     // Get course data and status
     const courseData = studyLibraryData?.find((item) => item.course.id === courseId);
     const courseStatus = courseData?.course?.status;
+    const originalCourseId = courseData?.course?.originalCourseId || null;
     const isDraftCourse = courseStatus === 'DRAFT';
     const isReadOnlyMode = !isDraftCourse;
 
@@ -402,14 +404,27 @@ export function NonAdminSlidesView({
                 </InitStudyLibraryProvider>
             </LayoutContainer>
 
-            {/* Send for Approval Button - Only show for draft courses with changes */}
-            {isDraftCourse && (
-                <SendForApprovalButton
-                    courseId={courseId}
-                    hasChanges={showApprovalButton}
+            {/* Action Buttons Container */}
+            <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+                {/* Preview Changes Button - Show for all courses */}
+                <PreviewChangesButton
+                    currentCourseId={courseId}
+                    originalCourseId={originalCourseId}
+                    subjectId={subjectId}
+                    packageSessionId={sessionId}
+                    chapterId={chapterId}
                     disabled={unsavedChanges.hasChanges}
                 />
-            )}
+
+                {/* Send for Approval Button - Only show for draft courses with changes */}
+                {isDraftCourse && (
+                    <SendForApprovalButton
+                        courseId={courseId}
+                        hasChanges={showApprovalButton}
+                        disabled={unsavedChanges.hasChanges}
+                    />
+                )}
+            </div>
         </SaveDraftProvider>
     );
 }

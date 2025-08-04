@@ -158,13 +158,13 @@ function transformCustomFields(customFields: CustomField[], instituteId: string)
         const options = isDropdown ? field.options?.map((opt) => opt.value).join(',') : '';
 
         return {
-            id: '',
+            id: crypto.randomUUID(),
             institute_id: instituteId,
             type: field.type,
             type_id: '',
             custom_field: {
                 guestId: '',
-                id: '',
+                id: crypto.randomUUID(),
                 fieldKey: toSnakeCase(field.name),
                 fieldName: field.name,
                 fieldType: field.type,

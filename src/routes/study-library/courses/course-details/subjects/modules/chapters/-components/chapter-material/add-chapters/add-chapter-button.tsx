@@ -49,7 +49,7 @@ export const AddChapterButton = ({
         <MyDialog
             trigger={triggerButton}
             heading={`Add ${getTerminology(ContentTerms.Chapters, SystemTerms.Chapters)}`}
-            dialogWidth="min-w-[400px]"
+            dialogWidth="min-w-fit"
             open={openDialog}
             onOpenChange={handleOpenChange}
         >
