@@ -347,6 +347,163 @@ export function createQuestionSlidePayload(
 }
 
 /**
+ * Creates a Jupyter Notebook slide payload
+ */
+export function createJupyterNotebookSlidePayload(
+    chapterName: string,
+    existingSlides: Slide[] = [],
+    titleOverride?: string
+): Slide {
+    const slideId = crypto.randomUUID();
+    const title = titleOverride || 'Jupyter Notebook';
+
+    const jupyterData = JSON.stringify({
+        projectName: '',
+        contentUrl: '',
+        contentBranch: 'main',
+        notebookLocation: 'root',
+        activeTab: 'settings',
+        editorType: 'jupyterEditor',
+        timestamp: Date.now(),
+    });
+
+    return {
+        id: slideId,
+        source_id: crypto.randomUUID(),
+        source_type: 'DOCUMENT',
+        title,
+        image_file_id: '',
+        description: 'Interactive Jupyter notebook environment',
+        status: 'DRAFT',
+        slide_order: 0,
+        video_slide: null,
+        document_slide: {
+            id: crypto.randomUUID(),
+            type: 'JUPYTER',
+            data: jupyterData,
+            title,
+            cover_file_id: '',
+            total_pages: 1,
+            published_data: '',
+            published_document_total_pages: 1,
+        },
+        question_slide: null,
+        assignment_slide: null,
+        quiz_slide: null,
+        is_loaded: true,
+        new_slide: true,
+        content: '',
+        is_ai_generated: true,
+        manual_modifications: false,
+    };
+}
+
+/**
+ * Creates a Scratch Project slide payload
+ */
+export function createScratchProjectSlidePayload(
+    chapterName: string,
+    existingSlides: Slide[] = [],
+    titleOverride?: string
+): Slide {
+    const slideId = crypto.randomUUID();
+    const title = titleOverride || 'Scratch Project';
+
+    const scratchData = JSON.stringify({
+        projectId: '',
+        scratchUrl: '',
+        embedType: 'project',
+        autoStart: false,
+        hideControls: false,
+        editorType: 'scratchEditor',
+        timestamp: Date.now(),
+    });
+
+    return {
+        id: slideId,
+        source_id: crypto.randomUUID(),
+        source_type: 'DOCUMENT',
+        title,
+        image_file_id: '',
+        description: 'Interactive Scratch programming environment',
+        status: 'DRAFT',
+        slide_order: 0,
+        video_slide: null,
+        document_slide: {
+            id: crypto.randomUUID(),
+            type: 'SCRATCH',
+            data: scratchData,
+            title,
+            cover_file_id: '',
+            total_pages: 1,
+            published_data: '',
+            published_document_total_pages: 1,
+        },
+        question_slide: null,
+        assignment_slide: null,
+        quiz_slide: null,
+        is_loaded: true,
+        new_slide: true,
+        content: '',
+        is_ai_generated: true,
+        manual_modifications: false,
+    };
+}
+
+/**
+ * Creates a Code Editor slide payload
+ */
+export function createCodeEditorSlidePayload(
+    chapterName: string,
+    existingSlides: Slide[] = [],
+    titleOverride?: string
+): Slide {
+    const slideId = crypto.randomUUID();
+    const title = titleOverride || 'Code Editor';
+
+    const codeData = JSON.stringify({
+        language: 'javascript',
+        theme: 'dark',
+        code: '// Welcome to the code editor\nconsole.log("Hello, World!");',
+        readOnly: false,
+        showLineNumbers: true,
+        fontSize: 14,
+        editorType: 'codeEditor',
+        timestamp: Date.now(),
+    });
+
+    return {
+        id: slideId,
+        source_id: crypto.randomUUID(),
+        source_type: 'DOCUMENT',
+        title,
+        image_file_id: '',
+        description: 'Interactive code editing environment',
+        status: 'DRAFT',
+        slide_order: 0,
+        video_slide: null,
+        document_slide: {
+            id: crypto.randomUUID(),
+            type: 'CODE',
+            data: codeData,
+            title,
+            cover_file_id: '',
+            total_pages: 1,
+            published_data: '',
+            published_document_total_pages: 1,
+        },
+        question_slide: null,
+        assignment_slide: null,
+        quiz_slide: null,
+        is_loaded: true,
+        new_slide: true,
+        content: '',
+        is_ai_generated: true,
+        manual_modifications: false,
+    };
+}
+
+/**
  * Helper function to convert AI simple slide to rich slide structure
  */
 export function convertAISlideToRichSlide(
@@ -380,6 +537,15 @@ export function convertAISlideToRichSlide(
             break;
         case 'presentation':
             slide = createPresentationSlidePayload(chapterName, existingSlides, aiSlide.name);
+            break;
+        case 'jupyter-notebook':
+            slide = createJupyterNotebookSlidePayload(chapterName, existingSlides, aiSlide.name);
+            break;
+        case 'scratch-project':
+            slide = createScratchProjectSlidePayload(chapterName, existingSlides, aiSlide.name);
+            break;
+        case 'code-editor':
+            slide = createCodeEditorSlidePayload(chapterName, existingSlides, aiSlide.name);
             break;
         case 'document':
         case 'text':

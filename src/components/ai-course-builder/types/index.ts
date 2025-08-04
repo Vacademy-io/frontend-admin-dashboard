@@ -58,7 +58,7 @@ export interface TextData {
 }
 
 // Option interface for questions
-export interface Option {
+export interface QuestionOption {
     id: string;
     text: TextData;
     explanation_text_data: TextData;
@@ -80,7 +80,7 @@ export interface VideoQuestion {
     question_time_in_millis: number;
     question_order: number;
     status: string;
-    options: Option[];
+    options: QuestionOption[];
     new_question: boolean;
 }
 
@@ -299,4 +299,18 @@ export interface UserSession {
     currentSlide: Slide | null;
     sseStatus: 'connecting' | 'connected' | 'reconnecting' | 'disconnected' | 'error';
     error: string | null;
+}
+
+// ----- Chat Types -----
+export interface ChatSection {
+    id: string;
+    type: 'thinking' | 'generating' | 'modification' | 'text' | 'json';
+    content: string;
+    timestamp: Date;
+    metadata?: {
+        modificationType?: string;
+        targetType?: string;
+        name?: string;
+        modifications?: unknown[]; // Using unknown[] to avoid circular imports
+    };
 }

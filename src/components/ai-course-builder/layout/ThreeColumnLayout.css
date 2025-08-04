@@ -30,13 +30,28 @@
   max-height: 100%;
   overflow: hidden;
   isolation: isolate; /* Prevent scroll propagation */
-  contain: layout style; /* Better scroll containment */
+  /* Removed CSS containment - was blocking scrolling */
   box-sizing: border-box;
 }
 
 /* Exception for ChatView component to allow internal scrolling */
 .panel-content .ai-chat-container {
-  overflow: visible;
+  overflow: visible !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  isolation: auto !important; /* Remove isolation that blocks scrolling */
+}
+
+/* Ensure chat messages container can scroll */
+.panel-content .ai-chat-container .chat-messages {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  flex: 1 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  isolation: auto !important; /* Remove isolation that blocks scrolling */
 }
 
 .resize-handle {
@@ -566,6 +581,164 @@ html:has(.ai-course-builder-container) {
   .header-subtitle {
     display: none !important;
   }
+}
+
+/* Unified Theme Overrides for All Three Tabs */
+
+/* Global font size uniformity */
+.panel-content .course-explorer,
+.panel-content .detail-view,
+.panel-content .ai-chat-container {
+  font-size: 11px !important;
+  line-height: 1.3 !important;
+}
+
+/* Ensure consistent colors across all components */
+.panel-content * {
+  --text-primary: hsl(var(--foreground));
+  --text-secondary: hsl(var(--muted-foreground));
+  --bg-primary: hsl(var(--background));
+  --bg-secondary: hsl(var(--muted));
+  --border-color: hsl(var(--border));
+  --accent-color: hsl(var(--primary-500));
+}
+
+/* CourseExplorer theme overrides */
+.course-explorer .tree-item-icon .chevron {
+  color: hsl(var(--primary-400)) !important;
+}
+
+.course-explorer .module-progress-fill {
+  background: hsl(var(--primary-500)) !important;
+}
+
+.course-explorer .course-explorer-empty-text {
+  color: hsl(var(--muted-foreground)) !important;
+  font-size: 10px !important;
+}
+
+/* DetailView theme overrides */
+.detail-view .type-badge {
+  background: hsl(var(--primary-50)) !important;
+  color: hsl(var(--primary-600)) !important;
+  font-size: 9px !important;
+  border: 1px solid hsl(var(--primary-200)) !important;
+}
+
+.detail-view .info-content {
+  font-size: 11px !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.detail-view .slide-title {
+  font-size: 14px !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.detail-view .slide-type-badge {
+  font-size: 9px !important;
+}
+
+/* ChatView theme overrides */
+.ai-chat-container .template-card {
+  border: 1px solid hsl(var(--primary-200)) !important;
+  background: hsl(var(--background)) !important;
+}
+
+.ai-chat-container .template-card:hover {
+  border-color: hsl(var(--primary-400)) !important;
+  background: hsl(var(--primary-50)) !important;
+}
+
+.ai-chat-container .template-card.selected {
+  border-color: hsl(var(--primary-500)) !important;
+  background: hsl(var(--primary-100)) !important;
+}
+
+.ai-chat-container .template-icon {
+  background: hsl(var(--primary-500)) !important;
+}
+
+.ai-chat-container .template-title {
+  font-size: 10px !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.ai-chat-container .chat-messages {
+  font-size: 10px !important;
+}
+
+.ai-chat-container .message-text {
+  background: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
+  font-size: 10px !important;
+}
+
+.ai-chat-container .message.user .message-text {
+  background: hsl(var(--primary-100)) !important;
+  color: hsl(var(--primary-900)) !important;
+}
+
+/* Input area theme */
+.ai-chat-container .chat-textarea {
+  background: hsl(var(--background)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
+  font-size: 10px !important;
+}
+
+.ai-chat-container .chat-textarea:focus {
+  border-color: hsl(var(--primary-400)) !important;
+  box-shadow: 0 0 0 2px hsl(var(--primary-50)) !important;
+}
+
+.ai-chat-container .chat-textarea::placeholder {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+/* Button theme overrides */
+.panel-content button {
+  font-size: 9px !important;
+  background: hsl(var(--primary-500)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  border: 1px solid hsl(var(--primary-600)) !important;
+  border-radius: 4px !important;
+  padding: 4px 8px !important;
+  transition: all 0.15s ease !important;
+}
+
+.panel-content button:hover {
+  background: hsl(var(--primary-600)) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Scrollbar theme for all components */
+.panel-content *::-webkit-scrollbar {
+  width: 2px !important;
+}
+
+.panel-content *::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.panel-content *::-webkit-scrollbar-thumb {
+  background: hsl(var(--border)) !important;
+  border-radius: 2px !important;
+}
+
+.panel-content *::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground)) !important;
+}
+
+/* Unified spacing */
+.panel-content h1, .panel-content h2, .panel-content h3 {
+  margin: 6px 0 4px 0 !important;
+  line-height: 1.2 !important;
+}
+
+.panel-content p {
+  margin: 4px 0 !important;
+  line-height: 1.3 !important;
 }
 
 /* No scrolling needed - perfect fit layout */

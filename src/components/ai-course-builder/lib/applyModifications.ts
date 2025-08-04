@@ -61,10 +61,13 @@ function handleAddAction(updated: Subject[], mod: Modification): void {
             const subjectId = getIdFromPath(mod.parentPath, 'S');
             if (!subjectId) return;
             const subjectIndex = updated.findIndex((sub) => sub.id === subjectId);
-            if (subjectIndex !== -1) {
+            if (subjectIndex !== -1 && updated[subjectIndex]) {
+                const subject = updated[subjectIndex]!;
                 updated[subjectIndex] = {
-                    ...updated[subjectIndex],
-                    modules: [...updated[subjectIndex].modules, mapModule(mod.node)],
+                    ...subject,
+                    id: subject.id || `S-${Date.now()}`,
+                    name: subject.name || 'Unnamed Subject',
+                    modules: [...(subject.modules || []), mapModule(mod.node)],
                 };
             }
             break;
@@ -74,17 +77,14 @@ function handleAddAction(updated: Subject[], mod: Modification): void {
             const { subjectId, moduleId } = extractSubjectModuleIds(mod.parentPath);
             if (!subjectId || !moduleId) return;
             const subjectIndex = updated.findIndex((sub) => sub.id === subjectId);
-            if (subjectIndex !== -1) {
-                const moduleIndex = updated[subjectIndex].modules.findIndex(
-                    (mod) => mod.id === moduleId
-                );
-                if (moduleIndex !== -1) {
-                    updated[subjectIndex].modules[moduleIndex] = {
-                        ...updated[subjectIndex].modules[moduleIndex],
-                        chapters: [
-                            ...updated[subjectIndex].modules[moduleIndex].chapters,
-                            mapChapter(mod.node),
-                        ],
+            if (subjectIndex !== -1 && updated[subjectIndex]) {
+                const subject = updated[subjectIndex]!;
+                const moduleIndex = subject.modules.findIndex((mod) => mod.id === moduleId);
+                if (moduleIndex !== -1 && subject.modules[moduleIndex]) {
+                    const module = subject.modules[moduleIndex]!;
+                    subject.modules[moduleIndex] = {
+                        ...module,
+                        chapters: [...(module.chapters || []), mapChapter(mod.node)],
                     };
                 }
             }
@@ -96,22 +96,19 @@ function handleAddAction(updated: Subject[], mod: Modification): void {
             const { subjectId, moduleId, chapterId } = ids;
             if (!subjectId || !moduleId || !chapterId) return;
             const subjectIndex = updated.findIndex((sub) => sub.id === subjectId);
-            if (subjectIndex !== -1) {
-                const moduleIndex = updated[subjectIndex].modules.findIndex(
-                    (mod) => mod.id === moduleId
-                );
-                if (moduleIndex !== -1) {
-                    const chapterIndex = updated[subjectIndex].modules[
-                        moduleIndex
-                    ].chapters.findIndex((ch) => ch.id === chapterId);
-                    if (chapterIndex !== -1) {
-                        updated[subjectIndex].modules[moduleIndex].chapters[chapterIndex] = {
-                            ...updated[subjectIndex].modules[moduleIndex].chapters[chapterIndex],
-                            slides: [
-                                ...updated[subjectIndex].modules[moduleIndex].chapters[chapterIndex]
-                                    .slides,
-                                mapSlide(mod.node),
-                            ],
+            if (subjectIndex !== -1 && updated[subjectIndex]) {
+                const subject = updated[subjectIndex]!;
+                const moduleIndex = subject.modules.findIndex((mod) => mod.id === moduleId);
+                if (moduleIndex !== -1 && subject.modules[moduleIndex]) {
+                    const module = subject.modules[moduleIndex]!;
+                    const chapterIndex = module.chapters.findIndex((ch) => ch.id === chapterId);
+                    if (chapterIndex !== -1 && module.chapters[chapterIndex]) {
+                        const chapter = module.chapters[chapterIndex]!;
+                        module.chapters[chapterIndex] = {
+                            ...chapter,
+                            id: chapter.id || `CH-${Date.now()}`,
+                            name: chapter.name || 'Unnamed Chapter',
+                            slides: [...(chapter.slides || []), mapSlide(mod.node)],
                         };
                     }
                 }
@@ -133,14 +130,23 @@ function handleUpdateAction(updated: Subject[], mod: Modification): void {
         if (!slideId) return;
 
         for (let i = 0; i < updated.length; i++) {
-            for (let j = 0; j < updated[i].modules.length; j++) {
-                for (let k = 0; k < updated[i].modules[j].chapters.length; k++) {
-                    const slideIndex = updated[i].modules[j].chapters[k].slides.findIndex(
-                        (slide) => slide.id === slideId
-                    );
+            const subject = updated[i];
+            if (!subject?.modules) continue;
+
+            for (let j = 0; j < subject.modules.length; j++) {
+                const module = subject.modules[j];
+                if (!module?.chapters) continue;
+
+                for (let k = 0; k < module.chapters.length; k++) {
+                    const chapter = module.chapters[k];
+                    if (!chapter?.slides) continue;
+
+                    const slideIndex = chapter.slides.findIndex((slide) => slide.id === slideId);
                     if (slideIndex !== -1) {
                         // Update the slide with new data
-                        const existingSlide = updated[i].modules[j].chapters[k].slides[slideIndex];
+                        const existingSlide = chapter.slides[slideIndex];
+                        if (!existingSlide) continue;
+
                         const updatedSlide = {
                             ...existingSlide,
                             ...mod.node,
@@ -166,7 +172,7 @@ function handleUpdateAction(updated: Subject[], mod: Modification): void {
                             }),
                         };
 
-                        updated[i].modules[j].chapters[k].slides[slideIndex] = updatedSlide;
+                        chapter.slides[slideIndex] = updatedSlide;
                         console.log('✅ Updated slide in course data:', {
                             slideId: updatedSlide.id,
                             title: updatedSlide.title,

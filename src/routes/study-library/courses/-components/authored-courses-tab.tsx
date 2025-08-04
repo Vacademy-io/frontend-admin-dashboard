@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { MyButton } from '@/components/design-system/button';
 import {
-    PencilSimple,
     PaperPlaneTilt,
     Eye,
     Copy,
@@ -157,6 +156,8 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
         refetchInterval: 30000,
     });
 
+
+
     // Create editable copy mutation
     const createCopyMutation = useMutation({
         mutationFn: createEditableCopy,
@@ -250,18 +251,12 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
         });
     };
 
-    const handleEditCourse = (course: GroupedCourse) => {
-        if (isAdmin) {
-            // Admin can edit directly
-            navigate({
-                to: `/study-library/courses/course-details?courseId=${course.id}`,
-            });
-        } else {
-            // Teacher needs to create editable copy
-            setCopyingCourseId(course.id);
-            createCopyMutation.mutate(course.id);
-        }
+    const handleCopyToEdit = (course: GroupedCourse) => {
+        setCopyingCourseId(course.id);
+        createCopyMutation.mutate(course.id);
     };
+
+
 
     const handleSubmitForReview = (courseId: string) => {
         submitReviewMutation.mutate(courseId);
@@ -489,16 +484,8 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
 
                                     {/* Action Buttons */}
                                     {course.status === 'DRAFT' && !isAdmin ? (
-                                        // Draft course for non-admin: Stack buttons vertically to prevent overflow
-                                        <div className="space-y-1">
-                                            <MyButton
-                                                onClick={() => handleEditCourse(course)}
-                                                size="sm"
-                                                className="h-8 w-full text-xs"
-                                            >
-                                                <PencilSimple size={12} className="mr-1" />
-                                                Edit
-                                            </MyButton>
+                                        // Draft course for non-admin: Only show submit button
+                                        <div>
                                             <MyButton
                                                 onClick={() => handleSubmitForReview(course.id)}
                                                 size="sm"
@@ -510,13 +497,12 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                                             </MyButton>
                                         </div>
                                     ) : (
-                                        // Single button for other cases
+                                        // For published courses, show copy button or copy exists message
                                         <div>
                                             {course.status === 'ACTIVE' ? (
-                                                // Published course
                                                 canCreateCopy(course) ? (
                                                     <MyButton
-                                                        onClick={() => handleEditCourse(course)}
+                                                        onClick={() => handleCopyToEdit(course)}
                                                         size="sm"
                                                         className="h-8 w-full bg-blue-600 text-xs text-white hover:bg-blue-700"
                                                         disabled={copyingCourseId === course.id}
@@ -529,7 +515,7 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                                                         ) : (
                                                             <>
                                                                 <Copy size={12} className="mr-1" />
-                                                                {isAdmin ? 'Edit' : 'Copy'}
+                                                                Copy to Edit
                                                             </>
                                                         )}
                                                     </MyButton>
@@ -542,17 +528,7 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                                                         Copy Exists
                                                     </MyButton>
                                                 )
-                                            ) : (
-                                                // Draft course for admin
-                                                <MyButton
-                                                    onClick={() => handleEditCourse(course)}
-                                                    size="sm"
-                                                    className="h-8 w-full bg-blue-600 text-xs text-white hover:bg-blue-700"
-                                                >
-                                                    <PencilSimple size={12} className="mr-1" />
-                                                    Edit
-                                                </MyButton>
-                                            )}
+                                            ) : null}
                                         </div>
                                     )}
 

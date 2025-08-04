@@ -596,7 +596,7 @@ const DetailView: React.FC<DetailViewProps> = ({ selectedItem, onModifications }
             // Type-specific slide data (from rich slide payloads or existing data)
             video_slide:
                 slide.source_type === 'VIDEO'
-                    ? (slide.video_slide || {
+                    ? slide.video_slide || {
                           id: crypto.randomUUID(),
                           description: slide.title || slide.name,
                           title: slide.title || slide.name,
@@ -608,14 +608,14 @@ const DetailView: React.FC<DetailViewProps> = ({ selectedItem, onModifications }
                           embedded_type: '',
                           embedded_data: '',
                           questions: [],
-                      })
+                      }
                     : null,
 
             document_slide:
-                (slide.source_type === 'DOCUMENT' ||
+                slide.source_type === 'DOCUMENT' ||
                 slide.source_type === 'PRESENTATION' ||
-                slide.source_type === 'PDF')
-                    ? (slide.document_slide || {
+                slide.source_type === 'PDF'
+                    ? slide.document_slide || {
                           id: crypto.randomUUID(),
                           type:
                               slide.source_type === 'PRESENTATION'
@@ -629,22 +629,22 @@ const DetailView: React.FC<DetailViewProps> = ({ selectedItem, onModifications }
                           total_pages: 1,
                           published_data: '',
                           published_document_total_pages: 1,
-                      })
+                      }
                     : null,
 
             quiz_slide:
                 slide.source_type === 'QUIZ'
-                    ? (slide.quiz_slide || {
+                    ? slide.quiz_slide || {
                           id: crypto.randomUUID(),
                           title: slide.title || slide.name,
                           description: { id: '', content: '', type: 'TEXT' },
                           questions: [],
-                      })
+                      }
                     : null,
 
             assignment_slide:
                 slide.source_type === 'ASSIGNMENT'
-                    ? (slide.assignment_slide || {
+                    ? slide.assignment_slide || {
                           id: crypto.randomUUID(),
                           parent_rich_text: { id: '', content: '', type: 'TEXT' },
                           text_data: { id: '', content: '', type: 'TEXT' },
@@ -653,12 +653,12 @@ const DetailView: React.FC<DetailViewProps> = ({ selectedItem, onModifications }
                           re_attempt_count: 0,
                           comma_separated_media_ids: '',
                           questions: [],
-                      })
+                      }
                     : null,
 
             question_slide:
                 slide.source_type === 'QUESTION'
-                    ? (slide.question_slide || {
+                    ? slide.question_slide || {
                           id: crypto.randomUUID(),
                           parent_rich_text: { id: '', content: '', type: 'TEXT' },
                           text_data: { id: '', content: '', type: 'TEXT' },
@@ -674,7 +674,7 @@ const DetailView: React.FC<DetailViewProps> = ({ selectedItem, onModifications }
                           points: 1,
                           options: [],
                           source_type: 'QUESTION',
-                      })
+                      }
                     : null,
         } as ManualSlide;
     };
