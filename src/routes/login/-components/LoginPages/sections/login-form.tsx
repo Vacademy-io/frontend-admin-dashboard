@@ -27,9 +27,13 @@ import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { FcGoogle } from 'react-icons/fc';
 import { EmailLogin } from './EmailOtpForm';
 import { useState } from 'react';
-import { amplitudeEvents, identifyUser, trackEvent } from '@/lib/amplitude';
+import { amplitudeEvents, trackEvent } from '@/lib/amplitude';
 import { InstituteSelection } from './InstituteSelection';
-import { getInstituteSelectionResult, setSelectedInstitute, shouldBlockStudentLogin } from '@/lib/auth/instituteUtils';
+import {
+    getInstituteSelectionResult,
+    setSelectedInstitute,
+    shouldBlockStudentLogin,
+} from '@/lib/auth/instituteUtils';
 import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
 
 type FormValues = z.infer<typeof loginSchema>;
@@ -66,7 +70,8 @@ export function LoginForm() {
 
         if (error === 'student_access_denied') {
             toast.error('Access Denied', {
-                description: 'Students are not allowed to access the admin portal. Please contact your administrator.',
+                description:
+                    'Students are not allowed to access the admin portal. Please contact your administrator.',
                 className: 'error-toast',
                 duration: 5000,
             });
@@ -154,7 +159,8 @@ export function LoginForm() {
             removeCookiesAndLogout();
 
             toast.error('Access Denied', {
-                description: 'Students are not allowed to access the admin portal. Please contact your administrator.',
+                description:
+                    'Students are not allowed to access the admin portal. Please contact your administrator.',
                 className: 'error-toast',
                 duration: 5000,
             });
