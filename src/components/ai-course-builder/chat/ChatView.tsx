@@ -50,17 +50,28 @@ import {
     Globe,
     ChevronRight,
     Search,
+    Sparkles,
+    Brain,
 } from 'lucide-react';
 import './styles/ChatView.css';
 import { useMemo } from 'react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useSidebar } from '@/components/ui/sidebar';
 import TodoList from '../todo/TodoList';
-// Gemini API integration temporarily disabled – using local mock responses instead
-// import { sendChatMessage, sendChatMessageStreaming, type ChatApiRequest, type ChatApiResponse } from '@/services/aiCourseApi';
+// Real API integration for streaming responses
+import {
+    sendChatMessageStreaming,
+    type ChatApiRequest,
+    type ChatApiResponse,
+} from '@/services/aiCourseApi';
 import type { Modification } from '../lib/applyModifications';
 import { testApiEndpoint } from '@/services/apiDebugTest';
 import type { TodoTask } from '@/services/aiResponseMemory';
 import TodoProgress from './TodoProgress';
+import { responseCapture } from './debugResponseCapture';
+import { chatDebugger } from './debugChatFlow';
+import { simulateStreamingResponse } from './simpleChatTest';
+import type { ChatSection } from '../types';
 
 interface UploadedFile {
     id: string;
@@ -211,6 +222,15 @@ interface ChatViewProps {
     // Todo progress integration
     onTaskClick?: (task: TodoTask) => void;
     onCourseGeneration?: () => void;
+
+    // Debug props for streaming responses
+    onStreamingDebug?: (chunk: string, fullResponse?: string) => void;
+
+    // Message sections state management
+    messageSections?: { [messageId: string]: ChatSection[] };
+    setMessageSections?: React.Dispatch<
+        React.SetStateAction<{ [messageId: string]: ChatSection[] }>
+    >;
 }
 
 const ChatView: React.FC<ChatViewProps> = ({
@@ -225,20 +245,99 @@ const ChatView: React.FC<ChatViewProps> = ({
     tasks = [],
     onTaskClick,
     onCourseGeneration,
+    onStreamingDebug,
+    messageSections: propMessageSections,
+    setMessageSections: propSetMessageSections,
 }) => {
     const [prompt, setPrompt] = useState('');
     // Use local state as fallback if props not provided (for backward compatibility)
     const [localMessages, setLocalMessages] = useState<Message[]>([]);
     const [localIsLoading, setLocalIsLoading] = useState(false);
+    const [localMessageSections, setLocalMessageSections] = useState<{
+        [messageId: string]: ChatSection[];
+    }>({});
+
+    // Debug flag for enabling enhanced logging - moved up for scoping
+    const [isDebugMode, setIsDebugMode] = useState(false);
+
+    // Render counter to track re-renders
+    const renderCountRef = useRef(0);
+    renderCountRef.current += 1;
+
+    // Debug state for streaming responses
+    const [streamingResponse, setStreamingResponse] = useState('');
+    const [allStreamChunks, setAllStreamChunks] = useState<string[]>([]);
+
+    // Force re-render counter for debugging state updates
+    const [forceRenderCounter, setForceRenderCounter] = useState(0);
+
+    // Real-time streaming assembly state
+    const [jsonBuffer, setJsonBuffer] = useState('');
+    const [isAssemblingJson, setIsAssemblingJson] = useState(false);
+    const [processingStatus, setProcessingStatus] = useState<'thinking' | 'generating' | 'idle'>(
+        'idle'
+    );
+    const [processedModifications, setProcessedModifications] = useState<Modification[]>([]);
+    const [currentStreamingMessageId, setCurrentStreamingMessageId] = useState<string | null>(null);
 
     // Get current user data for avatar
     const { currentUser } = useCurrentUser();
+
+    // Sidebar control for collapsing after intro
+    const { setOpen: setSidebarOpen, open: sidebarOpen } = useSidebar();
+
+    // Track sidebar state changes for debugging if needed
+    // useEffect(() => {
+    //     console.log('📊 Sidebar state from hook changed:', { sidebarOpen });
+    // }, [sidebarOpen]);
 
     // Use props if provided, otherwise use local state
     const messages = propMessages ?? localMessages;
     const setMessages = propSetMessages ?? setLocalMessages;
     const isLoading = propIsLoading ?? localIsLoading;
     const setIsLoading = propSetIsLoading ?? setLocalIsLoading;
+    const messageSections = propMessageSections ?? localMessageSections;
+    const setMessageSections = propSetMessageSections ?? setLocalMessageSections;
+
+    // Initialize cinematic intro based on messages - only show if no messages exist
+    useEffect(() => {
+        const hasMessages = messages.length > 0;
+        setShowCinematicIntro(!hasMessages);
+
+        if (isDebugMode) {
+            console.log(
+                `📺 ChatView (${isFullScreen ? 'FULLSCREEN' : 'SPLIT'}) - Messages updated:`,
+                {
+                    messageCount: messages.length,
+                    propMessages: propMessages?.length || 'undefined',
+                    localMessages: localMessages.length,
+                    showingWelcome: !hasMessages,
+                }
+            );
+        }
+    }, [messages.length, isDebugMode, isFullScreen, propMessages?.length, localMessages.length]);
+
+    // Monitor messageSections state changes
+    useEffect(() => {
+        if (isDebugMode) {
+            const totalSections = Object.values(messageSections).reduce(
+                (sum, sections) => sum + sections.length,
+                0
+            );
+            console.log(`📊 MESSAGE SECTIONS STATE UPDATED:`, {
+                messageIds: Object.keys(messageSections),
+                totalSections,
+                forceRenderCounter,
+                sectionsDetail: Object.entries(messageSections).map(([id, sections]) => ({
+                    messageId: id,
+                    sectionCount: sections.length,
+                    types: sections.map((s) => s.type),
+                })),
+            });
+        }
+    }, [messageSections, forceRenderCounter, isDebugMode]);
+
+    // Real-time message content updates during streaming (now handled directly in processing)
     const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
     const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
     const [editingContent, setEditingContent] = useState<string>('');
@@ -261,6 +360,10 @@ const ChatView: React.FC<ChatViewProps> = ({
     const [contextSearchQuery, setContextSearchQuery] = useState('');
     const [selectedContextOptions, setSelectedContextOptions] = useState<string[]>([]);
     const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+    const [showCinematicIntro, setShowCinematicIntro] = useState(false);
+    const [introPhase, setIntroPhase] = useState(0); // 0: initial, 1: logo, 2: text, 3: complete
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [hasCollapsedSidebar, setHasCollapsedSidebar] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -369,16 +472,196 @@ const ChatView: React.FC<ChatViewProps> = ({
         }
     }, [messages, scrollToBottomIfAtBottom, forceScrollToBottom]);
 
+    // Cinematic intro timing
+    useEffect(() => {
+        if (!showCinematicIntro) return;
+
+        const timers = [
+            // Phase 1: Show logo after 500ms
+            setTimeout(() => setIntroPhase(1), 500),
+            // Phase 2: Show text after 1.5s
+            setTimeout(() => setIntroPhase(2), 1500),
+            // Phase 3: Complete intro after 3.5s
+            setTimeout(() => setIntroPhase(3), 3500),
+            // Hide intro after 4s
+            setTimeout(() => setShowCinematicIntro(false), 4000),
+        ];
+
+        return () => timers.forEach((timer) => clearTimeout(timer));
+    }, [showCinematicIntro]);
+
+    // Initialize sidebar state for AI course creator - ONLY on mount
+    useEffect(() => {
+        setSidebarOpen(true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Empty dependency array - only run on mount
+
+    // Separate effect to handle sidebar collapse when intro ends
+    useEffect(() => {
+        if (showCinematicIntro || hasCollapsedSidebar) {
+            return;
+        }
+
+        const collapseTimer = setTimeout(() => {
+            setSidebarOpen(false);
+            setSidebarCollapsed(true);
+            setHasCollapsedSidebar(true); // Mark that we've handled the collapse AFTER it happens
+            // Remove animation class after animation completes
+            setTimeout(() => setSidebarCollapsed(false), 500);
+        }, 500); // Small delay after intro ends
+
+        return () => clearTimeout(collapseTimer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [showCinematicIntro, hasCollapsedSidebar]); // Only depend on these two state values
+
     // Set initial textarea height on mount
     useEffect(() => {
+        console.log(`🚀 ChatView (${isFullScreen ? 'FULLSCREEN' : 'SPLIT'}) mounted:`, {
+            propMessagesLength: propMessages?.length || 'undefined',
+            localMessagesLength: localMessages.length,
+            isLoading: isLoading,
+            hasOnChatStart: !!onChatStart,
+        });
+
+        if (isDebugMode) {
+            console.log('🔍 Debug mode:', isDebugMode);
+            console.log('📦 Message sections state:', messageSections);
+        }
         resetTextareaHeight();
 
         // Make test function available in console for debugging (only once)
-        if (typeof window !== 'undefined' && !(window as any).testApiCall) {
-            (window as any).testApiCall = testApiEndpoint;
-            console.log('🔧 Debug tool: Run "window.testApiCall()" in console to test API');
+        interface WindowWithTestApi extends Window {
+            testApiCall?: typeof testApiEndpoint;
+            enableChatDebug?: () => void;
+            disableChatDebug?: () => void;
+            simulateLastResponse?: () => void;
         }
-    }, []);
+        const windowWithTestApi = window as WindowWithTestApi;
+
+        if (typeof window !== 'undefined' && !windowWithTestApi.testApiCall) {
+            windowWithTestApi.testApiCall = testApiEndpoint;
+            windowWithTestApi.enableChatDebug = () => {
+                setIsDebugMode(true);
+                console.log('🐛 Chat debug mode enabled');
+            };
+            windowWithTestApi.disableChatDebug = () => {
+                setIsDebugMode(false);
+                console.log('🐛 Chat debug mode disabled');
+            };
+
+            // Add direct state inspection
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (window as any).chatDebugTools = {
+                getCurrentMessages: () => {
+                    console.log(
+                        `💬 ChatView (${isFullScreen ? 'FULLSCREEN' : 'SPLIT'}) Current messages:`,
+                        messages.length
+                    );
+                    console.log('📋 Message sections:', messageSections);
+                    console.log('🎯 Current streaming ID:', currentStreamingMessageId);
+                    console.log('🔄 Is loading:', isLoading);
+                    console.log('🔍 Using props or local state:', propMessages ? 'PROPS' : 'LOCAL');
+                    console.log('🔍 PropMessages length:', propMessages?.length || 'N/A');
+                    console.log('🔍 LocalMessages length:', localMessages.length);
+                    return {
+                        chatViewType: isFullScreen ? 'FULLSCREEN' : 'SPLIT',
+                        messages,
+                        messageSections,
+                        currentStreamingMessageId,
+                        isLoading,
+                        propMessages,
+                        localMessages,
+                    };
+                },
+                testSimpleMessage: () => {
+                    console.log('🧪 Testing simple message addition...');
+                    console.log('🔍 Before - messages.length:', messages.length);
+                    console.log(
+                        '🔍 Before - using setMessages:',
+                        setMessages === setLocalMessages ? 'LOCAL' : 'PROPS'
+                    );
+
+                    const testMsg = {
+                        id: 'test-' + Date.now(),
+                        type: 'user' as const,
+                        content: 'Test message',
+                        timestamp: new Date(),
+                        status: 'sent' as const,
+                    };
+
+                    setMessages((prev) => {
+                        console.log('🔍 setMessages callback - prev.length:', prev.length);
+                        const newArray = [...prev, testMsg];
+                        console.log('🔍 setMessages callback - new.length:', newArray.length);
+                        return newArray;
+                    });
+
+                    console.log('✅ Test message added');
+
+                    // Force a re-check after a brief delay
+                    setTimeout(() => {
+                        console.log('🔍 After 100ms - messages.length:', messages.length);
+                    }, 100);
+                },
+                forceReRender: () => {
+                    console.log('🔄 Forcing component re-render...');
+                    // Force a state update that should trigger re-render
+                    setIsDebugMode((prev) => !prev);
+                    setTimeout(() => setIsDebugMode((prev) => !prev), 10);
+                },
+                hideWelcome: () => {
+                    console.log('🙈 Hiding welcome overlay...');
+                    setShowCinematicIntro(false);
+                    // Force user message count by adding a dummy message if needed
+                    if (messages.length === 0) {
+                        setMessages([
+                            {
+                                id: 'dummy-user-' + Date.now(),
+                                type: 'user',
+                                content: 'Debug: Hide welcome',
+                                timestamp: new Date(),
+                                status: 'sent',
+                            },
+                        ]);
+                    }
+                },
+            };
+            windowWithTestApi.simulateLastResponse = () => {
+                const latest = responseCapture.getLatestResponse();
+                if (latest) {
+                    console.log('🎬 Simulating latest captured response...');
+                    latest.chunks.forEach((chunk, index) => {
+                        setTimeout(() => {
+                            processStreamingChunkDirect(chunk, currentStreamingMessageId || 'test');
+                        }, index * 50);
+                    });
+                } else {
+                    console.log('❌ No captured responses available');
+                    console.log('🧪 Using mock response instead...');
+                    if (currentStreamingMessageId) {
+                        simulateStreamingResponse(
+                            (chunk) =>
+                                processStreamingChunkDirect(chunk, currentStreamingMessageId!),
+                            () => console.log('✅ Mock simulation complete'),
+                            50
+                        );
+                    }
+                }
+            };
+
+            console.log('🔧 Debug tools available:');
+            console.log('  - window.testApiCall() - Test API connection');
+            console.log('  - window.enableChatDebug() - Enable detailed logging');
+            console.log('  - window.disableChatDebug() - Disable detailed logging');
+            console.log('  - window.simulateLastResponse() - Replay last response');
+            console.log('  - window.chatDebugTools.getCurrentMessages() - Inspect current state');
+            console.log('  - window.chatDebugTools.testSimpleMessage() - Add test message');
+            console.log('  - window.chatDebugTools.forceReRender() - Force component re-render');
+            console.log('  - window.chatDebugTools.hideWelcome() - Hide welcome overlay');
+            console.log('🌐 Dev server: http://localhost:5175');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Mount-only effect for setting up console debugging tools
 
     // Click outside handler for model dropdown
     useEffect(() => {
@@ -436,12 +719,23 @@ const ChatView: React.FC<ChatViewProps> = ({
 
         setMessages((prev) => {
             const newMessages = [...prev, userMessage];
+
             // Trigger chat start callback if this is the first message
             if (newMessages.length === 1 && onChatStart) {
                 setTimeout(onChatStart, 100); // Small delay to ensure state update
             }
             return newMessages;
         });
+
+        // Hide cinematic intro when first message is sent
+        if (showCinematicIntro) {
+            setShowCinematicIntro(false);
+            setHasCollapsedSidebar(true); // Mark that we've handled the collapse via user action
+            // Also collapse the sidebar immediately since user is interacting
+            setSidebarOpen(false);
+            setSidebarCollapsed(true);
+            setTimeout(() => setSidebarCollapsed(false), 500);
+        }
         setPrompt('');
         setUploadedFiles([]);
         setCodePrompt({
@@ -455,26 +749,77 @@ const ChatView: React.FC<ChatViewProps> = ({
         resetTextareaHeight();
         setIsLoading(true);
 
-        // Gemini API integration removed – simulate AI response locally
-        setTimeout(() => {
-            const resp = generateMockResponse(
-                userMessage.content,
-                userMessage.attachments,
-                userMessage.structuredPrompt
-            );
+        // Real streaming API integration
+        try {
+            // Create a placeholder message that will be updated as streaming progresses
             const aiMessage: Message = {
                 id: (Date.now() + 1).toString(),
                 type: 'ai',
-                content: resp.text,
-                showTodoList: resp.showTodoList,
+                content: '🔄 **Connecting to AI...**',
                 timestamp: new Date(),
                 status: 'sent',
             };
+
+            if (isDebugMode) {
+                chatDebugger.startDebugging(aiMessage.id);
+                chatDebugger.debugMessageCreation(aiMessage.id, aiMessage);
+            }
+
             setMessages((prev) => [...prev, aiMessage]);
-            // Attempt to parse structured payload (modifications/todos)
-            tryProcessStructuredPayload(resp.text);
+
+            // Track the streaming message for real-time updates
+            const messageId = aiMessage.id;
+            if (isDebugMode) {
+                console.log('🎯 Setting currentStreamingMessageId:', messageId);
+            }
+            setCurrentStreamingMessageId(messageId);
+            setJsonBuffer('');
+            jsonBufferRef.current = ''; // Reset ref too
+            setIsAssemblingJson(false);
+            setProcessingStatus('idle');
+
+            // Start response capture
+            responseCapture.startCapture(userMessage.content, selectedModel);
+
+            // Start streaming with message ID captured in closure
+            await sendStreamingMessage(
+                userMessage.content,
+                userMessage.attachments,
+                userMessage.structuredPrompt,
+                messageId // Pass messageId directly
+            );
+
+            // Add completion message if no content was added
+            setMessages((prev) =>
+                prev.map((msg) =>
+                    msg.id === aiMessage.id && !msg.content.trim()
+                        ? { ...msg, content: '✅ **Course structure generated successfully!**' }
+                        : msg
+                )
+            );
+
+            // Reset streaming states
+            setCurrentStreamingMessageId(null);
+            setJsonBuffer('');
+            jsonBufferRef.current = ''; // Reset ref too
+            setIsAssemblingJson(false);
+            setProcessingStatus('idle');
+
             setIsLoading(false);
-        }, 2000);
+        } catch (error) {
+            console.error('❌ Streaming failed:', error);
+
+            // Fallback error message
+            const errorMessage: Message = {
+                id: (Date.now() + 1).toString(),
+                type: 'ai',
+                content: `⚠️ **Connection Error**\n\nSorry, I'm having trouble connecting to the AI service right now. This could be due to:\n\n- Network connectivity issues\n- Server maintenance\n- Authentication problems\n\nPlease try again in a moment, or check your connection settings.`,
+                timestamp: new Date(),
+                status: 'sent',
+            };
+            setMessages((prev) => [...prev, errorMessage]);
+            setIsLoading(false);
+        }
     };
 
     const startEditingMessage = (msg: Message) => {
@@ -511,103 +856,791 @@ const ChatView: React.FC<ChatViewProps> = ({
         setEditingMessageId(null);
         setEditingContent('');
 
-        // trigger new AI response
+        // trigger new AI response with streaming
         setIsLoading(true);
-        setTimeout(() => {
-            const aiMsg: Message = {
-                id: Date.now().toString(),
-                type: 'ai',
-                content: generateMockResponse(editingContent).text,
-                timestamp: new Date(),
-                status: 'sent',
-            };
-            setMessages((prev) => [...prev, aiMsg]);
-            tryProcessStructuredPayload(aiMsg.content);
-            setIsLoading(false);
-        }, 1500);
+
+        (async () => {
+            try {
+                const aiMsg: Message = {
+                    id: Date.now().toString(),
+                    type: 'ai',
+                    content: '',
+                    timestamp: new Date(),
+                    status: 'sent',
+                };
+                setMessages((prev) => [...prev, aiMsg]);
+
+                await sendStreamingMessage(editingContent, undefined, undefined, aiMsg.id);
+
+                // Update message with streaming response
+                setMessages((prev) =>
+                    prev.map((msg) =>
+                        msg.id === aiMsg.id ? { ...msg, content: streamingResponse } : msg
+                    )
+                );
+
+                setIsLoading(false);
+            } catch (error) {
+                console.error('❌ Edit streaming failed:', error);
+                setIsLoading(false);
+            }
+        })();
     };
 
-    interface MockResp {
-        text: string;
-        showTodoList?: boolean;
-    }
-
-    const generateMockResponse = (
+    // Real-time streaming response handler
+    const sendStreamingMessage = async (
         userPrompt: string,
         attachments?: UploadedFile[],
-        structuredPrompt?: StructuredPrompt
-    ): MockResp => {
-        // If prompt references python beginner course, trigger todo flow
-        const lower = userPrompt.toLowerCase();
-        if (lower.includes('python') && lower.includes('course')) {
-            return {
-                text: `Here is your Python course overview!\n\nI've also prepared a task list to start generating slide content.`,
-                showTodoList: true,
-            };
+        structuredPrompt?: StructuredPrompt,
+        targetMessageId?: string
+    ): Promise<void> => {
+        // Reset streaming state
+        setStreamingResponse('');
+        setAllStreamChunks([]);
+
+        const apiRequest: ChatApiRequest = {
+            prompt: userPrompt,
+            model: 'google/gemini-2.5-pro', // Default model
+            attachments: attachments?.map((file) => ({
+                id: file.id,
+                name: file.name,
+                type: file.type,
+                url: file.url,
+            })),
+            codePrompt: structuredPrompt?.codePrompt,
+            conversationHistory: messages.slice(-10).map((msg) => ({
+                role: msg.type === 'user' ? 'user' : 'assistant',
+                content: msg.content,
+            })),
+        };
+
+        if (isDebugMode) {
+            chatDebugger.debugStreamingStart(apiRequest);
         }
 
-        let text = `🎯 **Course Generation Plan**\n\nBased on your request: "${userPrompt}"\n\n`;
+        return new Promise<void>((resolve, reject) => {
+            let chunkIndex = 0;
+            sendChatMessageStreaming(
+                apiRequest,
+                // onChunk callback - called for each streaming chunk
+                (chunk: string) => {
+                    if (isDebugMode) {
+                        console.log('📡 AI Backend - Streaming chunk received:', chunk);
+                        chatDebugger.debugChunkReceived(chunk, chunkIndex++);
+                    }
 
-        if (attachments && attachments.length > 0) {
-            text += `📎 **Uploaded Files Analysis**\n`;
-            attachments.forEach((file) => {
-                text += `- ${file.name} (${file.type.toUpperCase()}) - ${Math.round(file.size / 1024)}KB\n`;
-            });
-            text += `\nI'll incorporate these files into the course content.\n\n`;
-        }
+                    // Capture for debugging/testing
+                    responseCapture.captureChunk(chunk);
 
-        if (structuredPrompt?.codePrompt) {
-            text += `💻 **Code Integration**\n`;
-            text += `- Language: ${structuredPrompt.codePrompt.language}\n`;
-            text += `- Interactive: ${structuredPrompt.codePrompt.canEdit ? 'Yes' : 'No'}\n`;
-            text += `- Executable: ${structuredPrompt.codePrompt.canRun ? 'Yes' : 'No'}\n`;
-            text += `- Description: ${structuredPrompt.codePrompt.description}\n\n`;
-        }
+                    // Update debug state first (this should never fail)
+                    try {
+                        setAllStreamChunks((prev) => [...prev, chunk]);
+                        setStreamingResponse((prev) => prev + chunk);
+                    } catch (debugError) {
+                        console.warn('⚠️ Debug state update failed:', debugError);
+                    }
 
-        text += `I'll create a comprehensive course structure with the following components:
+                    // Process chunk immediately - use targetMessageId directly if available
+                    const messageIdToUse = targetMessageId || currentStreamingMessageId;
 
-📚 **Course Overview**
-- Target audience analysis
-- Learning objectives and outcomes
-- Prerequisites and requirements
-- Estimated completion time
+                    if (isDebugMode) {
+                        console.log('🚀 Processing chunk immediately...');
+                        console.log('🎯 Using message ID:', messageIdToUse);
+                        console.log('📝 Chunk content preview:', chunk.substring(0, 100));
+                    }
 
-🏗️ **Module Structure**
-- Module 1: Introduction and Fundamentals
-- Module 2: Core Concepts and Theory
-- Module 3: Practical Applications
-- Module 4: Advanced Topics
-- Module 5: Projects and Assessment
+                    if (chunk && messageIdToUse) {
+                        if (isDebugMode) {
+                            console.log('✅ Both chunk and messageId available, processing...');
+                        }
+                        try {
+                            processStreamingChunkDirect(chunk, messageIdToUse);
+                        } catch (error) {
+                            console.error('❌ Error in chunk processing:', error);
+                            if (isDebugMode) {
+                                chatDebugger.debugError('CHUNK_PROCESSING_ERROR', error);
+                            }
+                        }
+                    } else {
+                        console.warn('⚠️ Missing chunk or messageId:', {
+                            hasChunk: !!chunk,
+                            chunkPreview: chunk?.substring(0, 50),
+                            targetMessageId,
+                            currentStreamingMessageId,
+                            messageIdToUse,
+                        });
+                        if (isDebugMode) {
+                            chatDebugger.debugError(
+                                'MISSING_CHUNK_OR_ID',
+                                'Missing chunk or messageId'
+                            );
+                        }
+                    }
 
-📋 **Content Types**
-- Video lessons with interactive elements
-- Hands-on exercises and coding challenges
-- Downloadable resources and cheat sheets
-- Quizzes and knowledge checks
-- Final capstone project
+                    // Send to debug if available (safely)
+                    try {
+                        if (onStreamingDebug) {
+                            onStreamingDebug(chunk);
+                        }
+                    } catch (debugError) {
+                        console.warn('⚠️ Debug callback failed:', debugError);
+                    }
+                },
+                // onComplete callback - called when streaming is finished
+                (finalResponse: ChatApiResponse) => {
+                    if (isDebugMode) {
+                        console.log('✅ AI Backend - Streaming complete:', finalResponse);
+                    }
+                    setStreamingResponse(finalResponse.content);
 
-⚡ **Next Steps**
-I can now generate specific content for any module or create detailed assessments. What would you like me to focus on first?`;
-        return { text };
+                    // Finish response capture
+                    responseCapture.finishCapture();
+
+                    // Send final response to debug
+                    if (onStreamingDebug) {
+                        onStreamingDebug('', finalResponse.content);
+                    }
+
+                    // Try to process structured data from the response
+                    tryProcessStructuredPayload(finalResponse.content);
+
+                    if (isDebugMode) {
+                        chatDebugger.stopDebugging();
+                    }
+                    resolve();
+                },
+                // onError callback - called if streaming fails
+                (error: Error) => {
+                    console.error('❌ Streaming error:', error);
+                    reject(error);
+                }
+            );
+        });
     };
 
-    // Helper: parse JSON (modifications/todos) from AI content
-    const tryProcessStructuredPayload = (payload: string) => {
+    // UI Components for different section types
+    const ThinkingSection: React.FC<{ section: ChatSection }> = ({ section }) => {
+        return (
+            <div className="mb-3 flex items-center gap-3 rounded-lg border-l-4 border-blue-400 bg-blue-50 p-4">
+                <div className="text-lg text-blue-600">🧠</div>
+                <div className="flex-1">
+                    <div className="font-medium text-blue-800">AI is thinking...</div>
+                    <div className="text-sm text-blue-600">{section.content}</div>
+                </div>
+            </div>
+        );
+    };
+
+    const GeneratingSection: React.FC<{ section: ChatSection }> = ({ section }) => {
+        return (
+            <div className="mb-3 flex items-center gap-3 rounded-lg border-l-4 border-purple-400 bg-purple-50 p-4">
+                <div className="animate-pulse text-lg text-purple-600">⚡</div>
+                <div className="flex-1">
+                    <div className="font-medium text-purple-800">Generating structure...</div>
+                    <div className="text-sm text-purple-600">{section.content}</div>
+                </div>
+            </div>
+        );
+    };
+
+    const ModificationSection: React.FC<{ section: ChatSection }> = ({ section }) => {
+        const { targetType, name, modificationType } = section.metadata || {};
+
+        const getIcon = (type: string) => {
+            switch (type) {
+                case 'COURSE':
+                    return '📚';
+                case 'MODULE':
+                    return '📂';
+                case 'CHAPTER':
+                    return '📖';
+                case 'SLIDE':
+                    return '📄';
+                default:
+                    return '✨';
+            }
+        };
+
+        const getStyles = (type: string) => {
+            switch (type) {
+                case 'COURSE':
+                    return {
+                        container: 'bg-emerald-50 border-emerald-400',
+                        icon: 'text-emerald-600',
+                        title: 'text-emerald-800',
+                        name: 'text-emerald-700',
+                        subtitle: 'text-emerald-600',
+                        timestamp: 'text-emerald-500',
+                    };
+                case 'MODULE':
+                    return {
+                        container: 'bg-blue-50 border-blue-400',
+                        icon: 'text-blue-600',
+                        title: 'text-blue-800',
+                        name: 'text-blue-700',
+                        subtitle: 'text-blue-600',
+                        timestamp: 'text-blue-500',
+                    };
+                case 'CHAPTER':
+                    return {
+                        container: 'bg-orange-50 border-orange-400',
+                        icon: 'text-orange-600',
+                        title: 'text-orange-800',
+                        name: 'text-orange-700',
+                        subtitle: 'text-orange-600',
+                        timestamp: 'text-orange-500',
+                    };
+                case 'SLIDE':
+                    return {
+                        container: 'bg-purple-50 border-purple-400',
+                        icon: 'text-purple-600',
+                        title: 'text-purple-800',
+                        name: 'text-purple-700',
+                        subtitle: 'text-purple-600',
+                        timestamp: 'text-purple-500',
+                    };
+                default:
+                    return {
+                        container: 'bg-gray-50 border-gray-400',
+                        icon: 'text-gray-600',
+                        title: 'text-gray-800',
+                        name: 'text-gray-700',
+                        subtitle: 'text-gray-600',
+                        timestamp: 'text-gray-500',
+                    };
+            }
+        };
+
+        const styles = getStyles(targetType || '');
+
+        return (
+            <div
+                className={`mb-3 flex items-center gap-3 rounded-lg border-l-4 p-4 ${styles.container}`}
+            >
+                <div className={`text-xl ${styles.icon}`}>{getIcon(targetType || '')}</div>
+                <div className="flex-1">
+                    <div className={`font-medium ${styles.title}`}>
+                        {modificationType} {targetType}
+                    </div>
+                    <div className={`font-semibold ${styles.name}`}>{name}</div>
+                    <div className={`text-sm ${styles.subtitle}`}>Added to course structure</div>
+                </div>
+                <div className={`text-xs ${styles.timestamp}`}>
+                    {section.timestamp.toLocaleTimeString()}
+                </div>
+            </div>
+        );
+    };
+
+    const TextSection: React.FC<{ section: ChatSection }> = ({ section }) => {
+        return <div className="mb-2 leading-relaxed text-gray-800">{section.content}</div>;
+    };
+
+    const JsonSection: React.FC<{ section: ChatSection }> = ({ section }) => {
+        const [isExpanded, setIsExpanded] = useState(false);
+
+        return (
+            <div className="mb-3 rounded-lg border bg-gray-50">
+                <button
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="flex w-full items-center justify-between rounded-lg p-3 text-left hover:bg-gray-100"
+                >
+                    <div className="flex items-center gap-2">
+                        <span className="text-gray-600">🔧</span>
+                        <span className="font-medium text-gray-800">View JSON Data</span>
+                    </div>
+                    <span
+                        className={`text-gray-500 transition-transform${isExpanded ? 'rotate-180' : ''}`}
+                    >
+                        ▼
+                    </span>
+                </button>
+                {isExpanded && (
+                    <div className="rounded-b-lg border-t bg-gray-900 p-3">
+                        <pre className="overflow-x-auto text-xs text-green-400">
+                            {JSON.stringify(JSON.parse(section.content), null, 2)}
+                        </pre>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    // Component to render structured message content
+    const StructuredMessageContent: React.FC<{
+        messageId: string;
+        sections: ChatSection[];
+    }> = ({ messageId, sections }) => {
+        if (isDebugMode) {
+            console.log(`🎨 RENDER: StructuredMessageContent for ${messageId}:`, {
+                sectionsCount: sections.length,
+                messageInSections: !!messageSections[messageId],
+                allMessageIds: Object.keys(messageSections),
+                sectionsInState: messageSections[messageId]?.length || 0,
+                sectionsProp: sections.length,
+            });
+            chatDebugger.debugUIRender(messageId, sections);
+        }
+
+        if (sections.length === 0) {
+            if (isDebugMode) {
+                console.log(
+                    `❌ RENDER FALLBACK: No sections for ${messageId}, using fallback content`
+                );
+            }
+            // Fallback to original message content if no sections
+            const message = messages.find((m) => m.id === messageId);
+            return message?.content ? (
+                <div className="leading-relaxed text-gray-800">{message.content}</div>
+            ) : (
+                <div className="italic text-gray-400">No content available</div>
+            );
+        }
+
+        return (
+            <div className="space-y-2">
+                {sections.map((section) => {
+                    switch (section.type) {
+                        case 'thinking':
+                            return <ThinkingSection key={section.id} section={section} />;
+                        case 'generating':
+                            return <GeneratingSection key={section.id} section={section} />;
+                        case 'modification':
+                            return <ModificationSection key={section.id} section={section} />;
+                        case 'text':
+                            return <TextSection key={section.id} section={section} />;
+                        case 'json':
+                            return <JsonSection key={section.id} section={section} />;
+                        default:
+                            return <TextSection key={section.id} section={section} />;
+                    }
+                })}
+            </div>
+        );
+    };
+
+    // Helper function to add sections to messages with improved state management
+    const addMessageSection = React.useCallback(
+        (messageId: string, section: ChatSection) => {
+            console.log(`🚀 ENTRY: addMessageSection called for ${messageId}`, {
+                type: section.type,
+                content: section.content.substring(0, 50),
+                id: section.id,
+                currentStateKeys: Object.keys(messageSections),
+            });
+
+            if (isDebugMode) {
+                console.log(`➕ Adding section to message ${messageId}:`, {
+                    type: section.type,
+                    content: section.content.substring(0, 50),
+                    id: section.id,
+                });
+            }
+
+            try {
+                console.log(`🔧 BEFORE setMessageSections call for ${messageId}`);
+                setMessageSections((prev) => {
+                    console.log(`🔧 INSIDE setMessageSections callback for ${messageId}`, {
+                        prevKeys: Object.keys(prev),
+                        prevSectionsForMessage: prev[messageId]?.length || 0,
+                    });
+
+                    const currentSections = prev[messageId] || [];
+                    const newSections = [...currentSections, section];
+
+                    if (isDebugMode) {
+                        console.log(
+                            `📝 Updated sections for ${messageId}:`,
+                            newSections.length,
+                            'total sections'
+                        );
+                        chatDebugger.debugSectionAdd(messageId, section, newSections.length);
+                    }
+
+                    const newState = {
+                        ...prev,
+                        [messageId]: newSections,
+                    };
+
+                    console.log(`🔧 RETURNING newState for ${messageId}`, {
+                        newStateKeys: Object.keys(newState),
+                        sectionsForMessage: newState[messageId]?.length || 0,
+                    });
+
+                    // Force immediate component re-render to ensure UI updates
+                    setTimeout(() => {
+                        console.log(
+                            `🔧 TIMEOUT: About to increment force render counter for ${messageId}`
+                        );
+                        setForceRenderCounter((c) => {
+                            console.log(`🔧 INSIDE setForceRenderCounter: ${c} -> ${c + 1}`);
+                            return c + 1;
+                        });
+                        if (isDebugMode) {
+                            console.log(
+                                `🔄 FORCE RE-RENDER: Counter incremented to trigger UI update for ${messageId}`
+                            );
+                        }
+                    }, 0);
+
+                    return newState;
+                });
+                console.log(`🔧 AFTER setMessageSections call for ${messageId}`);
+            } catch (error) {
+                console.error(`❌ CRITICAL ERROR adding section to message ${messageId}:`, error);
+                console.error('❌ Stack trace:', (error as Error).stack);
+                console.error('❌ Section data:', { messageId, section });
+                if (isDebugMode) {
+                    chatDebugger.debugError('SECTION_ADD_ERROR', error);
+                }
+            }
+        },
+        [isDebugMode, setMessageSections, setForceRenderCounter, messageSections]
+    );
+
+    // Update chat display with modification cards
+    const updateChatWithModifications = React.useCallback(
+        (modifications: Modification[]) => {
+            if (isDebugMode) {
+                console.log(
+                    '💬 AI Backend - updateChatWithModifications called with',
+                    modifications.length,
+                    'modifications'
+                );
+            }
+
+            if (currentStreamingMessageId && modifications.length > 0) {
+                // Create a modification section for each modification
+                modifications.forEach((mod) => {
+                    addMessageSection(currentStreamingMessageId, {
+                        id: `modification-${mod.node?.id || Date.now()}`,
+                        type: 'modification',
+                        content: `${mod.action} ${mod.targetType}`,
+                        timestamp: new Date(),
+                        metadata: {
+                            modificationType: mod.action,
+                            targetType: mod.targetType,
+                            name: mod.node?.name || 'Unnamed',
+                            modifications: [mod],
+                        },
+                    });
+                });
+
+                // Add JSON section with the modifications data
+                addMessageSection(currentStreamingMessageId, {
+                    id: `json-${Date.now()}`,
+                    type: 'json',
+                    content: JSON.stringify({ modifications }, null, 2),
+                    timestamp: new Date(),
+                    metadata: {
+                        modifications,
+                    },
+                });
+            }
+        },
+        [currentStreamingMessageId, addMessageSection, isDebugMode]
+    );
+
+    // Debounced modification application
+    const debouncedApplyModifications = React.useMemo(() => {
+        let timeoutId: NodeJS.Timeout;
+        return (modifications: Modification[]) => {
+            if (isDebugMode) {
+                console.log(
+                    '⏰ AI Backend - Debounced apply called with',
+                    modifications.length,
+                    'modifications'
+                );
+            }
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                if (isDebugMode) {
+                    console.log('🎬 AI Backend - Executing debounced modifications after timeout');
+                }
+
+                // Filter out duplicates
+                const uniqueModifications = modifications.filter(
+                    (mod) =>
+                        !processedModifications.some(
+                            (existing) =>
+                                existing.node?.id === mod.node?.id && existing.action === mod.action
+                        )
+                );
+
+                if (isDebugMode) {
+                    console.log(
+                        '🔍 AI Backend - Filtered to',
+                        uniqueModifications.length,
+                        'unique modifications'
+                    );
+                }
+
+                if (uniqueModifications.length > 0) {
+                    setProcessedModifications((prev) => [...prev, ...uniqueModifications]);
+
+                    // Apply to course structure with animation
+                    if (onModifications) {
+                        if (isDebugMode) {
+                            console.log('🎯 AI Backend - Calling onModifications callback');
+                        }
+                        onModifications(uniqueModifications);
+                    }
+
+                    // Update chat display with visual modifications
+                    updateChatWithModifications(uniqueModifications);
+                }
+            }, 100); // 100ms debounce
+        };
+    }, [processedModifications, onModifications, updateChatWithModifications, isDebugMode]);
+
+    // Extract complete modifications as soon as they're available
+    const tryExtractCompleteModifications = React.useCallback(
+        (buffer: string) => {
+            try {
+                // Clean the buffer - remove data: prefixes and extra whitespace
+                const cleanBuffer = buffer
+                    .replace(/data:/g, '')
+                    .replace(/```json/g, '')
+                    .replace(/```/g, '')
+                    .trim();
+
+                // Look for complete JSON blocks containing modifications
+                // First try to find complete modifications array
+                const modificationsArrayMatch = cleanBuffer.match(
+                    /\{\s*"modifications"\s*:\s*\[([\s\S]*?)\]\s*\}/
+                );
+                let matches: RegExpMatchArray[] = [];
+
+                if (modificationsArrayMatch && modificationsArrayMatch[1]) {
+                    // Extract individual modifications from the array
+                    const modificationsContent = modificationsArrayMatch[1];
+                    const modificationRegex = /\{\s*"action"[\s\S]*?\}/g;
+                    matches = [...modificationsContent.matchAll(modificationRegex)];
+                } else {
+                    // Fallback: look for individual modification objects
+                    const modificationRegex = /\{\s*"action"[\s\S]*?\}/g;
+                    matches = [...cleanBuffer.matchAll(modificationRegex)];
+                }
+
+                const newModifications: Modification[] = [];
+
+                for (const match of matches) {
+                    try {
+                        const modificationStr = match[0];
+
+                        // Try to parse the modification object
+                        const modification = JSON.parse(modificationStr);
+
+                        if (isDebugMode) {
+                            console.log('✅ AI Backend - Parsed modification:', modification);
+                        }
+
+                        // Validate required fields (be more lenient for streaming)
+                        if (
+                            modification.action &&
+                            modification.targetType &&
+                            (modification.node || modification.name)
+                        ) {
+                            newModifications.push(modification);
+                            if (isDebugMode) {
+                                console.log(
+                                    '✅ AI Backend - Added valid modification:',
+                                    modification.targetType,
+                                    modification.node?.name || modification.name
+                                );
+                            }
+                        }
+                    } catch (parseError) {
+                        // Ignore incomplete or malformed modifications - silent fail for streaming
+                    }
+                }
+
+                // Apply new modifications immediately with debouncing
+                if (newModifications.length > 0) {
+                    if (isDebugMode) {
+                        console.log(
+                            '🚀 AI Backend - Applying',
+                            newModifications.length,
+                            'modifications'
+                        );
+                    }
+                    debouncedApplyModifications(newModifications);
+                }
+            } catch (error) {
+                // Ignore buffer parsing errors - probably incomplete JSON - silent fail for streaming
+            }
+        },
+        [debouncedApplyModifications, isDebugMode]
+    );
+
+    // Enhanced message structure for better UI - now imported from types
+
+    // Refs to prevent stale closures in streaming functions
+    const jsonBufferRef = useRef<string>('');
+
+    // Enhanced processing function with structured content
+    const processStreamingChunkDirect = (chunk: string, messageId: string) => {
         try {
-            // Find first '{' and last '}' to extract JSON
-            const start = payload.indexOf('{');
-            const end = payload.lastIndexOf('}');
-            if (start === -1 || end === -1) return;
-            const jsonStr = payload.slice(start, end + 1);
-            const data = JSON.parse(jsonStr);
-            if (data?.modifications && Array.isArray(data.modifications) && onModifications) {
-                onModifications(data.modifications as any);
+            // Clean the chunk
+            const cleanChunk = chunk.replace(/^data:/, '').trim();
+
+            if (!cleanChunk) {
+                return;
             }
-            if (data?.todos && Array.isArray(data.todos) && onTodos) {
-                onTodos(data.todos);
+
+            // Accumulate chunks for better pattern detection
+            setJsonBuffer((prevBuffer) => {
+                const newBuffer = prevBuffer + cleanChunk + ' ';
+                jsonBufferRef.current = newBuffer; // Keep ref in sync
+                return newBuffer;
+            });
+
+            // Detect thinking sections (check both chunk and accumulated buffer)
+            const fullContent = jsonBufferRef.current;
+            const hasThinking =
+                chunk.includes('[Thinking...]') ||
+                cleanChunk.includes('[Thinking...]') ||
+                fullContent.includes('[Thinking...]') ||
+                cleanChunk.includes('🤔');
+
+            if (hasThinking && processingStatus !== 'thinking') {
+                setProcessingStatus('thinking');
+                addMessageSection(messageId, {
+                    id: `thinking-${Date.now()}`,
+                    type: 'thinking',
+                    content: 'AI is analyzing and planning the course structure...',
+                    timestamp: new Date(),
+                });
+                return;
             }
-        } catch (err) {
-            // silent – invalid JSON
+
+            // Detect generating sections
+            const hasGenerating =
+                chunk.includes('[Generating...]') ||
+                cleanChunk.includes('[Generating...]') ||
+                fullContent.includes('[Generating...]') ||
+                chunk.includes('[Generating') ||
+                cleanChunk.includes('[Generating') ||
+                cleanChunk.includes('⚡');
+
+            if (hasGenerating && processingStatus !== 'generating') {
+                setProcessingStatus('generating');
+                addMessageSection(messageId, {
+                    id: `generating-${Date.now()}`,
+                    type: 'generating',
+                    content: 'Generating course structure components...',
+                    timestamp: new Date(),
+                });
+                return;
+            }
+
+            // Handle JSON data chunks (safely)
+            if (
+                chunk.includes('```json') ||
+                chunk.includes('{') ||
+                chunk.includes('"modifications"')
+            ) {
+                setIsAssemblingJson(true);
+            }
+
+            // Accumulate JSON buffer (with error handling)
+            setJsonBuffer((prev) => {
+                try {
+                    const newBuffer = prev + chunk;
+                    jsonBufferRef.current = newBuffer; // Keep ref in sync
+
+                    // Try to extract and parse complete modification objects (safely)
+                    try {
+                        tryExtractCompleteModifications(newBuffer);
+                    } catch (extractError) {
+                        // Silent fail for streaming
+                    }
+
+                    return newBuffer;
+                } catch (bufferError) {
+                    return prev;
+                }
+            });
+
+            // Add regular text content
+            const shouldAddText =
+                cleanChunk &&
+                !chunk.includes('```') &&
+                !cleanChunk.includes('[Thinking...]') &&
+                !cleanChunk.includes('[Generating...]') &&
+                !cleanChunk.includes('🤔') &&
+                !cleanChunk.includes('⚡');
+
+            if (isDebugMode) {
+                console.log('🔍 Text content check:', {
+                    cleanChunk: cleanChunk?.substring(0, 50),
+                    hasCleanChunk: !!cleanChunk,
+                    hasJson: chunk.includes('```'),
+                    hasThinking: cleanChunk?.includes('[Thinking...]'),
+                    hasGenerating: cleanChunk?.includes('[Generating...]'),
+                    shouldAddText,
+                });
+            }
+
+            if (shouldAddText) {
+                if (isDebugMode) {
+                    console.log('📝 Adding text section:', cleanChunk.substring(0, 50));
+                }
+                addMessageSection(messageId, {
+                    id: `text-${Date.now()}`,
+                    type: 'text',
+                    content: cleanChunk,
+                    timestamp: new Date(),
+                });
+            }
+        } catch (error) {
+            console.error('❌ Critical error in processStreamingChunkDirect (continuing):', error);
+        }
+    };
+
+    // Auto-scroll when new sections are added
+    useEffect(() => {
+        if (Object.keys(messageSections).length > 0) {
+            // Small delay to ensure DOM has updated
+            setTimeout(() => {
+                scrollToBottomIfAtBottom();
+            }, 100);
+        }
+    }, [messageSections, scrollToBottomIfAtBottom]);
+
+    // Legacy function for backward compatibility (now unused)
+    const processStreamingChunk = React.useCallback((chunk: string) => {
+        console.log('🔧 Legacy processStreamingChunk called (should not happen)');
+    }, []);
+
+    // Get appropriate icon for modification type
+    const getModificationIcon = (targetType: string): string => {
+        switch (targetType) {
+            case 'COURSE':
+                return '🎓';
+            case 'MODULE':
+                return '📚';
+            case 'CHAPTER':
+                return '📖';
+            case 'SLIDE':
+                return '📄';
+            default:
+                return '📌';
+        }
+    };
+
+    // Process final response payload for any remaining structured data
+    const tryProcessStructuredPayload = (payload: string) => {
+        // Only process if we have a current streaming message ID
+        if (currentStreamingMessageId) {
+            try {
+                // Extract any remaining modifications from the final payload
+                tryExtractCompleteModifications(payload);
+            } catch (error) {
+                if (isDebugMode) {
+                    console.log('⚠️ AI Backend - Final payload processing failed:', error);
+                }
+            }
         }
     };
 
@@ -631,20 +1664,140 @@ I can now generate specific content for any module or create detailed assessment
     };
 
     const handleExampleSelect = (example: string) => {
+        console.log('🎯 EXAMPLE CLICKED:', example);
+        console.log('🔍 Current message count before:', messages.length);
+        console.log('🔍 Using setMessages:', setMessages === setLocalMessages ? 'LOCAL' : 'PROPS');
+
         setPrompt(example);
         textareaRef.current?.focus();
+
+        // Auto-send the example prompt after setting it
         setTimeout(() => {
-            const el = textareaRef.current;
-            if (!el) return;
-            el.style.setProperty('height', 'auto', 'important');
-            const scrollHeight = el.scrollHeight;
-            const style = window.getComputedStyle(el);
-            const minH = parseInt(style.minHeight) || 60;
-            const maxH = parseInt(style.maxHeight) || 300;
-            const newH = Math.min(Math.max(scrollHeight, minH), maxH);
-            el.style.setProperty('height', `${newH}px`, 'important');
-            el.style.setProperty('overflow-y', newH >= maxH ? 'auto' : 'hidden', 'important');
-        }, 0);
+            // Create a temporary prompt state for sending
+            const tempPrompt = example;
+
+            // Directly create and send the message without waiting for state update
+            if (!tempPrompt.trim() || isLoading) {
+                console.log('❌ Cannot send: empty prompt or loading', {
+                    hasPrompt: !!tempPrompt.trim(),
+                    isLoading,
+                });
+                return;
+            }
+
+            const userMessage = {
+                id: Date.now().toString(),
+                type: 'user' as const,
+                content: tempPrompt,
+                timestamp: new Date(),
+                status: 'sent' as const,
+            };
+
+            console.log('👤 Creating user message:', userMessage);
+
+            setMessages((prev) => {
+                console.log('👤 setMessages callback - prev.length:', prev.length);
+                const newMessages = [...prev, userMessage];
+                console.log('👤 setMessages callback - new.length:', newMessages.length);
+
+                // Trigger chat start callback if this is the first message
+                if (newMessages.length === 1 && onChatStart) {
+                    console.log('🚀 Triggering onChatStart');
+                    setTimeout(onChatStart, 100);
+                }
+                return newMessages;
+            });
+
+            // Clear the prompt and hide welcome
+            setPrompt('');
+
+            // Hide cinematic intro when first message is sent
+            if (showCinematicIntro) {
+                setShowCinematicIntro(false);
+            }
+
+            // Set loading state
+            console.log('⚡ Setting loading to true');
+            setIsLoading(true);
+
+            // Create AI placeholder message
+            const aiMessage = {
+                id: (Date.now() + 1).toString(),
+                type: 'ai' as const,
+                content: '🔄 **Connecting to AI...**',
+                timestamp: new Date(),
+                status: 'sent' as const,
+            };
+
+            console.log('🤖 Creating AI placeholder message:', aiMessage);
+
+            setMessages((prev) => {
+                console.log('🤖 setMessages callback - prev.length:', prev.length);
+                const newMessages = [...prev, aiMessage];
+                console.log('🤖 setMessages callback - new.length:', newMessages.length);
+                return newMessages;
+            });
+
+            // Now trigger the actual AI streaming (using same logic as handleSendMessage)
+            const messageId = aiMessage.id;
+            console.log('🎯 Setting currentStreamingMessageId:', messageId);
+            setCurrentStreamingMessageId(messageId);
+            setJsonBuffer('');
+            setIsAssemblingJson(false);
+            setProcessingStatus('idle');
+
+            // API request structure (copied from handleSendMessage)
+            const apiRequest = {
+                prompt: tempPrompt,
+                model: selectedModel,
+                attachments: [], // No attachments for example prompts
+                context: selectedContextOptions,
+            };
+
+            sendChatMessageStreaming(
+                apiRequest,
+                // onChunk callback
+                (chunk: string) => {
+                    if (isDebugMode) {
+                        console.log(
+                            '📡 AI Backend - Streaming chunk received from example:',
+                            chunk
+                        );
+                    }
+                    setAllStreamChunks((prev) => [...prev, chunk]);
+                    setStreamingResponse((prev) => prev + chunk);
+
+                    const messageIdToUse = messageId;
+                    try {
+                        if (chunk && messageIdToUse) {
+                            processStreamingChunkDirect(chunk, messageIdToUse);
+                        }
+                    } catch (error) {
+                        console.error('❌ Error processing chunk:', error);
+                    }
+                },
+                // onComplete callback
+                (finalResponse) => {
+                    if (isDebugMode) {
+                        console.log('✅ AI Backend - Example streaming complete:', finalResponse);
+                    }
+                    setStreamingResponse(finalResponse.content);
+                    setIsLoading(false);
+
+                    if (onStreamingDebug) {
+                        onStreamingDebug('', finalResponse.content);
+                    }
+                },
+                // onError callback
+                (error) => {
+                    console.error('❌ Example streaming error:', error);
+                    setIsLoading(false);
+                }
+            ).catch((error) => {
+                console.error('❌ Example API request failed:', error);
+                setIsLoading(false);
+            });
+        }, 100); // Small delay to ensure textarea is ready
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -682,25 +1835,38 @@ I can now generate specific content for any module or create detailed assessment
         setMessages(newMessages);
         setIsLoading(true);
 
-        // Regenerate using local mock response
-        setTimeout(() => {
-            const resp = generateMockResponse(
-                userMsg!.content,
-                userMsg!.attachments,
-                userMsg!.structuredPrompt
-            );
-            const newAiMsg: Message = {
-                id: Date.now().toString(),
-                type: 'ai',
-                content: resp.text,
-                showTodoList: resp.showTodoList,
-                timestamp: new Date(),
-                status: 'sent',
-            };
-            setMessages((prev) => [...prev, newAiMsg]);
-            tryProcessStructuredPayload(resp.text);
-            setIsLoading(false);
-        }, 1500);
+        // Regenerate using streaming API
+        (async () => {
+            try {
+                const newAiMsg: Message = {
+                    id: Date.now().toString(),
+                    type: 'ai',
+                    content: '',
+                    timestamp: new Date(),
+                    status: 'sent',
+                };
+                setMessages((prev) => [...prev, newAiMsg]);
+
+                await sendStreamingMessage(
+                    userMsg!.content,
+                    userMsg!.attachments,
+                    userMsg!.structuredPrompt,
+                    newAiMsg.id
+                );
+
+                // Update message with streaming response
+                setMessages((prev) =>
+                    prev.map((msg) =>
+                        msg.id === newAiMsg.id ? { ...msg, content: streamingResponse } : msg
+                    )
+                );
+
+                setIsLoading(false);
+            } catch (error) {
+                console.error('❌ Regenerate streaming failed:', error);
+                setIsLoading(false);
+            }
+        })();
     };
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -798,33 +1964,79 @@ I can now generate specific content for any module or create detailed assessment
 
     return (
         <div
-            className={`ai-chat-container ${isFullScreen ? 'fullscreen-chat' : ''}`}
+            className={`ai-chat-container compact-mode ${isFullScreen ? 'fullscreen-chat' : ''} ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}
             style={isFullScreen ? { height: '100%', display: 'flex', flexDirection: 'column' } : {}}
         >
+            {/* Cinematic Intro */}
+            {showCinematicIntro && (
+                <div className="cinematic-intro">
+                    <div className="intro-overlay"></div>
+                    <div className="intro-content">
+                        {/* Phase 1: Logo Animation */}
+                        <div className={`intro-logo ${introPhase >= 1 ? 'visible' : ''}`}>
+                            <div className="logo-container">
+                                <Brain className="logo-icon" />
+                                <Sparkles className="sparkle-1" />
+                                <Sparkles className="sparkle-2" />
+                                <Sparkles className="sparkle-3" />
+                            </div>
+                        </div>
+
+                        {/* Phase 2: Text Animation */}
+                        <div className={`intro-text ${introPhase >= 2 ? 'visible' : ''}`}>
+                            <h1 className="intro-title">
+                                <span className="text-gradient">AI Course Creator</span>
+                            </h1>
+                            <p className="intro-subtitle">
+                                Transforming ideas into interactive learning experiences
+                            </p>
+                        </div>
+
+                        {/* Phase 3: Loading bar */}
+                        <div className={`intro-loader ${introPhase >= 3 ? 'complete' : ''}`}>
+                            <div className="loader-bar"></div>
+                            <p className="loader-text">Initializing AI Assistant...</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Quick Start templates removed for full-width chat area */}
 
             {/* Todo Progress List */}
-            <TodoProgress
-                onTaskClick={onTaskClick}
-                onStartAutomation={onCourseGeneration}
-                isAutomationRunning={isLoading}
-            />
+            <div
+                style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    zIndex: 5,
+                    background: 'hsl(var(--background))',
+                    borderBottom: '1px solid hsl(var(--border))',
+                }}
+            >
+                <TodoProgress
+                    onTaskClick={onTaskClick}
+                    onStartAutomation={onCourseGeneration}
+                    isAutomationRunning={isLoading}
+                />
+            </div>
 
             {/* Chat Messages */}
-            <div
-                className="chat-messages flex-1 overflow-y-auto"
-                ref={chatMessagesRef}
-                style={{ position: 'relative' }}
-            >
+            <div className="chat-messages" ref={chatMessagesRef} style={{ position: 'relative' }}>
                 {/* Welcome Overlay - Only render when showing welcome */}
                 {showWelcome && (
                     <div className="welcome-overlay">
                         <h2 className="welcome-title">
-                            Welcome to <span className="text-primary">AI-Course Creation</span>
+                            Welcome to{' '}
+                            <span style={{ color: 'hsl(var(--primary-500))' }}>
+                                AI-Course Creation
+                            </span>
                         </h2>
                         <p className="welcome-text">
                             Try one of the prompts below, or start typing your own.
                         </p>
+
                         <div className="welcome-prompts">
                             {EXAMPLE_PROMPTS.slice(0, 6).map((example, idx) => (
                                 <button
@@ -912,18 +2124,32 @@ I can now generate specific content for any module or create detailed assessment
                                     <div className="message-text">
                                         {message.showTodoList ? (
                                             <TodoList />
-                                        ) : (
+                                        ) : message.type === 'ai' ? (
                                             (() => {
-                                                let displayText = message.content;
-                                                if (message.type === 'ai') {
-                                                    displayText = displayText
-                                                        .replace(/```json[\s\S]*?```/gi, '')
-                                                        .trim();
+                                                const sectionsForMessage =
+                                                    messageSections[message.id] || [];
+                                                if (isDebugMode) {
+                                                    console.log(
+                                                        `🎨 PASSING SECTIONS to render for ${message.id}:`,
+                                                        {
+                                                            sectionsFound:
+                                                                sectionsForMessage.length,
+                                                            allSectionKeys:
+                                                                Object.keys(messageSections),
+                                                            messageId: message.id,
+                                                            timestamp: message.timestamp,
+                                                        }
+                                                    );
                                                 }
                                                 return (
-                                                    <pre className="message-pre">{displayText}</pre>
+                                                    <StructuredMessageContent
+                                                        messageId={message.id}
+                                                        sections={sectionsForMessage}
+                                                    />
                                                 );
                                             })()
+                                        ) : (
+                                            <pre className="message-pre">{message.content}</pre>
                                         )}
 
                                         {/* File Attachments */}
@@ -936,7 +2162,8 @@ I can now generate specific content for any module or create detailed assessment
                                                             {file.name}
                                                         </span>
                                                         <span className="attachment-size">
-                                                            ({Math.round(file.size / 1024)}KB)
+                                                            ({Math.round(file.size / 1024)}
+                                                            KB)
                                                         </span>
                                                     </div>
                                                 ))}

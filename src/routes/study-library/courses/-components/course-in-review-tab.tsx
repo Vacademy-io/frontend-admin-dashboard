@@ -9,6 +9,9 @@ import { useNavigate } from '@tanstack/react-router';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { getMyCourses, withdrawFromReview } from '../-services/approval-services';
 import { formatDistanceToNow } from 'date-fns';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 interface CoursePackageEntity {
     id: string;
@@ -55,6 +58,10 @@ interface CourseInReviewResponse {
 export const CourseInReviewTab: React.FC = () => {
     const navigate = useNavigate();
     const [reviewCourses, setReviewCourses] = useState<CourseInReviewResponse[]>([]);
+    const [roles, setRoles] = useState<string[] | undefined>([]);
+    const { instituteDetails } = useInstituteDetailsStore();
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
 
     // Fetch courses
     const {
@@ -80,13 +87,35 @@ export const CourseInReviewTab: React.FC = () => {
         },
     });
 
-    // Filter only IN_REVIEW courses
+    // Extract user roles
+    useEffect(() => {
+        if (tokenData && tokenData.authorities && instituteDetails?.id) {
+            setRoles(tokenData.authorities[instituteDetails.id]?.roles ?? []);
+        } else {
+            setRoles([]);
+        }
+    }, [instituteDetails?.id, tokenData]);
+
+    // Filter only IN_REVIEW courses and exclude 'invited' sessions for non-admin users
     useEffect(() => {
         if (!courses) return;
 
-        const filtered = courses.filter((course) => course.courseStatus === 'IN_REVIEW');
+        // First filter for IN_REVIEW status
+        let filtered = courses.filter((course) => course.courseStatus === 'IN_REVIEW');
+
+        // Check if user is admin
+        const safeRoles = Array.isArray(roles) ? roles : [];
+        const isAdmin = safeRoles.includes('ADMIN');
+
+        // If user is not admin, filter out sessions with name 'invited'
+        if (!isAdmin) {
+            filtered = filtered.filter(
+                (course) => course.sessionInfo?.sessionName?.toLowerCase() !== 'invited'
+            );
+        }
+
         setReviewCourses(filtered);
-    }, [courses]);
+    }, [courses, roles]);
 
     const handleViewCourse = (course: CourseInReviewResponse) => {
         navigate({

@@ -19,6 +19,11 @@ interface TreeItemProps {
     expandSignal?: number; // incremented each time parent toggles expandAll
     onAdd?: () => void; // add new child handler
     onDelete?: () => void; // delete handler
+    customAddButton?: React.ReactNode; // custom add button for specific items like chapters
+    // Animation and highlighting props
+    isNewlyAdded?: boolean;
+    isAnimating?: boolean;
+    itemPath?: string;
 }
 
 export const TreeItem: React.FC<TreeItemProps> = ({
@@ -36,6 +41,10 @@ export const TreeItem: React.FC<TreeItemProps> = ({
     expandSignal = 0,
     onAdd,
     onDelete,
+    customAddButton,
+    isNewlyAdded = false,
+    isAnimating = false,
+    itemPath,
 }) => {
     const [isOpen, setIsOpen] = useState<boolean>(expandAll || level <= 1);
 
@@ -94,7 +103,13 @@ export const TreeItem: React.FC<TreeItemProps> = ({
         return 0;
     };
 
-    const itemClasses = ['tree-item', itemType, isSelected ? 'selected' : '']
+    const itemClasses = [
+        'tree-item',
+        itemType,
+        isSelected ? 'selected' : '',
+        isNewlyAdded ? 'newly-added' : '',
+        isAnimating ? 'animating-in' : '',
+    ]
         .filter(Boolean)
         .join(' ');
 
@@ -146,17 +161,29 @@ export const TreeItem: React.FC<TreeItemProps> = ({
                     style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
                 >
                     {truncateLabel(label)}
-                    {isFolder && itemType !== 'slide' && (
+                    {isFolder && itemType !== 'slide' && customAddButton ? (
                         <span
                             className="tree-item-add"
                             onClick={(e) => {
                                 e.stopPropagation();
-                                onAdd?.();
                             }}
-                            title="Add"
                         >
-                            <Plus className="size-3 text-green-600" />
+                            {customAddButton}
                         </span>
+                    ) : (
+                        isFolder &&
+                        itemType !== 'slide' && (
+                            <span
+                                className="tree-item-add"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onAdd?.();
+                                }}
+                                title="Add"
+                            >
+                                <Plus className="size-3 text-green-600" />
+                            </span>
+                        )
                     )}
 
                     {isFolder && itemType !== 'slide' && onDelete && (

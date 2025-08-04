@@ -652,12 +652,6 @@ class AIResponseMemoryService {
      * Get all todos
      */
     getAllTodos(): TodoTask[] {
-        console.log('📖 [MEMORY] Getting all todos. Total:', this.currentSessionTodos.length);
-        console.log('📖 [MEMORY] Todo breakdown:', {
-            pending: this.currentSessionTodos.filter((t) => !t.completed).length,
-            completed: this.currentSessionTodos.filter((t) => t.completed).length,
-            total: this.currentSessionTodos.length,
-        });
         return [...this.currentSessionTodos];
     }
 

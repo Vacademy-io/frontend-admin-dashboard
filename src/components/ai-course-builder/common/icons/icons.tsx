@@ -238,7 +238,18 @@ export const SearchIcon = () => (
 export const SlideIcon = ({
     type,
 }: {
-    type: 'pdf' | 'text' | 'code' | 'youtube' | 'html' | 'assessment' | 'document' | 'video';
+    type:
+        | 'pdf'
+        | 'text'
+        | 'code'
+        | 'youtube'
+        | 'html'
+        | 'assessment'
+        | 'document'
+        | 'video'
+        | 'presentation'
+        | 'assignment'
+        | 'quiz';
 }) => {
     switch (type) {
         case 'pdf':
@@ -246,8 +257,11 @@ export const SlideIcon = ({
         case 'video':
             return <VideoIcon />;
         case 'document':
+        case 'presentation':
             return <DocumentIcon />;
         case 'assessment':
+        case 'assignment':
+        case 'quiz':
             return <AssessmentIcon />;
         case 'text':
         case 'code':

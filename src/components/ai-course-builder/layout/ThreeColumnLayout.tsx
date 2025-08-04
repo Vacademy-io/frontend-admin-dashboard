@@ -6,12 +6,14 @@ interface ThreeColumnLayoutProps {
     leftPane: React.ReactNode;
     middlePane: React.ReactNode;
     rightPane: React.ReactNode;
+    isFullScreen?: boolean;
 }
 
 const ThreeColumnLayout: React.FC<ThreeColumnLayoutProps> = ({
     leftPane,
     middlePane,
     rightPane,
+    isFullScreen = false,
 }) => {
     const [isNarrow, setIsNarrow] = React.useState(false);
 
@@ -40,7 +42,7 @@ const ThreeColumnLayout: React.FC<ThreeColumnLayoutProps> = ({
     return (
         <PanelGroup
             direction="horizontal"
-            className={`panel-group ${isNarrow ? 'narrow-layout' : ''}`}
+            className={`panel-group ${isNarrow ? 'narrow-layout' : ''} ${isFullScreen ? 'fullscreen-mode' : ''}`}
         >
             <Panel defaultSize={isNarrow ? 18 : 20} minSize={isNarrow ? 12 : 15}>
                 <div className="panel-content">{leftPane}</div>
