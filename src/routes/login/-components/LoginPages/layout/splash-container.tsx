@@ -4,6 +4,7 @@ import { SplashScreenProps } from '@/routes/login/-types/loginTypes';
 import { LoginImage } from '@/assets/svgs';
 import { Vacademy } from '@/svgs';
 import React, { useEffect, useRef, useState } from 'react';
+import { getSubdomain, HOLISTIC_SUBDOMAIN } from '@/utils/subdomain';
 
 export const SplashScreen = ({ children, isAnimationEnabled }: SplashScreenProps) => {
     const [animationDone, setAnimationDone] = useState(!isAnimationEnabled);
@@ -71,10 +72,22 @@ export const SplashScreen = ({ children, isAnimationEnabled }: SplashScreenProps
                         }}
                         className="left-8 top-8 size-full max-h-80 max-w-80 origin-top-left object-cover"
                     >
-                        <Vacademy className="size-full" />
+                        {getSubdomain() === HOLISTIC_SUBDOMAIN ? (
+                            <img
+                                src="/holistic-logo.png"
+                                alt="Holistic Login"
+                                className="size-2/3"
+                            />
+                        ) : (
+                            <Vacademy className="size-full" />
+                        )}
                     </motion.div>
                 </motion.div>
-                <LoginImage />
+                {getSubdomain() === HOLISTIC_SUBDOMAIN ? (
+                    <img src="/holistic-login.png" alt="Holistic Login" className="size-2/3" />
+                ) : (
+                    <LoginImage />
+                )}
             </div>
             <div className="relative flex w-full items-center justify-center text-neutral-600">
                 <LanguageDropdown />
