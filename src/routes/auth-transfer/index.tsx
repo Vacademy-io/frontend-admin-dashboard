@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
-import Cookies from 'js-cookie';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { TokenKey } from '@/constants/auth/tokens';
+import { setAuthorizationCookie } from '@/lib/auth/sessionUtility';
 
 export const Route = createFileRoute('/auth-transfer/')({
     component: AuthTransferPage,
@@ -16,16 +17,8 @@ function AuthTransferPage() {
         const refreshToken = params.get('refreshToken');
 
         if (accessToken && refreshToken) {
-            Cookies.set('accessToken', accessToken, {
-                path: '/',
-                secure: true,
-                sameSite: 'Strict',
-            });
-            Cookies.set('refreshToken', refreshToken, {
-                path: '/',
-                secure: true,
-                sameSite: 'Strict',
-            });
+            setAuthorizationCookie(TokenKey.accessToken, accessToken);
+            setAuthorizationCookie(TokenKey.refreshToken, refreshToken);
 
             // Redirect to the actual page
             navigate({ to: '/study-library/courses' });
