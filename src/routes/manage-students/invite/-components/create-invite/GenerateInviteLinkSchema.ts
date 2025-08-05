@@ -152,14 +152,19 @@ export const inviteLinkSchema = z.object({
             z.object({
                 id: z.string(),
                 name: z.string(),
-                price: z.string().optional(),
+                price: z
+                    .union([z.string(), z.number()])
+                    .optional()
+                    .transform((val) => val?.toString() ?? ''),
                 currency: z.string().optional(),
                 paymentOption: z
                     .array(
                         z.object({
                             value: z.number(),
                             unit: z.string(),
-                            price: z.string(),
+                            price: z
+                                .union([z.string(), z.number()])
+                                .transform((val) => val.toString()),
                             features: z.array(z.string()),
                             title: z.string(),
                             newFeature: z.string(),
@@ -179,13 +184,16 @@ export const inviteLinkSchema = z.object({
             suggestedAmount: z.array(z.number()).optional(),
             minAmount: z.number().optional(),
             currency: z.string().optional(),
-            price: z.string().optional(),
+            price: z
+                .union([z.string(), z.number()])
+                .optional()
+                .transform((val) => val?.toString() ?? ''),
             paymentOption: z
                 .array(
                     z.object({
                         value: z.number(),
                         unit: z.string(),
-                        price: z.string(),
+                        price: z.union([z.string(), z.number()]).transform((val) => val.toString()),
                         features: z.array(z.string()),
                         title: z.string(),
                         newFeature: z.string(),
