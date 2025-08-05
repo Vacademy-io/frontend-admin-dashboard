@@ -89,6 +89,8 @@ const AddPaymentPlanDialog = ({ form }: PaymentPlansDialogProps) => {
                 form.setValue('freePlans', [...freePlans, paymentOptionRequest]);
             } else {
                 const paidPlans = form.getValues('paidPlans');
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-expect-error
                 form.setValue('paidPlans', [...paidPlans, paymentOptionRequest]);
             }
             form.setValue('showAddPlanDialog', false);
