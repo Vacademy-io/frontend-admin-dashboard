@@ -13,11 +13,12 @@ import {
 } from '@/components/ui/select';
 import { Plus, Trash2 } from 'lucide-react';
 import { getCurrencySymbol } from '../utils/utils';
+import { DAYS_IN_MONTH } from '@/routes/settings/-constants/terms';
 
 interface CustomInterval {
-    value: number;
+    value: number | string;
     unit: 'days' | 'months';
-    price: number;
+    price: number | string;
     features?: string[];
     newFeature?: string;
     title?: string;
@@ -29,6 +30,8 @@ interface SubscriptionPlanConfigurationProps {
     featuresGlobal: string[];
     setFeaturesGlobal: (features: string[]) => void;
     onCustomIntervalsChange: (intervals: CustomInterval[]) => void;
+    selectedUnit: 'days' | 'months';
+    onUnitChange: (unit: 'days' | 'months') => void;
 }
 
 export const SubscriptionPlanConfiguration: React.FC<SubscriptionPlanConfigurationProps> = ({
@@ -37,11 +40,56 @@ export const SubscriptionPlanConfiguration: React.FC<SubscriptionPlanConfigurati
     featuresGlobal,
     setFeaturesGlobal,
     onCustomIntervalsChange,
+    selectedUnit,
+    onUnitChange,
 }) => {
+    // Helper function to convert unit and value to days
+    const convertToDays = (value: number, unit: 'days' | 'months'): number => {
+        if (unit === 'days') {
+            return value;
+        } else if (unit === 'months') {
+            return value * DAYS_IN_MONTH;
+        }
+        return value;
+    };
+
+    // Helper function to convert days to display value based on unit
+    const convertDaysToDisplayValue = (days: number, unit: 'days' | 'months'): number => {
+        if (unit === 'days') {
+            return days;
+        } else if (unit === 'months') {
+            return Math.round(days / DAYS_IN_MONTH);
+        }
+        return days;
+    };
+
+    const handleUnitChange = (newUnit: 'days' | 'months') => {
+        onUnitChange(newUnit);
+
+        // Update all intervals to use the new unit and convert values
+        const updatedIntervals = customIntervals.map((interval) => {
+            // Convert current value to days first (handle string values)
+            const numericValue =
+                typeof interval.value === 'string'
+                    ? parseFloat(interval.value) || 0
+                    : interval.value;
+            const currentDays = convertToDays(numericValue, selectedUnit);
+            // Then convert to new unit's display value
+            const newDisplayValue = convertDaysToDisplayValue(currentDays, newUnit);
+
+            return {
+                ...interval,
+                value: newDisplayValue,
+                unit: newUnit,
+            };
+        });
+        onCustomIntervalsChange(updatedIntervals);
+    };
+
     const addInterval = () => {
         const newInterval = {
             value: 1,
-            unit: 'months' as const,
+            unit: selectedUnit,
             price: 0,
             features: [...featuresGlobal],
             newFeature: '',
@@ -119,6 +167,26 @@ export const SubscriptionPlanConfiguration: React.FC<SubscriptionPlanConfigurati
                 <CardTitle className="text-lg">Subscription Configuration</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+                {/* Global Unit Selection */}
+                <div className="mb-4">
+                    <Label className="text-sm font-medium">Duration Unit</Label>
+                    <Select
+                        value={selectedUnit}
+                        onValueChange={(value: 'days' | 'months') => handleUnitChange(value)}
+                    >
+                        <SelectTrigger className="mt-1 w-48">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="days">Days</SelectItem>
+                            <SelectItem value="months">Months</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <p className="mt-1 text-xs text-gray-500">
+                        This unit will apply to all pricing intervals
+                    </p>
+                </div>
+
                 {/* Custom Intervals Section */}
                 <div className="space-y-6">
                     <div className="mb-4 flex items-center justify-between">
@@ -132,7 +200,7 @@ export const SubscriptionPlanConfiguration: React.FC<SubscriptionPlanConfigurati
                     <div className="space-y-3">
                         {customIntervals.map((interval, idx) => (
                             <div key={idx} className="space-y-4 rounded-lg border p-4">
-                                <div className="grid flex-1 grid-cols-4 gap-3">
+                                <div className="grid flex-1 grid-cols-3 gap-3">
                                     <div>
                                         <Label className="text-xs">Interval Title</Label>
                                         <Input
@@ -146,34 +214,21 @@ export const SubscriptionPlanConfiguration: React.FC<SubscriptionPlanConfigurati
                                         />
                                     </div>
                                     <div>
-                                        <Label className="text-xs">Interval</Label>
+                                        <Label className="text-xs">Duration ({selectedUnit})</Label>
                                         <Input
                                             type="number"
                                             value={interval.value}
-                                            onChange={(e) =>
+                                            onChange={(e) => {
+                                                const inputValue = e.target.value;
                                                 updateInterval(idx, {
-                                                    value: parseInt(e.target.value) || 0,
-                                                })
-                                            }
+                                                    value:
+                                                        inputValue === ''
+                                                            ? ''
+                                                            : parseInt(inputValue) || 1,
+                                                });
+                                            }}
                                             className="mt-1"
                                         />
-                                    </div>
-                                    <div>
-                                        <Label className="text-xs">Unit</Label>
-                                        <Select
-                                            value={interval.unit}
-                                            onValueChange={(value: 'days' | 'months') =>
-                                                updateInterval(idx, { unit: value })
-                                            }
-                                        >
-                                            <SelectTrigger className="mt-1">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="days">Days</SelectItem>
-                                                <SelectItem value="months">Months</SelectItem>
-                                            </SelectContent>
-                                        </Select>
                                     </div>
                                     <div>
                                         <Label className="text-xs">Price</Label>
@@ -185,11 +240,15 @@ export const SubscriptionPlanConfiguration: React.FC<SubscriptionPlanConfigurati
                                                 type="number"
                                                 placeholder="0"
                                                 value={interval.price}
-                                                onChange={(e) =>
+                                                onChange={(e) => {
+                                                    const inputValue = e.target.value;
                                                     updateInterval(idx, {
-                                                        price: parseFloat(e.target.value) || 0,
-                                                    })
-                                                }
+                                                        price:
+                                                            inputValue === ''
+                                                                ? ''
+                                                                : parseFloat(inputValue) || 0,
+                                                    });
+                                                }}
                                             />
                                         </div>
                                     </div>
