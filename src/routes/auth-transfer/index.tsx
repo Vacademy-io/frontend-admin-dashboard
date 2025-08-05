@@ -29,6 +29,8 @@ function AuthTransferPage() {
 
             // Redirect to the actual page
             navigate({ to: '/study-library/courses' });
+        } else {
+            navigate({ to: '/login' });
         }
     }, []);
 
