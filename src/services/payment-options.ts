@@ -14,6 +14,7 @@ import {
     PaymentOptionApi,
     PaymentPlans,
 } from '@/types/payment';
+import { DAYS_IN_MONTH } from '@/routes/settings/-constants/terms';
 
 export interface SavePaymentOptionRequest {
     name: string;
@@ -103,10 +104,21 @@ export const transformLocalPlanToApiFormat = (localPlan: PaymentPlan): PaymentPl
         if (firstInterval) {
             actualPrice = parseFloat(String(firstInterval.price || '0'));
             elevatedPrice = actualPrice;
-            if (firstInterval.unit === 'months') {
-                validityDays = firstInterval.value * 30;
-            } else if (firstInterval.unit === 'days') {
-                validityDays = firstInterval.value;
+
+            // Calculate validity_in_days based on unit and value
+            const unit =
+                localPlan.config?.unit ||
+                localPlan.config?.subscription?.unit ||
+                firstInterval.unit ||
+                'months';
+            const value = firstInterval.value || 1;
+
+            if (unit === 'days') {
+                validityDays = value; // Direct conversion
+            } else if (unit === 'months') {
+                validityDays = value * DAYS_IN_MONTH; // Convert months to days
+            } else {
+                validityDays = value; // Fallback
             }
         }
     } else if (localPlan.type === PaymentPlans.UPFRONT && localPlan.config?.upfront?.fullPrice) {
@@ -179,10 +191,27 @@ export const transformLocalPlanToApiFormatArray = (localPlan: PaymentPlan): Paym
                 }
                 if (discountedPrice < 0) discountedPrice = 0;
             }
+            // Calculate validity_in_days based on unit and value
+            const unit =
+                localPlan.config?.unit ||
+                localPlan.config?.subscription?.unit ||
+                interval.unit ||
+                'months';
+            const value = interval.value || 1;
+            let validity_in_days: number;
+
+            if (unit === 'days') {
+                validity_in_days = value; // Direct conversion
+            } else if (unit === 'months') {
+                validity_in_days = value * DAYS_IN_MONTH; // Convert months to days (30 days per month)
+            } else {
+                validity_in_days = value; // Fallback
+            }
+
             return {
                 name: interval.title || '',
                 status: 'ACTIVE',
-                validity_in_days: 365,
+                validity_in_days,
                 actual_price: discountedPrice,
                 elevated_price: originalPrice,
                 currency: localPlan.currency || 'GBP',

@@ -27,11 +27,12 @@ import { SubscriptionPlanConfiguration } from './SubscriptionPlanConfiguration';
 import { UpfrontPlanConfiguration } from './UpfrontPlanConfiguration';
 import { PlanDiscountsConfiguration } from './PlanDiscountsConfiguration';
 import { PlanNavigation } from './PlanNavigation';
+import { DAYS_IN_MONTH } from '@/routes/settings/-constants/terms';
 
 interface CustomInterval {
-    value: number;
+    value: number | string;
     unit: 'days' | 'months';
-    price: number;
+    price: number | string;
     features?: string[];
     newFeature?: string;
     title?: string;
@@ -67,6 +68,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
     const [currentStep, setCurrentStep] = useState(1);
     const [planData, setPlanData] = useState<Partial<PaymentPlan>>({});
     const [showPreview, setShowPreview] = useState(false);
+    const [selectedUnit, setSelectedUnit] = useState<'days' | 'months'>('months');
     const previewRef = useRef<HTMLDivElement>(null);
 
     // Initialize form data when creating new plan
@@ -93,7 +95,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                         newAmount: '',
                     },
                     free: {
-                        validityDays: 30,
+                        validityDays: DAYS_IN_MONTH,
                     },
                     planDiscounts: {},
                 },
@@ -111,9 +113,48 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
         }
     }, [planData.type, existingFreePlans, setRequireApproval]);
 
+    // Helper function to convert unit and value to days
+    const convertToDays = (value: number, unit: 'days' | 'months'): number => {
+        if (unit === 'days') {
+            return value;
+        } else if (unit === 'months') {
+            return value * DAYS_IN_MONTH;
+        }
+        return value;
+    };
+
     const handleSave = () => {
         if (!planData.name || !planData.type) {
             return;
+        }
+
+        // Calculate validity_in_days for subscription plans
+        let validityDays: number | undefined;
+        let updatedConfig = planData.config || {};
+
+        if (planData.type === PaymentPlans.SUBSCRIPTION) {
+            const intervals = planData.config?.subscription?.customIntervals || [];
+            if (intervals.length > 0) {
+                // Use the first interval's validity as the base
+                const firstInterval = intervals[0];
+                const numericValue =
+                    typeof firstInterval.value === 'string'
+                        ? parseFloat(firstInterval.value) || 0
+                        : firstInterval.value;
+                validityDays = convertToDays(numericValue, selectedUnit);
+
+                // Add unit to the top level of config
+                updatedConfig = {
+                    ...updatedConfig,
+                    unit: selectedUnit,
+                    subscription: {
+                        ...updatedConfig.subscription,
+                        unit: selectedUnit,
+                    },
+                };
+            }
+        } else if (planData.type === PaymentPlans.FREE) {
+            validityDays = planData.config?.free?.validityDays;
         }
 
         const newPlan: PaymentPlan = {
@@ -123,12 +164,9 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
             tag: planData.tag || 'free',
             currency: planData.currency || 'INR',
             isDefault: planData.isDefault || false,
-            config: planData.config || {},
+            config: updatedConfig,
             features: planData.features,
-            validityDays:
-                planData.type === PaymentPlans.FREE
-                    ? planData.config?.free?.validityDays
-                    : undefined,
+            validityDays,
             requireApproval: planData.requireApproval || false,
         };
 
@@ -497,6 +535,8 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                     }
                                     featuresGlobal={featuresGlobal}
                                     setFeaturesGlobal={setFeaturesGlobal}
+                                    selectedUnit={selectedUnit}
+                                    onUnitChange={setSelectedUnit}
                                     onCustomIntervalsChange={(intervals) =>
                                         updateConfig({
                                             subscription: {
