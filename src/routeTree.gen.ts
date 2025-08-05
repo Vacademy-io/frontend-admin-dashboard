@@ -22,6 +22,7 @@ import { Route as EvaluatorAiIndexRouteImport } from "./routes/evaluator-ai/inde
 import { Route as EvaluationIndexRouteImport } from "./routes/evaluation/index"
 import { Route as DashboardIndexRouteImport } from "./routes/dashboard/index"
 import { Route as CommunityIndexRouteImport } from "./routes/community/index"
+import { Route as AuthTransferIndexRouteImport } from "./routes/auth-transfer/index"
 import { Route as AssessmentIndexRouteImport } from "./routes/assessment/index"
 import { Route as AiCenterIndexRouteImport } from "./routes/ai-center/index"
 import { Route as StudyLibraryVoltIndexRouteImport } from "./routes/study-library/volt/index"
@@ -157,6 +158,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
 const CommunityIndexRoute = CommunityIndexRouteImport.update({
   id: "/community/",
   path: "/community/",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthTransferIndexRoute = AuthTransferIndexRouteImport.update({
+  id: "/auth-transfer/",
+  path: "/auth-transfer/",
   getParentRoute: () => rootRouteImport,
 } as any)
 const AssessmentIndexRoute = AssessmentIndexRouteImport.update({
@@ -528,6 +534,7 @@ export interface FileRoutesByFullPath {
   "/pricing": typeof PricingLazyRoute
   "/ai-center": typeof AiCenterIndexRoute
   "/assessment": typeof AssessmentIndexRoute
+  "/auth-transfer": typeof AuthTransferIndexRoute
   "/community": typeof CommunityIndexRoute
   "/dashboard": typeof DashboardIndexRoute
   "/evaluation": typeof EvaluationIndexRoute
@@ -603,6 +610,7 @@ export interface FileRoutesByTo {
   "/pricing": typeof PricingLazyRoute
   "/ai-center": typeof AiCenterIndexRoute
   "/assessment": typeof AssessmentIndexRoute
+  "/auth-transfer": typeof AuthTransferIndexRoute
   "/community": typeof CommunityIndexRoute
   "/dashboard": typeof DashboardIndexRoute
   "/evaluation": typeof EvaluationIndexRoute
@@ -680,6 +688,7 @@ export interface FileRoutesById {
   "/pricing": typeof PricingLazyRoute
   "/ai-center/": typeof AiCenterIndexRoute
   "/assessment/": typeof AssessmentIndexRoute
+  "/auth-transfer/": typeof AuthTransferIndexRoute
   "/community/": typeof CommunityIndexRoute
   "/dashboard/": typeof DashboardIndexRoute
   "/evaluation/": typeof EvaluationIndexRoute
@@ -758,6 +767,7 @@ export interface FileRouteTypes {
     | "/pricing"
     | "/ai-center"
     | "/assessment"
+    | "/auth-transfer"
     | "/community"
     | "/dashboard"
     | "/evaluation"
@@ -833,6 +843,7 @@ export interface FileRouteTypes {
     | "/pricing"
     | "/ai-center"
     | "/assessment"
+    | "/auth-transfer"
     | "/community"
     | "/dashboard"
     | "/evaluation"
@@ -909,6 +920,7 @@ export interface FileRouteTypes {
     | "/pricing"
     | "/ai-center/"
     | "/assessment/"
+    | "/auth-transfer/"
     | "/community/"
     | "/dashboard/"
     | "/evaluation/"
@@ -986,6 +998,7 @@ export interface RootRouteChildren {
   PricingLazyRoute: typeof PricingLazyRoute
   AiCenterIndexRoute: typeof AiCenterIndexRoute
   AssessmentIndexRoute: typeof AssessmentIndexRoute
+  AuthTransferIndexRoute: typeof AuthTransferIndexRoute
   CommunityIndexRoute: typeof CommunityIndexRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   EvaluationIndexRoute: typeof EvaluationIndexRoute
@@ -1154,6 +1167,13 @@ declare module "@tanstack/react-router" {
       path: "/community"
       fullPath: "/community"
       preLoaderRoute: typeof CommunityIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/auth-transfer/": {
+      id: "/auth-transfer/"
+      path: "/auth-transfer"
+      fullPath: "/auth-transfer"
+      preLoaderRoute: typeof AuthTransferIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/assessment/": {
@@ -1596,6 +1616,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingLazyRoute: PricingLazyRoute,
   AiCenterIndexRoute: AiCenterIndexRoute,
   AssessmentIndexRoute: AssessmentIndexRoute,
+  AuthTransferIndexRoute: AuthTransferIndexRoute,
   CommunityIndexRoute: CommunityIndexRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   EvaluationIndexRoute: EvaluationIndexRoute,
