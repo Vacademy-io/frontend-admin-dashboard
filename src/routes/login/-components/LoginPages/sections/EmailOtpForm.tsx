@@ -28,7 +28,7 @@ import {
     removeCookiesAndLogout,
 } from '@/lib/auth/sessionUtility';
 import { LOGIN_OTP, REQUEST_OTP } from '@/constants/urls';
-import { shouldBlockStudentLogin, getInstituteSelectionResult, setSelectedInstitute } from '@/lib/auth/instituteUtils';
+import { handleLoginFlow, navigateFromLoginFlow } from '@/lib/auth/loginFlowHandler';
 import { trackEvent } from '@/lib/amplitude';
 
 const emailSchema = z.object({
@@ -140,22 +140,27 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
                 },
             });
         },
-        onSuccess: (response) => {
+        onSuccess: async (response) => {
+            // Track successful login
+            trackEvent('Login Success', {
+                login_method: 'email_otp',
+                timestamp: new Date().toISOString(),
+            });
 
-            // Store tokens in cookies
-            setAuthorizationCookie(TokenKey.accessToken, response.data.accessToken);
-            setAuthorizationCookie(TokenKey.refreshToken, response.data.refreshToken);
+            // Use centralized login flow
+            const result = await handleLoginFlow({
+                loginMethod: 'email_otp',
+                accessToken: response.data.accessToken,
+                refreshToken: response.data.refreshToken,
+                queryClient
+            });
 
-            // Clear all queries to ensure fresh data fetch
-            queryClient.clear();
-
-            // Get user roles
-            const userRoles = getUserRoles(response.data.accessToken);
-
-            // Add a small delay to ensure tokens are properly set before navigation
-            setTimeout(() => {
-                handlePostLoginRedirect(userRoles);
-            }, 100);
+            if (result.shouldShowInstituteSelection) {
+                // For email OTP, we'll redirect to institute selection page
+                window.location.href = '/login?showInstituteSelection=true';
+            } else {
+                navigateFromLoginFlow(result);
+            }
         },
         onError: (error: AxiosError) => {
             toast.error('Invalid OTP', {
@@ -166,46 +171,7 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
         },
     });
 
-    const handlePostLoginRedirect = (userRoles: string[]) => {
-        // Check if user should be blocked from logging in (only has STUDENT role)
-        if (shouldBlockStudentLogin()) {
-            // Track blocked login attempt
-            trackEvent('Login Blocked', {
-                login_method: 'email_otp',
-                reason: 'student_only_role',
-                user_roles: userRoles,
-                timestamp: new Date().toISOString(),
-            });
 
-            // Clear tokens and show error
-            removeCookiesAndLogout();
-
-            toast.error('Access Denied', {
-                description: 'Students are not allowed to access the admin portal. Please contact your administrator.',
-                className: 'error-toast',
-                duration: 5000,
-            });
-
-            return;
-        }
-
-        // Check if user needs to select an institute
-        const instituteResult = getInstituteSelectionResult();
-
-        if (instituteResult.shouldShowSelection) {
-            // For email OTP, we'll redirect to institute selection page
-            window.location.href = '/login?showInstituteSelection=true';
-            return;
-        }
-
-        // User has only one institute or no valid institutes
-        if (instituteResult.selectedInstitute) {
-            setSelectedInstitute(instituteResult.selectedInstitute.id);
-        }
-
-        // Navigate to dashboard
-        navigate({ to: '/dashboard' });
-    };
 
     const onEmailSubmit = (data: EmailFormValues) => {
         setEmail(data.email);

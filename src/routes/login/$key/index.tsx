@@ -1,6 +1,7 @@
 import { TokenKey } from '@/constants/auth/tokens';
 import { loginUser } from '@/hooks/login/login-button';
 import { setAuthorizationCookie } from '@/lib/auth/sessionUtility';
+import { handleLoginFlow, navigateFromLoginFlow } from '@/lib/auth/loginFlowHandler';
 import { loginSchema } from '@/schemas/login/login';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, useNavigate, useParams } from '@tanstack/react-router';
@@ -9,6 +10,7 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import CryptoJS from 'crypto-js';
 import ClipLoader from 'react-spinners/ClipLoader';
+
 
 export const Route = createFileRoute('/login/$key/')({
     component: RouteComponent,
@@ -26,21 +28,26 @@ function RouteComponent() {
 
     const navigate = useNavigate();
 
+
+
     const mutation = useMutation({
         mutationFn: (values: FormValues) => loginUser(values.username, values.password),
-        onSuccess: (response) => {
+        onSuccess: async (response) => {
             if (response) {
-                // Store tokens in cookies first
-                setAuthorizationCookie(TokenKey.accessToken, response.accessToken);
-                setAuthorizationCookie(TokenKey.refreshToken, response.refreshToken);
+                // Use centralized login flow
+                const result = await handleLoginFlow({
+                    loginMethod: 'demo_account',
+                    accessToken: response.accessToken,
+                    refreshToken: response.refreshToken,
+                    queryClient
+                });
 
-                // Clear all queries to ensure fresh data fetch
-                queryClient.clear();
-
-                // Add a small delay to ensure tokens are properly set before navigation
-                setTimeout(() => {
-                    navigate({ to: '/dashboard' });
-                }, 100);
+                if (result.shouldShowInstituteSelection) {
+                    // For demo accounts, we'll redirect to institute selection page
+                    window.location.href = '/login?showInstituteSelection=true';
+                } else {
+                    navigateFromLoginFlow(result);
+                }
             } else {
                 toast.error('Login Error', {
                     description: 'Invalid credentials',

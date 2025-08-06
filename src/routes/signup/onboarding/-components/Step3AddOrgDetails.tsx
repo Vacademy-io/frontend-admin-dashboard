@@ -12,8 +12,10 @@ import { toast } from 'sonner';
 import { handleSignupInstitute } from '../../-services/signup-services';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import useOrganizationStore from '../-zustand-store/step1OrganizationZustand';
-import { setAuthorizationCookie } from '@/lib/auth/sessionUtility';
+import { setAuthorizationCookie, getUserRoles, removeCookiesAndLogout } from '@/lib/auth/sessionUtility';
+import { shouldBlockStudentLogin, getInstituteSelectionResult, setSelectedInstitute } from '@/lib/auth/instituteUtils';
 import { TokenKey } from '@/constants/auth/tokens';
+import { trackEvent } from '@/lib/amplitude';
 
 export interface FormValuesStep1Signup {
     profilePictureUrl: string;
@@ -144,13 +146,25 @@ export function Step3AddOrgDetails() {
                 },
             });
         },
-        onSuccess: (data) => {
+        onSuccess: async (data) => {
             queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
-            setAuthorizationCookie(TokenKey.accessToken, data.accessToken);
-            setAuthorizationCookie(TokenKey.refreshToken, data.refreshToken);
-            resetForm();
-            resetAddOrgForm();
-            navigate({ to: '/dashboard' });
+
+            // Use centralized login flow
+            const result = await handleLoginFlow({
+                loginMethod: 'signup',
+                accessToken: data.accessToken,
+                refreshToken: data.refreshToken,
+                queryClient
+            });
+
+            if (result.shouldShowInstituteSelection) {
+                // For signup, we'll redirect to institute selection page
+                window.location.href = '/login?showInstituteSelection=true';
+            } else {
+                resetForm();
+                resetAddOrgForm();
+                navigateFromLoginFlow(result);
+            }
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {

@@ -32,8 +32,7 @@ export const handleOAuthLogin = (provider: OAuthProvider, options: OAuthLoginOpt
         toast.error('Failed to initiate login. Please try again.');
     }
 };
-import { shouldBlockStudentLogin, getInstituteSelectionResult, setSelectedInstitute } from '@/lib/auth/instituteUtils';
-import { removeCookiesAndLogout } from '@/lib/auth/sessionUtility';
+import { handleLoginFlow, navigateFromLoginFlow } from '@/lib/auth/loginFlowHandler';
 
 export const handleLoginOAuthCallback = async () => {
     try {
@@ -56,42 +55,27 @@ export const handleLoginOAuthCallback = async () => {
     }
 
     if (accessToken && refreshToken) {
-        // Set tokens in cookies (same as username/password flow)
-        setAuthorizationCookie(TokenKey.accessToken, accessToken);
-        setAuthorizationCookie(TokenKey.refreshToken, refreshToken);
+        // Use centralized login flow
+        const result = await handleLoginFlow({
+            loginMethod: 'oauth',
+            accessToken,
+            refreshToken
+        });
 
-        const shouldBlock = shouldBlockStudentLogin();
-
-        if (shouldBlock) {
-            // Clear tokens
-            removeCookiesAndLogout();
-
-            toast.error('Access Denied', {
-                description: 'Students are not allowed to access the admin portal. Please contact your administrator.',
-                duration: 5000,
-            });
-
+        if (!result.success) {
+            // User was blocked or error occurred
             setTimeout(() => {
                 window.location.href = '/login?error=student_access_denied';
             }, 2000);
             return { success: false };
         }
 
-        // Check if user needs to select an institute (same logic as username/password)
-        const instituteResult = getInstituteSelectionResult();
-
-        if (instituteResult.shouldShowSelection) {
-            // Tokens are already set in cookies, just redirect to institute selection
+        if (result.shouldShowInstituteSelection) {
             return { success: true, shouldShowInstituteSelection: true };
         }
 
-        // User has only one institute - auto-select and redirect to dashboard
-        if (instituteResult.selectedInstitute) {
-            setSelectedInstitute(instituteResult.selectedInstitute.id);
-        }
-
         // Determine redirect URL
-        let redirectUrl = '/dashboard';
+        let redirectUrl = result.redirectUrl || '/dashboard';
 
         if (stateEncoded) {
             try {

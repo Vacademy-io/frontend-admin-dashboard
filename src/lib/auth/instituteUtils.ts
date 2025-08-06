@@ -56,6 +56,9 @@ export const getValidInstitutes = (institutes: Institute[]): Institute[] => {
         // If user only has STUDENT role, exclude the institute
         if (roles.length === 1 && roles[0] === 'STUDENT') return false;
 
+        // If user has ADMIN role, always include the institute (highest priority)
+        if (roles.includes('ADMIN')) return true;
+
         // Include institute if user has any role other than just STUDENT
         return true;
     });
@@ -79,9 +82,22 @@ export const getPrimaryRole = (roles: string[]): string => {
 /**
  * Check if user should be blocked from logging in
  * Returns true if user only has STUDENT role across all institutes
+ * ADMIN role gets highest priority - if user has ADMIN role in any institute, they should not be blocked
  */
 export const shouldBlockStudentLogin = (): boolean => {
     const institutes = getInstitutesFromToken();
+
+    // First, check if user has ADMIN role in any institute (highest priority)
+    const hasAdminRole = institutes.some(institute =>
+        institute.roles.includes('ADMIN')
+    );
+
+    if (hasAdminRole) {
+        // User has ADMIN role, should not be blocked
+        return false;
+    }
+
+    // If no ADMIN role, check for other valid institutes
     const validInstitutes = getValidInstitutes(institutes);
 
     // If no valid institutes, user should be blocked (only has STUDENT role)

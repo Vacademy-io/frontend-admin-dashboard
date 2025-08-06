@@ -187,6 +187,7 @@ export function InstituteSelection({ onInstituteSelect }: InstituteSelectionProp
         }
 
         const institute = institutes.find((inst) => inst.id === selectedInstitute);
+
         if (!institute) {
             toast.error('Selected institute not found');
             return;
@@ -336,7 +337,9 @@ export function InstituteSelection({ onInstituteSelect }: InstituteSelectionProp
                             scale="large"
                             buttonType={selectedInstitute ? "primary" : "secondary"}
                             layoutVariant="default"
-                            onClick={handleContinue}
+                            onClick={() => {
+                                handleContinue();
+                            }}
                             disabled={!selectedInstitute}
                         >
                             {selectedInstitute ? 'Continue to Dashboard' : 'Please select an institute'}

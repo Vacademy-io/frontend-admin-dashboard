@@ -118,7 +118,7 @@ const fetchCourseSettingsFromAPI = async (): Promise<CourseSettingsData> => {
             settings = mergeWithDefaults(response.data.data);
         } else {
             // If no data found or response is null/empty, use default settings
-            console.log('Course settings response is null or empty, using default settings');
+
             settings = DEFAULT_COURSE_SETTINGS;
         }
 
@@ -130,7 +130,7 @@ const fetchCourseSettingsFromAPI = async (): Promise<CourseSettingsData> => {
 
         // Check if it's a 510 error (Setting not found) or other error
         if (error.response?.status === 510 || error.response?.data?.ex?.includes('Setting not found')) {
-            console.log('Course settings not found, returning default settings');
+
             const settings = DEFAULT_COURSE_SETTINGS;
             setCachedSettings(settings);
             return settings;

@@ -291,7 +291,7 @@ export const sendChatMessageCustom = async (
             },
             timeout: AI_COURSE_API_CONFIG.timeout,
         });
-        console.log('data which is coming ' + response.data);
+
         return response.data;
     } catch (error: any) {
         console.error('Custom AI API Error:', error);
