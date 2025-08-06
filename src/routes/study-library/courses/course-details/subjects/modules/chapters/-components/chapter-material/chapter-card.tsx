@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { ChapterMenuOptions } from './chapter-menu-options/chapter-menu-options';
 import { SortableDragHandle } from '@/components/ui/sortable';
 import { ChapterWithSlides } from '@/stores/study-library/use-modules-with-chapters-store';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface ChapterCardProps {
     chapter: ChapterWithSlides;
@@ -90,13 +92,13 @@ export const ChapterCard = ({ chapter, onDelete }: ChapterCardProps) => {
 
             <MyDialog
                 trigger={<></>}
-                heading="Edit Chapter"
+                heading={`Edit ${getTerminology(ContentTerms.Chapters, SystemTerms.Chapters)}`}
                 dialogWidth="w-[400px]"
                 open={isEditDialogOpen}
                 onOpenChange={setIsEditDialogOpen}
             >
                 {/* Add ChapterForm component here later */}
-                Edit Chapter
+                Edit {getTerminology(ContentTerms.Chapters, SystemTerms.Chapters)}
             </MyDialog>
         </div>
     );

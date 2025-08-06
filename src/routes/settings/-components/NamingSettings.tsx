@@ -31,10 +31,10 @@ export enum ContentTerms {
     Course = 'Course',
     Level = 'Level',
     Session = 'Session',
-    Subjects = 'Subject',
-    Modules = 'Module',
-    Chapters = 'Chapter',
-    Slides = 'Slide',
+    Subjects = 'Subjects',
+    Modules = 'Modules',
+    Chapters = 'Chapters',
+    Slides = 'Slides',
     LiveSession = 'LiveSession',
 }
 

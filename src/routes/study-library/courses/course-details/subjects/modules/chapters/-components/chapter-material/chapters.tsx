@@ -10,6 +10,8 @@ import { useRouter } from '@tanstack/react-router';
 import { useGetPackageSessionId } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId';
 import { useSelectedSessionStore } from '@/stores/study-library/selected-session-store';
 import { orderChapterPayloadType } from '@/routes/study-library/courses/-types/order-payload';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface ChaptersProps {
     chapters?: ChapterWithSlides[];
@@ -68,7 +70,10 @@ export const Chapters = ({
             {!fields.length && (
                 <div className="flex w-full flex-col items-center justify-center gap-8 rounded-lg py-10">
                     <EmptyChaptersImage />
-                    <div>No Chapters have been added yet.</div>
+                    <div>
+                        No {getTerminology(ContentTerms.Chapters, SystemTerms.Chapters)} have been
+                        added yet.
+                    </div>
                 </div>
             )}
             <Sortable value={fields} onMove={handleMove} fast={false}>

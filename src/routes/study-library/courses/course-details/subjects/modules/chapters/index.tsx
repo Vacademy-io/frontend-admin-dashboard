@@ -10,6 +10,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useContentStore } from './slides/-stores/chapter-sidebar-store';
 import { ChapterSidebarComponent } from './-components/chapter-material/chapter-sidebar-component';
 import { ChapterMaterial } from './-components/chapter-material';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 interface ModulesSearchParams {
     courseId: string;
@@ -68,7 +70,7 @@ function RouteComponent() {
     const heading = (
         <div className="flex items-center gap-4">
             <CaretLeft onClick={() => window.history.back()} className="cursor-pointer" />
-            <div>{`${moduleName} Chapters`}</div>
+            <div>{`${moduleName} ${getTerminology(ContentTerms.Chapters, SystemTerms.Chapters)}`}</div>
         </div>
     );
 

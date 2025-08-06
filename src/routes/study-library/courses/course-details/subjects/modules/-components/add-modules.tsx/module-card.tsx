@@ -8,6 +8,8 @@ import { SortableDragHandle } from '@/components/ui/sortable';
 import { Module } from '@/stores/study-library/use-modules-with-chapters-store';
 import { getPublicUrl } from '@/services/upload_file';
 import { ModulesWithChapters } from '../../../../../../../../stores/study-library/use-modules-with-chapters-store';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
 interface ModuleCardProps {
     module: ModulesWithChapters;
@@ -93,7 +95,7 @@ export const ModuleCard = ({ module, onDelete, onEdit }: ModuleCardProps) => {
 
                 <div className="flex gap-2 text-body font-semibold">
                     <div className="text-primary-500">{module.chapters.length}</div>
-                    <div>Chapters</div>
+                    <div>{getTerminology(ContentTerms.Chapters, SystemTerms.Chapters)}s</div>
                 </div>
 
                 <div className="flex items-center justify-between">

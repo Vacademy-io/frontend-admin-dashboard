@@ -29,6 +29,8 @@ import {
     getPackageSessionsForCourse,
 } from '@/services/study-library/course-comparison';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface CourseComparisonModalProps {
     isOpen: boolean;
@@ -510,13 +512,25 @@ export const CourseComparisonModal: React.FC<CourseComparisonModalProps> = ({
                                     <Tabs defaultValue="slides" className="w-full">
                                         <TabsList className="grid h-9 w-full grid-cols-3">
                                             <TabsTrigger value="modules" className="text-xs">
-                                                Modules ({comparisonResult.modules.length})
+                                                {getTerminology(
+                                                    ContentTerms.Modules,
+                                                    SystemTerms.Modules
+                                                )}
+                                                s ({comparisonResult.modules.length})
                                             </TabsTrigger>
                                             <TabsTrigger value="chapters" className="text-xs">
-                                                Chapters ({comparisonResult.chapters.length})
+                                                {getTerminology(
+                                                    ContentTerms.Chapters,
+                                                    SystemTerms.Chapters
+                                                )}
+                                                s ({comparisonResult.chapters.length})
                                             </TabsTrigger>
                                             <TabsTrigger value="slides" className="text-xs">
-                                                Slides ({comparisonResult.slides.length})
+                                                {getTerminology(
+                                                    ContentTerms.Slides,
+                                                    SystemTerms.Slides
+                                                )}
+                                                s ({comparisonResult.slides.length})
                                             </TabsTrigger>
                                         </TabsList>
 

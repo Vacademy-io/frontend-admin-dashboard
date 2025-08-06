@@ -31,6 +31,8 @@ import {
 import type { Slide as RichSlide } from '../types/index';
 import { Modification } from '../lib/applyModifications';
 import { AISlideDropdown } from './components/AISlideDropdown';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface SelectedItem {
     type: 'course' | 'subject' | 'module' | 'chapter' | 'slide';
@@ -132,13 +134,13 @@ const CourseExplorer: React.FC<CourseExplorerProps> = ({
                     const num = match[2];
                     switch (prefix) {
                         case 'C':
-                            return `Course ${num}`;
+                            return `${getTerminology(ContentTerms.Course, SystemTerms.Course)} ${num}`;
                         case 'S':
-                            return `Subject ${num}`;
+                            return `${getTerminology(ContentTerms.Subjects, SystemTerms.Subjects)} ${num}`;
                         case 'M':
-                            return `Module ${num}`;
+                            return `${getTerminology(ContentTerms.Modules, SystemTerms.Modules)} ${num}`;
                         case 'CH':
-                            return `Chapter ${num}`;
+                            return `${getTerminology(ContentTerms.Chapters, SystemTerms.Chapters)} ${num}`;
                         default:
                             return seg;
                     }
@@ -1218,10 +1220,10 @@ const CourseExplorer: React.FC<CourseExplorerProps> = ({
                             <div>
                                 <label className="mb-1 block font-medium">
                                     {dialogTarget === 'slide'
-                                        ? 'Slide Name'
+                                        ? `${getTerminology(ContentTerms.Slides, SystemTerms.Slides)} Name`
                                         : dialogTarget === 'chapter'
-                                          ? 'Chapter Name'
-                                          : 'Module Name'}{' '}
+                                          ? `${getTerminology(ContentTerms.Chapters, SystemTerms.Chapters)} Name`
+                                          : `${getTerminology(ContentTerms.Modules, SystemTerms.Modules)} Name`}{' '}
                                     <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -1238,7 +1240,12 @@ const CourseExplorer: React.FC<CourseExplorerProps> = ({
                     {dialogMode === 'add' && dialogTarget === 'slide' && (
                         <div className="space-y-1">
                             <span className="font-medium">
-                                Type of slide <span className="text-red-500">*</span>
+                                Type of{' '}
+                                {getTerminology(
+                                    ContentTerms.Slides,
+                                    SystemTerms.Slides
+                                ).toLocaleLowerCase()}{' '}
+                                <span className="text-red-500">*</span>
                             </span>
                             <div className="mt-1 flex flex-wrap items-center gap-2">
                                 {allSlideTypes.map((slideType) => {
