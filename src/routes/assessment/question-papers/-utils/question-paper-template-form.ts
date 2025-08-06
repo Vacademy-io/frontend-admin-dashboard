@@ -10,4 +10,5 @@ export interface QuestionPaperTemplateFormProps {
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
     className: string;
+    showQuestionNumber?: boolean; // Optional prop to control question number display
 }
