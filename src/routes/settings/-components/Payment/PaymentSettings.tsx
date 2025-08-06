@@ -30,6 +30,7 @@ import { getInstituteId } from '@/constants/helper';
 import { PaymentPlan, PaymentPlans, PaymentPlanTag, PaymentPlanType } from '@/types/payment';
 import { PaymentPlanCreator } from './PaymentPlanCreator/index';
 import { getCurrencySymbol } from './utils/utils';
+import { DAYS_IN_MONTH } from '../../-constants/terms';
 
 interface Interval {
     price: string;
@@ -222,7 +223,8 @@ const PaymentSettings = () => {
                                 config: {
                                     ...metadata.config,
                                     free: {
-                                        validityDays: metadata.freeData?.validityDays || 30,
+                                        validityDays:
+                                            metadata.freeData?.validityDays || DAYS_IN_MONTH,
                                     },
                                 },
                                 isDefault: false,
@@ -334,7 +336,6 @@ const PaymentSettings = () => {
 
     const handleSavePaymentPlan = async (plan: PaymentPlan, approvalOverride?: boolean) => {
         setIsSaving(true);
-        console.log('plan', plan);
         try {
             const apiPlans = transformLocalPlanToApiFormatArray(plan);
 
@@ -350,6 +351,7 @@ const PaymentSettings = () => {
                 payment_option_metadata_json: JSON.stringify({
                     currency: plan.currency,
                     features: plan.features || [],
+                    unit: plan.config?.subscription?.customIntervals?.[0]?.unit || 'months',
                     config: plan.config,
                     subscriptionData:
                         plan.type === PaymentPlans.SUBSCRIPTION

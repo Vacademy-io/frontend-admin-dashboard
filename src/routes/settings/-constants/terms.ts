@@ -88,3 +88,5 @@ export const enum SettingsTabs {
     Referral = 'referral',
     Course = 'course',
 }
+
+export const DAYS_IN_MONTH = 30;

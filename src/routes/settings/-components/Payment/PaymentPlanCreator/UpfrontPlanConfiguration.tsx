@@ -15,7 +15,6 @@ export const UpfrontPlanConfiguration: React.FC<UpfrontPlanConfigurationProps> =
     fullPrice,
     onFullPriceChange,
 }) => {
-    console.log('fullPrice', fullPrice);
     return (
         <Card>
             <CardHeader>

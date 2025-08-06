@@ -16,11 +16,12 @@ import { Plus, Trash2, Info } from 'lucide-react';
 import { currencyOptions } from '../../-constants/payments';
 import { PaymentPlan, PaymentPlans } from '@/types/payment';
 import { getCurrencySymbol } from './utils/utils';
+import { DAYS_IN_MONTH } from '@/routes/settings/-constants/terms';
 
 interface CustomInterval {
-    value: number;
+    value: number | string;
     unit: 'days' | 'months';
-    price: number;
+    price: number | string;
     features?: string[];
     newFeature?: string;
     title?: string;
@@ -45,6 +46,7 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
 }) => {
     const [planData, setPlanData] = useState<PaymentPlan>(editingPlan);
     const [currentStep, setCurrentStep] = useState(1);
+    const [selectedUnit, setSelectedUnit] = useState<'days' | 'months'>('months');
 
     // Initialize form data when editing
     useEffect(() => {
@@ -62,20 +64,27 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
         }
 
         // Initialize plan data with proper feature handling
-        setPlanData({
+        const processedPlanData = {
             ...editingPlan,
             config: {
+                unit: editingPlan.config?.unit || 'months',
                 subscription: {
                     customIntervals:
                         editingPlan.config?.subscription?.customIntervals?.map(
-                            (interval: CustomInterval) => ({
-                                ...interval,
-                                features: interval.features || [],
-                                price:
-                                    typeof interval.price === 'number'
-                                        ? interval.price.toString()
-                                        : interval.price || '',
-                            })
+                            (interval: CustomInterval) => {
+                                const processedInterval = {
+                                    ...interval,
+                                    value: typeof interval.value === 'number' ? interval.value : 1,
+                                    unit: interval.unit || 'months', // Ensure unit is preserved
+                                    title: interval.title || '',
+                                    features: interval.features || [],
+                                    price:
+                                        typeof interval.price === 'number'
+                                            ? interval.price.toString()
+                                            : interval.price || '',
+                                };
+                                return processedInterval;
+                            }
                         ) || [],
                 },
                 upfront: {
@@ -87,11 +96,65 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
                     minimumAmount: editingPlan.config?.donation?.minimumAmount || '0',
                 },
                 free: {
-                    validityDays: editingPlan.config?.free?.validityDays || 30,
+                    validityDays: editingPlan.config?.free?.validityDays || DAYS_IN_MONTH,
                 },
                 planDiscounts: editingPlan.config?.planDiscounts || {},
             },
-        });
+        };
+
+        // Set the selected unit based on existing intervals or top-level unit
+        let detectedUnit: 'days' | 'months' = 'months';
+        if (editingPlan.config?.unit) {
+            detectedUnit = editingPlan.config.unit;
+            setSelectedUnit(editingPlan.config.unit);
+        } else if (editingPlan.config?.subscription?.unit) {
+            detectedUnit = editingPlan.config.subscription.unit;
+            setSelectedUnit(editingPlan.config.subscription.unit);
+        } else if (editingPlan.config?.subscription?.customIntervals?.length > 0) {
+            const firstInterval = editingPlan.config.subscription.customIntervals[0];
+            if (firstInterval.unit) {
+                detectedUnit = firstInterval.unit;
+                setSelectedUnit(firstInterval.unit);
+            }
+        }
+
+        // Convert stored days to display values based on detected unit
+        if (editingPlan.config?.subscription?.customIntervals) {
+            const updatedIntervals = editingPlan.config.subscription.customIntervals.map(
+                (interval: CustomInterval) => {
+                    // If interval has a stored days value (validity_in_days), convert it to display value
+                    const numericValue =
+                        typeof interval.value === 'string'
+                            ? parseFloat(interval.value) || 0
+                            : interval.value;
+                    const storedDays =
+                        numericValue * (interval.unit === 'months' ? DAYS_IN_MONTH : 1);
+                    const displayValue = convertDaysToDisplayValue(storedDays, detectedUnit);
+
+                    return {
+                        ...interval,
+                        value: displayValue,
+                        unit: detectedUnit,
+                    };
+                }
+            );
+
+            // Update the processed plan data with converted values
+            const updatedProcessedPlanData = {
+                ...processedPlanData,
+                config: {
+                    ...processedPlanData.config,
+                    subscription: {
+                        ...processedPlanData.config.subscription,
+                        customIntervals: updatedIntervals,
+                    },
+                },
+            };
+
+            setPlanData(updatedProcessedPlanData);
+        } else {
+            setPlanData(processedPlanData);
+        }
     }, [editingPlan, featuresGlobal, setFeaturesGlobal]);
 
     const updateConfig = (newConfig: Record<string, unknown>) => {
@@ -104,12 +167,30 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
         });
     };
 
+    // Helper function to convert unit and value to days
+    const convertToDays = (value: number, unit: 'days' | 'months'): number => {
+        if (unit === 'days') {
+            return value;
+        } else if (unit === 'months') {
+            return value * DAYS_IN_MONTH;
+        }
+        return value;
+    };
+
+    // Helper function to convert days to display value based on unit
+    const convertDaysToDisplayValue = (days: number, unit: 'days' | 'months'): number => {
+        if (unit === 'days') {
+            return days;
+        } else if (unit === 'months') {
+            return Math.round(days / DAYS_IN_MONTH);
+        }
+        return days;
+    };
+
     const handleSave = () => {
         if (!planData.name || !planData.type) {
             return;
         }
-
-        // Validate free plan
         if (
             planData.type === PaymentPlans.FREE &&
             (!planData.config?.free?.validityDays || planData.config.free.validityDays <= 0)
@@ -117,7 +198,37 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
             return;
         }
 
-        onSave(planData);
+        let updatedPlanData = { ...planData };
+        if (planData.type === PaymentPlans.SUBSCRIPTION) {
+            const intervals = planData.config?.subscription?.customIntervals || [];
+            if (intervals.length > 0) {
+                // Use the first interval's validity as the base
+                const firstInterval = intervals[0];
+                const numericValue =
+                    typeof firstInterval.value === 'string'
+                        ? parseFloat(firstInterval.value) || 0
+                        : firstInterval.value;
+                const validityDays = convertToDays(numericValue, selectedUnit);
+
+                // Add unit to the top level of config
+                const updatedConfig = {
+                    ...planData.config,
+                    unit: selectedUnit,
+                    subscription: {
+                        ...planData.config?.subscription,
+                        unit: selectedUnit,
+                    },
+                };
+
+                updatedPlanData = {
+                    ...updatedPlanData,
+                    validityDays,
+                    config: updatedConfig,
+                };
+            }
+        }
+
+        onSave(updatedPlanData);
     };
 
     const handleNext = () => {
@@ -206,6 +317,63 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
                                 <CardTitle>Subscription Plan Configuration</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-6">
+                                {/* Global Unit Selection */}
+                                <div className="mb-4">
+                                    <Label className="text-sm font-medium">Duration Unit</Label>
+                                    <Select
+                                        value={selectedUnit}
+                                        onValueChange={(value: 'days' | 'months') => {
+                                            setSelectedUnit(value);
+                                            // Update all intervals to use the new unit and convert values
+                                            const customIntervals =
+                                                planData.config?.subscription?.customIntervals ||
+                                                [];
+                                            const updatedIntervals = customIntervals.map(
+                                                (interval: CustomInterval) => {
+                                                    // Convert current value to days first (handle string values)
+                                                    const numericValue =
+                                                        typeof interval.value === 'string'
+                                                            ? parseFloat(interval.value) || 0
+                                                            : interval.value;
+                                                    const currentDays = convertToDays(
+                                                        numericValue,
+                                                        selectedUnit
+                                                    );
+                                                    // Then convert to new unit's display value
+                                                    const newDisplayValue =
+                                                        convertDaysToDisplayValue(
+                                                            currentDays,
+                                                            value
+                                                        );
+
+                                                    return {
+                                                        ...interval,
+                                                        value: newDisplayValue,
+                                                        unit: value,
+                                                    };
+                                                }
+                                            );
+                                            updateConfig({
+                                                subscription: {
+                                                    ...planData.config?.subscription,
+                                                    customIntervals: updatedIntervals,
+                                                },
+                                            });
+                                        }}
+                                    >
+                                        <SelectTrigger className="mt-1 w-48">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="days">Days</SelectItem>
+                                            <SelectItem value="months">Months</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        This unit will apply to all pricing intervals
+                                    </p>
+                                </div>
+
                                 <div className="flex items-center justify-between">
                                     <h3 className="text-sm font-medium">Pricing Intervals</h3>
                                     <Button
@@ -218,7 +386,7 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
                                                 [];
                                             const newInterval = {
                                                 value: 1,
-                                                unit: 'months' as const,
+                                                unit: selectedUnit,
                                                 price: '',
                                                 features: [...featuresGlobal],
                                             };
@@ -242,10 +410,10 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
                                     {(planData.config?.subscription?.customIntervals || []).map(
                                         (interval: CustomInterval, idx: number) => (
                                             <div
-                                                key={idx}
+                                                key={`interval-${idx}-${interval.value}-${interval.unit}`}
                                                 className="space-y-4 rounded-lg border p-4"
                                             >
-                                                <div className="grid grid-cols-4 gap-3">
+                                                <div className="grid grid-cols-3 gap-3">
                                                     <div>
                                                         <Label className="text-xs">Title</Label>
                                                         <Input
@@ -272,7 +440,9 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
                                                         />
                                                     </div>
                                                     <div>
-                                                        <Label className="text-xs">Value</Label>
+                                                        <Label className="text-xs">
+                                                            Duration ({selectedUnit})
+                                                        </Label>
                                                         <Input
                                                             type="number"
                                                             value={interval.value}
@@ -282,11 +452,15 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
                                                                         ?.subscription
                                                                         ?.customIntervals || []),
                                                                 ];
+                                                                const inputValue = e.target.value;
                                                                 customIntervals[idx] = {
                                                                     ...customIntervals[idx],
                                                                     value:
-                                                                        parseInt(e.target.value) ||
-                                                                        1,
+                                                                        inputValue === ''
+                                                                            ? ''
+                                                                            : parseInt(
+                                                                                  inputValue
+                                                                              ) || 1,
                                                                 };
                                                                 updateConfig({
                                                                     subscription: {
@@ -298,44 +472,6 @@ export const PaymentPlanEditor: React.FC<PaymentPlanEditorProps> = ({
                                                             }}
                                                             className="mt-1"
                                                         />
-                                                    </div>
-                                                    <div>
-                                                        <Label className="text-xs">Unit</Label>
-                                                        <Select
-                                                            value={interval.unit}
-                                                            onValueChange={(value) => {
-                                                                const customIntervals = [
-                                                                    ...(planData.config
-                                                                        ?.subscription
-                                                                        ?.customIntervals || []),
-                                                                ];
-                                                                customIntervals[idx] = {
-                                                                    ...customIntervals[idx],
-                                                                    unit: value as
-                                                                        | 'days'
-                                                                        | 'months',
-                                                                };
-                                                                updateConfig({
-                                                                    subscription: {
-                                                                        ...planData.config
-                                                                            ?.subscription,
-                                                                        customIntervals,
-                                                                    },
-                                                                });
-                                                            }}
-                                                        >
-                                                            <SelectTrigger className="mt-1">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="days">
-                                                                    Days
-                                                                </SelectItem>
-                                                                <SelectItem value="months">
-                                                                    Months
-                                                                </SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
                                                     </div>
                                                     <div>
                                                         <Label className="text-xs">Price</Label>
