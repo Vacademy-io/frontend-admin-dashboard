@@ -39,18 +39,6 @@ const QuizPreview = ({ activeItem, routeParams }: QuizPreviewProps) => {
         sessionId || ''
     );
 
-    console.log('[QuizPreview] Component rendered with activeItem:', {
-        id: activeItem?.id,
-        title: activeItem?.title,
-        source_type: activeItem?.source_type,
-        hasQuizSlide: !!activeItem?.quiz_slide,
-        quizSlideId: activeItem?.quiz_slide?.id,
-        questionsCount: activeItem?.quiz_slide?.questions?.length || 0,
-        questions: activeItem?.quiz_slide?.questions,
-        timestamp: new Date().toISOString(),
-        routeParams: { chapterId, moduleId, subjectId, sessionId },
-    });
-
     const form = useForm<UploadQuestionPaperFormType>({
         resolver: zodResolver(uploadQuestionPaperFormSchema),
         mode: 'onChange',
@@ -95,10 +83,7 @@ const QuizPreview = ({ activeItem, routeParams }: QuizPreviewProps) => {
         const subscription = form.watch((_, { name }) => {
             if (name?.startsWith('questions')) {
                 const currentQuestions = form.getValues('questions');
-                console.log('[QuizPreview] Form data changed, updating store:', {
-                    changedField: name,
-                    questionsCount: currentQuestions.length,
-                });
+
                 // Update the store with the new questions data
                 setActiveItem({
                     ...activeItem,
@@ -498,6 +483,7 @@ const QuizPreview = ({ activeItem, routeParams }: QuizPreviewProps) => {
                                     setCurrentQuestionIndex: () => {},
                                     className:
                                         'dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4',
+                                    showQuestionNumber: false,
                                 }}
                             />
                         </FormProvider>
@@ -539,6 +525,7 @@ const QuizPreview = ({ activeItem, routeParams }: QuizPreviewProps) => {
                                     setCurrentQuestionIndex: () => {},
                                     className:
                                         'dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4',
+                                    showQuestionNumber: false,
                                 }}
                             />
                         </FormProvider>

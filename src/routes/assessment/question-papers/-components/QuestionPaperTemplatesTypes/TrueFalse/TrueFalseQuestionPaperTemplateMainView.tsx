@@ -17,6 +17,7 @@ export const TrueFalseQuestionPaperTemplateMainView = ({
     form,
     currentQuestionIndex,
     className,
+    showQuestionNumber = true,
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues, setValue } = form;
     const answersType = getValues('answersType') || 'Answer:';
@@ -97,10 +98,15 @@ export const TrueFalseQuestionPaperTemplateMainView = ({
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <div className="flex items-center gap-2">
                     <span>
-                        Question&nbsp;
-                        {questionsType
-                            ? formatStructure(questionsType, currentQuestionIndex + 1)
-                            : currentQuestionIndex + 1}
+                        Question
+                        {showQuestionNumber && (
+                            <>
+                                &nbsp;
+                                {questionsType
+                                    ? formatStructure(questionsType, currentQuestionIndex + 1)
+                                    : currentQuestionIndex + 1}
+                            </>
+                        )}
                     </span>
                     <Badge variant="outline">{level}</Badge>
                 </div>
