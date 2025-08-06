@@ -25,10 +25,11 @@ import { TokenKey } from '@/constants/auth/tokens';
 import {
     setAuthorizationCookie,
     getUserRoles,
-    generateSSOUrl,
-    SSO_CONFIG,
+    removeCookiesAndLogout,
 } from '@/lib/auth/sessionUtility';
 import { LOGIN_OTP, REQUEST_OTP } from '@/constants/urls';
+import { handleLoginFlow, navigateFromLoginFlow } from '@/lib/auth/loginFlowHandler';
+import { trackEvent } from '@/lib/amplitude';
 
 const emailSchema = z.object({
     email: z.string().email({ message: 'Invalid email address' }),
@@ -91,11 +92,6 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
 
     const sendOtpMutation = useMutation({
         mutationFn: (email: string) => {
-            console.log('[OTP Request] Sending request:', {
-                url: REQUEST_OTP,
-                email: email,
-            });
-
             return axios.post(
                 REQUEST_OTP,
                 { email },
@@ -111,24 +107,12 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
             setIsLoading(true);
         },
         onSuccess: (response) => {
-            console.log('[OTP Request] Success response:', response.data);
             setIsLoading(false);
             setIsOtpSent(true);
             startTimer();
             toast.success('OTP sent successfully');
         },
         onError: (error: AxiosError) => {
-            console.error('[OTP Request] Error:', error);
-
-            // Log detailed error information
-            if (error.response) {
-                console.error('[OTP Request] Response error:', {
-                    status: error.response.status,
-                    statusText: error.response.statusText,
-                    data: error.response.data,
-                });
-            }
-
             setIsLoading(false);
             toast.error('This email is not registered', {
                 description: 'Please try again with a registered email',
@@ -139,12 +123,6 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
 
     const verifyOtpMutation = useMutation({
         mutationFn: (data: { email: string; otp: string }) => {
-            console.log('[OTP Verification] Sending request:', {
-                url: LOGIN_OTP,
-                email: data.email,
-                otp: data.otp,
-            });
-
             // Prepare request body according to backend API specification
             const requestBody = {
                 user_name: data.email, // Using email as username
@@ -155,8 +133,6 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
                 otp: data.otp,
             };
 
-            console.log('[OTP Verification] Request body:', requestBody);
-
             return axios.post(LOGIN_OTP, requestBody, {
                 headers: {
                     'Content-Type': 'application/json',
@@ -164,36 +140,29 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
                 },
             });
         },
-        onSuccess: (response) => {
-            console.log('[OTP Verification] Success response:', response.data);
+        onSuccess: async (response) => {
+            // Track successful login
+            trackEvent('Login Success', {
+                login_method: 'email_otp',
+                timestamp: new Date().toISOString(),
+            });
 
-            // Store tokens in cookies
-            setAuthorizationCookie(TokenKey.accessToken, response.data.accessToken);
-            setAuthorizationCookie(TokenKey.refreshToken, response.data.refreshToken);
+            // Use centralized login flow
+            const result = await handleLoginFlow({
+                loginMethod: 'email_otp',
+                accessToken: response.data.accessToken,
+                refreshToken: response.data.refreshToken,
+                queryClient
+            });
 
-            // Clear all queries to ensure fresh data fetch
-            queryClient.clear();
-
-            // Get user roles
-            const userRoles = getUserRoles(response.data.accessToken);
-
-            // Add a small delay to ensure tokens are properly set before navigation
-            setTimeout(() => {
-                handlePostLoginRedirect(userRoles);
-            }, 100);
+            if (result.shouldShowInstituteSelection) {
+                // For email OTP, we'll redirect to institute selection page
+                window.location.href = '/login?showInstituteSelection=true';
+            } else {
+                navigateFromLoginFlow(result);
+            }
         },
         onError: (error: AxiosError) => {
-            console.error('[OTP Verification] Error:', error);
-
-            // Log detailed error information
-            if (error.response) {
-                console.error('[OTP Verification] Response error:', {
-                    status: error.response.status,
-                    statusText: error.response.statusText,
-                    data: error.response.data,
-                });
-            }
-
             toast.error('Invalid OTP', {
                 description: 'Please check your OTP and try again',
                 duration: 3000,
@@ -202,33 +171,7 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
         },
     });
 
-    const handlePostLoginRedirect = (userRoles: string[]) => {
-        console.log('User roles after login:', userRoles);
 
-        // Check if user has both STUDENT and other roles
-        const hasStudentRole = userRoles.includes('STUDENT');
-        const hasAdminRole = userRoles.some((role) => ['ADMIN', 'TEACHER'].includes(role));
-
-        if (hasStudentRole && hasAdminRole) {
-            // User has both roles - stay on admin dashboard
-            console.log('User has multiple roles, staying on admin dashboard');
-            navigate({ to: '/dashboard' });
-        } else if (hasStudentRole && !hasAdminRole) {
-            // User only has STUDENT role - redirect to learner platform
-            console.log('User only has STUDENT role, redirecting to learner platform');
-            const ssoUrl = generateSSOUrl(SSO_CONFIG.LEARNER_DOMAIN, '/dashboard');
-            if (ssoUrl) {
-                window.location.href = ssoUrl;
-            } else {
-                // Fallback: direct redirect
-                window.location.href = `https://${SSO_CONFIG.LEARNER_DOMAIN}`;
-            }
-        } else {
-            // User has admin roles - stay on admin dashboard
-            console.log('User has admin roles, staying on admin dashboard');
-            navigate({ to: '/dashboard' });
-        }
-    };
 
     const onEmailSubmit = (data: EmailFormValues) => {
         setEmail(data.email);

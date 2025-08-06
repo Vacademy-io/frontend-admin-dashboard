@@ -5,15 +5,14 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import { MyInput } from '@/components/design-system/input';
 import { MyButton } from '@/components/design-system/button';
-import { useNavigate } from '@tanstack/react-router';
+
 import { useAddOrgStore } from '../-zustand-store/step2AddOrgZustand';
 import { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { handleSignupInstitute } from '../../-services/signup-services';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import useOrganizationStore from '../-zustand-store/step1OrganizationZustand';
-import { setAuthorizationCookie } from '@/lib/auth/sessionUtility';
-import { TokenKey } from '@/constants/auth/tokens';
+import { handleLoginFlow, navigateFromLoginFlow } from '@/lib/auth/loginFlowHandler';
 
 export interface FormValuesStep1Signup {
     profilePictureUrl: string;
@@ -58,7 +57,6 @@ interface SignupData {
 
 export function Step3AddOrgDetails() {
     const queryClient = useQueryClient();
-    const navigate = useNavigate();
     const { setFormDataAddOrg, resetAddOrgForm } = useAddOrgStore();
     const { formData, resetForm } = useOrganizationStore();
     const [signupData, setSignupData] = useState<SignupData | null>(null);
@@ -144,13 +142,25 @@ export function Step3AddOrgDetails() {
                 },
             });
         },
-        onSuccess: (data) => {
+        onSuccess: async (data) => {
             queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
-            setAuthorizationCookie(TokenKey.accessToken, data.accessToken);
-            setAuthorizationCookie(TokenKey.refreshToken, data.refreshToken);
-            resetForm();
-            resetAddOrgForm();
-            navigate({ to: '/dashboard' });
+
+            // Use centralized login flow
+            const result = await handleLoginFlow({
+                loginMethod: 'signup',
+                accessToken: data.accessToken,
+                refreshToken: data.refreshToken,
+                queryClient,
+            });
+
+            if (result.shouldShowInstituteSelection) {
+                // For signup, we'll redirect to institute selection page
+                window.location.href = '/login?showInstituteSelection=true';
+            } else {
+                resetForm();
+                resetAddOrgForm();
+                navigateFromLoginFlow(result);
+            }
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {

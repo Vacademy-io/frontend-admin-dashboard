@@ -55,6 +55,7 @@ import EnrollLearnersWidget from './-components/EnrollLearnersWidget';
 import LearningCenterWidget from './-components/LearningCenterWidget';
 import AssessmentCenterWidget from './-components/AssessmentCenterWidget';
 import RoleTypeComponent from './-components/RoleTypeComponent';
+import { LearnerTab } from './-components/LearnerTab';
 import { SettingsTabs } from '../settings/-constants/terms';
 
 export const Route = createFileRoute('/dashboard/')({
@@ -63,7 +64,16 @@ export const Route = createFileRoute('/dashboard/')({
 
 function DashboardPage() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [isVoltSubdomain, setIsVoltSubdomain] = useState(false);
+    const [showLearnerTab, setShowLearnerTab] = useState(false);
+
+    // Check if learner tab should be shown
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const shouldShowLearnerTab = urlParams.get('showLearnerTab') === 'true';
+        setShowLearnerTab(shouldShowLearnerTab);
+    }, [location.search]);
 
     useEffect(() => {
         const subdomain =
@@ -112,6 +122,9 @@ function DashboardPage() {
     return (
         <LayoutContainer>
             <DashboardComponent />
+            {showLearnerTab && (
+                <LearnerTab onClose={() => setShowLearnerTab(false)} />
+            )}
         </LayoutContainer>
     );
 }
@@ -295,7 +308,7 @@ export function DashboardComponent() {
         key: IntroKey.dashboardFirstTimeVisit,
         steps: dashboardSteps,
         onTourExit: () => {
-            console.log('Tour Completed');
+            // Tour completed
         },
     });
 

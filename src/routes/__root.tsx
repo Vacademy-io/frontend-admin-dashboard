@@ -44,6 +44,7 @@ const handleSSOTokens = (search: string) => {
 const publicRoutes = [
     '/login',
     '/login/forgot-password',
+    '/login/oauth/redirect',
     '/signup',
     '/evaluator-ai',
     '/landing',
@@ -54,7 +55,12 @@ export const Route = createRootRouteWithContext<{
     queryClient: QueryClient;
 }>()({
     beforeLoad: ({ location }) => {
-        // Handle SSO tokens from URL parameters first
+        // Special handling for OAuth redirect - don't set tokens here, let the OAuth component handle it
+        if (location.pathname === '/login/oauth/redirect') {
+            return; // Allow the OAuth redirect component to handle the flow
+        }
+
+        // Handle SSO tokens from URL parameters for other routes
         handleSSOTokens((location.search as string) || '');
 
         // Redirect root based on subdomain
@@ -96,8 +102,17 @@ export const Route = createRootRouteWithContext<{
         }
 
         // If user is authenticated and tries to access login page,
-        // check for redirect parameter and handle accordingly
+        // check for redirect parameter and handle accordingly (unless showing institute selection)
         if (isAuthenticated() && location.pathname.startsWith('/login')) {
+            // Also check if search is an object with the parameter
+            if (
+                typeof location.search === 'object' &&
+                location.search &&
+                'showInstituteSelection' in location.search
+            ) {
+                return;
+            }
+
             const searchParams = new URLSearchParams(location.search);
             const redirectParam = searchParams.get('redirect');
 
