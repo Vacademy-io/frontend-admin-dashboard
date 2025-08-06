@@ -54,7 +54,7 @@ export const handleLoginOAuthCallback = async () => {
         return { success: false };
     }
 
-    if (accessToken && refreshToken) {
+        if (accessToken && refreshToken) {
         // Use centralized login flow
         const result = await handleLoginFlow({
             loginMethod: 'oauth',
@@ -95,6 +95,6 @@ export const handleLoginOAuthCallback = async () => {
         toast.error('Login failed. Missing tokens.');
         return { success: false };
     } catch (error) {
-        return { success: false, error: error.message };
+        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
 };

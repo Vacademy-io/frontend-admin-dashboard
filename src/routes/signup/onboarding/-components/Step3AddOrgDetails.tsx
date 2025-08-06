@@ -5,17 +5,14 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import { MyInput } from '@/components/design-system/input';
 import { MyButton } from '@/components/design-system/button';
-import { useNavigate } from '@tanstack/react-router';
+
 import { useAddOrgStore } from '../-zustand-store/step2AddOrgZustand';
 import { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { handleSignupInstitute } from '../../-services/signup-services';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import useOrganizationStore from '../-zustand-store/step1OrganizationZustand';
-import { setAuthorizationCookie, getUserRoles, removeCookiesAndLogout } from '@/lib/auth/sessionUtility';
-import { shouldBlockStudentLogin, getInstituteSelectionResult, setSelectedInstitute } from '@/lib/auth/instituteUtils';
-import { TokenKey } from '@/constants/auth/tokens';
-import { trackEvent } from '@/lib/amplitude';
+import { handleLoginFlow, navigateFromLoginFlow } from '@/lib/auth/loginFlowHandler';
 
 export interface FormValuesStep1Signup {
     profilePictureUrl: string;
@@ -60,7 +57,6 @@ interface SignupData {
 
 export function Step3AddOrgDetails() {
     const queryClient = useQueryClient();
-    const navigate = useNavigate();
     const { setFormDataAddOrg, resetAddOrgForm } = useAddOrgStore();
     const { formData, resetForm } = useOrganizationStore();
     const [signupData, setSignupData] = useState<SignupData | null>(null);
@@ -154,7 +150,7 @@ export function Step3AddOrgDetails() {
                 loginMethod: 'signup',
                 accessToken: data.accessToken,
                 refreshToken: data.refreshToken,
-                queryClient
+                queryClient,
             });
 
             if (result.shouldShowInstituteSelection) {

@@ -39,7 +39,7 @@ export function InstituteGuard({ children }: InstituteGuardProps) {
                     duration: 5000,
                 });
 
-                navigate({ to: '/login?error=student_access_denied' });
+                window.location.href = '/login?error=student_access_denied';
                 return;
             }
 

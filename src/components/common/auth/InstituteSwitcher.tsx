@@ -69,7 +69,7 @@ export function InstituteSwitcher() {
                     // Update institute names with real names
                     const updatedInstitutes = institutes.map(institute => ({
                         ...institute,
-                        name: getInstituteName(instituteDetails[institute.id], institute.id),
+                        name: getInstituteName(instituteDetails[institute.id] || null, institute.id),
                         details: instituteDetails[institute.id] || null,
                     }));
 

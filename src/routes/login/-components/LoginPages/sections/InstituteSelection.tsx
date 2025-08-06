@@ -76,14 +76,16 @@ export function InstituteSelection({ onInstituteSelect }: InstituteSelectionProp
             if (validInstitutes.length === 1) {
                 // Auto-select if only one institute
                 const institute = validInstitutes[0];
-                const primaryRole = getPrimaryRole(institute.roles);
-                trackEvent('Institute Auto-Selected', {
-                    institute_id: institute.id,
-                    primary_role: primaryRole,
-                    timestamp: new Date().toISOString(),
-                });
-                onInstituteSelect(institute.id);
-                return;
+                if (institute) {
+                    const primaryRole = getPrimaryRole(institute.roles);
+                    trackEvent('Institute Auto-Selected', {
+                        institute_id: institute.id,
+                        primary_role: primaryRole,
+                        timestamp: new Date().toISOString(),
+                    });
+                    onInstituteSelect(institute.id);
+                    return;
+                }
             }
 
             // Set institutes first, then fetch details
@@ -121,7 +123,7 @@ export function InstituteSelection({ onInstituteSelect }: InstituteSelectionProp
             // Update institute names with real names
             const updatedInstitutes = instituteList.map(institute => {
                 const details = instituteDetails[institute.id];
-                const newName = getInstituteName(details, institute.id);
+                const newName = getInstituteName(details || null, institute.id);
 
                 return {
                     ...institute,

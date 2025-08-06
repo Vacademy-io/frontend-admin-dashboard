@@ -35,6 +35,7 @@ import {
     shouldBlockStudentLogin,
 } from '@/lib/auth/instituteUtils';
 import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { handleLoginFlow } from '@/lib/auth/loginFlowHandler';
 
 type FormValues = z.infer<typeof loginSchema>;
 
@@ -95,13 +96,42 @@ export function LoginForm() {
                 timestamp: new Date().toISOString(),
             });
 
-            // Clear all queries to ensure fresh data fetch
-            queryClient.clear();
+            // Use centralized login flow for SSO
+            const cookieAccessToken = getTokenFromCookie(TokenKey.accessToken);
+            const cookieRefreshToken = getTokenFromCookie(TokenKey.refreshToken);
 
-            // Add a small delay to ensure tokens are properly set before navigation
-            setTimeout(() => {
-                navigate({ to: '/dashboard' });
-            }, 100);
+            if (cookieAccessToken && cookieRefreshToken) {
+                setTimeout(async () => {
+                    try {
+                        const result = await handleLoginFlow({
+                            loginMethod: 'sso',
+                            accessToken: cookieAccessToken,
+                            refreshToken: cookieRefreshToken,
+                            queryClient
+                        });
+
+                        if (!result.success) {
+                            toast.error('Access Denied', {
+                                description: 'Students are not allowed to access the admin portal. Please contact your administrator.',
+                                className: 'error-toast',
+                                duration: 5000,
+                            });
+                            return;
+                        }
+
+                        if (result.shouldShowInstituteSelection) {
+                            setShowInstituteSelection(true);
+                            return;
+                        }
+
+                        const redirectUrl = result.redirectUrl || '/dashboard';
+                        navigate({ to: redirectUrl });
+                    } catch (error) {
+                        console.error('SSO login flow error:', error);
+                        toast.error('Login failed. Please try again.');
+                    }
+                }, 100);
+            }
             return;
         }
 
@@ -109,25 +139,36 @@ export function LoginForm() {
         const refreshToken = urlParams.get('refreshToken');
 
         if (accessToken && refreshToken) {
-            setAuthorizationCookie(TokenKey.accessToken, accessToken);
-            setAuthorizationCookie(TokenKey.refreshToken, refreshToken);
+            // Use centralized login flow for OAuth
+            setTimeout(async () => {
+                try {
+                    const result = await handleLoginFlow({
+                        loginMethod: 'oauth',
+                        accessToken,
+                        refreshToken,
+                        queryClient
+                    });
 
-            // Clear all queries to ensure fresh data fetch
-            queryClient.clear();
+                    if (!result.success) {
+                        toast.error('Access Denied', {
+                            description: 'Students are not allowed to access the admin portal. Please contact your administrator.',
+                            className: 'error-toast',
+                            duration: 5000,
+                        });
+                        return;
+                    }
 
-            // Track OAuth login success
-            amplitudeEvents.signIn('oauth');
-            trackEvent('Login Success', {
-                login_method: 'oauth',
-                timestamp: new Date().toISOString(),
-            });
+                    if (result.shouldShowInstituteSelection) {
+                        setShowInstituteSelection(true);
+                        return;
+                    }
 
-            // Check user roles and redirect accordingly
-            const userRoles = getUserRoles(accessToken);
-
-            // Add a small delay to ensure tokens are properly set before navigation
-            setTimeout(() => {
-                handlePostLoginRedirect(userRoles);
+                    const redirectUrl = result.redirectUrl || '/dashboard';
+                    navigate({ to: redirectUrl });
+                } catch (error) {
+                    console.error('OAuth login flow error:', error);
+                    toast.error('Login failed. Please try again.');
+                }
             }, 100);
         } else {
             // Check if we have tokens in cookies and need to show institute selection
@@ -144,73 +185,50 @@ export function LoginForm() {
         }
     }, [navigate, queryClient]);
 
-    const handlePostLoginRedirect = (userRoles: string[]) => {
-        // Check if user should be blocked from logging in (only has STUDENT role)
-        if (shouldBlockStudentLogin()) {
-            // Track blocked login attempt
-            trackEvent('Login Blocked', {
-                login_method: 'username_password',
-                reason: 'student_only_role',
-                user_roles: userRoles,
-                timestamp: new Date().toISOString(),
+    const handlePostLoginRedirect = async (accessToken: string, refreshToken: string) => {
+        try {
+            // Use centralized login flow
+            const result = await handleLoginFlow({
+                loginMethod: 'username_password',
+                accessToken,
+                refreshToken,
+                queryClient
             });
 
-            // Clear tokens and show error
-            removeCookiesAndLogout();
+            if (!result.success) {
+                // User was blocked or error occurred
+                toast.error('Access Denied', {
+                    description: 'Students are not allowed to access the admin portal. Please contact your administrator.',
+                    className: 'error-toast',
+                    duration: 5000,
+                });
+                return;
+            }
 
-            toast.error('Access Denied', {
-                description:
-                    'Students are not allowed to access the admin portal. Please contact your administrator.',
-                className: 'error-toast',
-                duration: 5000,
-            });
+            if (result.shouldShowInstituteSelection) {
+                setShowInstituteSelection(true);
+                return;
+            }
 
-            return;
+            // Navigate to the appropriate URL
+            const redirectUrl = result.redirectUrl || '/dashboard';
+            navigate({ to: redirectUrl });
+        } catch (error) {
+            console.error('Login flow error:', error);
+            toast.error('Login failed. Please try again.');
         }
-
-        // Check if user needs to select an institute
-        const instituteResult = getInstituteSelectionResult();
-
-        if (instituteResult.shouldShowSelection) {
-            setShowInstituteSelection(true);
-            return;
-        }
-
-        // User has only one institute or no valid institutes
-        if (instituteResult.selectedInstitute) {
-            setSelectedInstitute(instituteResult.selectedInstitute.id);
-        }
-
-        // Navigate to dashboard
-        navigate({ to: '/dashboard' });
     };
 
     const mutation = useMutation({
         mutationFn: (values: FormValues) => loginUser(values.username, values.password),
         onSuccess: (response) => {
             if (response) {
-                // Store tokens in cookies first
-                setAuthorizationCookie(TokenKey.accessToken, response.accessToken);
-                setAuthorizationCookie(TokenKey.refreshToken, response.refreshToken);
-
-                // Clear all queries to ensure fresh data fetch
-                queryClient.clear();
-
                 // Track successful login
                 amplitudeEvents.signIn('username_password');
 
-                // Identify user if you have user information
-                // You can add more user properties here based on the response
-                const userRoles = getUserRoles(response.accessToken);
-                trackEvent('Login Success', {
-                    login_method: 'username_password',
-                    user_roles: userRoles,
-                    timestamp: new Date().toISOString(),
-                });
-
                 // Add a small delay to ensure tokens are properly set before navigation
                 setTimeout(() => {
-                    handlePostLoginRedirect(userRoles);
+                    handlePostLoginRedirect(response.accessToken, response.refreshToken);
                 }, 100);
             } else {
                 // Track failed login

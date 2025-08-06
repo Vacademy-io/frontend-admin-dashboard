@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { getSelectedInstitute, setSelectedInstitute, clearSelectedInstitute, getInstituteSelectionResult, getUserRoleForInstitute } from '@/lib/auth/instituteUtils';
 
 export const useInstitute = () => {
-    const [currentInstituteId, setCurrentInstituteId] = useState<string | null>(null);
+    const [currentInstituteId, setCurrentInstituteId] = useState<string | undefined>(undefined);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -19,7 +19,7 @@ export const useInstitute = () => {
 
     const clearInstitute = () => {
         clearSelectedInstitute();
-        setCurrentInstituteId(null);
+        setCurrentInstituteId(undefined);
     };
 
     const getCurrentInstituteRole = () => {

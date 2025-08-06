@@ -132,13 +132,13 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
         trackEvent('Login Failed', {
             login_method: loginMethod,
             error_reason: 'login_flow_error',
-            error_message: error?.message || 'Unknown error',
+            error_message: error instanceof Error ? error.message : 'Unknown error',
             timestamp: new Date().toISOString(),
         });
 
         return {
             success: false,
-            error: error?.message || 'Login flow failed'
+            error: error instanceof Error ? error.message : 'Login flow failed'
         };
     }
 };
@@ -193,7 +193,7 @@ export const handleInstituteSelection = (instituteId: string): LoginFlowResult =
     } catch (error) {
         return {
             success: false,
-            error: error?.message || 'Institute selection failed'
+            error: error instanceof Error ? error.message : 'Institute selection failed'
         };
     }
 };

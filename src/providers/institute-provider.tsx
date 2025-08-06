@@ -3,7 +3,7 @@ import { useInstitute } from '@/hooks/auth/useInstitute';
 import { Institute } from '@/lib/auth/instituteUtils';
 
 interface InstituteContextType {
-    currentInstituteId: string | null;
+    currentInstituteId: string | undefined;
     isLoading: boolean;
     selectInstitute: (instituteId: string) => void;
     clearInstitute: () => void;

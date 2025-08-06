@@ -70,7 +70,7 @@ function DashboardPage() {
 
     // Check if learner tab should be shown
     useEffect(() => {
-        const urlParams = new URLSearchParams(location.search);
+        const urlParams = new URLSearchParams(window.location.search);
         const shouldShowLearnerTab = urlParams.get('showLearnerTab') === 'true';
         setShowLearnerTab(shouldShowLearnerTab);
     }, [location.search]);

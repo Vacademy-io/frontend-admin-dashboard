@@ -54,10 +54,14 @@ export const getValidInstitutes = (institutes: Institute[]): Institute[] => {
         const roles = institute.roles;
 
         // If user only has STUDENT role, exclude the institute
-        if (roles.length === 1 && roles[0] === 'STUDENT') return false;
+        if (roles.length === 1 && roles[0] === 'STUDENT') {
+            return false;
+        }
 
         // If user has ADMIN role, always include the institute (highest priority)
-        if (roles.includes('ADMIN')) return true;
+        if (roles.includes('ADMIN')) {
+            return true;
+        }
 
         // Include institute if user has any role other than just STUDENT
         return true;
@@ -126,14 +130,16 @@ export const getInstituteSelectionResult = (): InstituteSelectionResult => {
 
     if (validInstitutes.length === 1) {
         const institute = validInstitutes[0];
-        const primaryRole = getPrimaryRole(institute.roles);
+        if (institute) {
+            const primaryRole = getPrimaryRole(institute.roles);
 
-        return {
-            shouldShowSelection: false,
-            institutes: validInstitutes,
-            selectedInstitute: institute,
-            primaryRole,
-        };
+            return {
+                shouldShowSelection: false,
+                institutes: validInstitutes,
+                selectedInstitute: institute,
+                primaryRole,
+            };
+        }
     }
 
     return {
@@ -152,14 +158,14 @@ export const setSelectedInstitute = (instituteId: string): void => {
 /**
  * Get the selected institute from localStorage
  */
-export const getSelectedInstitute = (): string | null => {
-    return localStorage.getItem('selectedInstituteId');
+export const getSelectedInstitute = (): string | undefined => {
+    return localStorage.getItem('selectedInstituteId') || undefined;
 };
 
 /**
  * Get the current institute ID (selected or fallback to first)
  */
-export const getCurrentInstituteId = (): string | null => {
+export const getCurrentInstituteId = (): string | undefined => {
     // First try to get the selected institute from localStorage
     const selectedInstituteId = getSelectedInstitute();
 
@@ -171,7 +177,7 @@ export const getCurrentInstituteId = (): string | null => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
     const firstInstituteId = data && Object.keys(data.authorities)[0];
-    return firstInstituteId || null;
+    return firstInstituteId || undefined;
 };
 
 /**
@@ -193,7 +199,12 @@ export const getUserRoleForInstitute = (instituteId: string): string | null => {
         return null;
     }
 
-    const roles = tokenData.authorities[instituteId].roles || [];
+    const instituteData = tokenData.authorities[instituteId];
+    if (!instituteData) {
+        return null;
+    }
+
+    const roles = instituteData.roles || [];
     return getPrimaryRole(roles);
 };
 
@@ -209,7 +220,12 @@ export const hasRoleInInstitute = (instituteId: string, role: string): boolean =
         return false;
     }
 
-    const roles = tokenData.authorities[instituteId].roles || [];
+    const instituteData = tokenData.authorities[instituteId];
+    if (!instituteData) {
+        return false;
+    }
+
+    const roles = instituteData.roles || [];
     return roles.includes(role);
 };
 

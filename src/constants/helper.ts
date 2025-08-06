@@ -33,7 +33,7 @@ export function extractDateTime(utcDate: string) {
     return { date, time };
 }
 
-export function getInstituteId() {
+export function getInstituteId(): string | undefined {
     return getCurrentInstituteId();
 }
 

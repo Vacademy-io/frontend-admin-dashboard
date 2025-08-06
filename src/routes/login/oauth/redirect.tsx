@@ -11,7 +11,7 @@ function OAuthRedirectHandler() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const processOAuth = async () => {
+                const processOAuth = async () => {
             try {
                 const result = await handleLoginOAuthCallback();
 
@@ -21,7 +21,7 @@ function OAuthRedirectHandler() {
                 const error = urlParams.get('error');
 
                 if (error === 'student_access_denied') {
-                    navigate({ to: '/login?error=student_access_denied' });
+                    window.location.href = '/login?error=student_access_denied';
                     return;
                 }
 
