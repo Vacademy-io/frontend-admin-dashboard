@@ -90,9 +90,11 @@ const CustomInviteFormCard = ({
                                                                 scale="small"
                                                                 buttonType="secondary"
                                                                 className="min-w-6 !rounded-sm !p-0"
-                                                                onClick={() =>
-                                                                    handleDeleteOpenField(index)
-                                                                }
+                                                                onClick={(e) => {
+                                                                    e.preventDefault();
+                                                                    e.stopPropagation();
+                                                                    handleDeleteOpenField(index);
+                                                                }}
                                                             >
                                                                 <TrashSimple className="!size-4 text-danger-500" />
                                                             </MyButton>
@@ -111,9 +113,9 @@ const CustomInviteFormCard = ({
                                                         <h1 className="text-sm">Required</h1>
                                                         <Switch
                                                             checked={field.isRequired}
-                                                            onCheckedChange={() =>
-                                                                toggleIsRequired(index)
-                                                            }
+                                                            onCheckedChange={() => {
+                                                                toggleIsRequired(index);
+                                                            }}
                                                         />
                                                     </>
                                                 )}
@@ -130,7 +132,11 @@ const CustomInviteFormCard = ({
                                 type="button"
                                 scale="medium"
                                 buttonType="secondary"
-                                onClick={() => handleAddGender('dropdown', 'Gender', false)}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleAddGender('dropdown', 'Gender', false);
+                                }}
                             >
                                 <Plus size={32} /> Add Gender
                             </MyButton>
@@ -140,9 +146,11 @@ const CustomInviteFormCard = ({
                                 type="button"
                                 scale="medium"
                                 buttonType="secondary"
-                                onClick={() =>
-                                    handleAddOpenFieldValues('textfield', 'State', false)
-                                }
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleAddOpenFieldValues('textfield', 'State', false);
+                                }}
                             >
                                 <Plus size={32} /> Add State
                             </MyButton>
@@ -152,7 +160,11 @@ const CustomInviteFormCard = ({
                                 type="button"
                                 scale="medium"
                                 buttonType="secondary"
-                                onClick={() => handleAddOpenFieldValues('textfield', 'City', false)}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleAddOpenFieldValues('textfield', 'City', false);
+                                }}
                             >
                                 <Plus size={32} /> Add City
                             </MyButton>
@@ -162,9 +174,11 @@ const CustomInviteFormCard = ({
                                 type="button"
                                 scale="medium"
                                 buttonType="secondary"
-                                onClick={() =>
-                                    handleAddOpenFieldValues('textfield', 'School/College', false)
-                                }
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleAddOpenFieldValues('textfield', 'School/College', false);
+                                }}
                             >
                                 <Plus size={32} /> Add School/College
                             </MyButton>

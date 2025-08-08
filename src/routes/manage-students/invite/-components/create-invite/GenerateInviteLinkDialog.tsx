@@ -671,7 +671,7 @@ const GenerateInviteLinkDialog = ({
                     <DialogTitle className="font-bold">Create Invite Link</DialogTitle>
                     <div className="my-3 border-b" />
                 </DialogHeader>
-                <div className="max-h-[70vh] flex-1 overflow-auto">
+                <div className="max-h-[70vh] flex-1 overflow-auto scroll-smooth">
                     <Form {...form}>
                         <form className="mt-6 space-y-6">
                             {/* Invite Name Card */}
