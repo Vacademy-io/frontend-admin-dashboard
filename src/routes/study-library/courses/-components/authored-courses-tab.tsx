@@ -156,8 +156,6 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
         refetchInterval: 30000,
     });
 
-
-
     // Create editable copy mutation
     const createCopyMutation = useMutation({
         mutationFn: createEditableCopy,
@@ -256,8 +254,6 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
         createCopyMutation.mutate(course.id);
     };
 
-
-
     const handleSubmitForReview = (courseId: string) => {
         submitReviewMutation.mutate(courseId);
     };
@@ -293,7 +289,8 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
 
     const canCreateCopy = (course: GroupedCourse) => {
         if (!filteredCourses) return false;
-        // Check if there's already a draft copy of this published course
+        // Prevent multiple draft copies: Check if there's already a draft copy of this published course
+        // by looking for any course where originalCourseId matches this course's ID and status is DRAFT
         const hasDraftCopy = filteredCourses.some(
             (c) => c.originalCourseId === course.id && c.status === 'DRAFT'
         );
@@ -497,9 +494,9 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                                             </MyButton>
                                         </div>
                                     ) : (
-                                        // For published courses, show copy button or copy exists message
+                                        // For published courses, show copy button only for non-admin users
                                         <div>
-                                            {course.status === 'ACTIVE' ? (
+                                            {course.status === 'ACTIVE' && !isAdmin ? (
                                                 canCreateCopy(course) ? (
                                                     <MyButton
                                                         onClick={() => handleCopyToEdit(course)}

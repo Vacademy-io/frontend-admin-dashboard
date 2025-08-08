@@ -14,27 +14,34 @@
   height: 100%;
   min-height: 0;
   max-height: 100%;
-  overflow: hidden;
+  overflow: hidden; /* Keep hidden on panel wrapper to prevent external overflow */
   background-color: #fff;
   border-radius: 2px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   display: flex;
   flex-direction: column;
   position: relative;
+  /* Force fixed height container */
+  flex-shrink: 0;
+  flex-grow: 0;
 }
 
 /* Ensure child components fill the panel and handle overflow properly */
 .panel-content > * {
-  flex: 1;
+  flex: 1 1 0; /* flex-grow: 1, flex-shrink: 1, flex-basis: 0 */
   min-height: 0;
   max-height: 100%;
-  overflow: hidden;
-  isolation: isolate; /* Prevent scroll propagation */
+  height: 100%; /* Force full height */
+  overflow: auto; /* Allow each column to scroll independently */
+  isolation: auto; /* Allow scroll behavior */
   /* Removed CSS containment - was blocking scrolling */
   box-sizing: border-box;
+  /* Prevent content from expanding the container */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
-/* Exception for ChatView component to allow internal scrolling */
+/* ChatView component specific styling - now that panel content allows scrolling */
 .panel-content .ai-chat-container {
   overflow: visible !important;
   height: 100% !important;
@@ -49,9 +56,10 @@
   overflow-x: hidden !important;
   flex: 1 !important;
   min-height: 0 !important;
-  height: auto !important;
-  max-height: none !important;
+  height: 100% !important; /* Fixed height instead of auto */
+  max-height: 100% !important; /* Strict max height */
   isolation: auto !important; /* Remove isolation that blocks scrolling */
+  padding-top: 80px !important; /* Account for TodoProgress positioned at top */
 }
 
 .resize-handle {
@@ -159,12 +167,22 @@
     max-width: 100%;
     overflow-x: hidden;
     box-sizing: border-box;
+    /* Force fixed height */
+    height: 100%;
+    max-height: 100%;
+    flex-shrink: 0;
+    flex-grow: 0;
   }
 
   .panel-content > * {
     max-width: 100%;
-    overflow-x: hidden;
+    overflow-x: hidden; /* Only hide horizontal overflow */
+    overflow-y: auto; /* Allow vertical scrolling */
     box-sizing: border-box;
+    /* Force strict height constraints */
+    height: 100%;
+    max-height: 100%;
+    flex: 1 1 0;
   }
 
   .resize-handle {
@@ -178,12 +196,22 @@
     max-width: 100%;
     overflow-x: hidden;
     box-sizing: border-box;
+    /* Force fixed height */
+    height: 100%;
+    max-height: 100%;
+    flex-shrink: 0;
+    flex-grow: 0;
   }
 
   .panel-content > * {
     max-width: 100%;
-    overflow-x: hidden;
+    overflow-x: hidden; /* Only hide horizontal overflow */
+    overflow-y: auto; /* Allow vertical scrolling */
     box-sizing: border-box;
+    /* Force strict height constraints */
+    height: 100%;
+    max-height: 100%;
+    flex: 1 1 0;
   }
 
   .resize-handle {
@@ -199,12 +227,22 @@
     box-sizing: border-box;
     border-radius: 0px;
     box-shadow: none;
+    /* Force fixed height */
+    height: 100%;
+    max-height: 100%;
+    flex-shrink: 0;
+    flex-grow: 0;
   }
 
   .panel-content > * {
     max-width: 100%;
-    overflow-x: hidden;
+    overflow-x: hidden; /* Only hide horizontal overflow */
+    overflow-y: auto; /* Allow vertical scrolling in narrow layouts */
     box-sizing: border-box;
+    /* Force strict height constraints */
+    height: 100%;
+    max-height: 100%;
+    flex: 1 1 0;
   }
 
   .resize-handle {
@@ -219,6 +257,7 @@
   overflow: hidden !important;
   height: 100% !important;
   max-height: 100% !important;
+  min-height: 600px !important;
   box-sizing: border-box !important;
   position: relative !important;
 }
@@ -234,6 +273,19 @@ html:has(.ai-course-builder-container) {
   overflow: hidden !important;
   height: 100vh !important;
   max-height: 100vh !important;
+}
+
+/* Responsive adjustments for AI Course Builder dialog */
+@media (max-height: 700px) {
+  .ai-course-builder-container {
+    min-height: 500px !important;
+  }
+}
+
+@media (max-height: 600px) {
+  .ai-course-builder-container {
+    min-height: 400px !important;
+  }
 }
 
 /* Narrow layout for sidebar open state */
