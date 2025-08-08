@@ -14,13 +14,13 @@ import { Label } from '@/components/ui/label';
 interface CustomInviteFormCardProps {
     form: UseFormReturn<InviteLinkFormValues>;
     updateFieldOrders: () => void;
-    handleDeleteOpenField: (id: string) => void;
-    toggleIsRequired: (id: string) => void;
+    handleDeleteOpenField: (id: number) => void;
+    toggleIsRequired: (id: number) => void;
     handleAddGender: (type: string, name: string, oldKey: boolean) => void;
     handleAddOpenFieldValues: (type: string, name: string, oldKey: boolean) => void;
     handleValueChange: (id: string, newValue: string) => void;
-    handleEditClick: (id: string) => void;
-    handleDeleteOptionField: (id: string) => void;
+    handleEditClick: (id: number) => void;
+    handleDeleteOptionField: (id: number) => void;
     handleAddDropdownOptions: () => void;
     handleCloseDialog: (type: string, name: string, oldKey: boolean) => void;
 }
@@ -91,7 +91,7 @@ const CustomInviteFormCard = ({
                                                                 buttonType="secondary"
                                                                 className="min-w-6 !rounded-sm !p-0"
                                                                 onClick={() =>
-                                                                    handleDeleteOpenField(field.id)
+                                                                    handleDeleteOpenField(index)
                                                                 }
                                                             >
                                                                 <TrashSimple className="!size-4 text-danger-500" />
@@ -112,7 +112,7 @@ const CustomInviteFormCard = ({
                                                         <Switch
                                                             checked={field.isRequired}
                                                             onCheckedChange={() =>
-                                                                toggleIsRequired(field.id)
+                                                                toggleIsRequired(index)
                                                             }
                                                         />
                                                     </>
@@ -183,11 +183,11 @@ const CustomInviteFormCard = ({
                                     <Plus size={32} /> Add Custom Field
                                 </MyButton>
                             </DialogTrigger>
-                            <DialogContent className="!w-[500px] p-0">
-                                <h1 className="rounded-lg bg-primary-50 p-4 text-primary-500">
+                            <DialogContent className="flex max-h-[80vh] !w-[500px] flex-col p-0">
+                                <h1 className="shrink-0 rounded-lg bg-primary-50 p-4 text-primary-500">
                                     Add Custom Field
                                 </h1>
-                                <div className="flex flex-col gap-4 px-4">
+                                <div className="flex-1 flex-col gap-4 overflow-y-auto px-4">
                                     <h1>Select the type of custom field you want to add:</h1>
                                     <RadioGroup
                                         defaultValue={form.watch('selectedOptionValue')}
@@ -244,58 +244,60 @@ const CustomInviteFormCard = ({
                                             />
                                             <h1 className="mt-4">Dropdown Options</h1>
                                             <div className="flex flex-col gap-4">
-                                                {form.watch('dropdownOptions').map((option) => {
-                                                    return (
-                                                        <div
-                                                            className="flex w-full items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-1"
-                                                            key={option.id} // Use unique identifier
-                                                        >
-                                                            <MyInput
-                                                                inputType="text"
-                                                                inputPlaceholder={option.value}
-                                                                input={option.value}
-                                                                onChangeFunction={(e) =>
-                                                                    handleValueChange(
-                                                                        option.id,
-                                                                        e.target.value
-                                                                    )
-                                                                }
-                                                                size="large"
-                                                                disabled={option.disabled}
-                                                                className="border-none pl-0"
-                                                            />
-                                                            <div className="flex items-center gap-6">
-                                                                <MyButton
-                                                                    type="button"
-                                                                    scale="medium"
-                                                                    buttonType="secondary"
-                                                                    className="h-6 min-w-6 !rounded-sm px-1"
-                                                                    onClick={() =>
-                                                                        handleEditClick(option.id)
+                                                {form
+                                                    .watch('dropdownOptions')
+                                                    .map((option, idx) => {
+                                                        return (
+                                                            <div
+                                                                className="flex w-full items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-1"
+                                                                key={option.id} // Use unique identifier
+                                                            >
+                                                                <MyInput
+                                                                    inputType="text"
+                                                                    inputPlaceholder={option.value}
+                                                                    input={option.value}
+                                                                    onChangeFunction={(e) =>
+                                                                        handleValueChange(
+                                                                            option.id,
+                                                                            e.target.value
+                                                                        )
                                                                     }
-                                                                >
-                                                                    <PencilSimple size={32} />
-                                                                </MyButton>
-                                                                {form.watch('dropdownOptions')
-                                                                    .length > 1 && (
+                                                                    size="large"
+                                                                    disabled={option.disabled}
+                                                                    className="border-none pl-0"
+                                                                />
+                                                                <div className="flex items-center gap-6">
                                                                     <MyButton
                                                                         type="button"
                                                                         scale="medium"
                                                                         buttonType="secondary"
-                                                                        onClick={() =>
-                                                                            handleDeleteOptionField(
-                                                                                option.id
-                                                                            )
-                                                                        }
                                                                         className="h-6 min-w-6 !rounded-sm px-1"
+                                                                        onClick={() =>
+                                                                            handleEditClick(idx)
+                                                                        }
                                                                     >
-                                                                        <TrashSimple className="!size-4 text-danger-500" />
+                                                                        <PencilSimple size={32} />
                                                                     </MyButton>
-                                                                )}
+                                                                    {form.watch('dropdownOptions')
+                                                                        .length > 1 && (
+                                                                        <MyButton
+                                                                            type="button"
+                                                                            scale="medium"
+                                                                            buttonType="secondary"
+                                                                            onClick={() =>
+                                                                                handleDeleteOptionField(
+                                                                                    idx
+                                                                                )
+                                                                            }
+                                                                            className="h-6 min-w-6 !rounded-sm px-1"
+                                                                        >
+                                                                            <TrashSimple className="!size-4 text-danger-500" />
+                                                                        </MyButton>
+                                                                    )}
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    );
-                                                })}
+                                                        );
+                                                    })}
                                             </div>
                                             <MyButton
                                                 type="button"
@@ -341,11 +343,11 @@ const CustomInviteFormCard = ({
                                 Preview Registration Form
                             </MyButton>
                         </DialogTrigger>
-                        <DialogContent className="p-0">
-                            <h1 className="rounded-md bg-primary-50 p-4 font-semibold text-primary-500">
+                        <DialogContent className="flex max-h-[80vh] flex-col p-0">
+                            <h1 className="shrink-0 rounded-md bg-primary-50 p-4 font-semibold text-primary-500">
                                 Preview Registration Form
                             </h1>
-                            <div className="flex max-h-[80vh] flex-col gap-4 overflow-y-auto px-4 py-2">
+                            <div className="flex-1 flex-col gap-4 overflow-y-auto px-4 py-2">
                                 {customFields?.map((testInputFields, idx) => {
                                     return (
                                         <div className="flex flex-col items-start gap-4" key={idx}>
@@ -364,14 +366,14 @@ const CustomInviteFormCard = ({
                                                         ) || []
                                                     }
                                                     control={form.control}
-                                                    className="w-full font-thin"
+                                                    className="mt-4 w-full font-thin"
                                                     required={
                                                         testInputFields.isRequired ? true : false
                                                     }
                                                 />
                                             ) : (
                                                 <div className="flex w-full flex-col gap-[0.4rem]">
-                                                    <h1 className="text-sm">
+                                                    <h1 className="mt-3 text-sm">
                                                         {testInputFields.name}
                                                         {testInputFields.isRequired && (
                                                             <span className="text-subtitle text-danger-600">
