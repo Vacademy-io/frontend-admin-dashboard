@@ -227,7 +227,7 @@ export const AddCourseForm = ({
 
                         toast.success(
                             `${getTerminology(ContentTerms.Course, SystemTerms.Course)}` +
-                                'updated successfully'
+                                ' updated successfully'
                         );
                         setIsOpen(false);
                         setStep(1);
