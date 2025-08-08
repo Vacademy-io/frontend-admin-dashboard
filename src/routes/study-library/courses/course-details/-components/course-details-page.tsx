@@ -600,11 +600,7 @@ export const CourseDetailsPage = () => {
     const courseCreatedBy = form.getValues('courseData')?.created_by_user_id;
     const isOwnCourse = courseCreatedBy === currentUserId;
 
-    // Determine if user can edit
-    // For draft courses, allow editing if:
-    // 1. User is admin, OR
-    // 2. User is the course creator and course is in DRAFT status, OR
-    // 3. If createdByUserId is not available, allow editing for DRAFT status (fallback for authored courses)
+  
     const canEdit =
         isAdmin ||
         (isOwnCourse && courseStatus === 'DRAFT') ||
