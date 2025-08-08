@@ -9,6 +9,11 @@ import {
     FilePdf,
     PlayCircle,
     Question,
+    BookOpen,
+    GameController,
+    ClipboardText,
+    PresentationChart,
+    FileText,
 } from 'phosphor-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -30,8 +35,9 @@ import {
     QuestionSlide,
     AssignmentSlide,
 } from '../../-services/getAllSlides';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { handleGetSlideCountDetails } from '../-services/get-slides-count';
+
 import { CourseDetailsRatingsComponent } from './course-details-ratings-page';
 import {
     calculateTotalTimeForCourseDuration,
@@ -166,6 +172,7 @@ const extractYouTubeVideoId = (url: string): string | null => {
 export const CourseDetailsPage = () => {
     const router = useRouter();
     const searchParams = router.state.location.search;
+    const queryClient = useQueryClient();
 
     const { studyLibraryData } = useStudyLibraryStore();
 
@@ -487,6 +494,36 @@ export const CourseDetailsPage = () => {
         enabled: !!packageSessionIds,
     });
 
+    // Invalidate slide count query when study library data changes (after mutations)
+    useEffect(() => {
+        if (packageSessionIds) {
+            queryClient.invalidateQueries({
+                queryKey: ['GET_SLIDES_COUNT', packageSessionIds],
+            });
+        }
+    }, [studyLibraryData, packageSessionIds, queryClient]);
+
+    // Add a global invalidation function that can be called from other components
+    useEffect(() => {
+        // Create a global function to invalidate slide counts
+        (window as unknown as { invalidateSlideCounts?: () => void }).invalidateSlideCounts = () => {
+            if (packageSessionIds) {
+                queryClient.invalidateQueries({
+                    queryKey: ['GET_SLIDES_COUNT', packageSessionIds],
+                });
+            }
+        };
+
+        // Also expose queryClient globally for other components
+        (window as unknown as { queryClient?: typeof queryClient }).queryClient = queryClient;
+
+        // Cleanup on unmount
+        return () => {
+            delete (window as unknown as { invalidateSlideCounts?: () => void }).invalidateSlideCounts;
+            delete (window as unknown as { queryClient?: typeof queryClient }).queryClient;
+        };
+    }, [packageSessionIds, queryClient]);
+
     useEffect(() => {
         form.setValue(
             'courseData.instructors',
@@ -600,11 +637,6 @@ export const CourseDetailsPage = () => {
     const courseCreatedBy = form.getValues('courseData')?.created_by_user_id;
     const isOwnCourse = courseCreatedBy === currentUserId;
 
-    // Determine if user can edit
-    // For draft courses, allow editing if:
-    // 1. User is admin, OR
-    // 2. User is the course creator and course is in DRAFT status, OR
-    // 3. If createdByUserId is not available, allow editing for DRAFT status (fallback for authored courses)
     const canEdit =
         isAdmin ||
         (isOwnCourse && courseStatus === 'DRAFT') ||
@@ -1041,6 +1073,64 @@ export const CourseDetailsPage = () => {
                                         </span>
                                     </div>
                                 )}
+
+                                {/* Course Structure Summary */}
+                                {form.getValues('courseData').courseStructure > 1 && (
+                                    <div className="flex items-center gap-2">
+                                        {/* <Folder size={16} className="shrink-0 text-gray-600" /> */}
+                                        <span className="text-sm text-gray-700">
+                                            {form.getValues('courseData').sessions.length > 1 && (
+                                                <span>
+                                                    {form.getValues('courseData').sessions.length}{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Session,
+                                                        SystemTerms.Session
+                                                    )}
+                                                    s
+                                                </span>
+                                            )}
+                                            {form.getValues('courseData').sessions.length > 1 &&
+                                                levelOptions.length > 1 &&
+                                                ' • '}
+                                            {levelOptions.length > 1 && (
+                                                <span>
+                                                    {levelOptions.length}{' '}
+                                                    {getTerminology(
+                                                        ContentTerms.Level,
+                                                        SystemTerms.Level
+                                                    )}
+                                                    s
+                                                </span>
+                                            )}
+                                        </span>
+                                    </div>
+                                )}
+
+                                {/* Total Slides Count */}
+                                {slideCountQuery.data && slideCountQuery.data.length > 0 && (
+                                    <div className="flex items-center gap-2">
+                                        <FileText size={16} className="shrink-0 text-gray-600" />
+                                        <span className="text-sm text-gray-700">
+                                            {slideCountQuery.data.reduce(
+                                                (total: number, count: SlideCountType) =>
+                                                    total + count.slide_count,
+                                                0
+                                            )}{' '}
+                                            Total{' '}
+                                            {getTerminology(
+                                                ContentTerms.Slides,
+                                                SystemTerms.Slides
+                                            ).toLocaleLowerCase()}
+                                            {slideCountQuery.data.reduce(
+                                                (total: number, count: SlideCountType) =>
+                                                    total + count.slide_count,
+                                                0
+                                            ) !== 1
+                                                ? 's'
+                                                : ''}
+                                        </span>
+                                    </div>
+                                )}
                                 {slideCountQuery.isLoading ? (
                                     <div className="space-y-1">
                                         {[1, 2, 3, 4, 5].map((i) => (
@@ -1056,10 +1146,12 @@ export const CourseDetailsPage = () => {
                                     </div>
                                 ) : (
                                     <>
-                                        {calculateTotalTimeForCourseDuration(slideCountQuery.data)
+                                        {slideCountQuery.data &&
+                                        (calculateTotalTimeForCourseDuration(slideCountQuery.data)
                                             .hours ||
-                                        calculateTotalTimeForCourseDuration(slideCountQuery.data)
-                                            .minutes ? (
+                                            calculateTotalTimeForCourseDuration(
+                                                slideCountQuery.data
+                                            ).minutes) ? (
                                             <div className="flex items-center gap-2">
                                                 <Clock
                                                     size={16}
@@ -1081,109 +1173,157 @@ export const CourseDetailsPage = () => {
                                                 </span>
                                             </div>
                                         ) : null}
-                                        {slideCountQuery.data?.map((count: SlideCountType) => (
-                                            <div
-                                                key={count.source_type}
-                                                className="flex items-center gap-2"
-                                            >
-                                                {count.source_type === 'VIDEO' && (
-                                                    <>
-                                                        <PlayCircle
-                                                            size={16}
-                                                            className="shrink-0 text-gray-600"
-                                                        />
-                                                        <span className="text-sm text-gray-700">
-                                                            {count.slide_count} Video{' '}
-                                                            {getTerminology(
-                                                                ContentTerms.Slides,
-                                                                SystemTerms.Slides
-                                                            ).toLocaleLowerCase()}
-                                                            s
-                                                        </span>
-                                                    </>
-                                                )}
-                                                {count.source_type === 'CODE' && (
-                                                    <>
-                                                        <Code
-                                                            size={16}
-                                                            className="shrink-0 text-gray-600"
-                                                        />
-                                                        <span className="text-sm text-gray-700">
-                                                            {count.slide_count} Code{' '}
-                                                            {getTerminology(
-                                                                ContentTerms.Slides,
-                                                                SystemTerms.Slides
-                                                            ).toLocaleLowerCase()}
-                                                            s
-                                                        </span>
-                                                    </>
-                                                )}
-                                                {count.source_type === 'PDF' && (
-                                                    <>
-                                                        <FilePdf
-                                                            size={16}
-                                                            className="shrink-0 text-gray-600"
-                                                        />
-                                                        <span className="text-sm text-gray-700">
-                                                            {count.slide_count} PDF{' '}
-                                                            {getTerminology(
-                                                                ContentTerms.Slides,
-                                                                SystemTerms.Slides
-                                                            ).toLocaleLowerCase()}
-                                                            s
-                                                        </span>
-                                                    </>
-                                                )}
-                                                {count.source_type === 'DOCUMENT' && (
-                                                    <>
-                                                        <FileDoc
-                                                            size={16}
-                                                            className="shrink-0 text-gray-600"
-                                                        />
-                                                        <span className="text-sm text-gray-700">
-                                                            {count.slide_count} Doc{' '}
-                                                            {getTerminology(
-                                                                ContentTerms.Slides,
-                                                                SystemTerms.Slides
-                                                            ).toLocaleLowerCase()}
-                                                            s
-                                                        </span>
-                                                    </>
-                                                )}
-                                                {count.source_type === 'QUESTION' && (
-                                                    <>
-                                                        <Question
-                                                            size={16}
-                                                            className="shrink-0 text-gray-600"
-                                                        />
-                                                        <span className="text-sm text-gray-700">
-                                                            {count.slide_count} Question{' '}
-                                                            {getTerminology(
-                                                                ContentTerms.Slides,
-                                                                SystemTerms.Slides
-                                                            ).toLocaleLowerCase()}
-                                                            s
-                                                        </span>
-                                                    </>
-                                                )}
-                                                {count.source_type === 'ASSIGNMENT' && (
-                                                    <>
-                                                        <File
-                                                            size={16}
-                                                            className="shrink-0 text-gray-600"
-                                                        />
-                                                        <span className="text-sm text-gray-700">
-                                                            {count.slide_count} Assignment{' '}
-                                                            {getTerminology(
-                                                                ContentTerms.Slides,
-                                                                SystemTerms.Slides
-                                                            ).toLocaleLowerCase()}
-                                                            s
-                                                        </span>
-                                                    </>
-                                                )}
-                                            </div>
-                                        ))}
+                                        {slideCountQuery.data?.map((count: SlideCountType) => {
+                                            // Helper function to get slide type display name and icon
+                                            const getSlideTypeInfo = (sourceType: string) => {
+                                                switch (sourceType) {
+                                                    case 'VIDEO':
+                                                        return {
+                                                            icon: (
+                                                                <PlayCircle
+                                                                    size={16}
+                                                                    className="shrink-0 text-gray-600"
+                                                                />
+                                                            ),
+                                                            name: 'Video',
+                                                            color: 'text-green-500',
+                                                        };
+                                                    case 'CODE':
+                                                        return {
+                                                            icon: (
+                                                                <Code
+                                                                    size={16}
+                                                                    className="shrink-0 text-gray-600"
+                                                                />
+                                                            ),
+                                                            name: 'Code Editor',
+                                                            color: 'text-green-500',
+                                                        };
+                                                    case 'PDF':
+                                                        return {
+                                                            icon: (
+                                                                <FilePdf
+                                                                    size={16}
+                                                                    className="shrink-0 text-gray-600"
+                                                                />
+                                                            ),
+                                                            name: 'PDF Document',
+                                                            color: 'text-red-500',
+                                                        };
+                                                    case 'DOCUMENT':
+                                                        return {
+                                                            icon: (
+                                                                <FileDoc
+                                                                    size={16}
+                                                                    className="shrink-0 text-gray-600"
+                                                                />
+                                                            ),
+                                                            name: 'Document',
+                                                            color: 'text-blue-600',
+                                                        };
+                                                    case 'PRESENTATION':
+                                                        return {
+                                                            icon: (
+                                                                <PresentationChart
+                                                                    size={16}
+                                                                    className="shrink-0 text-gray-600"
+                                                                />
+                                                            ),
+                                                            name: 'Presentation',
+                                                            color: 'text-orange-500',
+                                                        };
+                                                    case 'JUPYTER':
+                                                        return {
+                                                            icon: (
+                                                                <BookOpen
+                                                                    size={16}
+                                                                    className="shrink-0 text-gray-600"
+                                                                />
+                                                            ),
+                                                            name: 'Jupyter Notebook',
+                                                            color: 'text-violet-500',
+                                                        };
+                                                    case 'SCRATCH':
+                                                        return {
+                                                            icon: (
+                                                                <GameController
+                                                                    size={16}
+                                                                    className="shrink-0 text-gray-600"
+                                                                />
+                                                            ),
+                                                            name: 'Scratch Project',
+                                                            color: 'text-yellow-500',
+                                                        };
+                                                    case 'QUESTION':
+                                                        return {
+                                                            icon: (
+                                                                <Question
+                                                                    size={16}
+                                                                    className="shrink-0 text-gray-600"
+                                                                />
+                                                            ),
+                                                            name: 'Question',
+                                                            color: 'text-purple-500',
+                                                        };
+                                                    case 'QUIZ':
+                                                        return {
+                                                            icon: (
+                                                                <ClipboardText
+                                                                    size={16}
+                                                                    className="shrink-0 text-gray-600"
+                                                                />
+                                                            ),
+                                                            name: 'Quiz',
+                                                            color: 'text-orange-500',
+                                                        };
+                                                    case 'ASSIGNMENT':
+                                                        return {
+                                                            icon: (
+                                                                <File
+                                                                    size={16}
+                                                                    className="shrink-0 text-gray-600"
+                                                                />
+                                                            ),
+                                                            name: 'Assignment',
+                                                            color: 'text-blue-500',
+                                                        };
+                                                    default:
+                                                        return {
+                                                            icon: (
+                                                                <FileDoc
+                                                                    size={16}
+                                                                    className="shrink-0 text-gray-600"
+                                                                />
+                                                            ),
+                                                            name:
+                                                                sourceType.charAt(0).toUpperCase() +
+                                                                sourceType.slice(1).toLowerCase(),
+                                                            color: 'text-gray-500',
+                                                        };
+                                                }
+                                            };
+
+                                            const slideTypeInfo = getSlideTypeInfo(
+                                                count.source_type
+                                            );
+
+                                            return (
+                                                <div
+                                                    key={count.source_type}
+                                                    className="flex items-center gap-2"
+                                                >
+                                                    {slideTypeInfo.icon}
+                                                    <span className="text-sm text-gray-700">
+                                                        {count.slide_count} {slideTypeInfo.name}{' '}
+                                                        {getTerminology(
+                                                            ContentTerms.Slides,
+                                                            SystemTerms.Slides
+                                                        ).toLocaleLowerCase()}
+                                                        {count.slide_count !== 1 ? 's' : ''}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
                                         {form.getValues('courseData').instructors.length > 0 && (
                                             <div className="flex items-center gap-2">
                                                 <ChalkboardTeacher
