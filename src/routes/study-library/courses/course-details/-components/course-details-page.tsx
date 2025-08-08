@@ -164,9 +164,30 @@ interface InstructorWithPicUrl {
 
 // Utility to extract YouTube video ID
 const extractYouTubeVideoId = (url: string): string | null => {
-    const regExp = /^.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(regExp);
-    return match && match[1] && match[1].length === 11 ? match[1] : null;
+    if (!url) return null;
+
+    // Handle direct video IDs (11 characters)
+    if (url.length === 11 && /^[a-zA-Z0-9_-]{11}$/.test(url)) {
+        return url;
+    }
+
+    // Handle various YouTube URL formats
+    const patterns = [
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/watch\?.*&v=)([^#&?]{11})/,
+        /youtube\.com\/watch\?.*v=([^#&?]{11})/,
+        /youtu\.be\/([^#&?]{11})/,
+        /youtube\.com\/embed\/([^#&?]{11})/,
+        /youtube\.com\/v\/([^#&?]{11})/,
+    ];
+
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match && match[1] && match[1].length === 11) {
+            return match[1];
+        }
+    }
+
+    return null;
 };
 
 export const CourseDetailsPage = () => {
@@ -506,20 +527,22 @@ export const CourseDetailsPage = () => {
     // Add a global invalidation function that can be called from other components
     useEffect(() => {
         // Create a global function to invalidate slide counts
-        (window as unknown as { invalidateSlideCounts?: () => void }).invalidateSlideCounts = () => {
-            if (packageSessionIds) {
-                queryClient.invalidateQueries({
-                    queryKey: ['GET_SLIDES_COUNT', packageSessionIds],
-                });
-            }
-        };
+        (window as unknown as { invalidateSlideCounts?: () => void }).invalidateSlideCounts =
+            () => {
+                if (packageSessionIds) {
+                    queryClient.invalidateQueries({
+                        queryKey: ['GET_SLIDES_COUNT', packageSessionIds],
+                    });
+                }
+            };
 
         // Also expose queryClient globally for other components
         (window as unknown as { queryClient?: typeof queryClient }).queryClient = queryClient;
 
         // Cleanup on unmount
         return () => {
-            delete (window as unknown as { invalidateSlideCounts?: () => void }).invalidateSlideCounts;
+            delete (window as unknown as { invalidateSlideCounts?: () => void })
+                .invalidateSlideCounts;
             delete (window as unknown as { queryClient?: typeof queryClient }).queryClient;
         };
     }, [packageSessionIds, queryClient]);
@@ -789,26 +812,56 @@ export const CourseDetailsPage = () => {
                         {/* Right side - Video Player - More Compact */}
                         {form.watch('courseData')?.courseMediaId?.id &&
                             (form.watch('courseData')?.courseMediaId?.type === 'youtube' ? (
-                                <div
-                                    className={`shrink-0 overflow-hidden rounded-lg shadow-lg ${
-                                        form.watch('courseData')?.courseBannerMediaId
-                                            ? 'w-full lg:w-[280px] xl:w-[320px]'
-                                            : 'w-full lg:w-[240px] xl:w-[280px]'
-                                    }`}
-                                >
-                                    <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-lg bg-black">
-                                        <iframe
-                                            width="100%"
-                                            height="100%"
-                                            src={`https://www.youtube.com/embed/${extractYouTubeVideoId(form.watch('courseData')?.courseMediaId?.id || '')}`}
-                                            title="YouTube video player"
-                                            frameBorder="0"
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            allowFullScreen
-                                            className="size-full object-contain"
-                                        />
-                                    </div>
-                                </div>
+                                (() => {
+                                    const mediaId =
+                                        form.watch('courseData')?.courseMediaId?.id || '';
+                                    const videoId = extractYouTubeVideoId(mediaId);
+                                    console.log('YouTube Debug:', {
+                                        mediaId,
+                                        videoId,
+                                        type: form.watch('courseData')?.courseMediaId?.type,
+                                    });
+                                    return videoId ? (
+                                        <div
+                                            className={`shrink-0 overflow-hidden rounded-lg shadow-lg ${
+                                                form.watch('courseData')?.courseBannerMediaId
+                                                    ? 'w-full lg:w-[280px] xl:w-[320px]'
+                                                    : 'w-full lg:w-[240px] xl:w-[280px]'
+                                            }`}
+                                        >
+                                            <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-lg bg-black">
+                                                <iframe
+                                                    width="100%"
+                                                    height="100%"
+                                                    src={`https://www.youtube.com/embed/${videoId}`}
+                                                    title="YouTube video player"
+                                                    frameBorder="0"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowFullScreen
+                                                    className="size-full object-contain"
+                                                />
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div
+                                            className={`shrink-0 overflow-hidden rounded-lg shadow-lg ${
+                                                form.watch('courseData')?.courseBannerMediaId
+                                                    ? 'w-full lg:w-[280px] xl:w-[320px]'
+                                                    : 'w-full lg:w-[240px] xl:w-[280px]'
+                                            }`}
+                                        >
+                                            <div className="relative aspect-video overflow-hidden rounded-lg bg-black">
+                                                <img
+                                                    src={
+                                                        form.watch('courseData')?.courseMediaPreview
+                                                    }
+                                                    alt="Course Media"
+                                                    className="size-full object-contain"
+                                                />
+                                            </div>
+                                        </div>
+                                    );
+                                })()
                             ) : form.watch('courseData')?.courseMediaId?.type === 'video' ? (
                                 <div
                                     className={`shrink-0 overflow-hidden rounded-lg shadow-lg ${
