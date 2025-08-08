@@ -202,6 +202,7 @@ const GenerateInviteLinkDialog = ({
                 getPackageSessionId,
                 paymentsData,
                 referralProgramDetails,
+                instituteLogoFileId: instituteDetails?.institute_logo_file_id || '',
             });
         },
         onSuccess: () => {
@@ -347,9 +348,9 @@ const GenerateInviteLinkDialog = ({
         addDiscountForm.reset();
     };
 
-    const handleDeleteOpenField = (id: string) => {
+    const handleDeleteOpenField = (id: number) => {
         const updatedFields = customFieldsArray
-            .filter((field) => field.id !== id)
+            .filter((field, idx) => idx !== id)
             .map((field, index) => ({
                 ...field,
                 order: index, // Update order of remaining fields
@@ -376,9 +377,9 @@ const GenerateInviteLinkDialog = ({
         });
     };
 
-    const toggleIsRequired = (id: string) => {
-        const updatedFields = customFieldsArray?.map((field) =>
-            field.id === id ? { ...field, isRequired: !field.isRequired } : field
+    const toggleIsRequired = (id: number) => {
+        const updatedFields = customFieldsArray?.map((field, idx) =>
+            idx === id ? { ...field, isRequired: !field.isRequired } : field
         );
         setValue('custom_fields', updatedFields);
     };
@@ -450,21 +451,21 @@ const GenerateInviteLinkDialog = ({
         );
     };
 
-    const handleEditClick = (id: string) => {
+    const handleEditClick = (id: number) => {
         const prevOptions = form.getValues('dropdownOptions');
         form.setValue(
             'dropdownOptions',
-            prevOptions.map((option) =>
-                option.id === id ? { ...option, disabled: !option.disabled } : option
+            prevOptions.map((option, idx) =>
+                idx === id ? { ...option, disabled: !option.disabled } : option
             )
         );
     };
 
-    const handleDeleteOptionField = (id: string) => {
+    const handleDeleteOptionField = (id: number) => {
         const prevOptions = form.getValues('dropdownOptions');
         form.setValue(
             'dropdownOptions',
-            prevOptions.filter((field) => field.id !== id)
+            prevOptions.filter((field, idx) => idx !== id)
         );
     };
 
@@ -671,7 +672,7 @@ const GenerateInviteLinkDialog = ({
                     <DialogTitle className="font-bold">Create Invite Link</DialogTitle>
                     <div className="my-3 border-b" />
                 </DialogHeader>
-                <div className="max-h-[70vh] flex-1 overflow-auto">
+                <div className="max-h-[70vh] flex-1 overflow-auto scroll-smooth">
                     <Form {...form}>
                         <form className="mt-6 space-y-6">
                             {/* Invite Name Card */}
