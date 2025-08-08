@@ -226,7 +226,8 @@ export function convertInviteData(
         sessionId: string;
     }) => void,
     paymentPlans: PaymentOption[],
-    referralProgramDetails: ReferralData[]
+    referralProgramDetails: ReferralData[],
+    instituteLogoFileId: string
 ) {
     const instituteId = getInstituteId();
     const jsonMetaData = {
@@ -244,6 +245,7 @@ export function convertInviteData(
         tags: data.tags,
         showRelatedCourses: data.showRelatedCourses,
         includeInstituteLogo: data.includeInstituteLogo,
+        instituteLogoFileId: instituteLogoFileId,
         restrictToSameBatch: data.restrictToSameBatch,
         customHtml: data.customHtml,
     };

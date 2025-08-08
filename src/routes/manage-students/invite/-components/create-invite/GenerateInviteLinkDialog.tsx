@@ -202,6 +202,7 @@ const GenerateInviteLinkDialog = ({
                 getPackageSessionId,
                 paymentsData,
                 referralProgramDetails,
+                instituteLogoFileId: instituteDetails?.institute_logo_file_id || '',
             });
         },
         onSuccess: () => {

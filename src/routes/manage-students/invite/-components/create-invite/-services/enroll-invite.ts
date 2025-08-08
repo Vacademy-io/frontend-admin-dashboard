@@ -23,6 +23,7 @@ export const handleEnrollInvite = async ({
     getPackageSessionId,
     paymentsData,
     referralProgramDetails,
+    instituteLogoFileId,
 }: {
     data: InviteLinkFormValues;
     selectedCourse: Course | null;
@@ -38,6 +39,7 @@ export const handleEnrollInvite = async ({
     }) => void;
     paymentsData: PaymentOption[];
     referralProgramDetails: ReferralData[];
+    instituteLogoFileId: string;
 }) => {
     const convertedData = convertInviteData(
         data,
@@ -45,7 +47,8 @@ export const handleEnrollInvite = async ({
         selectedBatches,
         getPackageSessionId,
         paymentsData,
-        referralProgramDetails
+        referralProgramDetails,
+        instituteLogoFileId
     );
     const response = await authenticatedAxiosInstance({
         method: 'POST',
