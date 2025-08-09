@@ -199,7 +199,7 @@ const GenerateInviteLinkDialog = ({
     const mediaMenuRef = useRef<HTMLDivElement>(null);
     const youtubeInputRef = useRef<HTMLDivElement>(null);
 
-    const handleSubmitRatingMutation = useMutation({
+    const handleSubmitInviteLinkMutation = useMutation({
         mutationFn: async ({ data }: { data: InviteLinkFormValues }) => {
             return handleEnrollInvite({
                 data,
@@ -238,7 +238,7 @@ const GenerateInviteLinkDialog = ({
         },
     });
     const onSubmit = (data: InviteLinkFormValues) => {
-        handleSubmitRatingMutation.mutate({ data });
+        handleSubmitInviteLinkMutation.mutate({ data });
     };
 
     const onInvalid = (err: unknown) => {
@@ -763,9 +763,9 @@ const GenerateInviteLinkDialog = ({
                         buttonType="primary"
                         className="p-5"
                         onClick={handleSubmit(onSubmit, onInvalid)}
-                        disable={!form.watch('name') || handleSubmitRatingMutation.isPending}
+                        disable={!form.watch('name') || handleSubmitInviteLinkMutation.isPending}
                     >
-                        {handleSubmitRatingMutation.isPending ? (
+                        {handleSubmitInviteLinkMutation.isPending ? (
                             <div className="flex items-center gap-2">
                                 <LoadingSpinner size={16} />
                                 {isEditInviteLink ? 'Updating...' : 'Creating...'}

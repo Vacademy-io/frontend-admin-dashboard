@@ -264,6 +264,7 @@ export function convertInviteData(
         includeInstituteLogo: data.includeInstituteLogo,
         instituteLogoFileId: instituteLogoFileId,
         restrictToSameBatch: data.restrictToSameBatch,
+        includePaymentPlans: data.includePaymentPlans,
         customHtml: data.customHtml,
     };
     const convertedData = {
