@@ -49,6 +49,8 @@ import {
     ReTransformCustomFields,
 } from './-utils/helper';
 import { handleGetReferralProgramDetails } from './-services/referral-services';
+import PreviewInviteLink from './PreviewInviteLink';
+import useInstituteLogoStore from '@/components/common/layout-container/sidebar/institutelogo-global-zustand';
 
 const GenerateInviteLinkDialog = ({
     showSummaryDialog,
@@ -61,6 +63,7 @@ const GenerateInviteLinkDialog = ({
     setDialogOpen,
     selectCourseForm,
 }: GenerateInviteLinkDialogProps) => {
+    const { instituteLogo } = useInstituteLogoStore();
     const { data: inviteLinkDetails } = useSuspenseQuery(
         singlePackageSessionId && inviteLinkId
             ? handleGetEnrollSingleInviteDetails({ inviteId: inviteLinkId })
@@ -669,7 +672,15 @@ const GenerateInviteLinkDialog = ({
         <Dialog open={showSummaryDialog} onOpenChange={setShowSummaryDialog}>
             <DialogContent className="animate-fadeIn flex min-h-[90vh] min-w-[85vw] flex-col">
                 <DialogHeader>
-                    <DialogTitle className="font-bold">Create Invite Link</DialogTitle>
+                    <div className="flex items-center justify-between">
+                        <DialogTitle className="font-bold">Create Invite Link</DialogTitle>
+                        {/* Preview Invite Link Dialog */}
+                        <PreviewInviteLink
+                            form={form}
+                            levelName={selectedBatches[0]?.levelName || ''}
+                            instituteLogo={instituteLogo}
+                        />
+                    </div>
                     <div className="my-3 border-b" />
                 </DialogHeader>
                 <div className="max-h-[70vh] flex-1 overflow-auto scroll-smooth">
@@ -763,6 +774,7 @@ const GenerateInviteLinkDialog = ({
                     </MyButton>
                 </div>
             </DialogContent>
+
             {/* Payment Plans Dialog */}
             <PaymentPlansDialog form={form} />
             {/* Add New Payment Plan Dialog */}
