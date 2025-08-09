@@ -43,24 +43,27 @@ const PaymentPlanCard = ({ form }: DiscountSettingsDialogProps) => {
             <div className="flex items-center justify-between py-2">
                 <div className="flex items-center gap-2">
                     <span className="text-base font-semibold">Payment Plan</span>
-                    <FormField
-                        control={form.control}
-                        name="includePaymentPlans"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormControl>
-                                    <div className="flex items-center gap-2">
-                                        <Switch
-                                            id="institute-logo-switch"
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
-                                        <span>Show Payment Plans In Invite</span>
-                                    </div>
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
+                    {(form.watch('selectedPlan')?.type?.toLowerCase() === 'subscription' ||
+                        form.watch('selectedPlan')?.type?.toLowerCase() === 'upfront') && (
+                        <FormField
+                            control={form.control}
+                            name="includePaymentPlans"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <div className="flex items-center gap-2">
+                                            <Switch
+                                                id="institute-logo-switch"
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                            <span>Show Payment Plans In Invite</span>
+                                        </div>
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+                    )}
                 </div>
                 <MyButton
                     type="button"
