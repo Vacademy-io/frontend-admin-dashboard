@@ -164,6 +164,8 @@ const GenerateInviteLinkDialog = ({
         },
     });
 
+    form.watch('custom_fields');
+
     const { control, setValue, getValues, handleSubmit } = form;
     const { fields: customFieldsArray } = useFieldArray({
         control,
@@ -520,6 +522,7 @@ const GenerateInviteLinkDialog = ({
             form.setValue('inviteeEmail', '');
         }
     };
+
     const handleRemoveInviteeEmail = (email: string) => {
         const inviteeEmails = form.getValues('inviteeEmails');
         const updatedEmails = inviteeEmails.filter((e: string) => e !== email);

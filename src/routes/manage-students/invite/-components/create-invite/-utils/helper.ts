@@ -4,6 +4,23 @@ import { CustomField } from '../../../-schema/InviteFormSchema';
 import { IndividualInviteLinkDetails } from '@/types/study-library/individual-invite-interface';
 import { PaymentPlanApi } from '@/types/payment';
 
+interface DropdownOptionForConversion {
+    id: number | string;
+    value: string;
+    disabled?: boolean;
+}
+
+interface CustomFieldForConversion {
+    id: number | string;
+    type: string;
+    name: string;
+    oldKey: boolean;
+    isRequired: boolean;
+    options?: DropdownOptionForConversion[];
+    key?: string;
+    order?: number;
+}
+
 export interface ReferralData {
     id: string;
     name: string;
@@ -607,4 +624,25 @@ export function getDefaultMatchingReferralData(data: ReferralData[]) {
         vestingPeriod: item.referrer_vesting_days || 0,
         combineOffers: true,
     };
+}
+
+export function convertRegistrationFormData(data: CustomFieldForConversion[]) {
+    const now = new Date().toISOString();
+    const transformedData = data.map((field: CustomFieldForConversion) => ({
+        comma_separated_options:
+            field.type === 'dropdown'
+                ? field.options?.map((opt: DropdownOptionForConversion) => opt.value).join(',') ||
+                  ''
+                : '',
+        created_at: now,
+        field_key: field.key || field.name.toLowerCase().replace(/\s+/g, '_'),
+        field_name: field.name,
+        field_order: field.order ?? 0,
+        field_type: field.type,
+        id: field.id.toString(),
+        is_mandatory: field.isRequired || false,
+        status: 'ACTIVE',
+        updated_at: now,
+    }));
+    return transformedData;
 }

@@ -34,7 +34,6 @@ export const useTabSettings = () => {
         }
 
         // If parent tab exists and has sub-items, check the specific sub-item
-        console.log(parentTab?.subItems);
         if (parentTab?.subItems) {
             const subItem = parentTab.subItems.find((s) => s.tabId === subItemTabId);
             if (subItem) {
