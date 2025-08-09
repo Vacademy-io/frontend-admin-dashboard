@@ -322,192 +322,207 @@ const PreviewInviteLink = ({ form, levelName, instituteLogo }: PreviewInviteLink
                         </CardContent>
                     </Card>
                     {/* Show selected plan in a card */}
-                    {form.watch('selectedPlan') && form.watch('includePaymentPlans') && (
-                        <Card className="mb-4 flex flex-col gap-0">
-                            <div className="flex flex-col items-start gap-3 p-4">
-                                <div className="flex items-center gap-3">
-                                    {getPaymentPlanIcon(form.watch('selectedPlan')?.type || '')}
-                                    <div className="flex flex-1 flex-col font-semibold">
-                                        <span>{form.watch('selectedPlan')?.name}</span>
+                    {(form.watch('selectedPlan')?.type?.toLowerCase() === 'subscription' ||
+                        form.watch('selectedPlan')?.type?.toLowerCase() === 'upfront') &&
+                        form.watch('includePaymentPlans') && (
+                            <Card className="mb-4 flex flex-col gap-0">
+                                <div className="flex flex-col items-start gap-3 p-4">
+                                    <div className="flex items-center gap-3">
+                                        {getPaymentPlanIcon(form.watch('selectedPlan')?.type || '')}
+                                        <div className="flex flex-1 flex-col font-semibold">
+                                            <span>{form.watch('selectedPlan')?.name}</span>
+                                        </div>
                                     </div>
-                                </div>
-                                {(form.watch('selectedPlan')?.type === 'upfront' ||
-                                    form.watch('selectedPlan')?.type === 'UPFRONT') && (
-                                    <div className="flex flex-col gap-4 pl-8">
-                                        {form.watch('selectedPlan')?.paymentOption ? (
-                                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                                {form
-                                                    .watch('selectedPlan')
-                                                    ?.paymentOption?.map((payment, idx) => {
-                                                        return (
-                                                            <Card
-                                                                key={idx}
-                                                                className="border border-gray-200 p-4 transition-colors hover:border-gray-300"
-                                                            >
-                                                                <div className="flex flex-col gap-3">
-                                                                    {/* Title */}
-                                                                    <h4 className="text-base font-bold text-gray-900">
-                                                                        {payment.title}
-                                                                    </h4>
+                                    {(form.watch('selectedPlan')?.type === 'upfront' ||
+                                        form.watch('selectedPlan')?.type === 'UPFRONT') && (
+                                        <div className="flex flex-col gap-4 pl-8">
+                                            {form.watch('selectedPlan')?.paymentOption ? (
+                                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                                    {form
+                                                        .watch('selectedPlan')
+                                                        ?.paymentOption?.map((payment, idx) => {
+                                                            return (
+                                                                <Card
+                                                                    key={idx}
+                                                                    className="border border-gray-200 p-4 transition-colors hover:border-gray-300"
+                                                                >
+                                                                    <div className="flex flex-col gap-3">
+                                                                        {/* Title */}
+                                                                        <h4 className="text-base font-bold text-gray-900">
+                                                                            {payment.title}
+                                                                        </h4>
 
-                                                                    {/* Price with time period inline */}
-                                                                    <div className="text-xl font-bold text-primary-500">
-                                                                        {getCurrencySymbol(
-                                                                            form.watch(
-                                                                                'selectedPlan'
-                                                                            )?.currency || ''
-                                                                        )}
-                                                                        {payment.price}&nbsp;
-                                                                        {payment.value &&
-                                                                            payment.unit && (
-                                                                                <span className="text-sm font-normal text-gray-500">
-                                                                                    /{payment.value}{' '}
-                                                                                    {payment.unit}
-                                                                                </span>
+                                                                        {/* Price with time period inline */}
+                                                                        <div className="text-xl font-bold text-primary-500">
+                                                                            {getCurrencySymbol(
+                                                                                form.watch(
+                                                                                    'selectedPlan'
+                                                                                )?.currency || ''
                                                                             )}
-                                                                    </div>
-
-                                                                    {/* Features */}
-                                                                    {allFeatures.length > 0 && (
-                                                                        <div className="space-y-2">
-                                                                            {allFeatures.map(
-                                                                                (
-                                                                                    feature,
-                                                                                    featureIdx
-                                                                                ) => {
-                                                                                    const isIncluded =
-                                                                                        payment.features?.includes(
-                                                                                            feature
-                                                                                        );
-                                                                                    return (
-                                                                                        <div
-                                                                                            key={
-                                                                                                featureIdx
-                                                                                            }
-                                                                                            className="flex items-center gap-1.5 text-sm"
-                                                                                        >
-                                                                                            {isIncluded ? (
-                                                                                                <Check className="size-3 shrink-0 text-emerald-500" />
-                                                                                            ) : (
-                                                                                                <X className="size-3 shrink-0 text-gray-400" />
-                                                                                            )}
-                                                                                            <span
-                                                                                                className={`${
-                                                                                                    isIncluded
-                                                                                                        ? 'text-gray-700'
-                                                                                                        : 'text-gray-400 line-through'
-                                                                                                } leading-tight`}
-                                                                                            >
-                                                                                                {
-                                                                                                    feature
-                                                                                                }
-                                                                                            </span>
-                                                                                        </div>
-                                                                                    );
-                                                                                }
-                                                                            )}
+                                                                            {payment.price}&nbsp;
+                                                                            {payment.value &&
+                                                                                payment.unit && (
+                                                                                    <span className="text-sm font-normal text-gray-500">
+                                                                                        /
+                                                                                        {
+                                                                                            payment.value
+                                                                                        }{' '}
+                                                                                        {
+                                                                                            payment.unit
+                                                                                        }
+                                                                                    </span>
+                                                                                )}
                                                                         </div>
-                                                                    )}
-                                                                </div>
-                                                            </Card>
-                                                        );
-                                                    })}
-                                            </div>
-                                        ) : (
-                                            /* Fallback for upfront plans without paymentOption array */
-                                            <Card className="border border-gray-200 p-4">
-                                                <div className="flex flex-col gap-3">
-                                                    <h4 className="text-base font-bold text-gray-900">
-                                                        Full Payment
-                                                    </h4>
-                                                    <div className="text-base font-bold text-gray-900">
-                                                        {getCurrencySymbol(
-                                                            form.watch('selectedPlan')?.currency ||
-                                                                ''
-                                                        )}
-                                                        {form.watch('selectedPlan')?.price}
-                                                        <span>/one-time</span>
-                                                    </div>
-                                                </div>
-                                            </Card>
-                                        )}
-                                    </div>
-                                )}
-                                {(form.watch('selectedPlan')?.type === 'subscription' ||
-                                    form.watch('selectedPlan')?.type === 'SUBSCRIPTION') && (
-                                    <div className="flex w-fit flex-wrap gap-4 pl-8">
-                                        {form
-                                            .watch('selectedPlan')
-                                            ?.paymentOption?.map((payment, idx) => {
-                                                return (
-                                                    <Card
-                                                        key={idx}
-                                                        className="border border-gray-200 p-8 py-6 transition-colors hover:border-gray-300"
-                                                    >
-                                                        <div className="flex flex-col gap-3">
-                                                            {/* Title */}
-                                                            <h4 className="text-xl font-bold text-gray-900">
-                                                                {payment.title}
-                                                            </h4>
 
-                                                            {/* Price with time period inline */}
-                                                            <div className="text-xl font-bold text-primary-500">
-                                                                {getCurrencySymbol(
-                                                                    form.watch('selectedPlan')
-                                                                        ?.currency || ''
-                                                                )}
-                                                                {payment.price}&nbsp;
-                                                                {payment.value && payment.unit && (
-                                                                    <span className="text-sm font-normal text-gray-500">
-                                                                        /{payment.value}{' '}
-                                                                        {payment.unit}
-                                                                    </span>
+                                                                        {/* Features */}
+                                                                        {allFeatures.length > 0 && (
+                                                                            <div className="space-y-2">
+                                                                                {allFeatures.map(
+                                                                                    (
+                                                                                        feature,
+                                                                                        featureIdx
+                                                                                    ) => {
+                                                                                        const isIncluded =
+                                                                                            payment.features?.includes(
+                                                                                                feature
+                                                                                            );
+                                                                                        return (
+                                                                                            <div
+                                                                                                key={
+                                                                                                    featureIdx
+                                                                                                }
+                                                                                                className="flex items-center gap-1.5 text-sm"
+                                                                                            >
+                                                                                                {isIncluded ? (
+                                                                                                    <Check className="size-3 shrink-0 text-emerald-500" />
+                                                                                                ) : (
+                                                                                                    <X className="size-3 shrink-0 text-gray-400" />
+                                                                                                )}
+                                                                                                <span
+                                                                                                    className={`${
+                                                                                                        isIncluded
+                                                                                                            ? 'text-gray-700'
+                                                                                                            : 'text-gray-400 line-through'
+                                                                                                    } leading-tight`}
+                                                                                                >
+                                                                                                    {
+                                                                                                        feature
+                                                                                                    }
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        );
+                                                                                    }
+                                                                                )}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </Card>
+                                                            );
+                                                        })}
+                                                </div>
+                                            ) : (
+                                                /* Fallback for upfront plans without paymentOption array */
+                                                <Card className="border border-gray-200 p-4">
+                                                    <div className="flex flex-col gap-3">
+                                                        <h4 className="text-base font-bold text-gray-900">
+                                                            Full Payment
+                                                        </h4>
+                                                        <div className="text-base font-bold text-gray-900">
+                                                            {getCurrencySymbol(
+                                                                form.watch('selectedPlan')
+                                                                    ?.currency || ''
+                                                            )}
+                                                            {form.watch('selectedPlan')?.price}
+                                                            <span>/one-time</span>
+                                                        </div>
+                                                    </div>
+                                                </Card>
+                                            )}
+                                        </div>
+                                    )}
+                                    {(form.watch('selectedPlan')?.type === 'subscription' ||
+                                        form.watch('selectedPlan')?.type === 'SUBSCRIPTION') && (
+                                        <div className="flex w-fit flex-wrap gap-4 pl-8">
+                                            {form
+                                                .watch('selectedPlan')
+                                                ?.paymentOption?.map((payment, idx) => {
+                                                    return (
+                                                        <Card
+                                                            key={idx}
+                                                            className="border border-gray-200 p-8 py-6 transition-colors hover:border-gray-300"
+                                                        >
+                                                            <div className="flex flex-col gap-3">
+                                                                {/* Title */}
+                                                                <h4 className="text-xl font-bold text-gray-900">
+                                                                    {payment.title}
+                                                                </h4>
+
+                                                                {/* Price with time period inline */}
+                                                                <div className="text-xl font-bold text-primary-500">
+                                                                    {getCurrencySymbol(
+                                                                        form.watch('selectedPlan')
+                                                                            ?.currency || ''
+                                                                    )}
+                                                                    {payment.price}&nbsp;
+                                                                    {payment.value &&
+                                                                        payment.unit && (
+                                                                            <span className="text-sm font-normal text-gray-500">
+                                                                                /{payment.value}{' '}
+                                                                                {payment.unit}
+                                                                            </span>
+                                                                        )}
+                                                                </div>
+
+                                                                {/* Features */}
+                                                                {allFeatures.length > 0 && (
+                                                                    <div className="space-y-2">
+                                                                        {allFeatures.map(
+                                                                            (
+                                                                                feature,
+                                                                                featureIdx
+                                                                            ) => {
+                                                                                const isIncluded =
+                                                                                    payment.features?.includes(
+                                                                                        feature
+                                                                                    );
+                                                                                return (
+                                                                                    <div
+                                                                                        key={
+                                                                                            featureIdx
+                                                                                        }
+                                                                                        className="flex items-center gap-1.5 text-sm"
+                                                                                    >
+                                                                                        {isIncluded ? (
+                                                                                            <Check className="size-3 shrink-0 text-emerald-500" />
+                                                                                        ) : (
+                                                                                            <X className="size-3 shrink-0 text-gray-400" />
+                                                                                        )}
+                                                                                        <span
+                                                                                            className={`${
+                                                                                                isIncluded
+                                                                                                    ? 'text-gray-700'
+                                                                                                    : 'text-gray-400 line-through'
+                                                                                            } leading-tight`}
+                                                                                        >
+                                                                                            {
+                                                                                                feature
+                                                                                            }
+                                                                                        </span>
+                                                                                    </div>
+                                                                                );
+                                                                            }
+                                                                        )}
+                                                                    </div>
                                                                 )}
                                                             </div>
-
-                                                            {/* Features */}
-                                                            {allFeatures.length > 0 && (
-                                                                <div className="space-y-2">
-                                                                    {allFeatures.map(
-                                                                        (feature, featureIdx) => {
-                                                                            const isIncluded =
-                                                                                payment.features?.includes(
-                                                                                    feature
-                                                                                );
-                                                                            return (
-                                                                                <div
-                                                                                    key={featureIdx}
-                                                                                    className="flex items-center gap-1.5 text-sm"
-                                                                                >
-                                                                                    {isIncluded ? (
-                                                                                        <Check className="size-3 shrink-0 text-emerald-500" />
-                                                                                    ) : (
-                                                                                        <X className="size-3 shrink-0 text-gray-400" />
-                                                                                    )}
-                                                                                    <span
-                                                                                        className={`${
-                                                                                            isIncluded
-                                                                                                ? 'text-gray-700'
-                                                                                                : 'text-gray-400 line-through'
-                                                                                        } leading-tight`}
-                                                                                    >
-                                                                                        {feature}
-                                                                                    </span>
-                                                                                </div>
-                                                                            );
-                                                                        }
-                                                                    )}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </Card>
-                                                );
-                                            })}
-                                    </div>
-                                )}
-                            </div>
-                        </Card>
-                    )}
+                                                        </Card>
+                                                    );
+                                                })}
+                                        </div>
+                                    )}
+                                </div>
+                            </Card>
+                        )}
                     <Card
                         id="registration-card"
                         className="w-full overflow-hidden border-0 bg-white/80 shadow-xl backdrop-blur-sm"
