@@ -323,7 +323,8 @@ const PreviewInviteLink = ({ form, levelName, instituteLogo }: PreviewInviteLink
                     </Card>
                     {/* Show selected plan in a card */}
                     {(form.watch('selectedPlan')?.type?.toLowerCase() === 'subscription' ||
-                        form.watch('selectedPlan')?.type?.toLowerCase() === 'upfront') &&
+                        form.watch('selectedPlan')?.type?.toLowerCase() === 'upfront' ||
+                        form.watch('selectedPlan')?.type?.toLowerCase() === 'one_time') &&
                         form.watch('includePaymentPlans') && (
                             <Card className="mb-4 flex flex-col gap-0">
                                 <div className="flex flex-col items-start gap-3 p-4">
@@ -334,7 +335,9 @@ const PreviewInviteLink = ({ form, levelName, instituteLogo }: PreviewInviteLink
                                         </div>
                                     </div>
                                     {(form.watch('selectedPlan')?.type === 'upfront' ||
-                                        form.watch('selectedPlan')?.type === 'UPFRONT') && (
+                                        form.watch('selectedPlan')?.type === 'UPFRONT' ||
+                                        form.watch('selectedPlan')?.type === 'one_time' ||
+                                        form.watch('selectedPlan')?.type === 'ONE_TIME') && (
                                         <div className="flex flex-col gap-4 pl-8">
                                             {form.watch('selectedPlan')?.paymentOption ? (
                                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
