@@ -86,6 +86,7 @@ const GenerateInviteLinkDialog = ({
         defaultValues: {
             name: '',
             includeInstituteLogo: false,
+            includePaymentPlans: false,
             requireApproval: false,
             course: '',
             description: '',

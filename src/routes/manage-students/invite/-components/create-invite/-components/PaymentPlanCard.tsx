@@ -5,6 +5,8 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { getCurrencySymbol, getPaymentPlanIcon } from '../PaymentPlansDialog';
 import { X, Check } from 'lucide-react';
+import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import { Switch } from '@/components/ui/switch';
 
 interface DiscountSettingsDialogProps {
     form: UseFormReturn<InviteLinkFormValues>;
@@ -39,7 +41,27 @@ const PaymentPlanCard = ({ form }: DiscountSettingsDialogProps) => {
         <>
             {/* Payment Plan Section */}
             <div className="flex items-center justify-between py-2">
-                <span className="text-base font-semibold">Payment Plan</span>
+                <div className="flex items-center gap-2">
+                    <span className="text-base font-semibold">Payment Plan</span>
+                    <FormField
+                        control={form.control}
+                        name="includePaymentPlans"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormControl>
+                                    <div className="flex items-center gap-2">
+                                        <Switch
+                                            id="institute-logo-switch"
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                        <span>Show Payment Plans In Invite</span>
+                                    </div>
+                                </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                </div>
                 <MyButton
                     type="button"
                     scale="small"
@@ -99,22 +121,20 @@ const PaymentPlanCard = ({ form }: DiscountSettingsDialogProps) => {
                                                     >
                                                         <div className="flex flex-col gap-3">
                                                             {/* Title */}
-                                                            <h4 className="text-sm font-semibold text-gray-900">
+                                                            <h4 className="text-base font-bold text-gray-900">
                                                                 {payment.title}
                                                             </h4>
 
-                                                            {/* Price with currency */}
-                                                            <div className="flex flex-col gap-1">
-                                                                <span className="text-lg font-bold text-gray-900">
-                                                                    {getCurrencySymbol(
-                                                                        form.watch('selectedPlan')
-                                                                            ?.currency || ''
-                                                                    )}
-                                                                    {payment.price}
-                                                                </span>
+                                                            {/* Price with time period inline */}
+                                                            <div className="text-xl font-bold text-primary-500">
+                                                                {getCurrencySymbol(
+                                                                    form.watch('selectedPlan')
+                                                                        ?.currency || ''
+                                                                )}
+                                                                {payment.price}&nbsp;
                                                                 {payment.value && payment.unit && (
-                                                                    <span className="text-sm text-gray-600">
-                                                                        for {payment.value}{' '}
+                                                                    <span className="text-sm font-normal text-gray-500">
+                                                                        /{payment.value}{' '}
                                                                         {payment.unit}
                                                                     </span>
                                                                 )}
@@ -122,10 +142,7 @@ const PaymentPlanCard = ({ form }: DiscountSettingsDialogProps) => {
 
                                                             {/* Features */}
                                                             {allFeatures.length > 0 && (
-                                                                <div className="flex flex-col gap-1">
-                                                                    <span className="mb-1 text-xs font-medium text-gray-700">
-                                                                        Features:
-                                                                    </span>
+                                                                <div className="space-y-2">
                                                                     {allFeatures.map(
                                                                         (feature, featureIdx) => {
                                                                             const isIncluded =
@@ -135,19 +152,19 @@ const PaymentPlanCard = ({ form }: DiscountSettingsDialogProps) => {
                                                                             return (
                                                                                 <div
                                                                                     key={featureIdx}
-                                                                                    className="flex items-center gap-1 text-xs"
+                                                                                    className="flex items-center gap-1.5 text-sm"
                                                                                 >
                                                                                     {isIncluded ? (
-                                                                                        <Check className="size-3 text-green-500" />
+                                                                                        <Check className="size-3 shrink-0 text-emerald-500" />
                                                                                     ) : (
-                                                                                        <X className="size-3 text-red-500" />
+                                                                                        <X className="size-3 shrink-0 text-gray-400" />
                                                                                     )}
                                                                                     <span
                                                                                         className={`${
                                                                                             isIncluded
-                                                                                                ? 'text-gray-600'
+                                                                                                ? 'text-gray-700'
                                                                                                 : 'text-gray-400 line-through'
-                                                                                        }`}
+                                                                                        } leading-tight`}
                                                                                     >
                                                                                         {feature}
                                                                                     </span>
@@ -166,19 +183,15 @@ const PaymentPlanCard = ({ form }: DiscountSettingsDialogProps) => {
                                     /* Fallback for upfront plans without paymentOption array */
                                     <Card className="border border-gray-200 p-4">
                                         <div className="flex flex-col gap-3">
-                                            <h4 className="text-sm font-semibold text-gray-900">
+                                            <h4 className="text-base font-bold text-gray-900">
                                                 Full Payment
                                             </h4>
-                                            <div className="flex flex-col gap-1">
-                                                <span className="text-lg font-bold text-gray-900">
-                                                    {getCurrencySymbol(
-                                                        form.watch('selectedPlan')?.currency || ''
-                                                    )}
-                                                    {form.watch('selectedPlan')?.price}
-                                                </span>
-                                                <span className="text-sm text-gray-600">
-                                                    One-time payment
-                                                </span>
+                                            <div className="text-base font-bold text-gray-900">
+                                                {getCurrencySymbol(
+                                                    form.watch('selectedPlan')?.currency || ''
+                                                )}
+                                                {form.watch('selectedPlan')?.price}
+                                                <span>/one-time</span>
                                             </div>
                                         </div>
                                     </Card>
@@ -187,78 +200,66 @@ const PaymentPlanCard = ({ form }: DiscountSettingsDialogProps) => {
                         )}
                         {(form.watch('selectedPlan')?.type === 'subscription' ||
                             form.watch('selectedPlan')?.type === 'SUBSCRIPTION') && (
-                            <div className="flex flex-col gap-4 pl-8">
-                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                    {form
-                                        .watch('selectedPlan')
-                                        ?.paymentOption?.map((payment, idx) => {
-                                            return (
-                                                <Card
-                                                    key={idx}
-                                                    className="border border-gray-200 p-4 transition-colors hover:border-gray-300"
-                                                >
-                                                    <div className="flex flex-col gap-3">
-                                                        {/* Title */}
-                                                        <h4 className="text-sm font-semibold text-gray-900">
-                                                            {payment.title}
-                                                        </h4>
+                            <div className="flex w-fit flex-wrap gap-4 pl-8">
+                                {form.watch('selectedPlan')?.paymentOption?.map((payment, idx) => {
+                                    return (
+                                        <Card
+                                            key={idx}
+                                            className="border border-gray-200 p-8 py-6 transition-colors hover:border-gray-300"
+                                        >
+                                            <div className="flex flex-col gap-3">
+                                                {/* Title */}
+                                                <h4 className="text-xl font-bold text-gray-900">
+                                                    {payment.title}
+                                                </h4>
 
-                                                        {/* Price with currency, value and unit */}
-                                                        <div className="flex flex-col gap-1">
-                                                            <span className="text-lg font-bold text-gray-900">
-                                                                {getCurrencySymbol(
-                                                                    form.watch('selectedPlan')
-                                                                        ?.currency || ''
-                                                                )}
-                                                                {payment.price}
-                                                            </span>
-                                                            <span className="text-sm text-gray-600">
-                                                                for {payment.value} {payment.unit}
-                                                            </span>
-                                                        </div>
+                                                {/* Price with time period inline */}
+                                                <div className="text-xl font-bold text-primary-500">
+                                                    {getCurrencySymbol(
+                                                        form.watch('selectedPlan')?.currency || ''
+                                                    )}
+                                                    {payment.price}&nbsp;
+                                                    {payment.value && payment.unit && (
+                                                        <span className="text-sm font-normal text-gray-500">
+                                                            /{payment.value} {payment.unit}
+                                                        </span>
+                                                    )}
+                                                </div>
 
-                                                        {/* Features */}
-                                                        {allFeatures.length > 0 && (
-                                                            <div className="flex flex-col gap-1">
-                                                                <span className="mb-1 text-xs font-medium text-gray-700">
-                                                                    Features:
-                                                                </span>
-                                                                {allFeatures.map(
-                                                                    (feature, featureIdx) => {
-                                                                        const isIncluded =
-                                                                            payment.features?.includes(
-                                                                                feature
-                                                                            );
-                                                                        return (
-                                                                            <div
-                                                                                key={featureIdx}
-                                                                                className="flex items-center gap-1 text-xs"
-                                                                            >
-                                                                                {isIncluded ? (
-                                                                                    <Check className="size-3 text-green-500" />
-                                                                                ) : (
-                                                                                    <X className="size-3 text-red-500" />
-                                                                                )}
-                                                                                <span
-                                                                                    className={`${
-                                                                                        isIncluded
-                                                                                            ? 'text-gray-600'
-                                                                                            : 'text-gray-400 line-through'
-                                                                                    }`}
-                                                                                >
-                                                                                    {feature}
-                                                                                </span>
-                                                                            </div>
-                                                                        );
-                                                                    }
-                                                                )}
-                                                            </div>
-                                                        )}
+                                                {/* Features */}
+                                                {allFeatures.length > 0 && (
+                                                    <div className="space-y-2">
+                                                        {allFeatures.map((feature, featureIdx) => {
+                                                            const isIncluded =
+                                                                payment.features?.includes(feature);
+                                                            return (
+                                                                <div
+                                                                    key={featureIdx}
+                                                                    className="flex items-center gap-1.5 text-sm"
+                                                                >
+                                                                    {isIncluded ? (
+                                                                        <Check className="size-3 shrink-0 text-emerald-500" />
+                                                                    ) : (
+                                                                        <X className="size-3 shrink-0 text-gray-400" />
+                                                                    )}
+                                                                    <span
+                                                                        className={`${
+                                                                            isIncluded
+                                                                                ? 'text-gray-700'
+                                                                                : 'text-gray-400 line-through'
+                                                                        } leading-tight`}
+                                                                    >
+                                                                        {feature}
+                                                                    </span>
+                                                                </div>
+                                                            );
+                                                        })}
                                                     </div>
-                                                </Card>
-                                            );
-                                        })}
-                                </div>
+                                                )}
+                                            </div>
+                                        </Card>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
