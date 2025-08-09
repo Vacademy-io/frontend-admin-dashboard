@@ -21,7 +21,7 @@ interface PaymentOption {
 }
 
 // Helper function to get all unique features across all payment options
-const getAllUniqueFeatures = (paymentOptions: PaymentOption[]): string[] => {
+export const getAllUniqueFeatures = (paymentOptions: PaymentOption[]): string[] => {
     const allFeatures = new Set<string>();
     paymentOptions?.forEach((option) => {
         option.features?.forEach((feature: string) => {
