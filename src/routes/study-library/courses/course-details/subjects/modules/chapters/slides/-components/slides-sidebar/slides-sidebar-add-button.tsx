@@ -422,6 +422,17 @@ export const ChapterSidebarAddButton = () => {
                     // Create a code editor slide as a document with special type
                     const slideId = crypto.randomUUID();
                     const uniqueTitle = generateUniqueDocumentSlideTitle(items || [], 'CODE');
+                    // Auto-publish code slides on creation
+                    const codeData = JSON.stringify({
+                        language: 'python',
+                        theme: 'dark',
+                        code: '# Welcome to Python Code Editor\nprint("Hello, World!")',
+                        readOnly: false,
+                        showLineNumbers: true,
+                        fontSize: 14,
+                        editorType: 'codeEditor',
+                        timestamp: Date.now(),
+                    });
                     const response = await addUpdateDocumentSlide({
                         id: slideId,
                         title: uniqueTitle,
@@ -431,28 +442,22 @@ export const ChapterSidebarAddButton = () => {
                         document_slide: {
                             id: crypto.randomUUID(),
                             type: 'CODE',
-                            data: JSON.stringify({
-                                language: 'javascript',
-                                theme: 'dark',
-                                code: '// Welcome to the code editor\nconsole.log("Hello, World!");',
-                                readOnly: false,
-                                showLineNumbers: true,
-                                fontSize: 14,
-                                editorType: 'codeEditor',
-                                timestamp: Date.now(),
-                            }),
+                            data: codeData,
                             title: uniqueTitle,
                             cover_file_id: '',
                             total_pages: 1,
-                            published_data: null,
+                            published_data: codeData,
                             published_document_total_pages: 1,
                         },
-                        status: 'DRAFT',
+                        status: 'PUBLISHED',
                         new_slide: true,
                         notify: false,
                     });
 
                     if (response) {
+                        // Trigger approval button visibility for auto-published slide
+                        localStorage.setItem('triggerApprovalButton', Date.now().toString());
+                        toast.success('Slide created and auto-published for review');
                         // Reorder slides and set as active
                         await reorderSlidesAfterNewSlide(slideId);
                     }
