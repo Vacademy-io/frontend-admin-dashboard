@@ -462,9 +462,9 @@ export function createCodeEditorSlidePayload(
     const title = titleOverride || 'Code Editor';
 
     const codeData = JSON.stringify({
-        language: 'javascript',
+        language: 'python',
         theme: 'dark',
-        code: '// Welcome to the code editor\nconsole.log("Hello, World!");',
+        code: '# Welcome to Python Code Editor\nprint("Hello, World!")',
         readOnly: false,
         showLineNumbers: true,
         fontSize: 14,

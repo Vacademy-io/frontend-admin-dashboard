@@ -49,6 +49,8 @@ import {
     ReTransformCustomFields,
 } from './-utils/helper';
 import { handleGetReferralProgramDetails } from './-services/referral-services';
+import PreviewInviteLink from './PreviewInviteLink';
+import useInstituteLogoStore from '@/components/common/layout-container/sidebar/institutelogo-global-zustand';
 
 const GenerateInviteLinkDialog = ({
     showSummaryDialog,
@@ -61,6 +63,7 @@ const GenerateInviteLinkDialog = ({
     setDialogOpen,
     selectCourseForm,
 }: GenerateInviteLinkDialogProps) => {
+    const { instituteLogo } = useInstituteLogoStore();
     const { data: inviteLinkDetails } = useSuspenseQuery(
         singlePackageSessionId && inviteLinkId
             ? handleGetEnrollSingleInviteDetails({ inviteId: inviteLinkId })
@@ -83,6 +86,7 @@ const GenerateInviteLinkDialog = ({
         defaultValues: {
             name: '',
             includeInstituteLogo: false,
+            includePaymentPlans: true,
             requireApproval: false,
             course: '',
             description: '',
@@ -161,6 +165,8 @@ const GenerateInviteLinkDialog = ({
         },
     });
 
+    form.watch('custom_fields');
+
     const { control, setValue, getValues, handleSubmit } = form;
     const { fields: customFieldsArray } = useFieldArray({
         control,
@@ -193,7 +199,7 @@ const GenerateInviteLinkDialog = ({
     const mediaMenuRef = useRef<HTMLDivElement>(null);
     const youtubeInputRef = useRef<HTMLDivElement>(null);
 
-    const handleSubmitRatingMutation = useMutation({
+    const handleSubmitInviteLinkMutation = useMutation({
         mutationFn: async ({ data }: { data: InviteLinkFormValues }) => {
             return handleEnrollInvite({
                 data,
@@ -202,6 +208,7 @@ const GenerateInviteLinkDialog = ({
                 getPackageSessionId,
                 paymentsData,
                 referralProgramDetails,
+                instituteLogoFileId: instituteDetails?.institute_logo_file_id || '',
             });
         },
         onSuccess: () => {
@@ -231,7 +238,7 @@ const GenerateInviteLinkDialog = ({
         },
     });
     const onSubmit = (data: InviteLinkFormValues) => {
-        handleSubmitRatingMutation.mutate({ data });
+        handleSubmitInviteLinkMutation.mutate({ data });
     };
 
     const onInvalid = (err: unknown) => {
@@ -347,9 +354,9 @@ const GenerateInviteLinkDialog = ({
         addDiscountForm.reset();
     };
 
-    const handleDeleteOpenField = (id: string) => {
+    const handleDeleteOpenField = (id: number) => {
         const updatedFields = customFieldsArray
-            .filter((field) => field.id !== id)
+            .filter((field, idx) => idx !== id)
             .map((field, index) => ({
                 ...field,
                 order: index, // Update order of remaining fields
@@ -376,9 +383,9 @@ const GenerateInviteLinkDialog = ({
         });
     };
 
-    const toggleIsRequired = (id: string) => {
-        const updatedFields = customFieldsArray?.map((field) =>
-            field.id === id ? { ...field, isRequired: !field.isRequired } : field
+    const toggleIsRequired = (id: number) => {
+        const updatedFields = customFieldsArray?.map((field, idx) =>
+            idx === id ? { ...field, isRequired: !field.isRequired } : field
         );
         setValue('custom_fields', updatedFields);
     };
@@ -450,21 +457,21 @@ const GenerateInviteLinkDialog = ({
         );
     };
 
-    const handleEditClick = (id: string) => {
+    const handleEditClick = (id: number) => {
         const prevOptions = form.getValues('dropdownOptions');
         form.setValue(
             'dropdownOptions',
-            prevOptions.map((option) =>
-                option.id === id ? { ...option, disabled: !option.disabled } : option
+            prevOptions.map((option, idx) =>
+                idx === id ? { ...option, disabled: !option.disabled } : option
             )
         );
     };
 
-    const handleDeleteOptionField = (id: string) => {
+    const handleDeleteOptionField = (id: number) => {
         const prevOptions = form.getValues('dropdownOptions');
         form.setValue(
             'dropdownOptions',
-            prevOptions.filter((field) => field.id !== id)
+            prevOptions.filter((field, idx) => idx !== id)
         );
     };
 
@@ -516,6 +523,7 @@ const GenerateInviteLinkDialog = ({
             form.setValue('inviteeEmail', '');
         }
     };
+
     const handleRemoveInviteeEmail = (email: string) => {
         const inviteeEmails = form.getValues('inviteeEmails');
         const updatedEmails = inviteeEmails.filter((e: string) => e !== email);
@@ -668,10 +676,18 @@ const GenerateInviteLinkDialog = ({
         <Dialog open={showSummaryDialog} onOpenChange={setShowSummaryDialog}>
             <DialogContent className="animate-fadeIn flex min-h-[90vh] min-w-[85vw] flex-col">
                 <DialogHeader>
-                    <DialogTitle className="font-bold">Create Invite Link</DialogTitle>
+                    <div className="flex items-center justify-between">
+                        <DialogTitle className="font-bold">Create Invite Link</DialogTitle>
+                        {/* Preview Invite Link Dialog */}
+                        <PreviewInviteLink
+                            form={form}
+                            levelName={selectedBatches[0]?.levelName || ''}
+                            instituteLogo={instituteLogo}
+                        />
+                    </div>
                     <div className="my-3 border-b" />
                 </DialogHeader>
-                <div className="max-h-[70vh] flex-1 overflow-auto">
+                <div className="max-h-[70vh] flex-1 overflow-auto scroll-smooth">
                     <Form {...form}>
                         <form className="mt-6 space-y-6">
                             {/* Invite Name Card */}
@@ -747,9 +763,9 @@ const GenerateInviteLinkDialog = ({
                         buttonType="primary"
                         className="p-5"
                         onClick={handleSubmit(onSubmit, onInvalid)}
-                        disable={!form.watch('name') || handleSubmitRatingMutation.isPending}
+                        disable={!form.watch('name') || handleSubmitInviteLinkMutation.isPending}
                     >
-                        {handleSubmitRatingMutation.isPending ? (
+                        {handleSubmitInviteLinkMutation.isPending ? (
                             <div className="flex items-center gap-2">
                                 <LoadingSpinner size={16} />
                                 {isEditInviteLink ? 'Updating...' : 'Creating...'}
@@ -762,6 +778,7 @@ const GenerateInviteLinkDialog = ({
                     </MyButton>
                 </div>
             </DialogContent>
+
             {/* Payment Plans Dialog */}
             <PaymentPlansDialog form={form} />
             {/* Add New Payment Plan Dialog */}

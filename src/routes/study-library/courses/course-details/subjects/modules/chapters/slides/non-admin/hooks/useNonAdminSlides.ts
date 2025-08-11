@@ -153,13 +153,22 @@ export function useNonAdminSlides(chapterId: string) {
                     let currentData: string;
                     let totalPages: number;
 
-                    if (slide.document_slide?.type === 'PRESENTATION') {
+                    const docType = slide.document_slide?.type;
+                    if (docType === 'PRESENTATION') {
                         // For presentations, data is a file ID, not HTML content
                         currentData = slide.document_slide?.data || '';
                         totalPages = slide.document_slide?.total_pages || 1;
                         console.log('🎨 Processing presentation slide with fileId:', currentData);
+                    } else if (
+                        docType === 'CODE' ||
+                        docType === 'JUPYTER' ||
+                        docType === 'SCRATCH'
+                    ) {
+                        // For interactive slides, always persist JSON from slide state, not HTML
+                        currentData = slide.document_slide?.data || '{}';
+                        totalPages = 1;
                     } else {
-                        // For other document types, use current editor content if provided
+                        // For text-like document types, use current editor content if provided
                         currentData = currentEditorContent || slide.document_slide?.data || '{}';
                         // Calculate total pages for document slides
                         totalPages = currentEditorContent
