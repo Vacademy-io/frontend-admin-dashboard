@@ -255,8 +255,8 @@ export function convertInviteData(
         invite_code: '',
         status: 'ACTIVE',
         institute_id: instituteId,
-        vendor: '',
-        vendor_id: '',
+        vendor: 'STRIPE',
+        vendor_id: 'STRIPE',
         currency: '',
         tag: '',
         learner_access_days:

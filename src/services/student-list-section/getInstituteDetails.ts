@@ -7,6 +7,7 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import { HOLISTIC_INSTITUTE_ID, INIT_INSTITUTE } from '@/constants/urls';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
+import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
 import { useTheme } from '@/providers/theme/theme-provider';
 import { StorageKey } from '@/constants/storage/storage';
 import useLocalStorage from '@/hooks/use-local-storage';
@@ -14,9 +15,7 @@ import { isNullOrEmptyOrUndefined } from '@/lib/utils';
 import { NamingSettingsType } from '@/routes/settings/-constants/terms';
 
 export const fetchInstituteDetails = async (): Promise<InstituteDetailsType> => {
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const data = getTokenDecodedData(accessToken);
-    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
+    const INSTITUTE_ID = getCurrentInstituteId();
     const response = await authenticatedAxiosInstance<InstituteDetailsType>({
         method: 'GET',
         url: `${INIT_INSTITUTE}/${INSTITUTE_ID}`,
@@ -40,9 +39,7 @@ export const useInstituteQuery = () => {
         queryKey: ['GET_INIT_INSTITUTE'],
         queryFn: async () => {
             const data = await fetchInstituteDetails();
-            const accessToken = getTokenFromCookie(TokenKey.accessToken);
-            const tokenData = getTokenDecodedData(accessToken);
-            const INSTITUTE_ID = tokenData && Object.keys(tokenData.authorities)[0];
+            const INSTITUTE_ID = getCurrentInstituteId();
             const instituteSettings = JSON.parse(data?.setting || '{}');
             try {
                 if (!isNullOrEmptyOrUndefined(instituteSettings)) {

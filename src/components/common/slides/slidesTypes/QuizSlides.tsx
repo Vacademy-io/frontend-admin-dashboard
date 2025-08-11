@@ -11,7 +11,7 @@ import {
     FormLabel,
 } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
-import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { RichTextEditor } from '@/components/editor/RichTextEditor';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useSlideStore } from '@/stores/Slides/useSlideStore'; // Adjust path
 import debounce from 'lodash.debounce'; // Import debounce
@@ -64,19 +64,19 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
     useEffect(() => {
         // Only reset if the slide ID changed (different slide) or if this is the first initialization
         const slideChanged = previousSlideId.current !== currentSlideId;
-        
+
         if (!hasInitialized.current || slideChanged) {
             const resetData = formdata || { questionName: '', singleChoiceOptions: [], feedbackAnswer: '' };
             reset(resetData);
-            
+
             // Initialize the previous form values ref
             previousFormValues.current = resetData;
-            
+
             hasInitialized.current = true;
             previousSlideId.current = currentSlideId;
         }
     }, [formdata, reset, currentSlideId]);
-    
+
     // Function to update store - called on blur events instead of during typing
     const updateStoreIfChanged = useCallback((data: QuestionFormData) => {
         if (!isPresentationMode && hasInitialized.current) {
@@ -108,17 +108,17 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
             const currentValues = getValues();
             const currentOptions = currentValues.singleChoiceOptions || [];
             const previousOptions = previousFormValues.current.singleChoiceOptions || [];
-            
+
             // Check for structural changes (length change or selection change)
             const lengthChanged = currentOptions.length !== previousOptions.length;
-            const selectionChanged = currentOptions.some((opt, idx) => 
+            const selectionChanged = currentOptions.some((opt, idx) =>
                 opt.isSelected !== previousOptions[idx]?.isSelected
             );
-            
+
             if (lengthChanged || selectionChanged) {
                 updateStoreIfChanged(currentValues);
             }
-            
+
             lastOptionsLength.current = currentOptions.length;
         }
     }, [watchedFormValues.singleChoiceOptions, getValues, updateStoreIfChanged]);
@@ -183,7 +183,7 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
                 <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 pointer-events-none" />
                 <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse" />
                 <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-                
+
                 <ScrollArea className="h-full w-full relative z-10">
                     <div className="px-4 py-4 sm:px-6 md:px-8 lg:px-12 text-center">
                         {displayData?.questionName && (
@@ -204,7 +204,7 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
                             />
                             </div>
                         )}
-                        
+
                         {questionType === SlideTypeEnum.Quiz &&
                             displayData?.singleChoiceOptions &&
                             Array.isArray(displayData.singleChoiceOptions) && (
@@ -217,7 +217,7 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
                                             >
                                                 {/* Subtle gradient overlay */}
                                                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-purple-500/5 rounded-xl lg:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                                
+
                                                 <div className="relative flex items-center">
                                                     <span className="mr-3 lg:mr-4 flex-shrink-0 flex items-center justify-center w-7 h-7 lg:w-8 lg:h-8 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold text-sm lg:text-base rounded-full shadow-lg group-hover:scale-110 transition-transform duration-200">
                                                         {String.fromCharCode(65 + index)}
@@ -262,7 +262,7 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
                                 )}
                             </div>
                         )}
-                        
+
                         {!(
                             displayData?.questionName ||
                             (questionType === SlideTypeEnum.Quiz &&
@@ -297,7 +297,7 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
             <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50/20 pointer-events-none" />
             <div className="absolute top-0 right-1/4 w-64 h-64 bg-blue-500/3 rounded-full blur-2xl" />
             <div className="absolute bottom-0 left-1/4 w-64 h-64 bg-purple-500/3 rounded-full blur-2xl" />
-            
+
             <ScrollArea className="h-full w-full relative z-10">
             <Form {...form}>
                     <form className={`space-y-8 p-6 lg:p-8 ${className}`}>
@@ -318,11 +318,12 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
                                 <FormItem className="w-full">
                                     <FormControl>
                                             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                                        <MainViewQuillEditor
+                                        <RichTextEditor
                                             value={field.value || ''}
                                             onChange={field.onChange}
                                             onBlur={handleQuestionNameBlur}
                                             placeholder="Type your question or prompt here..."
+                                            minHeight={120}
                                         />
                                             </div>
                                     </FormControl>
@@ -343,8 +344,8 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
                                     <div
                                         key={option?.id || `edit-option-${idx}`}
                                             className={`relative group rounded-xl border-2 p-4 transition-all duration-300 ease-out
-                                            ${option?.isSelected 
-                                                ? 'border-blue-400 bg-blue-50/50 shadow-lg shadow-blue-500/10' 
+                                            ${option?.isSelected
+                                                ? 'border-blue-400 bg-blue-50/50 shadow-lg shadow-blue-500/10'
                                                 : 'border-slate-200 bg-white/50 hover:border-slate-300 hover:shadow-md'
                                             }`}
                                     >
@@ -352,7 +353,7 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
                                             {option?.isSelected && (
                                                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-blue-500/5 rounded-xl" />
                                             )}
-                                            
+
                                             <div className="relative flex items-start gap-4">
                                                 <div className="flex items-center pt-2">
                                             <FormField
@@ -383,11 +384,12 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
                                                 <FormItem className="flex-1">
                                                     <FormControl>
                                                                 <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
-                                                        <MainViewQuillEditor
+                                                        <RichTextEditor
                                                             value={field.value || ''}
                                                             onChange={field.onChange}
                                                             onBlur={handleOptionBlur}
                                                             placeholder={`Option ${String.fromCharCode(65 + idx)} content`}
+                                                            minHeight={80}
                                                             className="text-sm"
                                                         />
                                                                 </div>
@@ -434,11 +436,12 @@ export const QuizSlide: React.FC<QuizSlideProps> = ({
                                     <FormItem className="w-full">
                                         <FormControl>
                                                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                                            <MainViewQuillEditor
+                                            <RichTextEditor
                                                 value={field.value || ''}
                                                 onChange={field.onChange}
                                                 onBlur={handleQuestionNameBlur}
                                                 placeholder="Configure feedback prompt or display area..."
+                                                minHeight={120}
                                             />
                                                 </div>
                                         </FormControl>

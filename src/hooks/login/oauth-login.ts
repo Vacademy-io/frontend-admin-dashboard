@@ -11,7 +11,6 @@ interface OAuthLoginOptions {
 }
 
 export const handleOAuthLogin = (provider: OAuthProvider, options: OAuthLoginOptions = {}) => {
-    console.log('handle Outh Login');
     try {
         const { isSignup = false, assess = false, lms = false } = options;
 
@@ -28,31 +27,22 @@ export const handleOAuthLogin = (provider: OAuthProvider, options: OAuthLoginOpt
             base64State
         )}`;
 
-        console.log('[OAuthLogin] Redirecting to:', loginUrl);
-        console.log('[OAuthLogin] Encoded State:', stateObj);
-
         window.location.href = loginUrl;
     } catch (error) {
-        console.error('[OAuthLogin] Error during OAuth login initiation:', error);
         toast.error('Failed to initiate login. Please try again.');
     }
 };
+import { handleLoginFlow, navigateFromLoginFlow } from '@/lib/auth/loginFlowHandler';
+
 export const handleLoginOAuthCallback = async () => {
-    const urlParams = new URLSearchParams(window.location.search);
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
 
-    const error = urlParams.get('error');
-    const message = urlParams.get('message');
-    const stateEncoded = urlParams.get('state');
-    const accessToken = urlParams.get('accessToken');
-    const refreshToken = urlParams.get('refreshToken');
-
-    console.log('[OAuthCallback] URL Params:', {
-        error,
-        message,
-        stateEncoded,
-        accessToken,
-        refreshToken,
-    });
+        const error = urlParams.get('error');
+        const message = urlParams.get('message');
+        const stateEncoded = urlParams.get('state');
+        const accessToken = urlParams.get('accessToken');
+        const refreshToken = urlParams.get('refreshToken');
 
     if (error === 'true' || message) {
         const errorMsg = message || 'OAuth Authentication failed.';
@@ -61,41 +51,50 @@ export const handleLoginOAuthCallback = async () => {
             duration: 5000,
         });
 
-        console.error('[OAuthCallback] Error:', decodeURIComponent(errorMsg));
-
-        // Optional: Redirect to a custom login error page if needed
-        // window.location.href = '/login?oauthError=1';
-
         return { success: false };
     }
 
-    let redirectUrl = '/dashboard';
+        if (accessToken && refreshToken) {
+        // Use centralized login flow
+        const result = await handleLoginFlow({
+            loginMethod: 'oauth',
+            accessToken,
+            refreshToken
+        });
 
-    if (stateEncoded) {
-        try {
-            const decodedState = JSON.parse(atob(decodeURIComponent(stateEncoded)));
-            console.log('[OAuthCallback] Decoded state:', decodedState);
-
-            if (decodedState?.from) {
-                redirectUrl = decodedState.from;
-            }
-        } catch (err) {
-            console.warn('[OAuthCallback] Failed to decode state. Using fallback redirect:', err);
+        if (!result.success) {
+            // User was blocked or error occurred
+            setTimeout(() => {
+                window.location.href = '/login?error=student_access_denied';
+            }, 2000);
+            return { success: false };
         }
+
+        if (result.shouldShowInstituteSelection) {
+            return { success: true, shouldShowInstituteSelection: true };
+        }
+
+        // Determine redirect URL
+        let redirectUrl = result.redirectUrl || '/dashboard';
+
+        if (stateEncoded) {
+            try {
+                const decodedState = JSON.parse(atob(decodeURIComponent(stateEncoded)));
+
+                if (decodedState?.from) {
+                    redirectUrl = decodedState.from;
+                }
+            } catch (err) {
+                // Failed to decode state, using fallback redirect
+            }
+        }
+
+        return { success: true, redirectUrl };
     }
 
-    if (accessToken && refreshToken) {
-        console.log('[OAuthCallback] Setting tokens and redirecting...');
-        setAuthorizationCookie(TokenKey.accessToken, accessToken);
-        setAuthorizationCookie(TokenKey.refreshToken, refreshToken);
-
-        console.log('[OAuthCallback] Redirecting to:', redirectUrl);
-        window.location.href = redirectUrl;
-
-        return { success: true };
+        toast.error('Login failed. Missing tokens.');
+        return { success: false };
+    } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
-
-    toast.error('Login failed. Missing tokens.');
-    console.warn('[OAuthCallback] Tokens missing in URL.');
-    return { success: false };
 };

@@ -248,7 +248,9 @@ export const AddChapterForm = ({
                     )}
                 />
                 <div className="flex flex-col gap-2 overflow-y-auto">
-                    <div className="text-subtitle font-semibold">Chapter Visibility</div>
+                    <div className="text-subtitle font-semibold">
+                        {getTerminology(ContentTerms.Chapters, SystemTerms.Chapters)} Visibility
+                    </div>
                     <div className="text-body text-neutral-500">
                         Select the levels you want to grant access to this chapter. Only the chosen
                         levels will be able to view the content. You can update visibility at any

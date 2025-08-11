@@ -32,13 +32,8 @@ export default function CurrentlyActiveUsersWidget({
         refetchInterval: 30000, // Refresh every 30 seconds
     });
 
-    console.log('CurrentlyActiveUsersWidget - data:', data);
-
     const activeUsers =
         data?.activeUsersList || data?.active_users_list || data?.currently_active_users_list || [];
-
-    console.log('CurrentlyActiveUsersWidget - activeUsers:', activeUsers);
-    console.log('CurrentlyActiveUsersWidget - activeUsers length:', activeUsers.length);
 
     const getDeviceIcon = (deviceType: string) => {
         switch (deviceType?.toLowerCase()) {

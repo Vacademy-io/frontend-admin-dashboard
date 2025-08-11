@@ -68,12 +68,15 @@ authenticatedAxiosInstance.interceptors.response.use(
     async (error) => {
         const { response } = error;
 
-        console.error('[Axios Response] Request failed:', {
-            url: error.config?.url,
-            status: response?.status,
-            statusText: response?.statusText,
-            data: response?.data,
-        });
+        // Only log non-403 errors to reduce noise
+        if (response?.status !== 403) {
+            console.error('[Axios Response] Request failed:', {
+                url: error.config?.url,
+                status: response?.status,
+                statusText: response?.statusText,
+                data: response?.data,
+            });
+        }
 
         // Handle 511 Network Authentication Required
         if (response?.status === 511) {
@@ -99,8 +102,7 @@ authenticatedAxiosInstance.interceptors.response.use(
 
         // Handle 403 Forbidden
         if (response?.status === 403) {
-            console.error('[Axios Response] 403 Forbidden - Insufficient permissions');
-            console.error('[Axios Response] Response data:', response.data);
+            // Don't log 403 errors as they're expected for some institute details requests
             return Promise.reject(new Error('You do not have permission to perform this action.'));
         }
 

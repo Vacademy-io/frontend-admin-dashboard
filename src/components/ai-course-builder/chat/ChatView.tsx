@@ -66,11 +66,8 @@ import {
     type ChatApiResponse,
 } from '@/services/aiCourseApi';
 import type { Modification } from '../lib/applyModifications';
-import { testApiEndpoint } from '@/services/apiDebugTest';
 import type { TodoTask } from '@/services/aiResponseMemory';
 import TodoProgress from './TodoProgress';
-import { responseCapture } from './debugResponseCapture';
-import { chatDebugger } from './debugChatFlow';
 import { simulateStreamingResponse } from './simpleChatTest';
 import type { ChatSection } from '../types';
 
@@ -532,15 +529,13 @@ const ChatView: React.FC<ChatViewProps> = ({
 
         // Make test function available in console for debugging (only once)
         interface WindowWithTestApi extends Window {
-            testApiCall?: typeof testApiEndpoint;
             enableChatDebug?: () => void;
             disableChatDebug?: () => void;
             simulateLastResponse?: () => void;
         }
         const windowWithTestApi = window as WindowWithTestApi;
 
-        if (typeof window !== 'undefined' && !windowWithTestApi.testApiCall) {
-            windowWithTestApi.testApiCall = testApiEndpoint;
+        if (typeof window !== 'undefined') {
             windowWithTestApi.enableChatDebug = () => {
                 setIsDebugMode(true);
                 console.log('🐛 Chat debug mode enabled');
@@ -628,30 +623,19 @@ const ChatView: React.FC<ChatViewProps> = ({
                 },
             };
             windowWithTestApi.simulateLastResponse = () => {
-                const latest = responseCapture.getLatestResponse();
-                if (latest) {
-                    console.log('🎬 Simulating latest captured response...');
-                    latest.chunks.forEach((chunk, index) => {
-                        setTimeout(() => {
-                            processStreamingChunkDirect(chunk, currentStreamingMessageId || 'test');
-                        }, index * 50);
-                    });
-                } else {
-                    console.log('❌ No captured responses available');
-                    console.log('🧪 Using mock response instead...');
-                    if (currentStreamingMessageId) {
-                        simulateStreamingResponse(
-                            (chunk) =>
-                                processStreamingChunkDirect(chunk, currentStreamingMessageId!),
-                            () => console.log('✅ Mock simulation complete'),
-                            50
-                        );
-                    }
+                console.log('🎬 Simulate last response function removed');
+                console.log('❌ No captured responses available');
+                console.log('🧪 Using mock response instead...');
+                if (currentStreamingMessageId) {
+                    simulateStreamingResponse(
+                        (chunk) => processStreamingChunkDirect(chunk, currentStreamingMessageId!),
+                        () => console.log('✅ Mock simulation complete'),
+                        50
+                    );
                 }
             };
 
             console.log('🔧 Debug tools available:');
-            console.log('  - window.testApiCall() - Test API connection');
             console.log('  - window.enableChatDebug() - Enable detailed logging');
             console.log('  - window.disableChatDebug() - Disable detailed logging');
             console.log('  - window.simulateLastResponse() - Replay last response');
@@ -762,8 +746,7 @@ const ChatView: React.FC<ChatViewProps> = ({
             };
 
             if (isDebugMode) {
-                chatDebugger.startDebugging(aiMessage.id);
-                chatDebugger.debugMessageCreation(aiMessage.id, aiMessage);
+                console.log('Debug mode enabled for message:', aiMessage.id);
             }
 
             setMessages((prev) => [...prev, aiMessage]);
@@ -783,8 +766,7 @@ const ChatView: React.FC<ChatViewProps> = ({
             processedJsonSectionsRef.current.clear();
             lastJsonCreationTime.current = 0;
 
-            // Start response capture
-            responseCapture.startCapture(userMessage.content, selectedModel);
+            // Response capture removed
 
             // Start streaming with message ID captured in closure
             await sendStreamingMessage(
@@ -920,22 +902,18 @@ const ChatView: React.FC<ChatViewProps> = ({
         };
 
         if (isDebugMode) {
-            chatDebugger.debugStreamingStart(apiRequest);
+            console.log('Starting streaming for request:', apiRequest);
         }
 
         return new Promise<void>((resolve, reject) => {
-            let chunkIndex = 0;
+            const chunkIndex = 0;
             sendChatMessageStreaming(
                 apiRequest,
                 // onChunk callback - called for each streaming chunk
                 (chunk: string) => {
                     if (isDebugMode) {
                         console.log('📡 AI Backend - Streaming chunk received:', chunk);
-                        chatDebugger.debugChunkReceived(chunk, chunkIndex++);
                     }
-
-                    // Capture for debugging/testing
-                    responseCapture.captureChunk(chunk);
 
                     // Update debug state first (this should never fail)
                     try {
@@ -962,9 +940,6 @@ const ChatView: React.FC<ChatViewProps> = ({
                             processStreamingChunkDirect(chunk, messageIdToUse);
                         } catch (error) {
                             console.error('❌ Error in chunk processing:', error);
-                            if (isDebugMode) {
-                                chatDebugger.debugError('CHUNK_PROCESSING_ERROR', error);
-                            }
                         }
                     } else {
                         console.warn('⚠️ Missing chunk or messageId:', {
@@ -974,12 +949,6 @@ const ChatView: React.FC<ChatViewProps> = ({
                             currentStreamingMessageId,
                             messageIdToUse,
                         });
-                        if (isDebugMode) {
-                            chatDebugger.debugError(
-                                'MISSING_CHUNK_OR_ID',
-                                'Missing chunk or messageId'
-                            );
-                        }
                     }
 
                     // Send to debug if available (safely)
@@ -998,8 +967,7 @@ const ChatView: React.FC<ChatViewProps> = ({
                     }
                     setStreamingResponse(finalResponse.content);
 
-                    // Finish response capture
-                    responseCapture.finishCapture();
+                    // Response capture removed
 
                     // Send final response to debug
                     if (onStreamingDebug) {
@@ -1009,9 +977,6 @@ const ChatView: React.FC<ChatViewProps> = ({
                     // Try to process structured data from the response
                     tryProcessStructuredPayload(finalResponse.content);
 
-                    if (isDebugMode) {
-                        chatDebugger.stopDebugging();
-                    }
                     resolve();
                 },
                 // onError callback - called if streaming fails
@@ -1246,7 +1211,6 @@ const ChatView: React.FC<ChatViewProps> = ({
                 sectionsInState: messageSections[messageId]?.length || 0,
                 sectionsProp: sections.length,
             });
-            chatDebugger.debugUIRender(messageId, sections);
         }
 
         if (sections.length === 0) {
@@ -1315,11 +1279,13 @@ const ChatView: React.FC<ChatViewProps> = ({
                     // Log section updates for JSON sections or when in debug mode
                     if (section.type === 'json' || isDebugMode) {
                         console.log(
-                            `📝 Updated sections for ${messageId}: ${newSections.length} total sections`
+                            `📝 Updated sections for ${messageId}: ${newSections.length} total sections`,
+                            {
+                                messageId,
+                                sectionType: section.type,
+                                totalSections: newSections.length,
+                            }
                         );
-                        if (isDebugMode) {
-                            chatDebugger.debugSectionAdd(messageId, section, newSections.length);
-                        }
                     }
 
                     const newState = {
@@ -1343,9 +1309,6 @@ const ChatView: React.FC<ChatViewProps> = ({
                 console.error(`❌ CRITICAL ERROR adding section to message ${messageId}:`, error);
                 console.error('❌ Stack trace:', (error as Error).stack);
                 console.error('❌ Section data:', { messageId, section });
-                if (isDebugMode) {
-                    chatDebugger.debugError('SECTION_ADD_ERROR', error);
-                }
             }
         },
         [isDebugMode, setMessageSections, setForceRenderCounter]

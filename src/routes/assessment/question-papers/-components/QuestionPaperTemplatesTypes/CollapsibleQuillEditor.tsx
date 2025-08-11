@@ -1,4 +1,4 @@
-import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { RichTextEditor } from '@/components/editor/RichTextEditor';
 import { useState } from 'react';
 import { CollapsibleQuillEditorProps } from '@/types/assessments/question-type-types';
 
@@ -24,9 +24,14 @@ export const CollapsibleQuillEditor: React.FC<CollapsibleQuillEditorProps> = ({
                     </button>
                 </div>
             ) : (
-                // Render full Quill Editor when expanded
+                // Render full editor when expanded
                 <div className="rounded-md border bg-primary-50 p-2">
-                    <MainViewQuillEditor value={value} onChange={onChange} onBlur={onBlur} />
+                    <RichTextEditor
+                        value={value}
+                        onChange={onChange}
+                        onBlur={onBlur}
+                        minHeight={120}
+                    />
                     <button
                         className="mt-2 text-body text-primary-500"
                         onClick={() => setIsExpanded(false)}

@@ -40,6 +40,8 @@ import type { Slide as ManualSlide } from '@/routes/study-library/courses/course
 
 // Import modification types
 import type { Modification } from '../lib/applyModifications';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 // Types for the DetailView
 interface DetailViewProps {
@@ -937,8 +939,27 @@ const DetailView: React.FC<DetailViewProps> = ({ selectedItem, onModifications }
                         <FileText className="mb-4 size-16 text-gray-400" />
                         <h3>Select an item to view details</h3>
                         <p>
-                            Choose a course, module, chapter, or slide from the explorer to see its
-                            content.
+                            Choose a{' '}
+                            {getTerminology(
+                                ContentTerms.Course,
+                                SystemTerms.Course
+                            ).toLocaleLowerCase()}
+                            ,{' '}
+                            {getTerminology(
+                                ContentTerms.Modules,
+                                SystemTerms.Modules
+                            ).toLocaleLowerCase()}{' '}
+                            ,{' '}
+                            {getTerminology(
+                                ContentTerms.Chapters,
+                                SystemTerms.Chapters
+                            ).toLocaleLowerCase()}
+                            , or{' '}
+                            {getTerminology(
+                                ContentTerms.Slides,
+                                SystemTerms.Slides
+                            ).toLocaleLowerCase()}{' '}
+                            from the explorer to see its content.
                         </p>
                     </div>
                 </div>
@@ -962,30 +983,61 @@ const DetailView: React.FC<DetailViewProps> = ({ selectedItem, onModifications }
                         <div className="info-content">
                             {type === 'subject' && (
                                 <div className="subject-info">
-                                    <p>Course modules: {(data as Subject).modules.length}</p>
                                     <p>
-                                        This course covers fundamental concepts and practical
-                                        applications.
+                                        {getTerminology(
+                                            ContentTerms.Chapters,
+                                            SystemTerms.Chapters
+                                        )}{' '}
+                                        {getTerminology(
+                                            ContentTerms.Modules,
+                                            SystemTerms.Modules
+                                        ).toLocaleLowerCase()}{' '}
+                                        : {(data as Subject).modules.length}
+                                    </p>
+                                    <p>
+                                        This{' '}
+                                        {getTerminology(
+                                            ContentTerms.Subjects,
+                                            SystemTerms.Subjects
+                                        ).toLocaleLowerCase()}{' '}
+                                        covers fundamental concepts and practical applications.
                                     </p>
                                 </div>
                             )}
 
                             {type === 'module' && (
                                 <div className="module-info">
-                                    <p>Chapters: {(data as Module).chapters.length}</p>
                                     <p>
-                                        This module provides structured learning with hands-on
-                                        exercises.
+                                        {getTerminology(
+                                            ContentTerms.Chapters,
+                                            SystemTerms.Chapters
+                                        )}
+                                        s : {(data as Module).chapters.length}
+                                    </p>
+                                    <p>
+                                        This{' '}
+                                        {getTerminology(
+                                            ContentTerms.Modules,
+                                            SystemTerms.Modules
+                                        ).toLocaleLowerCase()}{' '}
+                                        provides structured learning with hands-on exercises.
                                     </p>
                                 </div>
                             )}
 
                             {type === 'chapter' && (
                                 <div className="chapter-info">
-                                    <p>Slides: {(data as Chapter).slides.length}</p>
                                     <p>
-                                        This chapter includes various learning materials and
-                                        activities.
+                                        {getTerminology(ContentTerms.Slides, SystemTerms.Slides)}:{' '}
+                                        {(data as Chapter).slides.length}
+                                    </p>
+                                    <p>
+                                        This{' '}
+                                        {getTerminology(
+                                            ContentTerms.Chapters,
+                                            SystemTerms.Chapters
+                                        ).toLocaleLowerCase()}{' '}
+                                        includes various learning materials and activities.
                                     </p>
                                 </div>
                             )}

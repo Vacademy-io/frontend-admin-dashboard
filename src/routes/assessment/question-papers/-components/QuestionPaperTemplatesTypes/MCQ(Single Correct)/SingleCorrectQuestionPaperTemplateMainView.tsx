@@ -6,7 +6,7 @@ import 'react-quill/dist/quill.snow.css';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { PopoverClose } from '@radix-ui/react-popover';
 import SelectField from '@/components/design-system/select-field';
-import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { RichTextEditor } from '@/components/editor/RichTextEditor';
 import { QuestionPaperTemplateFormProps } from '../../../-utils/question-paper-template-form';
 import { formatStructure } from '../../../-utils/helper';
 import { QUESTION_TYPES } from '@/constants/dummy-data';
@@ -16,6 +16,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
     form,
     currentQuestionIndex,
     className,
+    showQuestionNumber = true,
 }: QuestionPaperTemplateFormProps) => {
     const { control, getValues, setValue } = form;
     const answersType = getValues('answersType') || 'Answer:';
@@ -99,10 +100,12 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                         render={({ field }) => (
                             <FormItem className="w-full">
                                 <FormControl>
-                                    <MainViewQuillEditor
+                                    <RichTextEditor
                                         value={field.value}
                                         onBlur={field.onBlur}
                                         onChange={field.onChange}
+                                        minHeight={100}
+                                        placeholder="Comprehension text"
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -114,10 +117,15 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <div className="flex items-center gap-2">
                     <span>
-                        Question&nbsp;
-                        {questionsType
-                            ? formatStructure(questionsType, currentQuestionIndex + 1)
-                            : currentQuestionIndex + 1}
+                        Question
+                        {showQuestionNumber && (
+                            <>
+                                &nbsp;
+                                {questionsType
+                                    ? formatStructure(questionsType, currentQuestionIndex + 1)
+                                    : currentQuestionIndex + 1}
+                            </>
+                        )}
                     </span>
                     <Badge variant="outline">{level}</Badge>
                 </div>
@@ -127,10 +135,12 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
-                                <MainViewQuillEditor
+                                <RichTextEditor
                                     value={field.value}
                                     onBlur={field.onBlur}
                                     onChange={field.onChange}
+                                    minHeight={100}
+                                    placeholder="Write the question"
                                 />
                             </FormControl>
                             <FormMessage />
@@ -168,10 +178,12 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 render={({ field }) => (
                                     <FormItem className="w-full">
                                         <FormControl>
-                                            <MainViewQuillEditor
+                                            <RichTextEditor
                                                 value={field.value}
                                                 onBlur={field.onBlur}
                                                 onChange={field.onChange}
+                                                minHeight={60}
+                                                placeholder="Option A"
                                             />
                                         </FormControl>
                                         <FormMessage />
@@ -219,10 +231,12 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 render={({ field }) => (
                                     <FormItem className="w-full">
                                         <FormControl>
-                                            <MainViewQuillEditor
+                                            <RichTextEditor
                                                 value={field.value}
                                                 onBlur={field.onBlur}
                                                 onChange={field.onChange}
+                                                minHeight={60}
+                                                placeholder="Option B"
                                             />
                                         </FormControl>
                                         <FormMessage />
@@ -273,10 +287,12 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 render={({ field }) => (
                                     <FormItem className="w-full">
                                         <FormControl>
-                                            <MainViewQuillEditor
+                                            <RichTextEditor
                                                 value={field.value}
                                                 onBlur={field.onBlur}
                                                 onChange={field.onChange}
+                                                minHeight={60}
+                                                placeholder="Option C"
                                             />
                                         </FormControl>
                                         <FormMessage />
@@ -325,10 +341,12 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 render={({ field }) => (
                                     <FormItem className="w-full">
                                         <FormControl>
-                                            <MainViewQuillEditor
+                                            <RichTextEditor
                                                 value={field.value}
                                                 onBlur={field.onBlur}
                                                 onChange={field.onChange}
+                                                minHeight={60}
+                                                placeholder="Option D"
                                             />
                                         </FormControl>
                                         <FormMessage />
@@ -369,10 +387,12 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
-                                <MainViewQuillEditor
+                                <RichTextEditor
                                     value={field.value}
                                     onBlur={field.onBlur}
                                     onChange={field.onChange}
+                                    minHeight={80}
+                                    placeholder="Explanation"
                                 />
                             </FormControl>
                             <FormMessage />

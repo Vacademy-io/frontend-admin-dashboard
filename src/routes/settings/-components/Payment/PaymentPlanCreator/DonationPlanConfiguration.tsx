@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -35,6 +35,9 @@ export const DonationPlanConfiguration: React.FC<DonationPlanConfigurationProps>
     onAddAmount,
     onRemoveAmount,
 }) => {
+    useEffect(() => {
+        onAllowCustomAmountChange(allowCustomAmount);
+    }, []);
     return (
         <Card>
             <CardHeader>

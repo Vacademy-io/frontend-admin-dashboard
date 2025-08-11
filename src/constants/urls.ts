@@ -291,6 +291,23 @@ export const FINISH_SESSION_API_URL = `${BASE_URL}/community-service/engage/admi
 export const CREATE_NAMING_SETTINGS = `${BASE_URL}/admin-core-service/institute/setting/v1/create-name-setting`;
 export const UPDATE_NAMING_SETTINGS = `${BASE_URL}/admin-core-service/institute/setting/v1/update-name-setting`;
 
+// Notification Service
+export const NOTIFICATION_SERVICE_BASE = `${BASE_URL}/notification-service/v1`;
+
+// Notification Settings (Announcement / Institute Notification Settings)
+export const NOTIFICATION_SETTINGS_BASE = `${NOTIFICATION_SERVICE_BASE}/institute-settings`;
+export const GET_NOTIFICATION_SETTINGS_BY_INSTITUTE = `${NOTIFICATION_SETTINGS_BASE}/institute`;
+export const CHECK_NOTIFICATION_PERMISSION = (
+    instituteId: string,
+    userRole: string,
+    action: string,
+    modeType: string
+) =>
+    `${GET_NOTIFICATION_SETTINGS_BY_INSTITUTE}/${instituteId}/permissions?userRole=${encodeURIComponent(
+        userRole
+    )}&action=${encodeURIComponent(action)}&modeType=${encodeURIComponent(modeType)}`;
+export const GET_NOTIFICATION_DEFAULT_TEMPLATE = `${NOTIFICATION_SETTINGS_BASE}/default-template`;
+
 // Payment Options
 export const SAVE_PAYMENT_OPTION = `${BASE_URL}/admin-core-service/v1/payment-option`;
 export const GET_PAYMENT_OPTIONS = `${BASE_URL}/admin-core-service/v1/payment-option/get-payment-options`;

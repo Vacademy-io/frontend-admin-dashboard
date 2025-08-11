@@ -186,6 +186,35 @@ export const SidebarItemsData: SidebarItemsType[] = [
         ],
     },
     {
+        icon: HeadCircuit,
+        title: 'Announcement',
+        id: 'announcement',
+        to: '/announcement/create',
+        subItems: [
+            {
+                subItem: 'Create Announcement',
+                subItemLink: '/announcement/create',
+                subItemId: 'announcement-create',
+            },
+            {
+                subItem: 'Announcement History',
+                subItemLink: '/announcement/history',
+                subItemId: 'announcement-history',
+                adminOnly: true,
+            },
+            {
+                subItem: 'Schedule Announcement',
+                subItemLink: '/announcement/schedule',
+                subItemId: 'announcement-schedule',
+            },
+            {
+                subItem: 'Announcement Approval',
+                subItemLink: '/announcement/approval',
+                subItemId: 'announcement-approval',
+            },
+        ],
+    },
+    {
         icon: Globe,
         id: 'community-centre',
         title: 'Community Centre',

@@ -54,13 +54,7 @@ export default function RealTimeActiveUsersWidget({ instituteId }: RealTimeActiv
         staleTime: 5000,
     });
 
-    console.log('RealTimeActiveUsersWidget - data:', activeUsersCount);
-    console.log(
-        'RealTimeActiveUsersWidget - extracted count:',
-        activeUsersCount?.totalActiveUsers || activeUsersCount || 0
-    );
-    console.log('RealTimeActiveUsersWidget - isLoading:', isLoading);
-    console.log('RealTimeActiveUsersWidget - error:', error);
+
 
     if (error) {
         return (

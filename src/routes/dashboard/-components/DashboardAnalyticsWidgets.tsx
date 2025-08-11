@@ -24,19 +24,13 @@ export default function DashboardAnalyticsWidgets() {
     const instituteId = instituteDetails?.id || '';
     const router = useRouter();
 
-    console.log('DashboardAnalyticsWidgets - instituteId:', instituteId);
-    console.log('DashboardAnalyticsWidgets - instituteDetails:', instituteDetails);
-
     const handleViewFullInsights = () => {
         router.navigate({ to: '/learner-insights' });
     };
 
     if (!instituteId) {
-        console.log('DashboardAnalyticsWidgets - No instituteId, returning early');
         return <div>Loading analytics...</div>;
     }
-
-    console.log('DashboardAnalyticsWidgets - About to render, instituteId:', instituteId);
 
     return (
         <div className="space-y-4">

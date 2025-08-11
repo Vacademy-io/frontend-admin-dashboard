@@ -27,10 +27,10 @@ export const defaultNamingSettings: NamingSettingsType[] = [
     { key: 'Course', systemValue: 'Course', customValue: 'Course' },
     { key: 'Level', systemValue: 'Level', customValue: 'Level' },
     { key: 'Session', systemValue: 'Session', customValue: 'Session' },
-    { key: 'Subjects', systemValue: 'Subject', customValue: 'Subject' },
-    { key: 'Modules', systemValue: 'Module', customValue: 'Module' },
-    { key: 'Chapters', systemValue: 'Chapter', customValue: 'Chapter' },
-    { key: 'Slides', systemValue: 'Slide', customValue: 'Slide' },
+    { key: 'Subject', systemValue: 'Subject', customValue: 'Subject' },
+    { key: 'Module', systemValue: 'Module', customValue: 'Module' },
+    { key: 'Chapter', systemValue: 'Chapter', customValue: 'Chapter' },
+    { key: 'Slide', systemValue: 'Slide', customValue: 'Slide' },
     { key: 'Admin', systemValue: 'Admin', customValue: 'Admin' },
     { key: 'Teacher', systemValue: 'Teacher', customValue: 'Teacher' },
     {
@@ -87,6 +87,7 @@ export const enum SettingsTabs {
     Payment = 'payment',
     Referral = 'referral',
     Course = 'course',
+    Notification = 'notification',
 }
 
 export const DAYS_IN_MONTH = 30;

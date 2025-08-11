@@ -44,6 +44,18 @@ import { TokenKey } from '@/constants/auth/tokens';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from '@/svgs';
+import RecentNotificationsWidget from './-components/RecentNotificationsWidget';
+import {
+    Dialog as BaseDialog,
+    DialogContent as BaseDialogContent,
+    DialogTitle as BaseDialogTitle,
+} from '@/components/ui/dialog';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { getUserId } from '@/utils/userDetails';
+import { fetchSystemAlerts } from '@/services/notifications/system-alerts';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Analytics Widgets
 import RealTimeActiveUsersWidget from './-components/analytics-widgets/RealTimeActiveUsersWidget';
@@ -55,6 +67,7 @@ import EnrollLearnersWidget from './-components/EnrollLearnersWidget';
 import LearningCenterWidget from './-components/LearningCenterWidget';
 import AssessmentCenterWidget from './-components/AssessmentCenterWidget';
 import RoleTypeComponent from './-components/RoleTypeComponent';
+import { LearnerTab } from './-components/LearnerTab';
 import { SettingsTabs } from '../settings/-constants/terms';
 
 export const Route = createFileRoute('/dashboard/')({
@@ -63,7 +76,26 @@ export const Route = createFileRoute('/dashboard/')({
 
 function DashboardPage() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [isVoltSubdomain, setIsVoltSubdomain] = useState(false);
+    const [showLearnerTab, setShowLearnerTab] = useState(false);
+    const [showAllAlerts, setShowAllAlerts] = useState(false);
+    const userId = getUserId();
+    const infiniteAlerts = useInfiniteQuery({
+        queryKey: ['SYSTEM_ALERTS_INFINITE', userId, 20] as const,
+        queryFn: ({ pageParam = 0 }) =>
+            fetchSystemAlerts({ userId, page: Number(pageParam) || 0, size: 20 }),
+        getNextPageParam: (lastPage) => (lastPage.last ? undefined : lastPage.number + 1),
+        initialPageParam: 0,
+        staleTime: 30_000,
+    });
+
+    // Check if learner tab should be shown
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const shouldShowLearnerTab = urlParams.get('showLearnerTab') === 'true';
+        setShowLearnerTab(shouldShowLearnerTab);
+    }, [location.search]);
 
     useEffect(() => {
         const subdomain =
@@ -111,7 +143,76 @@ function DashboardPage() {
 
     return (
         <LayoutContainer>
-            <DashboardComponent />
+            <DashboardComponent onOpenAllAlerts={() => setShowAllAlerts(true)} />
+            {showLearnerTab && <LearnerTab onClose={() => setShowLearnerTab(false)} />}
+            <BaseDialog open={showAllAlerts} onOpenChange={setShowAllAlerts}>
+                <BaseDialogContent className="max-w-lg p-0">
+                    <BaseDialogTitle className="px-4 py-3 text-base">System Alerts</BaseDialogTitle>
+                    <Separator />
+                    <ScrollArea className="max-h-[70vh]">
+                        <div className="p-3">
+                            {infiniteAlerts.data?.pages?.flatMap((p) => p.content).length ? (
+                                <div className="space-y-3">
+                                    {infiniteAlerts.data?.pages?.map((page) =>
+                                        page.content.map((item) => (
+                                            <div
+                                                key={item.messageId}
+                                                className="rounded-md border border-neutral-200 bg-white p-3"
+                                            >
+                                                <div className="text-sm font-semibold text-neutral-800">
+                                                    {item.title}
+                                                </div>
+                                                <div className="mt-1 text-[13px] text-neutral-700">
+                                                    {item.content?.type === 'html' ? (
+                                                        <div
+                                                            className="prose prose-sm max-w-none"
+                                                            dangerouslySetInnerHTML={{
+                                                                __html: item.content?.content,
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <span>{item.content?.content}</span>
+                                                    )}
+                                                </div>
+                                                <div className="mt-2 text-[11px] text-neutral-500">
+                                                    {new Date(item.createdAt).toLocaleString()}
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                    {infiniteAlerts.hasNextPage && (
+                                        <div className="flex justify-center pt-2">
+                                            <button
+                                                disabled={infiniteAlerts.isFetchingNextPage}
+                                                className="rounded border border-neutral-300 px-3 py-1 text-xs text-neutral-700 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-60"
+                                                onClick={() => infiniteAlerts.fetchNextPage()}
+                                            >
+                                                {infiniteAlerts.isFetchingNextPage
+                                                    ? 'Loading...'
+                                                    : 'Load more'}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : infiniteAlerts.isLoading ? (
+                                <div className="space-y-2">
+                                    {[...Array(6)].map((_, i) => (
+                                        <div key={i} className="space-y-1">
+                                            <Skeleton className="h-3 w-1/2" />
+                                            <Skeleton className="h-3 w-5/6" />
+                                            <Skeleton className="h-3 w-2/3" />
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="py-8 text-center text-xs text-neutral-500">
+                                    No alerts found
+                                </div>
+                            )}
+                        </div>
+                    </ScrollArea>
+                </BaseDialogContent>
+            </BaseDialog>
         </LayoutContainer>
     );
 }
@@ -259,7 +360,7 @@ function MyCoursesWidget() {
     );
 }
 
-export function DashboardComponent() {
+export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () => void }) {
     const location = useLocation();
     const { getValue, setValue } = useLocalStorage<boolean>(IntroKey.dashboardWelcomeVideo, true);
     const { data: instituteDetails, isLoading: isInstituteLoading } =
@@ -295,7 +396,7 @@ export function DashboardComponent() {
         key: IntroKey.dashboardFirstTimeVisit,
         steps: dashboardSteps,
         onTourExit: () => {
-            console.log('Tour Completed');
+            // Tour completed
         },
     });
 
@@ -460,6 +561,7 @@ export function DashboardComponent() {
                         {/* Analytics Widgets - Admin Only */}
                         {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+                                <RecentNotificationsWidget onSeeAll={onOpenAllAlerts} />
                                 <RealTimeActiveUsersWidget
                                     instituteId={instituteDetails?.id || ''}
                                 />
