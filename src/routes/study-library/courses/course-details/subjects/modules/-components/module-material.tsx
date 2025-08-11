@@ -10,9 +10,9 @@ import { getLevelName } from '@/utils/helpers/study-library-helpers.ts/get-name-
 import { getSubjectName } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById';
 import { useUpdateModuleOrder } from '@/routes/study-library/courses/course-details/subjects/modules/-services/update-modules-order';
 import { orderModulePayloadType } from '@/routes/study-library/courses/-types/order-payload';
-import useIntroJsTour from '@/hooks/use-intro';
-import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
-import { studyLibrarySteps } from '@/constants/intro/steps';
+// import useIntroJsTour from '@/hooks/use-intro';
+// import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
+// import { studyLibrarySteps } from '@/constants/intro/steps';
 import { useEffect, useState } from 'react';
 import {
     DropdownItemType,
@@ -83,10 +83,10 @@ export const ModuleMaterial = () => {
         }
     };
 
-    useIntroJsTour({
-        key: StudyLibraryIntroKey.addModulesStep,
-        steps: studyLibrarySteps.addModulesStep,
-    });
+    // useIntroJsTour({
+    //     key: StudyLibraryIntroKey.addModulesStep,
+    //     steps: studyLibrarySteps.addModulesStep,
+    // });
 
     // Ensure courseId, subjectId, and levelId exist before proceeding
     if (!courseId) return <>Course Not found</>;

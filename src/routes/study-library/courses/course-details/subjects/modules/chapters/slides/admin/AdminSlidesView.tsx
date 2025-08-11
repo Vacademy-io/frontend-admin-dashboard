@@ -3,14 +3,14 @@ import { SlideMaterial } from '@/routes/study-library/courses/course-details/sub
 import { ChapterSidebarAddButton } from '../-components/slides-sidebar/slides-sidebar-add-button';
 import { ChapterSidebarSlides } from '../-components/slides-sidebar/slides-sidebar-slides';
 import '../slides-sidebar-scrollbar.css';
-import { studyLibrarySteps } from '@/constants/intro/steps';
-import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
 import {
     Slide,
     slideOrderPayloadType,
     useSlidesMutations,
 } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
-import useIntroJsTour from '@/hooks/use-intro';
+// import { studyLibrarySteps } from '@/constants/intro/steps';
+// import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
+// import useIntroJsTour from '@/hooks/use-intro';
 import { InitStudyLibraryProvider } from '@/providers/study-library/init-study-library-provider';
 import { ModulesWithChaptersProvider } from '@/providers/study-library/modules-with-chapters-provider';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
@@ -59,10 +59,10 @@ export function AdminSlidesView({
     const { updateSlideOrder } = useSlidesMutations(chapterId);
     const { setNavHeading } = useNavHeadingStore();
 
-    useIntroJsTour({
-        key: StudyLibraryIntroKey.addSlidesStep,
-        steps: studyLibrarySteps.addSlidesStep,
-    });
+    // useIntroJsTour({
+    //     key: StudyLibraryIntroKey.addSlidesStep,
+    //     steps: studyLibrarySteps.addSlidesStep,
+    // });
 
     const handleSubjectRoute = useCallback(() => {
         navigate({

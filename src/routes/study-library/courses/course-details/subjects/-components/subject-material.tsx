@@ -11,9 +11,9 @@ import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { getCourseSubjects } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects';
 import { useGetPackageSessionId } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId';
 import { useUpdateSubjectOrder } from '@/routes/study-library/courses/course-details/subjects/-services/updateSubjectOrder';
-import useIntroJsTour from '@/hooks/use-intro';
-import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
-import { studyLibrarySteps } from '@/constants/intro/steps';
+// import useIntroJsTour from '@/hooks/use-intro';
+// import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
+// import { studyLibrarySteps } from '@/constants/intro/steps';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { tabs, TabType } from '../-constants/constant';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -165,10 +165,10 @@ export const SubjectMaterial = () => {
     const deleteSubjectMutation = useDeleteSubject();
     const updateSubjectOrderMutation = useUpdateSubjectOrder();
 
-    useIntroJsTour({
-        key: StudyLibraryIntroKey.addSubjectStep,
-        steps: studyLibrarySteps.addSubjectStep,
-    });
+    // useIntroJsTour({
+    //     key: StudyLibraryIntroKey.addSubjectStep,
+    //     steps: studyLibrarySteps.addSubjectStep,
+    // });
 
     const initialSubjects = getCourseSubjects(courseId, currentSession?.id ?? '', levelId);
     const [subjects, setSubjects] = useState(initialSubjects);
