@@ -20,10 +20,8 @@ import { Route as LoginIndexRouteImport } from "./routes/login/index"
 import { Route as LearnerInsightsIndexRouteImport } from "./routes/learner-insights/index"
 import { Route as EvaluatorAiIndexRouteImport } from "./routes/evaluator-ai/index"
 import { Route as EvaluationIndexRouteImport } from "./routes/evaluation/index"
-import { Route as DashboardIndexRouteImport } from "./routes/dashboard/index"
 import { Route as CommunityIndexRouteImport } from "./routes/community/index"
 import { Route as AuthTransferIndexRouteImport } from "./routes/auth-transfer/index"
-import { Route as AssessmentIndexRouteImport } from "./routes/assessment/index"
 import { Route as AiCenterIndexRouteImport } from "./routes/ai-center/index"
 import { Route as StudyLibraryVoltIndexRouteImport } from "./routes/study-library/volt/index"
 import { Route as StudyLibraryReportsIndexRouteImport } from "./routes/study-library/reports/index"
@@ -91,6 +89,8 @@ import { Route as AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeA
 const PricingLazyRouteImport = createFileRoute("/pricing")()
 const LearnerInsightsLazyRouteImport = createFileRoute("/learner-insights")()
 const LandingLazyRouteImport = createFileRoute("/landing")()
+const DashboardIndexLazyRouteImport = createFileRoute("/dashboard/")()
+const AssessmentIndexLazyRouteImport = createFileRoute("/assessment/")()
 
 const PricingLazyRoute = PricingLazyRouteImport.update({
   id: "/pricing",
@@ -109,6 +109,20 @@ const LandingLazyRoute = LandingLazyRouteImport.update({
   path: "/landing",
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import("./routes/landing.lazy").then((d) => d.Route))
+const DashboardIndexLazyRoute = DashboardIndexLazyRouteImport.update({
+  id: "/dashboard/",
+  path: "/dashboard/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/dashboard/index.lazy").then((d) => d.Route),
+)
+const AssessmentIndexLazyRoute = AssessmentIndexLazyRouteImport.update({
+  id: "/assessment/",
+  path: "/assessment/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/assessment/index.lazy").then((d) => d.Route),
+)
 const StudyLibraryIndexRoute = StudyLibraryIndexRouteImport.update({
   id: "/study-library/",
   path: "/study-library/",
@@ -154,11 +168,6 @@ const EvaluationIndexRoute = EvaluationIndexRouteImport.update({
   path: "/evaluation/",
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardIndexRoute = DashboardIndexRouteImport.update({
-  id: "/dashboard/",
-  path: "/dashboard/",
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CommunityIndexRoute = CommunityIndexRouteImport.update({
   id: "/community/",
   path: "/community/",
@@ -167,11 +176,6 @@ const CommunityIndexRoute = CommunityIndexRouteImport.update({
 const AuthTransferIndexRoute = AuthTransferIndexRouteImport.update({
   id: "/auth-transfer/",
   path: "/auth-transfer/",
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AssessmentIndexRoute = AssessmentIndexRouteImport.update({
-  id: "/assessment/",
-  path: "/assessment/",
   getParentRoute: () => rootRouteImport,
 } as any)
 const AiCenterIndexRoute = AiCenterIndexRouteImport.update({
@@ -560,10 +564,8 @@ export interface FileRoutesByFullPath {
   "/learner-insights": typeof LearnerInsightsLazyRouteWithChildren
   "/pricing": typeof PricingLazyRoute
   "/ai-center": typeof AiCenterIndexRoute
-  "/assessment": typeof AssessmentIndexRoute
   "/auth-transfer": typeof AuthTransferIndexRoute
   "/community": typeof CommunityIndexRoute
-  "/dashboard": typeof DashboardIndexRoute
   "/evaluation": typeof EvaluationIndexRoute
   "/evaluator-ai": typeof EvaluatorAiIndexRoute
   "/learner-insights/": typeof LearnerInsightsIndexRoute
@@ -573,6 +575,8 @@ export interface FileRoutesByFullPath {
   "/settings": typeof SettingsIndexRoute
   "/signup": typeof SignupIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
+  "/assessment": typeof AssessmentIndexLazyRoute
+  "/dashboard": typeof DashboardIndexLazyRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/ai-center/ai-tools": typeof AiCenterAiToolsIndexRoute
@@ -640,10 +644,8 @@ export interface FileRoutesByTo {
   "/landing": typeof LandingLazyRoute
   "/pricing": typeof PricingLazyRoute
   "/ai-center": typeof AiCenterIndexRoute
-  "/assessment": typeof AssessmentIndexRoute
   "/auth-transfer": typeof AuthTransferIndexRoute
   "/community": typeof CommunityIndexRoute
-  "/dashboard": typeof DashboardIndexRoute
   "/evaluation": typeof EvaluationIndexRoute
   "/evaluator-ai": typeof EvaluatorAiIndexRoute
   "/learner-insights": typeof LearnerInsightsIndexRoute
@@ -653,6 +655,8 @@ export interface FileRoutesByTo {
   "/settings": typeof SettingsIndexRoute
   "/signup": typeof SignupIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
+  "/assessment": typeof AssessmentIndexLazyRoute
+  "/dashboard": typeof DashboardIndexLazyRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/ai-center/ai-tools": typeof AiCenterAiToolsIndexRoute
@@ -722,10 +726,8 @@ export interface FileRoutesById {
   "/learner-insights": typeof LearnerInsightsLazyRouteWithChildren
   "/pricing": typeof PricingLazyRoute
   "/ai-center/": typeof AiCenterIndexRoute
-  "/assessment/": typeof AssessmentIndexRoute
   "/auth-transfer/": typeof AuthTransferIndexRoute
   "/community/": typeof CommunityIndexRoute
-  "/dashboard/": typeof DashboardIndexRoute
   "/evaluation/": typeof EvaluationIndexRoute
   "/evaluator-ai/": typeof EvaluatorAiIndexRoute
   "/learner-insights/": typeof LearnerInsightsIndexRoute
@@ -735,6 +737,8 @@ export interface FileRoutesById {
   "/settings/": typeof SettingsIndexRoute
   "/signup/": typeof SignupIndexRoute
   "/study-library/": typeof StudyLibraryIndexRoute
+  "/assessment/": typeof AssessmentIndexLazyRoute
+  "/dashboard/": typeof DashboardIndexLazyRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/ai-center/ai-tools/": typeof AiCenterAiToolsIndexRoute
@@ -805,10 +809,8 @@ export interface FileRouteTypes {
     | "/learner-insights"
     | "/pricing"
     | "/ai-center"
-    | "/assessment"
     | "/auth-transfer"
     | "/community"
-    | "/dashboard"
     | "/evaluation"
     | "/evaluator-ai"
     | "/learner-insights/"
@@ -818,6 +820,8 @@ export interface FileRouteTypes {
     | "/settings"
     | "/signup"
     | "/study-library"
+    | "/assessment"
+    | "/dashboard"
     | "/login/oauth/redirect"
     | "/signup/oauth/callback"
     | "/ai-center/ai-tools"
@@ -885,10 +889,8 @@ export interface FileRouteTypes {
     | "/landing"
     | "/pricing"
     | "/ai-center"
-    | "/assessment"
     | "/auth-transfer"
     | "/community"
-    | "/dashboard"
     | "/evaluation"
     | "/evaluator-ai"
     | "/learner-insights"
@@ -898,6 +900,8 @@ export interface FileRouteTypes {
     | "/settings"
     | "/signup"
     | "/study-library"
+    | "/assessment"
+    | "/dashboard"
     | "/login/oauth/redirect"
     | "/signup/oauth/callback"
     | "/ai-center/ai-tools"
@@ -966,10 +970,8 @@ export interface FileRouteTypes {
     | "/learner-insights"
     | "/pricing"
     | "/ai-center/"
-    | "/assessment/"
     | "/auth-transfer/"
     | "/community/"
-    | "/dashboard/"
     | "/evaluation/"
     | "/evaluator-ai/"
     | "/learner-insights/"
@@ -979,6 +981,8 @@ export interface FileRouteTypes {
     | "/settings/"
     | "/signup/"
     | "/study-library/"
+    | "/assessment/"
+    | "/dashboard/"
     | "/login/oauth/redirect"
     | "/signup/oauth/callback"
     | "/ai-center/ai-tools/"
@@ -1048,10 +1052,8 @@ export interface RootRouteChildren {
   LearnerInsightsLazyRoute: typeof LearnerInsightsLazyRouteWithChildren
   PricingLazyRoute: typeof PricingLazyRoute
   AiCenterIndexRoute: typeof AiCenterIndexRoute
-  AssessmentIndexRoute: typeof AssessmentIndexRoute
   AuthTransferIndexRoute: typeof AuthTransferIndexRoute
   CommunityIndexRoute: typeof CommunityIndexRoute
-  DashboardIndexRoute: typeof DashboardIndexRoute
   EvaluationIndexRoute: typeof EvaluationIndexRoute
   EvaluatorAiIndexRoute: typeof EvaluatorAiIndexRoute
   LoginIndexRoute: typeof LoginIndexRoute
@@ -1060,6 +1062,8 @@ export interface RootRouteChildren {
   SettingsIndexRoute: typeof SettingsIndexRoute
   SignupIndexRoute: typeof SignupIndexRoute
   StudyLibraryIndexRoute: typeof StudyLibraryIndexRoute
+  AssessmentIndexLazyRoute: typeof AssessmentIndexLazyRoute
+  DashboardIndexLazyRoute: typeof DashboardIndexLazyRoute
   LoginOauthRedirectRoute: typeof LoginOauthRedirectRoute
   SignupOauthCallbackRoute: typeof SignupOauthCallbackRoute
   AiCenterAiToolsIndexRoute: typeof AiCenterAiToolsIndexRoute
@@ -1147,6 +1151,20 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof LandingLazyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/dashboard/": {
+      id: "/dashboard/"
+      path: "/dashboard"
+      fullPath: "/dashboard"
+      preLoaderRoute: typeof DashboardIndexLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/assessment/": {
+      id: "/assessment/"
+      path: "/assessment"
+      fullPath: "/assessment"
+      preLoaderRoute: typeof AssessmentIndexLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/study-library/": {
       id: "/study-library/"
       path: "/study-library"
@@ -1210,13 +1228,6 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof EvaluationIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    "/dashboard/": {
-      id: "/dashboard/"
-      path: "/dashboard"
-      fullPath: "/dashboard"
-      preLoaderRoute: typeof DashboardIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     "/community/": {
       id: "/community/"
       path: "/community"
@@ -1229,13 +1240,6 @@ declare module "@tanstack/react-router" {
       path: "/auth-transfer"
       fullPath: "/auth-transfer"
       preLoaderRoute: typeof AuthTransferIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/assessment/": {
-      id: "/assessment/"
-      path: "/assessment"
-      fullPath: "/assessment"
-      preLoaderRoute: typeof AssessmentIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/ai-center/": {
@@ -1698,10 +1702,8 @@ const rootRouteChildren: RootRouteChildren = {
   LearnerInsightsLazyRoute: LearnerInsightsLazyRouteWithChildren,
   PricingLazyRoute: PricingLazyRoute,
   AiCenterIndexRoute: AiCenterIndexRoute,
-  AssessmentIndexRoute: AssessmentIndexRoute,
   AuthTransferIndexRoute: AuthTransferIndexRoute,
   CommunityIndexRoute: CommunityIndexRoute,
-  DashboardIndexRoute: DashboardIndexRoute,
   EvaluationIndexRoute: EvaluationIndexRoute,
   EvaluatorAiIndexRoute: EvaluatorAiIndexRoute,
   LoginIndexRoute: LoginIndexRoute,
@@ -1710,6 +1712,8 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsIndexRoute: SettingsIndexRoute,
   SignupIndexRoute: SignupIndexRoute,
   StudyLibraryIndexRoute: StudyLibraryIndexRoute,
+  AssessmentIndexLazyRoute: AssessmentIndexLazyRoute,
+  DashboardIndexLazyRoute: DashboardIndexLazyRoute,
   LoginOauthRedirectRoute: LoginOauthRedirectRoute,
   SignupOauthCallbackRoute: SignupOauthCallbackRoute,
   AiCenterAiToolsIndexRoute: AiCenterAiToolsIndexRoute,

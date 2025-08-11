@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import { Download, X } from 'lucide-react';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+// Lazy-load heavy libraries when exporting
 import { MyButton } from '@/components/design-system/button';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
@@ -68,6 +67,7 @@ export function ExportHandlerQuestionPaper({
 
         try {
             // Initialize PDF with compression
+            const { default: jsPDF } = await import('jspdf');
             const pdf = new jsPDF({
                 orientation: 'portrait',
                 unit: 'mm',
@@ -104,6 +104,7 @@ export function ExportHandlerQuestionPaper({
                 await new Promise((resolve) => setTimeout(resolve, 100));
 
                 // Capture at slightly lower scale but still maintaining quality
+                const { default: html2canvas } = await import('html2canvas');
                 const canvas = await html2canvas(pageElement, {
                     scale: 1.5,
                     allowTaint: true,

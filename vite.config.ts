@@ -5,7 +5,7 @@ import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
 import svgr from 'vite-plugin-svgr';
-import { VitePWA } from 'vite-plugin-pwa';
+// import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vitejs.dev/config https://vitest.dev/config
 export default defineConfig({
@@ -78,37 +78,39 @@ export default defineConfig({
                 handler(level, log);
             },
             output: {
-                manualChunks: {
-                    // Core React framework
-                    'react-vendor': ['react', 'react-dom'],
-                    // Router and state management
-                    'routing-vendor': ['react-router-dom', '@tanstack/react-router', 'zustand'],
-                    // All PDF related libraries together to avoid dependency issues
-                    'pdf-vendor': [
-                        'pdfjs-dist',
-                        'pdf-lib',
-                        '@pdfme/generator',
-                        '@pdfme/common',
-                        'pako',
-                    ],
-                    // UI components
-                    'ui-vendor': [
-                        '@radix-ui/react-dialog',
-                        '@radix-ui/react-dropdown-menu',
-                        '@radix-ui/react-select',
-                        '@radix-ui/react-toast',
-                        'lucide-react',
-                    ],
-                    // Utilities and data handling
-                    'utils-vendor': [
-                        'lodash',
-                        'date-fns',
-                        'axios',
-                        'clsx',
-                        'class-variance-authority',
-                    ],
-                    // Pyodide in its own chunk due to large size and WebAssembly dependencies
-                    'pyodide-vendor': ['pyodide'],
+                manualChunks(id) {
+                    if (id.includes('node_modules')) {
+                        if (id.includes('/react/') || id.includes('/react-dom/'))
+                            return 'react-vendor';
+                        if (
+                            id.includes('/react-router-dom/') ||
+                            id.includes('/@tanstack/react-router/') ||
+                            id.includes('/zustand/')
+                        )
+                            return 'routing-vendor';
+                        if (
+                            id.includes('/jspdf/') ||
+                            id.includes('/html2canvas/') ||
+                            id.includes('/pdf-lib/') ||
+                            id.includes('/pdfjs-dist/')
+                        )
+                            return 'pdf-tools-vendor';
+                        if (id.includes('/@radix-ui/react-') || id.includes('/lucide-react/'))
+                            return 'ui-vendor';
+                        if (
+                            id.includes('/lodash/') ||
+                            id.includes('/date-fns/') ||
+                            id.includes('/axios/') ||
+                            id.includes('/clsx/') ||
+                            id.includes('/class-variance-authority/')
+                        )
+                            return 'utils-vendor';
+                        if (id.includes('/pyodide/')) return 'pyodide-vendor';
+                        if (id.includes('/papaparse/')) return 'csv-vendor';
+                        if (id.includes('/framer-motion/')) return 'motion-vendor';
+                        if (id.includes('/phosphor-react/')) return 'icons-vendor';
+                        if (id.includes('/@excalidraw/excalidraw/')) return 'excalidraw-vendor';
+                    }
                 },
             },
             onwarn: (warning, warn) => {
@@ -128,9 +130,7 @@ export default defineConfig({
         },
         chunkSizeWarningLimit: 1000,
         assetsInlineLimit: 0, // Disable asset inlining to prevent issues
-        worker: {
-            format: 'es',
-        },
+        // Worker-specific options are configured at the top-level `worker` field if needed
     },
     resolve: {
         alias: {

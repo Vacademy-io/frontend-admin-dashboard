@@ -1,4 +1,4 @@
-import { createFileRoute, useLocation, useNavigate, useRouter } from '@tanstack/react-router';
+import { useLocation, useNavigate, useRouter } from '@tanstack/react-router';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { useEffect, useState, useMemo } from 'react';
@@ -77,9 +77,7 @@ import RoleTypeComponent from './-components/RoleTypeComponent';
 import { LearnerTab } from './-components/LearnerTab';
 import { SettingsTabs } from '../settings/-constants/terms';
 
-export const Route = createFileRoute('/dashboard/')({
-    component: DashboardPage,
-});
+// Route is provided via index.lazy.tsx to enable code-splitting
 
 function DashboardPage() {
     const navigate = useNavigate();
@@ -1206,3 +1204,5 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
         </>
     );
 }
+
+export default DashboardPage;
