@@ -5,8 +5,7 @@ import {
     transformResponseDataToMyQuestionsSchema,
     transformResponseDataToMyQuestionsSchemaSingleQuestion,
 } from '@/routes/assessment/question-papers/-utils/helper';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+// Lazily load heavy libs at call sites
 import { AssignmentSlide, Slide } from '../-hooks/use-slides';
 import { MyQuestion } from '@/types/assessments/question-paper-form';
 import { convertDateFormat } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-components/StepComponents/Step1BasicInfo';
@@ -56,6 +55,7 @@ export const convertHtmlToPdf = async (
         await new Promise((resolve) => setTimeout(resolve, 500));
 
         // Initialize PDF
+        const { default: jsPDF } = await import('jspdf');
         const pdf = new jsPDF({
             orientation: 'portrait',
             unit: 'mm',
@@ -71,6 +71,7 @@ export const convertHtmlToPdf = async (
         const contentHeight = content.scrollHeight;
 
         // Capture the entire content in one go
+        const { default: html2canvas } = await import('html2canvas');
         const canvas = await html2canvas(content, {
             scale: 1.5,
             useCORS: true,

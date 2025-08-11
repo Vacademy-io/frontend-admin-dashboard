@@ -28,8 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MagnifyingGlassMinus, MagnifyingGlassPlus, X } from "phosphor-react";
 import { PDFDocument } from "pdf-lib";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+// Lazy-load heavy libs where used
 import { FaCalculator, FaPen } from "react-icons/fa6";
 import { TbNumbers, TbZoomReset } from "react-icons/tb";
 import Calculator from "./calculator";
@@ -318,6 +317,7 @@ const PDFEvaluator = ({
             };
             // Create a new PDF document
             const pdfDoc = await PDFDocument.load(await pdfFile.arrayBuffer());
+            const { default: jsPDF } = await import('jspdf');
             const outputPdf = new jsPDF({
                 orientation: getOrientation(),
                 unit: "pt",
@@ -336,6 +336,7 @@ const PDFEvaluator = ({
 
                 // Use html2canvas to capture the entire PDF viewer
                 if (pdfViewerRef.current) {
+                    const { default: html2canvas } = await import('html2canvas');
                     const canvas = await html2canvas(pdfViewerRef.current, {
                         scale: 2, // Higher scale for better quality
                         useCORS: true,
@@ -384,6 +385,7 @@ const PDFEvaluator = ({
         if (!pdfFile) throw new Error("No PDF file available for annotation.");
 
         const pdfDoc = await PDFDocument.load(await pdfFile.arrayBuffer());
+        const { default: jsPDF } = await import('jspdf');
         const outputPdf = new jsPDF({
             orientation: fabricCanvas?.width > fabricCanvas?.height ? "landscape" : "portrait",
             unit: "pt",
@@ -396,6 +398,7 @@ const PDFEvaluator = ({
             await new Promise((resolve) => setTimeout(resolve, 500));
 
             if (pdfViewerRef.current) {
+                const { default: html2canvas } = await import('html2canvas');
                 const canvas = await html2canvas(pdfViewerRef.current, {
                     scale: 2,
                     useCORS: true,

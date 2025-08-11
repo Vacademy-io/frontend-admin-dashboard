@@ -13,10 +13,19 @@ import './i18n';
 import { Toaster } from './components/ui/sonner';
 import { ThemeProvider } from './providers/theme/theme-provider';
 import { CourseSettingsProvider } from './providers/course-settings-provider';
-import { initializeAmplitude } from './lib/amplitude';
-
-// Initialize Amplitude Analytics
-initializeAmplitude();
+// Defer Amplitude initialization to keep entry chunk lighter
+if (typeof window !== 'undefined') {
+    // Use idle callback if available, else fallback to timeout
+    const init = () => import('./lib/amplitude').then((m) => m.initializeAmplitude());
+    if ('requestIdleCallback' in window) {
+        (
+            window as Window &
+                typeof globalThis & { requestIdleCallback?: (cb: () => void) => void }
+        ).requestIdleCallback?.(init);
+    } else {
+        setTimeout(init, 0);
+    }
+}
 
 const queryClient = new QueryClient();
 

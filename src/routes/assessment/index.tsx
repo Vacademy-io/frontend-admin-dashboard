@@ -1,17 +1,11 @@
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { Examination, Mock, Practice, Survey } from '@/svgs';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 
-export const Route = createFileRoute('/assessment/')({
-    component: () => (
-        <LayoutContainer>
-            <AssessmentPage />
-        </LayoutContainer>
-    ),
-});
+// Route is provided via index.lazy.tsx to enable code-splitting
 
 function AssessmentPage() {
     const { setNavHeading } = useNavHeadingStore();
@@ -94,5 +88,13 @@ function AssessmentPage() {
                 </div>
             </div>
         </>
+    );
+}
+
+export default function AssessmentRouteComponent() {
+    return (
+        <LayoutContainer>
+            <AssessmentPage />
+        </LayoutContainer>
     );
 }
