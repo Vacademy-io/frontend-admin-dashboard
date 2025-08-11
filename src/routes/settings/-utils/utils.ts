@@ -6,6 +6,8 @@ import CourseSettings from '../-components/Course/CourseSettings';
 import TabSettings from '../-components/Tab/TabSettings';
 import NamingSettings from '../-components/NamingSettings';
 import NotificationSettings from '../-components/Notification/NotificationSettings';
+import AdminDisplaySettings from '../-components/RoleDisplay/AdminDisplaySettings';
+import TeacherDisplaySettings from '../-components/RoleDisplay/TeacherDisplaySettings';
 
 export const getAvailableSettingsTabs = (instituteId: string) => {
     if (instituteId === HOLISTIC_INSTITUTE_ID) {
@@ -32,6 +34,16 @@ export const getAvailableSettingsTabs = (instituteId: string) => {
                 tab: SettingsTabs.Tab,
                 value: 'Tab Settings',
                 component: TabSettings,
+            },
+            {
+                tab: SettingsTabs.AdminDisplay,
+                value: 'Admin Display',
+                component: AdminDisplaySettings,
+            },
+            {
+                tab: SettingsTabs.TeacherDisplay,
+                value: 'Teacher Display',
+                component: TeacherDisplaySettings,
             },
             {
                 tab: SettingsTabs.Naming,

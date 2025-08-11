@@ -19,6 +19,14 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { filterMenuItems, filterMenuListByModules } from './helper';
+import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import {
+    ADMIN_DISPLAY_SETTINGS_KEY,
+    TEACHER_DISPLAY_SETTINGS_KEY,
+    type DisplaySettingsData,
+} from '@/types/display-settings';
+import { getDisplaySettings, getDisplaySettingsFromCache } from '@/services/display-settings';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn, goToMailSupport, goToWhatsappSupport } from '@/lib/utils';
@@ -54,14 +62,94 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
         );
     }, []);
 
-    const finalSidebarItems = isVoltSubdomain
-        ? voltSidebarData
-        : filterMenuItems(
-              filterMenuListByModules(data?.sub_modules, SidebarItemsData),
-              data?.id,
-              isTabVisible,
-              isSubItemVisible
-          );
+    const [roleDisplay, setRoleDisplay] = useState<DisplaySettingsData | null>(null);
+    useEffect(() => {
+        const accessToken = getTokenFromCookie(TokenKey.accessToken);
+        const roles = getUserRoles(accessToken);
+        const isAdmin = roles.includes('ADMIN');
+        const roleKey = isAdmin ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+        const cached = getDisplaySettingsFromCache(roleKey);
+        if (cached) {
+            setRoleDisplay(cached);
+        } else {
+            getDisplaySettings(roleKey)
+                .then(setRoleDisplay)
+                .catch(() => setRoleDisplay(null));
+        }
+    }, []);
+
+    const finalSidebarItems = (() => {
+        const base = isVoltSubdomain
+            ? voltSidebarData
+            : filterMenuItems(
+                  filterMenuListByModules(data?.sub_modules, SidebarItemsData),
+                  data?.id,
+                  isTabVisible,
+                  isSubItemVisible
+              );
+        if (!roleDisplay) return base;
+        // Apply role-based visibility and ordering
+        const tabVis = new Map(roleDisplay.sidebar.map((t) => [t.id, t]));
+        const mapped = base
+            .filter((item) => {
+                const cfg = tabVis.get(item.id);
+                return cfg ? cfg.visible !== false : true;
+            })
+            .map((item) => {
+                const cfg = tabVis.get(item.id);
+                if (!cfg) return item;
+                if (item.subItems && item.subItems.length > 0) {
+                    const subVis = new Map((cfg.subTabs || []).map((s) => [s.id, s]));
+                    const filteredSubs = item.subItems
+                        .filter((s) => {
+                            const c = subVis.get(s.subItemId);
+                            return c ? c.visible !== false : true;
+                        })
+                        .sort((a, b) => {
+                            const ao = subVis.get(a.subItemId)?.order ?? 0;
+                            const bo = subVis.get(b.subItemId)?.order ?? 0;
+                            return ao - bo;
+                        })
+                        .map((s) => {
+                            const c = subVis.get(s.subItemId);
+                            return {
+                                ...s,
+                                subItem: c?.label ?? s.subItem,
+                                subItemLink: c?.route ?? s.subItemLink,
+                            };
+                        });
+                    return {
+                        ...item,
+                        title: cfg.label ?? item.title,
+                        to: cfg.route ?? item.to,
+                        subItems: filteredSubs,
+                    };
+                }
+                return { ...item, title: cfg.label ?? item.title, to: cfg.route ?? item.to };
+            })
+            .sort((a, b) => {
+                const ao = tabVis.get(a.id)?.order ?? 0;
+                const bo = tabVis.get(b.id)?.order ?? 0;
+                return ao - bo;
+            });
+
+        // Add custom tabs that don't exist in base
+        const baseIds = new Set(base.map((b) => b.id));
+        const customTabs: SidebarItemsType[] = roleDisplay.sidebar
+            .filter((t) => t.isCustom && t.visible !== false && !baseIds.has(t.id))
+            .map((t) => ({
+                // Using a placeholder icon-less component; SidebarItem handles absence of icon
+                icon: (() => null) as unknown as SidebarItemsType['icon'],
+                title: t.label || t.id,
+                to: t.route,
+                id: t.id,
+            }));
+        return ([...mapped, ...customTabs] as SidebarItemsType[]).sort((a, b) => {
+            const ao = tabVis.get(a.id)?.order ?? 0;
+            const bo = tabVis.get(b.id)?.order ?? 0;
+            return ao - bo;
+        });
+    })();
 
     const { getPublicUrl } = useFileUpload();
     const { instituteLogo, setInstituteLogo } = useInstituteLogoStore();
@@ -114,24 +202,26 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                     {sidebarComponent
                         ? sidebarComponent
                         : finalSidebarItems
-                              .filter(
-                                  (item) =>
-                                      !item.showForInstitute || item.showForInstitute === data?.id
-                              )
+                              .filter((item) => {
+                                  const show = (item as SidebarItemsType).showForInstitute;
+                                  return !show || show === data?.id;
+                              })
                               .map((obj, key) => (
                                   <SidebarMenuItem key={key} id={obj.id}>
                                       <SidebarItem {...obj} />
                                   </SidebarMenuItem>
                               ))}
                 </SidebarMenu>
-                <div
-                    className={cn(
-                        'mt-auto flex items-center justify-center',
-                        state === 'collapsed' ? 'mx-auto px-1' : 'px-1'
-                    )}
-                >
-                    {!currentRoute.includes('slides') && <SupportOptions />}
-                </div>
+                {roleDisplay?.ui?.showSupportButton !== false && (
+                    <div
+                        className={cn(
+                            'mt-auto flex items-center justify-center',
+                            state === 'collapsed' ? 'mx-auto px-1' : 'px-1'
+                        )}
+                    >
+                        {!currentRoute.includes('slides') && <SupportOptions />}
+                    </div>
+                )}
             </SidebarContent>
         </Sidebar>
     );

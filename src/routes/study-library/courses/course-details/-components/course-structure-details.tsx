@@ -11,6 +11,13 @@ import useIntroJsTour from '@/hooks/use-intro';
 import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
 import { studyLibrarySteps } from '@/constants/intro/steps';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import {
+    ADMIN_DISPLAY_SETTINGS_KEY,
+    TEACHER_DISPLAY_SETTINGS_KEY,
+    type CourseDetailsTabId,
+    type DisplaySettingsData,
+} from '@/types/display-settings';
+import { getDisplaySettings, getDisplaySettingsFromCache } from '@/services/display-settings';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
     AlertDialog,
@@ -65,9 +72,21 @@ import { getTerminology } from '@/components/common/layout-container/sidebar/uti
 import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { convertCapitalToTitleCase } from '@/lib/utils';
-import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { getTokenDecodedData, getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
 import { TokenKey, Authority } from '@/constants/auth/tokens';
 import { useCourseSettings } from '@/hooks/useCourseSettings';
+
+// Map between DisplaySettings ids and UI tab values
+const mapDisplayIdToUiValue = (id: CourseDetailsTabId): string => {
+    switch (id) {
+        case 'LEARNER':
+            return 'STUDENT';
+        case 'TEACHER':
+            return 'TEACHERS';
+        default:
+            return id;
+    }
+};
 
 // Interfaces (assuming these are unchanged)
 export interface Chapter {
@@ -209,6 +228,30 @@ export const CourseStructureDetails = ({
     const isInReviewCourse = courseStatus === 'IN_REVIEW';
 
     const courseId: string = searchParams.courseId || '';
+    // Role Display Settings (course details tabs)
+    const [roleDisplay, setRoleDisplay] = useState<DisplaySettingsData | null>(null);
+    useEffect(() => {
+        try {
+            const accessTokenInner = getTokenFromCookie(TokenKey.accessToken);
+            const rolesInner = getUserRoles(accessTokenInner);
+            const isAdminRoleInner = rolesInner.includes('ADMIN');
+            const roleKeyInner = isAdminRoleInner
+                ? ADMIN_DISPLAY_SETTINGS_KEY
+                : TEACHER_DISPLAY_SETTINGS_KEY;
+            const cached = getDisplaySettingsFromCache(roleKeyInner);
+            if (cached) {
+                setRoleDisplay(cached);
+            } else {
+                getDisplaySettings(roleKeyInner)
+                    .then(setRoleDisplay)
+                    .catch(() => setRoleDisplay(null));
+            }
+        } catch {
+            setRoleDisplay(null);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const levelId: string = selectedLevel || '';
 
     const [sessionList, setSessionList] = useState<DropdownItemType[]>(
@@ -258,13 +301,44 @@ export const CourseStructureDetails = ({
             return TabType.OUTLINE; // Safe default - always show Outline first when settings fail
         }
 
-        // Use course settings to determine default tab
+        // Use role display settings courseDetails.defaultTab if available
+        const accessToken = getTokenFromCookie(TokenKey.accessToken);
+        const roles = getUserRoles(accessToken);
+        const isAdminRole = roles.includes('ADMIN');
+        const roleKey = isAdminRole ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+        const fromCache = getDisplaySettingsFromCache(roleKey);
+        const defaultDetailsTab = fromCache?.courseDetails?.defaultTab as
+            | CourseDetailsTabId
+            | undefined;
+        if (defaultDetailsTab) return defaultDetailsTab;
+
+        // Fallback: course settings default view
         const defaultViewMode = courseSettings?.courseViewSettings?.defaultViewMode;
-        if (defaultViewMode === 'structure') {
-            return TabType.CONTENT_STRUCTURE;
-        }
-        return TabType.OUTLINE; // Default fallback
+        if (defaultViewMode === 'structure') return TabType.CONTENT_STRUCTURE;
+        return TabType.OUTLINE;
     });
+
+    // Ensure selected tab is visible per role display settings; otherwise, switch to default/first visible
+    useEffect(() => {
+        if (!roleDisplay?.courseDetails?.tabs) return;
+        const details = roleDisplay.courseDetails;
+        const visibilityMap = new Map(
+            details.tabs.map((t) => [
+                mapDisplayIdToUiValue(t.id as CourseDetailsTabId),
+                t.visible !== false,
+            ])
+        );
+        const isCurrentVisible = visibilityMap.get(selectedTab);
+        if (isCurrentVisible === false) {
+            const preferred = mapDisplayIdToUiValue(details.defaultTab as CourseDetailsTabId);
+            const preferredVisible = visibilityMap.get(preferred) !== false;
+            const firstVisible = tabs.find((t) => visibilityMap.get(t.value) !== false)?.value;
+            const next = preferredVisible ? preferred : firstVisible || 'OUTLINE';
+            setSelectedTab(next);
+            localStorage.setItem(getStorageKey(), next);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [roleDisplay, selectedTab]);
 
     // Effect to update tab selection when settings load
     useEffect(() => {
@@ -2457,37 +2531,33 @@ export const CourseStructureDetails = ({
                         style={{ display: 'flex', justifyContent: 'left' }}
                     >
                         {(() => {
-                            // Reorder tabs based on course settings
+                            // Reorder/filter tabs based on role display settings when available
                             let reorderedTabs = [...tabs];
 
-                            // If settings are loading or failed, use default order (Outline first as fallback)
-                            if (settingsLoading || settingsError) {
-                                const outlineTab = reorderedTabs.find(
-                                    (tab) => tab.value === 'OUTLINE'
+                            const details = roleDisplay?.courseDetails;
+                            if (details?.tabs && details.tabs.length > 0) {
+                                const vis = new Map(
+                                    details.tabs.map((t) => [
+                                        mapDisplayIdToUiValue(t.id as CourseDetailsTabId),
+                                        t,
+                                    ])
                                 );
-                                const otherTabs = reorderedTabs.filter(
-                                    (tab) => tab.value !== 'OUTLINE'
-                                );
-                                if (outlineTab) {
-                                    reorderedTabs = [outlineTab, ...otherTabs];
-                                }
+                                reorderedTabs = reorderedTabs
+                                    .filter(
+                                        (tab) =>
+                                            vis.get(tab.value as CourseDetailsTabId)?.visible !==
+                                            false
+                                    )
+                                    .sort((a, b) => {
+                                        const ao =
+                                            vis.get(a.value as CourseDetailsTabId)?.order || 0;
+                                        const bo =
+                                            vis.get(b.value as CourseDetailsTabId)?.order || 0;
+                                        return ao - bo;
+                                    });
                             } else {
-                                const defaultViewMode =
-                                    courseSettings?.courseViewSettings?.defaultViewMode;
-
-                                if (defaultViewMode === 'structure') {
-                                    // Move Content Structure to first position
-                                    const structureTab = reorderedTabs.find(
-                                        (tab) => tab.value === 'CONTENT_STRUCTURE'
-                                    );
-                                    const otherTabs = reorderedTabs.filter(
-                                        (tab) => tab.value !== 'CONTENT_STRUCTURE'
-                                    );
-                                    if (structureTab) {
-                                        reorderedTabs = [structureTab, ...otherTabs];
-                                    }
-                                } else {
-                                    // Move Outline to first position (default behavior)
+                                // Fallbacks based on course settings/defaults
+                                if (settingsLoading || settingsError) {
                                     const outlineTab = reorderedTabs.find(
                                         (tab) => tab.value === 'OUTLINE'
                                     );
@@ -2496,6 +2566,30 @@ export const CourseStructureDetails = ({
                                     );
                                     if (outlineTab) {
                                         reorderedTabs = [outlineTab, ...otherTabs];
+                                    }
+                                } else {
+                                    const defaultViewMode =
+                                        courseSettings?.courseViewSettings?.defaultViewMode;
+                                    if (defaultViewMode === 'structure') {
+                                        const structureTab = reorderedTabs.find(
+                                            (tab) => tab.value === 'CONTENT_STRUCTURE'
+                                        );
+                                        const otherTabs = reorderedTabs.filter(
+                                            (tab) => tab.value !== 'CONTENT_STRUCTURE'
+                                        );
+                                        if (structureTab) {
+                                            reorderedTabs = [structureTab, ...otherTabs];
+                                        }
+                                    } else {
+                                        const outlineTab = reorderedTabs.find(
+                                            (tab) => tab.value === 'OUTLINE'
+                                        );
+                                        const otherTabs = reorderedTabs.filter(
+                                            (tab) => tab.value !== 'OUTLINE'
+                                        );
+                                        if (outlineTab) {
+                                            reorderedTabs = [outlineTab, ...otherTabs];
+                                        }
                                     }
                                 }
                             }

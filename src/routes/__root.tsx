@@ -8,6 +8,9 @@ import {
     setAuthorizationCookie,
 } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
+import { getUserRoles } from '@/lib/auth/sessionUtility';
+import { ADMIN_DISPLAY_SETTINGS_KEY, TEACHER_DISPLAY_SETTINGS_KEY } from '@/types/display-settings';
+import { getDisplaySettingsFromCache } from '@/services/display-settings';
 
 const TanStackRouterDevtools =
     process.env.NODE_ENV === 'production'
@@ -123,8 +126,16 @@ export const Route = createRootRouteWithContext<{
                 // If there's a valid redirect parameter, use it
                 throw redirect({ to: redirectParam as string });
             } else {
-                // Default redirect to dashboard
-                throw redirect({ to: '/dashboard' });
+                // Default redirect based on role display settings if available
+                const accessToken = getTokenFromCookie(TokenKey.accessToken);
+                const roles = getUserRoles(accessToken);
+                const isAdminRole = roles.includes('ADMIN');
+                const roleKey = isAdminRole
+                    ? ADMIN_DISPLAY_SETTINGS_KEY
+                    : TEACHER_DISPLAY_SETTINGS_KEY;
+                const fromCache = getDisplaySettingsFromCache(roleKey);
+                const to = fromCache?.postLoginRedirectRoute || '/dashboard';
+                throw redirect({ to });
             }
         }
     },

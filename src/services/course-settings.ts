@@ -125,19 +125,20 @@ const fetchCourseSettingsFromAPI = async (): Promise<CourseSettingsData> => {
         // Cache the settings
         setCachedSettings(settings);
         return settings;
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error fetching course settings:', error);
 
         // Check if it's a 510 error (Setting not found) or other error
-        if (error.response?.status === 510 || error.response?.data?.ex?.includes('Setting not found')) {
-
+        const err = error as { response?: { status?: number; data?: { ex?: string } } };
+        if (err.response?.status === 510 || err.response?.data?.ex?.includes('Setting not found')) {
             const settings = DEFAULT_COURSE_SETTINGS;
             setCachedSettings(settings);
             return settings;
         }
 
         // For other errors, still return default settings but log the error
-        console.warn('Error loading course settings, using defaults:', error.message);
+        const message = (error as Error)?.message || 'unknown error';
+        console.warn('Error loading course settings, using defaults:', message);
         return DEFAULT_COURSE_SETTINGS; // Don't cache error responses
     }
 };
@@ -164,7 +165,9 @@ export const getCourseSettings = async (forceRefresh = false): Promise<CourseSet
 /**
  * Save course settings for the current institute and update cache
  */
-export const saveCourseSettings = async (settings: CourseSettingsData): Promise<CourseSettingsResponse> => {
+export const saveCourseSettings = async (
+    settings: CourseSettingsData
+): Promise<CourseSettingsResponse> => {
     try {
         const instituteId = getInstituteId();
 
