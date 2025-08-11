@@ -432,8 +432,11 @@ function groupByDay(items: Announcement[], from: Date, to: Date) {
         const startStr = a.scheduling?.startDate;
         if (!startStr) return;
         const dt = new Date(startStr);
-        const idx = days.findIndex((g) => g?.date && isSameDay(g.date, dt));
-        if (idx >= 0 && days[idx]) days[idx].items.push(a);
+        const idx = days.findIndex((g) => isSameDay(g.date, dt));
+        if (idx >= 0) {
+            const bucket = days[idx];
+            if (bucket) bucket.items.push(a);
+        }
     });
     return days.filter((g) => g.items.length > 0);
 }

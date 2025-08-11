@@ -333,7 +333,7 @@ export async function getDisplaySettings(
 
     try {
         const res = await authenticatedAxiosInstance.get<{ data: DisplaySettingsData | null }>(
-            'https://backend-stage.vacademy.io/admin-core-service/institute/setting/v1/get',
+            `${import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io'}/admin-core-service/institute/setting/v1/get`,
             {
                 params: {
                     instituteId,
@@ -379,7 +379,7 @@ export async function saveDisplaySettings(
         setting_data: settings,
     };
     await authenticatedAxiosInstance.post(
-        'https://backend-stage.vacademy.io/admin-core-service/institute/setting/v1/save-setting',
+        `${import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io'}/admin-core-service/institute/setting/v1/save-setting`,
         requestData,
         {
             params: { instituteId, settingKey: role },

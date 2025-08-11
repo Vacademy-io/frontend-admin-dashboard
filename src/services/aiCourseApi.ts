@@ -40,8 +40,7 @@ export interface ChatApiResponse {
 
 // Test function that exactly matches your working Postman configuration
 export const testChatMessagePostmanFormat = async (): Promise<ChatApiResponse> => {
-    const testUrl =
-        'https://backend-stage.vacademy.io/media-service/course/ai/v1/generate?instituteId=123&model=google%2Fgemini-2.5-pro';
+    const testUrl = `${import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io'}/media-service/course/ai/v1/generate?instituteId=123&model=google%2Fgemini-2.5-pro`;
 
     // Using the exact prompt from your working Postman request
     const testPrompt = `Subject: Python Programming
@@ -94,8 +93,7 @@ https://www.w3schools.com/python/default.asp`;
 
 // Quick test function with simple prompt for connection testing
 export const testSimplePrompt = async (): Promise<ChatApiResponse> => {
-    const testUrl =
-        'https://backend-stage.vacademy.io/media-service/course/ai/v1/generate?instituteId=123&model=google%2Fgemini-2.5-pro';
+    const testUrl = `${import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io'}/media-service/course/ai/v1/generate?instituteId=123&model=google%2Fgemini-2.5-pro`;
 
     const testPayload = {
         user_prompt: 'Create a very brief introduction to Python programming in 2 sentences.',

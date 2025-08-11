@@ -10,7 +10,7 @@ import {
 import { MyButton } from '@/components/design-system/button';
 
 export type RichTextEditorProps = {
-    value: string;
+    value: string | null | undefined;
     onChange: (html: string) => void;
     onBlur?: () => void;
     placeholder?: string;
@@ -38,11 +38,12 @@ export function RichTextEditor({
 }: RichTextEditorProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [draft, setDraft] = useState<string>('');
+    const safeValue = value ?? '';
 
     return (
         <div className={`relative w-full min-w-0 overflow-y-auto ${className ?? ''}`.trim()}>
             <TipTapEditor
-                value={value}
+                value={safeValue}
                 onChange={onChange}
                 onBlur={onBlur}
                 placeholder={placeholder}
