@@ -1,4 +1,4 @@
-import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { RichTextEditor } from '@/components/editor/RichTextEditor';
 import { MyButton } from '@/components/design-system/button';
 import { PaperPlaneTilt } from '@phosphor-icons/react';
 import { handleAddReply } from '../../-helper/handleAddReply';
@@ -7,6 +7,14 @@ import { useContentStore } from '../../-stores/chapter-sidebar-store';
 import { useState } from 'react';
 import { useAddReply } from '../../-services/AddReply';
 import { getUserId, getUserName } from '@/utils/userDetails';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from '@/components/ui/dialog';
+import { MyButton as Button } from '@/components/design-system/button';
 
 export const AddReply = ({ parent, refetch }: { parent: DoubtType; refetch: () => void }) => {
     const userId = getUserId();
@@ -14,6 +22,8 @@ export const AddReply = ({ parent, refetch }: { parent: DoubtType; refetch: () =
     const { activeItem } = useContentStore();
     const [teacherReply, setTeacherReply] = useState<string>('');
     const addReply = useAddReply();
+    const [showComposer, setShowComposer] = useState(false);
+    const [composerDraft, setComposerDraft] = useState<string>('');
 
     const submitReply = async () => {
         if (!teacherReply.trim()) return;
@@ -42,13 +52,25 @@ export const AddReply = ({ parent, refetch }: { parent: DoubtType; refetch: () =
 
     return (
         <div className="relative flex w-full items-center gap-2">
-            <MainViewQuillEditor
+            <RichTextEditor
                 value={teacherReply}
                 onBlur={() => {}}
                 onChange={setTeacherReply}
-                CustomclasssName="flex-grow min-h-[70px] max-h-[150px] w-full text-sm custom-quill-compact-padding ql-editor-flex-grow"
+                className="max-h-[150px] min-h-[70px] w-full grow text-sm"
                 placeholder="Type your reply..."
             />
+            <MyButton
+                layoutVariant="icon"
+                buttonType="secondary"
+                className="absolute bottom-3 right-12 rounded-full p-1.5 shadow-md transition-shadow hover:shadow-lg"
+                onClick={() => {
+                    setComposerDraft(teacherReply);
+                    setShowComposer(true);
+                }}
+                title="Expand"
+            >
+                ↗
+            </MyButton>
             <MyButton
                 layoutVariant="icon"
                 buttonType="primary"
@@ -58,6 +80,44 @@ export const AddReply = ({ parent, refetch }: { parent: DoubtType; refetch: () =
             >
                 <PaperPlaneTilt size={18} weight="fill" />
             </MyButton>
+
+            <Dialog open={showComposer} onOpenChange={setShowComposer}>
+                <DialogContent className="max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle>Compose Reply</DialogTitle>
+                    </DialogHeader>
+                    <div className="mt-2">
+                        <RichTextEditor
+                            value={composerDraft}
+                            onChange={setComposerDraft}
+                            onBlur={() => {}}
+                            placeholder="Write your detailed reply..."
+                            minHeight={300}
+                            className="h-[60vh]"
+                        />
+                    </div>
+                    <DialogFooter className="mt-3 flex justify-end gap-2">
+                        <Button
+                            type="button"
+                            buttonType="secondary"
+                            onClick={() => setShowComposer(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            buttonType="primary"
+                            onClick={() => {
+                                setTeacherReply(composerDraft);
+                                setShowComposer(false);
+                            }}
+                            disable={!composerDraft.trim()}
+                        >
+                            Save
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

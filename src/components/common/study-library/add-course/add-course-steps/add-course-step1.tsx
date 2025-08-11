@@ -14,7 +14,7 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { MyInput } from '@/components/design-system/input';
-import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { RichTextEditor } from '@/components/editor/RichTextEditor';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { ImageSquare, PencilSimpleLine } from 'phosphor-react';
 import { FileUploadComponent } from '@/components/design-system/file-upload';
@@ -323,7 +323,7 @@ export const AddCourseStep1 = ({
                                                 <FormItem>
                                                     <FormLabel>Description</FormLabel>
                                                     <FormControl>
-                                                        <MainViewQuillEditor
+                                                        <RichTextEditor
                                                             onChange={(value: string) => {
                                                                 const plainText = value
                                                                     .replace(/<[^>]*>/g, '')
@@ -340,9 +340,9 @@ export const AddCourseStep1 = ({
                                                                     field.onChange(truncatedText);
                                                                 }
                                                             }}
-                                                            value={field.value}
+                                                            value={field.value || ''}
                                                             onBlur={field.onBlur}
-                                                            CustomclasssName="h-[120px]"
+                                                            minHeight={120}
                                                             placeholder={`Enter ${getTerminology(
                                                                 ContentTerms.Course,
                                                                 SystemTerms.Course
@@ -443,11 +443,11 @@ export const AddCourseStep1 = ({
                                                 <FormItem>
                                                     <FormLabel>What learners will gain?</FormLabel>
                                                     <FormControl>
-                                                        <MainViewQuillEditor
+                                                        <RichTextEditor
                                                             onChange={field.onChange}
-                                                            value={field.value}
+                                                            value={field.value || ''}
                                                             onBlur={field.onBlur}
-                                                            CustomclasssName="h-[120px]"
+                                                            minHeight={120}
                                                             placeholder="Provide a detailed overview of the course. Include learning objectives, topics covered, format (video, quizzes, projects), and who this course is for."
                                                         />
                                                     </FormControl>
@@ -470,11 +470,11 @@ export const AddCourseStep1 = ({
                                                         )}
                                                     </FormLabel>
                                                     <FormControl>
-                                                        <MainViewQuillEditor
+                                                        <RichTextEditor
                                                             onChange={field.onChange}
-                                                            value={field.value}
+                                                            value={field.value || ''}
                                                             onBlur={field.onBlur}
-                                                            CustomclasssName="h-[120px]"
+                                                            minHeight={120}
                                                             placeholder="Provide a detailed overview of the course. Include learning objectives, topics covered, format (video, quizzes, projects), and who this course is for."
                                                         />
                                                     </FormControl>
@@ -491,11 +491,11 @@ export const AddCourseStep1 = ({
                                                 <FormItem>
                                                     <FormLabel>Who should join?</FormLabel>
                                                     <FormControl>
-                                                        <MainViewQuillEditor
+                                                        <RichTextEditor
                                                             onChange={field.onChange}
-                                                            value={field.value}
+                                                            value={field.value || ''}
                                                             onBlur={field.onBlur}
-                                                            CustomclasssName="h-[120px]"
+                                                            minHeight={120}
                                                             placeholder="Provide a detailed overview of the course. Include learning objectives, topics covered, format (video, quizzes, projects), and who this course is for."
                                                         />
                                                     </FormControl>

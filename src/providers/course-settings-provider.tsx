@@ -1,5 +1,16 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { getCourseSettings, mergeWithDefaults, clearCourseSettingsCache } from '@/services/course-settings';
+import React, {
+    createContext,
+    useContext,
+    useState,
+    useEffect,
+    ReactNode,
+    useCallback,
+} from 'react';
+import {
+    getCourseSettings,
+    mergeWithDefaults,
+    clearCourseSettingsCache,
+} from '@/services/course-settings';
 import { CourseSettingsData, DEFAULT_COURSE_SETTINGS } from '@/types/course-settings';
 
 interface CourseSettingsContextType {

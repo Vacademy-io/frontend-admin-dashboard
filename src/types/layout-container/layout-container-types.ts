@@ -4,6 +4,7 @@ export interface subItemsType {
     subItem: string | undefined;
     subItemLink: string | undefined;
     subItemId: string;
+    adminOnly?: boolean;
 }
 
 export interface SidebarItemsType {

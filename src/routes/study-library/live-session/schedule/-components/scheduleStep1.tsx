@@ -10,7 +10,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { z } from 'zod';
 import { MyInput } from '@/components/design-system/input';
 import SelectField from '@/components/design-system/select-field';
-import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { RichTextEditor } from '@/components/editor/RichTextEditor';
 import { useFilterDataForAssesment } from '@/routes/assessment/assessment-list/-utils.ts/useFiltersData';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
@@ -753,11 +753,11 @@ export default function ScheduleStep1() {
                     render={({ field }) => (
                         <FormItem>
                             <FormControl>
-                                <MainViewQuillEditor
+                                <RichTextEditor
                                     onChange={field.onChange}
-                                    value={field.value}
+                                    value={field.value || ''}
                                     onBlur={field.onBlur}
-                                    CustomclasssName="h-[200px]"
+                                    minHeight={200}
                                 />
                             </FormControl>
                         </FormItem>

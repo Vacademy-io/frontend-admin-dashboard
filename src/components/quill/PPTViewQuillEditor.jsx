@@ -1,34 +1,20 @@
-import katex from 'katex';
-window.katex = katex;
-import 'katex/dist/katex.css';
-
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
-import './jquery';
-
-import '@edtr-io/mathquill/build/mathquill.js';
-import '@edtr-io/mathquill/build/mathquill.css';
-import 'mathquill4quill/mathquill4quill.css';
-import './index.css';
-import { useRef } from 'react';
-
+// Lightweight HTML viewer for PPT mode (presentation rendering only)
 export const PPTViewQuillEditor = ({ value, onChange, placeholder = '', className = '' }) => {
-    const reactQuillRef = useRef(null);
-
-    const leftbarModules = {
-        toolbar: false,
-    };
-
+    // Presentation view is read/write via HTML; keep simple div to avoid heavy editor deps
     return (
-        <ReactQuill
-            ref={reactQuillRef}
-            modules={leftbarModules}
-            theme="snow"
-            value={value}
-            onChange={onChange}
-            preserveWhitespace={true}
-            placeholder={placeholder}
-            className={className}
-        />
+        <div className={className}>
+            {!value && placeholder ? (
+                <div className="text-neutral-400">{placeholder}</div>
+            ) : (
+                <div
+                    className="prose max-w-none"
+                    // eslint-disable-next-line react/no-danger
+                    dangerouslySetInnerHTML={{ __html: value || '' }}
+                    onInput={(e) => onChange?.(e.currentTarget.innerHTML)}
+                    contentEditable
+                    suppressContentEditableWarning
+                />
+            )}
+        </div>
     );
 };

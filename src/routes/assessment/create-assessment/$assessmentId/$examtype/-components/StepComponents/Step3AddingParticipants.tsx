@@ -34,7 +34,7 @@ import { timeLimit } from '@/constants/dummy-data';
 import { AddingParticipantsTab } from '../AddingParticipantsTab';
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
-import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { RichTextEditor } from '@/components/editor/RichTextEditor';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { getAssessmentDetails, handlePostStep3Data } from '../../-services/assessment-services';
@@ -728,10 +728,12 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormControl>
-                                                <MainViewQuillEditor
+                                                <RichTextEditor
                                                     onChange={field.onChange}
                                                     onBlur={field.onBlur}
                                                     value={field.value}
+                                                    placeholder="Registration instructions"
+                                                    minHeight={120}
                                                 />
                                             </FormControl>
                                         </FormItem>

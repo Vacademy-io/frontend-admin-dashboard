@@ -16,7 +16,7 @@ import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-q
 import { getAssessmentDetails, handlePostStep1Data } from '../../-services/assessment-services';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { getStepKey, getTimeLimitString, syncStep1DataWithStore } from '../../-utils/helper';
-import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { RichTextEditor } from '@/components/editor/RichTextEditor';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import {
     getIdBySubjectName,
@@ -363,10 +363,12 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                             render={({ field }) => (
                                 <FormItem>
                                     <FormControl>
-                                        <MainViewQuillEditor
+                                        <RichTextEditor
                                             onChange={field.onChange}
                                             onBlur={field.onBlur}
                                             value={field.value}
+                                            placeholder="Write the homework instructions"
+                                            minHeight={160}
                                         />
                                     </FormControl>
                                 </FormItem>

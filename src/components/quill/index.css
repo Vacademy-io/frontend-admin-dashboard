@@ -125,3 +125,11 @@
 .quill-padding-right-only .ql-editor {
     padding-right: 40px !important;
 }
+
+/* Ensure editor container keeps height even when empty */
+.custom-quill-min .ql-container {
+    min-height: inherit;
+}
+.custom-quill-min .ql-editor {
+    min-height: inherit;
+}

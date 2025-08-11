@@ -58,6 +58,7 @@ import { useMemo } from 'react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useSidebar } from '@/components/ui/sidebar';
 import TodoList from '../todo/TodoList';
+import CourseStructureDisplay from './components/CourseStructureDisplay';
 // Real API integration for streaming responses
 import {
     sendChatMessageStreaming,
@@ -627,8 +628,7 @@ const ChatView: React.FC<ChatViewProps> = ({
                 console.log('🧪 Using mock response instead...');
                 if (currentStreamingMessageId) {
                     simulateStreamingResponse(
-                        (chunk) =>
-                            processStreamingChunkDirect(chunk, currentStreamingMessageId!),
+                        (chunk) => processStreamingChunkDirect(chunk, currentStreamingMessageId!),
                         () => console.log('✅ Mock simulation complete'),
                         50
                     );
@@ -761,6 +761,10 @@ const ChatView: React.FC<ChatViewProps> = ({
             jsonBufferRef.current = ''; // Reset ref too
             setIsAssemblingJson(false);
             setProcessingStatus('idle');
+            // Clear processed sections for new message
+            setProcessedJsonSections(new Set());
+            processedJsonSectionsRef.current.clear();
+            lastJsonCreationTime.current = 0;
 
             // Response capture removed
 
@@ -902,7 +906,7 @@ const ChatView: React.FC<ChatViewProps> = ({
         }
 
         return new Promise<void>((resolve, reject) => {
-            let chunkIndex = 0;
+            const chunkIndex = 0;
             sendChatMessageStreaming(
                 apiRequest,
                 // onChunk callback - called for each streaming chunk
@@ -945,7 +949,6 @@ const ChatView: React.FC<ChatViewProps> = ({
                             currentStreamingMessageId,
                             messageIdToUse,
                         });
-
                     }
 
                     // Send to debug if available (safely)
@@ -973,7 +976,6 @@ const ChatView: React.FC<ChatViewProps> = ({
 
                     // Try to process structured data from the response
                     tryProcessStructuredPayload(finalResponse.content);
-
 
                     resolve();
                 },
@@ -1107,18 +1109,80 @@ const ChatView: React.FC<ChatViewProps> = ({
     const JsonSection: React.FC<{ section: ChatSection }> = ({ section }) => {
         const [isExpanded, setIsExpanded] = useState(false);
 
+        // Try to parse the JSON content
+        let parsedData;
+        let isCourseStructureData = false;
+
+        try {
+            parsedData = JSON.parse(section.content);
+            // Check if this looks like course structure data
+            isCourseStructureData = !!(
+                parsedData &&
+                (parsedData.modifications || parsedData.todos || parsedData.explanation)
+            );
+
+            // Debug logging (disabled - UI working)
+            // console.log('🔍 JsonSection Debug:', {
+            //     hasModifications: !!parsedData?.modifications,
+            //     hasTodos: !!parsedData?.todos,
+            //     hasExplanation: !!parsedData?.explanation,
+            //     isCourseStructureData,
+            //     dataKeys: Object.keys(parsedData || {}),
+            //     rawContent: section.content.substring(0, 200),
+            // });
+        } catch (error) {
+            // If parsing fails, fall back to raw display
+            parsedData = null;
+            console.log('❌ JSON Parse Error:', error);
+        }
+
+        // If it's course structure data, use the specialized component
+        if (isCourseStructureData && parsedData) {
+            console.log('✅ Rendering CourseStructureDisplay with data:', {
+                hasModifications: !!parsedData.modifications,
+                modificationsCount: parsedData.modifications?.length || 0,
+                hasTodos: !!parsedData.todos,
+                todosCount: parsedData.todos?.length || 0,
+                hasExplanation: !!parsedData.explanation,
+            });
+            return (
+                <div className="mb-4 rounded-lg border-2 border-blue-200 bg-blue-50 p-4">
+                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-blue-600">
+                        📋 Course Structure Data Detected
+                        <span className="rounded bg-blue-100 px-2 py-1 text-xs">
+                            {parsedData.modifications?.length || 0} modifications,{' '}
+                            {parsedData.todos?.length || 0} todos
+                        </span>
+                    </div>
+                    <CourseStructureDisplay data={parsedData} />
+                </div>
+            );
+        }
+
+        // Fall back to the original collapsible JSON display for other data
+        console.log('📄 Rendering fallback JSON section:', {
+            hasData: !!parsedData,
+            contentLength: section.content.length,
+            contentPreview: section.content.substring(0, 100),
+        });
+
         return (
-            <div className="mb-3 rounded-lg border bg-gray-50">
+            <div className="mb-3 rounded-lg border-2 border-yellow-200 bg-yellow-50">
                 <button
                     onClick={() => setIsExpanded(!isExpanded)}
-                    className="flex w-full items-center justify-between rounded-lg p-3 text-left hover:bg-gray-100"
+                    className="flex w-full items-center justify-between rounded-lg p-3 text-left hover:bg-yellow-100"
                 >
                     <div className="flex items-center gap-2">
-                        <span className="text-gray-600">🔧</span>
-                        <span className="font-medium text-gray-800">View JSON Data</span>
+                        <Code className="size-4 text-yellow-600" />
+                        <span className="font-medium text-yellow-800">
+                            📄 JSON Data (Click to expand)
+                        </span>
+                        <span className="rounded bg-yellow-200 px-2 py-1 text-xs">
+                            {Math.round((section.content.length / 1024) * 10) / 10}KB
+                        </span>
                     </div>
                     <span
-                        className={`text-gray-500 transition-transform${isExpanded ? 'rotate-180' : ''}`}
+                        className={`text-yellow-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
                     >
                         ▼
                     </span>
@@ -1126,7 +1190,7 @@ const ChatView: React.FC<ChatViewProps> = ({
                 {isExpanded && (
                     <div className="rounded-b-lg border-t bg-gray-900 p-3">
                         <pre className="overflow-x-auto text-xs text-green-400">
-                            {JSON.stringify(JSON.parse(section.content), null, 2)}
+                            {parsedData ? JSON.stringify(parsedData, null, 2) : section.content}
                         </pre>
                     </div>
                 )}
@@ -1147,7 +1211,6 @@ const ChatView: React.FC<ChatViewProps> = ({
                 sectionsInState: messageSections[messageId]?.length || 0,
                 sectionsProp: sections.length,
             });
-
         }
 
         if (sections.length === 0) {
@@ -1178,6 +1241,15 @@ const ChatView: React.FC<ChatViewProps> = ({
                         case 'text':
                             return <TextSection key={section.id} section={section} />;
                         case 'json':
+                            console.log('🎨 Rendering JSON section in UI:', {
+                                sectionId: section.id,
+                                contentLength: section.content.length,
+                                contentPreview: section.content.substring(0, 50),
+                            });
+                            console.log(
+                                '%c🎨 JSON SECTION NOW VISIBLE IN UI',
+                                'color: #3b82f6; font-weight: bold; font-size: 14px;'
+                            );
                             return <JsonSection key={section.id} section={section} />;
                         default:
                             return <TextSection key={section.id} section={section} />;
@@ -1190,39 +1262,30 @@ const ChatView: React.FC<ChatViewProps> = ({
     // Helper function to add sections to messages with improved state management
     const addMessageSection = React.useCallback(
         (messageId: string, section: ChatSection) => {
-            console.log(`🚀 ENTRY: addMessageSection called for ${messageId}`, {
-                type: section.type,
-                content: section.content.substring(0, 50),
-                id: section.id,
-                currentStateKeys: Object.keys(messageSections),
-            });
-
-            if (isDebugMode) {
-                console.log(`➕ Adding section to message ${messageId}:`, {
+            // Always log JSON sections for debugging UI issues
+            if (section.type === 'json' || isDebugMode) {
+                console.log(`➕ Adding ${section.type} section to message ${messageId}:`, {
                     type: section.type,
-                    content: section.content.substring(0, 50),
                     id: section.id,
+                    contentPreview: section.content.substring(0, 100),
                 });
             }
 
             try {
-                console.log(`🔧 BEFORE setMessageSections call for ${messageId}`);
                 setMessageSections((prev) => {
-                    console.log(`🔧 INSIDE setMessageSections callback for ${messageId}`, {
-                        prevKeys: Object.keys(prev),
-                        prevSectionsForMessage: prev[messageId]?.length || 0,
-                    });
-
                     const currentSections = prev[messageId] || [];
                     const newSections = [...currentSections, section];
 
-                    if (isDebugMode) {
+                    // Log section updates for JSON sections or when in debug mode
+                    if (section.type === 'json' || isDebugMode) {
                         console.log(
-                            `📝 Updated sections for ${messageId}:`,
-                            newSections.length,
-                            'total sections'
+                            `📝 Updated sections for ${messageId}: ${newSections.length} total sections`,
+                            {
+                                messageId,
+                                sectionType: section.type,
+                                totalSections: newSections.length,
+                            }
                         );
-
                     }
 
                     const newState = {
@@ -1230,38 +1293,25 @@ const ChatView: React.FC<ChatViewProps> = ({
                         [messageId]: newSections,
                     };
 
-                    console.log(`🔧 RETURNING newState for ${messageId}`, {
-                        newStateKeys: Object.keys(newState),
-                        sectionsForMessage: newState[messageId]?.length || 0,
-                    });
-
                     // Force immediate component re-render to ensure UI updates
                     setTimeout(() => {
-                        console.log(
-                            `🔧 TIMEOUT: About to increment force render counter for ${messageId}`
-                        );
-                        setForceRenderCounter((c) => {
-                            console.log(`🔧 INSIDE setForceRenderCounter: ${c} -> ${c + 1}`);
-                            return c + 1;
-                        });
-                        if (isDebugMode) {
+                        setForceRenderCounter((c) => c + 1);
+                        if (section.type === 'json' || isDebugMode) {
                             console.log(
-                                `🔄 FORCE RE-RENDER: Counter incremented to trigger UI update for ${messageId}`
+                                `🔄 UI update triggered for ${messageId} (${section.type} section)`
                             );
                         }
                     }, 0);
 
                     return newState;
                 });
-                console.log(`🔧 AFTER setMessageSections call for ${messageId}`);
             } catch (error) {
                 console.error(`❌ CRITICAL ERROR adding section to message ${messageId}:`, error);
                 console.error('❌ Stack trace:', (error as Error).stack);
                 console.error('❌ Section data:', { messageId, section });
-
             }
         },
-        [isDebugMode, setMessageSections, setForceRenderCounter, messageSections]
+        [isDebugMode, setMessageSections, setForceRenderCounter]
     );
 
     // Update chat display with modification cards
@@ -1359,19 +1409,614 @@ const ChatView: React.FC<ChatViewProps> = ({
         };
     }, [processedModifications, onModifications, updateChatWithModifications, isDebugMode]);
 
+    // Track processed JSON sections to avoid duplicates
+    const [processedJsonSections, setProcessedJsonSections] = useState<Set<string>>(new Set());
+    const processedJsonSectionsRef = useRef<Set<string>>(new Set());
+    const lastJsonCreationTime = useRef<number>(0);
+
+    // Try to create a complete JSON section for course structure data
+    const tryCreateCompleteJsonSection = React.useCallback(
+        (buffer: string, messageId: string) => {
+            try {
+                if (isDebugMode) {
+                    console.log('🔍 tryCreateCompleteJsonSection called:', {
+                        bufferLength: buffer.length,
+                        hasSlideUpdate: buffer.includes('SLIDE_CONTENT_UPDATE'),
+                        hasContentData: buffer.includes('contentData'),
+                    });
+                }
+
+                // Clean the buffer - handle mixed data patterns better
+                let cleanBuffer = buffer;
+
+                // Remove data: prefixes and markdown markers more carefully
+                // Use word boundaries to avoid corrupting JSON content
+                cleanBuffer = cleanBuffer.replace(/\bdata:```json\s*/g, '');
+                cleanBuffer = cleanBuffer.replace(/```data:/g, '');
+                cleanBuffer = cleanBuffer.replace(/\bdata:\s*/g, '');
+                cleanBuffer = cleanBuffer.replace(/```json\s*/g, '');
+                cleanBuffer = cleanBuffer.replace(/```(?!\w)/g, ''); // Only remove ``` not followed by word chars
+
+                // Fix double braces issue - but be more careful to avoid corrupting valid JSON
+                // Only replace if it's clearly a mistake (not part of a string value)
+                cleanBuffer = cleanBuffer.replace(/\{\{(?=\s*")/g, '{'); // {{ followed by quote
+                cleanBuffer = cleanBuffer.replace(/\}\}(?=\s*[,}\]])/g, '}'); // }} followed by comma, brace, or bracket
+
+                cleanBuffer = cleanBuffer.trim();
+
+                // Look for complete JSON objects that contain course structure data
+                // First, try to find complete JSON objects with better validation
+                const matches = [];
+
+                // Find all potential JSON start positions
+                let startIndex = 0;
+                while (startIndex < cleanBuffer.length) {
+                    const openBraceIndex = cleanBuffer.indexOf('{', startIndex);
+                    if (openBraceIndex === -1) break;
+
+                    // Try to find the matching closing brace
+                    let braceCount = 0;
+                    let inString = false;
+                    let escapeNext = false;
+                    let endIndex = -1;
+
+                    for (let i = openBraceIndex; i < cleanBuffer.length; i++) {
+                        const char = cleanBuffer[i];
+
+                        if (escapeNext) {
+                            escapeNext = false;
+                            continue;
+                        }
+
+                        if (char === '\\') {
+                            escapeNext = true;
+                            continue;
+                        }
+
+                        if (char === '"' && !escapeNext) {
+                            inString = !inString;
+                            continue;
+                        }
+
+                        if (!inString) {
+                            if (char === '{') {
+                                braceCount++;
+                            } else if (char === '}') {
+                                braceCount--;
+                                if (braceCount === 0) {
+                                    endIndex = i;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (endIndex !== -1) {
+                        const jsonStr = cleanBuffer.substring(openBraceIndex, endIndex + 1);
+                        matches.push([jsonStr] as RegExpExecArray);
+                        startIndex = endIndex + 1;
+                    } else {
+                        // No complete JSON found from this position
+                        startIndex = openBraceIndex + 1;
+                    }
+                }
+
+                if (isDebugMode) {
+                    console.log('🔍 Found', matches.length, 'potential JSON matches');
+                }
+
+                // Special handling for SLIDE_CONTENT_UPDATE that might be in mixed data
+                if (
+                    matches.length === 0 &&
+                    (cleanBuffer.includes('SLIDE_CONTENT_UPDATE') ||
+                        cleanBuffer.includes('contentData'))
+                ) {
+                    if (isDebugMode) {
+                        console.log('🔍 Attempting special SLIDE_CONTENT_UPDATE extraction');
+                    }
+                    // Try to extract JSON from patterns like: {"type":"SLIDE_CONTENT_UPDATE"...}
+                    const slideUpdateMatch = cleanBuffer.match(
+                        /\{"type":"SLIDE_CONTENT_UPDATE".*?\}/s
+                    );
+                    if (slideUpdateMatch) {
+                        const fakeMatch = slideUpdateMatch as RegExpExecArray;
+                        matches.push(fakeMatch);
+                        if (isDebugMode) {
+                            console.log('🔍 Found SLIDE_CONTENT_UPDATE via special extraction');
+                        }
+                    }
+                }
+
+                for (let i = 0; i < matches.length; i++) {
+                    const match = matches[i];
+                    if (!match) continue;
+
+                    const jsonStr = match[0];
+
+                    // Basic validation before attempting to parse
+                    if (!jsonStr || jsonStr.length < 10) {
+                        if (isDebugMode) {
+                            console.log(
+                                `⚠️ Skipping too short JSON match ${i + 1}: ${jsonStr.length} chars`
+                            );
+                        }
+                        continue;
+                    }
+
+                    // Check for obvious malformation
+                    const openBraces = (jsonStr.match(/\{/g) || []).length;
+                    const closeBraces = (jsonStr.match(/\}/g) || []).length;
+                    if (openBraces !== closeBraces) {
+                        if (isDebugMode) {
+                            console.log(
+                                `⚠️ Skipping unbalanced JSON match ${i + 1}: ${openBraces} open, ${closeBraces} close`
+                            );
+                        }
+                        continue;
+                    }
+
+                    try {
+                        const parsed = JSON.parse(jsonStr);
+                        if (isDebugMode) {
+                            console.log('✅ Successfully parsed JSON:', Object.keys(parsed || {}));
+                        }
+
+                        // Check if this looks like course structure data
+                        const isCourseData = !!(
+                            parsed &&
+                            (parsed.modifications ||
+                                parsed.todos ||
+                                parsed.explanation ||
+                                (parsed.type === 'SLIDE_CONTENT_UPDATE' &&
+                                    parsed.path &&
+                                    parsed.contentData))
+                        );
+
+                        if (isDebugMode) {
+                            console.log('🔍 Is course data?', {
+                                isCourseData,
+                                hasModifications: !!parsed.modifications,
+                                hasTodos: !!parsed.todos,
+                                hasExplanation: !!parsed.explanation,
+                                type: parsed.type,
+                                hasPath: !!parsed.path,
+                                hasContentData: !!parsed.contentData,
+                                isSlideUpdate: parsed.type === 'SLIDE_CONTENT_UPDATE',
+                            });
+                        }
+
+                        if (isCourseData) {
+                            // Create a comprehensive identifier for this JSON content
+                            const dataSignature = {
+                                modifications: parsed.modifications?.length || 0,
+                                todos: parsed.todos?.length || 0,
+                                hasExplanation: !!parsed.explanation,
+                                modificationNames:
+                                    parsed.modifications
+                                        ?.map((m: { name: string }) => m.name)
+                                        .sort() || [],
+                                todoNames:
+                                    parsed.todos?.map((t: { name: string }) => t.name).sort() || [],
+                                // Handle SLIDE_CONTENT_UPDATE
+                                type: parsed.type || 'course_structure',
+                                path: parsed.path || '',
+                                hasContentData: !!parsed.contentData,
+                            };
+                            const normalizedJson = JSON.stringify(dataSignature);
+                            const contentHash = btoa(normalizedJson).substring(0, 32);
+
+                            // Check both ref and state to prevent duplicates + add debounce
+                            const now = Date.now();
+                            const timeSinceLastCreation = now - lastJsonCreationTime.current;
+
+                            if (
+                                !processedJsonSectionsRef.current.has(contentHash) &&
+                                !processedJsonSections.has(contentHash) &&
+                                timeSinceLastCreation > 200
+                            ) {
+                                // 200ms debounce
+
+                                console.log('🎯 Creating JSON section for course data:', {
+                                    hasModifications: !!parsed.modifications,
+                                    hasTodos: !!parsed.todos,
+                                    hasExplanation: !!parsed.explanation,
+                                    contentHash,
+                                });
+
+                                // Also log to make it very obvious in console
+                                console.log(
+                                    '%c✅ JSON SECTION CREATED AND ADDED TO UI',
+                                    'color: #10b981; font-weight: bold; font-size: 14px;'
+                                );
+
+                                // Mark as processed immediately in ref
+                                processedJsonSectionsRef.current.add(contentHash);
+                                lastJsonCreationTime.current = now;
+
+                                // Add the JSON section
+                                addMessageSection(messageId, {
+                                    id: `json-course-${contentHash}`,
+                                    type: 'json',
+                                    content: JSON.stringify(parsed, null, 2),
+                                    timestamp: new Date(),
+                                });
+
+                                // Mark this content as processed in state too
+                                setProcessedJsonSections((prev) => new Set(prev).add(contentHash));
+                            } else if (isDebugMode) {
+                                console.log(
+                                    '⚠️ Already processed this JSON content or too recent:',
+                                    {
+                                        contentHash,
+                                        timeSinceLastCreation,
+                                    }
+                                );
+                            }
+                        }
+                    } catch (parseError) {
+                        const errorMsg =
+                            parseError instanceof Error ? parseError.message : 'Unknown error';
+                        if (isDebugMode) {
+                            console.log(`❌ Failed to parse JSON match ${i + 1}:`, {
+                                error: errorMsg,
+                                jsonLength: jsonStr.length,
+                                lastChar: jsonStr[jsonStr.length - 1],
+                            });
+                        }
+
+                        // Try to fix common streaming JSON issues
+                        if (errorMsg.includes('Expected') && jsonStr.endsWith(',')) {
+                            if (isDebugMode) {
+                                console.log('🔧 Attempting to fix trailing comma issue...');
+                            }
+                            try {
+                                const fixedJson = jsonStr.replace(/,(\s*[}\]])/, '$1');
+                                const parsed = JSON.parse(fixedJson);
+                                if (isDebugMode) {
+                                    console.log(
+                                        '✅ Successfully parsed after fixing trailing comma'
+                                    );
+                                }
+
+                                // Continue with the successfully parsed JSON
+                                const isCourseData = !!(
+                                    parsed &&
+                                    (parsed.modifications ||
+                                        parsed.todos ||
+                                        parsed.explanation ||
+                                        (parsed.type === 'SLIDE_CONTENT_UPDATE' &&
+                                            parsed.path &&
+                                            parsed.contentData))
+                                );
+
+                                if (isCourseData) {
+                                    // Process the fixed JSON the same way as successful parses
+                                    const dataSignature = {
+                                        modifications: parsed.modifications?.length || 0,
+                                        todos: parsed.todos?.length || 0,
+                                        hasExplanation: !!parsed.explanation,
+                                        modificationNames:
+                                            parsed.modifications
+                                                ?.map((m: { name: string }) => m.name)
+                                                .sort() || [],
+                                        todoNames:
+                                            parsed.todos
+                                                ?.map((t: { name: string }) => t.name)
+                                                .sort() || [],
+                                        type: parsed.type || 'course_structure',
+                                        path: parsed.path || '',
+                                        hasContentData: !!parsed.contentData,
+                                    };
+                                    const normalizedJson = JSON.stringify(dataSignature);
+                                    const contentHash = btoa(normalizedJson).substring(0, 32);
+
+                                    const now = Date.now();
+                                    const timeSinceLastCreation =
+                                        now - lastJsonCreationTime.current;
+
+                                    if (
+                                        !processedJsonSectionsRef.current.has(contentHash) &&
+                                        !processedJsonSections.has(contentHash) &&
+                                        timeSinceLastCreation > 200
+                                    ) {
+                                        processedJsonSectionsRef.current.add(contentHash);
+                                        lastJsonCreationTime.current = now;
+
+                                        addMessageSection(messageId, {
+                                            id: `json-course-${contentHash}`,
+                                            type: 'json',
+                                            content: JSON.stringify(parsed, null, 2),
+                                            timestamp: new Date(),
+                                        });
+
+                                        setProcessedJsonSections((prev) =>
+                                            new Set(prev).add(contentHash)
+                                        );
+                                    }
+                                }
+                            } catch (fixError) {
+                                if (isDebugMode) {
+                                    console.log('❌ Failed to fix JSON:', fixError);
+                                }
+                            }
+                        }
+                        // Continue to next match
+                    }
+                }
+            } catch (error) {
+                console.log('❌ Error in tryCreateCompleteJsonSection:', error);
+            }
+        },
+        [addMessageSection, processedJsonSections, isDebugMode]
+    );
+
+    // Try to reconstruct JSON from streaming line-by-line data
+    const tryReconstructStreamingJson = React.useCallback(
+        (buffer: string, messageId: string) => {
+            try {
+                if (isDebugMode) {
+                    console.log('🔧 Trying to reconstruct streaming JSON from buffer:', {
+                        bufferLength: buffer.length,
+                        hasSlideUpdate: buffer.includes('SLIDE_CONTENT_UPDATE'),
+                        hasContentData: buffer.includes('contentData'),
+                    });
+                }
+
+                // Look for patterns that suggest we have streaming JSON data
+                const hasJsonStructure =
+                    buffer.includes('"modifications"') ||
+                    buffer.includes('"todos"') ||
+                    buffer.includes('"explanation"') ||
+                    buffer.includes('"type":"SLIDE_CONTENT_UPDATE"') ||
+                    buffer.includes('"contentData"') ||
+                    buffer.includes('"slideType"');
+
+                if (!hasJsonStructure) {
+                    return;
+                }
+
+                // Try to reconstruct JSON by looking for common patterns
+                const lines = buffer
+                    .split('\n')
+                    .map((line) => line.trim())
+                    .filter((line) => line);
+                let jsonCandidate = '';
+                let inJsonBlock = false;
+                let braceCount = 0;
+
+                for (const line of lines) {
+                    if (line.includes('{')) {
+                        inJsonBlock = true;
+                        braceCount += (line.match(/\{/g) || []).length;
+                    }
+
+                    if (inJsonBlock) {
+                        jsonCandidate += line + '\n';
+                        braceCount -= (line.match(/\}/g) || []).length;
+
+                        if (braceCount === 0 && jsonCandidate.trim().endsWith('}')) {
+                            // We might have a complete JSON object
+                            try {
+                                let cleanJson = jsonCandidate.trim();
+
+                                // Clean up mixed data - extract just the JSON part
+                                // Remove data: prefixes and markdown markers
+                                cleanJson = cleanJson.replace(/data:```json\s*/g, '');
+                                cleanJson = cleanJson.replace(/```data:/g, '');
+                                cleanJson = cleanJson.replace(/data:\s*/g, '');
+                                cleanJson = cleanJson.replace(/```json\s*/g, '');
+                                cleanJson = cleanJson.replace(/```[^{]*/g, ''); // Remove ``` followed by non-JSON content
+
+                                // Extract just the JSON part if mixed with other content
+                                const jsonStart = cleanJson.indexOf('{');
+                                if (jsonStart !== -1) {
+                                    // Find the end of the JSON by counting braces
+                                    let braceCounter = 0;
+                                    let jsonEnd = -1;
+                                    let inString = false;
+                                    let escapeNext = false;
+
+                                    for (let i = jsonStart; i < cleanJson.length; i++) {
+                                        const char = cleanJson[i];
+
+                                        if (escapeNext) {
+                                            escapeNext = false;
+                                            continue;
+                                        }
+
+                                        if (char === '\\') {
+                                            escapeNext = true;
+                                            continue;
+                                        }
+
+                                        if (char === '"' && !escapeNext) {
+                                            inString = !inString;
+                                            continue;
+                                        }
+
+                                        if (!inString) {
+                                            if (char === '{') {
+                                                braceCounter++;
+                                            } else if (char === '}') {
+                                                braceCounter--;
+                                                if (braceCounter === 0) {
+                                                    jsonEnd = i;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    if (jsonEnd !== -1) {
+                                        cleanJson = cleanJson.substring(jsonStart, jsonEnd + 1);
+                                    }
+                                }
+
+                                // Fix double braces issue
+                                cleanJson = cleanJson.replace(/\{\{/g, '{');
+                                cleanJson = cleanJson.replace(/\}\}/g, '}');
+
+                                if (isDebugMode) {
+                                    console.log(
+                                        '🔧 Attempting to parse reconstructed JSON:',
+                                        cleanJson.substring(0, 100)
+                                    );
+                                }
+
+                                const parsed = JSON.parse(cleanJson);
+                                const isCourseData = !!(
+                                    parsed &&
+                                    (parsed.modifications ||
+                                        parsed.todos ||
+                                        parsed.explanation ||
+                                        (parsed.type === 'SLIDE_CONTENT_UPDATE' &&
+                                            parsed.path &&
+                                            parsed.contentData))
+                                );
+
+                                if (isCourseData) {
+                                    // Create a comprehensive identifier for this JSON content
+                                    const dataSignature = {
+                                        modifications: parsed.modifications?.length || 0,
+                                        todos: parsed.todos?.length || 0,
+                                        hasExplanation: !!parsed.explanation,
+                                        modificationNames:
+                                            parsed.modifications
+                                                ?.map((m: { name: string }) => m.name)
+                                                .sort() || [],
+                                        todoNames:
+                                            parsed.todos
+                                                ?.map((t: { name: string }) => t.name)
+                                                .sort() || [],
+                                        // Handle SLIDE_CONTENT_UPDATE
+                                        type: parsed.type || 'course_structure',
+                                        path: parsed.path || '',
+                                        hasContentData: !!parsed.contentData,
+                                    };
+                                    const normalizedJson = JSON.stringify(dataSignature);
+                                    const contentHash = btoa(normalizedJson).substring(0, 32);
+
+                                    // Check both ref and state to prevent duplicates + add debounce
+                                    const now = Date.now();
+                                    const timeSinceLastCreation =
+                                        now - lastJsonCreationTime.current;
+
+                                    if (
+                                        !processedJsonSectionsRef.current.has(contentHash) &&
+                                        !processedJsonSections.has(contentHash) &&
+                                        timeSinceLastCreation > 200
+                                    ) {
+                                        // 200ms debounce
+
+                                        console.log(
+                                            '🎯 Successfully reconstructed streaming JSON for course data!'
+                                        );
+
+                                        // Mark as processed immediately in ref
+                                        processedJsonSectionsRef.current.add(contentHash);
+                                        lastJsonCreationTime.current = now;
+
+                                        addMessageSection(messageId, {
+                                            id: `json-reconstructed-${contentHash}`,
+                                            type: 'json',
+                                            content: JSON.stringify(parsed, null, 2),
+                                            timestamp: new Date(),
+                                        });
+
+                                        setProcessedJsonSections((prev) =>
+                                            new Set(prev).add(contentHash)
+                                        );
+                                        return; // Success, stop trying
+                                    }
+                                }
+                            } catch (parseError) {
+                                if (isDebugMode) {
+                                    console.log(
+                                        '❌ Failed to parse reconstructed JSON:',
+                                        parseError instanceof Error
+                                            ? parseError.message
+                                            : 'Unknown error'
+                                    );
+                                }
+                            }
+
+                            // Reset for next potential JSON block
+                            jsonCandidate = '';
+                            inJsonBlock = false;
+                            braceCount = 0;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.log('❌ Error in tryReconstructStreamingJson:', error);
+            }
+        },
+        [addMessageSection, processedJsonSections, isDebugMode]
+    );
+
     // Extract complete modifications as soon as they're available
     const tryExtractCompleteModifications = React.useCallback(
-        (buffer: string) => {
+        (buffer: string, messageId: string) => {
             try {
                 // Clean the buffer - remove data: prefixes and extra whitespace
-                const cleanBuffer = buffer
-                    .replace(/data:/g, '')
-                    .replace(/```json/g, '')
-                    .replace(/```/g, '')
-                    .trim();
+                // Clean the buffer more carefully
+                let cleanBuffer = buffer;
+                cleanBuffer = cleanBuffer.replace(/data:```json\s*/g, '');
+                cleanBuffer = cleanBuffer.replace(/```data:/g, '');
+                cleanBuffer = cleanBuffer.replace(/data:\s*/g, '');
+                cleanBuffer = cleanBuffer.replace(/```json\s*/g, '');
+                cleanBuffer = cleanBuffer.replace(/```/g, '');
 
-                // Look for complete JSON blocks containing modifications
-                // First try to find complete modifications array
+                // Fix double braces issue
+                cleanBuffer = cleanBuffer.replace(/\{\{/g, '{');
+                cleanBuffer = cleanBuffer.replace(/\}\}/g, '}');
+
+                cleanBuffer = cleanBuffer.trim();
+
+                // Look for complete JSON blocks containing modifications OR SLIDE_CONTENT_UPDATE
+                // First check for SLIDE_CONTENT_UPDATE
+                // Use a more robust approach to extract the complete JSON
+                let slideUpdateMatch = null;
+                const typeIndex = cleanBuffer.indexOf('"type":"SLIDE_CONTENT_UPDATE"');
+                if (typeIndex !== -1) {
+                    // Find the opening brace before this
+                    const openBraceIndex = cleanBuffer.lastIndexOf('{', typeIndex);
+                    if (openBraceIndex !== -1) {
+                        // Find the matching closing brace
+                        let braceCount = 1;
+                        let closeBraceIndex = openBraceIndex + 1;
+                        while (closeBraceIndex < cleanBuffer.length && braceCount > 0) {
+                            if (cleanBuffer[closeBraceIndex] === '{') braceCount++;
+                            if (cleanBuffer[closeBraceIndex] === '}') braceCount--;
+                            closeBraceIndex++;
+                        }
+                        if (braceCount === 0) {
+                            const jsonStr = cleanBuffer.substring(openBraceIndex, closeBraceIndex);
+                            slideUpdateMatch = [jsonStr];
+                        }
+                    }
+                }
+
+                if (slideUpdateMatch && slideUpdateMatch[0]) {
+                    console.log('🔍 Found SLIDE_CONTENT_UPDATE in tryExtractCompleteModifications');
+                    try {
+                        const slideUpdateStr = slideUpdateMatch[0];
+                        const slideUpdate = JSON.parse(slideUpdateStr);
+                        console.log('🔍 Parsed SLIDE_CONTENT_UPDATE:', {
+                            type: slideUpdate.type,
+                            path: slideUpdate.path,
+                            hasContentData: !!slideUpdate.contentData,
+                        });
+
+                        // Process this as course data
+                        tryCreateCompleteJsonSection(slideUpdateStr, messageId);
+                        return;
+                    } catch (error) {
+                        console.log('❌ Failed to parse SLIDE_CONTENT_UPDATE:', error);
+                    }
+                }
+
+                // Then try to find complete modifications array
                 const modificationsArrayMatch = cleanBuffer.match(
                     /\{\s*"modifications"\s*:\s*\[([\s\S]*?)\]\s*\}/
                 );
@@ -1436,7 +2081,7 @@ const ChatView: React.FC<ChatViewProps> = ({
                 // Ignore buffer parsing errors - probably incomplete JSON - silent fail for streaming
             }
         },
-        [debouncedApplyModifications, isDebugMode]
+        [debouncedApplyModifications, isDebugMode, tryCreateCompleteJsonSection]
     );
 
     // Enhanced message structure for better UI - now imported from types
@@ -1447,6 +2092,12 @@ const ChatView: React.FC<ChatViewProps> = ({
     // Enhanced processing function with structured content
     const processStreamingChunkDirect = (chunk: string, messageId: string) => {
         try {
+            console.log(
+                '🔧 PROCESSING CHUNK:',
+                chunk.substring(0, 50),
+                'processingStatus:',
+                processingStatus
+            );
             // Clean the chunk
             const cleanChunk = chunk.replace(/^data:/, '').trim();
 
@@ -1455,11 +2106,7 @@ const ChatView: React.FC<ChatViewProps> = ({
             }
 
             // Accumulate chunks for better pattern detection
-            setJsonBuffer((prevBuffer) => {
-                const newBuffer = prevBuffer + cleanChunk + ' ';
-                jsonBufferRef.current = newBuffer; // Keep ref in sync
-                return newBuffer;
-            });
+            // (Removed duplicate setJsonBuffer call - using the one below for JSON processing)
 
             // Detect thinking sections (check both chunk and accumulated buffer)
             const fullContent = jsonBufferRef.current;
@@ -1470,6 +2117,9 @@ const ChatView: React.FC<ChatViewProps> = ({
                 cleanChunk.includes('🤔');
 
             if (hasThinking && processingStatus !== 'thinking') {
+                console.log(
+                    '🔧 EARLY RETURN: Thinking section detected, skipping JSON buffer logic'
+                );
                 setProcessingStatus('thinking');
                 addMessageSection(messageId, {
                     id: `thinking-${Date.now()}`,
@@ -1490,6 +2140,9 @@ const ChatView: React.FC<ChatViewProps> = ({
                 cleanChunk.includes('⚡');
 
             if (hasGenerating && processingStatus !== 'generating') {
+                console.log(
+                    '🔧 EARLY RETURN: Generating section detected, skipping JSON buffer logic'
+                );
                 setProcessingStatus('generating');
                 addMessageSection(messageId, {
                     id: `generating-${Date.now()}`,
@@ -1504,29 +2157,59 @@ const ChatView: React.FC<ChatViewProps> = ({
             if (
                 chunk.includes('```json') ||
                 chunk.includes('{') ||
-                chunk.includes('"modifications"')
+                chunk.includes('"modifications"') ||
+                chunk.includes('"todos"') ||
+                chunk.includes('"explanation"') ||
+                chunk.includes('"type":"SLIDE_CONTENT_UPDATE"') ||
+                chunk.includes('"contentData"') ||
+                chunk.includes('"slideType"')
             ) {
+                // console.log('🔧 JSON assembly triggered by chunk:', chunk.substring(0, 50));
                 setIsAssemblingJson(true);
             }
 
-            // Accumulate JSON buffer (with error handling)
-            setJsonBuffer((prev) => {
-                try {
-                    const newBuffer = prev + chunk;
-                    jsonBufferRef.current = newBuffer; // Keep ref in sync
+            // console.log('🔧 REACHED JSON BUFFER LOGIC - about to call setJsonBuffer');
 
-                    // Try to extract and parse complete modification objects (safely)
-                    try {
-                        tryExtractCompleteModifications(newBuffer);
-                    } catch (extractError) {
-                        // Silent fail for streaming
-                    }
+            // Update the buffer first
+            const currentBuffer = jsonBufferRef.current;
+            const newBuffer = currentBuffer + chunk;
+            jsonBufferRef.current = newBuffer; // Update ref immediately
 
-                    return newBuffer;
-                } catch (bufferError) {
-                    return prev;
+            if (isDebugMode) {
+                console.log('🔧 Updated buffer directly:', {
+                    chunkLength: chunk.length,
+                    newBufferLength: newBuffer.length,
+                });
+            }
+
+            // Also update the state (for React consistency)
+            setJsonBuffer(newBuffer);
+
+            // Try to extract and parse complete modification objects (safely)
+            try {
+                tryExtractCompleteModifications(newBuffer, messageId);
+            } catch (extractError) {
+                // Silent fail for streaming
+            }
+
+            // Try to detect complete JSON structure for course data
+            try {
+                if (isDebugMode) {
+                    console.log('🔍 Checking JSON buffer for course data:', {
+                        bufferLength: newBuffer.length,
+                        hasModifications: newBuffer.includes('modifications'),
+                        hasTodos: newBuffer.includes('todos'),
+                        hasExplanation: newBuffer.includes('explanation'),
+                    });
                 }
-            });
+
+                tryCreateCompleteJsonSection(newBuffer, messageId);
+                tryReconstructStreamingJson(newBuffer, messageId);
+            } catch (jsonError) {
+                if (isDebugMode) {
+                    console.log('❌ JSON detection error:', jsonError);
+                }
+            }
 
             // Add regular text content
             const shouldAddText =
@@ -1553,7 +2236,7 @@ const ChatView: React.FC<ChatViewProps> = ({
                     console.log('📝 Adding text section:', cleanChunk.substring(0, 50));
                 }
                 addMessageSection(messageId, {
-                    id: `text-${Date.now()}`,
+                    id: `text-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                     type: 'text',
                     content: cleanChunk,
                     timestamp: new Date(),
@@ -1601,7 +2284,7 @@ const ChatView: React.FC<ChatViewProps> = ({
         if (currentStreamingMessageId) {
             try {
                 // Extract any remaining modifications from the final payload
-                tryExtractCompleteModifications(payload);
+                tryExtractCompleteModifications(payload, currentStreamingMessageId);
             } catch (error) {
                 if (isDebugMode) {
                     console.log('⚠️ AI Backend - Final payload processing failed:', error);
@@ -1931,7 +2614,7 @@ const ChatView: React.FC<ChatViewProps> = ({
     return (
         <div
             className={`ai-chat-container compact-mode ${isFullScreen ? 'fullscreen-chat' : ''} ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}
-            style={isFullScreen ? { height: '100%', display: 'flex', flexDirection: 'column' } : {}}
+            style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
         >
             {/* Cinematic Intro */}
             {showCinematicIntro && (
@@ -1989,7 +2672,7 @@ const ChatView: React.FC<ChatViewProps> = ({
             </div>
 
             {/* Chat Messages */}
-            <div className="chat-messages" ref={chatMessagesRef} style={{ position: 'relative' }}>
+            <div className="chat-messages" ref={chatMessagesRef}>
                 {/* Welcome Overlay - Only render when showing welcome */}
                 {showWelcome && (
                     <div className="welcome-overlay">

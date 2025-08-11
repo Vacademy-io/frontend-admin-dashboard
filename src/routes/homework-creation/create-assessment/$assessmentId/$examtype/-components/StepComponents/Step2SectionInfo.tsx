@@ -15,7 +15,7 @@ import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/
 import { QuestionPapersTabs } from '@/routes/assessment/question-papers/-components/QuestionPapersTabs';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
-import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { RichTextEditor } from '@/components/editor/RichTextEditor';
 import { calculateTotalMarks, getQuestionTypeCounts, getStepKey } from '../../-utils/helper';
 import { MyInput } from '@/components/design-system/input';
 import { Switch } from '@/components/ui/switch';
@@ -385,10 +385,12 @@ export const Step2SectionInfo = ({
                         render={({ field }) => (
                             <FormItem>
                                 <FormControl>
-                                    <MainViewQuillEditor
+                                    <RichTextEditor
                                         onChange={field.onChange}
                                         onBlur={field.onBlur}
                                         value={field.value}
+                                        placeholder="Describe this section"
+                                        minHeight={120}
                                     />
                                 </FormControl>
                             </FormItem>

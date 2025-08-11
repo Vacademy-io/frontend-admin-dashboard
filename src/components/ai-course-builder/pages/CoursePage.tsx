@@ -380,9 +380,11 @@ const CoursePage = () => {
                 <div
                     className={`flex size-full items-center justify-center ${isFullScreen ? 'p-0' : 'p-2'}`}
                 >
-                    <div className={`w-full ${isFullScreen ? 'h-full max-w-none' : 'max-w-5xl'}`}>
+                    <div
+                        className={`w-full ${isFullScreen ? 'h-full max-w-none' : 'min-h-[600px] max-w-5xl'}`}
+                    >
                         <div
-                            className={`${isFullScreen ? 'h-full rounded-none border-0 p-1' : 'rounded-xl border border-slate-200/60 p-3'} bg-white/80 shadow-lg backdrop-blur-sm`}
+                            className={`${isFullScreen ? 'h-full rounded-none border-0 p-1' : 'h-full rounded-xl border border-slate-200/60 p-3'} flex flex-col bg-white/80 shadow-lg backdrop-blur-sm`}
                         >
                             {!isFullScreen && (
                                 <div className="initial-header mb-2 text-center">

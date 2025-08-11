@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormField, FormItem, FormControl, FormMessage, FormLabel } from '@/components/ui/form';
 import { ImageSquare, PencilSimpleLine } from 'phosphor-react';
 import { MyInput } from '@/components/design-system/input';
-import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { RichTextEditor } from '@/components/editor/RichTextEditor';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { MyButton } from '@/components/design-system/button';
@@ -82,7 +82,7 @@ const CoursePreviewCard = ({
                                     <FormItem>
                                         <FormLabel>Description</FormLabel>
                                         <FormControl>
-                                            <MainViewQuillEditor
+                                            <RichTextEditor
                                                 onChange={(value: string) => {
                                                     const plainText = value
                                                         .replace(/<[^>]*>/g, '')
@@ -100,7 +100,7 @@ const CoursePreviewCard = ({
                                                 }}
                                                 value={field.value}
                                                 onBlur={field.onBlur}
-                                                CustomclasssName="h-[120px]"
+                                                minHeight={120}
                                                 placeholder="Enter course description (max 30 words)"
                                             />
                                         </FormControl>
@@ -188,11 +188,11 @@ const CoursePreviewCard = ({
                                     <FormItem>
                                         <FormLabel>What learners will gain?</FormLabel>
                                         <FormControl>
-                                            <MainViewQuillEditor
+                                            <RichTextEditor
                                                 onChange={field.onChange}
                                                 value={field.value}
                                                 onBlur={field.onBlur}
-                                                CustomclasssName="h-[120px]"
+                                                minHeight={120}
                                                 placeholder="Provide a detailed overview of the course. Include learning objectives, topics covered, format (video, quizzes, projects), and who this course is for."
                                             />
                                         </FormControl>
@@ -207,11 +207,11 @@ const CoursePreviewCard = ({
                                     <FormItem>
                                         <FormLabel>About the course</FormLabel>
                                         <FormControl>
-                                            <MainViewQuillEditor
+                                            <RichTextEditor
                                                 onChange={field.onChange}
                                                 value={field.value}
                                                 onBlur={field.onBlur}
-                                                CustomclasssName="h-[120px]"
+                                                minHeight={120}
                                                 placeholder="Provide a detailed overview of the course. Include learning objectives, topics covered, format (video, quizzes, projects), and who this course is for."
                                             />
                                         </FormControl>
@@ -226,11 +226,11 @@ const CoursePreviewCard = ({
                                     <FormItem>
                                         <FormLabel>Who should join?</FormLabel>
                                         <FormControl>
-                                            <MainViewQuillEditor
+                                            <RichTextEditor
                                                 onChange={field.onChange}
                                                 value={field.value}
                                                 onBlur={field.onBlur}
-                                                CustomclasssName="h-[120px]"
+                                                minHeight={120}
                                                 placeholder="Provide a detailed overview of the course. Include learning objectives, topics covered, format (video, quizzes, projects), and who this course is for."
                                             />
                                         </FormControl>

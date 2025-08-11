@@ -6,7 +6,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import { MyInput } from '@/components/design-system/input';
-import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { RichTextEditor } from '@/components/editor/RichTextEditor';
 import { Separator } from '@/components/ui/separator';
 import useDialogStore from '@/routes/assessment/question-papers/-global-states/question-paper-dialogue-close';
 import {
@@ -98,7 +98,7 @@ const StudyLibraryAssignmentPreview = ({ activeItem }: { activeItem: Slide }) =>
                         render={({ field }) => (
                             <FormItem>
                                 <FormControl>
-                                    <MainViewQuillEditor
+                                    <RichTextEditor
                                         onChange={field.onChange}
                                         onBlur={field.onBlur}
                                         value={field.value}

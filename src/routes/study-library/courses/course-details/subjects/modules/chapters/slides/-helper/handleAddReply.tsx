@@ -24,11 +24,9 @@ export const handleAddReply = async ({
     }
     addReply.mutate(replyData, {
         onSuccess: () => {
-            if (setReply && setShowInput && refetch) {
-                setReply('');
-                setShowInput(false);
-                refetch();
-            }
+            if (setReply) setReply('');
+            if (setShowInput) setShowInput(false);
+            if (refetch) refetch();
         },
         onError: () => {
             toast.error('Error adding doubt');

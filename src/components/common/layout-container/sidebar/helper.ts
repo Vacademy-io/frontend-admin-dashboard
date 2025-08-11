@@ -57,14 +57,22 @@ export function filterSidebarByRole(menuList: SidebarItemsType[]): SidebarItemsT
         return menuList;
     }
 
-    // For non-admin users, filter out admin-only items
+    // For non-admin users, filter out admin-only items and sub-items
     const adminOnlyIds = [
         'learner-insights', // Learner Live Activities
         'manage-institute', // Institute settings
         'settings', // Settings
     ];
 
-    return menuList.filter((item) => !adminOnlyIds.includes(item.id));
+    return menuList
+        .filter((item) => !adminOnlyIds.includes(item.id))
+        .map((item) => {
+            if (item.subItems && item.subItems.length > 0) {
+                const filteredSubItems = item.subItems.filter((sub) => !sub.adminOnly);
+                return { ...item, subItems: filteredSubItems };
+            }
+            return item;
+        });
 }
 
 export function filterMenuList(
@@ -118,7 +126,7 @@ export function filterMenuListByModules(
     return menuList
         .filter((item) => {
             // Always allow dashboard and settings
-            if (item.id === 'dashboard' || item.id === 'settings') {
+            if (item.id === 'dashboard' || item.id === 'settings' || item.id === 'announcement') {
                 return true;
             }
 
@@ -129,11 +137,13 @@ export function filterMenuListByModules(
             // If item has sub-items, filter them based on allowed sub-items
             if (item.subItems) {
                 const allowedSubItems = getAllowedSubItems(subModules, item.id);
+                // If no explicit sub-item permissions found for this item, keep all sub-items
+                if (allowedSubItems.size === 0) {
+                    return item;
+                }
                 const filteredSubItems = item.subItems.filter((subItem) =>
                     allowedSubItems.has(subItem.subItemId || '')
                 );
-
-                // Return the item with filtered sub-items
                 return { ...item, subItems: filteredSubItems };
             }
             return item;

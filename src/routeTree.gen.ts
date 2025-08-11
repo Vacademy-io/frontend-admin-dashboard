@@ -51,6 +51,10 @@ import { Route as CommunityQuestionPaperIndexRouteImport } from "./routes/commun
 import { Route as CertificateGenerationStudentDataIndexRouteImport } from "./routes/certificate-generation/student-data/index"
 import { Route as AssessmentQuestionPapersIndexRouteImport } from "./routes/assessment/question-papers/index"
 import { Route as AssessmentAssessmentListIndexRouteImport } from "./routes/assessment/assessment-list/index"
+import { Route as AnnouncementScheduleIndexRouteImport } from "./routes/announcement/schedule/index"
+import { Route as AnnouncementHistoryIndexRouteImport } from "./routes/announcement/history/index"
+import { Route as AnnouncementCreateIndexRouteImport } from "./routes/announcement/create/index"
+import { Route as AnnouncementApprovalIndexRouteImport } from "./routes/announcement/approval/index"
 import { Route as AiCenterMyResourcesIndexRouteImport } from "./routes/ai-center/my-resources/index"
 import { Route as AiCenterAiToolsIndexRouteImport } from "./routes/ai-center/ai-tools/index"
 import { Route as SignupOauthCallbackRouteImport } from "./routes/signup/oauth/callback"
@@ -328,6 +332,29 @@ const AssessmentAssessmentListIndexRoute =
     path: "/assessment/assessment-list/",
     getParentRoute: () => rootRouteImport,
   } as any)
+const AnnouncementScheduleIndexRoute =
+  AnnouncementScheduleIndexRouteImport.update({
+    id: "/announcement/schedule/",
+    path: "/announcement/schedule/",
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AnnouncementHistoryIndexRoute =
+  AnnouncementHistoryIndexRouteImport.update({
+    id: "/announcement/history/",
+    path: "/announcement/history/",
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AnnouncementCreateIndexRoute = AnnouncementCreateIndexRouteImport.update({
+  id: "/announcement/create/",
+  path: "/announcement/create/",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnnouncementApprovalIndexRoute =
+  AnnouncementApprovalIndexRouteImport.update({
+    id: "/announcement/approval/",
+    path: "/announcement/approval/",
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AiCenterMyResourcesIndexRoute =
   AiCenterMyResourcesIndexRouteImport.update({
     id: "/ai-center/my-resources/",
@@ -550,6 +577,10 @@ export interface FileRoutesByFullPath {
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/ai-center/ai-tools": typeof AiCenterAiToolsIndexRoute
   "/ai-center/my-resources": typeof AiCenterMyResourcesIndexRoute
+  "/announcement/approval": typeof AnnouncementApprovalIndexRoute
+  "/announcement/create": typeof AnnouncementCreateIndexRoute
+  "/announcement/history": typeof AnnouncementHistoryIndexRoute
+  "/announcement/schedule": typeof AnnouncementScheduleIndexRoute
   "/assessment/assessment-list": typeof AssessmentAssessmentListIndexRoute
   "/assessment/question-papers": typeof AssessmentQuestionPapersIndexRoute
   "/certificate-generation/student-data": typeof CertificateGenerationStudentDataIndexRoute
@@ -626,6 +657,10 @@ export interface FileRoutesByTo {
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/ai-center/ai-tools": typeof AiCenterAiToolsIndexRoute
   "/ai-center/my-resources": typeof AiCenterMyResourcesIndexRoute
+  "/announcement/approval": typeof AnnouncementApprovalIndexRoute
+  "/announcement/create": typeof AnnouncementCreateIndexRoute
+  "/announcement/history": typeof AnnouncementHistoryIndexRoute
+  "/announcement/schedule": typeof AnnouncementScheduleIndexRoute
   "/assessment/assessment-list": typeof AssessmentAssessmentListIndexRoute
   "/assessment/question-papers": typeof AssessmentQuestionPapersIndexRoute
   "/certificate-generation/student-data": typeof CertificateGenerationStudentDataIndexRoute
@@ -704,6 +739,10 @@ export interface FileRoutesById {
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/ai-center/ai-tools/": typeof AiCenterAiToolsIndexRoute
   "/ai-center/my-resources/": typeof AiCenterMyResourcesIndexRoute
+  "/announcement/approval/": typeof AnnouncementApprovalIndexRoute
+  "/announcement/create/": typeof AnnouncementCreateIndexRoute
+  "/announcement/history/": typeof AnnouncementHistoryIndexRoute
+  "/announcement/schedule/": typeof AnnouncementScheduleIndexRoute
   "/assessment/assessment-list/": typeof AssessmentAssessmentListIndexRoute
   "/assessment/question-papers/": typeof AssessmentQuestionPapersIndexRoute
   "/certificate-generation/student-data/": typeof CertificateGenerationStudentDataIndexRoute
@@ -783,6 +822,10 @@ export interface FileRouteTypes {
     | "/signup/oauth/callback"
     | "/ai-center/ai-tools"
     | "/ai-center/my-resources"
+    | "/announcement/approval"
+    | "/announcement/create"
+    | "/announcement/history"
+    | "/announcement/schedule"
     | "/assessment/assessment-list"
     | "/assessment/question-papers"
     | "/certificate-generation/student-data"
@@ -859,6 +902,10 @@ export interface FileRouteTypes {
     | "/signup/oauth/callback"
     | "/ai-center/ai-tools"
     | "/ai-center/my-resources"
+    | "/announcement/approval"
+    | "/announcement/create"
+    | "/announcement/history"
+    | "/announcement/schedule"
     | "/assessment/assessment-list"
     | "/assessment/question-papers"
     | "/certificate-generation/student-data"
@@ -936,6 +983,10 @@ export interface FileRouteTypes {
     | "/signup/oauth/callback"
     | "/ai-center/ai-tools/"
     | "/ai-center/my-resources/"
+    | "/announcement/approval/"
+    | "/announcement/create/"
+    | "/announcement/history/"
+    | "/announcement/schedule/"
     | "/assessment/assessment-list/"
     | "/assessment/question-papers/"
     | "/certificate-generation/student-data/"
@@ -1013,6 +1064,10 @@ export interface RootRouteChildren {
   SignupOauthCallbackRoute: typeof SignupOauthCallbackRoute
   AiCenterAiToolsIndexRoute: typeof AiCenterAiToolsIndexRoute
   AiCenterMyResourcesIndexRoute: typeof AiCenterMyResourcesIndexRoute
+  AnnouncementApprovalIndexRoute: typeof AnnouncementApprovalIndexRoute
+  AnnouncementCreateIndexRoute: typeof AnnouncementCreateIndexRoute
+  AnnouncementHistoryIndexRoute: typeof AnnouncementHistoryIndexRoute
+  AnnouncementScheduleIndexRoute: typeof AnnouncementScheduleIndexRoute
   AssessmentAssessmentListIndexRoute: typeof AssessmentAssessmentListIndexRoute
   AssessmentQuestionPapersIndexRoute: typeof AssessmentQuestionPapersIndexRoute
   CertificateGenerationStudentDataIndexRoute: typeof CertificateGenerationStudentDataIndexRoute
@@ -1372,6 +1427,34 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AssessmentAssessmentListIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/announcement/schedule/": {
+      id: "/announcement/schedule/"
+      path: "/announcement/schedule"
+      fullPath: "/announcement/schedule"
+      preLoaderRoute: typeof AnnouncementScheduleIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/announcement/history/": {
+      id: "/announcement/history/"
+      path: "/announcement/history"
+      fullPath: "/announcement/history"
+      preLoaderRoute: typeof AnnouncementHistoryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/announcement/create/": {
+      id: "/announcement/create/"
+      path: "/announcement/create"
+      fullPath: "/announcement/create"
+      preLoaderRoute: typeof AnnouncementCreateIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/announcement/approval/": {
+      id: "/announcement/approval/"
+      path: "/announcement/approval"
+      fullPath: "/announcement/approval"
+      preLoaderRoute: typeof AnnouncementApprovalIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/ai-center/my-resources/": {
       id: "/ai-center/my-resources/"
       path: "/ai-center/my-resources"
@@ -1631,6 +1714,10 @@ const rootRouteChildren: RootRouteChildren = {
   SignupOauthCallbackRoute: SignupOauthCallbackRoute,
   AiCenterAiToolsIndexRoute: AiCenterAiToolsIndexRoute,
   AiCenterMyResourcesIndexRoute: AiCenterMyResourcesIndexRoute,
+  AnnouncementApprovalIndexRoute: AnnouncementApprovalIndexRoute,
+  AnnouncementCreateIndexRoute: AnnouncementCreateIndexRoute,
+  AnnouncementHistoryIndexRoute: AnnouncementHistoryIndexRoute,
+  AnnouncementScheduleIndexRoute: AnnouncementScheduleIndexRoute,
   AssessmentAssessmentListIndexRoute: AssessmentAssessmentListIndexRoute,
   AssessmentQuestionPapersIndexRoute: AssessmentQuestionPapersIndexRoute,
   CertificateGenerationStudentDataIndexRoute:

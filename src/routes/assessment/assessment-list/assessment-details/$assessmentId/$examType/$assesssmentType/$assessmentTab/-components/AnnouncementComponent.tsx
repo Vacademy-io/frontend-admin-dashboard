@@ -1,6 +1,6 @@
 import { MyButton } from '@/components/design-system/button';
 import { MyInput } from '@/components/design-system/input';
-import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { RichTextEditor } from '@/components/editor/RichTextEditor';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
@@ -103,10 +103,12 @@ export const AnnouncementComponent = ({
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormControl>
-                                                <MainViewQuillEditor
+                                                <RichTextEditor
                                                     onChange={field.onChange}
                                                     onBlur={field.onBlur}
-                                                    value={field.value}
+                                                    value={field.value as string}
+                                                    placeholder="Add instructions"
+                                                    minHeight={120}
                                                 />
                                             </FormControl>
                                         </FormItem>

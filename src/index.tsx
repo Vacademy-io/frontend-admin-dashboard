@@ -41,21 +41,37 @@ declare module '@tanstack/react-router' {
 // Render the app
 const rootElement = document.getElementById('root')!;
 if (!rootElement.innerHTML) {
+    // Dev-only: filter noisy DOMNodeInserted deprecation warning from third-party libs
+    if (!import.meta.env.PROD) {
+        const originalWarn = console.warn.bind(console);
+        console.warn = (...args: unknown[]) => {
+            const first = args?.[0];
+            if (
+                typeof first === 'string' &&
+                first.includes("Listener added for a 'DOMNodeInserted' mutation event")
+            ) {
+                return;
+            }
+            originalWarn(...args);
+        };
+    }
+
     const root = ReactDOM.createRoot(rootElement);
-    root.render(
-        <StrictMode>
-            {/* <ThemeProvider defaultTheme="light" storageKey="ui-theme"> */}
-            <ThemeProvider>
-                <QueryClientProvider client={queryClient}>
-                    <CourseSettingsProvider>
-                        <SidebarProvider>
-                            <RouterProvider router={router} />
-                            <Toaster />
-                        </SidebarProvider>
-                    </CourseSettingsProvider>
-                </QueryClientProvider>
-            </ThemeProvider>
-            {/* </ThemeProvider> */}
-        </StrictMode>
+    const app = (
+        // <ThemeProvider defaultTheme="light" storageKey="ui-theme">
+        <ThemeProvider>
+            <QueryClientProvider client={queryClient}>
+                <CourseSettingsProvider>
+                    <SidebarProvider>
+                        <RouterProvider router={router} />
+                        <Toaster />
+                    </SidebarProvider>
+                </CourseSettingsProvider>
+            </QueryClientProvider>
+        </ThemeProvider>
+        // </ThemeProvider>
     );
+
+    // Disable StrictMode in development to suppress noisy library warnings (e.g., findDOMNode)
+    root.render(import.meta.env.PROD ? <StrictMode>{app}</StrictMode> : app);
 }

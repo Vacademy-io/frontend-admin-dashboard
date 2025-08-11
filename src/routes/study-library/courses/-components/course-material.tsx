@@ -24,6 +24,13 @@ import { AdminApprovalDashboard } from './admin-approval-dashboard';
 import { AuthoredCoursesTab } from './authored-courses-tab';
 import { CourseInReviewTab } from './course-in-review-tab';
 import { useNavigate } from '@tanstack/react-router';
+import {
+    ADMIN_DISPLAY_SETTINGS_KEY,
+    TEACHER_DISPLAY_SETTINGS_KEY,
+    type DisplaySettingsData,
+    type CourseListTabId,
+} from '@/types/display-settings';
+import { getDisplaySettings, getDisplaySettingsFromCache } from '@/services/display-settings';
 import { useImageCache } from '@/hooks/use-image-cache';
 import { fetchMultipleImagesWithCache } from '@/utils/image-cache-utils';
 
@@ -137,6 +144,23 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
     const [selectedTab, setSelectedTab] = useState<
         'AuthoredCourses' | 'AllCourses' | 'CourseInReview' | 'CourseApproval'
     >(initialSelectedTab || 'AuthoredCourses');
+
+    // Role Display Settings (course list tabs)
+    const [roleDisplay, setRoleDisplay] = useState<DisplaySettingsData | null>(null);
+    useEffect(() => {
+        // Determine role key from existing roles logic
+        const safeRoles = Array.isArray(roles) ? roles : [];
+        const isAdmin = safeRoles.includes('ADMIN');
+        const roleKey = isAdmin ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+        const cached = getDisplaySettingsFromCache(roleKey);
+        if (cached) {
+            setRoleDisplay(cached);
+        } else {
+            getDisplaySettings(roleKey)
+                .then(setRoleDisplay)
+                .catch(() => setRoleDisplay(null));
+        }
+    }, [roles]);
 
     // Handle tab change with URL sync
     const handleTabChange = (
@@ -371,49 +395,73 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
 
     // Helper to get available tabs
     const availableTabs = useMemo(() => {
+        const labelFor = (id: CourseListTabId): string => {
+            switch (id) {
+                case 'AuthoredCourses':
+                    return `Authored ${getTerminology(ContentTerms.Course, SystemTerms.Course)}s`;
+                case 'AllCourses':
+                    return `All ${getTerminology(ContentTerms.Course, SystemTerms.Course)}s`;
+                case 'CourseInReview':
+                    return `${getTerminology(ContentTerms.Course, SystemTerms.Course)}s In Review`;
+                case 'CourseApproval':
+                    return `${getTerminology(ContentTerms.Course, SystemTerms.Course)} Approval`;
+                default:
+                    return String(id);
+            }
+        };
+
+        if (roleDisplay?.courseList?.tabs && roleDisplay.courseList.tabs.length > 0) {
+            return roleDisplay.courseList.tabs
+                .filter((t) => t.visible !== false)
+                .sort((a, b) => (a.order || 0) - (b.order || 0))
+                .map((t) => ({ key: t.id, label: labelFor(t.id as CourseListTabId), show: true }));
+        }
+
+        // Fallback to original role-based defaults
         const safeRoles = Array.isArray(roles) ? roles : [];
         const isAdmin = safeRoles.includes('ADMIN');
-
         const tabs: { key: string; label: string; show: boolean }[] = [
             {
                 key: 'AuthoredCourses',
                 label: `Authored ${getTerminology(ContentTerms.Course, SystemTerms.Course)}s`,
-                show: true, // Show to all users
+                show: true,
             },
             {
                 key: 'AllCourses',
                 label: `All ${getTerminology(ContentTerms.Course, SystemTerms.Course)}s`,
-                show: true, // Show to all users
+                show: true,
             },
             {
                 key: 'CourseInReview',
                 label: `${getTerminology(ContentTerms.Course, SystemTerms.Course)}s In Review`,
-                show: !isAdmin, // Show only to non-admin users (teachers)
+                show: !isAdmin,
             },
             {
                 key: 'CourseApproval',
                 label: `${getTerminology(ContentTerms.Course, SystemTerms.Course)} Approval`,
-                show: isAdmin, // Show only to admin users
+                show: isAdmin,
             },
         ];
         return tabs.filter((t) => t.show);
-    }, [roles]);
-    // If current tab is not available, switch to first available
+    }, [roles, roleDisplay?.courseList]);
+    // Apply default tab from role settings when appropriate
     useEffect(() => {
-        if (
-            !availableTabs.find((t) => t.key === selectedTab) &&
-            availableTabs.length > 0 &&
-            availableTabs[0]
-        ) {
-            setSelectedTab(
-                availableTabs[0]?.key as
-                    | 'AuthoredCourses'
-                    | 'AllCourses'
-                    | 'CourseInReview'
-                    | 'CourseApproval'
-            );
+        const visibleKeys = new Set(availableTabs.map((t) => t.key));
+        // Ensure current tab is valid
+        if (!visibleKeys.has(selectedTab) && availableTabs.length > 0) {
+            // Prefer role-defined default if present and visible
+            type CourseListTabKey =
+                | 'AuthoredCourses'
+                | 'AllCourses'
+                | 'CourseInReview'
+                | 'CourseApproval';
+            const defaultKey = roleDisplay?.courseList?.defaultTab as CourseListTabKey | undefined;
+            const fallbackKey = availableTabs[0]?.key as CourseListTabKey;
+            const next: CourseListTabKey =
+                defaultKey && visibleKeys.has(defaultKey) ? defaultKey : fallbackKey;
+            setSelectedTab(next);
         }
-    }, [availableTabs, selectedTab]);
+    }, [availableTabs, selectedTab, roleDisplay?.courseList?.defaultTab]);
     // Use correct data for CourseListPage
     const getCurrentTabData = () => {
         if (selectedTab === 'AllCourses') return allCoursesData;
