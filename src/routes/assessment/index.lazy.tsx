@@ -1,6 +1,5 @@
 import { createLazyFileRoute } from '@tanstack/react-router';
-
-const AssessmentRouteComponent = () => import('./index').then((m) => m.default);
+import AssessmentRouteComponent from './index';
 
 export const Route = createLazyFileRoute('/assessment/')({
     component: AssessmentRouteComponent,
