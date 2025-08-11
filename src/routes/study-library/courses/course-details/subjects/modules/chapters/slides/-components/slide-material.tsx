@@ -557,13 +557,16 @@ export const SlideMaterial = ({
                     setContent(
                         <JupyterNotebookSlide
                             notebookData={notebookData}
-                            isEditable={!isLearnerView && activeItem.status !== 'PUBLISHED'}
+                            // Allow editing even in PUBLISHED for non-learner
+                            isEditable={!isLearnerView}
                             onDataChange={async (updatedNotebookData) => {
                                 // Only allow data changes if not in learner view
                                 if (isLearnerView) return;
 
                                 // Save the notebook data to backend
                                 try {
+                                    const wasPublished = activeItem.status === 'PUBLISHED';
+                                    const nextStatus = 'PUBLISHED';
                                     await addUpdateDocumentSlide({
                                         id: activeItem.id,
                                         title:
@@ -583,10 +586,10 @@ export const SlideMaterial = ({
                                                 '',
                                             cover_file_id: '',
                                             total_pages: 1,
-                                            published_data: null,
+                                            published_data: JSON.stringify(updatedNotebookData),
                                             published_document_total_pages: 1,
                                         },
-                                        status: activeItem.status,
+                                        status: nextStatus,
                                         new_slide: false,
                                         notify: false,
                                     });
@@ -594,6 +597,7 @@ export const SlideMaterial = ({
                                     // Update activeItem with new title and data
                                     const updatedActiveItem = {
                                         ...activeItem,
+                                        status: nextStatus,
                                         title: updatedNotebookData.projectName || activeItem.title,
                                         document_slide: activeItem.document_slide
                                             ? {
@@ -607,14 +611,25 @@ export const SlideMaterial = ({
                                     };
                                     setActiveItem(updatedActiveItem);
 
+                                    // On first configure, trigger approval UI and toast
+                                    if (!wasPublished) {
+                                        localStorage.setItem(
+                                            'triggerApprovalButton',
+                                            Date.now().toString()
+                                        );
+                                        toast.success('Slide auto-published for review');
+                                    }
+
                                     // Re-render with updated data
                                     setContent(
                                         <JupyterNotebookSlide
                                             notebookData={updatedNotebookData}
-                                            isEditable={activeItem.status !== 'PUBLISHED'}
+                                            // Allow editing even in PUBLISHED for non-learner
+                                            isEditable={!isLearnerView}
                                             onDataChange={(newNotebookData) => {
                                                 // Handle further updates recursively
                                                 const recursiveUpdate = async () => {
+                                                    const nestedNextStatus = 'PUBLISHED';
                                                     await addUpdateDocumentSlide({
                                                         id: activeItem.id,
                                                         title:
@@ -634,10 +649,11 @@ export const SlideMaterial = ({
                                                                 '',
                                                             cover_file_id: '',
                                                             total_pages: 1,
-                                                            published_data: null,
+                                                            published_data:
+                                                                JSON.stringify(newNotebookData),
                                                             published_document_total_pages: 1,
                                                         },
-                                                        status: activeItem.status,
+                                                        status: nestedNextStatus,
                                                         new_slide: false,
                                                         notify: false,
                                                     });
@@ -645,6 +661,7 @@ export const SlideMaterial = ({
                                                     // Update activeItem again
                                                     setActiveItem({
                                                         ...activeItem,
+                                                        status: nestedNextStatus,
                                                         title:
                                                             newNotebookData.projectName ||
                                                             activeItem.title,
@@ -696,10 +713,13 @@ export const SlideMaterial = ({
                     setContent(
                         <ScratchProjectSlide
                             scratchData={scratchData}
-                            isEditable={activeItem.status !== 'PUBLISHED'}
+                            // Allow editing even in PUBLISHED when non-admin flow hides publish buttons
+                            isEditable={!isLearnerView && (hidePublishButtons || true)}
                             onDataChange={async (updatedScratchData) => {
                                 // Save the scratch data to backend
                                 try {
+                                    const wasPublished = activeItem.status === 'PUBLISHED';
+                                    const nextStatus = 'PUBLISHED';
                                     await addUpdateDocumentSlide({
                                         id: activeItem.id,
                                         title:
@@ -719,10 +739,10 @@ export const SlideMaterial = ({
                                                 '',
                                             cover_file_id: '',
                                             total_pages: 1,
-                                            published_data: null,
+                                            published_data: JSON.stringify(updatedScratchData),
                                             published_document_total_pages: 1,
                                         },
-                                        status: activeItem.status,
+                                        status: nextStatus,
                                         new_slide: false,
                                         notify: false,
                                     });
@@ -730,6 +750,7 @@ export const SlideMaterial = ({
                                     // Update activeItem with new title and data
                                     const updatedActiveItem = {
                                         ...activeItem,
+                                        status: nextStatus,
                                         title: updatedScratchData.projectName || activeItem.title,
                                         document_slide: activeItem.document_slide
                                             ? {
@@ -743,15 +764,26 @@ export const SlideMaterial = ({
                                     };
                                     setActiveItem(updatedActiveItem);
 
+                                    // On first configure, trigger approval UI and toast
+                                    if (!wasPublished) {
+                                        localStorage.setItem(
+                                            'triggerApprovalButton',
+                                            Date.now().toString()
+                                        );
+                                        toast.success('Slide auto-published for review');
+                                    }
+
                                     // Re-render with updated data
                                     setContent(
                                         <ScratchProjectSlide
                                             scratchData={updatedScratchData}
                                             slideId={activeItem.id}
-                                            isEditable={activeItem.status !== 'PUBLISHED'}
+                                            // Allow editing even in PUBLISHED for non-learner
+                                            isEditable={!isLearnerView}
                                             onDataChange={(newScratchData) => {
                                                 // Handle further updates recursively
                                                 const recursiveUpdate = async () => {
+                                                    const nestedNextStatus = 'PUBLISHED';
                                                     await addUpdateDocumentSlide({
                                                         id: activeItem.id,
                                                         title:
@@ -771,10 +803,11 @@ export const SlideMaterial = ({
                                                                 '',
                                                             cover_file_id: '',
                                                             total_pages: 1,
-                                                            published_data: null,
+                                                            published_data:
+                                                                JSON.stringify(newScratchData),
                                                             published_document_total_pages: 1,
                                                         },
-                                                        status: activeItem.status,
+                                                        status: nestedNextStatus,
                                                         new_slide: false,
                                                         notify: false,
                                                     });
@@ -782,6 +815,7 @@ export const SlideMaterial = ({
                                                     // Update activeItem again
                                                     setActiveItem({
                                                         ...activeItem,
+                                                        status: nestedNextStatus,
                                                         title:
                                                             newScratchData.projectName ||
                                                             activeItem.title,
@@ -834,7 +868,8 @@ export const SlideMaterial = ({
                         <CodeEditorSlide
                             key={`code-editor-${activeItem.id}`}
                             codeData={codeData}
-                            isEditable={activeItem.status !== 'PUBLISHED'}
+                            // Allow editing even in PUBLISHED when non-admin flow hides publish buttons
+                            isEditable={!isLearnerView && (hidePublishButtons || true)}
                             onDataChange={async (updatedCodeData) => {
                                 // Update the slide data when user changes code
                                 try {
@@ -851,7 +886,11 @@ export const SlideMaterial = ({
                                             title: activeItem.document_slide?.title || '',
                                             cover_file_id: '',
                                             total_pages: 1,
-                                            published_data: null,
+                                            published_data:
+                                                hidePublishButtons ||
+                                                activeItem.status === 'PUBLISHED'
+                                                    ? JSON.stringify(updatedCodeData)
+                                                    : null,
                                             published_document_total_pages: 1,
                                         },
                                         status: activeItem.status,
