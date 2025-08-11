@@ -564,23 +564,26 @@ export function convertReferralData(data: ReferralData[]) {
             combineOffers: false,
         };
     return data?.map((item) => {
-        const refereeDiscountJson = JSON.parse(item.referee_discount_json);
-        const referrerDiscountJson = JSON.parse(item.referrer_discount_json);
+        const refereeDiscountJson = safeJsonParse(item.referee_discount_json, {
+            reward: { type: '', value: 0, currency: '' },
+        });
+        const referrerDiscountJson = safeJsonParse(item.referrer_discount_json, { rewards: [] });
         return {
-            id: item.id,
-            name: item.name,
+            id: item?.id,
+            name: item?.name,
             refereeBenefit: {
-                type: refereeDiscountJson.reward.type,
-                value: refereeDiscountJson.reward.value,
-                currency: refereeDiscountJson.reward.currency,
+                type: refereeDiscountJson?.reward?.type || '',
+                value: refereeDiscountJson?.reward?.value || 0,
+                currency: refereeDiscountJson?.reward?.currency || '',
             },
-            referrerBenefit: referrerDiscountJson.rewards.map((reward: ReferrerReward) => {
-                return {
-                    referralCount: reward.referral_count,
-                    type: reward.reward.type,
-                };
-            }),
-            vestingPeriod: item.referrer_vesting_days || 0,
+            referrerBenefit:
+                referrerDiscountJson?.rewards?.map((reward: ReferrerReward) => {
+                    return {
+                        referralCount: reward?.referral_count || 0,
+                        type: reward?.reward?.type || '',
+                    };
+                }) || [],
+            vestingPeriod: item?.referrer_vesting_days || 0,
             combineOffers: true,
         };
     });
@@ -606,22 +609,25 @@ export function getDefaultMatchingReferralData(data: ReferralData[]) {
             vestingPeriod: 0,
             combineOffers: false,
         };
-    const refereeDiscountJson = JSON.parse(item.referee_discount_json);
-    const referrerDiscountJson = JSON.parse(item.referrer_discount_json);
+    const refereeDiscountJson = safeJsonParse(item.referee_discount_json, {
+        reward: { type: '', value: 0, currency: '' },
+    });
+    const referrerDiscountJson = safeJsonParse(item.referrer_discount_json, { rewards: [] });
     return {
         id: item.id,
         name: item.name,
         refereeBenefit: {
-            type: refereeDiscountJson.reward.type,
-            value: refereeDiscountJson.reward.value,
-            currency: refereeDiscountJson.reward.currency,
+            type: refereeDiscountJson?.reward?.type || '',
+            value: refereeDiscountJson?.reward?.value || 0,
+            currency: refereeDiscountJson?.reward?.currency || '',
         },
-        referrerBenefit: referrerDiscountJson.rewards.map((reward: ReferrerReward) => {
-            return {
-                referralCount: reward.referral_count,
-                type: reward.reward.type,
-            };
-        }),
+        referrerBenefit:
+            referrerDiscountJson?.rewards?.map((reward: ReferrerReward) => {
+                return {
+                    referralCount: reward?.referral_count || 0,
+                    type: reward?.reward?.type || '',
+                };
+            }) || [],
         vestingPeriod: item.referrer_vesting_days || 0,
         combineOffers: true,
     };
