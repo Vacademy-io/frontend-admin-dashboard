@@ -270,7 +270,7 @@ export function ReviewItem({ review, courseId, currentLevel, currentSession }: R
             status: newStatus,
             likes: newLikes,
             dislikes: newDislikes,
-            text: review.description || 'deleted', // fallback to a non-empty string
+            text: review.description || '', // Preserve original text, allow empty strings
         };
         if (action === 'approve') {
             console.log('Approve payload:', payload);

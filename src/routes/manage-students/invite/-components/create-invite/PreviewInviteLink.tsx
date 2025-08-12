@@ -144,7 +144,7 @@ const PreviewInviteLink = ({ form, levelName, instituteLogo }: PreviewInviteLink
                         Preview Invite
                     </MyButton>
                 </DialogTrigger>
-                <DialogContent className="mx-auto max-h-[90vh] w-full space-y-8 overflow-y-auto md:max-w-[80%]">
+                <DialogContent className="mx-auto max-h-[90vh] space-y-8 overflow-y-auto">
                     <Card className="w-full overflow-hidden border-0 bg-white/80 shadow-xl backdrop-blur-sm">
                         {/* Instiute Logo */}
                         {instituteLogo && (
@@ -338,8 +338,8 @@ const PreviewInviteLink = ({ form, levelName, instituteLogo }: PreviewInviteLink
                                         form.watch('selectedPlan')?.type === 'UPFRONT' ||
                                         form.watch('selectedPlan')?.type === 'one_time' ||
                                         form.watch('selectedPlan')?.type === 'ONE_TIME') && (
-                                        <div className="flex flex-col gap-4 pl-8">
-                                            {form.watch('selectedPlan')?.paymentOption ? (
+                                        <div className="flex flex-col gap-4">
+                                            {form.watch('selectedPlan')?.paymentOption && (
                                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                                                     {form
                                                         .watch('selectedPlan')
@@ -347,7 +347,7 @@ const PreviewInviteLink = ({ form, levelName, instituteLogo }: PreviewInviteLink
                                                             return (
                                                                 <Card
                                                                     key={idx}
-                                                                    className="border border-gray-200 p-4 transition-colors hover:border-gray-300"
+                                                                    className="w-full border border-gray-200 p-4 transition-colors hover:border-gray-300"
                                                                 >
                                                                     <div className="flex flex-col gap-3">
                                                                         {/* Title */}
@@ -423,36 +423,19 @@ const PreviewInviteLink = ({ form, levelName, instituteLogo }: PreviewInviteLink
                                                             );
                                                         })}
                                                 </div>
-                                            ) : (
-                                                /* Fallback for upfront plans without paymentOption array */
-                                                <Card className="border border-gray-200 p-4">
-                                                    <div className="flex flex-col gap-3">
-                                                        <h4 className="text-base font-bold text-gray-900">
-                                                            Full Payment
-                                                        </h4>
-                                                        <div className="text-base font-bold text-gray-900">
-                                                            {getCurrencySymbol(
-                                                                form.watch('selectedPlan')
-                                                                    ?.currency || ''
-                                                            )}
-                                                            {form.watch('selectedPlan')?.price}
-                                                            <span>/one-time</span>
-                                                        </div>
-                                                    </div>
-                                                </Card>
                                             )}
                                         </div>
                                     )}
                                     {(form.watch('selectedPlan')?.type === 'subscription' ||
                                         form.watch('selectedPlan')?.type === 'SUBSCRIPTION') && (
-                                        <div className="flex w-fit flex-wrap gap-4 pl-8">
+                                        <div className="flex w-fit flex-wrap gap-4">
                                             {form
                                                 .watch('selectedPlan')
                                                 ?.paymentOption?.map((payment, idx) => {
                                                     return (
                                                         <Card
                                                             key={idx}
-                                                            className="border border-gray-200 p-8 py-6 transition-colors hover:border-gray-300"
+                                                            className="w-full border border-gray-200 p-8 py-6 transition-colors hover:border-gray-300"
                                                         >
                                                             <div className="flex flex-col gap-3">
                                                                 {/* Title */}
@@ -548,7 +531,7 @@ const PreviewInviteLink = ({ form, levelName, instituteLogo }: PreviewInviteLink
                             <Separator className="mb-6" />
 
                             <div className="flex w-full items-center justify-center">
-                                <div className="mx-4 mb-4 flex w-full flex-col items-start justify-center rounded-xl bg-white p-4 py-0">
+                                <div className=" mb-4 flex w-full flex-col items-start justify-center rounded-xl bg-white ">
                                     <FormProvider {...registrationForm}>
                                         <form className="mt-4 flex max-h-full w-full flex-col gap-6 overflow-auto">
                                             {Object.entries(registrationForm.getValues()).map(
