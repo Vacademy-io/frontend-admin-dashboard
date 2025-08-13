@@ -9,15 +9,15 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { deleteLiveSession } from '../schedule/-services/utils';
+
 import { DraftSession, getSessionBySessionId } from '../-services/utils';
 import { useLiveSessionStore } from '../schedule/-store/sessionIdstore';
 import { useNavigate } from '@tanstack/react-router';
 import { useSessionDetailsStore } from '../-store/useSessionDetailsStore';
-import { useQueryClient } from '@tanstack/react-query';
+
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useState, useEffect } from 'react';
-import DeleteRecurringDialog from './delete-recurring-dialog';
+import DeleteSessionDialog from './delete-session-dialog';
 import type { SessionBySessionIdResponse } from '../-services/utils';
 
 interface DraftSessionCardProps {
@@ -25,9 +25,10 @@ interface DraftSessionCardProps {
 }
 
 export default function DraftSessionCard({ session }: DraftSessionCardProps) {
-    const queryClient = useQueryClient();
     // Local state for fetched session details
-    const [scheduleInfo, setScheduleInfo] = useState<SessionBySessionIdResponse['schedule'] | null>(null);
+    const [scheduleInfo, setScheduleInfo] = useState<SessionBySessionIdResponse['schedule'] | null>(
+        null
+    );
 
     const joinLink =
         session.registration_form_link_for_public_sessions ||
@@ -60,22 +61,14 @@ export default function DraftSessionCard({ session }: DraftSessionCardProps) {
         }
     };
 
-    const handleDelete = async (e: React.MouseEvent, type: string) => {
+    const handleDelete = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (session.recurrence_type && session.recurrence_type !== 'once') {
-            // Open recurring delete dialog for recurring sessions
-            setDeleteDialogOpen(true);
-            return;
-        }
+        // Always open the delete dialog, it will handle recurring vs non-recurring logic
+        setDeleteDialogOpen(true);
+    };
 
-        // For non-recurring sessions, delete directly
-        try {
-            await deleteLiveSession(session.session_id, type);
-            await queryClient.invalidateQueries({ queryKey: ['draftSessions'] });
-            await queryClient.invalidateQueries({ queryKey: ['upcomingSessions'] });
-        } catch (error) {
-            console.error('Error deleting session:', error);
-        }
+    const handleDeleteSuccess = () => {
+        setDeleteDialogOpen(false);
     };
 
     return (
@@ -115,12 +108,7 @@ export default function DraftSessionCard({ session }: DraftSessionCardProps) {
                             >
                                 Edit Live Session
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                                className="cursor-pointer"
-                                onClick={(e) => {
-                                    handleDelete(e, 'session');
-                                }}
-                            >
+                            <DropdownMenuItem className="cursor-pointer" onClick={handleDelete}>
                                 Delete Live Session
                             </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -189,10 +177,13 @@ export default function DraftSessionCard({ session }: DraftSessionCardProps) {
                     </MyButton>
                 </div>
             </div>
-            <DeleteRecurringDialog
+            <DeleteSessionDialog
                 open={deleteDialogOpen}
                 onOpenChange={setDeleteDialogOpen}
                 sessionId={session.session_id}
+                scheduleId={scheduleInfo?.schedule_id || undefined}
+                isRecurring={session.recurrence_type !== 'once'}
+                onSuccess={handleDeleteSuccess}
             />
         </div>
     );

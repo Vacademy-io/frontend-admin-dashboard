@@ -156,7 +156,7 @@ export default function DeleteRecurringDialog({
 
         setLoading(true);
         try {
-            await deleteLiveSession(sessionId, choice);
+            await deleteLiveSession([sessionId], choice);
             await queryClient.invalidateQueries({ queryKey: ['liveSessions'] });
             await queryClient.invalidateQueries({ queryKey: ['upcomingSessions'] });
             await queryClient.invalidateQueries({ queryKey: ['pastSessions'] });

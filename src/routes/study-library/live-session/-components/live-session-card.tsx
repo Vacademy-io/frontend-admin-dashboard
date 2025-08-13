@@ -12,7 +12,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { deleteLiveSession, LiveSession } from '../schedule/-services/utils';
+import { LiveSession } from '../schedule/-services/utils';
 import { handleDownloadQRCode } from '@/routes/homework-creation/create-assessment/$assessmentId/$examtype/-utils/helper';
 import { useQueryClient } from '@tanstack/react-query';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
@@ -35,6 +35,7 @@ import {
 import { MyTable } from '@/components/design-system/table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
+import DeleteSessionDialog from './delete-session-dialog';
 
 interface LiveSessionCardProps {
     session: LiveSession;
@@ -62,10 +63,9 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
     } = useLiveSessionReport();
 
     // Include allow_rewind toggle when constructing join link
-    const baseLink =
+    const joinLink =
         session.registration_form_link_for_public_sessions ||
         `${BASE_URL_LEARNER_DASHBOARD}/register/live-class?sessionId=${session.session_id}`;
-    const joinLink = `${baseLink}${baseLink.includes('?') ? '&' : '?'}allowRewind=${session.allow_rewind}&allowPlayPause=${session.allow_play_pause}`;
     const formattedDateTime = `${session.meeting_date} ${session.start_time}`;
 
     const navigate = useNavigate();
@@ -89,14 +89,7 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
         }
     };
 
-    const handleDelete = async (type: string) => {
-        try {
-            await deleteLiveSession(session.session_id, type);
-            await queryClient.invalidateQueries({ queryKey: ['liveSessions'] });
-            await queryClient.invalidateQueries({ queryKey: ['upcomingSessions'] });
-        } catch (error) {
-            console.error('Error deleting session:', error);
-        }
+    const handleDeleteSuccess = () => {
         // Close the confirmation dialog automatically
         setOpenDeleteDialog(false);
     };
@@ -429,34 +422,14 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                     </div>
                 </div>
             </MyDialog>
-            <MyDialog
-                heading="Attendance Report"
+            <DeleteSessionDialog
                 open={openDeleteDialog}
-                onOpenChange={handleOpenDeleteDialog}
-                className="w-fit max-w-4xl"
-            >
-                <div className="flex h-full flex-col gap-3 p-4 ">
-                    <div className="text-lg">
-                        Do you want to delete every class for this session
-                    </div>
-                    <div className="flex flex-row items-center justify-between gap-4">
-                        <MyButton
-                            onClick={() => {
-                                handleDelete('session');
-                            }}
-                        >
-                            Yes
-                        </MyButton>
-                        <MyButton
-                            onClick={() => {
-                                handleDelete('schedule');
-                            }}
-                        >
-                            No
-                        </MyButton>
-                    </div>
-                </div>
-            </MyDialog>
+                onOpenChange={setOpenDeleteDialog}
+                sessionId={session.session_id}
+                scheduleId={session.schedule_id}
+                isRecurring={session.recurrence_type !== 'once'}
+                onSuccess={handleDeleteSuccess}
+            />
         </div>
     );
 }
