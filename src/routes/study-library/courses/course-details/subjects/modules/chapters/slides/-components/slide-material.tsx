@@ -201,6 +201,23 @@ export const SlideMaterial = ({
 
                         // Update placeholder state
                         setShowPlaceholder(currentIsEmpty);
+                        setActiveItem({
+                            ...activeItem,
+                            document_slide: {
+                                ...activeItem?.document_slide,
+                                id: activeItem?.document_slide?.id || '',
+                                type: activeItem?.document_slide?.type || '',
+                                title: activeItem?.document_slide?.title || '',
+                                cover_file_id: activeItem?.document_slide?.cover_file_id || '',
+                                total_pages: activeItem?.document_slide?.total_pages || 0,
+                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                // @ts-expect-error
+                                published_data: currentContent || null,
+                                published_document_total_pages:
+                                    activeItem?.document_slide?.published_document_total_pages || 0,
+                                data: currentContent,
+                            },
+                        });
                     }}
                     className="size-full"
                     style={{ width: '100%', height: '100%', minHeight: '200px' }}
