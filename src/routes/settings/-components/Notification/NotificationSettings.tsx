@@ -19,6 +19,18 @@ import {
 } from '@/services/notification-settings';
 import { toast } from 'sonner';
 import { getInstituteId } from '@/constants/helper';
+import { Textarea } from '@/components/ui/textarea';
+import {
+    FIREBASE_CREDENTIALS_LABEL,
+    FIREBASE_CREDENTIALS_HELPER_TEXT,
+    FIREBASE_CREDENTIALS_PLACEHOLDER,
+    FIREBASE_CREDENTIALS_TOOLTIP,
+    FIREBASE_VALIDATION_MESSAGES,
+    normalizeServiceAccountInput,
+    validateFirebaseServiceAccountJson,
+} from '@/services/notification-settings';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { HelpCircle } from 'lucide-react';
 
 type Props = { isTab?: boolean };
 
@@ -77,6 +89,25 @@ export default function NotificationSettings({ isTab = false }: Props) {
         } finally {
             setSaving(false);
         }
+    };
+
+    const handleValidateAndSaveFirebase = async () => {
+        if (!settings) return;
+        const firebase = settings.firebase || {};
+        const normalized = normalizeServiceAccountInput({
+            jsonString: firebase.serviceAccountJson || null,
+            base64String: firebase.serviceAccountJsonBase64 || null,
+        });
+        if (!normalized || normalized.trim().length === 0) {
+            toast.error(FIREBASE_VALIDATION_MESSAGES.required);
+            return;
+        }
+        const result = validateFirebaseServiceAccountJson(normalized);
+        if (!result.valid) {
+            toast.error(result.errorMessage || FIREBASE_VALIDATION_MESSAGES.invalidJson);
+            return;
+        }
+        await handleSave();
     };
 
     if (loading || !settings) {
@@ -377,6 +408,123 @@ export default function NotificationSettings({ isTab = false }: Props) {
                             update('directMessages', (s) => ({ ...s, moderation_enabled: checked }))
                         }
                     />
+                </CardContent>
+            </Card>
+
+            {/* Push Notifications (Firebase) */}
+            <Card className="rounded-lg border-gray-200">
+                <CardHeader className="py-3">
+                    <CardTitle className="text-base">Push Notifications (Firebase)</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between rounded-md border p-3">
+                        <div>
+                            <Label>Enable Push Notifications</Label>
+                            <div className="text-xs text-muted-foreground">
+                                Requires valid Firebase service account JSON
+                            </div>
+                        </div>
+                        <Switch
+                            checked={!!settings.firebase?.enabled}
+                            onCheckedChange={(checked) => {
+                                if (checked) {
+                                    const normalized = normalizeServiceAccountInput({
+                                        jsonString: settings.firebase?.serviceAccountJson || null,
+                                        base64String:
+                                            settings.firebase?.serviceAccountJsonBase64 || null,
+                                    });
+                                    if (!normalized) {
+                                        toast.error(FIREBASE_VALIDATION_MESSAGES.required);
+                                        return;
+                                    }
+                                    const res = validateFirebaseServiceAccountJson(normalized);
+                                    if (!res.valid) {
+                                        toast.error(
+                                            res.errorMessage ||
+                                                FIREBASE_VALIDATION_MESSAGES.invalidJson
+                                        );
+                                        return;
+                                    }
+                                }
+                                update(
+                                    'firebase',
+                                    (f) =>
+                                        ({
+                                            ...(f || {}),
+                                            enabled: checked,
+                                        }) as NonNullable<NotificationSettings['firebase']>
+                                );
+                            }}
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                            <Label>{FIREBASE_CREDENTIALS_LABEL}</Label>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <button type="button" className="text-muted-foreground">
+                                            <HelpCircle className="size-4" />
+                                        </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <ul className="list-disc pl-4">
+                                            {FIREBASE_CREDENTIALS_TOOLTIP.map((t) => (
+                                                <li key={t}>{t}</li>
+                                            ))}
+                                        </ul>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                            {FIREBASE_CREDENTIALS_HELPER_TEXT}
+                        </div>
+                        <Textarea
+                            className="min-h-[160px] font-mono"
+                            placeholder={FIREBASE_CREDENTIALS_PLACEHOLDER}
+                            value={settings.firebase?.serviceAccountJson || ''}
+                            onChange={(e) =>
+                                update(
+                                    'firebase',
+                                    (f) =>
+                                        ({
+                                            ...(f || {}),
+                                            serviceAccountJson: e.target.value,
+                                        }) as NonNullable<NotificationSettings['firebase']>
+                                )
+                            }
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label>Or paste Base64-encoded JSON</Label>
+                        <Input
+                            placeholder="Base64 string"
+                            value={settings.firebase?.serviceAccountJsonBase64 || ''}
+                            onChange={(e) =>
+                                update(
+                                    'firebase',
+                                    (f) =>
+                                        ({
+                                            ...(f || {}),
+                                            serviceAccountJsonBase64: e.target.value,
+                                        }) as NonNullable<NotificationSettings['firebase']>
+                                )
+                            }
+                        />
+                    </div>
+
+                    <div className="flex items-center justify-end">
+                        <MyButton
+                            buttonType="primary"
+                            scale="small"
+                            onClick={handleValidateAndSaveFirebase}
+                        >
+                            Validate & Save
+                        </MyButton>
+                    </div>
                 </CardContent>
             </Card>
 

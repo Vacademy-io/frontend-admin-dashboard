@@ -35,6 +35,8 @@ type TipTapEditorProps = {
   placeholder?: string;
   minHeight?: number | string;
   className?: string;
+  // Optional: allows parent components to request insertion of raw text/HTML at the current cursor
+  insertTextRequest?: { text: string; nonce: number };
 };
 
 export function TipTapEditor({
@@ -44,6 +46,7 @@ export function TipTapEditor({
   placeholder = '',
   minHeight = 160,
   className = '',
+  insertTextRequest,
 }: TipTapEditorProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
@@ -54,6 +57,7 @@ export function TipTapEditor({
   const mediaButtonRef = useRef<HTMLButtonElement | null>(null);
   const mediaMenuRef = useRef<HTMLDivElement | null>(null);
   const [mediaMenuPos, setMediaMenuPos] = useState<{ top: number; left: number } | null>(null);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!showMediaMenu) return;
@@ -554,6 +558,19 @@ export function TipTapEditor({
     }
   }, [value, editor]);
 
+  // Allow parent to insert content (text or HTML) at the current cursor position on demand
+  useEffect(() => {
+    if (!editor) return;
+    if (!insertTextRequest || !insertTextRequest.text) return;
+    try {
+      editor.chain().focus().insertContent(insertTextRequest.text).run();
+    } catch (e) {
+      // no-op; safe failure if editor not ready
+    }
+    // Only react to nonce changes to avoid re-inserting same text unintentionally
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor, insertTextRequest?.nonce]);
+
   const insertLink = useCallback(() => {
     if (!editor) return;
     const currentAttrs = editor.getAttributes('link') as { href?: string };
@@ -672,6 +689,7 @@ export function TipTapEditor({
 
   return (
     <div
+      ref={wrapperRef}
       className={`rounded-md border bg-white shadow-sm ${className || ''}`.trim()}
       style={{ width: '100%', maxHeight: 'inherit', minHeight: 'inherit' }}
     >
@@ -717,8 +735,9 @@ export function TipTapEditor({
             {showMediaMenu && mediaMenuPos && createPortal(
               <div
                 ref={mediaMenuRef}
-                className="z-[99999] w-56 rounded border bg-white p-2 shadow"
-                style={{ position: 'fixed', top: mediaMenuPos.top, left: mediaMenuPos.left }}
+                className="w-56 rounded border bg-white p-2 shadow"
+                style={{ position: 'fixed', top: mediaMenuPos.top, left: mediaMenuPos.left, zIndex: 2147483647 }}
+                onMouseDown={(e) => { e.stopPropagation(); }}
               >
                 <div className="mb-1 text-xs font-medium text-neutral-600">Insert</div>
                 <button type="button" className="w-full rounded px-3 py-2 text-left text-sm hover:bg-neutral-100" onClick={() => { setShowMediaMenu(false); insertLink(); }}>Link…</button>
@@ -746,7 +765,7 @@ export function TipTapEditor({
                   </div>
                 </div>
               </div>,
-              document.body
+              wrapperRef.current || document.body
             )}
           </div>
           {isRecording && (
