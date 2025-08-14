@@ -221,6 +221,7 @@ const GenerateInviteLinkDialog = ({
             selectCourseForm?.reset();
             setShowSummaryDialog(false);
             setDialogOpen?.(false);
+            form.setValue('showAddPlanDialog', false);
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
