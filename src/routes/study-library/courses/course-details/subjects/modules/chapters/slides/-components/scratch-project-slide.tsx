@@ -194,7 +194,6 @@ export const ScratchProjectSlide: React.FC<ScratchProjectSlideProps> = ({
     }
 
     const embedUrl = `https://scratch.mit.edu/projects/${scratchData?.projectId}/embed`;
-    const projectUrl = `https://scratch.mit.edu/projects/${scratchData?.projectId}/`;
     const editorUrl = `https://scratch.mit.edu/projects/${scratchData?.projectId}/editor/`;
 
     const handleIframeLoad = () => {
@@ -224,7 +223,7 @@ export const ScratchProjectSlide: React.FC<ScratchProjectSlideProps> = ({
                 </div>
                 <div className="flex items-center gap-2">
                     <a
-                        href={scratchData?.scratchUrl}
+                        href={embedUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
@@ -277,13 +276,13 @@ export const ScratchProjectSlide: React.FC<ScratchProjectSlideProps> = ({
                                 <div className="space-y-2">
                                     <div className="flex gap-2">
                                         <a
-                                            href={projectUrl}
+                                            href={embedUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 py-2 text-white hover:bg-orange-700"
                                         >
                                             <ExternalLink className="size-4" />
-                                            View Project
+                                            View Project-
                                         </a>
                                         <a
                                             href={editorUrl}

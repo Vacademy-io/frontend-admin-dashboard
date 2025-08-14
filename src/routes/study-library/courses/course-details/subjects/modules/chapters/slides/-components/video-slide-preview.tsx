@@ -8,7 +8,7 @@ import { getPublicUrl } from '@/services/upload_file';
 import YouTubePlayer from './youtube-player';
 import { toast } from 'sonner';
 
-const VideoSlidePreview = ({ activeItem }: { activeItem: Slide }) => {
+const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedUrl?: string }) => {
     const { items } = useContentStore();
     const { videoSeekTime, clearVideoSeekTime } = useMediaNavigationStore();
     const videoSourceType = activeItem.video_slide?.source_type;
@@ -190,7 +190,10 @@ const VideoSlidePreview = ({ activeItem }: { activeItem: Slide }) => {
         <div key={`video-${items.length + 1}`} className="size-full">
             <YouTubePlayer
                 videoUrl={
-                    activeItem.video_slide?.published_url || activeItem.video_slide?.url || ''
+                    activeItem.video_slide?.published_url ||
+                    activeItem.video_slide?.url ||
+                    embedUrl ||
+                    ''
                 }
             />
         </div>

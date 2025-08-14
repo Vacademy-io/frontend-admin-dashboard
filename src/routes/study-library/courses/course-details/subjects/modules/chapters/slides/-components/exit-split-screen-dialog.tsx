@@ -83,7 +83,7 @@ export const ExitSplitScreenDialog: React.FC<ExitSplitScreenDialogProps> = ({
                 video_slide: {
                     id: originalVideoSlide.id,
                     description: splitScreenData.originalVideoData.description || '',
-                    embedded_data: '',
+                    embedded_data: null,
                     embedded_type: '',
                     title: splitScreenData.originalVideoData.title || '',
                     url: splitScreenData.originalVideoData.url || '',

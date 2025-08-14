@@ -179,7 +179,7 @@ export interface VideoSlidePayload {
         published_video_length_in_millis: number;
         source_type: string;
         embedded_type?: string;
-        embedded_data?: string;
+        embedded_data?: string | null;
         questions?: VideoQuestion[];
     };
     status: string;

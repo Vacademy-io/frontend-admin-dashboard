@@ -46,6 +46,7 @@ interface SplitScreenData {
         title?: string;
         description?: string;
         source_type?: string;
+        published_url?: string;
     };
     // For Jupyter
     projectName?: string;
@@ -307,7 +308,10 @@ export const SplitScreenSlide: React.FC<SplitScreenSlideProps> = ({
                         </h4>
                     </div>
                     <div className="flex-1 overflow-hidden p-4">
-                        <VideoSlidePreview activeItem={videoSlide} />
+                        <VideoSlidePreview
+                            activeItem={videoSlide}
+                            embedUrl={splitScreenData.originalVideoData?.published_url}
+                        />
                     </div>
                 </div>
             </div>
