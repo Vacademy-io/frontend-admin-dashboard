@@ -212,91 +212,13 @@ const GenerateInviteLinkDialog = ({
             });
         },
         onSuccess: () => {
+            form.setValue('showAddPlanDialog', false);
             queryClient.invalidateQueries({ queryKey: ['GET_INVITE_LINKS'] });
             toast.success('Your invite link has been created successfully!', {
                 className: 'success-toast',
                 duration: 2000,
             });
-            form.reset({
-                name: '',
-                includeInstituteLogo: false,
-                includePaymentPlans: true,
-                requireApproval: false,
-                course: '',
-                description: '',
-                learningOutcome: '',
-                aboutCourse: '',
-                targetAudience: '',
-                coursePreview: '',
-                courseBanner: '',
-                courseMedia: { type: '', id: '' },
-                coursePreviewBlob: '',
-                courseBannerBlob: '',
-                courseMediaBlob: '',
-                tags: [],
-                custom_fields: [
-                    {
-                        id: '0',
-                        type: 'textfield',
-                        name: 'Full Name',
-                        oldKey: true,
-                        isRequired: true,
-                        key: 'full_name',
-                        order: 0,
-                    },
-                    {
-                        id: '1',
-                        type: 'textfield',
-                        name: 'Email',
-                        oldKey: true,
-                        isRequired: true,
-                        key: 'email',
-                        order: 1,
-                    },
-                    {
-                        id: '2',
-                        type: 'textfield',
-                        name: 'Phone Number',
-                        oldKey: true,
-                        isRequired: true,
-                        key: 'phone_number',
-                        order: 2,
-                    },
-                ],
-                uploadingStates: {
-                    coursePreview: false,
-                    courseBanner: false,
-                    courseMedia: false,
-                },
-                youtubeUrl: '',
-                youtubeError: '',
-                showYoutubeInput: false,
-                showMediaMenu: false,
-                freePlans: [],
-                paidPlans: [],
-                showPlansDialog: false,
-                selectedPlan: {},
-                showAddPlanDialog: false,
-                showDiscountDialog: false,
-                discounts: [],
-                showAddDiscountDialog: false,
-                selectedDiscountId: 'none',
-                referralPrograms: [],
-                selectedReferralId: 'r1',
-                showReferralDialog: false,
-                showAddReferralDialog: false,
-                restrictToSameBatch: false,
-                accessDurationType: 'define',
-                accessDurationDays: '',
-                inviteeEmail: '',
-                inviteeEmails: [],
-                customHtml: '',
-                showRelatedCourses: false,
-                selectedOptionValue: 'textfield',
-                textFieldValue: '',
-                dropdownOptions: [],
-                isDialogOpen: false,
-            });
+            form.reset();
             selectCourseForm?.reset();
             setShowSummaryDialog(false);
             setDialogOpen?.(false);
