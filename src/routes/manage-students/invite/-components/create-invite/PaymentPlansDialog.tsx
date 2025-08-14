@@ -88,7 +88,7 @@ export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
                                 >
                                     <div className="flex flex-col items-start gap-3 p-4">
                                         <div className="flex items-center gap-3">
-                                            {getPaymentPlanIcon(plan.type || '')}
+                                            {getPaymentPlanIcon(plan.type?.toLowerCase() || '')}
                                             <div className="flex flex-1 flex-col font-semibold">
                                                 <span>{plan.name}</span>
                                             </div>
@@ -98,7 +98,7 @@ export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
                                                 </Badge>
                                             )}
                                         </div>
-                                        {plan.type === 'donation' ? (
+                                        {plan.type?.toLowerCase() === 'donation' ? (
                                             <div className="flex flex-col gap-2 pl-8 text-xs text-neutral-600">
                                                 <span>
                                                     Suggested Amounts:{' '}
@@ -136,7 +136,7 @@ export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
                                 >
                                     <div className="flex flex-col items-start gap-3 p-4">
                                         <div className="flex items-center gap-3">
-                                            {getPaymentPlanIcon(plan.type || '')}
+                                            {getPaymentPlanIcon(plan.type?.toLowerCase() || '')}
                                             <div className="flex flex-1 flex-col">
                                                 <span>{plan.name}</span>
                                             </div>
@@ -146,7 +146,8 @@ export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
                                                 </Badge>
                                             )}
                                         </div>
-                                        {plan.type === 'upfront' ? (
+                                        {plan.type?.toLowerCase() === 'upfront' ||
+                                        plan.type?.toLowerCase() === 'one_time' ? (
                                             <div className="flex flex-col gap-2 pl-8 text-xs text-neutral-600">
                                                 <span>
                                                     Full Price:{' '}

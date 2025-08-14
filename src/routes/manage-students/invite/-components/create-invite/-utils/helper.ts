@@ -312,9 +312,9 @@ export function splitPlansByType(data: PaymentOption[]): {
     const paidPlans: PaidPlan[] = [];
 
     data.forEach((item) => {
-        if (item.type === 'FREE' || item.type === 'free' || item.type === 'donation') {
+        if (item.type.toLowerCase() === 'free' || item.type.toLowerCase() === 'donation') {
             const parsedData = JSON.parse(item.payment_option_metadata_json);
-            if (item.type === 'donation') {
+            if (item.type.toLowerCase() === 'donation') {
                 freePlans.push({
                     id: item.id,
                     name: item.name,
@@ -338,7 +338,7 @@ export function splitPlansByType(data: PaymentOption[]): {
             }
         } else {
             const parsedData = JSON.parse(item.payment_option_metadata_json);
-            if (item.type === 'upfront') {
+            if (item.type.toLowerCase() === 'upfront' || item.type.toLowerCase() === 'one_time') {
                 paidPlans.push({
                     id: item.id,
                     name: item.name,

@@ -37,8 +37,6 @@ const PaymentPlanCard = ({ form }: DiscountSettingsDialogProps) => {
     const allFeatures = selectedPlan?.paymentOption
         ? getAllUniqueFeatures(selectedPlan.paymentOption)
         : [];
-
-    console.log(form.watch('selectedPlan'));
     return (
         <>
             {/* Payment Plan Section */}
