@@ -280,7 +280,9 @@ export function convertInviteData(
         currency: '',
         tag: '',
         learner_access_days:
-            data.selectedPlan?.type === 'subscription' ? data.accessDurationDays : null,
+            data.selectedPlan?.type?.toLowerCase() === 'subscription'
+                ? data.accessDurationDays
+                : null,
         web_page_meta_data_json: JSON.stringify(jsonMetaData),
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
@@ -390,7 +392,7 @@ export function getDefaultPlanFromPaymentsData(data: PaymentOption[]) {
             type: '',
         };
     const parsedData = JSON.parse(item.payment_option_metadata_json);
-    if (item.type === 'donation') {
+    if (item.type.toLowerCase() === 'donation') {
         return {
             id: item.id,
             name: item.name,
@@ -403,7 +405,7 @@ export function getDefaultPlanFromPaymentsData(data: PaymentOption[]) {
             currency: parsedData?.currency || '',
             type: item.type,
         };
-    } else if (item.type === 'free' || item.type === 'FREE' || item.type === 'Free') {
+    } else if (item.type.toLowerCase() === 'free') {
         return {
             id: item.id,
             name: item.name,
@@ -411,7 +413,7 @@ export function getDefaultPlanFromPaymentsData(data: PaymentOption[]) {
             days: parsedData?.freeData?.validityDays || 0,
             type: item.type,
         };
-    } else if (item.type === 'upfront') {
+    } else if (item.type.toLowerCase() === 'upfront' || item.type.toLowerCase() === 'one_time') {
         return {
             id: item.id,
             name: item.name,
@@ -459,7 +461,7 @@ export function getMatchingPaymentPlan(data: PaymentOption[], id: string) {
             type: '',
         };
     const parsedData = JSON.parse(item.payment_option_metadata_json);
-    if (item.type === 'donation') {
+    if (item.type.toLowerCase() === 'donation') {
         return {
             id: item.id,
             name: item.name,
@@ -472,7 +474,7 @@ export function getMatchingPaymentPlan(data: PaymentOption[], id: string) {
             currency: parsedData?.currency || '',
             type: item.type,
         };
-    } else if (item.type === 'free' || item.type === 'FREE' || item.type === 'Free') {
+    } else if (item.type.toLowerCase() === 'free') {
         return {
             id: item.id,
             name: item.name,
@@ -480,7 +482,7 @@ export function getMatchingPaymentPlan(data: PaymentOption[], id: string) {
             days: parsedData?.freeData?.validityDays || 0,
             type: item.type,
         };
-    } else if (item.type === 'upfront') {
+    } else if (item.type.toLowerCase() === 'upfront' || item.type.toLowerCase() === 'one_time') {
         return {
             id: item.id,
             name: item.name,
