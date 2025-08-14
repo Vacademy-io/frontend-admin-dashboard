@@ -93,6 +93,8 @@ export interface Schedule {
         duration: string;
         link: string;
         id: string;
+        thumbnailFileId: string;
+        countAttendanceDaily: boolean;
     }>;
 }
 

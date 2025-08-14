@@ -240,7 +240,7 @@ const LiveClassesWidget: React.FC<LiveClassesWidgetProps> = ({ instituteId }) =>
         e.stopPropagation();
         if (currentSession) {
             try {
-                await deleteLiveSession(currentSession.session_id, type);
+                await deleteLiveSession([currentSession.session_id], type);
                 queryClient.invalidateQueries({ queryKey: ['liveSessions', instituteId] });
                 queryClient.invalidateQueries({ queryKey: ['upcomingSessions', instituteId] });
                 setOpenDeleteDialog(false);

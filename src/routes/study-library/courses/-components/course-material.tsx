@@ -1,9 +1,9 @@
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { useEffect, useState, useMemo } from 'react';
 import { AddCourseButton } from '@/components/common/study-library/add-course/add-course-button';
-import useIntroJsTour from '@/hooks/use-intro';
-import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
-import { studyLibrarySteps } from '@/constants/intro/steps';
+// import useIntroJsTour from '@/hooks/use-intro';
+// import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
+// import { studyLibrarySteps } from '@/constants/intro/steps';
 import { CourseCatalog } from '@/svgs';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
@@ -191,11 +191,11 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
 
     // Removed getAllCoursesMutation - now using React Query directly
 
-    useIntroJsTour({
-        key: StudyLibraryIntroKey.createCourseStep,
-        steps: studyLibrarySteps.createCourseStep,
-        partial: true,
-    });
+    // useIntroJsTour({
+    //     key: StudyLibraryIntroKey.createCourseStep,
+    //     steps: studyLibrarySteps.createCourseStep,
+    //     partial: true,
+    // });
 
     const levels = useMemo(() => {
         return (

@@ -77,14 +77,21 @@ export const getLiveSessions = async (instituteId: string) => {
     return response.data;
 };
 
-export const deleteLiveSession = async (sessionId: string, type: string) => {
+export const deleteLiveSession = async (ids: string[], type: string) => {
     try {
-        const response = await authenticatedAxiosInstance.get(DELETE_LIVE_SESSION, {
-            params: {
-                sessionId,
+        const response = await authenticatedAxiosInstance.post(
+            DELETE_LIVE_SESSION,
+            {
+                ids,
                 type,
             },
-        });
+            {
+                headers: {
+                    Accept: '*/*',
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
         return response.data;
     } catch (error) {
         console.error('Error deleting live session:', error);

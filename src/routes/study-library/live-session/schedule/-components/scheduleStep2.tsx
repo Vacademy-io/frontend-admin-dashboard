@@ -32,6 +32,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useSessionDetailsStore } from '../../-store/useSessionDetailsStore';
+import { Loader2 } from 'lucide-react';
 
 const TimeOptions = [
     { label: '5 minutes before', value: '5m' },
@@ -49,6 +50,7 @@ export default function ScheduleStep2() {
     const { sessionId } = useLiveSessionStore();
     const isEditState = useLiveSessionStore((state) => state.isEdit);
     const { sessionDetails } = useSessionDetailsStore();
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const navigate = useNavigate();
 
@@ -401,27 +403,28 @@ export default function ScheduleStep2() {
     };
 
     const onSubmitClick = async (data: z.infer<typeof addParticipantsSchema>) => {
-        console.log('Submitted:', data);
-        const packageSessionIds = data.selectedLevels.map((level) => {
-            if (!instituteDetails) return '';
+        if (isSubmitting) return; // Prevent multiple submissions
 
-            console.log('level ', level);
-
-            const matchingBatch = instituteDetails.batches_for_sessions.find(
-                (batch) =>
-                    batch.package_dto.id === level.courseId &&
-                    batch.session.id === level.sessionId &&
-                    batch.level.id === level.levelId
-            );
-            console.log('matchingBatch ', matchingBatch);
-
-            return matchingBatch?.id || '';
-        });
-
-        const body = transformFormToDTOStep2(data, sessionId, packageSessionIds);
-        console.log('body ', body);
-
+        setIsSubmitting(true);
         try {
+            console.log('Submitted:', data);
+            const packageSessionIds = data.selectedLevels.map((level) => {
+                if (!instituteDetails) return '';
+
+                console.log('level ', level);
+
+                const matchingBatch = instituteDetails.batches_for_sessions.find(
+                    (batch) =>
+                        batch.package_dto.id === level.courseId &&
+                        batch.session.id === level.sessionId &&
+                        batch.level.id === level.levelId
+                );
+
+                return matchingBatch?.id || '';
+            });
+
+            const body = transformFormToDTOStep2(data, sessionId, packageSessionIds);
+
             const response = await createLiveSessionStep2(body);
             console.log('API Response:', response);
             await queryClient.invalidateQueries({ queryKey: ['liveSessions'] });
@@ -434,11 +437,12 @@ export default function ScheduleStep2() {
         } catch (error) {
             console.error('Error submitting form:', error);
             // Handle error appropriately
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     const onCustomSubmit = (data: z.infer<typeof addCustomFiledSchema>) => {
-        console.log('data ', data);
         append({
             label: data.fieldName,
             isDefault: false,
@@ -469,8 +473,17 @@ export default function ScheduleStep2() {
                 >
                     <div className="m-0 flex items-center justify-between p-0">
                         <h1>Add Participants</h1>
-                        <MyButton type="submit" scale="large" buttonType="primary">
-                            Finish
+                        <MyButton
+                            type="submit"
+                            scale="large"
+                            buttonType="primary"
+                            disable={isSubmitting}
+                        >
+                            {isSubmitting ? (
+                                <Loader2 className="animate-spin text-white" />
+                            ) : (
+                                'Create'
+                            )}
                         </MyButton>
                     </div>
                     <Separator className="my-4" />

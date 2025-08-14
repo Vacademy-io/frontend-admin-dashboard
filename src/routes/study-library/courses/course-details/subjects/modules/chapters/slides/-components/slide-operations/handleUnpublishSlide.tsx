@@ -74,9 +74,9 @@ export const handleUnpublishSlide = async (
     }
 
     if (activeItem?.source_type === 'DOCUMENT') {
-        if (activeItem.document_slide?.type === 'DOC') {
-            await SaveDraft(activeItem);
-        }
+        // if (activeItem.document_slide?.type === 'DOC') {
+        //     await SaveDraft(activeItem);
+        // }
 
         // For unpublishing, preserve the data from published_data if it exists, then fallback to data
         // This ensures we don't lose content when unpublishing published slides

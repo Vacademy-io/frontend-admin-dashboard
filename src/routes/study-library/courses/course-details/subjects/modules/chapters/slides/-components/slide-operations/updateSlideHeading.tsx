@@ -92,7 +92,7 @@ export const updateHeading = async (
                 setIsEditing(false);
                 return;
             }
-            if (activeItem.document_slide?.type == 'DOC') await SaveDraft(activeItem);
+            // if (activeItem.document_slide?.type == 'DOC') await SaveDraft(activeItem);
             await addUpdateDocumentSlide({
                 id: activeItem?.id || '',
                 title: heading,
