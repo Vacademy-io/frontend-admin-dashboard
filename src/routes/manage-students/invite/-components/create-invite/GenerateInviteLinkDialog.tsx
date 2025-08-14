@@ -212,6 +212,7 @@ const GenerateInviteLinkDialog = ({
             });
         },
         onSuccess: () => {
+            form.setValue('showAddPlanDialog', false);
             queryClient.invalidateQueries({ queryKey: ['GET_INVITE_LINKS'] });
             toast.success('Your invite link has been created successfully!', {
                 className: 'success-toast',
