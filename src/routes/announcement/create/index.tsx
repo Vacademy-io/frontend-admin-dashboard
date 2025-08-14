@@ -29,6 +29,8 @@ import { TokenKey } from '@/constants/auth/tokens';
 import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
 import useLocalStorage from '@/hooks/use-local-storage';
 import TipTapEditor from '@/components/tiptap/TipTapEditor';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Smartphone, Tablet, Laptop } from 'lucide-react';
 
 export const Route = createFileRoute('/announcement/create/')({
     component: () => (
@@ -48,6 +50,22 @@ function CreateAnnouncementPage() {
     // Minimal starter state; real UI will dynamically build this
     const [title, setTitle] = useState('');
     const [htmlContent, setHtmlContent] = useState('');
+    const [contentView, setContentView] = useState<'editor' | 'source'>('editor');
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const [previewDevice, setPreviewDevice] = useState<'mobile' | 'tablet' | 'laptop'>('laptop');
+    const DEVICE_PRESETS: Record<typeof previewDevice, { label: string; width: number }> = {
+        mobile: { label: 'Mobile', width: 390 }, // iPhone 14 width
+        tablet: { label: 'Tablet', width: 768 }, // iPad portrait
+        laptop: { label: 'Laptop', width: 1280 }, // common laptop width
+    };
+    const isFullHtmlDoc = useMemo(() => {
+        const s = htmlContent || '';
+        return (
+            /<html[\s\S]*<\/html>/i.test(s) ||
+            /<head[\s\S]*<\/head>/i.test(s) ||
+            /<body[\s\S]*<\/body>/i.test(s)
+        );
+    }, [htmlContent]);
     const [selectedModes, setSelectedModes] = useState<ModeType[]>([]);
     const [modeSettings, setModeSettings] = useState<Record<ModeType, Record<string, unknown>>>(
         {} as Record<ModeType, Record<string, unknown>>
@@ -179,17 +197,108 @@ function CreateAnnouncementPage() {
                     />
                     {errors.title && <p className="text-xs text-red-600">{errors.title}</p>}
                     <Label>Content</Label>
-                    <div
-                        className={`rounded border bg-white ${errors.content ? 'border-red-500' : 'border-transparent'}`}
-                    >
-                        <TipTapEditor
-                            value={htmlContent}
-                            onChange={setHtmlContent}
-                            onBlur={() => {}}
-                            placeholder={'Write the announcement content'}
-                            minHeight={160}
-                        />
+                    <div className="flex items-center gap-2 self-end">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setContentView('editor')}
+                            disabled={contentView === 'editor'}
+                        >
+                            Rich Editor
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setContentView('source')}
+                            disabled={contentView === 'source'}
+                        >
+                            HTML Source
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsPreviewOpen(true)}
+                            disabled={isPreviewOpen}
+                        >
+                            Preview
+                        </Button>
                     </div>
+                    {contentView === 'editor' && (
+                        <div
+                            className={`rounded border bg-white ${errors.content ? 'border-red-500' : 'border-transparent'}`}
+                        >
+                            <TipTapEditor
+                                value={htmlContent}
+                                onChange={setHtmlContent}
+                                onBlur={() => {}}
+                                placeholder={'Write the announcement content'}
+                                minHeight={160}
+                            />
+                        </div>
+                    )}
+                    {contentView === 'source' && (
+                        <Textarea
+                            value={htmlContent}
+                            onChange={(e) => setHtmlContent(e.target.value)}
+                            className={`min-h-[160px] ${errors.content ? 'border-red-500' : ''}`}
+                            placeholder="Paste or edit raw HTML for the announcement..."
+                        />
+                    )}
+                    {/* Preview Modal */}
+                    <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+                        <DialogContent className="w-[95vw] max-w-none">
+                            <DialogHeader>
+                                <DialogTitle>Preview</DialogTitle>
+                                <div className="mt-2 flex items-center gap-2">
+                                    <Button
+                                        variant={previewDevice === 'mobile' ? 'default' : 'outline'}
+                                        size="sm"
+                                        aria-pressed={previewDevice === 'mobile'}
+                                        onClick={() => setPreviewDevice('mobile')}
+                                    >
+                                        <Smartphone className="mr-1 size-3.5" /> Mobile
+                                    </Button>
+                                    <Button
+                                        variant={previewDevice === 'tablet' ? 'default' : 'outline'}
+                                        size="sm"
+                                        aria-pressed={previewDevice === 'tablet'}
+                                        onClick={() => setPreviewDevice('tablet')}
+                                    >
+                                        <Tablet className="mr-1 size-3.5" /> Tablet
+                                    </Button>
+                                    <Button
+                                        variant={previewDevice === 'laptop' ? 'default' : 'outline'}
+                                        size="sm"
+                                        aria-pressed={previewDevice === 'laptop'}
+                                        onClick={() => setPreviewDevice('laptop')}
+                                    >
+                                        <Laptop className="mr-1 size-3.5" /> Laptop
+                                    </Button>
+                                </div>
+                            </DialogHeader>
+                            <div className="flex max-h-[80vh] w-full items-center justify-center overflow-auto p-2">
+                                <div
+                                    className="mx-auto overflow-hidden rounded border bg-white shadow"
+                                    style={{
+                                        width: DEVICE_PRESETS[previewDevice].width,
+                                        height: '75vh',
+                                        transition: 'width 200ms ease',
+                                    }}
+                                >
+                                    <iframe
+                                        title="Announcement Preview"
+                                        sandbox="allow-same-origin"
+                                        className="size-full"
+                                        srcDoc={
+                                            isFullHtmlDoc
+                                                ? htmlContent
+                                                : `<!doctype html><html><head><meta charset="utf-8" /><meta name="viewport" content="width=${DEVICE_PRESETS[previewDevice].width}, initial-scale=1" /><style>*,*::before,*::after{box-sizing:border-box}body{margin:0;padding:16px;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial}img,video{max-width:100%;height:auto}.container,.ProseMirror{max-width:none!important}</style></head><body>${htmlContent}</body></html>`
+                                        }
+                                    />
+                                </div>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
                     {errors.content && <p className="text-xs text-red-600">{errors.content}</p>}
                 </section>
 
@@ -421,28 +530,9 @@ function CreateAnnouncementPage() {
                         {selectedMediums.includes('EMAIL') && (
                             <div className="rounded-md border p-4">
                                 <div className="mb-2 font-medium">Email</div>
-                                <div className="grid gap-2">
-                                    <Input
-                                        placeholder="Subject"
-                                        value={(mediumConfigs.EMAIL?.subject as string) ?? ''}
-                                        onChange={(e) =>
-                                            setMediumConfigs((prev) => ({
-                                                ...prev,
-                                                EMAIL: { ...prev.EMAIL, subject: e.target.value },
-                                            }))
-                                        }
-                                    />
-                                    <Textarea
-                                        placeholder="Body"
-                                        value={(mediumConfigs.EMAIL?.body as string) ?? ''}
-                                        onChange={(e) =>
-                                            setMediumConfigs((prev) => ({
-                                                ...prev,
-                                                EMAIL: { ...prev.EMAIL, body: e.target.value },
-                                            }))
-                                        }
-                                    />
-                                </div>
+                                <p className="text-sm text-neutral-600">
+                                    Subject and body will use the Title and Content provided above.
+                                </p>
                             </div>
                         )}
                         {selectedMediums.includes('WHATSAPP') && (
@@ -704,7 +794,14 @@ function CreateAnnouncementPage() {
                                     })),
                                     mediums: selectedMediums.map((med) => ({
                                         mediumType: med,
-                                        config: mediumConfigs[med] ?? {},
+                                        config:
+                                            med === 'EMAIL'
+                                                ? {
+                                                      ...(mediumConfigs[med] ?? {}),
+                                                      subject: title,
+                                                      body: htmlContent,
+                                                  }
+                                                : mediumConfigs[med] ?? {},
                                     })),
                                     scheduling:
                                         scheduleType === 'IMMEDIATE'

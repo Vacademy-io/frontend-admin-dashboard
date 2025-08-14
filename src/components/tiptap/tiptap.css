@@ -55,4 +55,29 @@
   pointer-events: none;
 }
 
+/* Ensure lists render bullets/numbers inside the editor even if global CSS resets them */
+.tiptap-content .ProseMirror ul {
+  list-style: disc;
+  margin-left: 1.25rem;
+  padding-left: 1.25rem;
+}
+
+.tiptap-content .ProseMirror ol {
+  list-style: decimal;
+  margin-left: 1.25rem;
+  padding-left: 1.25rem;
+}
+
+.tiptap-content .ProseMirror li {
+  display: list-item;
+}
+
+/* Blockquote visual styling */
+.tiptap-content .ProseMirror blockquote {
+  border-left: 4px solid #e5e7eb; /* neutral-200 */
+  padding-left: 0.875rem; /* 14px */
+  margin: 0.75rem 0;
+  color: #374151; /* neutral-700 */
+}
+
 
