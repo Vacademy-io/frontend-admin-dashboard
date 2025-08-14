@@ -178,24 +178,49 @@ export function Navbar() {
                                     ))}
                                 </div>
                             ) : alertsList?.content?.length ? (
-                                alertsList.content.map((item: SystemAlertItem) => (
-                                    <div
-                                        key={item.messageId}
-                                        className="rounded-md p-2 hover:bg-neutral-100"
-                                    >
-                                        <div className="text-[13px] font-medium text-neutral-800">
-                                            {item.title}
+                                alertsList.content.map((item: SystemAlertItem) => {
+                                    const sentAt = item.deliveredAt || item.createdAt;
+                                    const status = (item.status || '').toUpperCase();
+                                    const isDelivered = status === 'DELIVERED';
+                                    const isFailed = status === 'FAILED';
+                                    return (
+                                        <div
+                                            key={item.messageId}
+                                            className="rounded-md p-2 hover:bg-neutral-100"
+                                        >
+                                            <div className="flex items-start justify-between gap-2">
+                                                <div className="text-[13px] font-medium text-neutral-800">
+                                                    {item.title}
+                                                </div>
+                                                {!!status && (
+                                                    <span
+                                                        className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                                                            isDelivered
+                                                                ? 'bg-green-100 text-green-700'
+                                                                : isFailed
+                                                                  ? 'bg-red-100 text-red-700'
+                                                                  : 'bg-neutral-100 text-neutral-700'
+                                                        }`}
+                                                    >
+                                                        {status}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="line-clamp-2 text-[12px] text-neutral-600">
+                                                {item.content?.type === 'html'
+                                                    ? stripHtml(item.content?.content)
+                                                    : item.content?.content}
+                                            </div>
+                                            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-neutral-500">
+                                                <span>
+                                                    Sent by {item.createdByName || 'System'}
+                                                </span>
+                                                <span>•</span>
+                                                <span>{new Date(sentAt).toLocaleString()}</span>
+                                            </div>
                                         </div>
-                                        <div className="line-clamp-2 text-[12px] text-neutral-600">
-                                            {item.content?.type === 'html'
-                                                ? stripHtml(item.content?.content)
-                                                : item.content?.content}
-                                        </div>
-                                        <div className="mt-1 text-[11px] text-neutral-500">
-                                            {new Date(item.createdAt).toLocaleString()}
-                                        </div>
-                                    </div>
-                                ))
+                                    );
+                                })
                             ) : (
                                 <div className="p-3 text-center text-xs text-neutral-500">
                                     No alerts
@@ -216,39 +241,73 @@ export function Navbar() {
 
                 {/* See all dialog */}
                 <Dialog open={showAllDialog} onOpenChange={setShowAllDialog}>
-                    <DialogContent className="max-w-lg p-0">
-                        <DialogTitle className="px-4 py-3 text-base">System Alerts</DialogTitle>
+                    <DialogContent className="max-w-2xl p-0">
+                        <DialogTitle className="px-5 py-4 text-base">System Alerts</DialogTitle>
                         <Separator />
                         <ScrollArea className="max-h-[70vh]">
-                            <div className="p-3">
+                            <div className="p-4">
                                 {infiniteAlerts.data?.pages?.flatMap((p) => p.content).length ? (
                                     <div className="space-y-3">
                                         {infiniteAlerts.data?.pages?.map((page) =>
-                                            page.content.map((item: SystemAlertItem) => (
-                                                <div
-                                                    key={item.messageId}
-                                                    className="rounded-md border border-neutral-200 bg-white p-3"
-                                                >
-                                                    <div className="text-sm font-semibold text-neutral-800">
-                                                        {item.title}
+                                            page.content.map((item: SystemAlertItem) => {
+                                                const sentAt = item.deliveredAt || item.createdAt;
+                                                const status = (item.status || '').toUpperCase();
+                                                const isDelivered = status === 'DELIVERED';
+                                                const isFailed = status === 'FAILED';
+                                                return (
+                                                    <div
+                                                        key={item.messageId}
+                                                        className="rounded-md border border-neutral-200 bg-white p-4"
+                                                    >
+                                                        <div className="flex items-start justify-between gap-3">
+                                                            <div className="min-w-0">
+                                                                <div className="truncate text-sm font-semibold text-neutral-900">
+                                                                    {item.title}
+                                                                </div>
+                                                                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-neutral-500">
+                                                                    <span>
+                                                                        Sent by{' '}
+                                                                        {item.createdByName ||
+                                                                            'System'}
+                                                                    </span>
+                                                                    <span>•</span>
+                                                                    <span>
+                                                                        {new Date(
+                                                                            sentAt
+                                                                        ).toLocaleString()}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            {!!status && (
+                                                                <span
+                                                                    className={`shrink-0 rounded px-2 py-0.5 text-[11px] font-medium ${
+                                                                        isDelivered
+                                                                            ? 'bg-green-100 text-green-700'
+                                                                            : isFailed
+                                                                              ? 'bg-red-100 text-red-700'
+                                                                              : 'bg-neutral-100 text-neutral-700'
+                                                                    }`}
+                                                                >
+                                                                    {status}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <div className="mt-3 text-[13px] leading-relaxed text-neutral-800">
+                                                            {item.content?.type === 'html' ? (
+                                                                <div
+                                                                    className="prose prose-sm max-w-none"
+                                                                    dangerouslySetInnerHTML={{
+                                                                        __html: item.content
+                                                                            ?.content,
+                                                                    }}
+                                                                />
+                                                            ) : (
+                                                                <span>{item.content?.content}</span>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                    <div className="mt-1 text-[13px] text-neutral-700">
-                                                        {item.content?.type === 'html' ? (
-                                                            <div
-                                                                className="prose prose-sm max-w-none"
-                                                                dangerouslySetInnerHTML={{
-                                                                    __html: item.content?.content,
-                                                                }}
-                                                            />
-                                                        ) : (
-                                                            <span>{item.content?.content}</span>
-                                                        )}
-                                                    </div>
-                                                    <div className="mt-2 text-[11px] text-neutral-500">
-                                                        {new Date(item.createdAt).toLocaleString()}
-                                                    </div>
-                                                </div>
-                                            ))
+                                                );
+                                            })
                                         )}
                                         {/* Load more */}
                                         {infiniteAlerts.hasNextPage && (
