@@ -93,6 +93,7 @@ export default function NamingSettings() {
                 // First time visit - call create API with defaults and render defaults
                 try {
                     const nameRequest = createNameRequest(defaultNamingSettings);
+                    console.log('name request', nameRequest);
                     await createNamingSettings(nameRequest);
 
                     // Store defaults in localStorage after successful API call
@@ -190,6 +191,7 @@ export default function NamingSettings() {
     const contentTerms = terminologyData.filter((item) =>
         (CONTENT_TERMS as readonly string[]).includes(item.key)
     );
+    console.log('contentTerms', contentTerms, terminologyData);
     const roleTerms = terminologyData.filter((item) =>
         (ROLE_TERMS as readonly string[]).includes(item.key)
     );
