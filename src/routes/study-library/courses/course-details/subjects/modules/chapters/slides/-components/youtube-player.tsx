@@ -520,7 +520,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                     <div className="my-2">
                         <VideoSplitScreenAddDialog
                             videoSlideId={activeItem?.id || ''}
-                            isEditable={activeItem?.status !== 'PUBLISHED'}
+                            isEditable={true}
                         />
                     </div>
                 )}
