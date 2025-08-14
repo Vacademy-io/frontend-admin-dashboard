@@ -472,6 +472,148 @@ export const myColumns: ColumnDef<StudentTable>[] = [
     },
 ];
 
+export const enrollRequestColumns: ColumnDef<StudentTable>[] = [
+    {
+        id: 'checkbox',
+        size: 50,
+        minSize: 50,
+        maxSize: 50,
+        enableResizing: false,
+        enablePinning: true,
+        header: ({ table }) => (
+            <Checkbox
+                checked={table.getIsAllRowsSelected()}
+                onCheckedChange={(value) => table.toggleAllRowsSelected(!!value)}
+                className="border-neutral-400 bg-white text-neutral-600 data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
+            />
+        ),
+        cell: ({ row }) => (
+            <Checkbox
+                checked={row.getIsSelected()}
+                onCheckedChange={(value) => row.toggleSelected(!!value)}
+                className="flex size-4 items-center justify-center border-neutral-400 text-neutral-600 shadow-none data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
+            />
+        ),
+    },
+    {
+        accessorKey: 'full_name',
+        size: 200,
+        minSize: 150,
+        maxSize: 300,
+        enablePinning: true,
+        header: (props) => {
+            const meta = props.table.options.meta as CustomTableMeta;
+            return (
+                <div className="relative">
+                    <MyDropdown
+                        dropdownList={['ASC', 'DESC']}
+                        onSelect={(value) => {
+                            if (typeof value == 'string') meta.onSort?.('full_name', value);
+                        }}
+                    >
+                        <button className="flex w-full cursor-pointer items-center justify-between">
+                            <div>Name</div>
+                            <div>
+                                <CaretUpDown />
+                            </div>
+                        </button>
+                    </MyDropdown>
+                </div>
+            );
+        },
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="full_name" />,
+    },
+    {
+        accessorKey: 'email',
+        size: 200,
+        minSize: 150,
+        maxSize: 300,
+        header: 'Email',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="email" />,
+    },
+    {
+        accessorKey: 'username',
+        size: 150,
+        minSize: 100,
+        maxSize: 250,
+        header: 'Username',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="username" />,
+    },
+    {
+        accessorKey: 'password',
+        size: 150,
+        minSize: 100,
+        maxSize: 250,
+        header: 'Password',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="password" />,
+    },
+    {
+        accessorKey: 'phone',
+        size: 150,
+        minSize: 100,
+        maxSize: 250,
+        header: 'Phone',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="phone" />,
+    },
+    {
+        accessorKey: 'preferred_batch',
+        size: 150,
+        minSize: 100,
+        maxSize: 250,
+        header: 'Preferred Batch',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="preferred_batch" />,
+    },
+    {
+        accessorKey: 'payment_status',
+        size: 150,
+        minSize: 100,
+        maxSize: 250,
+        header: 'Payment Status',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="payment_status" />,
+    },
+    {
+        accessorKey: 'approval_status',
+        size: 150,
+        minSize: 100,
+        maxSize: 250,
+        header: 'Approval Status',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="approval_status" />,
+    },
+    {
+        accessorKey: 'payment_option',
+        size: 150,
+        minSize: 100,
+        maxSize: 250,
+        header: 'Payment Option',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="payment_option" />,
+    },
+    {
+        accessorKey: 'amount',
+        size: 150,
+        minSize: 100,
+        maxSize: 250,
+        header: 'Amount',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="amount" />,
+    },
+    {
+        accessorKey: 'other_custom_fields',
+        size: 150,
+        minSize: 100,
+        maxSize: 250,
+        header: 'Other Custom Fields',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="other_custom_fields" />,
+    },
+    {
+        id: 'options',
+        size: 60,
+        minSize: 50,
+        maxSize: 80,
+        enableResizing: false,
+        header: '',
+        cell: ({ row }) => <StudentMenuOptions student={row.original} />,
+    },
+];
+
 export interface ActivityLogDialogProps {
     isOpen: boolean;
     onClose: () => void;
