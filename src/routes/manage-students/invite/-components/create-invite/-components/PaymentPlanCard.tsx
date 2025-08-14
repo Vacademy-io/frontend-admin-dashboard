@@ -37,6 +37,8 @@ const PaymentPlanCard = ({ form }: DiscountSettingsDialogProps) => {
     const allFeatures = selectedPlan?.paymentOption
         ? getAllUniqueFeatures(selectedPlan.paymentOption)
         : [];
+
+    console.log(form.watch('selectedPlan'));
     return (
         <>
             {/* Payment Plan Section */}
@@ -81,7 +83,9 @@ const PaymentPlanCard = ({ form }: DiscountSettingsDialogProps) => {
                 <Card className="mb-4 flex flex-col gap-0">
                     <div className="flex flex-col items-start gap-3 p-4">
                         <div className="flex items-center gap-3">
-                            {getPaymentPlanIcon(form.watch('selectedPlan')?.type || '')}
+                            {getPaymentPlanIcon(
+                                form.watch('selectedPlan')?.type?.toLowerCase() || ''
+                            )}
                             <div className="flex flex-1 flex-col font-semibold">
                                 <span>{form.watch('selectedPlan')?.name}</span>
                             </div>
@@ -89,7 +93,7 @@ const PaymentPlanCard = ({ form }: DiscountSettingsDialogProps) => {
                                 Default
                             </Badge>
                         </div>
-                        {form.watch('selectedPlan')?.type === 'donation' && (
+                        {form.watch('selectedPlan')?.type?.toLowerCase() === 'donation' && (
                             <div className="flex flex-col gap-2 pl-8 text-xs text-neutral-600">
                                 <span>
                                     Suggested Amounts:{' '}
@@ -104,16 +108,13 @@ const PaymentPlanCard = ({ form }: DiscountSettingsDialogProps) => {
                                 <span>Currency: {form.watch('selectedPlan')?.currency}</span>
                             </div>
                         )}
-                        {(form.watch('selectedPlan')?.type === 'free' ||
-                            form.watch('selectedPlan')?.type === 'Free') && (
+                        {form.watch('selectedPlan')?.type?.toLowerCase() === 'free' && (
                             <div className="flex flex-col gap-2 pl-8 text-xs text-neutral-600">
                                 <span>Free for {form.watch('selectedPlan')?.days} days</span>
                             </div>
                         )}
-                        {(form.watch('selectedPlan')?.type === 'upfront' ||
-                            form.watch('selectedPlan')?.type === 'ONE_TIME' ||
-                            form.watch('selectedPlan')?.type === 'one_time' ||
-                            form.watch('selectedPlan')?.type === 'UPFRONT') && (
+                        {(form.watch('selectedPlan')?.type?.toLowerCase() === 'upfront' ||
+                            form.watch('selectedPlan')?.type?.toLowerCase() === 'one_time') && (
                             <div className="flex flex-col gap-4 pl-8">
                                 {form.watch('selectedPlan')?.paymentOption ? (
                                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -204,8 +205,7 @@ const PaymentPlanCard = ({ form }: DiscountSettingsDialogProps) => {
                                 )}
                             </div>
                         )}
-                        {(form.watch('selectedPlan')?.type === 'subscription' ||
-                            form.watch('selectedPlan')?.type === 'SUBSCRIPTION') && (
+                        {form.watch('selectedPlan')?.type?.toLowerCase() === 'subscription' && (
                             <div className="flex w-fit flex-wrap gap-4 pl-8">
                                 {form.watch('selectedPlan')?.paymentOption?.map((payment, idx) => {
                                     return (
