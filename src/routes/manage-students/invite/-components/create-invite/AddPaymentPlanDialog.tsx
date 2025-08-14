@@ -8,12 +8,14 @@ import { InviteLinkFormValues } from './GenerateInviteLinkSchema';
 import { UseFormReturn } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import { PaymentPlanCreator } from '@/routes/settings/-components/Payment/PaymentPlanCreator';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface PaymentPlansDialogProps {
     form: UseFormReturn<InviteLinkFormValues>;
 }
 
 const AddPaymentPlanDialog = ({ form }: PaymentPlansDialogProps) => {
+    const queryClient = useQueryClient();
     const [editingPlan, setEditingPlan] = useState<PaymentPlan | null>(null);
     const [showPaymentPlanCreator, setShowPaymentPlanCreator] = useState(
         form.watch('showAddPlanDialog')
@@ -97,6 +99,7 @@ const AddPaymentPlanDialog = ({ form }: PaymentPlansDialogProps) => {
             setEditingPlan(null);
             setShowPaymentPlanCreator(false);
             setRequireApproval(false);
+            queryClient.invalidateQueries({ queryKey: ['GET_PAYMENT_DETAILS'] });
         } catch (error) {
             handleError(error, 'save payment plan');
         } finally {
