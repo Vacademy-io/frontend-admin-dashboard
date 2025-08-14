@@ -48,6 +48,8 @@ interface ScheduleDTO {
     start_time: string;
     duration: string;
     link?: string;
+    thumbnail_file_id?: string;
+    daily_attendance?: boolean;
 }
 
 //step 2 interface
@@ -166,6 +168,8 @@ export function transformFormToDTOStep1(
                     durationHours?: string;
                     durationMinutes?: string;
                     link?: string;
+                    countAttendanceDaily?: boolean;
+                    thumbnailFileId?: string;
                 }) => {
                     const duration =
                         Number(session.durationHours) * 60 + Number(session.durationMinutes);
@@ -175,6 +179,8 @@ export function transformFormToDTOStep1(
                         start_time: session.startTime ? `${session.startTime}:00` : '',
                         duration: String(duration),
                         link: session.link || '',
+                        thumbnail_file_id: session.thumbnailFileId || '',
+                        daily_attendance: session.countAttendanceDaily || false,
                     };
 
                     if (dayBlock.id && originalScheduleMap.has(dayBlock.id)) {
