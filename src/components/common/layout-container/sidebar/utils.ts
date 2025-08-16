@@ -6,16 +6,13 @@ import {
     Globe,
     FileMagnifyingGlass,
     HeadCircuit,
-    MonitorPlay,
     ChartLineUp,
 } from '@phosphor-icons/react';
 import { SidebarItemsType } from '../../../../types/layout-container/layout-container-types';
-import { GearSix, Lightning, Notepad, NotePencil, UsersFour } from 'phosphor-react';
-import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
+import { GearSix, Lightning, NotePencil, UsersFour } from 'phosphor-react';
 import { StorageKey } from '@/constants/storage/storage';
 import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { NamingSettingsType, SettingsTabs } from '@/routes/settings/-constants/terms';
-import { getInstituteId } from '@/constants/helper';
 
 // Utility function to get naming settings from localStorage
 const getNamingSettings = (): NamingSettingsType[] => {
@@ -91,20 +88,6 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemId: 'invite',
             },
         ],
-    },
-    {
-        icon: MonitorPlay,
-        title: getTerminology(ContentTerms.LiveSession, SystemTerms.LiveSession),
-        id: 'live-classes',
-        to: '/study-library/live-session',
-        showForInstitute: HOLISTIC_INSTITUTE_ID,
-    },
-    {
-        icon: Notepad,
-        title: 'Attendance Tracker',
-        id: 'attendance-tracker',
-        to: '/study-library/attendance-tracker',
-        showForInstitute: HOLISTIC_INSTITUTE_ID,
     },
     {
         icon: BookOpen,
@@ -242,9 +225,6 @@ export const SidebarItemsData: SidebarItemsType[] = [
         icon: GearSix,
         id: 'settings',
         title: 'Settings',
-        to:
-            getInstituteId() === HOLISTIC_INSTITUTE_ID
-                ? `/settings?selectedTab=${SettingsTabs.Payment}`
-                : `/settings?selectedTab=${SettingsTabs.Tab}`,
+        to: `/settings?selectedTab=${SettingsTabs.Tab}`,
     },
 ];

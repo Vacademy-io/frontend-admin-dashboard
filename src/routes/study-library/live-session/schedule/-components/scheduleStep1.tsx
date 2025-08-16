@@ -836,7 +836,7 @@ export default function ScheduleStep1() {
                 )}
             </div>
 
-            <div className="flex h-[280px] flex-col gap-6">
+            <div className="flex h-full flex-col gap-6">
                 <div className="-mb-5 flex flex-col gap-1">
                     <h1 className="text-sm font-medium">Description</h1>
                     <p className="text-xs font-normal text-neutral-500">
