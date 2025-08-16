@@ -36,6 +36,7 @@ import { MyTable } from '@/components/design-system/table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import DeleteSessionDialog from './delete-session-dialog';
+import { getSessionJoinLink } from '../-utils/live-sesstions';
 
 interface LiveSessionCardProps {
     session: LiveSession;
@@ -62,10 +63,7 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
         error,
     } = useLiveSessionReport();
 
-    // Include allow_rewind toggle when constructing join link
-    const joinLink =
-        session.registration_form_link_for_public_sessions ||
-        `${BASE_URL_LEARNER_DASHBOARD}/register/live-class?sessionId=${session.session_id}`;
+    const joinLink = getSessionJoinLink(session);
     const formattedDateTime = `${session.meeting_date} ${session.start_time}`;
 
     const navigate = useNavigate();

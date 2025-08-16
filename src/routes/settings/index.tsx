@@ -6,7 +6,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import z from 'zod';
 import { SettingsTabs } from './-constants/terms';
-import { getInstituteId } from '@/constants/helper';
 import { getAvailableSettingsTabs } from './-utils/utils';
 
 export const settingsParamsSchema = z.object({
@@ -33,12 +32,7 @@ export const Route = createFileRoute('/settings/')({
 
 function RouteComponent() {
     const searchParams = SafeRouteSearch();
-    const instituteId = getInstituteId();
-    const [selectedTab, setSelectedTab] = useState(
-        searchParams.selectedTab ??
-            getAvailableSettingsTabs(instituteId ?? '')[0]?.tab ??
-            SettingsTabs.Tab
-    );
+    const [selectedTab, setSelectedTab] = useState(searchParams.selectedTab ?? SettingsTabs.Tab);
     const { setNavHeading } = useNavHeadingStore();
     const scrollRef = useRef<HTMLDivElement | null>(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -129,7 +123,7 @@ function RouteComponent() {
                         aria-label="Settings tabs"
                     >
                         <TabsList className="inline-flex h-auto w-max justify-start gap-4 whitespace-nowrap rounded-none border-b !bg-transparent p-0">
-                            {getAvailableSettingsTabs(instituteId ?? '').map((tab, index) => (
+                            {getAvailableSettingsTabs().map((tab, index) => (
                                 <TabsTrigger
                                     key={index}
                                     value={tab.tab}
@@ -149,7 +143,7 @@ function RouteComponent() {
                         </TabsList>
                     </div>
                 </div>
-                {getAvailableSettingsTabs(instituteId ?? '').map((tab, index) => (
+                {getAvailableSettingsTabs().map((tab, index) => (
                     <TabsContent key={index} value={tab.tab}>
                         <tab.component isTab={true} />
                     </TabsContent>
