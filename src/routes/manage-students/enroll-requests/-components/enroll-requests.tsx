@@ -5,8 +5,6 @@ import { useEffect, useRef, useState } from 'react';
 import { StudentSidebar } from '../../students-list/-components/students-list/student-side-view/student-side-view';
 import { enrollRequestColumns } from '@/components/design-system/utils/constants/table-column-data';
 import { STUDENT_LIST_COLUMN_WIDTHS } from '@/components/design-system/utils/constants/table-layout';
-import { useStudentTable } from '../../students-list/-hooks/useStudentTable';
-import { useStudentFilters } from '../../students-list/-hooks/useStudentFilters';
 import { OnChangeFn, RowSelectionState } from '@tanstack/react-table';
 import { BulkActions } from '../../students-list/-components/students-list/bulk-actions';
 import { MyPagination } from '@/components/design-system/pagination';
@@ -16,38 +14,53 @@ import { MyFilterOption } from '@/types/assessments/my-filter';
 import { Step3ParticipantsFilterButtons } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/AssessmentParticipantsList';
 import { Users } from 'phosphor-react';
 import { cn } from '@/lib/utils';
+import { getEnrollmentRequestsData } from '../-services/get-enroll-requests';
+import { useMutation } from '@tanstack/react-query';
+import { usePaginationState } from '@/hooks/pagination';
 
-export interface AssessmentParticipantsInterface {
+export interface EnrollRequestsInterface {
     name: string;
     statuses: string[];
     institute_ids: string[];
     package_session_ids: string[];
+    destination_package_session_ids: string[];
     group_ids: string[];
     gender: MyFilterOption[];
-    sort_columns: Record<string, string>; // For dynamic keys in sort_columns
+    preferred_batch: MyFilterOption[];
+    payment_statuses: MyFilterOption[];
+    approval_statuses: MyFilterOption[];
+    payment_option: MyFilterOption[];
+    custom_fields: {
+        [key: string]: string[];
+    };
+    sort_columns: {
+        [key: string]: string;
+    };
 }
 
 export const EnrollRequests = () => {
-    const [selectedFilter, setSelectedFilter] = useState<AssessmentParticipantsInterface>({
+    const { page, handlePageChange } = usePaginationState({
+        initialPage: 0,
+        initialPageSize: 10,
+    });
+
+    const [selectedFilter, setSelectedFilter] = useState<EnrollRequestsInterface>({
         name: '',
-        statuses: [],
+        statuses: ['INVITED', 'PENDING_FOR_APPROVAL'],
         institute_ids: [],
         package_session_ids: [],
+        destination_package_session_ids: [],
         group_ids: [],
         gender: [],
+        preferred_batch: [],
+        payment_statuses: [],
+        approval_statuses: [],
+        payment_option: [],
+        custom_fields: {},
         sort_columns: {},
     });
     const [searchText, setSearchText] = useState('');
     const [allPagesData, setAllPagesData] = useState<Record<number, StudentTable[]>>({});
-    const { appliedFilters, setAppliedFilters } = useStudentFilters();
-    const {
-        studentTableData,
-        isLoading: loadingData,
-        error: loadingError,
-        page,
-        handleSort,
-        handlePageChange,
-    } = useStudentTable(appliedFilters, setAppliedFilters, null);
 
     const [rowSelections, setRowSelections] = useState<Record<number, Record<string, boolean>>>({});
     const currentPageSelection = rowSelections[page] || {};
@@ -57,6 +70,24 @@ export const EnrollRequests = () => {
         (count, pageSelection) => count + Object.keys(pageSelection).length,
         0
     );
+
+    const getEnrollmentRequestsDataMutation = useMutation({
+        mutationFn: ({
+            pageNo,
+            pageSize,
+            selectedFilter,
+        }: {
+            pageNo: number;
+            pageSize: number;
+            selectedFilter: EnrollRequestsInterface;
+        }) => getEnrollmentRequestsData({ pageNo, pageSize, requestBody: selectedFilter }),
+        onSuccess: (data) => {
+            setAllPagesData(data.content);
+        },
+        onError: (error: unknown) => {
+            throw error;
+        },
+    });
 
     const getSelectedStudents = (): StudentTable[] => {
         return Object.entries(rowSelections).flatMap(([pageNum, selections]) => {
@@ -115,13 +146,18 @@ export const EnrollRequests = () => {
     };
 
     useEffect(() => {
-        if (studentTableData?.content) {
-            setAllPagesData((prev) => ({
-                ...prev,
-                [page]: studentTableData.content,
-            }));
-        }
-    }, [studentTableData?.content, page]);
+        const timeoutId = setTimeout(() => {
+            getEnrollmentRequestsDataMutation.mutate({
+                pageNo: page,
+                pageSize: 10,
+                selectedFilter,
+            });
+        }, 0);
+
+        return () => {
+            clearTimeout(timeoutId);
+        };
+    }, []);
 
     return (
         <div className="flex w-full flex-col gap-10 text-neutral-600">
@@ -149,26 +185,34 @@ export const EnrollRequests = () => {
                         <ScheduleTestFilters
                             label="Preferred Batch"
                             data={[]}
-                            selectedItems={selectedFilter['gender'] || []}
-                            onSelectionChange={(items) => handleFilterChange('gender', items)}
+                            selectedItems={selectedFilter['preferred_batch'] || []}
+                            onSelectionChange={(items) =>
+                                handleFilterChange('preferred_batch', items)
+                            }
                         />
                         <ScheduleTestFilters
                             label="Payment Status"
                             data={[]}
-                            selectedItems={selectedFilter['gender'] || []}
-                            onSelectionChange={(items) => handleFilterChange('gender', items)}
+                            selectedItems={selectedFilter['payment_statuses'] || []}
+                            onSelectionChange={(items) =>
+                                handleFilterChange('payment_statuses', items)
+                            }
                         />
                         <ScheduleTestFilters
                             label="Approval Status"
                             data={[]}
-                            selectedItems={selectedFilter['gender'] || []}
-                            onSelectionChange={(items) => handleFilterChange('gender', items)}
+                            selectedItems={selectedFilter['approval_statuses'] || []}
+                            onSelectionChange={(items) =>
+                                handleFilterChange('approval_statuses', items)
+                            }
                         />
                         <ScheduleTestFilters
                             label="Payment Option"
                             data={[]}
-                            selectedItems={selectedFilter['gender'] || []}
-                            onSelectionChange={(items) => handleFilterChange('gender', items)}
+                            selectedItems={selectedFilter['payment_option'] || []}
+                            onSelectionChange={(items) =>
+                                handleFilterChange('payment_option', items)
+                            }
                         />
                     </div>
                     <Step3ParticipantsFilterButtons
@@ -196,9 +240,6 @@ export const EnrollRequests = () => {
                                     last: false,
                                 }}
                                 columns={enrollRequestColumns}
-                                isLoading={loadingData}
-                                error={loadingError}
-                                onSort={handleSort}
                                 columnWidths={STUDENT_LIST_COLUMN_WIDTHS}
                                 rowSelection={currentPageSelection}
                                 onRowSelectionChange={handleRowSelectionChange}
@@ -226,7 +267,7 @@ export const EnrollRequests = () => {
                     <div className="flex justify-center lg:justify-end">
                         <MyPagination
                             currentPage={page}
-                            totalPages={studentTableData?.total_pages || 1}
+                            totalPages={1}
                             onPageChange={handlePageChange}
                         />
                     </div>
