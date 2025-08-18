@@ -133,7 +133,18 @@ export const EnrollRequests = () => {
         setSelectedFilter((prevFilter) => ({
             ...prevFilter,
             name: '',
+            statuses: ['INVITED', 'PENDING_FOR_APPROVAL'],
+            institute_ids: [],
+            package_session_ids: [],
+            destination_package_session_ids: [],
+            group_ids: [],
             gender: [],
+            preferred_batch: [],
+            payment_statuses: [],
+            approval_statuses: [],
+            payment_option: [],
+            custom_fields: {},
+            sort_columns: {},
         }));
         setSearchText('');
     };
@@ -230,6 +241,8 @@ export const EnrollRequests = () => {
                             open={isSidebarOpen}
                             onOpenChange={setIsSidebarOpen}
                         >
+                            {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+                            {/* @ts-expect-error */}
                             <MyTable<StudentTable>
                                 data={{
                                     content: [],
