@@ -5,6 +5,7 @@ import { BulkActionInfo } from '@/routes/manage-students/students-list/-types/bu
 
 interface DialogStore {
     isDeleteOpen: boolean;
+    isIndividualShareCredentialsOpen: boolean;
     isShareCredentialsOpen: boolean;
     isSendMessageOpen: boolean;
     isSendEmailOpen: boolean;
@@ -35,6 +36,7 @@ interface DialogStore {
 
 export const useEnrollRequestsDialogStore = create<DialogStore>((set) => ({
     isDeleteOpen: false,
+    isIndividualShareCredentialsOpen: false,
     isShareCredentialsOpen: false,
     isSendMessageOpen: false,
     isSendEmailOpen: false,
@@ -53,7 +55,7 @@ export const useEnrollRequestsDialogStore = create<DialogStore>((set) => ({
         }),
     openIndividualShareCredentialsDialog: (student) =>
         set({
-            isShareCredentialsOpen: true,
+            isIndividualShareCredentialsOpen: true,
             selectedStudent: student,
             isBulkAction: false,
         }),

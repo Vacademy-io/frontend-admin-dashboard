@@ -179,6 +179,8 @@ export const StudentsListSection = () => {
             const pageData = allPagesData[parseInt(pageNum)];
             if (!pageData) return [];
 
+            console.log(pageData);
+
             return Object.entries(selections)
                 .filter(([, isSelected]) => isSelected)
                 .map(([index]) => pageData[parseInt(index)])

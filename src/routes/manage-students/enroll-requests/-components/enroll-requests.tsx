@@ -18,6 +18,10 @@ import { useMutation } from '@tanstack/react-query';
 import { usePaginationState } from '@/hooks/pagination';
 import { getInstituteId } from '@/constants/helper';
 import { EnrollRequestsBulkActions } from './bulk-actions/enroll-requests-bulk-actions';
+import { IndividualShareCredentialsDialog } from './bulk-actions/bulk-actions-component/individual-share-credentials-dialog';
+import { CollectiveShareCredentialsDialog } from './bulk-actions/bulk-actions-component/collective-share-credentials';
+import { SendMessageDialog } from './bulk-actions/bulk-actions-component/send-message-dialog';
+import { SendEmailDialog } from './bulk-actions/bulk-actions-component/send-email-dialog';
 
 export interface EnrollRequestsInterface {
     name: string;
@@ -71,6 +75,14 @@ export const EnrollRequests = () => {
         last: false,
     });
 
+    const [studentTableData, setStudentTableData] = useState({
+        content: [],
+        total_pages: 0,
+        page_no: 0,
+        page_size: 0,
+        total_elements: 0,
+        last: false,
+    });
     const [rowSelections, setRowSelections] = useState<Record<number, Record<string, boolean>>>({});
     const currentPageSelection = rowSelections[page] || {};
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -91,7 +103,7 @@ export const EnrollRequests = () => {
             selectedFilter: EnrollRequestsInterface;
         }) => getEnrollmentRequestsData({ pageNo, pageSize, requestBody: selectedFilter }),
         onSuccess: (data) => {
-            setAllPagesData(data);
+            setStudentTableData(data);
         },
         onError: (error: unknown) => {
             throw error;
@@ -100,7 +112,9 @@ export const EnrollRequests = () => {
 
     const getSelectedStudents = (): StudentTable[] => {
         return Object.entries(rowSelections).flatMap(([pageNum, selections]) => {
-            const pageData = allPagesData.content[parseInt(pageNum)];
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            const pageData = allPagesData[parseInt(pageNum)];
             if (!pageData) return [];
 
             return Object.entries(selections)
@@ -215,6 +229,15 @@ export const EnrollRequests = () => {
         };
     }, []);
 
+    useEffect(() => {
+        if (studentTableData?.content) {
+            setAllPagesData((prev) => ({
+                ...prev,
+                [page]: studentTableData.content,
+            }));
+        }
+    }, [studentTableData?.content, page]);
+
     return (
         <div className="flex w-full flex-col gap-10 text-neutral-600">
             <div className="animate-slideInRight flex flex-col gap-4">
@@ -289,7 +312,21 @@ export const EnrollRequests = () => {
                             {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
                             {/* @ts-expect-error */}
                             <MyTable<StudentTable>
-                                data={allPagesData}
+                                data={{
+                                    content: studentTableData.content.map((student) => ({
+                                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                        // @ts-expect-error
+                                        ...student,
+                                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                        // @ts-expect-error
+                                        id: student.user_id,
+                                    })),
+                                    total_pages: studentTableData.total_pages,
+                                    page_no: studentTableData.page_no,
+                                    page_size: studentTableData.page_size,
+                                    total_elements: studentTableData.total_elements,
+                                    last: studentTableData.last,
+                                }}
                                 columns={enrollRequestColumns}
                                 columnWidths={STUDENT_LIST_COLUMN_WIDTHS}
                                 rowSelection={currentPageSelection}
@@ -323,6 +360,10 @@ export const EnrollRequests = () => {
                         />
                     </div>
                 </div>
+                <CollectiveShareCredentialsDialog />
+                <IndividualShareCredentialsDialog />
+                <SendMessageDialog />
+                <SendEmailDialog />
             </div>
         </div>
     );
