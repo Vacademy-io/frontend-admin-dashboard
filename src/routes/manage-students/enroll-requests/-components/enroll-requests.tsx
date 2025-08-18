@@ -22,6 +22,9 @@ import { IndividualShareCredentialsDialog } from './bulk-actions/bulk-actions-co
 import { CollectiveShareCredentialsDialog } from './bulk-actions/bulk-actions-component/collective-share-credentials';
 import { SendMessageDialog } from './bulk-actions/bulk-actions-component/send-message-dialog';
 import { SendEmailDialog } from './bulk-actions/bulk-actions-component/send-email-dialog';
+import { AcceptRequestDialog } from './bulk-actions/bulk-actions-component/accept-request-dialog';
+import { DeclineRequestDialog } from './bulk-actions/bulk-actions-component/decline-request-dialog';
+import { SendMessageDialogIndividual } from './bulk-actions/bulk-actions-component/send-message-dialog-individual';
 
 export interface EnrollRequestsInterface {
     name: string;
@@ -363,7 +366,10 @@ export const EnrollRequests = () => {
                 <CollectiveShareCredentialsDialog />
                 <IndividualShareCredentialsDialog />
                 <SendMessageDialog />
+                <SendMessageDialogIndividual />
                 <SendEmailDialog />
+                <AcceptRequestDialog />
+                <DeclineRequestDialog />
             </div>
         </div>
     );

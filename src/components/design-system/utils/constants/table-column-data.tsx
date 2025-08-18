@@ -15,6 +15,7 @@ import { LogDetailsDialog } from '@/components/common/student-slide-tracking/log
 import { useStudentSidebar } from '@/routes/manage-students/students-list/-context/selected-student-sidebar-context';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { EnrollRequestsStudentMenuOptions } from '@/routes/manage-students/enroll-requests/-components/bulk-actions/enroll-request-individual-options';
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -610,7 +611,7 @@ export const enrollRequestColumns: ColumnDef<StudentTable>[] = [
         maxSize: 80,
         enableResizing: false,
         header: '',
-        cell: ({ row }) => <StudentMenuOptions student={row.original} />,
+        cell: ({ row }) => <EnrollRequestsStudentMenuOptions student={row.original} />,
     },
 ];
 

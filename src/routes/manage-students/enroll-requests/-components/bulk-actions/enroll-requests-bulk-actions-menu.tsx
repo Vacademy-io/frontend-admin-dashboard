@@ -51,7 +51,7 @@ export const EnrollRequestsBulkActionsMenu = ({
             case 'Send Email':
                 openBulkSendEmailDialog(bulkActionInfo);
                 break;
-            case 'Aceept Request':
+            case 'Accept Request':
                 openBulkAcceptRequestDialog(bulkActionInfo);
                 break;
             case 'Decline Request':

@@ -125,9 +125,12 @@ export const useEnrollRequestsDialogStore = create<DialogStore>((set) => ({
     closeAllDialogs: () =>
         set({
             isDeleteOpen: false,
+            isIndividualShareCredentialsOpen: false,
             isShareCredentialsOpen: false,
             isSendMessageOpen: false,
             isSendEmailOpen: false,
+            isAcceptRequestOpen: false,
+            isDeclineRequestOpen: false,
             selectedStudent: null,
             bulkActionInfo: null,
             isBulkAction: false,
