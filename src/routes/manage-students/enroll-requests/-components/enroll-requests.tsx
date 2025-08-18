@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { getEnrollmentRequestsData } from '../-services/get-enroll-requests';
 import { useMutation } from '@tanstack/react-query';
 import { usePaginationState } from '@/hooks/pagination';
+import { getInstituteId } from '@/constants/helper';
 
 export interface EnrollRequestsInterface {
     name: string;
@@ -39,6 +40,7 @@ export interface EnrollRequestsInterface {
 }
 
 export const EnrollRequests = () => {
+    const instituteId = getInstituteId();
     const { page, handlePageChange } = usePaginationState({
         initialPage: 0,
         initialPageSize: 10,
@@ -47,7 +49,7 @@ export const EnrollRequests = () => {
     const [selectedFilter, setSelectedFilter] = useState<EnrollRequestsInterface>({
         name: '',
         statuses: ['INVITED', 'PENDING_FOR_APPROVAL'],
-        institute_ids: [],
+        institute_ids: [instituteId!],
         package_session_ids: [],
         destination_package_session_ids: [],
         group_ids: [],
@@ -60,7 +62,14 @@ export const EnrollRequests = () => {
         sort_columns: {},
     });
     const [searchText, setSearchText] = useState('');
-    const [allPagesData, setAllPagesData] = useState<Record<number, StudentTable[]>>({});
+    const [allPagesData, setAllPagesData] = useState({
+        content: [],
+        total_pages: 0,
+        page_no: 0,
+        page_size: 0,
+        total_elements: 0,
+        last: false,
+    });
 
     const [rowSelections, setRowSelections] = useState<Record<number, Record<string, boolean>>>({});
     const currentPageSelection = rowSelections[page] || {};
@@ -82,7 +91,7 @@ export const EnrollRequests = () => {
             selectedFilter: EnrollRequestsInterface;
         }) => getEnrollmentRequestsData({ pageNo, pageSize, requestBody: selectedFilter }),
         onSuccess: (data) => {
-            setAllPagesData(data.content);
+            setAllPagesData(data);
         },
         onError: (error: unknown) => {
             throw error;
@@ -91,13 +100,13 @@ export const EnrollRequests = () => {
 
     const getSelectedStudents = (): StudentTable[] => {
         return Object.entries(rowSelections).flatMap(([pageNum, selections]) => {
-            const pageData = allPagesData[parseInt(pageNum)];
+            const pageData = allPagesData.content[parseInt(pageNum)];
             if (!pageData) return [];
 
             return Object.entries(selections)
                 .filter(([, isSelected]) => isSelected)
                 .map(([index]) => pageData[parseInt(index)])
-                .filter((student): student is StudentTable => student !== undefined);
+                .filter((student) => student !== undefined);
         });
     };
 
@@ -123,10 +132,26 @@ export const EnrollRequests = () => {
 
     const handleSearch = (searchValue: string) => {
         setSearchText(searchValue);
+        getEnrollmentRequestsDataMutation.mutate({
+            pageNo: page,
+            pageSize: 10,
+            selectedFilter: {
+                ...selectedFilter,
+                name: searchValue,
+            },
+        });
     };
 
     const clearSearch = () => {
         setSearchText('');
+        getEnrollmentRequestsDataMutation.mutate({
+            pageNo: page,
+            pageSize: 10,
+            selectedFilter: {
+                ...selectedFilter,
+                name: '',
+            },
+        });
     };
 
     const handleResetFilters = () => {
@@ -147,6 +172,26 @@ export const EnrollRequests = () => {
             sort_columns: {},
         }));
         setSearchText('');
+        getEnrollmentRequestsDataMutation.mutate({
+            pageNo: page,
+            pageSize: 10,
+            selectedFilter: {
+                ...selectedFilter,
+                name: '',
+                statuses: ['INVITED', 'PENDING_FOR_APPROVAL'],
+                institute_ids: [],
+                package_session_ids: [],
+                destination_package_session_ids: [],
+                group_ids: [],
+                gender: [],
+                preferred_batch: [],
+                payment_statuses: [],
+                approval_statuses: [],
+                payment_option: [],
+                custom_fields: {},
+                sort_columns: {},
+            },
+        });
     };
 
     const handleFilterChange = (filterKey: string, selectedItems: MyFilterOption[]) => {
@@ -192,7 +237,7 @@ export const EnrollRequests = () => {
                         clearSearch={clearSearch}
                         placeholderText="Search by name, enroll..."
                     />
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-4">
                         <ScheduleTestFilters
                             label="Preferred Batch"
                             data={[]}
@@ -244,14 +289,7 @@ export const EnrollRequests = () => {
                             {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
                             {/* @ts-expect-error */}
                             <MyTable<StudentTable>
-                                data={{
-                                    content: [],
-                                    total_pages: 0,
-                                    page_no: 0,
-                                    page_size: 0,
-                                    total_elements: 0,
-                                    last: false,
-                                }}
+                                data={allPagesData}
                                 columns={enrollRequestColumns}
                                 columnWidths={STUDENT_LIST_COLUMN_WIDTHS}
                                 rowSelection={currentPageSelection}
