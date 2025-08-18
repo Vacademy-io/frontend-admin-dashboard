@@ -548,12 +548,12 @@ export const enrollRequestColumns: ColumnDef<StudentTable>[] = [
         cell: ({ row }) => <CreateClickableCell row={row} columnId="password" />,
     },
     {
-        accessorKey: 'phone',
+        accessorKey: 'mobile_number',
         size: 150,
         minSize: 100,
         maxSize: 250,
         header: 'Phone',
-        cell: ({ row }) => <CreateClickableCell row={row} columnId="phone" />,
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="mobile_number" />,
     },
     {
         accessorKey: 'preferred_batch',

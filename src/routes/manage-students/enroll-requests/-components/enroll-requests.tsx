@@ -6,7 +6,6 @@ import { StudentSidebar } from '../../students-list/-components/students-list/st
 import { enrollRequestColumns } from '@/components/design-system/utils/constants/table-column-data';
 import { STUDENT_LIST_COLUMN_WIDTHS } from '@/components/design-system/utils/constants/table-layout';
 import { OnChangeFn, RowSelectionState } from '@tanstack/react-table';
-import { BulkActions } from '../../students-list/-components/students-list/bulk-actions';
 import { MyPagination } from '@/components/design-system/pagination';
 import { AssessmentDetailsSearchComponent } from '@/routes/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/-components/SearchComponent';
 import { ScheduleTestFilters } from '@/routes/assessment/assessment-list/-components/ScheduleTestFilters';
@@ -18,6 +17,7 @@ import { getEnrollmentRequestsData } from '../-services/get-enroll-requests';
 import { useMutation } from '@tanstack/react-query';
 import { usePaginationState } from '@/hooks/pagination';
 import { getInstituteId } from '@/constants/helper';
+import { EnrollRequestsBulkActions } from './bulk-actions/enroll-requests-bulk-actions';
 
 export interface EnrollRequestsInterface {
     name: string;
@@ -309,7 +309,7 @@ export const EnrollRequests = () => {
 
                 {/* Enhanced footer with bulk actions and pagination */}
                 <div className="flex flex-col justify-between gap-4 rounded-lg border border-neutral-200/50 bg-gradient-to-r from-neutral-50/50 to-white p-4 lg:flex-row lg:items-center">
-                    <BulkActions
+                    <EnrollRequestsBulkActions
                         selectedCount={totalSelectedCount}
                         selectedStudentIds={getSelectedStudentIds()}
                         selectedStudents={getSelectedStudents()}
