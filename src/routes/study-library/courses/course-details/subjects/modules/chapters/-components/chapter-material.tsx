@@ -12,9 +12,9 @@ import { getChaptersByModuleId } from '@/utils/helpers/study-library-helpers.ts/
 import { useRouter } from '@tanstack/react-router';
 import { orderChapterPayloadType } from '@/routes/study-library/courses/-types/order-payload';
 import { useUpdateChapterOrder } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/-services/update-chapter-order';
-import useIntroJsTour from '@/hooks/use-intro';
-import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
-import { studyLibrarySteps } from '@/constants/intro/steps';
+// import useIntroJsTour from '@/hooks/use-intro';
+// import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
+// import { studyLibrarySteps } from '@/constants/intro/steps';
 import { useDeleteChapter } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/-services/delete-chapter';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { toast } from 'sonner';
@@ -43,10 +43,10 @@ export const ChapterMaterial = ({ currentModuleId }: { currentModuleId: string }
         },
     });
 
-    useIntroJsTour({
-        key: StudyLibraryIntroKey.addChaptersStep,
-        steps: studyLibrarySteps.addChaptersStep,
-    });
+    // useIntroJsTour({
+    //     key: StudyLibraryIntroKey.addChaptersStep,
+    //     steps: studyLibrarySteps.addChaptersStep,
+    // });
 
     const handleDeleteChapter = async ({ chapter }: { chapter: ChapterWithSlides }) => {
         const packageSessionId = getPackageSessionId({

@@ -433,7 +433,7 @@ export const SlideMaterial = ({
                         }
                         isEditable={activeItem.status !== 'PUBLISHED'}
                         currentSlideId={activeItem.id}
-                        onDataChange={(updatedSplitData) => {
+                        onDataChange={async (updatedSplitData) => {
                             // Update split-screen data locally and handle title changes
                             const projectName =
                                 updatedSplitData.projectName || updatedSplitData.name;
@@ -443,6 +443,58 @@ export const SlideMaterial = ({
                                 splitScreenData: updatedSplitData,
                             };
                             setActiveItem(updatedSlide as any);
+
+                            // Auto-save to backend for split-screen video slides
+                            try {
+                                const splitData = updatedSplitData as any;
+                                const originalVideoData = splitData?.originalVideoData || {};
+
+                                // Use the original video slide ID if available, otherwise use the slide ID
+                                const originalVideoSlide = (activeItem as any).originalVideoSlide;
+                                const videoSlideId =
+                                    originalVideoSlide?.id ||
+                                    originalVideoData.id ||
+                                    activeItem.video_slide?.id ||
+                                    crypto.randomUUID();
+
+                                const videoSlidePayload = {
+                                    id: activeItem.id,
+                                    title: String(projectName || activeItem.title || ''),
+                                    description: activeItem.description || '',
+                                    image_file_id: activeItem.image_file_id || '',
+                                    slide_order: activeItem.slide_order,
+                                    video_slide: {
+                                        id: videoSlideId,
+                                        description:
+                                            originalVideoData.description ||
+                                            activeItem.description ||
+                                            '',
+                                        title: String(projectName || activeItem.title || ''),
+                                        url: originalVideoData.url || '',
+                                        video_length_in_millis:
+                                            originalVideoData.video_length_in_millis || 0,
+                                        published_url:
+                                            originalVideoData.published_url ||
+                                            originalVideoData.url ||
+                                            '',
+                                        published_video_length_in_millis:
+                                            originalVideoData.published_video_length_in_millis || 0,
+                                        source_type: originalVideoData.source_type || 'VIDEO',
+                                        embedded_type: splitData?.splitType || 'SCRATCH',
+                                        embedded_data: JSON.stringify(splitData || {}),
+                                        questions: (originalVideoData.questions as any) || [],
+                                    },
+                                    status: activeItem.status,
+                                    new_slide: false,
+                                    notify: false,
+                                };
+
+                                await addUpdateVideoSlide(videoSlidePayload);
+                                toast.success('Split screen project saved successfully!');
+                            } catch (error) {
+                                console.error('Error auto-saving split screen data:', error);
+                                toast.error('Failed to save split screen data automatically');
+                            }
                         }}
                     />
                 );

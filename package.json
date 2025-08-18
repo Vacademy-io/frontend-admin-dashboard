@@ -203,7 +203,7 @@
         "pptxgenjs": "^3.12.0",
         "prismjs": "^1.30.0",
         "pwacompat": "2.0.17",
-        "pyodide": "^0.28.0",
+        "pyodide": "0.28.0",
         "qr-code-styling": "^1.9.2",
         "qrcode.react": "^4.2.0",
         "quill": "^2.0.3",

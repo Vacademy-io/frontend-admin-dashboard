@@ -58,6 +58,10 @@ export const updateHeading = async (
                     published_video_length_in_millis:
                         activeItem?.video_slide?.published_video_length_in_millis || 0,
                     source_type: activeItem?.video_slide?.source_type || '',
+                    // Preserve embedded fields for split-screen slides
+                    embedded_type: activeItem?.video_slide?.embedded_type || '',
+                    embedded_data: activeItem?.video_slide?.embedded_data || null,
+                    questions: activeItem?.video_slide?.questions || [],
                 },
                 status: status,
                 new_slide: false,
