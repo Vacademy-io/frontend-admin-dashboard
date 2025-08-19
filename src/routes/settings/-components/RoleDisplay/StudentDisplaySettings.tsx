@@ -13,11 +13,10 @@ import {
 } from '@/components/ui/select';
 import type {
     StudentDisplaySettingsData,
-    StudentSidebarTabConfig,
-    StudentDashboardWidgetConfig,
     StudentCourseDetailsTabId,
     StudentAllCoursesTabId,
     OutlineMode,
+    StudentDefaultProvider,
 } from '@/types/student-display-settings';
 import {
     getStudentDisplaySettings,
@@ -527,12 +526,12 @@ export default function StudentDisplaySettings(): JSX.Element {
                         <Label className="text-xs">Default Provider</Label>
                         <Select
                             value={settings.signup.providers.defaultProvider}
-                            onValueChange={(v) =>
+                            onValueChange={(v: string) =>
                                 update('signup', {
                                     ...settings.signup,
                                     providers: {
                                         ...settings.signup.providers,
-                                        defaultProvider: v as any,
+                                        defaultProvider: v as StudentDefaultProvider,
                                     },
                                 })
                             }
@@ -683,8 +682,49 @@ export default function StudentDisplaySettings(): JSX.Element {
                         <Label className="text-xs">Ratings & Reviews Visible</Label>
                     </div>
 
+                    {/* General visibility toggles */}
+                    <div className="flex items-center gap-2">
+                        <Switch
+                            checked={settings.courseDetails.showCourseConfiguration}
+                            onCheckedChange={(v) =>
+                                update('courseDetails', {
+                                    ...settings.courseDetails,
+                                    showCourseConfiguration: v,
+                                })
+                            }
+                        />
+                        <Label className="text-xs">Show Course Configuration</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Switch
+                            checked={settings.courseDetails.showCourseContentPrefixes}
+                            onCheckedChange={(v) =>
+                                update('courseDetails', {
+                                    ...settings.courseDetails,
+                                    showCourseContentPrefixes: v,
+                                })
+                            }
+                        />
+                        <Label className="text-xs">Show Course Content Prefixes</Label>
+                    </div>
+
                     {/* Course Overview / Slides View */}
                     <div className="flex flex-wrap items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            <Switch
+                                checked={settings.courseDetails.courseOverview.visible}
+                                onCheckedChange={(v) =>
+                                    update('courseDetails', {
+                                        ...settings.courseDetails,
+                                        courseOverview: {
+                                            ...settings.courseDetails.courseOverview,
+                                            visible: v,
+                                        },
+                                    })
+                                }
+                            />
+                            <Label className="text-xs">Course Overview Visible</Label>
+                        </div>
                         <div className="flex items-center gap-2">
                             <Switch
                                 checked={settings.courseDetails.courseOverview.showSlidesData}
@@ -729,6 +769,21 @@ export default function StudentDisplaySettings(): JSX.Element {
                                 }
                             />
                             <Label className="text-xs">Feedback Visible</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Switch
+                                checked={settings.courseDetails.slidesView.canAskDoubt}
+                                onCheckedChange={(v) =>
+                                    update('courseDetails', {
+                                        ...settings.courseDetails,
+                                        slidesView: {
+                                            ...settings.courseDetails.slidesView,
+                                            canAskDoubt: v,
+                                        },
+                                    })
+                                }
+                            />
+                            <Label className="text-xs">Can Ask Doubt</Label>
                         </div>
                     </div>
                 </div>
@@ -799,6 +854,51 @@ export default function StudentDisplaySettings(): JSX.Element {
                                 <SelectItem value="AllCourses">AllCourses</SelectItem>
                             </SelectContent>
                         </Select>
+                    </div>
+                </div>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Notifications</CardTitle>
+                    <CardDescription>Student notifications preferences</CardDescription>
+                </CardHeader>
+                <div className="space-y-2 p-4 pt-0">
+                    <div className="flex items-center gap-2">
+                        <Switch
+                            checked={settings.notifications.allowSystemAlerts}
+                            onCheckedChange={(v) =>
+                                update('notifications', {
+                                    ...settings.notifications,
+                                    allowSystemAlerts: v,
+                                })
+                            }
+                        />
+                        <Label className="text-xs">Allow System Alerts</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Switch
+                            checked={settings.notifications.allowDashboardPins}
+                            onCheckedChange={(v) =>
+                                update('notifications', {
+                                    ...settings.notifications,
+                                    allowDashboardPins: v,
+                                })
+                            }
+                        />
+                        <Label className="text-xs">Allow Dashboard Pins</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Switch
+                            checked={settings.notifications.allowBatchStream}
+                            onCheckedChange={(v) =>
+                                update('notifications', {
+                                    ...settings.notifications,
+                                    allowBatchStream: v,
+                                })
+                            }
+                        />
+                        <Label className="text-xs">Allow Batch Stream</Label>
                     </div>
                 </div>
             </Card>
