@@ -497,6 +497,15 @@ export const enrollRequestColumns: ColumnDef<StudentTable>[] = [
         ),
     },
     {
+        id: 'details',
+        size: 80,
+        minSize: 60,
+        maxSize: 120,
+        enablePinning: true,
+        header: 'Details',
+        cell: ({ row }) => <DetailsCell row={row} />,
+    },
+    {
         accessorKey: 'full_name',
         size: 200,
         minSize: 150,

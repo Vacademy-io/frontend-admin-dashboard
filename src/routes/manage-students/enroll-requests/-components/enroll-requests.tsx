@@ -341,6 +341,7 @@ export const EnrollRequests = () => {
                                     selectedTab={'ENDED,PENDING,LIVE'}
                                     examType={'EXAM'}
                                     isStudentList={true}
+                                    isEnrollRequestStudentList={true}
                                 />
                             </div>
                         </SidebarProvider>

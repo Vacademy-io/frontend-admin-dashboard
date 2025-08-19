@@ -1,10 +1,4 @@
-import {
-    Sidebar,
-    SidebarContent,
-    SidebarHeader,
-    SidebarMenu,
-    SidebarMenuItem,
-} from '@/components/ui/sidebar';
+import { Sidebar, SidebarContent, SidebarHeader } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 import { X } from '@phosphor-icons/react';
 import { useState, useEffect } from 'react';
@@ -14,7 +8,7 @@ import { StudentOverview } from './student-overview/student-overview';
 import { StudentLearningProgress } from './student-learning-progress/student-learning-progress';
 import { StudentTestRecord } from './student-test-records/student-test-record';
 import { getPublicUrl } from '@/services/upload_file';
-import { DashboardLoader, ErrorBoundary } from '@/components/core/dashboard-loader';
+import { ErrorBoundary } from '@/components/core/dashboard-loader';
 import { useStudentSidebar } from '../../../-context/selected-student-sidebar-context';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
@@ -24,11 +18,13 @@ export const StudentSidebar = ({
     examType,
     isStudentList,
     isSubmissionTab,
+    isEnrollRequestStudentList,
 }: {
     selectedTab?: string;
     examType?: string;
     isStudentList?: boolean;
     isSubmissionTab?: boolean;
+    isEnrollRequestStudentList?: boolean;
 }) => {
     const { state } = useSidebar();
     const [category, setCategory] = useState('overview');
@@ -79,7 +75,10 @@ export const StudentSidebar = ({
                 <SidebarHeader className="sticky top-0 z-10 border-b border-neutral-100 bg-white/95 shadow-sm backdrop-blur-sm">
                     <div className="flex flex-col p-4">
                         {/* Header with close button - enhanced with gradient */}
-                        <div className="mb-4 flex items-center justify-between">
+                        <div
+                            className={`flex items-center justify-between
+                             ${isEnrollRequestStudentList ? '' : 'mb-4'}`}
+                        >
                             <div className="flex items-center gap-3">
                                 <div className="h-6 w-1 animate-pulse rounded-full bg-gradient-to-b from-primary-500 to-primary-400"></div>
                                 <h2 className="bg-gradient-to-r from-neutral-800 to-neutral-600 bg-clip-text text-lg font-semibold text-transparent">
@@ -97,67 +96,68 @@ export const StudentSidebar = ({
                         </div>
 
                         {/* Enhanced tab navigation with modern design */}
-                        {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
-                            <div className="relative flex gap-1 rounded-xl bg-gradient-to-r from-neutral-50 to-neutral-100 p-1.5 shadow-inner">
-                                {/* Animated background indicator */}
-                                <div
-                                    className={`absolute inset-y-1.5 rounded-lg bg-white shadow-lg transition-all duration-300 ease-out ${
-                                        category === 'overview'
-                                            ? 'left-1.5 w-[calc(33.333%-0.5rem)]'
-                                            : category === 'learningProgress'
-                                              ? 'left-[calc(33.333%+0.167rem)] w-[calc(33.333%-0.333rem)]'
-                                              : 'left-[calc(66.666%+0.833rem)] w-[calc(33.333%-0.5rem)]'
-                                    }`}
-                                ></div>
+                        {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) &&
+                            !isEnrollRequestStudentList && (
+                                <div className="relative flex gap-1 rounded-xl bg-gradient-to-r from-neutral-50 to-neutral-100 p-1.5 shadow-inner">
+                                    {/* Animated background indicator */}
+                                    <div
+                                        className={`absolute inset-y-1.5 rounded-lg bg-white shadow-lg transition-all duration-300 ease-out ${
+                                            category === 'overview'
+                                                ? 'left-1.5 w-[calc(33.333%-0.5rem)]'
+                                                : category === 'learningProgress'
+                                                  ? 'left-[calc(33.333%+0.167rem)] w-[calc(33.333%-0.333rem)]'
+                                                  : 'left-[calc(66.666%+0.833rem)] w-[calc(33.333%-0.5rem)]'
+                                        }`}
+                                    ></div>
 
-                                <button
-                                    className={`group relative z-10 flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
-                                        category === 'overview'
-                                            ? 'scale-105 text-primary-500'
-                                            : 'text-neutral-600 hover:scale-100 hover:text-neutral-800'
-                                    }`}
-                                    onClick={() => setCategory('overview')}
-                                >
-                                    <span className="relative">
-                                        Overview
-                                        {category === 'overview' && (
-                                            <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
-                                        )}
-                                    </span>
-                                </button>
+                                    <button
+                                        className={`group relative z-10 flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                            category === 'overview'
+                                                ? 'scale-105 text-primary-500'
+                                                : 'text-neutral-600 hover:scale-100 hover:text-neutral-800'
+                                        }`}
+                                        onClick={() => setCategory('overview')}
+                                    >
+                                        <span className="relative">
+                                            Overview
+                                            {category === 'overview' && (
+                                                <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
+                                            )}
+                                        </span>
+                                    </button>
 
-                                <button
-                                    className={`group relative z-10 flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
-                                        category === 'learningProgress'
-                                            ? 'scale-105 text-primary-500'
-                                            : 'text-neutral-600 hover:scale-100 hover:text-neutral-800'
-                                    }`}
-                                    onClick={() => setCategory('learningProgress')}
-                                >
-                                    <span className="relative">
-                                        Progress
-                                        {category === 'learningProgress' && (
-                                            <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
-                                        )}
-                                    </span>
-                                </button>
-                                <button
-                                    className={`group relative z-10 flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
-                                        category === 'testRecord'
-                                            ? 'scale-105 text-primary-500'
-                                            : 'text-neutral-600 hover:scale-100 hover:text-neutral-800'
-                                    }`}
-                                    onClick={() => setCategory('testRecord')}
-                                >
-                                    <span className="relative">
-                                        Tests
-                                        {category === 'testRecord' && (
-                                            <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
-                                        )}
-                                    </span>
-                                </button>
-                            </div>
-                        )}
+                                    <button
+                                        className={`group relative z-10 flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                            category === 'learningProgress'
+                                                ? 'scale-105 text-primary-500'
+                                                : 'text-neutral-600 hover:scale-100 hover:text-neutral-800'
+                                        }`}
+                                        onClick={() => setCategory('learningProgress')}
+                                    >
+                                        <span className="relative">
+                                            Progress
+                                            {category === 'learningProgress' && (
+                                                <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
+                                            )}
+                                        </span>
+                                    </button>
+                                    <button
+                                        className={`group relative z-10 flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                            category === 'testRecord'
+                                                ? 'scale-105 text-primary-500'
+                                                : 'text-neutral-600 hover:scale-100 hover:text-neutral-800'
+                                        }`}
+                                        onClick={() => setCategory('testRecord')}
+                                    >
+                                        <span className="relative">
+                                            Tests
+                                            {category === 'testRecord' && (
+                                                <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
+                                            )}
+                                        </span>
+                                    </button>
+                                </div>
+                            )}
                     </div>
                 </SidebarHeader>
 
@@ -222,10 +222,10 @@ export const StudentSidebar = ({
                         {category === 'overview' && (
                             <StudentOverview isSubmissionTab={isSubmissionTab} />
                         )}
-                        {category === 'learningProgress' && (
+                        {category === 'learningProgress' && !isEnrollRequestStudentList && (
                             <StudentLearningProgress isSubmissionTab={isSubmissionTab} />
                         )}
-                        {category === 'testRecord' && (
+                        {category === 'testRecord' && !isEnrollRequestStudentList && (
                             <StudentTestRecord
                                 selectedTab={selectedTab || ''}
                                 examType={examType || ''}
