@@ -92,8 +92,10 @@ export const DEFAULT_STUDENT_DISPLAY_SETTINGS: StudentDisplaySettingsData = {
         defaultTab: 'OUTLINE',
         outlineMode: 'expanded',
         ratingsAndReviewsVisible: true,
-        courseOverview: { showSlidesData: true },
-        slidesView: { showLearningPath: true, feedbackVisible: true },
+        showCourseConfiguration: true,
+        showCourseContentPrefixes: true,
+        courseOverview: { visible: true, showSlidesData: true },
+        slidesView: { showLearningPath: true, feedbackVisible: true, canAskDoubt: true },
     },
     allCourses: {
         tabs: [
@@ -102,6 +104,11 @@ export const DEFAULT_STUDENT_DISPLAY_SETTINGS: StudentDisplaySettingsData = {
             { id: 'AllCourses', order: 3, visible: true },
         ],
         defaultTab: 'InProgress',
+    },
+    notifications: {
+        allowSystemAlerts: true,
+        allowDashboardPins: true,
+        allowBatchStream: true,
     },
     postLoginRedirectRoute: '/dashboard',
 };
