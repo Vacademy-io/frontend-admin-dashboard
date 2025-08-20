@@ -256,6 +256,36 @@ function mergeDisplayWithDefaults(
     merged.ui = {
         showSupportButton:
             incoming?.ui?.showSupportButton ?? defaults.ui?.showSupportButton ?? true,
+        showSidebar: incoming?.ui?.showSidebar ?? defaults.ui?.showSidebar ?? true,
+    };
+
+    // Content Types
+    const defCT = defaults.contentTypes || {
+        pdf: true,
+        video: { enabled: true, showInVideoQuestion: true },
+        codeEditor: true,
+        document: true,
+        question: true,
+        quiz: true,
+        assignment: true,
+        jupyterNotebook: true,
+        scratch: true,
+    };
+    merged.contentTypes = {
+        pdf: incoming?.contentTypes?.pdf ?? defCT.pdf,
+        video: {
+            enabled: incoming?.contentTypes?.video?.enabled ?? defCT.video.enabled,
+            showInVideoQuestion:
+                incoming?.contentTypes?.video?.showInVideoQuestion ??
+                defCT.video.showInVideoQuestion,
+        },
+        codeEditor: incoming?.contentTypes?.codeEditor ?? defCT.codeEditor,
+        document: incoming?.contentTypes?.document ?? defCT.document,
+        question: incoming?.contentTypes?.question ?? defCT.question,
+        quiz: incoming?.contentTypes?.quiz ?? defCT.quiz,
+        assignment: incoming?.contentTypes?.assignment ?? defCT.assignment,
+        jupyterNotebook: incoming?.contentTypes?.jupyterNotebook ?? defCT.jupyterNotebook,
+        scratch: incoming?.contentTypes?.scratch ?? defCT.scratch,
     };
 
     // Redirect

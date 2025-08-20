@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
+import ImageCropperDialog from '@/components/design-system/image-cropper-dialog';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
@@ -97,6 +98,15 @@ export const AddCourseStep1 = ({
     const youtubeInputRef = useRef<HTMLDivElement>(null);
     const [showMediaMenu, setShowMediaMenu] = useState(false);
     const mediaMenuRef = useRef<HTMLDivElement>(null);
+
+    // Cropper dialog state
+    const [isCropperOpen, setIsCropperOpen] = useState(false);
+    const [cropperSrc, setCropperSrc] = useState<string>('');
+    const [cropperAspect, setCropperAspect] = useState<number | undefined>(undefined);
+    const cropTargetField = useRef<'coursePreview' | 'courseBanner' | 'courseMedia'>(
+        'coursePreview'
+    );
+    const cropOutputType = useRef<'image/jpeg' | 'image/png' | 'image/webp'>('image/jpeg');
 
     // Hide menu when clicking outside
     useEffect(() => {
@@ -202,6 +212,43 @@ export const AddCourseStep1 = ({
                 [field]: false,
             }));
         }
+    };
+
+    const readFileAsDataURL = (file: File): Promise<string> =>
+        new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+
+    const handleFileSelectedWithCrop = async (
+        file: File,
+        field: 'coursePreview' | 'courseBanner' | 'courseMedia'
+    ) => {
+        const isImage = file.type.startsWith('image/');
+        const isSvg = file.type === 'image/svg+xml';
+        const isVideo = file.type.startsWith('video/');
+
+        if (!isImage || isSvg || isVideo) {
+            // Skip crop for non-images, SVGs, and videos
+            await handleFileUpload(file, field);
+            return;
+        }
+
+        const dataUrl = await readFileAsDataURL(file);
+        cropTargetField.current = field;
+        // Set aspect ratio based on field
+        if (field === 'coursePreview') {
+            setCropperAspect(2);
+        } else if (field === 'courseBanner') {
+            setCropperAspect(2.64);
+        } else {
+            setCropperAspect(2.64);
+        }
+        cropOutputType.current = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        setCropperSrc(dataUrl);
+        setIsCropperOpen(true);
     };
 
     const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -546,7 +593,10 @@ export const AddCourseStep1 = ({
                                             <FileUploadComponent
                                                 fileInputRef={coursePreviewRef}
                                                 onFileSubmit={(file) =>
-                                                    handleFileUpload(file, 'coursePreview')
+                                                    handleFileSelectedWithCrop(
+                                                        file,
+                                                        'coursePreview'
+                                                    )
                                                 }
                                                 control={form.control}
                                                 name="coursePreview"
@@ -608,7 +658,7 @@ export const AddCourseStep1 = ({
                                             <FileUploadComponent
                                                 fileInputRef={courseBannerRef}
                                                 onFileSubmit={(file) =>
-                                                    handleFileUpload(file, 'courseBanner')
+                                                    handleFileSelectedWithCrop(file, 'courseBanner')
                                                 }
                                                 control={form.control}
                                                 name="courseBanner"
@@ -802,7 +852,10 @@ export const AddCourseStep1 = ({
                                                 <FileUploadComponent
                                                     fileInputRef={courseMediaRef}
                                                     onFileSubmit={(file) =>
-                                                        handleFileUpload(file, 'courseMedia')
+                                                        handleFileSelectedWithCrop(
+                                                            file,
+                                                            'courseMedia'
+                                                        )
                                                     }
                                                     control={form.control}
                                                     name="courseMedia"
@@ -842,6 +895,15 @@ export const AddCourseStep1 = ({
                     </div>
                 </div>
             </form>
+            <ImageCropperDialog
+                open={isCropperOpen}
+                onOpenChange={setIsCropperOpen}
+                src={cropperSrc}
+                aspectRatio={cropperAspect}
+                title="Crop Image"
+                outputMimeType={cropOutputType.current}
+                onCropped={(file) => handleFileUpload(file, cropTargetField.current)}
+            />
         </Form>
     );
 };

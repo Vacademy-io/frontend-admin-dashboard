@@ -23,6 +23,14 @@ import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/
 import { toast } from 'sonner';
 import { Route } from '..';
 import { VideoSplitScreenAddDialog } from './video-split-screen-add-dialog';
+import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { getDisplaySettings, getDisplaySettingsFromCache } from '@/services/display-settings';
+import {
+    ADMIN_DISPLAY_SETTINGS_KEY,
+    TEACHER_DISPLAY_SETTINGS_KEY,
+    type DisplaySettingsData,
+} from '@/types/display-settings';
 
 export interface YTPlayer {
     destroy(): void;
@@ -162,6 +170,25 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [previewQuestionDialog, setPreviewQuestionDialog] = useState(false);
     const closeDeleteDialogRef = useRef<HTMLButtonElement | null>(null);
+
+    // Role display settings to control in-video question UI
+    const [roleDisplay, setRoleDisplay] = useState<DisplaySettingsData | null>(null);
+    useEffect(() => {
+        const accessToken = getTokenFromCookie(TokenKey.accessToken);
+        const roles = getUserRoles(accessToken);
+        const isAdmin = roles.includes('ADMIN');
+        const roleKey = isAdmin ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+        const cached = getDisplaySettingsFromCache(roleKey);
+        if (cached) {
+            setRoleDisplay(cached);
+            return;
+        }
+        getDisplaySettings(roleKey)
+            .then(setRoleDisplay)
+            .catch(() => setRoleDisplay(null));
+    }, []);
+
+    const showInVideoQuestion = roleDisplay?.contentTypes?.video?.showInVideoQuestion !== false;
 
     const handleDeleteQuestionFormData = (questionId: string) => {
         setFormData((prevData) => ({
@@ -387,7 +414,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [playerRef.current]);
+    }, []);
 
     // Update ref whenever state changes
     useEffect(() => {
@@ -421,13 +448,15 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
             ...prev,
             questions: activeItem?.video_slide?.questions || [],
         }));
-    }, [videoUrl]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [videoUrl, activeItem?.video_slide?.questions]);
 
     useEffect(() => {
         if (searchParams.timestamp && playerRef.current) {
             handleQuestionClick(searchParams.timestamp);
         }
-    }, [playerRef.current]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams.timestamp]);
 
     return (
         <div className="flex w-full flex-col">
@@ -500,22 +529,24 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
             {/* Add Question Form */}
 
             <div className="flex gap-2">
-                <VideoQuestionsTimeFrameAddDialog
-                    addedQuestionForm={addedQuestionForm}
-                    videoQuestionForm={videoQuestionForm}
-                    formRefData={formRefData}
-                    videoPlayerTimeFrameForm={videoPlayerTimeFrameForm}
-                    handleSetCurrentTimeStamp={handleSetCurrentTimeStamp}
-                    currentQuestionIndex={currentQuestionIndex}
-                    setCurrentQuestionIndex={setCurrentQuestionIndex}
-                    previewQuestionDialog={previewQuestionDialog}
-                    setPreviewQuestionDialog={setPreviewQuestionDialog}
-                    formData={formData}
-                    setFormData={setFormData}
-                    isAddTimeFrameRef={isAddTimeFrameRef}
-                    isAddQuestionTypeRef={isAddQuestionTypeRef}
-                    videoDuration={videoDuration}
-                />
+                {showInVideoQuestion && (
+                    <VideoQuestionsTimeFrameAddDialog
+                        addedQuestionForm={addedQuestionForm}
+                        videoQuestionForm={videoQuestionForm}
+                        formRefData={formRefData}
+                        videoPlayerTimeFrameForm={videoPlayerTimeFrameForm}
+                        handleSetCurrentTimeStamp={handleSetCurrentTimeStamp}
+                        currentQuestionIndex={currentQuestionIndex}
+                        setCurrentQuestionIndex={setCurrentQuestionIndex}
+                        previewQuestionDialog={previewQuestionDialog}
+                        setPreviewQuestionDialog={setPreviewQuestionDialog}
+                        formData={formData}
+                        setFormData={setFormData}
+                        isAddTimeFrameRef={isAddTimeFrameRef}
+                        isAddQuestionTypeRef={isAddQuestionTypeRef}
+                        videoDuration={videoDuration}
+                    />
+                )}
                 {activeItem?.source_type === 'VIDEO' && !activeItem?.splitScreenMode && (
                     <div className="my-2">
                         <VideoSplitScreenAddDialog

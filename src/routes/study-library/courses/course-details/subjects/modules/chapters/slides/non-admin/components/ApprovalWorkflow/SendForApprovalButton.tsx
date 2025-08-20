@@ -16,7 +16,7 @@ interface SendForApprovalButtonProps {
 export function SendForApprovalButton({
     courseId,
     hasChanges,
-    disabled = false
+    disabled = false,
 }: SendForApprovalButtonProps) {
     const [showPreview, setShowPreview] = useState(false);
     const navigate = useNavigate();
@@ -51,37 +51,39 @@ export function SendForApprovalButton({
 
     return (
         <>
-            <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
-                {/* Preview Changes Button */}
-                <MyButton
-                    buttonType="secondary"
-                    onClick={handlePreviewChanges}
-                    disabled={disabled || submitMutation.isPending}
-                    className="shadow-lg"
-                >
-                    <Eye size={16} className="mr-2" />
-                    Preview Changes
-                </MyButton>
+            <div className="pointer-events-auto fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] right-[calc(1.5rem+env(safe-area-inset-right))] z-[80]">
+                <div className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white/90 p-2 shadow-xl backdrop-blur supports-[backdrop-filter]:bg-white/70">
+                    {/* Preview Changes Button */}
+                    <MyButton
+                        buttonType="secondary"
+                        onClick={handlePreviewChanges}
+                        disabled={disabled || submitMutation.isPending}
+                        className="shadow-lg"
+                    >
+                        <Eye size={16} className="mr-2" />
+                        Preview Changes
+                    </MyButton>
 
-                {/* Send for Approval Button */}
-                <MyButton
-                    buttonType="primary"
-                    onClick={handleSubmitForApproval}
-                    disabled={disabled || submitMutation.isPending}
-                    className="shadow-lg bg-green-600 hover:bg-green-700"
-                >
-                    {submitMutation.isPending ? (
-                        <>
-                            <Spinner size={16} className="mr-2 animate-spin" />
-                            Submitting...
-                        </>
-                    ) : (
-                        <>
-                            <CheckCircle size={16} className="mr-2" />
-                            Send for Approval
-                        </>
-                    )}
-                </MyButton>
+                    {/* Send for Approval Button */}
+                    <MyButton
+                        buttonType="primary"
+                        onClick={handleSubmitForApproval}
+                        disabled={disabled || submitMutation.isPending}
+                        className="bg-green-600 shadow-lg hover:bg-green-700"
+                    >
+                        {submitMutation.isPending ? (
+                            <>
+                                <Spinner size={16} className="mr-2 animate-spin" />
+                                Submitting...
+                            </>
+                        ) : (
+                            <>
+                                <CheckCircle size={16} className="mr-2" />
+                                Send for Approval
+                            </>
+                        )}
+                    </MyButton>
+                </div>
             </div>
 
             {/* Changes Preview Modal */}
