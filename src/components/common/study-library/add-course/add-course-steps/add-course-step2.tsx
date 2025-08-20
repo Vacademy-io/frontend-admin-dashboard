@@ -335,13 +335,35 @@ export const AddCourseStep2 = ({
     // Add state to track used existing batches
     const [usedExistingBatchIds, setUsedExistingBatchIds] = useState<Set<string>>(new Set());
 
-    // Filter available existing batches (exclude used ones and default sessions/levels)
-    const availableExistingBatches = existingBatches.filter(
-        (batch: ExistingBatch) =>
-            !usedExistingBatchIds.has(batch.id) &&
-            batch.session.session_name.toLowerCase() !== 'default' &&
-            batch.level.level_name.toLowerCase() !== 'default'
-    );
+    // Filter available existing batches based on hasSessions and hasLevels values
+    const availableExistingBatches = existingBatches.filter((batch: ExistingBatch) => {
+        // Always exclude used batches
+        if (usedExistingBatchIds.has(batch.id)) {
+            return false;
+        }
+
+        // Case 1: hasSessions = 'yes' and hasLevels = 'yes'
+        if (hasSessions === 'yes' && hasLevels === 'yes') {
+            return (
+                batch.session.session_name.toLowerCase() !== 'default' &&
+                batch.level.level_name.toLowerCase() !== 'default'
+            );
+        }
+
+        // Case 2: hasSessions = 'yes' and hasLevels = 'no'
+        if (hasSessions === 'yes' && hasLevels !== 'yes') {
+            return batch.session.session_name.toLowerCase() !== 'default';
+        }
+
+        // Case 3: hasSessions = 'no' and hasLevels = 'yes'
+        if (hasSessions !== 'yes' && hasLevels === 'yes') {
+            return batch.level.level_name.toLowerCase() !== 'default';
+        }
+
+        // Case 4: hasSessions = 'no' and hasLevels = 'no'
+        // Don't filter anything, return true for all batches
+        return true;
+    });
 
     // Helper function to deduplicate sessions by name when hasSessions is 'yes' and hasLevels is not 'yes'
     const getDeduplicatedSessions = (batches: ExistingBatch[]) => {
@@ -402,8 +424,6 @@ export const AddCourseStep2 = ({
             publishToCatalogue: false,
         },
     });
-
-    console.log(form.getValues());
 
     // Session management functions
     const addSession = () => {
