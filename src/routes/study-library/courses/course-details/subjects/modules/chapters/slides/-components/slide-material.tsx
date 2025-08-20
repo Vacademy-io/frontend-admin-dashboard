@@ -48,11 +48,17 @@ import { JupyterNotebookSlide } from './jupyter-notebook-slide';
 import { ScratchProjectSlide } from './scratch-project-slide';
 import { CodeEditorSlide } from './code-editor-slide';
 import { SplitScreenSlide } from './split-screen-slide';
-import { getTokenFromCookie, getTokenDecodedData } from '@/lib/auth/sessionUtility';
+import { getTokenFromCookie, getTokenDecodedData, getUserRoles } from '@/lib/auth/sessionUtility';
 import { UploadFileInS3 } from '@/services/upload_file';
 import { TokenKey } from '@/constants/auth/tokens';
 import QuizPreview from './QuizPreview';
 import { createQuizSlidePayload } from './quiz/utils/api-helpers';
+import { getDisplaySettings, getDisplaySettingsFromCache } from '@/services/display-settings';
+import {
+    ADMIN_DISPLAY_SETTINGS_KEY,
+    TEACHER_DISPLAY_SETTINGS_KEY,
+    type DisplaySettingsData,
+} from '@/types/display-settings';
 
 // Inside your component
 // this toggles the DoubtResolutionSidebar
@@ -72,6 +78,28 @@ export const SlideMaterial = ({
     hidePublishButtons?: boolean;
     customSaveFunction?: (slide: Slide) => Promise<void>;
 }) => {
+    // Role display settings for toggles like Manage Doubts visibility
+    const [roleDisplay, setRoleDisplay] = useState<DisplaySettingsData | null>(null);
+    useEffect(() => {
+        const accessToken = getTokenFromCookie(TokenKey.accessToken);
+        const roles = getUserRoles(accessToken);
+        const isAdmin = roles.includes('ADMIN');
+        const roleKey = isAdmin ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+        const cached = getDisplaySettingsFromCache(roleKey);
+        if (cached) {
+            setRoleDisplay(cached);
+            return;
+        }
+        getDisplaySettings(roleKey)
+            .then(setRoleDisplay)
+            .catch(() => setRoleDisplay(null));
+    }, []);
+
+    const showManageDoubts = useMemo(() => {
+        const tab = roleDisplay?.sidebar.find((t) => t.id === 'study-library');
+        const sub = tab?.subTabs?.find((s) => s.id === 'doubt-management');
+        return sub?.visible !== false;
+    }, [roleDisplay]);
     const { items, activeItem, setActiveItem } = useContentStore();
     const editor = useMemo(() => createYooptaEditor(), []);
     const selectionRef = useRef<HTMLDivElement | null>(null);
@@ -145,6 +173,18 @@ export const SlideMaterial = ({
     // Component to manage editor with placeholder
     const EditorWithPlaceholder = ({ initialIsEmpty }: { initialIsEmpty: boolean }) => {
         const [showPlaceholder, setShowPlaceholder] = useState(initialIsEmpty);
+        const deferredUpdateTimerRef = useRef<number | null>(null);
+        useEffect(() => {
+            console.log('[YooptaEditor] EditorWithPlaceholder mount', {
+                slideId: activeItem?.id || null,
+                initialIsEmpty,
+            });
+            return () => {
+                console.log('[YooptaEditor] EditorWithPlaceholder unmount', {
+                    slideId: activeItem?.id || null,
+                });
+            };
+        }, [activeItem?.id]);
 
         useEffect(() => {
             setShowPlaceholder(initialIsEmpty);
@@ -1841,14 +1881,16 @@ export const SlideMaterial = ({
                             </div>
 
                             {/* ✅ Doubt Icon Trigger */}
-                            <MyButton
-                                layoutVariant="icon"
-                                buttonType="secondary"
-                                title="Open Doubt Resolution Sidebar"
-                                onClick={() => setSidebarOpen(true)}
-                            >
-                                <ChatCircleDots className="size-5" />
-                            </MyButton>
+                            {showManageDoubts && (
+                                <MyButton
+                                    layoutVariant="icon"
+                                    buttonType="secondary"
+                                    title="Open Doubt Resolution Sidebar"
+                                    onClick={() => setSidebarOpen(true)}
+                                >
+                                    <ChatCircleDots className="size-5" />
+                                </MyButton>
+                            )}
                             {/* Slides Menu Option */}
                             <SlidesMenuOption />
                         </div>
@@ -1859,13 +1901,15 @@ export const SlideMaterial = ({
             <div
                 className={`mx-auto mt-14 ${
                     activeItem?.document_slide?.type === 'PDF' ? 'h-[calc(100vh-200px)]' : 'h-full'
-                } relative z-20 w-full overflow-hidden`}
+                } relative z-20 w-full ${
+                    activeItem?.document_slide?.type === 'DOC' ? 'overflow-visible' : 'overflow-hidden'
+                }`}
             >
                 {content}
             </div>
 
-            {/* ✅ Doubt Sidebar Always Mounted */}
-            <DoubtResolutionSidebar />
+            {/* ✅ Doubt Sidebar (mounted only if allowed) */}
+            {showManageDoubts && <DoubtResolutionSidebar />}
         </div>
     );
 };

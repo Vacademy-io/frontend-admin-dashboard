@@ -1,15 +1,22 @@
 import { toast } from 'sonner';
-import { setAuthorizationCookie, getUserRoles, removeCookiesAndLogout } from '@/lib/auth/sessionUtility';
+import {
+    setAuthorizationCookie,
+    getUserRoles,
+    removeCookiesAndLogout,
+} from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import {
     shouldBlockStudentLogin,
     getInstituteSelectionResult,
     setSelectedInstitute,
     getPrimaryRole,
-    getInstitutesFromToken
+    getInstitutesFromToken,
 } from '@/lib/auth/instituteUtils';
 import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { trackEvent } from '@/lib/amplitude';
+import { getDisplaySettingsFromCache } from '@/services/display-settings';
+import { ADMIN_DISPLAY_SETTINGS_KEY, TEACHER_DISPLAY_SETTINGS_KEY } from '@/types/display-settings';
+import type { QueryClient } from '@tanstack/react-query';
 
 export interface LoginFlowResult {
     success: boolean;
@@ -23,10 +30,17 @@ export interface LoginFlowResult {
 }
 
 export interface LoginFlowOptions {
-    loginMethod: 'username_password' | 'oauth' | 'email_otp' | 'sso' | 'demo_account' | 'signup' | 'cookie_token';
+    loginMethod:
+        | 'username_password'
+        | 'oauth'
+        | 'email_otp'
+        | 'sso'
+        | 'demo_account'
+        | 'signup'
+        | 'cookie_token';
     accessToken: string;
     refreshToken: string;
-    queryClient?: any;
+    queryClient?: Pick<QueryClient, 'clear'>;
 }
 
 /**
@@ -63,7 +77,8 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
             removeCookiesAndLogout();
 
             toast.error('Access Denied', {
-                description: 'Students are not allowed to access the admin portal. Please contact your administrator.',
+                description:
+                    'Students are not allowed to access the admin portal. Please contact your administrator.',
                 className: 'error-toast',
                 duration: 5000,
             });
@@ -71,7 +86,7 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
             return {
                 success: false,
                 error: 'student_access_denied',
-                userRoles
+                userRoles,
             };
         }
 
@@ -83,7 +98,7 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
             return {
                 success: true,
                 shouldShowInstituteSelection: true,
-                userRoles
+                userRoles,
             };
         }
 
@@ -96,19 +111,21 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
             // Set the selected institute
             setSelectedInstitute(instituteResult.selectedInstitute.id);
 
-            // Determine redirect URL based on roles
-            let redirectUrl = '/dashboard';
+            // Determine redirect URL from Display Settings (cached), fallback to dashboard
+            const roleKey = hasAdminRole
+                ? ADMIN_DISPLAY_SETTINGS_KEY
+                : TEACHER_DISPLAY_SETTINGS_KEY;
+            const ds = getDisplaySettingsFromCache(roleKey);
 
-            // If user has STUDENT role along with other roles, show learner option
-            if (hasStudentRole && instituteResult.selectedInstitute.roles.length > 1) {
-                // User has multiple roles including STUDENT - show learner tab option
+            let redirectUrl = ds?.postLoginRedirectRoute || '/dashboard';
+
+            // Preserve learner tab hint if user also has STUDENT role and route points to dashboard
+            if (
+                hasStudentRole &&
+                instituteResult.selectedInstitute.roles.length > 1 &&
+                (redirectUrl === '/dashboard' || redirectUrl.startsWith('/dashboard?'))
+            ) {
                 redirectUrl = '/dashboard?showLearnerTab=true';
-            } else if (hasAdminRole) {
-                // User has ADMIN role - always login as admin
-                redirectUrl = '/dashboard';
-            } else {
-                // User has other roles but no ADMIN - use first non-STUDENT role
-                redirectUrl = '/dashboard';
             }
 
             return {
@@ -117,7 +134,7 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
                 userRoles,
                 primaryRole,
                 hasStudentRole,
-                hasAdminRole
+                hasAdminRole,
             };
         }
 
@@ -125,10 +142,9 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
         return {
             success: true,
             redirectUrl: '/dashboard',
-            userRoles
+            userRoles,
         };
-
-        } catch (error) {
+    } catch (error) {
         trackEvent('Login Failed', {
             login_method: loginMethod,
             error_reason: 'login_flow_error',
@@ -138,7 +154,7 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
 
         return {
             success: false,
-            error: error instanceof Error ? error.message : 'Login flow failed'
+            error: error instanceof Error ? error.message : 'Login flow failed',
         };
     }
 };
@@ -149,12 +165,12 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
 export const handleInstituteSelection = (instituteId: string): LoginFlowResult => {
     try {
         const institutes = getInstitutesFromToken();
-        const selectedInstitute = institutes.find(inst => inst.id === instituteId);
+        const selectedInstitute = institutes.find((inst) => inst.id === instituteId);
 
         if (!selectedInstitute) {
             return {
                 success: false,
-                error: 'Institute not found'
+                error: 'Institute not found',
             };
         }
 
@@ -166,19 +182,18 @@ export const handleInstituteSelection = (instituteId: string): LoginFlowResult =
         // Set the selected institute
         setSelectedInstitute(instituteId);
 
-        // Determine redirect URL based on roles
-        let redirectUrl = '/dashboard';
+        // Determine redirect URL from Display Settings (cached), fallback to dashboard
+        const roleKey = hasAdminRole ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+        const ds = getDisplaySettingsFromCache(roleKey);
+        let redirectUrl = ds?.postLoginRedirectRoute || '/dashboard';
 
-        // If user has STUDENT role along with other roles, show learner option
-        if (hasStudentRole && selectedInstitute.roles.length > 1) {
-            // User has multiple roles including STUDENT - show learner tab option
+        // Preserve learner tab hint if user also has STUDENT role and route points to dashboard
+        if (
+            hasStudentRole &&
+            selectedInstitute.roles.length > 1 &&
+            (redirectUrl === '/dashboard' || redirectUrl.startsWith('/dashboard?'))
+        ) {
             redirectUrl = '/dashboard?showLearnerTab=true';
-        } else if (hasAdminRole) {
-            // User has ADMIN role - always login as admin
-            redirectUrl = '/dashboard';
-        } else {
-            // User has other roles but no ADMIN - use first non-STUDENT role
-            redirectUrl = '/dashboard';
         }
 
         return {
@@ -187,13 +202,12 @@ export const handleInstituteSelection = (instituteId: string): LoginFlowResult =
             userRoles,
             primaryRole,
             hasStudentRole,
-            hasAdminRole
+            hasAdminRole,
         };
-
     } catch (error) {
         return {
             success: false,
-            error: error instanceof Error ? error.message : 'Institute selection failed'
+            error: error instanceof Error ? error.message : 'Institute selection failed',
         };
     }
 };

@@ -1,6 +1,6 @@
 import { getTokenDecodedData, getTokenFromCookie } from './sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
-import { IAccessToken } from '@/constants/auth/tokens';
+// import { IAccessToken } from '@/constants/auth/tokens';
 import { InstituteDetailsType } from '@/schemas/student/student-list/institute-schema';
 
 export interface Institute {
@@ -51,9 +51,14 @@ export const getInstitutesFromToken = (): Institute[] => {
  */
 export const getValidInstitutes = (institutes: Institute[]): Institute[] => {
     return institutes.filter((institute) => {
-        const roles = institute.roles;
+        const roles = institute.roles || [];
 
-        // If user only has STUDENT role, exclude the institute
+        // Exclude if no roles assigned
+        if (roles.length === 0) {
+            return false;
+        }
+
+        // Exclude if user only has STUDENT role
         if (roles.length === 1 && roles[0] === 'STUDENT') {
             return false;
         }
@@ -64,7 +69,7 @@ export const getValidInstitutes = (institutes: Institute[]): Institute[] => {
         }
 
         // Include institute if user has any role other than just STUDENT
-        return true;
+        return roles.some((r) => r !== 'STUDENT');
     });
 };
 
@@ -77,7 +82,7 @@ export const getPrimaryRole = (roles: string[]): string => {
     if (roles.includes('ADMIN')) return 'ADMIN';
 
     // Find the first non-STUDENT role in the array
-    const nonStudentRole = roles.find(role => role !== 'STUDENT');
+    const nonStudentRole = roles.find((role) => role !== 'STUDENT');
 
     // Return the first non-STUDENT role, or UNKNOWN if only STUDENT roles exist
     return nonStudentRole || 'UNKNOWN';
@@ -92,9 +97,7 @@ export const shouldBlockStudentLogin = (): boolean => {
     const institutes = getInstitutesFromToken();
 
     // First, check if user has ADMIN role in any institute (highest priority)
-    const hasAdminRole = institutes.some(institute =>
-        institute.roles.includes('ADMIN')
-    );
+    const hasAdminRole = institutes.some((institute) => institute.roles.includes('ADMIN'));
 
     if (hasAdminRole) {
         // User has ADMIN role, should not be blocked

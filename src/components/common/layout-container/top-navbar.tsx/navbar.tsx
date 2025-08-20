@@ -17,6 +17,8 @@ import {
 import { useNavigate } from '@tanstack/react-router';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import useInstituteLogoStore from '../sidebar/institutelogo-global-zustand';
+import { getDisplaySettingsFromCache } from '@/services/display-settings';
+import { ADMIN_DISPLAY_SETTINGS_KEY, TEACHER_DISPLAY_SETTINGS_KEY } from '@/types/display-settings';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 import { useModulesWithChaptersStore } from '@/stores/study-library/use-modules-with-chapters-store';
 import { usePDFStore } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/temp-pdf-store';
@@ -136,9 +138,42 @@ export function Navbar() {
     return (
         <div className="sticky top-0 z-10 flex h-[72px] items-center justify-between border-b bg-neutral-50 px-8 py-4">
             <div className="flex items-center gap-4">
-                <SidebarTrigger onClick={() => setSidebarOpen(!sidebarOpen)}>
-                    <SidebarSimple className="text-neutral-600" />
-                </SidebarTrigger>
+                {(() => {
+                    const rolesForDS = getUserRoles(accessToken);
+                    const isAdminRole = rolesForDS.includes('ADMIN');
+                    const roleKey = isAdminRole
+                        ? ADMIN_DISPLAY_SETTINGS_KEY
+                        : TEACHER_DISPLAY_SETTINGS_KEY;
+                    const ds = getDisplaySettingsFromCache(roleKey);
+                    const showSidebar = ds?.ui?.showSidebar !== false;
+                    if (showSidebar) return null;
+                    return (
+                        <div className="flex items-center gap-2">
+                            {instituteLogo ? (
+                                <img
+                                    src={instituteLogo}
+                                    alt="logo"
+                                    className="size-8 rounded-full"
+                                />
+                            ) : null}
+                        </div>
+                    );
+                })()}
+                {(() => {
+                    const rolesForDS = getUserRoles(accessToken);
+                    const isAdminRole = rolesForDS.includes('ADMIN');
+                    const roleKey = isAdminRole
+                        ? ADMIN_DISPLAY_SETTINGS_KEY
+                        : TEACHER_DISPLAY_SETTINGS_KEY;
+                    const ds = getDisplaySettingsFromCache(roleKey);
+                    const showSidebar = ds?.ui?.showSidebar !== false;
+                    if (!showSidebar) return null;
+                    return (
+                        <SidebarTrigger onClick={() => setSidebarOpen(!sidebarOpen)}>
+                            <SidebarSimple className="text-neutral-600" />
+                        </SidebarTrigger>
+                    );
+                })()}
                 <div className="border-l border-neutral-500 px-4 text-h3 font-semibold text-neutral-600">
                     {navHeading}
                 </div>

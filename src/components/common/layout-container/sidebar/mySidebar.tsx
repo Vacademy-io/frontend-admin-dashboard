@@ -170,6 +170,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     }, [data?.institute_logo_file_id]);
 
     if (isLoading) return <DashboardLoader />;
+    if (roleDisplay?.ui?.showSidebar === false) return null;
     return (
         <Sidebar collapsible="icon" className="z-20">
             <SidebarContent

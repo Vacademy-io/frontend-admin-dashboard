@@ -91,6 +91,7 @@ function RouteComponent() {
             sideBarList={courses.map((course) => ({
                 value: convertCapitalToTitleCase(course.package_name),
                 id: course.id,
+                status: course.status,
             }))}
             sideBarData={{
                 title: getTerminology(ContentTerms.Course, SystemTerms.Course) + 's',

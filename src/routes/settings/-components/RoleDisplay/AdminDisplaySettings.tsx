@@ -11,6 +11,7 @@ import {
     type SidebarTabConfig,
     type CourseListTabId,
     type CourseDetailsTabId,
+    type CourseContentTypeSettings,
 } from '@/types/display-settings';
 import { getDisplaySettings, saveDisplaySettings } from '@/services/display-settings';
 import { DEFAULT_ADMIN_DISPLAY_SETTINGS } from '@/constants/display-settings/admin-defaults';
@@ -51,6 +52,49 @@ export default function AdminDisplaySettings() {
             isCustom: true,
         };
         updateSettings((prev) => ({ ...prev, sidebar: [...prev.sidebar, newTab] }));
+    };
+
+    const addSubTab = (parentId: string) => {
+        if (!settings) return;
+        updateSettings((prev) => ({
+            ...prev,
+            sidebar: prev.sidebar.map((t) => {
+                if (t.id !== parentId) return t;
+                const nextOrder = ((t.subTabs?.length || 0) + 1) as number;
+                const sub = {
+                    id: `custom-sub-${Date.now()}`,
+                    label: 'Custom Sub Tab',
+                    route: '/',
+                    order: nextOrder,
+                    visible: true,
+                };
+                return { ...t, subTabs: [...(t.subTabs || []), sub] };
+            }),
+        }));
+    };
+
+    const removeCustomTab = (tabId: string) => {
+        if (!settings) return;
+        const t = settings.sidebar.find((x) => x.id === tabId);
+        if (!t?.isCustom) return;
+        updateSettings((prev) => ({
+            ...prev,
+            sidebar: prev.sidebar.filter((x) => x.id !== tabId),
+        }));
+    };
+
+    const removeCustomSubTab = (parentId: string, subId: string) => {
+        if (!settings) return;
+        updateSettings((prev) => ({
+            ...prev,
+            sidebar: prev.sidebar.map((t) => {
+                if (t.id !== parentId) return t;
+                const filtered = (t.subTabs || []).filter(
+                    (s) => s.id !== subId || !s.id.startsWith('custom-sub-')
+                );
+                return { ...t, subTabs: filtered };
+            }),
+        }));
     };
 
     const save = async () => {
@@ -317,17 +361,34 @@ export default function AdminDisplaySettings() {
                     <CardDescription>Global UI preferences</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex items-center justify-between rounded border p-3">
-                        <div className="text-sm">Show Support Button</div>
-                        <Switch
-                            checked={settings.ui?.showSupportButton !== false}
-                            onCheckedChange={(checked) =>
-                                updateSettings((prev) => ({
-                                    ...prev,
-                                    ui: { showSupportButton: checked },
-                                }))
-                            }
-                        />
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-center justify-between rounded border p-3">
+                            <div className="text-sm">Show Support Button</div>
+                            <Switch
+                                checked={settings.ui?.showSupportButton !== false}
+                                onCheckedChange={(checked) =>
+                                    updateSettings((prev) => ({
+                                        ...prev,
+                                        ui: { ...prev.ui, showSupportButton: checked },
+                                    }))
+                                }
+                            />
+                        </div>
+                        <div className="flex items-center justify-between rounded border p-3">
+                            <div className="text-sm">Show Sidebar</div>
+                            <Switch
+                                checked={settings.ui?.showSidebar !== false}
+                                onCheckedChange={(checked) =>
+                                    updateSettings((prev) => ({
+                                        ...prev,
+                                        ui: {
+                                            showSupportButton: prev.ui?.showSupportButton ?? true,
+                                            showSidebar: checked,
+                                        },
+                                    }))
+                                }
+                            />
+                        </div>
                     </div>
                 </CardContent>
             </Card>
@@ -414,159 +475,352 @@ export default function AdminDisplaySettings() {
                                         />
                                         <span className="text-sm">Visible</span>
                                     </div>
+                                    {tab.isCustom && (
+                                        <div className="pt-6">
+                                            <Button
+                                                variant="destructive"
+                                                onClick={() => removeCustomTab(tab.id)}
+                                            >
+                                                Remove Tab
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
-                                {tab.subTabs && tab.subTabs.length > 0 && (
-                                    <div className="mt-3 space-y-2">
+                                <div className="mt-3 space-y-2">
+                                    <div className="flex items-center justify-between">
                                         <Label>Sub Tabs</Label>
-                                        {tab.subTabs
-                                            .slice()
-                                            .sort((a, b) => a.order - b.order)
-                                            .map((sub) => (
-                                                <div
-                                                    key={sub.id}
-                                                    className="grid grid-cols-1 gap-3 rounded border p-3 md:grid-cols-5 md:items-center"
-                                                >
-                                                    <div className="col-span-2">
-                                                        <Input
-                                                            value={sub.label || ''}
-                                                            onChange={(e) =>
-                                                                updateSettings((prev) => ({
-                                                                    ...prev,
-                                                                    sidebar: prev.sidebar.map(
-                                                                        (t) =>
-                                                                            t.id === tab.id
-                                                                                ? {
-                                                                                      ...t,
-                                                                                      subTabs: (
-                                                                                          t.subTabs ||
-                                                                                          []
-                                                                                      ).map((s) =>
-                                                                                          s.id ===
-                                                                                          sub.id
-                                                                                              ? {
-                                                                                                    ...s,
-                                                                                                    label: e
-                                                                                                        .target
-                                                                                                        .value,
-                                                                                                }
-                                                                                              : s
-                                                                                      ),
-                                                                                  }
-                                                                                : t
-                                                                    ),
-                                                                }))
-                                                            }
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <Input
-                                                            type="number"
-                                                            value={sub.order}
-                                                            onChange={(e) =>
-                                                                updateSettings((prev) => ({
-                                                                    ...prev,
-                                                                    sidebar: prev.sidebar.map(
-                                                                        (t) =>
-                                                                            t.id === tab.id
-                                                                                ? {
-                                                                                      ...t,
-                                                                                      subTabs: (
-                                                                                          t.subTabs ||
-                                                                                          []
-                                                                                      ).map((s) =>
-                                                                                          s.id ===
-                                                                                          sub.id
-                                                                                              ? {
-                                                                                                    ...s,
-                                                                                                    order: Number(
-                                                                                                        e
-                                                                                                            .target
-                                                                                                            .value
-                                                                                                    ),
-                                                                                                }
-                                                                                              : s
-                                                                                      ),
-                                                                                  }
-                                                                                : t
-                                                                    ),
-                                                                }))
-                                                            }
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <Input
-                                                            value={sub.route}
-                                                            onChange={(e) =>
-                                                                updateSettings((prev) => ({
-                                                                    ...prev,
-                                                                    sidebar: prev.sidebar.map(
-                                                                        (t) =>
-                                                                            t.id === tab.id
-                                                                                ? {
-                                                                                      ...t,
-                                                                                      subTabs: (
-                                                                                          t.subTabs ||
-                                                                                          []
-                                                                                      ).map((s) =>
-                                                                                          s.id ===
-                                                                                          sub.id
-                                                                                              ? {
-                                                                                                    ...s,
-                                                                                                    route: e
-                                                                                                        .target
-                                                                                                        .value,
-                                                                                                }
-                                                                                              : s
-                                                                                      ),
-                                                                                  }
-                                                                                : t
-                                                                    ),
-                                                                }))
-                                                            }
-                                                        />
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <Switch
-                                                            checked={sub.visible}
-                                                            onCheckedChange={(checked) =>
-                                                                updateSettings((prev) => ({
-                                                                    ...prev,
-                                                                    sidebar: prev.sidebar.map(
-                                                                        (t) =>
-                                                                            t.id === tab.id
-                                                                                ? {
-                                                                                      ...t,
-                                                                                      subTabs: (
-                                                                                          t.subTabs ||
-                                                                                          []
-                                                                                      ).map((s) =>
-                                                                                          s.id ===
-                                                                                          sub.id
-                                                                                              ? {
-                                                                                                    ...s,
-                                                                                                    visible:
-                                                                                                        checked,
-                                                                                                }
-                                                                                              : s
-                                                                                      ),
-                                                                                  }
-                                                                                : t
-                                                                    ),
-                                                                }))
-                                                            }
-                                                        />
-                                                        <span className="text-sm">Visible</span>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                        <Button variant="outline" onClick={() => addSubTab(tab.id)}>
+                                            Add Sub Tab
+                                        </Button>
                                     </div>
-                                )}
+                                    {(tab.subTabs || [])
+                                        .slice()
+                                        .sort((a, b) => a.order - b.order)
+                                        .map((sub) => (
+                                            <div
+                                                key={sub.id}
+                                                className="grid grid-cols-1 gap-3 rounded border p-3 md:grid-cols-5 md:items-center"
+                                            >
+                                                <div className="col-span-2">
+                                                    <Input
+                                                        value={sub.label || ''}
+                                                        onChange={(e) =>
+                                                            updateSettings((prev) => ({
+                                                                ...prev,
+                                                                sidebar: prev.sidebar.map((t) =>
+                                                                    t.id === tab.id
+                                                                        ? {
+                                                                              ...t,
+                                                                              subTabs: (
+                                                                                  t.subTabs || []
+                                                                              ).map((s) =>
+                                                                                  s.id === sub.id
+                                                                                      ? {
+                                                                                            ...s,
+                                                                                            label: e
+                                                                                                .target
+                                                                                                .value,
+                                                                                        }
+                                                                                      : s
+                                                                              ),
+                                                                          }
+                                                                        : t
+                                                                ),
+                                                            }))
+                                                        }
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Input
+                                                        type="number"
+                                                        value={sub.order}
+                                                        onChange={(e) =>
+                                                            updateSettings((prev) => ({
+                                                                ...prev,
+                                                                sidebar: prev.sidebar.map((t) =>
+                                                                    t.id === tab.id
+                                                                        ? {
+                                                                              ...t,
+                                                                              subTabs: (
+                                                                                  t.subTabs || []
+                                                                              ).map((s) =>
+                                                                                  s.id === sub.id
+                                                                                      ? {
+                                                                                            ...s,
+                                                                                            order: Number(
+                                                                                                e
+                                                                                                    .target
+                                                                                                    .value
+                                                                                            ),
+                                                                                        }
+                                                                                      : s
+                                                                              ),
+                                                                          }
+                                                                        : t
+                                                                ),
+                                                            }))
+                                                        }
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Input
+                                                        value={sub.route}
+                                                        onChange={(e) =>
+                                                            updateSettings((prev) => ({
+                                                                ...prev,
+                                                                sidebar: prev.sidebar.map((t) =>
+                                                                    t.id === tab.id
+                                                                        ? {
+                                                                              ...t,
+                                                                              subTabs: (
+                                                                                  t.subTabs || []
+                                                                              ).map((s) =>
+                                                                                  s.id === sub.id
+                                                                                      ? {
+                                                                                            ...s,
+                                                                                            route: e
+                                                                                                .target
+                                                                                                .value,
+                                                                                        }
+                                                                                      : s
+                                                                              ),
+                                                                          }
+                                                                        : t
+                                                                ),
+                                                            }))
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Switch
+                                                        checked={sub.visible}
+                                                        onCheckedChange={(checked) =>
+                                                            updateSettings((prev) => ({
+                                                                ...prev,
+                                                                sidebar: prev.sidebar.map((t) =>
+                                                                    t.id === tab.id
+                                                                        ? {
+                                                                              ...t,
+                                                                              subTabs: (
+                                                                                  t.subTabs || []
+                                                                              ).map((s) =>
+                                                                                  s.id === sub.id
+                                                                                      ? {
+                                                                                            ...s,
+                                                                                            visible:
+                                                                                                checked,
+                                                                                        }
+                                                                                      : s
+                                                                              ),
+                                                                          }
+                                                                        : t
+                                                                ),
+                                                            }))
+                                                        }
+                                                    />
+                                                    <span className="text-sm">Visible</span>
+                                                </div>
+                                                {sub.id.startsWith('custom-sub-') && (
+                                                    <div className="pt-2">
+                                                        <Button
+                                                            variant="destructive"
+                                                            onClick={() =>
+                                                                removeCustomSubTab(tab.id, sub.id)
+                                                            }
+                                                        >
+                                                            Remove
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                </div>
                             </div>
                         ))}
                     <div className="pt-2">
                         <Button variant="outline" onClick={addCustomTab}>
                             Add Custom Tab
                         </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Course Content Types</CardTitle>
+                    <CardDescription>
+                        Enable or disable slide content types. Video has an extra in-video question
+                        option.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                    {(
+                        [
+                            ['pdf', 'PDF'],
+                            ['codeEditor', 'Code Editor'],
+                            ['document', 'Document'],
+                            ['question', 'Question'],
+                            ['quiz', 'Quiz'],
+                            ['assignment', 'Assignment'],
+                            ['jupyterNotebook', 'Jupyter Notebook'],
+                            ['scratch', 'Scratch'],
+                        ] as const satisfies ReadonlyArray<
+                            readonly [keyof Omit<CourseContentTypeSettings, 'video'>, string]
+                        >
+                    ).map(([key, label]) => (
+                        <div
+                            key={key}
+                            className="flex items-center justify-between rounded border p-3"
+                        >
+                            <div className="text-sm">{label}</div>
+                            <Switch
+                                checked={settings.contentTypes?.[key] !== false}
+                                onCheckedChange={(checked) =>
+                                    updateSettings((prev) => {
+                                        const base: CourseContentTypeSettings = {
+                                            pdf: prev.contentTypes?.pdf ?? true,
+                                            codeEditor: prev.contentTypes?.codeEditor ?? true,
+                                            document: prev.contentTypes?.document ?? true,
+                                            question: prev.contentTypes?.question ?? true,
+                                            quiz: prev.contentTypes?.quiz ?? true,
+                                            assignment: prev.contentTypes?.assignment ?? true,
+                                            jupyterNotebook:
+                                                prev.contentTypes?.jupyterNotebook ?? true,
+                                            scratch: prev.contentTypes?.scratch ?? true,
+                                            video: {
+                                                enabled: prev.contentTypes?.video?.enabled ?? true,
+                                                showInVideoQuestion:
+                                                    prev.contentTypes?.video?.showInVideoQuestion ??
+                                                    true,
+                                            },
+                                        };
+                                        return {
+                                            ...prev,
+                                            contentTypes: {
+                                                ...base,
+                                                [key]: checked,
+                                            },
+                                        };
+                                    })
+                                }
+                            />
+                        </div>
+                    ))}
+                    <div className="space-y-2 rounded border p-3">
+                        <div className="flex items-center justify-between">
+                            <div className="text-sm">Video</div>
+                            <Switch
+                                checked={settings.contentTypes?.video?.enabled !== false}
+                                onCheckedChange={(checked) =>
+                                    updateSettings((prev) => {
+                                        const base: CourseContentTypeSettings = {
+                                            pdf: prev.contentTypes?.pdf ?? true,
+                                            codeEditor: prev.contentTypes?.codeEditor ?? true,
+                                            document: prev.contentTypes?.document ?? true,
+                                            question: prev.contentTypes?.question ?? true,
+                                            quiz: prev.contentTypes?.quiz ?? true,
+                                            assignment: prev.contentTypes?.assignment ?? true,
+                                            jupyterNotebook:
+                                                prev.contentTypes?.jupyterNotebook ?? true,
+                                            scratch: prev.contentTypes?.scratch ?? true,
+                                            video: {
+                                                enabled: prev.contentTypes?.video?.enabled ?? true,
+                                                showInVideoQuestion:
+                                                    prev.contentTypes?.video?.showInVideoQuestion ??
+                                                    true,
+                                            },
+                                        };
+                                        return {
+                                            ...prev,
+                                            contentTypes: {
+                                                ...base,
+                                                video: {
+                                                    enabled: checked,
+                                                    showInVideoQuestion:
+                                                        base.video.showInVideoQuestion,
+                                                },
+                                            },
+                                        };
+                                    })
+                                }
+                            />
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <div className="text-sm">In-video Question Visible</div>
+                            <Switch
+                                checked={
+                                    settings.contentTypes?.video?.showInVideoQuestion !== false
+                                }
+                                onCheckedChange={(checked) =>
+                                    updateSettings((prev) => {
+                                        const base: CourseContentTypeSettings = {
+                                            pdf: prev.contentTypes?.pdf ?? true,
+                                            codeEditor: prev.contentTypes?.codeEditor ?? true,
+                                            document: prev.contentTypes?.document ?? true,
+                                            question: prev.contentTypes?.question ?? true,
+                                            quiz: prev.contentTypes?.quiz ?? true,
+                                            assignment: prev.contentTypes?.assignment ?? true,
+                                            jupyterNotebook:
+                                                prev.contentTypes?.jupyterNotebook ?? true,
+                                            scratch: prev.contentTypes?.scratch ?? true,
+                                            video: {
+                                                enabled: prev.contentTypes?.video?.enabled ?? true,
+                                                showInVideoQuestion:
+                                                    prev.contentTypes?.video?.showInVideoQuestion ??
+                                                    true,
+                                            },
+                                        };
+                                        return {
+                                            ...prev,
+                                            contentTypes: {
+                                                ...base,
+                                                video: {
+                                                    enabled: base.video.enabled,
+                                                    showInVideoQuestion: checked,
+                                                },
+                                            },
+                                        };
+                                    })
+                                }
+                            />
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Manage Doubts</CardTitle>
+                    <CardDescription>Show or hide the Doubt Management section.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center justify-between rounded border p-3">
+                        <div className="text-sm">Show Manage Doubts</div>
+                        <Switch
+                            checked={(() => {
+                                const parent = settings.sidebar.find(
+                                    (t) => t.id === 'study-library'
+                                );
+                                const sub = parent?.subTabs?.find(
+                                    (s) => s.id === 'doubt-management'
+                                );
+                                return sub?.visible !== false;
+                            })()}
+                            onCheckedChange={(checked) =>
+                                updateSettings((prev) => ({
+                                    ...prev,
+                                    sidebar: prev.sidebar.map((t) => {
+                                        if (t.id !== 'study-library') return t;
+                                        const subTabs = (t.subTabs || []).map((s) =>
+                                            s.id === 'doubt-management'
+                                                ? { ...s, visible: checked }
+                                                : s
+                                        );
+                                        return { ...t, subTabs };
+                                    }),
+                                }))
+                            }
+                        />
                     </div>
                 </CardContent>
             </Card>

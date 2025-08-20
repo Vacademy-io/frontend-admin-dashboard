@@ -6,7 +6,11 @@ import { getTerminology } from '@/components/common/layout-container/sidebar/uti
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface AuthoredCoursesSidebarProps {
-    sideBarList?: { value: string; id: string }[];
+    sideBarList?: {
+        value: string;
+        id: string;
+        status?: 'DRAFT' | 'IN_REVIEW' | 'ACTIVE';
+    }[];
     sideBarData?: { title: string; listIconText: string; searchParam: string };
 }
 
@@ -31,6 +35,32 @@ export const AuthoredCoursesSidebar = ({
         navigate({ to: '/study-library/courses' });
     };
 
+    const getStatusBadgeClassName = (status?: 'DRAFT' | 'IN_REVIEW' | 'ACTIVE') => {
+        switch (status) {
+            case 'ACTIVE':
+                return 'bg-green-100 text-green-800';
+            case 'DRAFT':
+                return 'bg-gray-200 text-gray-700';
+            case 'IN_REVIEW':
+                return 'bg-yellow-100 text-yellow-800';
+            default:
+                return '';
+        }
+    };
+
+    const getStatusLabel = (status?: 'DRAFT' | 'IN_REVIEW' | 'ACTIVE') => {
+        switch (status) {
+            case 'ACTIVE':
+                return 'Published';
+            case 'DRAFT':
+                return 'Draft';
+            case 'IN_REVIEW':
+                return 'In Review';
+            default:
+                return status || '';
+        }
+    };
+
     if (!sideBarList || sideBarList.length === 0) {
         return (
             <div className="relative flex h-screen w-[307px] flex-col gap-6 overflow-y-scroll bg-primary-50 pb-5 pt-10">
@@ -38,14 +68,16 @@ export const AuthoredCoursesSidebar = ({
                     <MyButton
                         buttonType="primary"
                         onClick={handleViewAllCourses}
-                        className="w-full mb-4"
+                        className="mb-4 w-full"
                     >
                         View All {getTerminology(ContentTerms.Course, SystemTerms.Course)}s
                     </MyButton>
                 </div>
                 <div className="px-6">
                     <p className="text-sm text-gray-500">
-                        No authored {getTerminology(ContentTerms.Course, SystemTerms.Course).toLowerCase()}s found.
+                        No authored{' '}
+                        {getTerminology(ContentTerms.Course, SystemTerms.Course).toLowerCase()}s
+                        found.
                     </p>
                 </div>
             </div>
@@ -59,7 +91,7 @@ export const AuthoredCoursesSidebar = ({
                 <MyButton
                     buttonType="primary"
                     onClick={handleViewAllCourses}
-                    className="w-full mb-4"
+                    className="mb-4 w-full"
                 >
                     View All {getTerminology(ContentTerms.Course, SystemTerms.Course)}s
                 </MyButton>
@@ -69,7 +101,9 @@ export const AuthoredCoursesSidebar = ({
             <div className="px-6">
                 <div className="mb-4">
                     <h3 className="text-sm font-medium text-gray-700">
-                        My {sideBarData?.title || getTerminology(ContentTerms.Course, SystemTerms.Course)}s
+                        My{' '}
+                        {sideBarData?.title ??
+                            getTerminology(ContentTerms.Course, SystemTerms.Course) + 's'}
                     </h3>
                 </div>
 
@@ -81,7 +115,7 @@ export const AuthoredCoursesSidebar = ({
                             className={cn(
                                 'group flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
                                 courseId === item.id
-                                    ? 'bg-primary-100 text-primary-700'
+                                    ? 'text-primary-700 bg-primary-100'
                                     : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                             )}
                         >
@@ -96,6 +130,16 @@ export const AuthoredCoursesSidebar = ({
                                 {sideBarData?.listIconText || 'C'}
                             </div>
                             <span className="flex-1 truncate">{item.value}</span>
+                            {item.status && (
+                                <span
+                                    className={cn(
+                                        'ml-2 rounded-full px-2 py-0.5 text-xs',
+                                        getStatusBadgeClassName(item.status)
+                                    )}
+                                >
+                                    {getStatusLabel(item.status)}
+                                </span>
+                            )}
                         </div>
                     ))}
                 </div>

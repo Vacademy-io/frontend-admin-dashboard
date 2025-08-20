@@ -37,6 +37,15 @@ import {
 import { createPresentationSlidePayload } from '../create-presentation-slide';
 import AddQuestionDialog from './add-question-dialog';
 import { getSlideStatusForUser } from '../../non-admin/hooks/useNonAdminSlides';
+import { useEffect, useMemo, useState } from 'react';
+import {
+    ADMIN_DISPLAY_SETTINGS_KEY,
+    TEACHER_DISPLAY_SETTINGS_KEY,
+    type DisplaySettingsData,
+} from '@/types/display-settings';
+import { getDisplaySettings, getDisplaySettingsFromCache } from '@/services/display-settings';
+import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 // Simple utility function for setting first slide as active (used as fallback)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -47,6 +56,22 @@ export const setFirstSlideAsActive = (setActiveItem: (slide: any) => void, items
 };
 
 export const ChapterSidebarAddButton = () => {
+    // Load role display settings to enforce slide-type availability
+    const [roleDisplay, setRoleDisplay] = useState<DisplaySettingsData | null>(null);
+    useEffect(() => {
+        const accessToken = getTokenFromCookie(TokenKey.accessToken);
+        const roles = getUserRoles(accessToken);
+        const isAdmin = roles.includes('ADMIN');
+        const roleKey = isAdmin ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+        const cached = getDisplaySettingsFromCache(roleKey);
+        if (cached) {
+            setRoleDisplay(cached);
+            return;
+        }
+        getDisplaySettings(roleKey)
+            .then(setRoleDisplay)
+            .catch(() => setRoleDisplay(null));
+    }, []);
     const { open } = useSidebar();
     const route = useRouter();
     const { getPackageSessionId } = useInstituteDetailsStore();
@@ -121,93 +146,143 @@ export const ChapterSidebarAddButton = () => {
         }
     };
 
-    const dropdownList = [
-        {
-            label: 'PDF Document',
-            value: 'pdf',
-            icon: <FilePdf className="size-4 text-red-500" />,
-            description: 'Upload PDF files',
-        },
-        {
-            label: 'Document',
-            value: 'doc',
-            icon: <FileDoc className="size-4 text-blue-600" />,
-            description: 'Word documents & more',
-            subItems: [
-                {
-                    label: 'Upload from device',
-                    value: 'upload-doc',
-                    description: 'Upload existing document',
-                },
-                {
-                    label: 'Create new document',
-                    value: 'create-doc',
-                    description: 'Start with blank document',
-                },
-            ],
-        },
-        {
-            label: 'Video',
-            value: 'video',
-            icon: <YoutubeLogo className="size-4 text-green-500" />,
-            description: 'Video content',
-            subItems: [
-                {
-                    label: 'Upload video file',
-                    value: 'upload-video',
-                    description: 'Upload from device',
-                },
-                {
-                    label: 'YouTube video',
-                    value: 'youtube-video',
-                    description: 'Add YouTube link',
-                },
-            ],
-        },
-        {
-            label: 'Question',
-            value: 'question',
-            icon: <Question className="size-4 text-purple-500" />,
-            description: 'Interactive questions',
-        },
-        {
-            label: 'Assignment',
-            value: 'assignment',
-            icon: <File className="size-4 text-blue-500" />,
-            description: 'Student assignments',
-        },
-        {
-            label: 'Presentation',
-            value: 'presentation',
-            icon: <PresentationChart className="size-4 text-orange-500" />,
-            description: 'Interactive presentations',
-        },
-        {
-            label: 'Jupyter Notebook',
-            value: 'jupyter-notebook',
-            icon: <BookOpen className="size-4 text-violet-500" />,
-            description: 'Interactive coding notebooks',
-        },
-        {
-            label: 'Scratch Project',
-            value: 'scratch-project',
-            icon: <GameController className="size-4 text-yellow-500" />,
-            description: 'Visual programming blocks',
-        },
-        {
-            label: 'Quiz',
-            value: 'quiz',
-            icon: <ClipboardText className="size-4 text-pink-500" />, // ✅ Changed to ListChecks
-            description: 'Timed quiz slide',
-        },
+    const dropdownList = useMemo(
+        () => [
+            {
+                label: 'PDF Document',
+                value: 'pdf',
+                icon: <FilePdf className="size-4 text-red-500" />,
+                description: 'Upload PDF files',
+            },
+            {
+                label: 'Document',
+                value: 'doc',
+                icon: <FileDoc className="size-4 text-blue-600" />,
+                description: 'Word documents & more',
+                subItems: [
+                    {
+                        label: 'Upload from device',
+                        value: 'upload-doc',
+                        description: 'Upload existing document',
+                    },
+                    {
+                        label: 'Create new document',
+                        value: 'create-doc',
+                        description: 'Start with blank document',
+                    },
+                ],
+            },
+            {
+                label: 'Video',
+                value: 'video',
+                icon: <YoutubeLogo className="size-4 text-green-500" />,
+                description: 'Video content',
+                subItems: [
+                    {
+                        label: 'Upload video file',
+                        value: 'upload-video',
+                        description: 'Upload from device',
+                    },
+                    {
+                        label: 'YouTube video',
+                        value: 'youtube-video',
+                        description: 'Add YouTube link',
+                    },
+                ],
+            },
+            {
+                label: 'Question',
+                value: 'question',
+                icon: <Question className="size-4 text-purple-500" />,
+                description: 'Interactive questions',
+            },
+            {
+                label: 'Assignment',
+                value: 'assignment',
+                icon: <File className="size-4 text-blue-500" />,
+                description: 'Student assignments',
+            },
+            {
+                label: 'Presentation',
+                value: 'presentation',
+                icon: <PresentationChart className="size-4 text-orange-500" />,
+                description: 'Interactive presentations',
+            },
+            {
+                label: 'Jupyter Notebook',
+                value: 'jupyter-notebook',
+                icon: <BookOpen className="size-4 text-violet-500" />,
+                description: 'Interactive coding notebooks',
+            },
+            {
+                label: 'Scratch Project',
+                value: 'scratch-project',
+                icon: <GameController className="size-4 text-yellow-500" />,
+                description: 'Visual programming blocks',
+            },
+            {
+                label: 'Quiz',
+                value: 'quiz',
+                icon: <ClipboardText className="size-4 text-pink-500" />, // ✅ Changed to ListChecks
+                description: 'Timed quiz slide',
+            },
 
-        {
-            label: 'Code Editor',
-            value: 'code-editor',
-            icon: <Code className="size-4 text-green-500" />,
-            description: 'Interactive code environment',
-        },
-    ];
+            {
+                label: 'Code Editor',
+                value: 'code-editor',
+                icon: <Code className="size-4 text-green-500" />,
+                description: 'Interactive code environment',
+            },
+        ],
+        []
+    );
+
+    const filteredDropdownList = useMemo(() => {
+        const base = dropdownList;
+        const ct = roleDisplay?.contentTypes;
+        if (!ct) return base;
+        const isAllowed = (val: string): boolean => {
+            switch (val) {
+                case 'pdf':
+                    return ct.pdf !== false;
+                case 'doc':
+                case 'upload-doc':
+                case 'create-doc':
+                    return ct.document !== false;
+                case 'video':
+                case 'upload-video':
+                case 'youtube-video':
+                    return ct.video?.enabled !== false;
+                case 'question':
+                    return ct.question !== false;
+                case 'assignment':
+                    return ct.assignment !== false;
+                case 'jupyter-notebook':
+                    return ct.jupyterNotebook !== false;
+                case 'scratch-project':
+                    return ct.scratch !== false;
+                case 'quiz':
+                    return ct.quiz !== false;
+                case 'code-editor':
+                    return ct.codeEditor !== false;
+                // presentation treated as a document-type control
+                case 'presentation':
+                    return ct.document !== false;
+                default:
+                    return true;
+            }
+        };
+        return base
+            .map((item) => {
+                if (!isAllowed(item.value)) return null;
+                if (item.subItems && item.subItems.length > 0) {
+                    const sub = item.subItems.filter((s) => isAllowed(s.value));
+                    return { ...item, subItems: sub };
+                }
+                return item;
+            })
+            .filter(Boolean) as typeof dropdownList;
+    }, [roleDisplay?.contentTypes, dropdownList]);
 
     const handleSelect = async (value: string) => {
         switch (value) {
@@ -514,7 +589,7 @@ export const ChapterSidebarAddButton = () => {
 
     return (
         <div className="w-full px-1 duration-500 animate-in fade-in slide-in-from-top-2">
-            <MyDropdown dropdownList={dropdownList} onSelect={handleSelect}>
+            <MyDropdown dropdownList={filteredDropdownList} onSelect={handleSelect}>
                 <MyButton
                     buttonType="primary"
                     scale="medium"

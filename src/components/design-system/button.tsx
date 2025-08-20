@@ -76,8 +76,8 @@ export const MyButton = React.forwardRef<HTMLButtonElement, MyButtonProps>(
             <Button
                 ref={ref}
                 className={cn(getButtonClasses(), className)}
+                disabled={disable ?? (props as any)?.disabled}
                 {...props}
-                disabled={disable}
             >
                 {children}
             </Button>

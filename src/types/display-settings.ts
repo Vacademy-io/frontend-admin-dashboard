@@ -71,6 +71,22 @@ export interface CourseDetailsTabConfig {
     visible: boolean;
 }
 
+// 5) Course content type visibility controls
+export interface CourseContentTypeSettings {
+    pdf: boolean;
+    video: {
+        enabled: boolean;
+        showInVideoQuestion: boolean;
+    };
+    codeEditor: boolean;
+    document: boolean;
+    question: boolean;
+    quiz: boolean;
+    assignment: boolean;
+    jupyterNotebook: boolean;
+    scratch: boolean;
+}
+
 export interface DisplaySettingsData {
     // 1) Sidebar tabs and sub-tabs configuration and ordering
     sidebar: SidebarTabConfig[];
@@ -103,9 +119,14 @@ export interface DisplaySettingsData {
     // 6) Global UI toggles
     ui?: {
         showSupportButton: boolean;
+        // Controls whether the left sidebar is shown for this role
+        showSidebar?: boolean;
     };
 
-    // 7) Post-login redirect route
+    // 7) Course content types (slides) visibility
+    contentTypes?: CourseContentTypeSettings;
+
+    // 8) Post-login redirect route
     postLoginRedirectRoute: string; // e.g., '/dashboard'
 }
 

@@ -74,6 +74,18 @@ export const DEFAULT_ADMIN_DISPLAY_SETTINGS: DisplaySettingsData = {
     },
     ui: {
         showSupportButton: true,
+        showSidebar: true,
+    },
+    contentTypes: {
+        pdf: true,
+        video: { enabled: true, showInVideoQuestion: true },
+        codeEditor: true,
+        document: true,
+        question: true,
+        quiz: true,
+        assignment: true,
+        jupyterNotebook: true,
+        scratch: true,
     },
     postLoginRedirectRoute: '/dashboard',
 };
