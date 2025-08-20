@@ -1,31 +1,77 @@
 import { MyDialog } from '@/components/design-system/dialog';
 import { toast } from 'sonner';
 import { useEnrollRequestsDialogStore } from '../bulk-actions-store';
+import { useMutation } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
+import { getApproveEnrollmentRequestsData } from '../../../-services/get-enroll-requests';
+
+// Interface to match the actual data structure from bulkActionInfo.selectedStudents
+interface EnrollRequestItem {
+    packageSessionIds: string[]; // or number[] if IDs are numeric
+    userId: string; // or number
+    enrollInviteId: string; // or number
+}
+
+export interface EnrollRequestAcceptData {
+    items: EnrollRequestItem[];
+}
 
 export const AcceptRequestDialog = () => {
     const { isAcceptRequestOpen, bulkActionInfo, selectedStudent, closeAllDialogs } =
         useEnrollRequestsDialogStore();
 
-    const handleAcceptRequestBulk = async () => {
-        if (!bulkActionInfo) return;
+    const enrollRequestData = {
+        items: selectedStudent
+            ? [
+                  {
+                      packageSessionIds: [selectedStudent.destination_package_session_id],
+                      userId: selectedStudent.user_id,
+                      enrollInviteId: selectedStudent.enroll_invite_id,
+                  },
+              ]
+            : bulkActionInfo?.selectedStudents?.map((student) => ({
+                  packageSessionIds: [student.destination_package_session_id],
+                  userId: student.user_id,
+                  enrollInviteId: student.enroll_invite_id,
+              })) || [],
+    };
 
-        try {
+    const handleEnrollRequestMutation = useMutation({
+        mutationFn: async ({
+            enrollRequestData,
+        }: {
+            enrollRequestData: EnrollRequestAcceptData;
+        }) => {
+            return getApproveEnrollmentRequestsData({ enrollRequestData });
+        },
+        onSuccess: () => {
             toast.success('Request accepted successfully');
             closeAllDialogs();
-        } catch {
-            toast.error('Failed to accept request');
-        }
+        },
+        onError: (error: unknown) => {
+            if (error instanceof AxiosError) {
+                toast.error('Failed to accept request');
+            } else {
+                toast.error('An unexpected error occurred', {
+                    className: 'error-toast',
+                    duration: 2000,
+                });
+            }
+        },
+    });
+
+    const handleAcceptRequestBulk = async () => {
+        if (!bulkActionInfo) return;
+        handleEnrollRequestMutation.mutate({
+            enrollRequestData,
+        });
     };
 
     const handleAcceptRequest = async () => {
         if (!selectedStudent) return;
-
-        try {
-            toast.success('Request accepted successfully');
-            closeAllDialogs();
-        } catch {
-            toast.error('Failed to accept request');
-        }
+        handleEnrollRequestMutation.mutate({
+            enrollRequestData,
+        });
     };
 
     return (

@@ -60,6 +60,8 @@ export interface StudentTable {
     parents_mobile_number: string;
     parents_to_mother_email: string;
     parents_to_mother_mobile_number: string;
+    destination_package_session_id: string;
+    enroll_invite_id: string;
 }
 
 export interface StudentListResponse {
