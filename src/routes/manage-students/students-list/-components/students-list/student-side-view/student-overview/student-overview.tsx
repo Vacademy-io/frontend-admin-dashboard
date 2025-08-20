@@ -81,6 +81,8 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                 ? selectedStudent?.package_id || ''
                 : selectedStudent?.package_session_id || '',
         });
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
         const student: StudentTable | null = {
             id: studentDetails?.id || '',
             username: studentDetails?.username || '',

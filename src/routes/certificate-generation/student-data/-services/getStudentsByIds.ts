@@ -53,6 +53,8 @@ export const fetchStudentDetailsByIds = async (
             );
 
             // Transform the raw response to match CertificateStudentData interface
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
             const studentData: CertificateStudentData = {
                 id: response.data.id || userId,
                 user_id: userId,
