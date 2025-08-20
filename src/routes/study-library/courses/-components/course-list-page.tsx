@@ -55,6 +55,7 @@ interface CourseListPageProps {
     page: number;
     handlePageChange: (newPage: number) => void;
     deletingCourseId: string | null;
+    showDeleteButton?: boolean;
 }
 
 const CourseListPage = ({
@@ -82,6 +83,7 @@ const CourseListPage = ({
     page,
     handlePageChange,
     deletingCourseId,
+    showDeleteButton = true,
 }: CourseListPageProps) => {
     const navigate = useNavigate();
     return (
@@ -412,79 +414,87 @@ const CourseListPage = ({
                                                         SystemTerms.Course
                                                     )}
                                                 </MyButton>
-                                                <AlertDialog
-                                                    open={
-                                                        deletingCourseId === course.id || undefined
-                                                    }
-                                                    onOpenChange={() => {
-                                                        // Only allow closing if not currently deleting
-                                                        if (
-                                                            !deletingCourseId ||
-                                                            deletingCourseId !== course.id
-                                                        ) {
-                                                            // If parent controls dialog open state, call parent handler here if needed
+                                                {showDeleteButton && (
+                                                    <AlertDialog
+                                                        open={
+                                                            deletingCourseId === course.id ||
+                                                            undefined
                                                         }
-                                                    }}
-                                                >
-                                                    <AlertDialogTrigger className="flex size-9 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-500 transition-colors hover:border-red-300 hover:bg-red-100 active:scale-95">
-                                                        <TrashSimple size={18} />
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>
-                                                                Are you sure you want to delete this
-                                                                course?
-                                                            </AlertDialogTitle>
-                                                            <AlertDialogDescription>
-                                                                This action cannot be undone. This
-                                                                will permanently delete your course
-                                                                and remove your course data from our
-                                                                servers.
-                                                            </AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel
-                                                                disabled={
-                                                                    deletingCourseId === course.id
-                                                                }
-                                                            >
-                                                                Cancel
-                                                            </AlertDialogCancel>
-                                                            <AlertDialogAction
-                                                                onClick={() =>
-                                                                    handleCourseDelete(course.id)
-                                                                }
-                                                                disabled={
-                                                                    deletingCourseId === course.id
-                                                                }
-                                                                className="bg-primary-500 text-white"
-                                                            >
-                                                                {deletingCourseId === course.id ? (
-                                                                    <svg
-                                                                        className="animate-spin"
-                                                                        width="18"
-                                                                        height="18"
-                                                                        viewBox="0 0 24 24"
-                                                                        fill="none"
-                                                                        xmlns="http://www.w3.org/2000/svg"
-                                                                    >
-                                                                        <circle
-                                                                            cx="12"
-                                                                            cy="12"
-                                                                            r="10"
-                                                                            stroke="#ef4444"
-                                                                            strokeWidth="4"
-                                                                            strokeDasharray="60"
-                                                                            strokeDashoffset="20"
-                                                                        />
-                                                                    </svg>
-                                                                ) : (
-                                                                    'Confirm'
-                                                                )}
-                                                            </AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
+                                                        onOpenChange={() => {
+                                                            // Only allow closing if not currently deleting
+                                                            if (
+                                                                !deletingCourseId ||
+                                                                deletingCourseId !== course.id
+                                                            ) {
+                                                                // If parent controls dialog open state, call parent handler here if needed
+                                                            }
+                                                        }}
+                                                    >
+                                                        <AlertDialogTrigger className="flex size-9 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-500 transition-colors hover:border-red-300 hover:bg-red-100 active:scale-95">
+                                                            <TrashSimple size={18} />
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>
+                                                                    Are you sure you want to delete
+                                                                    this course?
+                                                                </AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    This action cannot be undone.
+                                                                    This will permanently delete
+                                                                    your course and remove your
+                                                                    course data from our servers.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel
+                                                                    disabled={
+                                                                        deletingCourseId ===
+                                                                        course.id
+                                                                    }
+                                                                >
+                                                                    Cancel
+                                                                </AlertDialogCancel>
+                                                                <AlertDialogAction
+                                                                    onClick={() =>
+                                                                        handleCourseDelete(
+                                                                            course.id
+                                                                        )
+                                                                    }
+                                                                    disabled={
+                                                                        deletingCourseId ===
+                                                                        course.id
+                                                                    }
+                                                                    className="bg-primary-500 text-white"
+                                                                >
+                                                                    {deletingCourseId ===
+                                                                    course.id ? (
+                                                                        <svg
+                                                                            className="animate-spin"
+                                                                            width="18"
+                                                                            height="18"
+                                                                            viewBox="0 0 24 24"
+                                                                            fill="none"
+                                                                            xmlns="http://www.w3.org/2000/svg"
+                                                                        >
+                                                                            <circle
+                                                                                cx="12"
+                                                                                cy="12"
+                                                                                r="10"
+                                                                                stroke="#ef4444"
+                                                                                strokeWidth="4"
+                                                                                strokeDasharray="60"
+                                                                                strokeDashoffset="20"
+                                                                            />
+                                                                        </svg>
+                                                                    ) : (
+                                                                        'Confirm'
+                                                                    )}
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

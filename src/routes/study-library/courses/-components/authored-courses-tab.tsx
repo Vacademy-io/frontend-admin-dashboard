@@ -163,6 +163,7 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
             toast.success('Editable copy created successfully');
             refetch();
             setCopyingCourseId(null);
+            navigate({ to: '/study-library/courses' });
         },
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to create editable copy');
@@ -428,43 +429,12 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                                                                         </span>
                                                                     </div>
                                                                 )}
-                                                            {combo.levelInfo.levelName &&
-                                                                combo.levelInfo.levelName !==
-                                                                    'default' && (
-                                                                    <div className="flex items-center gap-1">
-                                                                        <GraduationCap size={12} />
-                                                                        <span className="truncate">
-                                                                            {
-                                                                                combo.levelInfo
-                                                                                    .levelName
-                                                                            }
-                                                                        </span>
-                                                                    </div>
-                                                                )}
+                                                        
                                                         </div>
                                                     ))}
-                                                {course.sessionLevelCombinations.length > 2 && (
-                                                    <div className="text-xs text-gray-500">
-                                                        +
-                                                        {course.sessionLevelCombinations.length - 2}{' '}
-                                                        more
-                                                    </div>
-                                                )}
                                             </div>
                                         </div>
                                     )}
-
-                                    {/* Faculty Assignment Count */}
-                                    {course.facultyAssigned &&
-                                        course.facultyAssignmentCount > 0 && (
-                                            <div className="flex items-center gap-1 text-xs text-gray-600">
-                                                <Users size={12} />
-                                                <span>
-                                                    {course.facultyAssignmentCount} faculty
-                                                    assignments
-                                                </span>
-                                            </div>
-                                        )}
                                 </div>
 
                                 {/* Action Buttons */}

@@ -182,10 +182,12 @@ export const CourseStructureDetails = ({
     selectedSession,
     selectedLevel,
     courseStructure,
+    isReadOnly,
 }: {
     selectedSession: string;
     selectedLevel: string;
     courseStructure: number;
+    isReadOnly?: boolean;
 }) => {
     const router = useRouter();
     const searchParams = router.state.location.search;
@@ -228,6 +230,7 @@ export const CourseStructureDetails = ({
     const isInReviewCourse = courseStatus === 'IN_REVIEW';
 
     const courseId: string = searchParams.courseId || '';
+    const readOnly = Boolean(isReadOnly);
     // Role Display Settings (course details tabs)
     const [roleDisplay, setRoleDisplay] = useState<DisplaySettingsData | null>(null);
     useEffect(() => {
@@ -730,6 +733,7 @@ export const CourseStructureDetails = ({
     };
 
     const handleChapterNavigation = (subjectId: string, moduleId: string, chapterId: string) => {
+        if (readOnly) return;
         const navigationParams = {
             courseId: router.state.location.search.courseId ?? '',
             levelId: selectedLevel,
@@ -752,6 +756,7 @@ export const CourseStructureDetails = ({
         chapterId: string,
         slideId: string
     ) => {
+        if (readOnly) return;
         const slide = chapterSlidesMap[chapterId]?.find((s) => s.id === slideId);
         if (slide) {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -794,6 +799,7 @@ export const CourseStructureDetails = ({
 
     // Navigation handler for direct slides (2-depth courses)
     const handleDirectSlideNavigation = (slideId?: string) => {
+        if (readOnly) return;
         const slide = slideId ? directSlides.find((s) => s.id === slideId) : null;
         if (slide) {
             setActiveItem(slide);
@@ -903,24 +909,26 @@ export const CourseStructureDetails = ({
                 <div className="sticky top-0 z-10 mb-3 border-b border-gray-200 bg-white px-6 py-3">
                     <div className="flex items-center justify-between">
                         <h3 className="text-sm font-medium text-gray-700">Course Structure</h3>
-                        <div className="flex gap-2">
-                            <MyButton
-                                buttonType="secondary"
-                                onClick={expandAll}
-                                className="flex items-center gap-1.5 !px-3 !py-1 text-xs"
-                            >
-                                <ArrowsOut size={14} weight="bold" />
-                                Expand All
-                            </MyButton>
-                            <MyButton
-                                buttonType="secondary"
-                                onClick={collapseAll}
-                                className="flex items-center gap-1.5 !px-3 !py-1 text-xs"
-                            >
-                                <ArrowsIn size={14} weight="bold" />
-                                Collapse All
-                            </MyButton>
-                        </div>
+                        {!readOnly && (
+                            <div className="flex gap-2">
+                                <MyButton
+                                    buttonType="secondary"
+                                    onClick={expandAll}
+                                    className="flex items-center gap-1.5 !px-3 !py-1 text-xs"
+                                >
+                                    <ArrowsOut size={14} weight="bold" />
+                                    Expand All
+                                </MyButton>
+                                <MyButton
+                                    buttonType="secondary"
+                                    onClick={collapseAll}
+                                    className="flex items-center gap-1.5 !px-3 !py-1 text-xs"
+                                >
+                                    <ArrowsIn size={14} weight="bold" />
+                                    Collapse All
+                                </MyButton>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -938,10 +946,14 @@ export const CourseStructureDetails = ({
                                     <Collapsible
                                         key={subject.id}
                                         open={isSubjectOpen}
-                                        onOpenChange={() => toggleSubject(subject.id)}
+                                        onOpenChange={
+                                            readOnly ? undefined : () => toggleSubject(subject.id)
+                                        }
                                         className="group"
                                     >
-                                        <CollapsibleTrigger className="group/subject-trigger flex w-full items-center rounded-md p-2 text-left text-sm font-semibold text-gray-800 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+                                        <CollapsibleTrigger
+                                            className={`group/subject-trigger flex w-full items-center rounded-md p-2 text-left text-sm font-semibold text-gray-800 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${readOnly ? 'pointer-events-none' : ''}`}
+                                        >
                                             <div className="flex flex-1 items-center gap-2.5">
                                                 {isSubjectOpen ? (
                                                     <CaretDown
@@ -1012,12 +1024,19 @@ export const CourseStructureDetails = ({
                                                             <Collapsible
                                                                 key={mod.module.id}
                                                                 open={isModuleOpen}
-                                                                onOpenChange={() =>
-                                                                    toggleModule(mod.module.id)
+                                                                onOpenChange={
+                                                                    readOnly
+                                                                        ? undefined
+                                                                        : () =>
+                                                                              toggleModule(
+                                                                                  mod.module.id
+                                                                              )
                                                                 }
                                                                 className="group/module"
                                                             >
-                                                                <CollapsibleTrigger className="group/module-trigger flex w-full items-center rounded-md px-2 py-1.5 text-left text-sm font-medium text-gray-700 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+                                                                <CollapsibleTrigger
+                                                                    className={`group/module-trigger flex w-full items-center rounded-md px-2 py-1.5 text-left text-sm font-medium text-gray-700 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${readOnly ? 'pointer-events-none' : ''}`}
+                                                                >
                                                                     <div className="flex flex-1 items-center gap-2.5">
                                                                         {isModuleOpen ? (
                                                                             <CaretDown
@@ -1155,76 +1174,80 @@ export const CourseStructureDetails = ({
                                                                                                     )}
                                                                                                 </span>
                                                                                             </div>
-                                                                                            <MyButton
-                                                                                                buttonType="secondary"
-                                                                                                layoutVariant="icon"
-                                                                                                scale="small"
-                                                                                                onClick={(
-                                                                                                    e
-                                                                                                ) => {
-                                                                                                    e.stopPropagation();
-                                                                                                    openDeleteConfirmation(
-                                                                                                        'chapter',
-                                                                                                        {
-                                                                                                            id: ch
-                                                                                                                .chapter
-                                                                                                                .id,
-                                                                                                            name: ch
-                                                                                                                .chapter
-                                                                                                                .chapter_name,
-                                                                                                            subjectId:
-                                                                                                                subject.id,
-                                                                                                            moduleId:
-                                                                                                                mod
-                                                                                                                    .module
-                                                                                                                    .id,
-                                                                                                        }
-                                                                                                    );
-                                                                                                }}
-                                                                                                className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/chapter-trigger:opacity-100"
-                                                                                            >
-                                                                                                <Trash
-                                                                                                    size={
-                                                                                                        12
-                                                                                                    }
-                                                                                                />
-                                                                                            </MyButton>
-                                                                                        </CollapsibleTrigger>
-                                                                                        <CollapsibleContent className="py-1 pl-9">
-                                                                                            <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
+                                                                                            {!readOnly && (
                                                                                                 <MyButton
-                                                                                                    buttonType="text"
+                                                                                                    buttonType="secondary"
+                                                                                                    layoutVariant="icon"
+                                                                                                    scale="small"
                                                                                                     onClick={(
                                                                                                         e
                                                                                                     ) => {
                                                                                                         e.stopPropagation();
-                                                                                                        handleChapterNavigation(
-                                                                                                            subject.id,
-                                                                                                            mod
-                                                                                                                .module
-                                                                                                                .id,
-                                                                                                            ch
-                                                                                                                .chapter
-                                                                                                                .id
+                                                                                                        openDeleteConfirmation(
+                                                                                                            'chapter',
+                                                                                                            {
+                                                                                                                id: ch
+                                                                                                                    .chapter
+                                                                                                                    .id,
+                                                                                                                name: ch
+                                                                                                                    .chapter
+                                                                                                                    .chapter_name,
+                                                                                                                subjectId:
+                                                                                                                    subject.id,
+                                                                                                                moduleId:
+                                                                                                                    mod
+                                                                                                                        .module
+                                                                                                                        .id,
+                                                                                                            }
                                                                                                         );
                                                                                                     }}
-                                                                                                    className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
+                                                                                                    className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/chapter-trigger:opacity-100"
                                                                                                 >
-                                                                                                    <Plus
+                                                                                                    <Trash
                                                                                                         size={
-                                                                                                            14
+                                                                                                            12
                                                                                                         }
-                                                                                                        weight="bold"
-                                                                                                        className="text-primary-400 group-hover:text-primary-500"
                                                                                                     />
-                                                                                                    <span className="font-medium">
-                                                                                                        Add{' '}
-                                                                                                        {getTerminology(
-                                                                                                            ContentTerms.Slides,
-                                                                                                            SystemTerms.Slides
-                                                                                                        )}
-                                                                                                    </span>
                                                                                                 </MyButton>
+                                                                                            )}
+                                                                                        </CollapsibleTrigger>
+                                                                                        <CollapsibleContent className="py-1 pl-9">
+                                                                                            <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
+                                                                                                {!readOnly && (
+                                                                                                    <MyButton
+                                                                                                        buttonType="text"
+                                                                                                        onClick={(
+                                                                                                            e
+                                                                                                        ) => {
+                                                                                                            e.stopPropagation();
+                                                                                                            handleChapterNavigation(
+                                                                                                                subject.id,
+                                                                                                                mod
+                                                                                                                    .module
+                                                                                                                    .id,
+                                                                                                                ch
+                                                                                                                    .chapter
+                                                                                                                    .id
+                                                                                                            );
+                                                                                                        }}
+                                                                                                        className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
+                                                                                                    >
+                                                                                                        <Plus
+                                                                                                            size={
+                                                                                                                14
+                                                                                                            }
+                                                                                                            weight="bold"
+                                                                                                            className="text-primary-400 group-hover:text-primary-500"
+                                                                                                        />
+                                                                                                        <span className="font-medium">
+                                                                                                            Add{' '}
+                                                                                                            {getTerminology(
+                                                                                                                ContentTerms.Slides,
+                                                                                                                SystemTerms.Slides
+                                                                                                            )}
+                                                                                                        </span>
+                                                                                                    </MyButton>
+                                                                                                )}
 
                                                                                                 {(
                                                                                                     chapterSlidesMap[
@@ -1265,6 +1288,10 @@ export const CourseStructureDetails = ({
                                                                                                                 }
                                                                                                                 className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
                                                                                                                 onClick={() => {
+                                                                                                                    if (
+                                                                                                                        readOnly
+                                                                                                                    )
+                                                                                                                        return;
                                                                                                                     handleSlideNavigation(
                                                                                                                         subject.id,
                                                                                                                         mod
@@ -1328,7 +1355,9 @@ export const CourseStructureDetails = ({
                                     <Collapsible
                                         key={subject.id}
                                         open={isSubjectOpen}
-                                        onOpenChange={() => toggleSubject(subject.id)}
+                                        onOpenChange={
+                                            readOnly ? undefined : () => toggleSubject(subject.id)
+                                        }
                                         className="group"
                                     >
                                         <CollapsibleContent className="py-1">
@@ -1475,76 +1504,80 @@ export const CourseStructureDetails = ({
                                                                                                     )}
                                                                                                 </span>
                                                                                             </div>
-                                                                                            <MyButton
-                                                                                                buttonType="secondary"
-                                                                                                layoutVariant="icon"
-                                                                                                scale="small"
-                                                                                                onClick={(
-                                                                                                    e
-                                                                                                ) => {
-                                                                                                    e.stopPropagation();
-                                                                                                    openDeleteConfirmation(
-                                                                                                        'chapter',
-                                                                                                        {
-                                                                                                            id: ch
-                                                                                                                .chapter
-                                                                                                                .id,
-                                                                                                            name: ch
-                                                                                                                .chapter
-                                                                                                                .chapter_name,
-                                                                                                            subjectId:
-                                                                                                                subject.id,
-                                                                                                            moduleId:
-                                                                                                                mod
-                                                                                                                    .module
-                                                                                                                    .id,
-                                                                                                        }
-                                                                                                    );
-                                                                                                }}
-                                                                                                className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/chapter-trigger:opacity-100"
-                                                                                            >
-                                                                                                <Trash
-                                                                                                    size={
-                                                                                                        12
-                                                                                                    }
-                                                                                                />
-                                                                                            </MyButton>
-                                                                                        </CollapsibleTrigger>
-                                                                                        <CollapsibleContent className="py-1 pl-9">
-                                                                                            <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
+                                                                                            {!readOnly && (
                                                                                                 <MyButton
-                                                                                                    buttonType="text"
+                                                                                                    buttonType="secondary"
+                                                                                                    layoutVariant="icon"
+                                                                                                    scale="small"
                                                                                                     onClick={(
                                                                                                         e
                                                                                                     ) => {
                                                                                                         e.stopPropagation();
-                                                                                                        handleChapterNavigation(
-                                                                                                            subject.id,
-                                                                                                            mod
-                                                                                                                .module
-                                                                                                                .id,
-                                                                                                            ch
-                                                                                                                .chapter
-                                                                                                                .id
+                                                                                                        openDeleteConfirmation(
+                                                                                                            'chapter',
+                                                                                                            {
+                                                                                                                id: ch
+                                                                                                                    .chapter
+                                                                                                                    .id,
+                                                                                                                name: ch
+                                                                                                                    .chapter
+                                                                                                                    .chapter_name,
+                                                                                                                subjectId:
+                                                                                                                    subject.id,
+                                                                                                                moduleId:
+                                                                                                                    mod
+                                                                                                                        .module
+                                                                                                                        .id,
+                                                                                                            }
                                                                                                         );
                                                                                                     }}
-                                                                                                    className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
+                                                                                                    className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/chapter-trigger:opacity-100"
                                                                                                 >
-                                                                                                    <Plus
+                                                                                                    <Trash
                                                                                                         size={
-                                                                                                            14
+                                                                                                            12
                                                                                                         }
-                                                                                                        weight="bold"
-                                                                                                        className="text-primary-400 group-hover:text-primary-500"
                                                                                                     />
-                                                                                                    <span className="font-medium">
-                                                                                                        Add{' '}
-                                                                                                        {getTerminology(
-                                                                                                            ContentTerms.Slides,
-                                                                                                            SystemTerms.Slides
-                                                                                                        )}
-                                                                                                    </span>
                                                                                                 </MyButton>
+                                                                                            )}
+                                                                                        </CollapsibleTrigger>
+                                                                                        <CollapsibleContent className="py-1 pl-9">
+                                                                                            <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
+                                                                                                {!readOnly && (
+                                                                                                    <MyButton
+                                                                                                        buttonType="text"
+                                                                                                        onClick={(
+                                                                                                            e
+                                                                                                        ) => {
+                                                                                                            e.stopPropagation();
+                                                                                                            handleChapterNavigation(
+                                                                                                                subject.id,
+                                                                                                                mod
+                                                                                                                    .module
+                                                                                                                    .id,
+                                                                                                                ch
+                                                                                                                    .chapter
+                                                                                                                    .id
+                                                                                                            );
+                                                                                                        }}
+                                                                                                        className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
+                                                                                                    >
+                                                                                                        <Plus
+                                                                                                            size={
+                                                                                                                14
+                                                                                                            }
+                                                                                                            weight="bold"
+                                                                                                            className="text-primary-400 group-hover:text-primary-500"
+                                                                                                        />
+                                                                                                        <span className="font-medium">
+                                                                                                            Add{' '}
+                                                                                                            {getTerminology(
+                                                                                                                ContentTerms.Slides,
+                                                                                                                SystemTerms.Slides
+                                                                                                            )}
+                                                                                                        </span>
+                                                                                                    </MyButton>
+                                                                                                )}
 
                                                                                                 {(
                                                                                                     chapterSlidesMap[
@@ -1585,6 +1618,10 @@ export const CourseStructureDetails = ({
                                                                                                                 }
                                                                                                                 className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
                                                                                                                 onClick={() => {
+                                                                                                                    if (
+                                                                                                                        readOnly
+                                                                                                                    )
+                                                                                                                        return;
                                                                                                                     handleSlideNavigation(
                                                                                                                         subject.id,
                                                                                                                         mod
@@ -1648,7 +1685,9 @@ export const CourseStructureDetails = ({
                                     <Collapsible
                                         key={subject.id}
                                         open={isSubjectOpen}
-                                        onOpenChange={() => toggleSubject(subject.id)}
+                                        onOpenChange={
+                                            readOnly ? undefined : () => toggleSubject(subject.id)
+                                        }
                                         className="group"
                                     >
                                         <CollapsibleContent className="py-1">
@@ -1752,40 +1791,42 @@ export const CourseStructureDetails = ({
                                                                                                     )}
                                                                                                 </span>
                                                                                             </div>
-                                                                                            <MyButton
-                                                                                                buttonType="secondary"
-                                                                                                layoutVariant="icon"
-                                                                                                scale="small"
-                                                                                                onClick={(
-                                                                                                    e
-                                                                                                ) => {
-                                                                                                    e.stopPropagation();
-                                                                                                    openDeleteConfirmation(
-                                                                                                        'chapter',
-                                                                                                        {
-                                                                                                            id: ch
-                                                                                                                .chapter
-                                                                                                                .id,
-                                                                                                            name: ch
-                                                                                                                .chapter
-                                                                                                                .chapter_name,
-                                                                                                            subjectId:
-                                                                                                                subject.id,
-                                                                                                            moduleId:
-                                                                                                                mod
-                                                                                                                    .module
+                                                                                            {!readOnly && (
+                                                                                                <MyButton
+                                                                                                    buttonType="secondary"
+                                                                                                    layoutVariant="icon"
+                                                                                                    scale="small"
+                                                                                                    onClick={(
+                                                                                                        e
+                                                                                                    ) => {
+                                                                                                        e.stopPropagation();
+                                                                                                        openDeleteConfirmation(
+                                                                                                            'chapter',
+                                                                                                            {
+                                                                                                                id: ch
+                                                                                                                    .chapter
                                                                                                                     .id,
+                                                                                                                name: ch
+                                                                                                                    .chapter
+                                                                                                                    .chapter_name,
+                                                                                                                subjectId:
+                                                                                                                    subject.id,
+                                                                                                                moduleId:
+                                                                                                                    mod
+                                                                                                                        .module
+                                                                                                                        .id,
+                                                                                                            }
+                                                                                                        );
+                                                                                                    }}
+                                                                                                    className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/chapter-trigger:opacity-100"
+                                                                                                >
+                                                                                                    <Trash
+                                                                                                        size={
+                                                                                                            12
                                                                                                         }
-                                                                                                    );
-                                                                                                }}
-                                                                                                className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/chapter-trigger:opacity-100"
-                                                                                            >
-                                                                                                <Trash
-                                                                                                    size={
-                                                                                                        12
-                                                                                                    }
-                                                                                                />
-                                                                                            </MyButton>
+                                                                                                    />
+                                                                                                </MyButton>
+                                                                                            )}
                                                                                         </CollapsibleTrigger>
                                                                                         <CollapsibleContent className="py-1 pl-9">
                                                                                             <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
@@ -1862,6 +1903,10 @@ export const CourseStructureDetails = ({
                                                                                                                 }
                                                                                                                 className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
                                                                                                                 onClick={() => {
+                                                                                                                    if (
+                                                                                                                        readOnly
+                                                                                                                    )
+                                                                                                                        return;
                                                                                                                     handleSlideNavigation(
                                                                                                                         subject.id,
                                                                                                                         mod
@@ -1928,12 +1973,14 @@ export const CourseStructureDetails = ({
                                                 key={`add-slide-${ch.chapter.id}`}
                                                 buttonType="text"
                                                 onClick={() =>
-                                                    handleSlideNavigation(
-                                                        subjectId,
-                                                        mod.module.id,
-                                                        ch.chapter.id,
-                                                        '' // Empty slideId for new slide
-                                                    )
+                                                    readOnly
+                                                        ? undefined
+                                                        : handleSlideNavigation(
+                                                              subjectId,
+                                                              mod.module.id,
+                                                              ch.chapter.id,
+                                                              '' // Empty slideId for new slide
+                                                          )
                                                 }
                                                 className="!m-0 flex w-fit cursor-pointer flex-row items-center justify-start gap-2 px-0 pl-2 text-primary-500"
                                             >
@@ -2242,6 +2289,7 @@ export const CourseStructureDetails = ({
                             <div key={ch.chapter.id} className="group relative">
                                 <div
                                     onClick={() => {
+                                        if (readOnly) return;
                                         // Navigate to chapter slides
                                         handleChapterNavigation(
                                             selectedSubjectId,
@@ -2276,20 +2324,22 @@ export const CourseStructureDetails = ({
                                     <p className="text-xs text-gray-500">Chapter {chIdx + 1}</p>
 
                                     {/* Delete Button */}
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            openDeleteConfirmation('chapter', {
-                                                id: ch.chapter.id,
-                                                name: ch.chapter.chapter_name,
-                                                subjectId: selectedSubjectId,
-                                                moduleId: selectedModuleId,
-                                            });
-                                        }}
-                                        className="absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
-                                    >
-                                        <Trash size={14} className="text-red-600" />
-                                    </button>
+                                    {!readOnly && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                openDeleteConfirmation('chapter', {
+                                                    id: ch.chapter.id,
+                                                    name: ch.chapter.chapter_name,
+                                                    subjectId: selectedSubjectId,
+                                                    moduleId: selectedModuleId,
+                                                });
+                                            }}
+                                            className="absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
+                                        >
+                                            <Trash size={14} className="text-red-600" />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -2303,6 +2353,7 @@ export const CourseStructureDetails = ({
                                 <div key={ch.chapter.id} className="group relative">
                                     <div
                                         onClick={() => {
+                                            if (readOnly) return;
                                             // Navigate to chapter slides
                                             handleChapterNavigation(
                                                 subjects[0]?.id || '',
@@ -2340,23 +2391,25 @@ export const CourseStructureDetails = ({
                                         <p className="text-xs text-gray-500">Chapter {chIdx + 1}</p>
 
                                         {/* Delete Button */}
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                openDeleteConfirmation('chapter', {
-                                                    id: ch.chapter.id,
-                                                    name: ch.chapter.chapter_name,
-                                                    subjectId: subjects[0]?.id || '',
-                                                    moduleId: subjects[0]
-                                                        ? subjectModulesMap[subjects[0].id]?.[0]
-                                                              ?.module.id
-                                                        : undefined,
-                                                });
-                                            }}
-                                            className="absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
-                                        >
-                                            <Trash size={14} className="text-red-600" />
-                                        </button>
+                                        {!readOnly && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openDeleteConfirmation('chapter', {
+                                                        id: ch.chapter.id,
+                                                        name: ch.chapter.chapter_name,
+                                                        subjectId: subjects[0]?.id || '',
+                                                        moduleId: subjects[0]
+                                                            ? subjectModulesMap[subjects[0].id]?.[0]
+                                                                  ?.module.id
+                                                            : undefined,
+                                                    });
+                                                }}
+                                                className="absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
+                                            >
+                                                <Trash size={14} className="text-red-600" />
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             )
@@ -2472,19 +2525,22 @@ export const CourseStructureDetails = ({
                     )}
 
                     {/* Add Slide button for Course Structure 2 */}
-                    {courseStructure === 2 && currentNavigationLevel === 'subjects' && (
-                        <div className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50">
-                            <div
-                                onClick={() => handleDirectSlideNavigation()}
-                                className="flex flex-col items-center gap-2 text-center"
-                            >
-                                <Plus size={24} className="text-primary-500" />
-                                <span className="text-primary-700 text-sm font-medium">
-                                    Add {getTerminology(ContentTerms.Slides, SystemTerms.Slides)}
-                                </span>
+                    {courseStructure === 2 &&
+                        currentNavigationLevel === 'subjects' &&
+                        !readOnly && (
+                            <div className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 transition-colors duration-200 hover:border-primary-400 hover:bg-primary-50">
+                                <div
+                                    onClick={() => handleDirectSlideNavigation()}
+                                    className="flex flex-col items-center gap-2 text-center"
+                                >
+                                    <Plus size={24} className="text-primary-500" />
+                                    <span className="text-primary-700 text-sm font-medium">
+                                        Add{' '}
+                                        {getTerminology(ContentTerms.Slides, SystemTerms.Slides)}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
                 </div>
             </div>
         ),
