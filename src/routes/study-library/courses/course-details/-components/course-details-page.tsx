@@ -506,21 +506,30 @@ export const CourseDetailsPage = () => {
     // Add a global invalidation function that can be called from other components
     useEffect(() => {
         // Create a global function to invalidate slide counts
-        (window as unknown as { invalidateSlideCounts?: () => void }).invalidateSlideCounts = () => {
-            if (packageSessionIds) {
-                queryClient.invalidateQueries({
-                    queryKey: ['GET_SLIDES_COUNT', packageSessionIds],
-                });
-            }
-        };
+        (window as unknown as { invalidateSlideCounts?: () => void }).invalidateSlideCounts =
+            () => {
+                if (packageSessionIds) {
+                    queryClient.invalidateQueries({
+                        queryKey: ['GET_SLIDES_COUNT', packageSessionIds],
+                    });
+                }
+            };
 
         // Also expose queryClient globally for other components
         (window as unknown as { queryClient?: typeof queryClient }).queryClient = queryClient;
 
         // Cleanup on unmount
         return () => {
-            delete (window as unknown as { invalidateSlideCounts?: () => void }).invalidateSlideCounts;
-            delete (window as unknown as { queryClient?: typeof queryClient }).queryClient;
+            delete (
+                window as unknown as {
+                    invalidateSlideCounts?: () => void;
+                }
+            ).invalidateSlideCounts;
+            delete (
+                window as unknown as {
+                    queryClient?: typeof queryClient;
+                }
+            ).queryClient;
         };
     }, [packageSessionIds, queryClient]);
 
@@ -643,6 +652,7 @@ export const CourseDetailsPage = () => {
         (!courseCreatedBy && courseStatus === 'DRAFT');
     const isPublishedCourse = courseStatus === 'ACTIVE';
     const isInReviewCourse = courseStatus === 'IN_REVIEW';
+    const isTeacherOnPublishedCourse = !isAdmin && isPublishedCourse;
 
     // Show restriction message for non-editable courses
     const shouldShowRestriction = !isAdmin && (isPublishedCourse || isInReviewCourse);
@@ -884,6 +894,7 @@ export const CourseDetailsPage = () => {
                                         <Select
                                             value={selectedSession}
                                             onValueChange={handleSessionChange}
+                                            disabled={isTeacherOnPublishedCourse}
                                         >
                                             <SelectTrigger className="h-8 w-full rounded-md text-sm sm:w-40 lg:w-48">
                                                 <SelectValue
@@ -923,7 +934,9 @@ export const CourseDetailsPage = () => {
                                         <Select
                                             value={selectedLevel}
                                             onValueChange={handleLevelChange}
-                                            disabled={!selectedSession}
+                                            disabled={
+                                                !selectedSession || isTeacherOnPublishedCourse
+                                            }
                                         >
                                             <SelectTrigger className="h-8 w-full rounded-md text-sm sm:w-40 lg:w-48">
                                                 <SelectValue
@@ -955,6 +968,7 @@ export const CourseDetailsPage = () => {
                             selectedSession={selectedSession}
                             selectedLevel={selectedLevel}
                             courseStructure={form.getValues('courseData.courseStructure')}
+                            isReadOnly={isTeacherOnPublishedCourse}
                         />
 
                         {/* What You'll Learn Section */}
