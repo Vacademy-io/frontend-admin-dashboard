@@ -165,11 +165,36 @@ export function useNonAdminSlides(chapterId: string) {
                         docType === 'SCRATCH'
                     ) {
                         // For interactive slides, always persist JSON from slide state, not HTML
-                        currentData = slide.document_slide?.data || '{}';
+                        currentData = slide.document_slide?.data || '';
+
+                        // CRITICAL FIX: Prevent data loss for interactive slides
+                        if (!currentData || currentData === '{}') {
+                            console.warn(
+                                '⚠️ Skipping save for interactive slide - no valid data found for non-admin'
+                            );
+                            const slideTypeName =
+                                docType === 'CODE'
+                                    ? 'Code Editor'
+                                    : docType === 'JUPYTER'
+                                      ? 'Jupyter Notebook'
+                                      : docType === 'SCRATCH'
+                                        ? 'Scratch Project'
+                                        : 'Interactive Slide';
+                            toast.success(`${slideTypeName} is already up to date!`);
+                            return false;
+                        }
+
                         totalPages = 1;
                     } else {
                         // For text-like document types, use current editor content if provided
-                        currentData = currentEditorContent || slide.document_slide?.data || '{}';
+                        currentData = currentEditorContent || slide.document_slide?.data || '';
+
+                        // Safety check for document types
+                        if (!currentData && docType !== 'PDF') {
+                            console.warn('⚠️ No content found for document slide');
+                            currentData = '<p>Empty document</p>'; // Safer fallback than '{}'
+                        }
+
                         // Calculate total pages for document slides
                         totalPages = currentEditorContent
                             ? (await convertHtmlToPdf(currentEditorContent)).totalPages
