@@ -18,7 +18,6 @@ import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { useRouter } from '@tanstack/react-router';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { BookOpen, CheckCircle, Code, File, GameController, Question } from 'phosphor-react';
-import { useSaveDraft } from '../../-context/saveDraftContext';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useLearnerViewStore } from '../../-stores/learner-view-store';
 
@@ -104,19 +103,6 @@ const SlideItem = ({
     isActive: boolean;
     onClick: () => void;
 }) => {
-    // Add debugging for quiz slides
-    if (slide.source_type === 'QUIZ') {
-        console.log('[SlideItem] Quiz slide data:', {
-            id: slide.id,
-            title: slide.title,
-            source_type: slide.source_type,
-            hasQuizSlide: !!slide.quiz_slide,
-            quizSlideTitle: slide.quiz_slide?.title,
-            questionsCount: slide.quiz_slide?.questions?.length || 0,
-            isActive,
-        });
-    }
-
     const getSlideTitle = () => {
         return (
             (slide.source_type === 'DOCUMENT' && slide.document_slide?.title) ||
@@ -275,40 +261,15 @@ export const ChapterSidebarSlides = ({
 }: {
     handleSlideOrderChange: (slideOrderPayload: slideOrderPayloadType) => void;
 }) => {
-    console.log(`[ChapterSidebarSlides] 🎬 Component rendered at:`, new Date().toISOString());
-
     const { setItems, activeItem, setActiveItem, items } = useContentStore();
     const { isLearnerView } = useLearnerViewStore();
     const router = useRouter();
     const { chapterId, slideId } = router.state.location.search;
 
-    console.log(`[ChapterSidebarSlides] 📍 Router state:`, { chapterId, slideId });
-    console.log(`[ChapterSidebarSlides] 🏪 Store state:`, {
-        itemsCount: items?.length || 0,
-        activeItemId: activeItem?.id || 'none',
-        activeItemTitle: activeItem?.title || 'none',
-        isLearnerView,
-    });
-
     const { slides, isLoading, refetch } = useSlidesQuery(chapterId || '');
-
-    console.log(`[ChapterSidebarSlides] 🎣 Hook response:`, {
-        slidesCount: slides?.length || 0,
-        isLoading,
-        slidesType: typeof slides,
-        isArray: Array.isArray(slides),
-        firstSlide: slides?.[0]?.title || 'N/A',
-    });
-
-    const { getCurrentEditorHTMLContent, saveDraft } = useSaveDraft();
 
     // Memoize filtered slides to prevent infinite loops
     const filteredSlides = useMemo(() => {
-        console.log(`[ChapterSidebarSlides] 🔄 Recalculating filteredSlides:`, {
-            isLearnerView,
-            slidesLength: slides?.length || 0,
-        });
-
         return isLearnerView
             ? slides?.filter((slide) => slide.status === 'PUBLISHED' || slide.status === 'UNSYNC')
             : slides;
@@ -319,28 +280,6 @@ export const ChapterSidebarSlides = ({
     }, []);
 
     const handleSlideClick = async (slide: Slide) => {
-        // Check if we need to save the current slide before switching
-        if (
-            activeItem &&
-            activeItem.source_type === 'DOCUMENT' &&
-            activeItem.document_slide?.type === 'DOC'
-        ) {
-            const currentContent = getCurrentEditorHTMLContent();
-            if (currentContent) {
-                if (
-                    (activeItem.status === 'UNSYNC' || activeItem.status === 'DRAFT') &&
-                    activeItem.document_slide.data !== currentContent
-                ) {
-                    await saveDraft(activeItem);
-                } else if (
-                    activeItem.status === 'PUBLISHED' &&
-                    activeItem.document_slide.published_data !== currentContent
-                ) {
-                    await saveDraft(activeItem);
-                }
-            }
-        }
-
         // Now set the new active item
         setActiveItem(slide);
     };
@@ -357,15 +296,6 @@ export const ChapterSidebarSlides = ({
     });
 
     const handleMove = ({ activeIndex, overIndex }: { activeIndex: number; overIndex: number }) => {
-        console.log('[ChapterSidebarSlides] 🎯 Drag and drop event triggered:', {
-            activeIndex,
-            overIndex,
-            activeSlide: items[activeIndex]?.title || 'Unknown',
-            overSlide: items[overIndex]?.title || 'Unknown',
-            activeSlideType: items[activeIndex]?.source_type || 'Unknown',
-            overSlideType: items[overIndex]?.source_type || 'Unknown',
-        });
-
         move(activeIndex, overIndex);
 
         // Create order payload after move
@@ -376,9 +306,6 @@ export const ChapterSidebarSlides = ({
             slide_id: slide.id,
             slide_order: index + 1,
         }));
-
-        console.log('[ChapterSidebarSlides] 📋 Order payload created:', orderPayload);
-
         // Call the handler to update the order through API
         handleSlideOrderChange(orderPayload);
     };
@@ -388,14 +315,6 @@ export const ChapterSidebarSlides = ({
     }, [items]);
 
     useEffect(() => {
-        console.log(`[ChapterSidebarSlides] 📋 useEffect[filteredSlides] triggered:`, {
-            slidesLength: slides?.length || 0,
-            filteredSlidesLength: filteredSlides?.length || 0,
-            filteredSlidesData: filteredSlides?.slice(0, 3) || [], // Show first 3 slides for debugging
-            currentStoreItemsCount: items?.length || 0,
-            isLearnerView,
-        });
-
         // Debug quiz slides specifically
         const quizSlides = filteredSlides?.filter((slide) => slide.source_type === 'QUIZ') || [];
         if (quizSlides.length > 0) {
@@ -412,16 +331,8 @@ export const ChapterSidebarSlides = ({
         }
 
         if (filteredSlides?.length) {
-            console.log(
-                `[ChapterSidebarSlides] ✅ Processing ${filteredSlides.length} filtered slides`
-            );
-
             form.reset({ slides: filteredSlides });
             setItems(filteredSlides as Slide[]);
-
-            console.log(
-                `[ChapterSidebarSlides] 🏪 Store updated with ${filteredSlides.length} slides`
-            );
 
             // Check if current active slide still exists in updated slides
             const activeSlideStillExists =
@@ -477,25 +388,7 @@ export const ChapterSidebarSlides = ({
         }
     }, [filteredSlides, slideId]); // Removed isLearnerView from deps as it's already in filteredSlides memo
 
-    // ===== RENDER DEBUGGING =====
-    console.log(`[ChapterSidebarSlides] 🎯 Pre-render decision state:`, {
-        isLoading,
-        itemsExists: !!items,
-        itemsLength: items?.length || 0,
-        slidesExists: !!slides,
-        slidesLength: slides?.length || 0,
-        filteredSlidesExists: !!filteredSlides,
-        filteredSlidesLength: filteredSlides?.length || 0,
-        isLearnerView,
-        renderDecision: isLoading
-            ? 'LOADING'
-            : !items || items.length === 0
-              ? 'NO_SLIDES'
-              : 'SHOW_SLIDES',
-    });
-
     if (isLoading) {
-        console.log(`[ChapterSidebarSlides] ⏳ Rendering loader`);
         return (
             <div className="flex items-center justify-center py-6 duration-500 animate-in fade-in">
                 <DashboardLoader />
@@ -504,7 +397,6 @@ export const ChapterSidebarSlides = ({
     }
 
     if (!items || items.length === 0) {
-        console.log(`[ChapterSidebarSlides] 📭 Rendering "No slides" message`);
         return (
             <div className="flex flex-col items-center justify-center px-3 py-8 text-center duration-700 animate-in fade-in slide-in-from-bottom-4">
                 <div className="mb-3 flex size-12 animate-pulse items-center justify-center rounded-full bg-neutral-100">
@@ -517,8 +409,6 @@ export const ChapterSidebarSlides = ({
             </div>
         );
     }
-
-    console.log(`[ChapterSidebarSlides] 📄 Rendering ${items.length} slides`);
 
     return (
         <div className="duration-500 animate-in fade-in slide-in-from-bottom-2">
