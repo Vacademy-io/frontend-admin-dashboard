@@ -1623,31 +1623,6 @@ export const SlideMaterial = ({
         items,
     ]); // Prevent reload on auto-save data changes
 
-    useEffect(() => {
-        let intervalId: NodeJS.Timeout | null = null;
-        let previousHtmlString: string | null = null;
-
-        if (activeItem?.document_slide?.type === 'DOC') {
-            intervalId = setInterval(() => {
-                const data = editor.getEditorValue();
-                const htmlString = html.serialize(editor, data);
-                const formattedHtmlString = formatHTMLString(htmlString);
-
-                // Only save if the content has changed
-                if (formattedHtmlString !== previousHtmlString) {
-                    previousHtmlString = formattedHtmlString;
-                    SaveDraft(activeItem);
-                }
-            }, 60000);
-        }
-
-        return () => {
-            if (intervalId) {
-                clearInterval(intervalId);
-            }
-        };
-    }, [activeItem?.document_slide?.type, editor]);
-
     // Update the refs whenever these functions change
     useEffect(() => {
         setGetCurrentEditorHTMLContent(getCurrentEditorHTMLContent);
