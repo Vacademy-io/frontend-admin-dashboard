@@ -52,6 +52,8 @@ import { TeachersList } from './teacher-list';
 import AddTeachers from '@/routes/dashboard/-components/AddTeachers';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { ADMIN_DISPLAY_SETTINGS_KEY, TEACHER_DISPLAY_SETTINGS_KEY } from '@/types/display-settings';
+import { getDisplaySettingsFromCache } from '@/services/display-settings';
 
 // Interfaces (assuming these are unchanged)
 export interface Chapter {
@@ -86,6 +88,13 @@ export interface ModuleWithChapters {
 export type SubjectModulesMap = { [subjectId: string]: ModuleWithChapters[] };
 
 export const SubjectMaterial = () => {
+    // role display for numbering toggle
+    const accessToken = document?.cookie || '';
+    // Simple check from existing stores would be better; fallback to ADMIN=false
+    const isAdminRole = (accessToken.includes('roles=') && accessToken.includes('ADMIN')) || false;
+    const roleKey = isAdminRole ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+    const roleDisplay = getDisplaySettingsFromCache(roleKey);
+    const showNumbering = roleDisplay?.coursePage?.viewContentNumbering !== false;
     const router = useRouter();
     const searchParams = router.state.location.search;
     const { getSessionFromPackage, getPackageSessionId } = useInstituteDetailsStore();
@@ -480,9 +489,11 @@ export const SubjectMaterial = () => {
                                             weight="duotone"
                                             className="shrink-0 text-primary-500"
                                         />
-                                        <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs font-medium text-gray-600 group-hover:bg-white">
-                                            S{idx + 1}
-                                        </span>
+                                        {showNumbering && (
+                                            <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs font-medium text-gray-600 group-hover:bg-white">
+                                                S{idx + 1}
+                                            </span>
+                                        )}
                                         <span className="truncate" title={subject.subject_name}>
                                             {subject.subject_name}
                                         </span>
@@ -538,9 +549,11 @@ export const SubjectMaterial = () => {
                                                                     weight="duotone"
                                                                     className="shrink-0 text-blue-600"
                                                                 />
-                                                                <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs font-medium text-gray-500 group-hover/module:bg-white">
-                                                                    M{modIdx + 1}
-                                                                </span>
+                                                                {showNumbering && (
+                                                                    <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs font-medium text-gray-500 group-hover/module:bg-white">
+                                                                        M{modIdx + 1}
+                                                                    </span>
+                                                                )}
                                                                 <span
                                                                     className="truncate"
                                                                     title={mod.module.module_name}
@@ -727,11 +740,13 @@ export const SubjectMaterial = () => {
                                                                                                             );
                                                                                                         }}
                                                                                                     >
-                                                                                                        <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
-                                                                                                            S
-                                                                                                            {sIdx +
-                                                                                                                1}
-                                                                                                        </span>
+                                                                                                        {showNumbering && (
+                                                                                                            <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
+                                                                                                                S
+                                                                                                                {sIdx +
+                                                                                                                    1}
+                                                                                                            </span>
+                                                                                                        )}
                                                                                                         {getIcon(
                                                                                                             slide.source_type,
                                                                                                             slide

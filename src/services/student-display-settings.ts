@@ -188,6 +188,11 @@ function mergeWithDefaults(
             allowBatchStream:
                 incoming?.notifications?.allowBatchStream ?? d.notifications.allowBatchStream,
         },
+        certificates: {
+            generationThresholdPercent:
+                incoming?.certificates?.generationThresholdPercent ??
+                d.certificates.generationThresholdPercent,
+        },
         postLoginRedirectRoute: incoming?.postLoginRedirectRoute ?? d.postLoginRedirectRoute,
     };
 

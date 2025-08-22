@@ -47,6 +47,12 @@ export const DEFAULT_ADMIN_DISPLAY_SETTINGS: DisplaySettingsData = {
     dashboard: {
         widgets: defaultDashboardWidgetsAdmin(),
     },
+    coursePage: {
+        viewInviteLinks: true,
+        viewCourseConfiguration: true,
+        viewCourseOverviewItem: true,
+        viewContentNumbering: true,
+    },
     courseList: {
         tabs: [
             { id: 'AllCourses', order: 1, visible: true },
@@ -86,6 +92,10 @@ export const DEFAULT_ADMIN_DISPLAY_SETTINGS: DisplaySettingsData = {
         assignment: true,
         jupyterNotebook: true,
         scratch: true,
+    },
+    slideView: {
+        showCopyTo: true,
+        showMoveTo: true,
     },
     postLoginRedirectRoute: '/dashboard',
 };

@@ -116,6 +116,12 @@ export interface StudentPermissions {
     canDeleteProfile: boolean;
 }
 
+// Certificates
+export interface StudentCertificateSettings {
+    // Percentage threshold after which certificate can be generated
+    generationThresholdPercent: number;
+}
+
 // Root schema
 export interface StudentDisplaySettingsData {
     sidebar: {
@@ -134,5 +140,6 @@ export interface StudentDisplaySettingsData {
         allowDashboardPins: boolean;
         allowBatchStream: boolean;
     };
+    certificates: StudentCertificateSettings;
     postLoginRedirectRoute: string;
 }

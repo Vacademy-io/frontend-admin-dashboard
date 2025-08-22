@@ -151,6 +151,84 @@ export default function AdminDisplaySettings() {
 
             <Card>
                 <CardHeader>
+                    <CardTitle>Course Page Settings</CardTitle>
+                    <CardDescription>Control visibility of course page elements.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                    {(
+                        [
+                            ['viewInviteLinks', 'View invite links'],
+                            ['viewCourseConfiguration', 'View course configuration'],
+                            ['viewCourseOverviewItem', 'View course overview item'],
+                            ['viewContentNumbering', 'View content numbering'],
+                        ] as const
+                    ).map(([key, label]) => (
+                        <div
+                            key={key}
+                            className="flex items-center justify-between rounded border p-3"
+                        >
+                            <div className="text-sm">{label}</div>
+                            <Switch
+                                checked={settings.coursePage?.[key] !== false}
+                                onCheckedChange={(checked) =>
+                                    updateSettings((prev) => ({
+                                        ...prev,
+                                        coursePage: {
+                                            viewInviteLinks:
+                                                prev.coursePage?.viewInviteLinks ?? true,
+                                            viewCourseConfiguration:
+                                                prev.coursePage?.viewCourseConfiguration ?? true,
+                                            viewCourseOverviewItem:
+                                                prev.coursePage?.viewCourseOverviewItem ?? true,
+                                            viewContentNumbering:
+                                                prev.coursePage?.viewContentNumbering ?? true,
+                                            [key]: checked,
+                                        },
+                                    }))
+                                }
+                            />
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Slide View Settings</CardTitle>
+                    <CardDescription>Control action visibility in Slide view.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                    {(
+                        [
+                            ['showCopyTo', 'Show "Copy to" option'],
+                            ['showMoveTo', 'Show "Move to" option'],
+                        ] as const
+                    ).map(([key, label]) => (
+                        <div
+                            key={key}
+                            className="flex items-center justify-between rounded border p-3"
+                        >
+                            <div className="text-sm">{label}</div>
+                            <Switch
+                                checked={settings.slideView?.[key] !== false}
+                                onCheckedChange={(checked) =>
+                                    updateSettings((prev) => ({
+                                        ...prev,
+                                        slideView: {
+                                            showCopyTo: prev.slideView?.showCopyTo ?? true,
+                                            showMoveTo: prev.slideView?.showMoveTo ?? true,
+                                            [key]: checked,
+                                        },
+                                    }))
+                                }
+                            />
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
                     <CardTitle>Course List Tabs</CardTitle>
                     <CardDescription>
                         Configure visible tabs, their order, and the default tab. Note: Course
