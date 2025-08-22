@@ -15,9 +15,7 @@ export const useDoubtTable = () => {
     } = useGetDoubtList({ filter: filters, pageNo: currentPage, pageSize: 10 });
 
     const userIds = doubts?.content.map((doubt) => doubt.user_id);
-    const { data: userDetails, isLoading: userDetailsLoading } = useGetUserBasicDetails(
-        userIds || []
-    );
+    const { data: userDetails } = useGetUserBasicDetails(userIds || []);
     const userDetailsRecord: Record<string, UserBasicDetails> =
         userDetails?.reduce(
             (acc, curr) => {

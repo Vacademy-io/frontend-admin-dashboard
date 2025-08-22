@@ -333,6 +333,16 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
 
     const [courseImageUrls, setCourseImageUrls] = useState<Record<string, string>>({});
 
+    // Role helpers
+    const isAdmin = useMemo(() => {
+        const safeRoles = Array.isArray(roles) ? roles : [];
+        return safeRoles.includes('ADMIN');
+    }, [roles]);
+    const isTeacherNonAdmin = useMemo(() => {
+        const safeRoles = Array.isArray(roles) ? roles : [];
+        return safeRoles.includes('TEACHER') && !isAdmin;
+    }, [roles, isAdmin]);
+
     // Create stable filter key for React Query
     const filtersKey = useMemo(() => {
         return {
@@ -656,6 +666,7 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
                                     page={page}
                                     handlePageChange={handlePageChange}
                                     deletingCourseId={deletingCourseId}
+                                    showDeleteButton={!isTeacherNonAdmin}
                                 />
                             );
                         })()}

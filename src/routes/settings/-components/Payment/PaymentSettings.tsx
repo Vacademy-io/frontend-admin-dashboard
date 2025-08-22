@@ -334,10 +334,43 @@ const PaymentSettings = () => {
         setRequireApproval(false);
     };
 
+    // Helper function to calculate discounted prices for intervals
+    const calculateDiscountedIntervals = (plan: PaymentPlan) => {
+        if (
+            plan.type !== PaymentPlans.SUBSCRIPTION ||
+            !plan.config?.subscription?.customIntervals
+        ) {
+            return plan.config?.subscription?.customIntervals || [];
+        }
+
+        const planDiscounts = plan.config?.planDiscounts || {};
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return plan.config.subscription.customIntervals.map((interval: any, idx: number) => {
+            const originalPrice = parseFloat(String(interval.price || '0'));
+            let discountedPrice = originalPrice;
+            const discount = planDiscounts[`interval_${idx}`];
+
+            if (discount && discount.type !== 'none' && discount.amount) {
+                if (discount.type === 'percentage') {
+                    discountedPrice = originalPrice * (1 - parseFloat(discount.amount) / 100);
+                } else if (discount.type === 'fixed') {
+                    discountedPrice = originalPrice - parseFloat(discount.amount);
+                }
+                if (discountedPrice < 0) discountedPrice = 0;
+            }
+
+            return {
+                ...interval,
+                price: discountedPrice, // Use discounted price instead of original
+            };
+        });
+    };
+
     const handleSavePaymentPlan = async (plan: PaymentPlan, approvalOverride?: boolean) => {
         setIsSaving(true);
         try {
             const apiPlans = transformLocalPlanToApiFormatArray(plan);
+            const discountedIntervals = calculateDiscountedIntervals(plan);
 
             const paymentOptionRequest = {
                 id: editingPlan?.id || undefined,
@@ -352,11 +385,20 @@ const PaymentSettings = () => {
                     currency: plan.currency,
                     features: plan.features || [],
                     unit: plan.config?.subscription?.customIntervals?.[0]?.unit || 'months',
-                    config: plan.config,
+                    config:
+                        plan.type === PaymentPlans.SUBSCRIPTION
+                            ? {
+                                  ...plan.config,
+                                  subscription: {
+                                      ...plan.config?.subscription,
+                                      customIntervals: discountedIntervals,
+                                  },
+                              }
+                            : plan.config,
                     subscriptionData:
                         plan.type === PaymentPlans.SUBSCRIPTION
                             ? {
-                                  customIntervals: plan.config?.subscription?.customIntervals || [],
+                                  customIntervals: discountedIntervals,
                                   planDiscounts: plan.config?.planDiscounts || {},
                               }
                             : undefined,
