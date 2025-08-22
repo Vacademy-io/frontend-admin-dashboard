@@ -926,6 +926,34 @@ export default function StudentDisplaySettings(): JSX.Element {
 
             <Card>
                 <CardHeader>
+                    <CardTitle>Certificates</CardTitle>
+                    <CardDescription>Control when certificates can be generated</CardDescription>
+                </CardHeader>
+                <div className="space-y-2 p-4 pt-0">
+                    <div className="flex items-center gap-2">
+                        <Label className="text-xs">Generation Threshold (%)</Label>
+                        <Input
+                            className="h-8 w-24"
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={settings.certificates.generationThresholdPercent}
+                            onChange={(e) => {
+                                const value = Math.max(
+                                    0,
+                                    Math.min(100, Number(e.target.value) || 0)
+                                );
+                                update('certificates', {
+                                    generationThresholdPercent: value,
+                                });
+                            }}
+                        />
+                    </div>
+                </div>
+            </Card>
+
+            <Card>
+                <CardHeader>
                     <CardTitle>Notifications</CardTitle>
                     <CardDescription>Student notifications preferences</CardDescription>
                 </CardHeader>

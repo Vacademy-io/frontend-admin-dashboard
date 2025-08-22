@@ -288,9 +288,36 @@ function mergeDisplayWithDefaults(
         scratch: incoming?.contentTypes?.scratch ?? defCT.scratch,
     };
 
+    // Course Page Settings
+    const defCoursePage = defaults.coursePage || {
+        viewInviteLinks: true,
+        viewCourseConfiguration: true,
+        viewCourseOverviewItem: true,
+        viewContentNumbering: true,
+    };
+    merged.coursePage = {
+        viewInviteLinks: incoming?.coursePage?.viewInviteLinks ?? defCoursePage.viewInviteLinks,
+        viewCourseConfiguration:
+            incoming?.coursePage?.viewCourseConfiguration ?? defCoursePage.viewCourseConfiguration,
+        viewCourseOverviewItem:
+            incoming?.coursePage?.viewCourseOverviewItem ?? defCoursePage.viewCourseOverviewItem,
+        viewContentNumbering:
+            incoming?.coursePage?.viewContentNumbering ?? defCoursePage.viewContentNumbering,
+    };
+
     // Redirect
     merged.postLoginRedirectRoute =
         incoming?.postLoginRedirectRoute ?? defaults.postLoginRedirectRoute;
+
+    // Slide View Settings
+    const defSlideView = defaults.slideView || {
+        showCopyTo: true,
+        showMoveTo: true,
+    };
+    merged.slideView = {
+        showCopyTo: incoming?.slideView?.showCopyTo ?? defSlideView.showCopyTo,
+        showMoveTo: incoming?.slideView?.showMoveTo ?? defSlideView.showMoveTo,
+    };
 
     // Final sort by order
     merged.sidebar.sort((a, b) => (a.order || 0) - (b.order || 0));
