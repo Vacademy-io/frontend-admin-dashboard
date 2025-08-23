@@ -13,7 +13,7 @@ import {
     getInstitutesFromToken,
 } from '@/lib/auth/instituteUtils';
 import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
-import { trackEvent } from '@/lib/amplitude';
+import { trackEvent, identifyUser } from '@/lib/amplitude';
 import { getDisplaySettingsFromCache } from '@/services/display-settings';
 import { ADMIN_DISPLAY_SETTINGS_KEY, TEACHER_DISPLAY_SETTINGS_KEY } from '@/types/display-settings';
 import type { QueryClient } from '@tanstack/react-query';
@@ -58,6 +58,22 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
         // Clear queries if queryClient is provided
         if (queryClient) {
             queryClient.clear();
+        }
+
+        // Identify user to Amplitude (post token set so cookie is available)
+        try {
+            const { getTokenDecodedData } = await import('@/lib/auth/sessionUtility');
+            const tokenData = getTokenDecodedData(accessToken);
+            const userId = tokenData?.user as string | undefined;
+            if (userId) {
+                identifyUser(userId, {
+                    login_method: loginMethod,
+                    email: tokenData?.email ?? null,
+                    username: tokenData?.username ?? null,
+                });
+            }
+        } catch {
+            // noop: analytics should not block login flow
         }
 
         // Get user roles from token

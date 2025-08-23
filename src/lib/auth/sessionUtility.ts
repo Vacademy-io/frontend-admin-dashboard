@@ -47,6 +47,38 @@ const setAuthorizationCookie = (
     // Verify cookie was set
     const verifySet = Cookies.get(key);
     console.log('Cookie verification:', key, verifySet ? 'SUCCESS' : 'FAILED');
+
+    // If we just set the access token, identify the user in Amplitude
+    if (key === TokenKey.accessToken) {
+        try {
+            const tokenData = getTokenDecodedData(token);
+            const userId = tokenData?.user as string | undefined;
+            if (typeof window !== 'undefined' && userId) {
+                // Defer import to avoid circular deps and keep login snappy
+                setTimeout(() => {
+                    import('@/lib/amplitude')
+                        .then(({ identifyUser, initializeAmplitude }) => {
+                            // Ensure Amplitude is initialized before identify
+                            try {
+                                initializeAmplitude();
+                            } catch (initError) {
+                                // Ignore initialization errors for analytics
+                                console.debug('[Amplitude] init error (ignored):', initError);
+                            }
+                            identifyUser(userId, {
+                                email: (tokenData as IAccessToken | undefined)?.email ?? null,
+                                username: (tokenData as IAccessToken | undefined)?.username ?? null,
+                            });
+                        })
+                        .catch(() => {
+                            // Analytics failure shouldn't block auth flow
+                        });
+                }, 0);
+            }
+        } catch (e) {
+            // Non-fatal if token can't be decoded
+        }
+    }
 };
 
 // Alias to support `setTokenInStorage` as a wrapper for consistency
