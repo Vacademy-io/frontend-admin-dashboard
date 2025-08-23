@@ -203,7 +203,14 @@ export const StatusChips = ({
     className,
     showIcon = true,
 }: {
-    status: ActivityStatus | 'ACTIVE' | 'TERMINATED' | 'INACTIVE' | 'EVALUATED';
+    status:
+        | ActivityStatus
+        | 'ACTIVE'
+        | 'TERMINATED'
+        | 'INACTIVE'
+        | 'EVALUATED'
+        | 'PAYMENT_PENDING'
+        | 'PAID';
     children?: ReactNode;
     className?: string;
     showIcon?: boolean;
@@ -235,6 +242,25 @@ export const StatusChips = ({
                 <div className={cn('text-body capitalize text-neutral-600', className)}>
                     {children ? children : status}
                 </div>
+            </div>
+        </ChipsWrapper>
+    );
+};
+
+export const PaymentStatusChips = ({ status }: { status: string }) => {
+    const statusData = ActivityStatusData[status as ActivityStatus];
+    console.log('statusData', statusData);
+    if (!statusData) {
+        return null;
+    }
+
+    const StatusIcon = statusData.icon;
+
+    return (
+        <ChipsWrapper className={cn(statusData.color.bg, '')}>
+            <div className="flex items-center gap-1">
+                <StatusIcon className={cn(statusData.color.icon, 'size-[18px]')} weight="fill" />
+                <div className={cn('text-body capitalize text-neutral-600')}>{status}</div>
             </div>
         </ChipsWrapper>
     );

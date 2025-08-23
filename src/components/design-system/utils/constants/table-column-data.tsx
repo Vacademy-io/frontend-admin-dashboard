@@ -201,6 +201,26 @@ const StatusCell = ({ row }: { row: Row<StudentTable> }) => {
     );
 };
 
+const PaymentStatusCell = ({ row }: { row: Row<StudentTable> }) => {
+    const { handleClick, handleDoubleClick } = useClickHandlers();
+    const status = row.original.payment_status;
+
+    const statusMapping: Record<string, ActivityStatus> = {
+        PAID: 'PAID',
+        PAYMENT_PENDING: 'PAYMENT_PENDING',
+    };
+
+    const mappedStatus = statusMapping[status];
+    return (
+        <div
+            onClick={() => handleClick('status', row)}
+            onDoubleClick={(e) => handleDoubleClick(e, 'status', row)}
+        >
+            <StatusChips status={mappedStatus!} />
+        </div>
+    );
+};
+
 export const myColumns: ColumnDef<StudentTable>[] = [
     {
         id: 'checkbox',
@@ -579,7 +599,7 @@ export const enrollRequestColumns: ColumnDef<StudentTable>[] = [
         minSize: 100,
         maxSize: 250,
         header: 'Payment Status',
-        cell: ({ row }) => <CreateClickableCell row={row} columnId="payment_status" />,
+        cell: ({ row }) => <PaymentStatusCell row={row} />,
     },
     {
         accessorKey: 'approval_status',

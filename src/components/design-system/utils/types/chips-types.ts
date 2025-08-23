@@ -46,4 +46,6 @@ export type ActivityStatus =
     | 'Attempted'
     | 'Not Attempted'
     | 'evaluated'
-    | 'evaluating';
+    | 'evaluating'
+    | 'PAID'
+    | 'PAYMENT_PENDING';

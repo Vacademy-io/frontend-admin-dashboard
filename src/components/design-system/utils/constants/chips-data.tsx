@@ -88,4 +88,18 @@ export const ActivityStatusData: Record<
             icon: 'text-warning-600',
         },
     },
+    PAID: {
+        icon: CheckCircle,
+        color: {
+            bg: 'bg-success-50',
+            icon: 'text-success-600',
+        },
+    },
+    PAYMENT_PENDING: {
+        icon: WarningCircle,
+        color: {
+            bg: 'bg-warning-100',
+            icon: 'text-warning-600',
+        },
+    },
 };
