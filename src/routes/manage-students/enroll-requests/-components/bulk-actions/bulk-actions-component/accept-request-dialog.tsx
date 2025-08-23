@@ -20,6 +20,10 @@ export const AcceptRequestDialog = () => {
     const { isAcceptRequestOpen, bulkActionInfo, selectedStudent, closeAllDialogs } =
         useEnrollRequestsDialogStore();
 
+    const pendingForApprovalStudentsBulk = bulkActionInfo?.selectedStudents?.filter(
+        (student) => student.payment_status === 'PAYMENT_PENDING'
+    );
+
     const enrollRequestData = {
         items: selectedStudent
             ? [
@@ -101,6 +105,17 @@ export const AcceptRequestDialog = () => {
                     Are you sure you want to accept request for{' '}
                     {selectedStudent?.full_name || bulkActionInfo?.displayText}?
                 </p>
+                {pendingForApprovalStudentsBulk && pendingForApprovalStudentsBulk?.length > 0 && (
+                    <p className="text-sm text-red-500">
+                        *Note: Payment is still pending for {pendingForApprovalStudentsBulk?.length}{' '}
+                        students
+                    </p>
+                )}
+                {selectedStudent && selectedStudent.payment_status === 'PAYMENT_PENDING' && (
+                    <p className="text-sm text-red-500">
+                        *Note: Payment is still pending for this student
+                    </p>
+                )}
                 <p className="text-sm text-neutral-500">
                     This will accept the request to the selected students via email.
                 </p>
