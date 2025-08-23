@@ -10,6 +10,7 @@ export const HOLISTIC_INSTITUTE_ID = 'bd9f2362-84d1-4e01-9762-a5196f9bac80';
 
 export const REQUEST_OTP = `${BASE_URL}/auth-service/v1/request-otp`;
 export const LOGIN_OTP = `${BASE_URL}/auth-service/v1/login-otp`;
+export const UPDATE_USER_DETAILS = `${BASE_URL}/auth-service/v1/user-details/update-user`;
 
 // urls
 export const LOGIN_URL = `${BASE_URL}/auth-service/v1/login-root`;

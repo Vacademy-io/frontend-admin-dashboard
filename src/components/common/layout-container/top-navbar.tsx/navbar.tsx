@@ -39,7 +39,7 @@ import { SSOSwitcher } from '../../auth/SSOSwitcher';
 import { TokenKey } from '@/constants/auth/tokens';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { getUserId } from '@/utils/userDetails';
+import { getUserId, getUserName } from '@/utils/userDetails';
 import {
     getSystemAlertsQuery,
     stripHtml,
@@ -50,6 +50,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { PagedResponse, SystemAlertItem } from '@/services/notifications/system-alerts';
 import { DEFAULT_ADMIN_DISPLAY_SETTINGS } from '@/constants/display-settings/admin-defaults';
 import { DEFAULT_TEACHER_DISPLAY_SETTINGS } from '@/constants/display-settings/teacher-defaults';
+import { MyButton } from '@/components/design-system/button';
+import AccountDetailsEdit from '@/routes/dashboard/-components/AccountDetailsEdit';
 
 export function Navbar() {
     const roleColors: Record<string, string> = {
@@ -79,7 +81,7 @@ export function Navbar() {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const roles = getUserRoles(accessToken);
     const userId = getUserId();
-
+    const [showEditAccountDetails, setShowEditAccountDetails] = useState(false);
     // Effective display settings (cached or defaults) for permission gating
     const isAdminRoleForDS = roles.includes('ADMIN');
     const roleKeyForDS = isAdminRoleForDS
@@ -448,6 +450,25 @@ export function Navbar() {
                                             </div>
                                             <Separator />
                                             <div className="flex flex-col gap-2">
+                                                <div className=" flex items-center justify-between">
+                                                    <h1>Account Information</h1>
+                                                    <MyButton
+                                                        buttonType="secondary"
+                                                        scale="small"
+                                                        onClick={() => {
+                                                            setShowEditAccountDetails(true);
+                                                        }}
+                                                    >
+                                                        Edit Details
+                                                    </MyButton>
+                                                </div>
+                                                <p className="text-sm text-neutral-600">
+                                                    <span>Username:&nbsp;</span>
+                                                    <span>{getUserName()}</span>
+                                                </p>
+                                            </div>
+                                            <Separator />
+                                            <div className="flex flex-col gap-2">
                                                 <h1>Contact Information</h1>
                                                 <p className="text-sm text-neutral-600">
                                                     <span>Email:&nbsp;</span>
@@ -550,6 +571,12 @@ export function Navbar() {
                     </DropdownMenu>
                 </div>
             </div>
+            {showEditAccountDetails && (
+                <AccountDetailsEdit
+                    open={showEditAccountDetails}
+                    setOpen={setShowEditAccountDetails}
+                />
+            )}
         </div>
     );
 }
