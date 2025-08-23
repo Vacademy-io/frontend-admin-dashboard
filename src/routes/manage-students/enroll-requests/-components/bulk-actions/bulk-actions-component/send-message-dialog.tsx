@@ -8,9 +8,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { useDialogStore } from '../../../../-hooks/useDialogStore';
 import { PaperPlaneTilt, Spinner } from '@phosphor-icons/react';
 import { toast } from 'sonner';
+import { useEnrollRequestsDialogStore } from '../bulk-actions-store';
 
 // Define message templates
 const MESSAGE_TEMPLATES = [
@@ -42,7 +42,7 @@ interface StudentMessageStatus {
 }
 
 export const SendMessageDialog = () => {
-    const { isSendMessageOpen, bulkActionInfo, closeAllDialogs } = useDialogStore();
+    const { isSendMessageOpen, bulkActionInfo, closeAllDialogs } = useEnrollRequestsDialogStore();
     const [selectedTemplateId, setSelectedTemplateId] = useState<string>(
         MESSAGE_TEMPLATES[0]?.id || ''
     );
