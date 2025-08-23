@@ -13,18 +13,14 @@ import './i18n';
 import { Toaster } from './components/ui/sonner';
 import { ThemeProvider } from './providers/theme/theme-provider';
 import { CourseSettingsProvider } from './providers/course-settings-provider';
-// Defer Amplitude initialization to keep entry chunk lighter
+
+// Initialize Amplitude as early as possible on client
 if (typeof window !== 'undefined') {
-    // Use idle callback if available, else fallback to timeout
-    const init = () => import('./lib/amplitude').then((m) => m.initializeAmplitude());
-    if ('requestIdleCallback' in window) {
-        (
-            window as Window &
-                typeof globalThis & { requestIdleCallback?: (cb: () => void) => void }
-        ).requestIdleCallback?.(init);
-    } else {
-        setTimeout(init, 0);
-    }
+    import('./lib/amplitude')
+        .then((m) => m.initializeAmplitude())
+        .catch(() => {
+            // Ignore analytics failures
+        });
 }
 
 const queryClient = new QueryClient();

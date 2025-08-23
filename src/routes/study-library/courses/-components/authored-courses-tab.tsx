@@ -3,16 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MyButton } from '@/components/design-system/button';
-import {
-    PaperPlaneTilt,
-    Eye,
-    Copy,
-    CircleNotch,
-    Calendar,
-    GraduationCap,
-    Users,
-    TrashSimple,
-} from 'phosphor-react';
+import { PaperPlaneTilt, Eye, Copy, CircleNotch, Calendar, TrashSimple } from 'phosphor-react';
 import { toast } from 'sonner';
 import { useNavigate } from '@tanstack/react-router';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
@@ -22,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { useDeleteCourse } from '@/services/study-library/course-operations/delete-course';
+import { useFileUpload } from '@/hooks/use-file-upload';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -38,12 +30,12 @@ interface PackageEntity {
     id: string;
     packageName: string;
     updatedAt: string;
-    thumbnailFileId: string | null;
+    thumbnail_file_id: string | null;
     status: 'DRAFT' | 'IN_REVIEW' | 'ACTIVE';
     createdAt: string;
     isCoursePublishedToCatalaouge: boolean | null;
-    coursePreviewImageMediaId: string | null;
-    courseBannerMediaId: string | null;
+    course_preview_image_media_id: string | null;
+    course_banner_media_id: string | null;
     courseMediaId: string | null;
     whyLearn: string | null;
     whoShouldLearn: string | null;
@@ -110,6 +102,9 @@ interface GroupedCourse {
     facultyAssignmentCount: number;
     creator: boolean;
     facultyAssigned: boolean;
+    thumbnail_file_id: string | null;
+    course_preview_image_media_id: string | null;
+    course_banner_media_id: string | null;
     sessionLevelCombinations: Array<{
         sessionInfo: SessionInfo;
         levelInfo: LevelInfo;
@@ -194,6 +189,14 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
             const courseId = response.courseId;
             const course = response.packageEntity;
 
+            // Debug logging for API data
+            console.log('API Response Debug:', {
+                courseName: course.packageName,
+                thumbnail_file_id: course.thumbnail_file_id,
+                course_preview_image_media_id: course.course_preview_image_media_id,
+                course_banner_media_id: course.course_banner_media_id,
+            });
+
             if (!groupedMap.has(courseId)) {
                 groupedMap.set(courseId, {
                     id: courseId,
@@ -208,6 +211,9 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                     facultyAssignmentCount: response.facultyAssignmentCount,
                     creator: response.creator,
                     facultyAssigned: response.facultyAssigned,
+                    thumbnail_file_id: course.thumbnail_file_id,
+                    course_preview_image_media_id: course.course_preview_image_media_id,
+                    course_banner_media_id: course.course_banner_media_id,
                     sessionLevelCombinations: [],
                 });
             }
@@ -322,6 +328,79 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
         }
     };
 
+    // Thumbnail component that handles async URL fetching
+    const CourseThumbnail: React.FC<{ course: GroupedCourse }> = ({ course }) => {
+        const { getPublicUrl } = useFileUpload();
+        const [imageUrl, setImageUrl] = useState<string>('');
+        const [isLoading, setIsLoading] = useState(false);
+
+        // Priority: thumbnail_file_id > course_preview_image_media_id > course_banner_media_id
+        const mediaId =
+            course.thumbnail_file_id ||
+            course.course_preview_image_media_id ||
+            course.course_banner_media_id;
+
+        // Debug logging
+        console.log('CourseThumbnail Debug:', {
+            courseName: course.packageName,
+            thumbnail_file_id: course.thumbnail_file_id,
+            course_preview_image_media_id: course.course_preview_image_media_id,
+            course_banner_media_id: course.course_banner_media_id,
+            selectedMediaId: mediaId,
+        });
+
+        useEffect(() => {
+            if (mediaId) {
+                console.log('Fetching URL for mediaId:', mediaId);
+                setIsLoading(true);
+                getPublicUrl(mediaId)
+                    .then((url) => {
+                        console.log('Got URL:', url);
+                        setImageUrl(url || '');
+                    })
+                    .catch((error) => {
+                        console.error('Failed to get thumbnail URL:', error);
+                        setImageUrl('');
+                    })
+                    .finally(() => {
+                        setIsLoading(false);
+                    });
+            }
+        }, [mediaId, getPublicUrl]);
+
+        if (!mediaId) {
+            console.log('No mediaId found for course:', course.packageName);
+            // Show placeholder for debugging
+            return null;
+        }
+
+        if (isLoading) {
+            return (
+                <div className="aspect-video w-full overflow-hidden rounded-t-lg bg-gray-100">
+                    <div className="flex h-full items-center justify-center">
+                        <div className="size-8 animate-spin rounded-full border-2 border-gray-300 border-t-transparent"></div>
+                    </div>
+                </div>
+            );
+        }
+
+        if (!imageUrl) return null;
+
+        return (
+            <div className="aspect-video w-full overflow-hidden rounded-t-lg">
+                <img
+                    src={imageUrl}
+                    alt={course.packageName}
+                    className="size-full object-cover"
+                    onError={(e) => {
+                        // Hide image if it fails to load
+                        (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                />
+            </div>
+        );
+    };
+
     if (isLoading) {
         return <DashboardLoader />;
     }
@@ -368,6 +447,9 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                             key={course.id}
                             className="flex flex-col transition-shadow hover:shadow-md"
                         >
+                            {/* Thumbnail */}
+                            <CourseThumbnail course={course} />
+
                             <CardHeader className="pb-2">
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="min-w-0 flex-1">
@@ -429,7 +511,6 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                                                                         </span>
                                                                     </div>
                                                                 )}
-                                                        
                                                         </div>
                                                     ))}
                                             </div>
