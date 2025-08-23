@@ -465,7 +465,7 @@ const CustomFieldsSettings: React.FC = () => {
     const handleAddOption = (fieldId: string, optionValue: string) => {
         if (optionValue.trim()) {
             // Check if it's an institute field or custom field
-            const isInstituteField = instituteFields.some(field => field.id === fieldId);
+            const isInstituteField = instituteFields.some((field) => field.id === fieldId);
             if (isInstituteField) {
                 setInstituteFields((prev) =>
                     prev.map((field) =>
@@ -494,7 +494,7 @@ const CustomFieldsSettings: React.FC = () => {
 
     const handleRemoveOption = (fieldId: string, optionIndex: number) => {
         // Check if it's an institute field or custom field
-        const isInstituteField = instituteFields.some(field => field.id === fieldId);
+        const isInstituteField = instituteFields.some((field) => field.id === fieldId);
         if (isInstituteField) {
             setInstituteFields((prev) =>
                 prev.map((field) =>
@@ -522,7 +522,7 @@ const CustomFieldsSettings: React.FC = () => {
 
     const handleEditOption = (fieldId: string, optionIndex: number, newValue: string) => {
         // Check if it's an institute field or custom field
-        const isInstituteField = instituteFields.some(field => field.id === fieldId);
+        const isInstituteField = instituteFields.some((field) => field.id === fieldId);
         if (isInstituteField) {
             setInstituteFields((prev) =>
                 prev.map((field) =>
@@ -723,10 +723,10 @@ const CustomFieldsSettings: React.FC = () => {
                 </div>
                 <button
                     onClick={handleSaveChanges}
-                    className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-white transition-colors hover:bg-blue-700"
+                    className="flex items-center gap-2 rounded-lg bg-primary-500 px-3 py-2 text-white transition-colors "
                 >
-                    <Save className="h-5 w-5" />
-                    Save All Changes
+                    <Save className="size-4" />
+                    Save Changes
                 </button>
             </div>
 
@@ -813,7 +813,8 @@ const CustomFieldsSettings: React.FC = () => {
                         Institute Fields
                     </h2>
                     <p className="mt-1 text-gray-600">
-                        Standard institute fields that can be edited, renamed, and deleted. You can also control their visibility.
+                        Standard institute fields that can be edited, renamed, and deleted. You can
+                        also control their visibility.
                     </p>
                 </div>
 
@@ -894,7 +895,7 @@ const CustomFieldsSettings: React.FC = () => {
                                         <div className="lg:col-span-1">
                                             <button
                                                 onClick={() => handleRemoveInstituteField(field.id)}
-                                                className="rounded bg-red-500 px-3 py-2 text-white hover:bg-red-600 transition-colors"
+                                                className="rounded bg-red-500 px-3 py-2 text-white transition-colors hover:bg-red-600"
                                                 title="Delete field"
                                             >
                                                 <Trash2 className="h-4 w-4" />
@@ -1121,7 +1122,10 @@ const CustomFieldsSettings: React.FC = () => {
                                             onClick={() =>
                                                 setNewField((prev) => ({
                                                     ...prev,
-                                                    options: [...(prev.options || []), `Option ${(prev.options?.length || 0) + 1}`],
+                                                    options: [
+                                                        ...(prev.options || []),
+                                                        `Option ${(prev.options?.length || 0) + 1}`,
+                                                    ],
                                                 }))
                                             }
                                             className="flex items-center gap-2 rounded bg-green-500 px-3 py-1 text-xs text-white hover:bg-green-600"
