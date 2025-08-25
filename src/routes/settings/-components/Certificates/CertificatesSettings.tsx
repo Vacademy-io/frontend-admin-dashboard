@@ -12,6 +12,7 @@ const CertificatesSettings = () => {
     const certificateSetting = settings?.setting?.CERTIFICATE_SETTING;
     const isDefaultCertificateSettingOn =
         certificateSetting?.data?.data?.[0]?.isDefaultCertificateSettingOn || false;
+    const placeHoldersMapping = certificateSetting?.data?.data?.[0]?.placeHoldersMapping || {};
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -22,7 +23,11 @@ const CertificatesSettings = () => {
         setLoading(true);
         setError(null);
         try {
-            await handleConfigureCertificateSettings(isCertificateEnabled, !!certificateSetting);
+            await handleConfigureCertificateSettings(
+                isCertificateEnabled,
+                !!certificateSetting,
+                placeHoldersMapping
+            );
             setSuccess('Certificate settings saved successfully!');
             setTimeout(() => setSuccess(null), 3000);
         } catch (error) {

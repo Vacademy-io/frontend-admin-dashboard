@@ -5,7 +5,8 @@ import { certificateHtml } from '../-utils/certificate-html';
 
 export const handleConfigureCertificateSettings = async (
     isEnabled: boolean,
-    isCertificateExists: boolean
+    isCertificateExists: boolean,
+    placeHoldersMapping: Record<string, string>
 ) => {
     const instituteId = getInstituteId();
     const response = await authenticatedAxiosInstance({
@@ -24,7 +25,7 @@ export const handleConfigureCertificateSettings = async (
                           defaultHtmlCertificateTemplate: certificateHtml,
                           currentHtmlCertificateTemplate: certificateHtml,
                           customHtmlCertificateTemplate: null,
-                          placeHoldersMapping: {},
+                          placeHoldersMapping: placeHoldersMapping,
                       },
                   },
               },
