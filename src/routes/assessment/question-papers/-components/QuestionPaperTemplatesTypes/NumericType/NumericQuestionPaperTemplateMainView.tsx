@@ -1,21 +1,18 @@
 import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Sliders, X, Plus } from 'phosphor-react';
+import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import 'react-quill/dist/quill.snow.css';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { PopoverClose } from '@radix-ui/react-popover';
 import SelectField from '@/components/design-system/select-field';
-import CustomInput from '@/components/design-system/custom-input';
-import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { RichTextEditor } from '@/components/editor/RichTextEditor';
 import { QuestionPaperTemplateFormProps } from '../../../-utils/question-paper-template-form';
 import { formatStructure } from '../../../-utils/helper';
 import { QUESTION_TYPES, NUMERIC_TYPES } from '@/constants/dummy-data';
-import { MyInput } from '@/components/design-system/input';
-import { useState, useEffect } from 'react';
-import { CollapsibleQuillEditor } from '../CollapsibleQuillEditor';
-import { useWatch } from 'react-hook-form';
 import { Badge } from '@/components/ui/badge';
+import { useEffect } from 'react';
 
 export const NumericQuestionPaperTemplateMainView = ({
     form,
@@ -23,12 +20,20 @@ export const NumericQuestionPaperTemplateMainView = ({
     className,
     showQuestionNumber = true,
 }: QuestionPaperTemplateFormProps) => {
-    const { control, getValues, trigger, watch } = form;
+    // Add defensive check to ensure form is properly initialized
+    if (!form || !form.control || !form.getValues || !form.trigger || !form.watch || !form.setValue) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center">
+                <h1>Form not properly initialized</h1>
+            </div>
+        );
+    }
 
-    const numericType = watch(`questions.${currentQuestionIndex}.numericType`);
-    const validAnswers = watch(`questions.${currentQuestionIndex}.validAnswers`);
+    const { control, getValues, trigger, watch, setValue } = form;
 
-    useWatch({ control });
+    const numericType = watch(`questions.${currentQuestionIndex}.numericType`) || '';
+    const validAnswers = watch(`questions.${currentQuestionIndex}.validAnswers`) || [0];
+
     const answersType = getValues('answersType') || 'Answer:';
     const explanationsType = getValues('explanationsType') || 'Explanation:';
     const questionsType = getValues('questionsType') || '';
@@ -36,13 +41,22 @@ export const NumericQuestionPaperTemplateMainView = ({
     const level = getValues(`questions.${currentQuestionIndex}.level`) || '';
 
     useEffect(() => {
-        const validAnswrs = form.getValues(`questions.${currentQuestionIndex}.validAnswers`);
-        if (!validAnswrs) {
-            form.setValue(`questions.${currentQuestionIndex}.validAnswers`, [0]);
+        try {
+            const validAnswers = getValues(`questions.${currentQuestionIndex}.validAnswers`);
+            if (!validAnswers) {
+                setValue(`questions.${currentQuestionIndex}.validAnswers`, [0]);
+            }
+        } catch (error) {
+            // Silently handle error
         }
-    }, []);
+    }, [currentQuestionIndex, getValues, setValue]);
+
     useEffect(() => {
-        trigger(`questions.${currentQuestionIndex}.validAnswers`);
+        try {
+            trigger(`questions.${currentQuestionIndex}.validAnswers`);
+        } catch (error) {
+            // Silently handle error
+        }
     }, [numericType, currentQuestionIndex, trigger]);
 
     return (
@@ -86,11 +100,23 @@ export const NumericQuestionPaperTemplateMainView = ({
                                 className="!w-full"
                                 required
                             />
-                            <CustomInput
+                            <FormField
                                 control={form.control}
                                 name={`questions.${currentQuestionIndex}.decimals`}
-                                label="Decimal Precision"
-                                required
+                                render={({ field }) => (
+                                    <FormItem className="w-full">
+                                        <FormControl>
+                                            <Input
+                                                type="number"
+                                                value={field.value || 0}
+                                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                                className="w-full"
+                                                placeholder="Decimal precision"
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
                             />
                         </div>
                     </PopoverContent>
@@ -105,10 +131,11 @@ export const NumericQuestionPaperTemplateMainView = ({
                         render={({ field }) => (
                             <FormItem className="w-full">
                                 <FormControl>
-                                    <CollapsibleQuillEditor
+                                    <RichTextEditor
                                         value={field.value}
                                         onBlur={field.onBlur}
                                         onChange={field.onChange}
+                                        minHeight={100}
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -138,10 +165,11 @@ export const NumericQuestionPaperTemplateMainView = ({
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
-                                <MainViewQuillEditor
+                                <RichTextEditor
                                     value={field.value}
                                     onBlur={field.onBlur}
                                     onChange={field.onChange}
+                                    minHeight={100}
                                 />
                             </FormControl>
                             <FormMessage />
@@ -160,20 +188,9 @@ export const NumericQuestionPaperTemplateMainView = ({
             </div>
 
             <div className="flex w-full flex-col gap-4">
-                <FormField
-                    control={control}
-                    name={`questions.${currentQuestionIndex}.validAnswers`}
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormControl>
-                                <div className="flex flex-row justify-between">
-                                    <div>{answersType}</div>
-                                </div>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                <div className="flex flex-row justify-between">
+                    <div>{answersType}</div>
+                </div>
 
                 <FormField
                     control={control}
@@ -186,9 +203,10 @@ export const NumericQuestionPaperTemplateMainView = ({
                                         field.value.map((answer, index) => (
                                             <div key={index} className="flex items-center gap-2">
                                                 {/* Input for each validAnswer */}
-                                                <MyInput
-                                                    input={answer.toString()}
-                                                    onChangeFunction={(e) => {
+                                                <Input
+                                                    type="number"
+                                                    value={answer.toString()}
+                                                    onChange={(e) => {
                                                         const updatedAnswers = [
                                                             ...(field.value ?? []),
                                                         ];
@@ -196,7 +214,7 @@ export const NumericQuestionPaperTemplateMainView = ({
                                                             parseFloat(e.target.value) || 0; // Ensure number
                                                         field.onChange(updatedAnswers);
                                                     }}
-                                                    inputType="number"
+                                                    className="w-20"
                                                 />
                                                 {/* Remove button for each answer */}
                                                 <button
@@ -239,10 +257,11 @@ export const NumericQuestionPaperTemplateMainView = ({
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
-                                <MainViewQuillEditor
+                                <RichTextEditor
                                     value={field.value}
                                     onBlur={field.onBlur}
                                     onChange={field.onChange}
+                                    minHeight={120}
                                 />
                             </FormControl>
                             <FormMessage />

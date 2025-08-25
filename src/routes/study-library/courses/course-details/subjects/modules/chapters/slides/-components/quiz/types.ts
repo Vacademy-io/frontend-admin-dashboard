@@ -5,6 +5,8 @@ export interface QuizPreviewProps {
         moduleId?: string;
         subjectId?: string;
         sessionId?: string;
+        courseId?: string;
+        levelId?: string;
     };
 }
 

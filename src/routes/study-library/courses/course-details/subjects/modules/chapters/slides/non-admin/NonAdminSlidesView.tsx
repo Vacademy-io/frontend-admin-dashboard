@@ -73,14 +73,7 @@ export function NonAdminSlidesView({
     const { unsavedChanges, showApprovalButton, saveSlideAsPublished } =
         useNonAdminSlides(chapterId);
 
-    // Debug logging
-    console.log('🔍 NonAdminSlidesView state:');
-    console.log('  isDraftCourse:', isDraftCourse);
-    console.log('  isReadOnlyMode:', isReadOnlyMode);
-    console.log('  showApprovalButton:', showApprovalButton);
-    console.log('  hasUnsavedChanges:', unsavedChanges.hasChanges);
-    console.log('  courseStatus:', courseStatus);
-    console.log('  courseId:', courseId);
+
 
     // useIntroJsTour({
     //     key: StudyLibraryIntroKey.addSlidesStep,
@@ -128,7 +121,7 @@ export function NonAdminSlidesView({
                     slideOrderPayload: slideOrderPayload,
                 });
             } catch (error) {
-                console.log('error updating slide order: ', error);
+                // Silently handle error
             }
         },
         [chapterId, updateSlideOrder, isReadOnlyMode]
@@ -356,23 +349,11 @@ export function NonAdminSlidesView({
     // Create our custom save function for non-admin users
     const customSaveDraft = useCallback(
         async (slide: Slide) => {
-            console.log('💾 SaveDraft called for non-admin:', {
-                slideTitle: slide.title,
-                slideId: slide.id,
-                isDraftCourse,
-                sourceType: slide.source_type,
-                status: slide.status,
-            });
-
             if (isDraftCourse) {
                 // For non-admin users in draft courses, save as published
-                console.log('🔄 Non-admin saving slide as published:', slide.title);
-
                 // Get current editor content for document slides
                 const currentEditorContent = getCurrentEditorHTMLContentRef.current();
                 await saveSlideAsPublished(slide, true, currentEditorContent); // Pass editor content
-            } else {
-                console.log('⚠️ Read-only mode, not saving slide:', slide.title);
             }
         },
         [isDraftCourse, saveSlideAsPublished]
