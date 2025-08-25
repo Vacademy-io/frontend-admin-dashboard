@@ -15,7 +15,7 @@ export const handleConfigureCertificateSettings = async (
             instituteId,
         },
         data: !isCertificateExists
-            ? {}
+            ? { request: null }
             : {
                   request: {
                       COURSE_COMPLETION: {
