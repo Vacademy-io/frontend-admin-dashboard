@@ -74,6 +74,7 @@ const InstituteSchema = z.object({
     subjects: z.array(SubjectSchema),
     session_expiry_days: z.array(z.number()),
     tags: z.array(z.string()),
+    learner_portal_base_url: z.string(),
 });
 
 export type InstituteDetailsType = z.infer<typeof InstituteSchema> | null;
