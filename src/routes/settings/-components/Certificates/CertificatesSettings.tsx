@@ -1,28 +1,38 @@
 import { useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, CheckCircle, Loader2, Settings, FileText } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Loader2, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { handleConfigureCertificateSettings } from '../../-services/setting-services';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 const CertificatesSettings = () => {
+    const { instituteDetails } = useInstituteDetailsStore();
+    const settings = JSON.parse(instituteDetails?.setting || '{}');
+    const isCertificateExists = settings?.setting?.CERTIFICATE_SETTING;
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [isCertificateEnabled, setIsCertificateEnabled] = useState(false);
 
-    const handleConfigureSettings = async () => {
+    const handleSaveSettings = async () => {
         setLoading(true);
         setError(null);
         try {
-            await handleConfigureCertificateSettings();
-            setSuccess('Certificate settings configuration opened!');
+            await handleConfigureCertificateSettings(isCertificateEnabled, isCertificateExists);
+            setSuccess('Certificate settings saved successfully!');
             setTimeout(() => setSuccess(null), 3000);
         } catch (error) {
-            console.error('Error opening certificate configuration:', error);
-            setError('Failed to open certificate configuration. Please try again.');
+            console.error('Error saving certificate settings:', error);
+            setError('Failed to save certificate settings. Please try again.');
             setTimeout(() => setError(null), 5000);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleSwitchToggle = (checked: boolean) => {
+        setIsCertificateEnabled(checked);
     };
 
     return (
@@ -54,6 +64,18 @@ const CertificatesSettings = () => {
                         Configure certificate generation, templates, and settings for your institute
                     </p>
                 </div>
+                <Button
+                    onClick={handleSaveSettings}
+                    disabled={loading}
+                    className="flex items-center gap-2"
+                >
+                    {loading ? (
+                        <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                        <CheckCircle className="size-4" />
+                    )}
+                    Save Changes
+                </Button>
             </div>
 
             {/* Main Content */}
@@ -66,18 +88,13 @@ const CertificatesSettings = () => {
                                 Manage certificate templates, design, and generation settings
                             </p>
                         </div>
-                        <Button
-                            onClick={handleConfigureSettings}
-                            disabled={loading}
-                            className="flex items-center gap-2"
-                        >
-                            {loading ? (
-                                <Loader2 className="size-4 animate-spin" />
-                            ) : (
-                                <Settings className="size-4" />
-                            )}
-                            Configure Settings
-                        </Button>
+                        <div className="flex items-center space-x-2">
+                            <Switch
+                                id="certificate-enabled"
+                                checked={isCertificateEnabled}
+                                onCheckedChange={handleSwitchToggle}
+                            />
+                        </div>
                     </div>
 
                     {/* Certificate Settings Overview */}

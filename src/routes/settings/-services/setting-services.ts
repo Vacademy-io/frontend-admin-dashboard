@@ -1,8 +1,12 @@
 import { getInstituteId } from '@/constants/helper';
 import { CONFIGURE_CERTIFICATE_SETTINGS } from '@/constants/urls';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import { certificateHtml } from '../-utils/certificate-html';
 
-export const handleConfigureCertificateSettings = async () => {
+export const handleConfigureCertificateSettings = async (
+    isEnabled: boolean,
+    isCertificateExists: boolean
+) => {
     const instituteId = getInstituteId();
     const response = await authenticatedAxiosInstance({
         method: 'POST',
@@ -10,7 +14,20 @@ export const handleConfigureCertificateSettings = async () => {
         params: {
             instituteId,
         },
-        data: {},
+        data: !isCertificateExists
+            ? {}
+            : {
+                  request: {
+                      COURSE_COMPLETION: {
+                          key: 'COURSE_COMPLETION',
+                          isDefaultCertificateSettingOn: isEnabled,
+                          defaultHtmlCertificateTemplate: certificateHtml,
+                          currentHtmlCertificateTemplate: certificateHtml,
+                          customHtmlCertificateTemplate: null,
+                          placeHoldersMapping: {},
+                      },
+                  },
+              },
     });
     return response?.data;
 };
