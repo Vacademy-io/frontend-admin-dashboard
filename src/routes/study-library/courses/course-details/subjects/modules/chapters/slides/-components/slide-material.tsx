@@ -1661,6 +1661,7 @@ export const SlideMaterial = ({
     };
 
     useEffect(() => {
+        setHeading(activeItem?.title || '');
         setSlideTitle(
             (activeItem?.source_type === 'DOCUMENT' && activeItem?.document_slide?.title) ||
                 (activeItem?.source_type === 'VIDEO' && activeItem?.video_slide?.title) ||
@@ -1669,6 +1670,7 @@ export const SlideMaterial = ({
     }, [activeItem]);
 
     useEffect(() => {
+        setHeading(activeItem?.title || '');
         if (items && items.length === 0 && slideId === undefined) {
             setActiveItem(null);
             return;
@@ -1717,6 +1719,7 @@ export const SlideMaterial = ({
 
     // Update the refs whenever these functions change
     useEffect(() => {
+        setHeading(activeItem?.title || '');
         setGetCurrentEditorHTMLContent(getCurrentEditorHTMLContent);
         setSaveDraft(SaveDraft);
     }, [editor]);
