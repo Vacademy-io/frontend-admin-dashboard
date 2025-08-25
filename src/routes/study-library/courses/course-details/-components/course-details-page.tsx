@@ -60,6 +60,7 @@ import {
     type DisplaySettingsData,
 } from '@/types/display-settings';
 import { getDisplaySettingsFromCache } from '@/services/display-settings';
+import { extractTextFromHTML } from '@/constants/helper';
 
 type SlideType = {
     id: string;
@@ -994,7 +995,7 @@ export const CourseDetailsPage = () => {
                         />
 
                         {/* What You'll Learn Section */}
-                        {form.getValues('courseData').whatYoullLearn && (
+                        {extractTextFromHTML(form.getValues('courseData').whatYoullLearn) && (
                             <div className="mb-4 mt-3 rounded-md bg-white p-3 shadow-sm lg:mb-6 lg:mt-4 lg:p-4">
                                 <h2 className="mb-2 text-lg font-semibold text-gray-900 lg:mb-3">
                                     What you&apos;ll learn?
@@ -1012,7 +1013,7 @@ export const CourseDetailsPage = () => {
                         )}
 
                         {/* About Content Section */}
-                        {form.getValues('courseData').aboutTheCourse && (
+                        {extractTextFromHTML(form.getValues('courseData').aboutTheCourse) && (
                             <div className="mb-4 rounded-md bg-white p-3 shadow-sm lg:mb-6 lg:p-4">
                                 <h2 className="mb-2 text-lg font-semibold text-gray-900 lg:mb-3">
                                     About this{' '}
@@ -1034,7 +1035,7 @@ export const CourseDetailsPage = () => {
                         )}
 
                         {/* Who Should Join Section */}
-                        {form.getValues('courseData').whoShouldLearn && (
+                        {extractTextFromHTML(form.getValues('courseData').whoShouldLearn) && (
                             <div className="mb-4 rounded-md bg-white p-3 shadow-sm lg:mb-6 lg:p-4">
                                 <h2 className="mb-2 text-lg font-semibold text-gray-900 lg:mb-3">
                                     Who should join?
