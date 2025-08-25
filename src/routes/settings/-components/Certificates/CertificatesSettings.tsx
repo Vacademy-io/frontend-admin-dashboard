@@ -9,17 +9,20 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 const CertificatesSettings = () => {
     const { instituteDetails } = useInstituteDetailsStore();
     const settings = JSON.parse(instituteDetails?.setting || '{}');
-    const isCertificateExists = settings?.setting?.CERTIFICATE_SETTING;
+    const certificateSetting = settings?.setting?.CERTIFICATE_SETTING;
+    const isDefaultCertificateSettingOn =
+        certificateSetting?.data?.data?.[0]?.isDefaultCertificateSettingOn || false;
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
-    const [isCertificateEnabled, setIsCertificateEnabled] = useState(false);
+    const [isCertificateEnabled, setIsCertificateEnabled] = useState(isDefaultCertificateSettingOn);
 
     const handleSaveSettings = async () => {
         setLoading(true);
         setError(null);
         try {
-            await handleConfigureCertificateSettings(isCertificateEnabled, isCertificateExists);
+            await handleConfigureCertificateSettings(isCertificateEnabled, !!certificateSetting);
             setSuccess('Certificate settings saved successfully!');
             setTimeout(() => setSuccess(null), 3000);
         } catch (error) {
