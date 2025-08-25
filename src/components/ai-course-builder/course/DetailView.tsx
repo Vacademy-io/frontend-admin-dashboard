@@ -779,6 +779,8 @@ const DetailView: React.FC<DetailViewProps> = ({ selectedItem, onModifications }
                                     moduleId: 'ai-module',
                                     subjectId: 'ai-subject',
                                     sessionId: 'ai-session',
+                                    courseId: '',
+                                    levelId: '',
                                 }}
                             />
                         </div>

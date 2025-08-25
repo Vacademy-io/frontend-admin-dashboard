@@ -6,7 +6,7 @@ import 'react-quill/dist/quill.snow.css';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { PopoverClose } from '@radix-ui/react-popover';
 import SelectField from '@/components/design-system/select-field';
-import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { RichTextEditor } from '@/components/editor/RichTextEditor';
 import { QuestionPaperTemplateFormProps } from '../../../-utils/question-paper-template-form';
 import { formatStructure } from '../../../-utils/helper';
 import { QUESTION_TYPES } from '@/constants/dummy-data';
@@ -83,7 +83,7 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                         render={({ field }) => (
                             <FormItem className="w-full">
                                 <FormControl>
-                                    <MainViewQuillEditor
+                                    <RichTextEditor
                                         value={field.value}
                                         onBlur={field.onBlur}
                                         onChange={field.onChange}
@@ -110,22 +110,23 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                     </span>
                     <Badge variant="outline">{level}</Badge>
                 </div>
-                <FormField
-                    control={control}
-                    name={`questions.${currentQuestionIndex}.questionName`}
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormControl>
-                                <MainViewQuillEditor
-                                    onBlur={field.onBlur}
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                                            <FormField
+                                control={control}
+                                name={`questions.${currentQuestionIndex}.questionName`}
+                                render={({ field }) => (
+                                    <FormItem className="w-full">
+                                        <FormControl>
+                                            <RichTextEditor
+                                                onBlur={field.onBlur}
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                minHeight={100}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                 <div className="mt-2 flex items-center gap-2">
                     {tags?.map((tag, idx) => {
                         return (
@@ -156,10 +157,11 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                 render={({ field }) => (
                                     <FormItem className="w-full">
                                         <FormControl>
-                                            <MainViewQuillEditor
+                                            <RichTextEditor
                                                 value={field.value}
                                                 onBlur={field.onBlur}
                                                 onChange={field.onChange}
+                                                minHeight={80}
                                             />
                                         </FormControl>
                                         <FormMessage />
@@ -213,10 +215,11 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                 render={({ field }) => (
                                     <FormItem className="w-full">
                                         <FormControl>
-                                            <MainViewQuillEditor
+                                            <RichTextEditor
                                                 value={field.value}
                                                 onBlur={field.onBlur}
                                                 onChange={field.onChange}
+                                                minHeight={80}
                                             />
                                         </FormControl>
                                         <FormMessage />
@@ -272,10 +275,11 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                 render={({ field }) => (
                                     <FormItem className="w-full">
                                         <FormControl>
-                                            <MainViewQuillEditor
+                                            <RichTextEditor
                                                 value={field.value}
                                                 onBlur={field.onBlur}
                                                 onChange={field.onChange}
+                                                minHeight={80}
                                             />
                                         </FormControl>
                                         <FormMessage />
@@ -329,10 +333,11 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                                 render={({ field }) => (
                                     <FormItem className="w-full">
                                         <FormControl>
-                                            <MainViewQuillEditor
+                                            <RichTextEditor
                                                 value={field.value}
                                                 onBlur={field.onBlur}
                                                 onChange={field.onChange}
+                                                minHeight={80}
                                             />
                                         </FormControl>
                                         <FormMessage />
@@ -379,10 +384,11 @@ export const MultipleCorrectQuestionPaperTemplateMainView = ({
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
-                                <MainViewQuillEditor
+                                <RichTextEditor
                                     value={field.value}
                                     onBlur={field.onBlur}
                                     onChange={field.onChange}
+                                    minHeight={120}
                                 />
                             </FormControl>
                             <FormMessage />

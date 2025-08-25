@@ -1169,6 +1169,8 @@ export const SlideMaterial = ({
                             moduleId,
                             subjectId,
                             sessionId,
+                            courseId,
+                            levelId,
                         }}
                     />
                 );

@@ -240,11 +240,6 @@ const SlideItem = ({
                             onClick={(e) => {
                                 // Prevent the slide click when clicking the drag handle
                                 e.stopPropagation();
-                                console.log('[SlideItem] Drag handle clicked for slide:', {
-                                    id: slide.id,
-                                    title: slide.title,
-                                    source_type: slide.source_type,
-                                });
                             }}
                         >
                             <DotsSixVertical className="size-3 shrink-0 text-neutral-400" />
@@ -317,18 +312,6 @@ export const ChapterSidebarSlides = ({
     useEffect(() => {
         // Debug quiz slides specifically
         const quizSlides = filteredSlides?.filter((slide) => slide.source_type === 'QUIZ') || [];
-        if (quizSlides.length > 0) {
-            console.log('[ChapterSidebarSlides] 🧩 Quiz slides found:', {
-                count: quizSlides.length,
-                quizSlides: quizSlides.map((slide) => ({
-                    id: slide.id,
-                    title: slide.title,
-                    hasQuizSlide: !!slide.quiz_slide,
-                    quizSlideTitle: slide.quiz_slide?.title,
-                    questionsCount: slide.quiz_slide?.questions?.length || 0,
-                })),
-            });
-        }
 
         if (filteredSlides?.length) {
             form.reset({ slides: filteredSlides });

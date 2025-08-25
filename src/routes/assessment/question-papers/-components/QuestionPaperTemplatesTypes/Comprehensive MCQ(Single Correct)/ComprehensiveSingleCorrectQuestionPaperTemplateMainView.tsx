@@ -6,7 +6,7 @@ import 'react-quill/dist/quill.snow.css';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { PopoverClose } from '@radix-ui/react-popover';
 import SelectField from '@/components/design-system/select-field';
-import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { RichTextEditor } from '@/components/editor/RichTextEditor';
 import { QuestionPaperTemplateFormProps } from '../../../-utils/question-paper-template-form';
 import { formatStructure } from '../../../-utils/helper';
 import { QUESTION_TYPES } from '@/constants/dummy-data';
@@ -98,7 +98,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
-                                <MainViewQuillEditor
+                                <RichTextEditor
                                     value={field.value}
                                     onBlur={field.onBlur}
                                     onChange={field.onChange}
@@ -130,7 +130,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
-                                <MainViewQuillEditor
+                                <RichTextEditor
                                     value={field.value}
                                     onBlur={field.onBlur}
                                     onChange={field.onChange}
@@ -171,7 +171,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
-                                                <MainViewQuillEditor
+                                                <RichTextEditor
                                                     value={field.value}
                                                     onBlur={field.onBlur}
                                                     onChange={field.onChange}
@@ -224,7 +224,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
-                                                <MainViewQuillEditor
+                                                <RichTextEditor
                                                     value={field.value}
                                                     onBlur={field.onBlur}
                                                     onChange={field.onChange}
@@ -279,7 +279,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
-                                                <MainViewQuillEditor
+                                                <RichTextEditor
                                                     value={field.value}
                                                     onBlur={field.onBlur}
                                                     onChange={field.onChange}
@@ -332,7 +332,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
                                     render={({ field }) => (
                                         <FormItem className="w-full">
                                             <FormControl>
-                                                <MainViewQuillEditor
+                                                <RichTextEditor
                                                     value={field.value}
                                                     onBlur={field.onBlur}
                                                     onChange={field.onChange}
@@ -377,7 +377,7 @@ export const ComprehensiveSingleCorrectQuestionPaperTemplateMainView = ({
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
-                                <MainViewQuillEditor
+                                <RichTextEditor
                                     value={field.value}
                                     onBlur={field.onBlur}
                                     onChange={field.onChange}
