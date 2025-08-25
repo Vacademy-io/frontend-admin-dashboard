@@ -10,8 +10,8 @@ import { StudentTestRecord } from './student-test-records/student-test-record';
 import { getPublicUrl } from '@/services/upload_file';
 import { ErrorBoundary } from '@/components/core/dashboard-loader';
 import { useStudentSidebar } from '../../../-context/selected-student-sidebar-context';
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 export const StudentSidebar = ({
     selectedTab,
@@ -31,7 +31,6 @@ export const StudentSidebar = ({
     const { toggleSidebar } = useSidebar();
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [faceLoader, setFaceLoader] = useState(false);
-    const { showForInstitutes } = useInstituteDetailsStore();
     const { selectedStudent } = useStudentSidebar();
 
     useEffect(() => {
@@ -82,9 +81,7 @@ export const StudentSidebar = ({
                             <div className="flex items-center gap-3">
                                 <div className="h-6 w-1 animate-pulse rounded-full bg-gradient-to-b from-primary-500 to-primary-400"></div>
                                 <h2 className="bg-gradient-to-r from-neutral-800 to-neutral-600 bg-clip-text text-lg font-semibold text-transparent">
-                                    {showForInstitutes([HOLISTIC_INSTITUTE_ID])
-                                        ? 'Member Profile '
-                                        : 'Student Profile'}
+                                    {`${getTerminology(RoleTerms.Learner, SystemTerms.Learner)} Profile`}
                                 </h2>
                             </div>
                             <button
@@ -96,68 +93,67 @@ export const StudentSidebar = ({
                         </div>
 
                         {/* Enhanced tab navigation with modern design */}
-                        {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) &&
-                            !isEnrollRequestStudentList && (
-                                <div className="relative flex gap-1 rounded-xl bg-gradient-to-r from-neutral-50 to-neutral-100 p-1.5 shadow-inner">
-                                    {/* Animated background indicator */}
-                                    <div
-                                        className={`absolute inset-y-1.5 rounded-lg bg-white shadow-lg transition-all duration-300 ease-out ${
-                                            category === 'overview'
-                                                ? 'left-1.5 w-[calc(33.333%-0.5rem)]'
-                                                : category === 'learningProgress'
-                                                  ? 'left-[calc(33.333%+0.167rem)] w-[calc(33.333%-0.333rem)]'
-                                                  : 'left-[calc(66.666%+0.833rem)] w-[calc(33.333%-0.5rem)]'
-                                        }`}
-                                    ></div>
+                        {!isEnrollRequestStudentList && (
+                            <div className="relative flex gap-1 rounded-xl bg-gradient-to-r from-neutral-50 to-neutral-100 p-1.5 shadow-inner">
+                                {/* Animated background indicator */}
+                                <div
+                                    className={`absolute inset-y-1.5 rounded-lg bg-white shadow-lg transition-all duration-300 ease-out ${
+                                        category === 'overview'
+                                            ? 'left-1.5 w-[calc(33.333%-0.5rem)]'
+                                            : category === 'learningProgress'
+                                              ? 'left-[calc(33.333%+0.167rem)] w-[calc(33.333%-0.333rem)]'
+                                              : 'left-[calc(66.666%+0.833rem)] w-[calc(33.333%-0.5rem)]'
+                                    }`}
+                                ></div>
 
-                                    <button
-                                        className={`group relative z-10 flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
-                                            category === 'overview'
-                                                ? 'scale-105 text-primary-500'
-                                                : 'text-neutral-600 hover:scale-100 hover:text-neutral-800'
-                                        }`}
-                                        onClick={() => setCategory('overview')}
-                                    >
-                                        <span className="relative">
-                                            Overview
-                                            {category === 'overview' && (
-                                                <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
-                                            )}
-                                        </span>
-                                    </button>
+                                <button
+                                    className={`group relative z-10 flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                        category === 'overview'
+                                            ? 'scale-105 text-primary-500'
+                                            : 'text-neutral-600 hover:scale-100 hover:text-neutral-800'
+                                    }`}
+                                    onClick={() => setCategory('overview')}
+                                >
+                                    <span className="relative">
+                                        Overview
+                                        {category === 'overview' && (
+                                            <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
+                                        )}
+                                    </span>
+                                </button>
 
-                                    <button
-                                        className={`group relative z-10 flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
-                                            category === 'learningProgress'
-                                                ? 'scale-105 text-primary-500'
-                                                : 'text-neutral-600 hover:scale-100 hover:text-neutral-800'
-                                        }`}
-                                        onClick={() => setCategory('learningProgress')}
-                                    >
-                                        <span className="relative">
-                                            Progress
-                                            {category === 'learningProgress' && (
-                                                <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
-                                            )}
-                                        </span>
-                                    </button>
-                                    <button
-                                        className={`group relative z-10 flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
-                                            category === 'testRecord'
-                                                ? 'scale-105 text-primary-500'
-                                                : 'text-neutral-600 hover:scale-100 hover:text-neutral-800'
-                                        }`}
-                                        onClick={() => setCategory('testRecord')}
-                                    >
-                                        <span className="relative">
-                                            Tests
-                                            {category === 'testRecord' && (
-                                                <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
-                                            )}
-                                        </span>
-                                    </button>
-                                </div>
-                            )}
+                                <button
+                                    className={`group relative z-10 flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                        category === 'learningProgress'
+                                            ? 'scale-105 text-primary-500'
+                                            : 'text-neutral-600 hover:scale-100 hover:text-neutral-800'
+                                    }`}
+                                    onClick={() => setCategory('learningProgress')}
+                                >
+                                    <span className="relative">
+                                        Progress
+                                        {category === 'learningProgress' && (
+                                            <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
+                                        )}
+                                    </span>
+                                </button>
+                                <button
+                                    className={`group relative z-10 flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                        category === 'testRecord'
+                                            ? 'scale-105 text-primary-500'
+                                            : 'text-neutral-600 hover:scale-100 hover:text-neutral-800'
+                                    }`}
+                                    onClick={() => setCategory('testRecord')}
+                                >
+                                    <span className="relative">
+                                        Tests
+                                        {category === 'testRecord' && (
+                                            <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
+                                        )}
+                                    </span>
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </SidebarHeader>
 

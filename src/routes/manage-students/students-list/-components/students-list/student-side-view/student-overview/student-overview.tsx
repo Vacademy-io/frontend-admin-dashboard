@@ -27,7 +27,6 @@ import { useDialogStore } from '@/routes/manage-students/students-list/-hooks/us
 import { useGetStudentDetails } from '@/services/get-student-details';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { StudentTable } from '@/types/student-table-types';
-import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
@@ -40,8 +39,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
     const userId = isSubmissionTab ? selectedStudent?.id : selectedStudent?.user_id;
     const { data: studentDetails, isLoading, isError } = useGetStudentDetails(userId || '');
 
-    const { getDetailsFromPackageSessionId, instituteDetails, showForInstitutes } =
-        useInstituteDetailsStore();
+    const { getDetailsFromPackageSessionId, instituteDetails } = useInstituteDetailsStore();
 
     const { getCredentials } = useStudentCredentialsStore();
     const [password, setPassword] = useState(
@@ -127,7 +125,6 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                 selectedStudent: learner,
                 packageSessionDetails: details,
                 password: password,
-                isShow: showForInstitutes([HOLISTIC_INSTITUTE_ID]),
             })
         );
 
