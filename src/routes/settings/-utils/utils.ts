@@ -8,6 +8,7 @@ import NotificationSettings from '../-components/Notification/NotificationSettin
 import AdminDisplaySettings from '../-components/RoleDisplay/AdminDisplaySettings';
 import TeacherDisplaySettings from '../-components/RoleDisplay/TeacherDisplaySettings';
 import StudentDisplaySettings from '@/routes/settings/-components/RoleDisplay/StudentDisplaySettings';
+import CertificatesSettings from '../-components/Certificates/CertificatesSettings';
 
 export const getAvailableSettingsTabs = () => {
     return [
@@ -55,6 +56,11 @@ export const getAvailableSettingsTabs = () => {
             tab: SettingsTabs.Course,
             value: 'Course Settings',
             component: CourseSettings,
+        },
+        {
+            tab: SettingsTabs.Certificates,
+            value: 'Certificate Settings',
+            component: CertificatesSettings,
         },
     ];
 };
