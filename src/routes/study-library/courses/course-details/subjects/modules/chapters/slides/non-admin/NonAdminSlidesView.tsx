@@ -29,7 +29,7 @@ import { getTerminology } from '@/components/common/layout-container/sidebar/uti
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { useLearnerViewStore } from '../-stores/learner-view-store';
 import { useNonAdminSlides } from './hooks/useNonAdminSlides';
-import { SendForApprovalButton } from './components/ApprovalWorkflow/SendForApprovalButton';
+import { SendForApprovalButton } from '@/components/study-library/approval-workflow/SendForApprovalButton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PreviewChangesButton } from '@/components/study-library/course-comparison/PreviewChangesButton';
 
@@ -72,8 +72,6 @@ export function NonAdminSlidesView({
     // Non-admin slides management
     const { unsavedChanges, showApprovalButton, saveSlideAsPublished } =
         useNonAdminSlides(chapterId);
-
-
 
     // useIntroJsTour({
     //     key: StudyLibraryIntroKey.addSlidesStep,
