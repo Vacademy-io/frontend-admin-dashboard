@@ -56,7 +56,7 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemId: 'batches',
             },
             {
-                subItem: getTerminology(ContentTerms.Session, 'Session'), // Session
+                subItem: getTerminology(ContentTerms.Session, SystemTerms.Session), // Session
                 subItemLink: '/manage-institute/sessions',
                 subItemId: 'sessions',
             },
@@ -69,11 +69,11 @@ export const SidebarItemsData: SidebarItemsType[] = [
     },
     {
         icon: Users,
-        title: `Manage ${getTerminology(RoleTerms.Learner, 'Learner')}`, // Student
+        title: `Manage ${getTerminology(RoleTerms.Learner, SystemTerms.Learner)}`, // Student
         id: 'student-mangement',
         subItems: [
             {
-                subItem: `${getTerminology(RoleTerms.Learner, 'Learner')} list`, // Student
+                subItem: `${getTerminology(RoleTerms.Learner, SystemTerms.Learner)} list`, // Student
                 subItemLink: '/manage-students/students-list',
                 subItemId: 'students-list',
             },

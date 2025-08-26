@@ -14,8 +14,8 @@ import { useLiveSessionReport } from '../-hooks/useLiveSessionReport';
 import { reportColumns, REPORT_WIDTH } from '../-constants/reportTable';
 import { LiveSessionReport } from '../-services/utils';
 import { MyPieChart } from '@/components/design-system/charts/MyPieChart';
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface PreviousSessionCardProps {
     session: LiveSession;
@@ -29,7 +29,6 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
     // using Sonner toast for notifications
 
     const { mutate: fetchReport, data: reportResponse, isPending, error } = useLiveSessionReport();
-    const { showForInstitutes } = useInstituteDetailsStore();
 
     const fetchSessionDetail = async () => {
         const response = await fetchSessionDetails(session.schedule_id);
@@ -79,7 +78,7 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
 
     const handleExportPastAttendance = () => {
         setIsAttendanceExporting(true);
-        const csvData = tableData.content.map(item => ({
+        const csvData = tableData.content.map((item) => ({
             index: item.index,
             username: item.username,
             attendanceStatus: item.attendanceStatus === 'PRESENT' ? 'Present' : 'Absent',
@@ -148,12 +147,12 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
             </div>
 
             <div className="flex w-full items-center justify-start gap-8 text-sm text-neutral-500">
-                {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
-                    <div className="flex items-center gap-2">
-                        <span className="text-black">Subject:</span>
-                        <span>{session.subject}</span>
-                    </div>
-                )}
+                <div className="flex items-center gap-2">
+                    <span className="text-black">
+                        {getTerminology(ContentTerms.Subjects, SystemTerms.Subjects)}:
+                    </span>
+                    <span>{session.subject}</span>
+                </div>
 
                 <div className="flex items-center gap-2">
                     <span className="text-black">Start Date & Time:</span>
@@ -245,35 +244,56 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
                                 <div className="flex items-center justify-center rounded-md bg-neutral-100 p-4">
                                     <div className="flex w-1/2 flex-col items-center justify-center gap-3">
                                         <MyPieChart data={pieChartData} />
-                                        <div>Total Participants: {attendanceSummary.total}</div>
+                                        <div className="text-lg font-semibold">
+                                            Total Participants: {attendanceSummary.total}
+                                        </div>
                                     </div>
-                                    <div className="flex w-1/2 flex-row gap-4 text-center">
-                                        <div className="flex flex-row gap-2 text-success-600">
-                                            <div className="size-4 rounded-full bg-success-400"></div>
-                                            <div className="flex flex-row gap-2 text-black">
-                                                <div>Attendees</div>
-                                                <div>{`(${attendanceSummary.present})`}</div>
+                                    <div className="flex w-1/2 flex-col gap-4">
+                                        <div className="flex flex-col gap-3">
+                                            <div className="flex items-center gap-2">
+                                                <div className="size-4 rounded-full bg-success-400"></div>
+                                                <div className="flex items-center gap-2 text-black">
+                                                    <span className="font-medium">Attendees:</span>
+                                                    <span className="font-semibold text-success-600">
+                                                        {attendanceSummary.present}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="size-4 rounded-full bg-success-200"></div>
+                                                <div className="flex items-center gap-2 text-black">
+                                                    <span className="font-medium">
+                                                        Not Attendees:
+                                                    </span>
+                                                    <span className="font-semibold text-red-600">
+                                                        {attendanceSummary.absent}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="flex flex-row gap-2 text-success-200">
-                                            <div className="size-4 rounded-full bg-success-200"></div>
-                                            <div className="flex flex-row gap-2 text-black">
-                                                <div>Not Attendees</div>
-                                                <div>{`(${attendanceSummary.absent})`}</div>
+                                        <div className="rounded-lg p-3">
+                                            <div className="text-left">
+                                                <div className="text-sm font-medium text-neutral-600">
+                                                    Attendance Percentage
+                                                </div>
+                                                <div className="text-xl font-bold text-primary-500">
+                                                    {attendanceSummary.total > 0
+                                                        ? (
+                                                              (attendanceSummary.present /
+                                                                  attendanceSummary.total) *
+                                                              100
+                                                          ).toFixed(2)
+                                                        : '0.00'}
+                                                    %
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className="font-bold">
-                                            Attendance Percentage:{' '}
-                                            {(attendanceSummary.present / attendanceSummary.total) *
-                                                100}
-                                            %
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="mt-4 rounded-lg">
-                                <div className="flex items-center justify-between mb-4">
+                                <div className="mb-4 flex items-center justify-between">
                                     <h3 className="text-lg font-semibold">Attendance</h3>
                                     <MyButton
                                         type="button"
@@ -299,7 +319,7 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
                                     error={error as Error | null}
                                     columnWidths={REPORT_WIDTH}
                                     currentPage={0}
-                                    // className="!h-full"
+                                    // className="!w-full"
                                 />
                             </div>
                         </div>

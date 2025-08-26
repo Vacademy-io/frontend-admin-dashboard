@@ -14,6 +14,7 @@ import { useContentStore } from '../-stores/chapter-sidebar-store';
 import { toast } from 'sonner';
 import { MyButton } from '@/components/design-system/button';
 import { useSlidesMutations } from '../-hooks/use-slides';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 // Import our new components and utilities
 import {
@@ -31,12 +32,19 @@ const QuizPreview = ({ activeItem, routeParams }: QuizPreviewProps) => {
     // Get route parameters for API calls
     const { chapterId, moduleId, subjectId, sessionId } = routeParams || {};
 
-    // Get the slides mutations hook
+    // Get package session ID from institute details store
+    const { getPackageSessionId } = useInstituteDetailsStore();
+
+    // Get the slides mutations hook with correct package session ID
     const { addUpdateQuizSlide } = useSlidesMutations(
         chapterId || '',
         moduleId || '',
         subjectId || '',
-        sessionId || ''
+        getPackageSessionId({
+            courseId: routeParams?.courseId || '',
+            levelId: routeParams?.levelId || '',
+            sessionId: sessionId || '',
+        }) || ''
     );
 
     const form = useForm<UploadQuestionPaperFormType>({
@@ -109,45 +117,16 @@ const QuizPreview = ({ activeItem, routeParams }: QuizPreviewProps) => {
     }, [form, activeItem, setActiveItem]);
 
     useEffect(() => {
-        console.log('[QuizPreview] useEffect triggered with activeItem:', {
-            hasActiveItem: !!activeItem,
-            hasQuizSlide: !!activeItem?.quiz_slide,
-            hasQuestions: !!activeItem?.quiz_slide?.questions,
-            questionsLength: activeItem?.quiz_slide?.questions?.length || 0,
-            questions: activeItem?.quiz_slide?.questions,
-        });
-
         if (activeItem?.quiz_slide?.questions) {
             const questions = activeItem.quiz_slide.questions;
-            console.log('[QuizPreview] Processing questions:', questions);
-
-            // Debug explanations in backend data
-            console.log(
-                '[QuizPreview] Backend questions with explanations:',
-                questions.map((q) => ({
-                    questionId: q.id,
-                    questionName: q.text?.content || q.questionName,
-                    explanation: q.explanation,
-                    explanation_text: q.explanation_text?.content,
-                    explanation_text_data: q.explanation_text_data?.content,
-                    hasExplanation: !!(
-                        q.explanation ||
-                        q.explanation_text?.content ||
-                        q.explanation_text_data?.content
-                    ),
-                }))
-            );
 
             const transformedQuestions = questions.map((question: BackendQuestion) => {
                 const transformed = transformQuestion(question);
-                console.log('[QuizPreview] Transformed question:', transformed);
                 return transformed;
             });
 
-            console.log('[QuizPreview] Setting transformed questions:', transformedQuestions);
             replace(transformedQuestions);
         } else {
-            console.log('[QuizPreview] No questions found, clearing form');
             replace([]);
         }
     }, [activeItem.quiz_slide?.questions, replace]);
@@ -205,24 +184,87 @@ const QuizPreview = ({ activeItem, routeParams }: QuizPreviewProps) => {
         });
     };
 
+    const initializeQuestionFields = (question: any) => {
+        // Initialize MCQ single choice options
+        if (question.questionType === 'MCQS' && !question.singleChoiceOptions) {
+            question.singleChoiceOptions = Array(4).fill({
+                id: '',
+                name: '',
+                isSelected: false,
+            });
+        }
+
+        // Initialize MCQ multiple choice options
+        if (question.questionType === 'MCQM' && !question.multipleChoiceOptions) {
+            question.multipleChoiceOptions = Array(4).fill({
+                id: '',
+                name: '',
+                isSelected: false,
+            });
+        }
+
+        // Initialize Comprehensive MCQ single choice options
+        if (question.questionType === 'CMCQS' && !question.csingleChoiceOptions) {
+            question.csingleChoiceOptions = Array(4).fill({
+                id: '',
+                name: '',
+                isSelected: false,
+            });
+        }
+
+        // Initialize Comprehensive MCQ multiple choice options
+        if (question.questionType === 'CMCQM' && !question.cmultipleChoiceOptions) {
+            question.cmultipleChoiceOptions = Array(4).fill({
+                id: '',
+                name: '',
+                isSelected: false,
+            });
+        }
+
+        // Initialize True/False options
+        if (question.questionType === 'TRUE_FALSE' && !question.trueFalseOptions) {
+            question.trueFalseOptions = Array(2).fill({
+                id: '',
+                name: '',
+                isSelected: false,
+            });
+        }
+
+        // Initialize Numeric question fields
+        if ((question.questionType === 'NUMERIC' || question.questionType === 'CNUMERIC') && !question.decimals) {
+            question.decimals = 0;
+            question.numericType = '';
+            question.validAnswers = [0];
+        }
+
+        // Initialize Subjective answer fields
+        if ((question.questionType === 'LONG_ANSWER' || question.questionType === 'ONE_WORD') && !question.subjectiveAnswerText) {
+            question.subjectiveAnswerText = '';
+        }
+
+        return question;
+    };
+
     const handleEdit = (index: number) => {
-        console.log('[QuizPreview] handleEdit called with index:', index);
         const question = form.getValues(`questions.${index}`);
+
+        // Initialize all required fields based on question type
+        const initializedQuestion = initializeQuestionFields(question);
+
         // Prefill CMCQS/CMCQM options for edit dialog just like MCQ types
-        if (question.questionType === 'CMCQS' && question.singleChoiceOptions) {
-            question.csingleChoiceOptions = question.singleChoiceOptions;
+        if (initializedQuestion.questionType === 'CMCQS' && initializedQuestion.singleChoiceOptions) {
+            initializedQuestion.csingleChoiceOptions = initializedQuestion.singleChoiceOptions;
         }
-        if (question.questionType === 'CMCQM' && question.multipleChoiceOptions) {
-            question.cmultipleChoiceOptions = question.multipleChoiceOptions;
+        if (initializedQuestion.questionType === 'CMCQM' && initializedQuestion.multipleChoiceOptions) {
+            initializedQuestion.cmultipleChoiceOptions = initializedQuestion.multipleChoiceOptions;
         }
-        editForm.reset({ ...form.getValues(), questions: [question] });
+
+        editForm.reset({ ...form.getValues(), questions: [initializedQuestion] });
         setEditIndex(index);
-        console.log('[QuizPreview] Edit index set to:', index);
     };
 
     const handleEditConfirm = async () => {
         const updated = editForm.getValues(`questions.0`);
-        console.log('[QuizPreview] handleEditConfirm - updated question:', updated);
 
         if (editIndex !== null) {
             try {
@@ -231,26 +273,9 @@ const QuizPreview = ({ activeItem, routeParams }: QuizPreviewProps) => {
 
                 // Get all current questions
                 const currentQuestions = form.getValues('questions');
-                console.log('[QuizPreview] All questions after update:', currentQuestions);
 
                 // Create payload for API call
                 const payload = createQuizSlidePayload(currentQuestions, activeItem);
-                console.log('[QuizPreview] API payload created:', payload);
-
-                // Debug explanations in payload
-                console.log(
-                    '[QuizPreview] Explanations in API payload:',
-                    payload.quiz_slide.questions.map((q) => ({
-                        questionId: q.id,
-                        explanation_text: q.explanation_text,
-                        explanation_text_data: q.explanation_text_data,
-                        hasExplanation: !!(
-                            q.explanation_text.content || q.explanation_text_data.content
-                        ),
-                        explanationContent: q.explanation_text.content,
-                        explanationDataContent: q.explanation_text_data.content,
-                    }))
-                );
 
                 // Call the API to update the quiz slide
                 await addUpdateQuizSlide(payload);
@@ -272,7 +297,76 @@ const QuizPreview = ({ activeItem, routeParams }: QuizPreviewProps) => {
         setIsQuestionTypeDialogOpen(false);
         setIsAddQuestionDialogOpen(true);
 
-        // Reset the form for new question
+        // Initialize options based on question type
+        const questionOptions: UploadQuestionPaperFormType['questions'][0] = {
+            questionName: '',
+            questionType: questionType,
+            questionPenalty: '0',
+            questionDuration: { min: '0', hrs: '0' },
+            questionMark: '1',
+            explanation: '',
+            validAnswers: [0],
+            canSkip: false,
+            tags: [],
+        };
+
+        // Add type-specific options to prevent input fields from hiding
+        switch (questionType) {
+            case 'MCQS':
+                questionOptions.singleChoiceOptions = Array(4).fill({
+                    id: '',
+                    name: '',
+                    isSelected: false,
+                });
+                break;
+            case 'MCQM':
+                questionOptions.multipleChoiceOptions = Array(4).fill({
+                    id: '',
+                    name: '',
+                    isSelected: false,
+                });
+                break;
+            case 'CMCQS':
+                questionOptions.csingleChoiceOptions = Array(4).fill({
+                    id: '',
+                    name: '',
+                    isSelected: false,
+                });
+                break;
+            case 'CMCQM':
+                questionOptions.cmultipleChoiceOptions = Array(4).fill({
+                    id: '',
+                    name: '',
+                    isSelected: false,
+                });
+                break;
+            case 'TRUE_FALSE':
+                questionOptions.trueFalseOptions = Array(2).fill({
+                    id: '',
+                    name: '',
+                    isSelected: false,
+                });
+                break;
+            case 'NUMERIC':
+            case 'CNUMERIC':
+                questionOptions.decimals = 0;
+                questionOptions.numericType = '';
+                questionOptions.validAnswers = [0];
+                break;
+            case 'LONG_ANSWER':
+            case 'ONE_WORD':
+                questionOptions.subjectiveAnswerText = '';
+                break;
+            default:
+                // For any other question type, ensure basic options are available
+                questionOptions.singleChoiceOptions = Array(4).fill({
+                    id: '',
+                    name: '',
+                    isSelected: false,
+                });
+        }
+
+        // Reset the form for new question with proper options
         editForm.reset({
             questionPaperId: '1',
             isFavourite: false,
@@ -285,19 +379,7 @@ const QuizPreview = ({ activeItem, routeParams }: QuizPreviewProps) => {
             answersType: '',
             explanationsType: '',
             fileUpload: undefined,
-            questions: [
-                {
-                    questionName: '',
-                    questionType: questionType,
-                    questionPenalty: '0',
-                    questionDuration: { min: '0', hrs: '0' },
-                    questionMark: '1',
-                    explanation: '',
-                    validAnswers: [0],
-                    canSkip: false,
-                    tags: [],
-                },
-            ],
+            questions: [questionOptions],
         });
     };
 

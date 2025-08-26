@@ -1,5 +1,3 @@
-import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
-import { TokenKey } from './auth/tokens';
 import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
 
 export const convertToLocalDateTime = (dateString: string): string => {
@@ -45,4 +43,8 @@ export function getDateFromUTCString(utcString: string): string {
     const day = String(date.getDate()).padStart(2, '0');
 
     return `${year}-${month}-${day}`;
+}
+
+export function extractTextFromHTML(htmlString: string) {
+    return htmlString.replace(/<[^>]*>/g, '');
 }

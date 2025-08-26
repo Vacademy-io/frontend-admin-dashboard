@@ -42,8 +42,7 @@ interface StudentMessageStatus {
 }
 
 export const SendMessageDialog = () => {
-    const { isSendMessageOpen, bulkActionInfo, selectedStudent, isBulkAction, closeAllDialogs } =
-        useDialogStore();
+    const { isSendMessageOpen, bulkActionInfo, closeAllDialogs } = useDialogStore();
     const [selectedTemplateId, setSelectedTemplateId] = useState<string>(
         MESSAGE_TEMPLATES[0]?.id || ''
     );

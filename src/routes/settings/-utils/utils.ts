@@ -9,6 +9,7 @@ import AdminDisplaySettings from '../-components/RoleDisplay/AdminDisplaySetting
 import TeacherDisplaySettings from '../-components/RoleDisplay/TeacherDisplaySettings';
 import StudentDisplaySettings from '@/routes/settings/-components/RoleDisplay/StudentDisplaySettings';
 import CustomFieldsSettings from '@/components/settings/CustomFieldsSettings';
+import CertificatesSettings from '../-components/Certificates/CertificatesSettings';
 
 export const getAvailableSettingsTabs = () => {
     return [
@@ -61,6 +62,11 @@ export const getAvailableSettingsTabs = () => {
             tab: SettingsTabs.CustomFields,
             value: 'Custom Fields',
             component: CustomFieldsSettings,
+        },
+        {
+            tab: SettingsTabs.Certificates,
+            value: 'Certificate Settings',
+            component: CertificatesSettings,
         },
     ];
 };

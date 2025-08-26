@@ -46,29 +46,16 @@ import {
 } from '@/components/ui/select';
 import { useSessionDetailsStore } from '../../-store/useSessionDetailsStore';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
-// Constants
-const WAITING_ROOM_OPTIONS = [
-    { value: '5', label: '5 minutes', _id: 1 },
-    { value: '10', label: '10 minutes', _id: 2 },
-    { value: '15', label: '15 minutes', _id: 3 },
-    { value: '30', label: '30 minutes', _id: 4 },
-    { value: '45', label: '45 minutes', _id: 5 },
-];
-
-const STREAMING_OPTIONS = [
-    { value: StreamingPlatform.YOUTUBE, label: 'Youtube', _id: 1 },
-    { value: StreamingPlatform.MEET, label: 'Google Meet', _id: 2 },
-    { value: StreamingPlatform.ZOOM, label: 'Zoom', _id: 3 },
-    { value: StreamingPlatform.OTHER, label: 'Other', _id: 4 },
-];
+import { format } from 'date-fns';
+import { toZonedTime, format as formatTZ } from 'date-fns-tz';
+import { TIMEZONE_OPTIONS, STREAMING_OPTIONS, WAITING_ROOM_OPTIONS } from '../-constants/options';
 
 export default function ScheduleStep1() {
     // Hooks and State
     const navigate = useNavigate();
-    const { setSessionId, step1Data, setStep1Data } = useLiveSessionStore();
+    const { setSessionId, step1Data, setStep1Data, sessionId } = useLiveSessionStore();
     const { sessionDetails } = useSessionDetailsStore();
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [selectedMusicFile, setSelectedMusicFile] = useState<File | null>(null);
@@ -84,6 +71,42 @@ export default function ScheduleStep1() {
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
     const { showForInstitutes } = useInstituteDetailsStore();
+
+    // Helper function to get browser's timezone
+    const getBrowserTimezone = (): string => {
+        try {
+            const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const timezoneMapping: Record<string, string> = {
+                'Asia/Calcutta': 'Asia/Kolkata', // Old name for Kolkata
+            };
+            const mappedTimezone = timezoneMapping[browserTimezone] || browserTimezone;
+
+            // Check if the detected/mapped timezone is in our available options
+            const isValidTimezone = TIMEZONE_OPTIONS.some(
+                (option) => option.value === mappedTimezone
+            );
+            if (isValidTimezone) {
+                return mappedTimezone;
+            } else {
+                return 'Asia/Kolkata';
+            }
+        } catch (error) {
+            console.error('Error detecting browser timezone:', error);
+            return 'Asia/Kolkata';
+        }
+    };
+
+    // Helper function to get current time in selected timezone
+    const getCurrentTimeInTimezone = (timezone: string): string => {
+        try {
+            const now = new Date();
+            const zonedTime = toZonedTime(now, timezone);
+            return format(zonedTime, "yyyy-MM-dd'T'HH:mm");
+        } catch (error) {
+            console.error('Error getting current time in timezone:', error);
+            return format(new Date(), "yyyy-MM-dd'T'HH:mm");
+        }
+    };
 
     // Form Setup
     const form = useForm<z.infer<typeof sessionFormSchema>>({
@@ -109,7 +132,7 @@ export default function ScheduleStep1() {
                 ],
             })),
             subject: 'none',
-            timeZone: '(GMT 5:30) India Standard Time (Asia/Kolkata)',
+            timeZone: getBrowserTimezone(),
             events: '1',
             openWaitingRoomBefore: '15',
             sessionType: SessionType.LIVE,
@@ -226,13 +249,28 @@ export default function ScheduleStep1() {
         });
     }, [form.watch('defaultLink')]);
 
+    // Effect to update start time when timezone changes
+    useEffect(() => {
+        const selectedTimezone = form.watch('timeZone');
+        const defaultTime = getCurrentTimeInTimezone(selectedTimezone);
+        form.setValue('startTime', defaultTime);
+    }, [form.watch('timeZone')]);
+
     useEffect(() => {
         if (sessionDetails) {
             form.setValue('id', sessionDetails.schedule.session_id);
             form.setValue('title', sessionDetails.schedule.title);
             form.setValue('subject', sessionDetails.schedule.subject ?? 'none');
             form.setValue('description', sessionDetails.schedule.description_html ?? '');
-            form.setValue('startTime', sessionDetails.schedule.start_time);
+
+            // Set timezone and current time for editing mode
+            const savedTimezone = (sessionDetails.schedule as any).time_zone || 'Asia/Kolkata';
+            form.setValue('timeZone', savedTimezone);
+
+            // Set current time in the saved timezone
+            const currentTime = getCurrentTimeInTimezone(savedTimezone);
+            form.setValue('startTime', currentTime);
+
             form.setValue('defaultLink', sessionDetails.schedule.default_meet_link ?? '');
             form.setValue(
                 'sessionPlatform',
@@ -242,6 +280,11 @@ export default function ScheduleStep1() {
                 'streamingType',
                 sessionDetails.schedule.session_streaming_service_type ?? 'embed'
             );
+
+            // Set timezone if available, otherwise keep default
+            if ((sessionDetails.schedule as any).time_zone) {
+                form.setValue('timeZone', (sessionDetails.schedule as any).time_zone);
+            }
 
             if (sessionDetails.schedule.start_time && sessionDetails.schedule.last_entry_time) {
                 const start = new Date(sessionDetails.schedule.start_time);
@@ -290,7 +333,6 @@ export default function ScheduleStep1() {
                               ],
                     };
                 });
-                console.log('transformedSchedules ', transformedSchedules);
                 form.setValue('recurringSchedule', transformedSchedules);
             }
             if (sessionDetails.schedule.waiting_room_time) {
@@ -311,6 +353,13 @@ export default function ScheduleStep1() {
             form.reset(step1Data);
         }
     }, [step1Data]);
+
+    // Set the form's id field when sessionId exists (coming back from step 2)
+    useEffect(() => {
+        if (sessionId && !sessionDetails) {
+            form.setValue('id', sessionId);
+        }
+    }, [sessionId, sessionDetails]);
 
     const { control, watch } = form;
     // Watch the selected streaming platform to conditionally render/disable options
@@ -427,7 +476,6 @@ export default function ScheduleStep1() {
         if (file) {
             setSelectedFile(file);
         } else {
-            console.log('hgere ', file);
             alert('Please upload a PNG file');
         }
     };
@@ -573,7 +621,6 @@ export default function ScheduleStep1() {
             const response = await createLiveSessionStep1(body);
             setSessionId(response.id);
             setStep1Data(data);
-            console.log(response.id);
             navigate({ to: '/study-library/live-session/schedule/step2' });
         } catch (error) {
             console.error(error);
@@ -659,8 +706,6 @@ export default function ScheduleStep1() {
             const dh = form.getValues('durationHours');
             const dm = form.getValues('durationMinutes');
             const l = form.getValues('defaultLink');
-
-            console.log(dh, dm, l);
 
             if (isSelecting && (!day.sessions || day.sessions.length === 0)) {
                 form.setValue(`recurringSchedule.${index}.sessions`, [
@@ -817,23 +862,21 @@ export default function ScheduleStep1() {
                         </FormItem>
                     )}
                 />
-                {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
-                    <SelectField
-                        label="Subject"
-                        name="subject"
-                        labelStyle="text-sm font-medium"
-                        options={[
-                            { value: 'none', label: 'Select Subject', _id: -1 },
-                            ...SubjectFilterData.map((option, index) => ({
-                                value: option.name,
-                                label: option.name,
-                                _id: index,
-                            })),
-                        ]}
-                        control={form.control}
-                        className="mt-[8px] w-56 font-thin"
-                    />
-                )}
+                <SelectField
+                    label="Subject"
+                    name="subject"
+                    labelStyle="text-sm font-medium"
+                    options={[
+                        { value: 'none', label: 'Select Subject', _id: -1 },
+                        ...SubjectFilterData.map((option, index) => ({
+                            value: option.name,
+                            label: option.name,
+                            _id: index,
+                        })),
+                    ]}
+                    control={form.control}
+                    className="mt-[8px] w-56 font-thin"
+                />
             </div>
 
             <div className="flex h-full flex-col gap-6">
@@ -883,6 +926,44 @@ export default function ScheduleStep1() {
             )}
         />
     );
+
+    const renderTimezoneSelection = () => {
+        const selectedTimezone = form.watch('timeZone') || 'Asia/Kolkata';
+
+        // Get current time in selected timezone
+        const getCurrentTime = (timezone: string) => {
+            try {
+                const now = new Date();
+                const zonedTime = toZonedTime(now, timezone);
+                return formatTZ(zonedTime, 'PPp', { timeZone: timezone });
+            } catch {
+                return '';
+            }
+        };
+
+        const currentTime = getCurrentTime(selectedTimezone);
+
+        return (
+            <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                    <SelectField
+                        label="Timezone"
+                        name="timeZone"
+                        labelStyle="text-sm font-medium"
+                        options={TIMEZONE_OPTIONS}
+                        control={form.control}
+                        className="mt-[8px] w-80 font-thin"
+                        required
+                    />
+                    {currentTime && (
+                        <span className="ml-1 text-xs font-medium">
+                            Current time: {currentTime}
+                        </span>
+                    )}
+                </div>
+            </div>
+        );
+    };
 
     const renderSessionTiming = () => (
         <div className="flex flex-col gap-4">
@@ -1733,6 +1814,7 @@ export default function ScheduleStep1() {
                 <div className="flex flex-col gap-8">
                     {renderBasicInformation()}
                     {renderMeetingTypeSelection()}
+                    {renderTimezoneSelection()}
                     {renderSessionTiming()}
                     {renderLiveClassLink()}
                     {renderStreamingChoices()}

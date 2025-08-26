@@ -4,7 +4,6 @@ import { MyDialog } from '@/components/design-system/dialog';
 import { Copy, DownloadSimple, LockSimple, DotsThree } from 'phosphor-react';
 import { Badge } from '@/components/ui/badge';
 import { MyButton } from '@/components/design-system/button';
-import { BASE_URL_LEARNER_DASHBOARD, HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 import { copyToClipboard } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper';
 import {
     DropdownMenu,
@@ -37,6 +36,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import DeleteSessionDialog from './delete-session-dialog';
 import { getSessionJoinLink } from '../-utils/live-sesstions';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface LiveSessionCardProps {
     session: LiveSession;
@@ -236,12 +237,12 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
             </div>
 
             <div className="flex w-full items-center justify-start gap-8 text-sm text-neutral-500">
-                {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
-                    <div className="flex items-center gap-2">
-                        <span className="text-black">Subject:</span>
-                        <span>{session.subject}</span>
-                    </div>
-                )}
+                <div className="flex items-center gap-2">
+                    <span className="text-black">
+                        {getTerminology(ContentTerms.Subjects, SystemTerms.Subjects)}:
+                    </span>
+                    <span>{session.subject}</span>
+                </div>
 
                 <div className="flex items-center gap-2">
                     <span className="text-black">Start Date & Time:</span>
@@ -305,6 +306,42 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                 className="w-[80vw] max-w-4xl"
             >
                 <div className="flex h-full flex-col gap-3 p-4 text-sm">
+                    {/* Registration Count Display */}
+                    <div className="flex items-center justify-between rounded-lg bg-primary-50 p-4">
+                        <div className="flex items-center gap-6">
+                            <div className="text-lg font-semibold text-primary-500">
+                                Total Registrations: {reportResponse?.length || 0}
+                            </div>
+                            {reportResponse && reportResponse.length > 0 && (
+                                <>
+                                    <div className="h-6 w-px bg-neutral-300" />
+                                    <div className="flex items-center gap-4 text-sm">
+                                        <div className="font-medium text-success-500">
+                                            Present:{' '}
+                                            {
+                                                reportResponse.filter(
+                                                    (item) => item.attendanceStatus === 'PRESENT'
+                                                ).length
+                                            }
+                                        </div>
+                                        <div className="font-medium text-neutral-500">
+                                            Absent:{' '}
+                                            {
+                                                reportResponse.filter(
+                                                    (item) => item.attendanceStatus !== 'PRESENT'
+                                                ).length
+                                            }
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                        <div className="text-sm text-neutral-600">
+                            {reportResponse && reportResponse.length > 0
+                                ? 'Participants summary for this session'
+                                : 'No registrations yet'}
+                        </div>
+                    </div>
                     <div className="mt-4 h-full rounded-lg">
                         <Tabs value={selectedTab} onValueChange={handleTabChange}>
                             <div className="flex flex-row justify-between">

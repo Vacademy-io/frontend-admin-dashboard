@@ -40,9 +40,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useSearch } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
-import { GET_PUBLIC_URL_PUBLIC, HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
+import { GET_PUBLIC_URL_PUBLIC } from '@/constants/urls';
 import { FilePlus } from 'phosphor-react';
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 // Helper functions for API calls using axios directly
 export const getPublicUrl = async (fileId: string | undefined | null): Promise<string> => {
@@ -80,7 +81,6 @@ export function StudentEnrollment() {
     const [editIndex, setEditIndex] = useState<number | null>(null);
     const [isEditMode, setIsEditMode] = useState(false);
     const [loadingPdf, setLoadingPdf] = useState<Record<string, boolean>>({});
-    const { showForInstitutes } = useInstituteDetailsStore();
 
     // New state for attempt management
     const [attemptDialogOpen, setAttemptDialogOpen] = useState(false);
@@ -493,9 +493,7 @@ export function StudentEnrollment() {
                     }}
                     trigger={
                         <MyButton scale="large" buttonType="primary" type="button">
-                            {showForInstitutes([HOLISTIC_INSTITUTE_ID])
-                                ? 'Enroll Member'
-                                : 'Enroll Learner'}
+                            {`Enroll ${getTerminology(RoleTerms.Learner, SystemTerms.Learner)}`}
                         </MyButton>
                     }
                 >

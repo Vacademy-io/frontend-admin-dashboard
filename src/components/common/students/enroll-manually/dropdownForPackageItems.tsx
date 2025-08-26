@@ -80,16 +80,18 @@ export const MyDropdown = ({
     };
     useEffect(() => {
         // Auto-select the only item if dropdownList has exactly one item and no current value is set
-        if (dropdownList.length === 1) {
+        if (dropdownList.length === 1 && !currentValue) {
             const singleItem = dropdownList[0];
-            if (handleChange) {
-                singleItem && handleChange(singleItem);
-            }
-            if (onSelect) {
-                singleItem && onSelect(singleItem);
+            if (singleItem) {
+                if (handleChange) {
+                    handleChange(singleItem);
+                }
+                if (onSelect) {
+                    onSelect(singleItem);
+                }
             }
         }
-    }, [dropdownList]);
+    }, [dropdownList, currentValue, handleChange, onSelect]);
 
     const handleValueChange = (value: string | DropdownItem | DropdownItemType) => {
         if (handleChange) {

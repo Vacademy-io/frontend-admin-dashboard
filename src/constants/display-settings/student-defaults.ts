@@ -110,5 +110,8 @@ export const DEFAULT_STUDENT_DISPLAY_SETTINGS: StudentDisplaySettingsData = {
         allowDashboardPins: true,
         allowBatchStream: true,
     },
+    certificates: {
+        generationThresholdPercent: 80,
+    },
     postLoginRedirectRoute: '/dashboard',
 };

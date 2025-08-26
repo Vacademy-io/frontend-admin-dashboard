@@ -17,6 +17,9 @@ import type {
     StudentAllCoursesTabId,
     OutlineMode,
     StudentDefaultProvider,
+    UsernameStrategy,
+    PasswordStrategy,
+    PasswordDelivery,
 } from '@/types/student-display-settings';
 import {
     getStudentDisplaySettings,
@@ -547,6 +550,69 @@ export default function StudentDisplaySettings(): JSX.Element {
                             </SelectContent>
                         </Select>
                     </div>
+                    {/* Username / Password strategies */}
+                    <div className="flex flex-wrap items-center gap-3">
+                        <Label className="text-xs">Username Strategy</Label>
+                        <Select
+                            value={settings.signup.usernameStrategy}
+                            onValueChange={(v) =>
+                                update('signup', {
+                                    ...settings.signup,
+                                    usernameStrategy: v as UsernameStrategy,
+                                })
+                            }
+                        >
+                            <SelectTrigger className="h-8 w-48 text-xs">
+                                <SelectValue placeholder="Select strategy" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="email">email</SelectItem>
+                                <SelectItem value="random">random</SelectItem>
+                                <SelectItem value="manual">manual</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3">
+                        <Label className="text-xs">Password Strategy</Label>
+                        <Select
+                            value={settings.signup.passwordStrategy}
+                            onValueChange={(v) =>
+                                update('signup', {
+                                    ...settings.signup,
+                                    passwordStrategy: v as PasswordStrategy,
+                                })
+                            }
+                        >
+                            <SelectTrigger className="h-8 w-48 text-xs">
+                                <SelectValue placeholder="Select strategy" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="manual">manual</SelectItem>
+                                <SelectItem value="autoRandom">autoRandom</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3">
+                        <Label className="text-xs">Password Delivery</Label>
+                        <Select
+                            value={settings.signup.passwordDelivery}
+                            onValueChange={(v) =>
+                                update('signup', {
+                                    ...settings.signup,
+                                    passwordDelivery: v as PasswordDelivery,
+                                })
+                            }
+                        >
+                            <SelectTrigger className="h-8 w-48 text-xs">
+                                <SelectValue placeholder="Select delivery method" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="showOnScreen">showOnScreen</SelectItem>
+                                <SelectItem value="sendEmail">sendEmail</SelectItem>
+                                <SelectItem value="none">none</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
             </Card>
 
@@ -854,6 +920,34 @@ export default function StudentDisplaySettings(): JSX.Element {
                                 <SelectItem value="AllCourses">AllCourses</SelectItem>
                             </SelectContent>
                         </Select>
+                    </div>
+                </div>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Certificates</CardTitle>
+                    <CardDescription>Control when certificates can be generated</CardDescription>
+                </CardHeader>
+                <div className="space-y-2 p-4 pt-0">
+                    <div className="flex items-center gap-2">
+                        <Label className="text-xs">Generation Threshold (%)</Label>
+                        <Input
+                            className="h-8 w-24"
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={settings.certificates.generationThresholdPercent}
+                            onChange={(e) => {
+                                const value = Math.max(
+                                    0,
+                                    Math.min(100, Number(e.target.value) || 0)
+                                );
+                                update('certificates', {
+                                    generationThresholdPercent: value,
+                                });
+                            }}
+                        />
                     </div>
                 </div>
             </Card>

@@ -46,6 +46,12 @@ export const DEFAULT_TEACHER_DISPLAY_SETTINGS: DisplaySettingsData = {
     dashboard: {
         widgets: defaultDashboardWidgetsTeacher(),
     },
+    coursePage: {
+        viewInviteLinks: true,
+        viewCourseConfiguration: true,
+        viewCourseOverviewItem: true,
+        viewContentNumbering: true,
+    },
     courseList: {
         tabs: [
             { id: 'AllCourses', order: 1, visible: true },
@@ -85,6 +91,10 @@ export const DEFAULT_TEACHER_DISPLAY_SETTINGS: DisplaySettingsData = {
         assignment: true,
         jupyterNotebook: true,
         scratch: true,
+    },
+    slideView: {
+        showCopyTo: true,
+        showMoveTo: true,
     },
     postLoginRedirectRoute: '/dashboard',
 };

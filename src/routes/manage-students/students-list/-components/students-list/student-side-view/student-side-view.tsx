@@ -1,10 +1,4 @@
-import {
-    Sidebar,
-    SidebarContent,
-    SidebarHeader,
-    SidebarMenu,
-    SidebarMenuItem,
-} from '@/components/ui/sidebar';
+import { Sidebar, SidebarContent, SidebarHeader } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 import { X } from '@phosphor-icons/react';
 import { useState, useEffect } from 'react';
@@ -14,28 +8,29 @@ import { StudentOverview } from './student-overview/student-overview';
 import { StudentLearningProgress } from './student-learning-progress/student-learning-progress';
 import { StudentTestRecord } from './student-test-records/student-test-record';
 import { getPublicUrl } from '@/services/upload_file';
-import { DashboardLoader, ErrorBoundary } from '@/components/core/dashboard-loader';
+import { ErrorBoundary } from '@/components/core/dashboard-loader';
 import { useStudentSidebar } from '../../../-context/selected-student-sidebar-context';
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 export const StudentSidebar = ({
     selectedTab,
     examType,
     isStudentList,
     isSubmissionTab,
+    isEnrollRequestStudentList,
 }: {
     selectedTab?: string;
     examType?: string;
     isStudentList?: boolean;
     isSubmissionTab?: boolean;
+    isEnrollRequestStudentList?: boolean;
 }) => {
     const { state } = useSidebar();
     const [category, setCategory] = useState('overview');
     const { toggleSidebar } = useSidebar();
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [faceLoader, setFaceLoader] = useState(false);
-    const { showForInstitutes } = useInstituteDetailsStore();
     const { selectedStudent } = useStudentSidebar();
 
     useEffect(() => {
@@ -79,13 +74,14 @@ export const StudentSidebar = ({
                 <SidebarHeader className="sticky top-0 z-10 border-b border-neutral-100 bg-white/95 shadow-sm backdrop-blur-sm">
                     <div className="flex flex-col p-4">
                         {/* Header with close button - enhanced with gradient */}
-                        <div className="mb-4 flex items-center justify-between">
+                        <div
+                            className={`flex items-center justify-between
+                             ${isEnrollRequestStudentList ? '' : 'mb-4'}`}
+                        >
                             <div className="flex items-center gap-3">
                                 <div className="h-6 w-1 animate-pulse rounded-full bg-gradient-to-b from-primary-500 to-primary-400"></div>
                                 <h2 className="bg-gradient-to-r from-neutral-800 to-neutral-600 bg-clip-text text-lg font-semibold text-transparent">
-                                    {showForInstitutes([HOLISTIC_INSTITUTE_ID])
-                                        ? 'Member Profile '
-                                        : 'Student Profile'}
+                                    {`${getTerminology(RoleTerms.Learner, SystemTerms.Learner)} Profile`}
                                 </h2>
                             </div>
                             <button
@@ -97,7 +93,7 @@ export const StudentSidebar = ({
                         </div>
 
                         {/* Enhanced tab navigation with modern design */}
-                        {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
+                        {!isEnrollRequestStudentList && (
                             <div className="relative flex gap-1 rounded-xl bg-gradient-to-r from-neutral-50 to-neutral-100 p-1.5 shadow-inner">
                                 {/* Animated background indicator */}
                                 <div
@@ -222,10 +218,10 @@ export const StudentSidebar = ({
                         {category === 'overview' && (
                             <StudentOverview isSubmissionTab={isSubmissionTab} />
                         )}
-                        {category === 'learningProgress' && (
+                        {category === 'learningProgress' && !isEnrollRequestStudentList && (
                             <StudentLearningProgress isSubmissionTab={isSubmissionTab} />
                         )}
-                        {category === 'testRecord' && (
+                        {category === 'testRecord' && !isEnrollRequestStudentList && (
                             <StudentTestRecord
                                 selectedTab={selectedTab || ''}
                                 examType={examType || ''}

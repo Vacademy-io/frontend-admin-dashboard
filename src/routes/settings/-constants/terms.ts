@@ -91,6 +91,7 @@ export const enum SettingsTabs {
     TeacherDisplay = 'teacherDisplay',
     StudentDisplay = 'studentDisplay',
     CustomFields = 'customFields',
+    Certificates = 'certificates',
 }
 
 export const DAYS_IN_MONTH = 30;

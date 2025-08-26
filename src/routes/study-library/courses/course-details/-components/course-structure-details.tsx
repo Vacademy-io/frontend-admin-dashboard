@@ -973,9 +973,12 @@ export const CourseStructureDetails = ({
                                                     weight="duotone"
                                                     className="shrink-0 text-primary-500"
                                                 />
-                                                <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs font-medium text-gray-600 group-hover:bg-white">
-                                                    S{idx + 1}
-                                                </span>
+                                                {roleDisplay?.coursePage?.viewContentNumbering !==
+                                                    false && (
+                                                    <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs font-medium text-gray-600 group-hover:bg-white">
+                                                        S{idx + 1}
+                                                    </span>
+                                                )}
                                                 <span
                                                     className="truncate"
                                                     title={subject.subject_name}
@@ -1054,9 +1057,13 @@ export const CourseStructureDetails = ({
                                                                             weight="duotone"
                                                                             className="shrink-0 text-blue-600"
                                                                         />
-                                                                        <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs font-medium text-gray-500 group-hover/module:bg-white">
-                                                                            M{modIdx + 1}
-                                                                        </span>
+                                                                        {roleDisplay?.coursePage
+                                                                            ?.viewContentNumbering !==
+                                                                            false && (
+                                                                            <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs font-medium text-gray-500 group-hover/module:bg-white">
+                                                                                M{modIdx + 1}
+                                                                            </span>
+                                                                        )}
                                                                         <span
                                                                             className="truncate"
                                                                             title={
@@ -1154,11 +1161,16 @@ export const CourseStructureDetails = ({
                                                                                                     weight="duotone"
                                                                                                     className="shrink-0 text-green-600"
                                                                                                 />
-                                                                                                <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs text-gray-500 group-hover/chapter:bg-white">
-                                                                                                    C
-                                                                                                    {chIdx +
-                                                                                                        1}
-                                                                                                </span>
+                                                                                                {roleDisplay
+                                                                                                    ?.coursePage
+                                                                                                    ?.viewContentNumbering !==
+                                                                                                    false && (
+                                                                                                    <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs text-gray-500 group-hover/chapter:bg-white">
+                                                                                                        C
+                                                                                                        {chIdx +
+                                                                                                            1}
+                                                                                                    </span>
+                                                                                                )}
                                                                                                 <span
                                                                                                     className="truncate"
                                                                                                     title={
@@ -1304,11 +1316,16 @@ export const CourseStructureDetails = ({
                                                                                                                     );
                                                                                                                 }}
                                                                                                             >
-                                                                                                                <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
-                                                                                                                    S
-                                                                                                                    {sIdx +
-                                                                                                                        1}
-                                                                                                                </span>
+                                                                                                                {roleDisplay
+                                                                                                                    ?.coursePage
+                                                                                                                    ?.viewContentNumbering !==
+                                                                                                                    false && (
+                                                                                                                    <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
+                                                                                                                        S
+                                                                                                                        {sIdx +
+                                                                                                                            1}
+                                                                                                                    </span>
+                                                                                                                )}
                                                                                                                 {getIcon(
                                                                                                                     slide.source_type,
                                                                                                                     slide
@@ -2141,7 +2158,9 @@ export const CourseStructureDetails = ({
                                     </h4>
 
                                     {/* Subject Number */}
-                                    <p className="text-xs text-gray-500">Subject {idx + 1}</p>
+                                    {roleDisplay?.coursePage?.viewContentNumbering !== false && (
+                                        <p className="text-xs text-gray-500">Subject {idx + 1}</p>
+                                    )}
 
                                     {/* Delete Button */}
                                     <button
@@ -2195,7 +2214,12 @@ export const CourseStructureDetails = ({
                                         </h4>
 
                                         {/* Module Number */}
-                                        <p className="text-xs text-gray-500">Module {modIdx + 1}</p>
+                                        {roleDisplay?.coursePage?.viewContentNumbering !==
+                                            false && (
+                                            <p className="text-xs text-gray-500">
+                                                Module {modIdx + 1}
+                                            </p>
+                                        )}
 
                                         {/* Delete Button */}
                                         <button
@@ -2321,7 +2345,9 @@ export const CourseStructureDetails = ({
                                     </h4>
 
                                     {/* Chapter Number */}
-                                    <p className="text-xs text-gray-500">Chapter {chIdx + 1}</p>
+                                    {roleDisplay?.coursePage?.viewContentNumbering !== false && (
+                                        <p className="text-xs text-gray-500">Chapter {chIdx + 1}</p>
+                                    )}
 
                                     {/* Delete Button */}
                                     {!readOnly && (
@@ -2388,7 +2414,12 @@ export const CourseStructureDetails = ({
                                         </h4>
 
                                         {/* Chapter Number */}
-                                        <p className="text-xs text-gray-500">Chapter {chIdx + 1}</p>
+                                        {roleDisplay?.coursePage?.viewContentNumbering !==
+                                            false && (
+                                            <p className="text-xs text-gray-500">
+                                                Chapter {chIdx + 1}
+                                            </p>
+                                        )}
 
                                         {/* Delete Button */}
                                         {!readOnly && (
@@ -2444,7 +2475,9 @@ export const CourseStructureDetails = ({
                                     </h4>
 
                                     {/* Slide Number */}
-                                    <p className="text-xs text-gray-500">Slide {sIdx + 1}</p>
+                                    {roleDisplay?.coursePage?.viewContentNumbering !== false && (
+                                        <p className="text-xs text-gray-500">Slide {sIdx + 1}</p>
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -2552,6 +2585,55 @@ export const CourseStructureDetails = ({
         updateSubjectMutation.isPending ||
         updateSubjectOrderMutation.isPending;
 
+    // Compute final visible/reordered tabs once for rendering below
+    const finalTabs = (() => {
+        let reorderedTabs = [...tabs];
+
+        const details = roleDisplay?.courseDetails;
+        if (details?.tabs && details.tabs.length > 0) {
+            const vis = new Map(
+                details.tabs.map((t) => [mapDisplayIdToUiValue(t.id as CourseDetailsTabId), t])
+            );
+            reorderedTabs = reorderedTabs
+                .filter((tab) => vis.get(tab.value as CourseDetailsTabId)?.visible !== false)
+                .sort((a, b) => {
+                    const ao = vis.get(a.value as CourseDetailsTabId)?.order || 0;
+                    const bo = vis.get(b.value as CourseDetailsTabId)?.order || 0;
+                    return ao - bo;
+                });
+        } else {
+            // Fallbacks based on course settings/defaults
+            if (settingsLoading || settingsError) {
+                const outlineTab = reorderedTabs.find((tab) => tab.value === 'OUTLINE');
+                const otherTabs = reorderedTabs.filter((tab) => tab.value !== 'OUTLINE');
+                if (outlineTab) {
+                    reorderedTabs = [outlineTab, ...otherTabs];
+                }
+            } else {
+                const defaultViewMode = courseSettings?.courseViewSettings?.defaultViewMode;
+                if (defaultViewMode === 'structure') {
+                    const structureTab = reorderedTabs.find(
+                        (tab) => tab.value === 'CONTENT_STRUCTURE'
+                    );
+                    const otherTabs = reorderedTabs.filter(
+                        (tab) => tab.value !== 'CONTENT_STRUCTURE'
+                    );
+                    if (structureTab) {
+                        reorderedTabs = [structureTab, ...otherTabs];
+                    }
+                } else {
+                    const outlineTab = reorderedTabs.find((tab) => tab.value === 'OUTLINE');
+                    const otherTabs = reorderedTabs.filter((tab) => tab.value !== 'OUTLINE');
+                    if (outlineTab) {
+                        reorderedTabs = [outlineTab, ...otherTabs];
+                    }
+                }
+            }
+        }
+
+        return reorderedTabs;
+    })();
+
     return isLoading ? (
         <DashboardLoader />
     ) : (
@@ -2581,87 +2663,24 @@ export const CourseStructureDetails = ({
             )}
 
             <Tabs value={selectedTab} onValueChange={handleTabChange} className="w-full">
-                <div className="overflow-x-auto border-b border-gray-200">
-                    <TabsList
-                        className="h-auto min-w-max flex-nowrap bg-transparent p-0"
-                        style={{ display: 'flex', justifyContent: 'left' }}
-                    >
-                        {(() => {
-                            // Reorder/filter tabs based on role display settings when available
-                            let reorderedTabs = [...tabs];
-
-                            const details = roleDisplay?.courseDetails;
-                            if (details?.tabs && details.tabs.length > 0) {
-                                const vis = new Map(
-                                    details.tabs.map((t) => [
-                                        mapDisplayIdToUiValue(t.id as CourseDetailsTabId),
-                                        t,
-                                    ])
-                                );
-                                reorderedTabs = reorderedTabs
-                                    .filter(
-                                        (tab) =>
-                                            vis.get(tab.value as CourseDetailsTabId)?.visible !==
-                                            false
-                                    )
-                                    .sort((a, b) => {
-                                        const ao =
-                                            vis.get(a.value as CourseDetailsTabId)?.order || 0;
-                                        const bo =
-                                            vis.get(b.value as CourseDetailsTabId)?.order || 0;
-                                        return ao - bo;
-                                    });
-                            } else {
-                                // Fallbacks based on course settings/defaults
-                                if (settingsLoading || settingsError) {
-                                    const outlineTab = reorderedTabs.find(
-                                        (tab) => tab.value === 'OUTLINE'
-                                    );
-                                    const otherTabs = reorderedTabs.filter(
-                                        (tab) => tab.value !== 'OUTLINE'
-                                    );
-                                    if (outlineTab) {
-                                        reorderedTabs = [outlineTab, ...otherTabs];
-                                    }
-                                } else {
-                                    const defaultViewMode =
-                                        courseSettings?.courseViewSettings?.defaultViewMode;
-                                    if (defaultViewMode === 'structure') {
-                                        const structureTab = reorderedTabs.find(
-                                            (tab) => tab.value === 'CONTENT_STRUCTURE'
-                                        );
-                                        const otherTabs = reorderedTabs.filter(
-                                            (tab) => tab.value !== 'CONTENT_STRUCTURE'
-                                        );
-                                        if (structureTab) {
-                                            reorderedTabs = [structureTab, ...otherTabs];
-                                        }
-                                    } else {
-                                        const outlineTab = reorderedTabs.find(
-                                            (tab) => tab.value === 'OUTLINE'
-                                        );
-                                        const otherTabs = reorderedTabs.filter(
-                                            (tab) => tab.value !== 'OUTLINE'
-                                        );
-                                        if (outlineTab) {
-                                            reorderedTabs = [outlineTab, ...otherTabs];
-                                        }
-                                    }
-                                }
-                            }
-
-                            return reorderedTabs;
-                        })().map((tab) => (
-                            <TabsTrigger
-                                key={tab.value}
-                                value={tab.value}
-                                className={`data-[state=active]:text-primary-600 relative flex rounded-none border-b-2 border-transparent px-4 py-2 text-sm font-medium !shadow-none transition-colors duration-200 hover:bg-gray-100 data-[state=active]:border-primary-500 data-[state=active]:bg-primary-50`}
-                            >
-                                {tab.label}
-                            </TabsTrigger>
-                        ))}
-                    </TabsList>
-                </div>
+                {finalTabs.length > 1 && (
+                    <div className="overflow-x-auto border-b border-gray-200">
+                        <TabsList
+                            className="h-auto min-w-max flex-nowrap bg-transparent p-0"
+                            style={{ display: 'flex', justifyContent: 'left' }}
+                        >
+                            {finalTabs.map((tab) => (
+                                <TabsTrigger
+                                    key={tab.value}
+                                    value={tab.value}
+                                    className={`data-[state=active]:text-primary-600 relative flex rounded-none border-b-2 border-transparent px-4 py-2 text-sm font-medium !shadow-none transition-colors duration-200 hover:bg-gray-100 data-[state=active]:border-primary-500 data-[state=active]:bg-primary-50`}
+                                >
+                                    {tab.label}
+                                </TabsTrigger>
+                            ))}
+                        </TabsList>
+                    </div>
+                )}
                 <TabsContent
                     key={selectedTab}
                     value={selectedTab}

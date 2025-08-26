@@ -35,8 +35,6 @@ import { SendMessageDialog } from './bulk-actions/send-message-dialog';
 import { SendEmailDialog } from './bulk-actions/send-email-dialog';
 import { InviteFormProvider } from '@/routes/manage-students/invite/-context/useInviteFormContext';
 import { Users, FileMagnifyingGlass } from '@phosphor-icons/react';
-import { HOLISTIC_HIDE_COLUMNS, HOLISTIC_NEW_COLUMNS } from '@/constants/institute-data';
-import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { convertCapitalToTitleCase } from '@/lib/utils';
@@ -46,12 +44,8 @@ export const StudentsListSection = () => {
     const { isError, isLoading } = useQuery(useInstituteQuery());
     const [isOpen, setIsOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const {
-        getCourseFromPackage,
-        instituteDetails,
-        getDetailsFromPackageSessionId,
-        showForInstitutes,
-    } = useInstituteDetailsStore();
+    const { getCourseFromPackage, instituteDetails, getDetailsFromPackageSessionId } =
+        useInstituteDetailsStore();
     const tableRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -178,6 +172,8 @@ export const StudentsListSection = () => {
         return Object.entries(rowSelections).flatMap(([pageNum, selections]) => {
             const pageData = allPagesData[parseInt(pageNum)];
             if (!pageData) return [];
+
+            console.log(pageData);
 
             return Object.entries(selections)
                 .filter(([, isSelected]) => isSelected)
@@ -340,28 +336,6 @@ export const StudentsListSection = () => {
                                             isLoading={loadingData}
                                             error={loadingError}
                                             onSort={handleSort}
-                                            tableState={{
-                                                columnVisibility: {
-                                                    ...HOLISTIC_HIDE_COLUMNS.reduce(
-                                                        (acc, column) => {
-                                                            acc[column] = !showForInstitutes([
-                                                                HOLISTIC_INSTITUTE_ID,
-                                                            ]);
-                                                            return acc;
-                                                        },
-                                                        {} as Record<string, boolean>
-                                                    ),
-                                                    ...HOLISTIC_NEW_COLUMNS.reduce(
-                                                        (acc, column) => {
-                                                            acc[column] = showForInstitutes([
-                                                                HOLISTIC_INSTITUTE_ID,
-                                                            ]);
-                                                            return acc;
-                                                        },
-                                                        {} as Record<string, boolean>
-                                                    ),
-                                                },
-                                            }}
                                             columnWidths={STUDENT_LIST_COLUMN_WIDTHS}
                                             rowSelection={currentPageSelection}
                                             onRowSelectionChange={handleRowSelectionChange}

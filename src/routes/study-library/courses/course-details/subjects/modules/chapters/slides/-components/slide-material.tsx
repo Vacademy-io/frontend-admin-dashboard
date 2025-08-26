@@ -1169,6 +1169,8 @@ export const SlideMaterial = ({
                             moduleId,
                             subjectId,
                             sessionId,
+                            courseId,
+                            levelId,
                         }}
                     />
                 );
@@ -1418,6 +1420,25 @@ export const SlideMaterial = ({
                               activeItem.document_slide?.published_data
                             : activeItem.document_slide?.data;
 
+                    // CRITICAL FIX: Don't save if rawData is empty/null to prevent data loss
+                    if (!rawData || rawData === '{}') {
+                        console.warn(
+                            '⚠️ Skipping save for interactive slide - no valid data found'
+                        );
+                        const slideTypeName =
+                            activeItem.document_slide.type === 'CODE'
+                                ? 'Code Editor'
+                                : activeItem.document_slide.type === 'JUPYTER'
+                                  ? 'Jupyter Notebook'
+                                  : activeItem.document_slide.type === 'SCRATCH'
+                                    ? 'Scratch Project'
+                                    : activeItem.document_slide.type?.startsWith('SPLIT_')
+                                      ? `Split Screen ${activeItem.document_slide.type.replace('SPLIT_', '')}`
+                                      : 'Interactive Slide';
+                        toast.success(`${slideTypeName} is already up to date!`);
+                        return;
+                    }
+
                     await addUpdateDocumentSlide({
                         id: slide?.id || '',
                         title: slide?.title || '',
@@ -1427,7 +1448,7 @@ export const SlideMaterial = ({
                         document_slide: {
                             id: slide?.document_slide?.id || '',
                             type: activeItem.document_slide.type,
-                            data: rawData || '{}', // Use the fallback data
+                            data: rawData, // Use the actual data without dangerous fallback
                             title: slide?.document_slide?.title || '',
                             cover_file_id: '',
                             total_pages: 1,
@@ -1594,6 +1615,39 @@ export const SlideMaterial = ({
 
     const handleSaveDraftClick = async () => {
         try {
+            // Special handling for interactive slides (CODE, JUPYTER, SCRATCH, SPLIT)
+            if (
+                activeItem?.source_type === 'DOCUMENT' &&
+                (activeItem?.document_slide?.type === 'CODE' ||
+                    activeItem?.document_slide?.type === 'JUPYTER' ||
+                    activeItem?.document_slide?.type === 'SCRATCH' ||
+                    activeItem?.document_slide?.type?.startsWith('SPLIT_'))
+            ) {
+                // For interactive slides, check if we have valid data
+                const rawData =
+                    activeItem.status === 'PUBLISHED'
+                        ? activeItem.document_slide?.data ||
+                          activeItem.document_slide?.published_data
+                        : activeItem.document_slide?.data;
+
+                // If no valid data exists, skip manual save as auto-save handles these slides
+                if (!rawData || rawData === '{}') {
+                    const slideTypeName =
+                        activeItem.document_slide.type === 'CODE'
+                            ? 'Code Editor'
+                            : activeItem.document_slide.type === 'JUPYTER'
+                              ? 'Jupyter Notebook'
+                              : activeItem.document_slide.type === 'SCRATCH'
+                                ? 'Scratch Project'
+                                : activeItem.document_slide.type?.startsWith('SPLIT_')
+                                  ? `Split Screen ${activeItem.document_slide.type.replace('SPLIT_', '')}`
+                                  : 'Interactive Slide';
+
+                    toast.success(`${slideTypeName} is up to date! Changes are auto-saved.`);
+                    return;
+                }
+            }
+
             // Use custom save function if provided (for non-admin users)
             if (customSaveFunction && activeItem) {
                 console.log('🔄 Using custom save function for non-admin');
@@ -1609,6 +1663,7 @@ export const SlideMaterial = ({
     };
 
     useEffect(() => {
+        setHeading(activeItem?.title || '');
         setSlideTitle(
             (activeItem?.source_type === 'DOCUMENT' && activeItem?.document_slide?.title) ||
                 (activeItem?.source_type === 'VIDEO' && activeItem?.video_slide?.title) ||
@@ -1617,6 +1672,7 @@ export const SlideMaterial = ({
     }, [activeItem]);
 
     useEffect(() => {
+        setHeading(activeItem?.title || '');
         if (items && items.length === 0 && slideId === undefined) {
             setActiveItem(null);
             return;
@@ -1663,33 +1719,9 @@ export const SlideMaterial = ({
         items,
     ]); // Prevent reload on auto-save data changes
 
-    useEffect(() => {
-        let intervalId: NodeJS.Timeout | null = null;
-        let previousHtmlString: string | null = null;
-
-        if (activeItem?.document_slide?.type === 'DOC') {
-            intervalId = setInterval(() => {
-                const data = editor.getEditorValue();
-                const htmlString = html.serialize(editor, data);
-                const formattedHtmlString = formatHTMLString(htmlString);
-
-                // Only save if the content has changed
-                if (formattedHtmlString !== previousHtmlString) {
-                    previousHtmlString = formattedHtmlString;
-                    SaveDraft(activeItem);
-                }
-            }, 60000);
-        }
-
-        return () => {
-            if (intervalId) {
-                clearInterval(intervalId);
-            }
-        };
-    }, [activeItem?.document_slide?.type, editor]);
-
     // Update the refs whenever these functions change
     useEffect(() => {
+        setHeading(activeItem?.title || '');
         setGetCurrentEditorHTMLContent(getCurrentEditorHTMLContent);
         setSaveDraft(SaveDraft);
     }, [editor]);
@@ -1902,7 +1934,9 @@ export const SlideMaterial = ({
                 className={`mx-auto mt-14 ${
                     activeItem?.document_slide?.type === 'PDF' ? 'h-[calc(100vh-200px)]' : 'h-full'
                 } relative z-20 w-full ${
-                    activeItem?.document_slide?.type === 'DOC' ? 'overflow-visible' : 'overflow-hidden'
+                    activeItem?.document_slide?.type === 'DOC'
+                        ? 'overflow-visible'
+                        : 'overflow-hidden'
                 }`}
             >
                 {content}

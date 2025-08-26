@@ -128,6 +128,20 @@ export interface DisplaySettingsData {
 
     // 8) Post-login redirect route
     postLoginRedirectRoute: string; // e.g., '/dashboard'
+
+    // 9) Course page level visibility toggles
+    coursePage?: {
+        viewInviteLinks: boolean;
+        viewCourseConfiguration: boolean;
+        viewCourseOverviewItem: boolean;
+        viewContentNumbering: boolean;
+    };
+
+    // 10) Slide view action visibility toggles
+    slideView?: {
+        showCopyTo: boolean;
+        showMoveTo: boolean;
+    };
 }
 
 export const ADMIN_DISPLAY_SETTINGS_KEY = 'ADMIN_DISPLAY_SETTINGS' as const;

@@ -54,6 +54,13 @@ import InviteDetailsComponent from './invite-details-component';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey, Authority } from '@/constants/auth/tokens';
+import {
+    ADMIN_DISPLAY_SETTINGS_KEY,
+    TEACHER_DISPLAY_SETTINGS_KEY,
+    type DisplaySettingsData,
+} from '@/types/display-settings';
+import { getDisplaySettingsFromCache } from '@/services/display-settings';
+import { extractTextFromHTML } from '@/constants/helper';
 
 type SlideType = {
     id: string;
@@ -653,6 +660,15 @@ export const CourseDetailsPage = () => {
     const isPublishedCourse = courseStatus === 'ACTIVE';
     const isInReviewCourse = courseStatus === 'IN_REVIEW';
     const isTeacherOnPublishedCourse = !isAdmin && isPublishedCourse;
+    // Role display settings (course page toggles)
+    const roleKey = isAdmin ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+    const roleDisplay: DisplaySettingsData | null = getDisplaySettingsFromCache(roleKey);
+    const coursePage = roleDisplay?.coursePage;
+    const showSelectors = !(
+        coursePage?.viewCourseConfiguration === false &&
+        sessionOptions.length <= 1 &&
+        levelOptions.length <= 1
+    );
 
     // Show restriction message for non-editable courses
     const shouldShowRestriction = !isAdmin && (isPublishedCourse || isInReviewCourse);
@@ -874,94 +890,101 @@ export const CourseDetailsPage = () => {
                     <div className="flex w-full grow flex-col xl:w-2/3">
                         {/* Session and Level Selectors */}
                         <div className="container mx-auto px-0 pb-3 lg:pb-4">
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center lg:gap-4">
-                                {sessionOptions.length === 1 ? (
-                                    sessionOptions[0]?.label !== 'default' && (
+                            {showSelectors && (
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-center lg:gap-4">
+                                    {sessionOptions.length === 1 ? (
+                                        sessionOptions[0]?.label !== 'default' && (
+                                            <div className="flex flex-col gap-1">
+                                                <label className="text-xs font-medium text-gray-700">
+                                                    {sessionOptions[0]?.label}
+                                                </label>
+                                            </div>
+                                        )
+                                    ) : (
                                         <div className="flex flex-col gap-1">
                                             <label className="text-xs font-medium text-gray-700">
-                                                {sessionOptions[0]?.label}
+                                                {getTerminology(
+                                                    ContentTerms.Session,
+                                                    SystemTerms.Session
+                                                )}
                                             </label>
+                                            <Select
+                                                value={selectedSession}
+                                                onValueChange={handleSessionChange}
+                                                disabled={isTeacherOnPublishedCourse}
+                                            >
+                                                <SelectTrigger className="h-8 w-full rounded-md text-sm sm:w-40 lg:w-48">
+                                                    <SelectValue
+                                                        placeholder={`Select ${getTerminology(
+                                                            ContentTerms.Session,
+                                                            SystemTerms.Session
+                                                        )}`}
+                                                    />
+                                                </SelectTrigger>
+                                                <SelectContent className="rounded-md">
+                                                    {sessionOptions.map((option) => (
+                                                        <SelectItem
+                                                            key={option._id}
+                                                            value={option.value}
+                                                            className="text-sm"
+                                                        >
+                                                            {option.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                         </div>
-                                    )
-                                ) : (
-                                    <div className="flex flex-col gap-1">
-                                        <label className="text-xs font-medium text-gray-700">
-                                            {getTerminology(
-                                                ContentTerms.Session,
-                                                SystemTerms.Session
-                                            )}
-                                        </label>
-                                        <Select
-                                            value={selectedSession}
-                                            onValueChange={handleSessionChange}
-                                            disabled={isTeacherOnPublishedCourse}
-                                        >
-                                            <SelectTrigger className="h-8 w-full rounded-md text-sm sm:w-40 lg:w-48">
-                                                <SelectValue
-                                                    placeholder={`Select ${getTerminology(
-                                                        ContentTerms.Session,
-                                                        SystemTerms.Session
-                                                    )}`}
-                                                />
-                                            </SelectTrigger>
-                                            <SelectContent className="rounded-md">
-                                                {sessionOptions.map((option) => (
-                                                    <SelectItem
-                                                        key={option._id}
-                                                        value={option.value}
-                                                        className="text-sm"
-                                                    >
-                                                        {option.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                )}
-                                {levelOptions.length === 1 ? (
-                                    levelOptions[0]?.label !== 'default' && (
+                                    )}
+                                    {levelOptions.length === 1 ? (
+                                        levelOptions[0]?.label !== 'default' && (
+                                            <div className="flex flex-col gap-1">
+                                                <label className="text-xs font-medium text-gray-700">
+                                                    {levelOptions[0]?.label}
+                                                </label>
+                                            </div>
+                                        )
+                                    ) : (
                                         <div className="flex flex-col gap-1">
                                             <label className="text-xs font-medium text-gray-700">
-                                                {levelOptions[0]?.label}
+                                                {getTerminology(
+                                                    ContentTerms.Level,
+                                                    SystemTerms.Level
+                                                )}
                                             </label>
+                                            <Select
+                                                value={selectedLevel}
+                                                onValueChange={handleLevelChange}
+                                                disabled={
+                                                    !selectedSession || isTeacherOnPublishedCourse
+                                                }
+                                            >
+                                                <SelectTrigger className="h-8 w-full rounded-md text-sm sm:w-40 lg:w-48">
+                                                    <SelectValue
+                                                        placeholder={`Select ${getTerminology(
+                                                            ContentTerms.Level,
+                                                            SystemTerms.Level
+                                                        )}`}
+                                                    />
+                                                </SelectTrigger>
+                                                <SelectContent className="rounded-md">
+                                                    {levelOptions.map((option) => (
+                                                        <SelectItem
+                                                            key={option._id}
+                                                            value={option.value}
+                                                            className="text-sm"
+                                                        >
+                                                            {option.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                         </div>
-                                    )
-                                ) : (
-                                    <div className="flex flex-col gap-1">
-                                        <label className="text-xs font-medium text-gray-700">
-                                            {getTerminology(ContentTerms.Level, SystemTerms.Level)}
-                                        </label>
-                                        <Select
-                                            value={selectedLevel}
-                                            onValueChange={handleLevelChange}
-                                            disabled={
-                                                !selectedSession || isTeacherOnPublishedCourse
-                                            }
-                                        >
-                                            <SelectTrigger className="h-8 w-full rounded-md text-sm sm:w-40 lg:w-48">
-                                                <SelectValue
-                                                    placeholder={`Select ${getTerminology(
-                                                        ContentTerms.Level,
-                                                        SystemTerms.Level
-                                                    )}`}
-                                                />
-                                            </SelectTrigger>
-                                            <SelectContent className="rounded-md">
-                                                {levelOptions.map((option) => (
-                                                    <SelectItem
-                                                        key={option._id}
-                                                        value={option.value}
-                                                        className="text-sm"
-                                                    >
-                                                        {option.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                )}
-                            </div>
-                            <InviteDetailsComponent form={form} />
+                                    )}
+                                </div>
+                            )}
+                            {coursePage?.viewInviteLinks !== false && (
+                                <InviteDetailsComponent form={form} />
+                            )}
                         </div>
 
                         <CourseStructureDetails
@@ -972,7 +995,7 @@ export const CourseDetailsPage = () => {
                         />
 
                         {/* What You'll Learn Section */}
-                        {form.getValues('courseData').whatYoullLearn && (
+                        {extractTextFromHTML(form.getValues('courseData').whatYoullLearn) && (
                             <div className="mb-4 mt-3 rounded-md bg-white p-3 shadow-sm lg:mb-6 lg:mt-4 lg:p-4">
                                 <h2 className="mb-2 text-lg font-semibold text-gray-900 lg:mb-3">
                                     What you&apos;ll learn?
@@ -990,7 +1013,7 @@ export const CourseDetailsPage = () => {
                         )}
 
                         {/* About Content Section */}
-                        {form.getValues('courseData').aboutTheCourse && (
+                        {extractTextFromHTML(form.getValues('courseData').aboutTheCourse) && (
                             <div className="mb-4 rounded-md bg-white p-3 shadow-sm lg:mb-6 lg:p-4">
                                 <h2 className="mb-2 text-lg font-semibold text-gray-900 lg:mb-3">
                                     About this{' '}
@@ -1012,7 +1035,7 @@ export const CourseDetailsPage = () => {
                         )}
 
                         {/* Who Should Join Section */}
-                        {form.getValues('courseData').whoShouldLearn && (
+                        {extractTextFromHTML(form.getValues('courseData').whoShouldLearn) && (
                             <div className="mb-4 rounded-md bg-white p-3 shadow-sm lg:mb-6 lg:p-4">
                                 <h2 className="mb-2 text-lg font-semibold text-gray-900 lg:mb-3">
                                     Who should join?
@@ -1089,62 +1112,72 @@ export const CourseDetailsPage = () => {
                                 )}
 
                                 {/* Course Structure Summary */}
-                                {form.getValues('courseData').courseStructure > 1 && (
-                                    <div className="flex items-center gap-2">
-                                        {/* <Folder size={16} className="shrink-0 text-gray-600" /> */}
-                                        <span className="text-sm text-gray-700">
-                                            {form.getValues('courseData').sessions.length > 1 && (
-                                                <span>
-                                                    {form.getValues('courseData').sessions.length}{' '}
-                                                    {getTerminology(
-                                                        ContentTerms.Session,
-                                                        SystemTerms.Session
-                                                    )}
-                                                    s
-                                                </span>
-                                            )}
-                                            {form.getValues('courseData').sessions.length > 1 &&
-                                                levelOptions.length > 1 &&
-                                                ' • '}
-                                            {levelOptions.length > 1 && (
-                                                <span>
-                                                    {levelOptions.length}{' '}
-                                                    {getTerminology(
-                                                        ContentTerms.Level,
-                                                        SystemTerms.Level
-                                                    )}
-                                                    s
-                                                </span>
-                                            )}
-                                        </span>
-                                    </div>
-                                )}
+                                {coursePage?.viewCourseOverviewItem !== false &&
+                                    form.getValues('courseData').courseStructure > 1 && (
+                                        <div className="flex items-center gap-2">
+                                            {/* <Folder size={16} className="shrink-0 text-gray-600" /> */}
+                                            <span className="text-sm text-gray-700">
+                                                {form.getValues('courseData').sessions.length >
+                                                    1 && (
+                                                    <span>
+                                                        {
+                                                            form.getValues('courseData').sessions
+                                                                .length
+                                                        }{' '}
+                                                        {getTerminology(
+                                                            ContentTerms.Session,
+                                                            SystemTerms.Session
+                                                        )}
+                                                        s
+                                                    </span>
+                                                )}
+                                                {form.getValues('courseData').sessions.length > 1 &&
+                                                    levelOptions.length > 1 &&
+                                                    ' • '}
+                                                {levelOptions.length > 1 && (
+                                                    <span>
+                                                        {levelOptions.length}{' '}
+                                                        {getTerminology(
+                                                            ContentTerms.Level,
+                                                            SystemTerms.Level
+                                                        )}
+                                                        s
+                                                    </span>
+                                                )}
+                                            </span>
+                                        </div>
+                                    )}
 
                                 {/* Total Slides Count */}
-                                {slideCountQuery.data && slideCountQuery.data.length > 0 && (
-                                    <div className="flex items-center gap-2">
-                                        <FileText size={16} className="shrink-0 text-gray-600" />
-                                        <span className="text-sm text-gray-700">
-                                            {slideCountQuery.data.reduce(
-                                                (total: number, count: SlideCountType) =>
-                                                    total + count.slide_count,
-                                                0
-                                            )}{' '}
-                                            Total{' '}
-                                            {getTerminology(
-                                                ContentTerms.Slides,
-                                                SystemTerms.Slides
-                                            ).toLocaleLowerCase()}
-                                            {slideCountQuery.data.reduce(
-                                                (total: number, count: SlideCountType) =>
-                                                    total + count.slide_count,
-                                                0
-                                            ) !== 1
-                                                ? 's'
-                                                : ''}
-                                        </span>
-                                    </div>
-                                )}
+                                {coursePage?.viewCourseOverviewItem !== false &&
+                                    slideCountQuery.data &&
+                                    slideCountQuery.data.length > 0 && (
+                                        <div className="flex items-center gap-2">
+                                            <FileText
+                                                size={16}
+                                                className="shrink-0 text-gray-600"
+                                            />
+                                            <span className="text-sm text-gray-700">
+                                                {slideCountQuery.data.reduce(
+                                                    (total: number, count: SlideCountType) =>
+                                                        total + count.slide_count,
+                                                    0
+                                                )}{' '}
+                                                Total{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Slides,
+                                                    SystemTerms.Slides
+                                                ).toLocaleLowerCase()}
+                                                {slideCountQuery.data.reduce(
+                                                    (total: number, count: SlideCountType) =>
+                                                        total + count.slide_count,
+                                                    0
+                                                ) !== 1
+                                                    ? 's'
+                                                    : ''}
+                                            </span>
+                                        </div>
+                                    )}
                                 {slideCountQuery.isLoading ? (
                                     <div className="space-y-1">
                                         {[1, 2, 3, 4, 5].map((i) => (
@@ -1160,7 +1193,8 @@ export const CourseDetailsPage = () => {
                                     </div>
                                 ) : (
                                     <>
-                                        {slideCountQuery.data &&
+                                        {coursePage?.viewCourseOverviewItem !== false &&
+                                        slideCountQuery.data &&
                                         (calculateTotalTimeForCourseDuration(slideCountQuery.data)
                                             .hours ||
                                             calculateTotalTimeForCourseDuration(
@@ -1187,157 +1221,162 @@ export const CourseDetailsPage = () => {
                                                 </span>
                                             </div>
                                         ) : null}
-                                        {slideCountQuery.data?.map((count: SlideCountType) => {
-                                            // Helper function to get slide type display name and icon
-                                            const getSlideTypeInfo = (sourceType: string) => {
-                                                switch (sourceType) {
-                                                    case 'VIDEO':
-                                                        return {
-                                                            icon: (
-                                                                <PlayCircle
-                                                                    size={16}
-                                                                    className="shrink-0 text-gray-600"
-                                                                />
-                                                            ),
-                                                            name: 'Video',
-                                                            color: 'text-green-500',
-                                                        };
-                                                    case 'CODE':
-                                                        return {
-                                                            icon: (
-                                                                <Code
-                                                                    size={16}
-                                                                    className="shrink-0 text-gray-600"
-                                                                />
-                                                            ),
-                                                            name: 'Code Editor',
-                                                            color: 'text-green-500',
-                                                        };
-                                                    case 'PDF':
-                                                        return {
-                                                            icon: (
-                                                                <FilePdf
-                                                                    size={16}
-                                                                    className="shrink-0 text-gray-600"
-                                                                />
-                                                            ),
-                                                            name: 'PDF Document',
-                                                            color: 'text-red-500',
-                                                        };
-                                                    case 'DOCUMENT':
-                                                        return {
-                                                            icon: (
-                                                                <FileDoc
-                                                                    size={16}
-                                                                    className="shrink-0 text-gray-600"
-                                                                />
-                                                            ),
-                                                            name: 'Document',
-                                                            color: 'text-blue-600',
-                                                        };
-                                                    case 'PRESENTATION':
-                                                        return {
-                                                            icon: (
-                                                                <PresentationChart
-                                                                    size={16}
-                                                                    className="shrink-0 text-gray-600"
-                                                                />
-                                                            ),
-                                                            name: 'Presentation',
-                                                            color: 'text-orange-500',
-                                                        };
-                                                    case 'JUPYTER':
-                                                        return {
-                                                            icon: (
-                                                                <BookOpen
-                                                                    size={16}
-                                                                    className="shrink-0 text-gray-600"
-                                                                />
-                                                            ),
-                                                            name: 'Jupyter Notebook',
-                                                            color: 'text-violet-500',
-                                                        };
-                                                    case 'SCRATCH':
-                                                        return {
-                                                            icon: (
-                                                                <GameController
-                                                                    size={16}
-                                                                    className="shrink-0 text-gray-600"
-                                                                />
-                                                            ),
-                                                            name: 'Scratch Project',
-                                                            color: 'text-yellow-500',
-                                                        };
-                                                    case 'QUESTION':
-                                                        return {
-                                                            icon: (
-                                                                <Question
-                                                                    size={16}
-                                                                    className="shrink-0 text-gray-600"
-                                                                />
-                                                            ),
-                                                            name: 'Question',
-                                                            color: 'text-purple-500',
-                                                        };
-                                                    case 'QUIZ':
-                                                        return {
-                                                            icon: (
-                                                                <ClipboardText
-                                                                    size={16}
-                                                                    className="shrink-0 text-gray-600"
-                                                                />
-                                                            ),
-                                                            name: 'Quiz',
-                                                            color: 'text-orange-500',
-                                                        };
-                                                    case 'ASSIGNMENT':
-                                                        return {
-                                                            icon: (
-                                                                <File
-                                                                    size={16}
-                                                                    className="shrink-0 text-gray-600"
-                                                                />
-                                                            ),
-                                                            name: 'Assignment',
-                                                            color: 'text-blue-500',
-                                                        };
-                                                    default:
-                                                        return {
-                                                            icon: (
-                                                                <FileDoc
-                                                                    size={16}
-                                                                    className="shrink-0 text-gray-600"
-                                                                />
-                                                            ),
-                                                            name:
-                                                                sourceType.charAt(0).toUpperCase() +
-                                                                sourceType.slice(1).toLowerCase(),
-                                                            color: 'text-gray-500',
-                                                        };
-                                                }
-                                            };
+                                        {coursePage?.viewCourseOverviewItem !== false &&
+                                            slideCountQuery.data?.map((count: SlideCountType) => {
+                                                // Helper function to get slide type display name and icon
+                                                const getSlideTypeInfo = (sourceType: string) => {
+                                                    switch (sourceType) {
+                                                        case 'VIDEO':
+                                                            return {
+                                                                icon: (
+                                                                    <PlayCircle
+                                                                        size={16}
+                                                                        className="shrink-0 text-gray-600"
+                                                                    />
+                                                                ),
+                                                                name: 'Video',
+                                                                color: 'text-green-500',
+                                                            };
+                                                        case 'CODE':
+                                                            return {
+                                                                icon: (
+                                                                    <Code
+                                                                        size={16}
+                                                                        className="shrink-0 text-gray-600"
+                                                                    />
+                                                                ),
+                                                                name: 'Code Editor',
+                                                                color: 'text-green-500',
+                                                            };
+                                                        case 'PDF':
+                                                            return {
+                                                                icon: (
+                                                                    <FilePdf
+                                                                        size={16}
+                                                                        className="shrink-0 text-gray-600"
+                                                                    />
+                                                                ),
+                                                                name: 'PDF Document',
+                                                                color: 'text-red-500',
+                                                            };
+                                                        case 'DOCUMENT':
+                                                            return {
+                                                                icon: (
+                                                                    <FileDoc
+                                                                        size={16}
+                                                                        className="shrink-0 text-gray-600"
+                                                                    />
+                                                                ),
+                                                                name: 'Document',
+                                                                color: 'text-blue-600',
+                                                            };
+                                                        case 'PRESENTATION':
+                                                            return {
+                                                                icon: (
+                                                                    <PresentationChart
+                                                                        size={16}
+                                                                        className="shrink-0 text-gray-600"
+                                                                    />
+                                                                ),
+                                                                name: 'Presentation',
+                                                                color: 'text-orange-500',
+                                                            };
+                                                        case 'JUPYTER':
+                                                            return {
+                                                                icon: (
+                                                                    <BookOpen
+                                                                        size={16}
+                                                                        className="shrink-0 text-gray-600"
+                                                                    />
+                                                                ),
+                                                                name: 'Jupyter Notebook',
+                                                                color: 'text-violet-500',
+                                                            };
+                                                        case 'SCRATCH':
+                                                            return {
+                                                                icon: (
+                                                                    <GameController
+                                                                        size={16}
+                                                                        className="shrink-0 text-gray-600"
+                                                                    />
+                                                                ),
+                                                                name: 'Scratch Project',
+                                                                color: 'text-yellow-500',
+                                                            };
+                                                        case 'QUESTION':
+                                                            return {
+                                                                icon: (
+                                                                    <Question
+                                                                        size={16}
+                                                                        className="shrink-0 text-gray-600"
+                                                                    />
+                                                                ),
+                                                                name: 'Question',
+                                                                color: 'text-purple-500',
+                                                            };
+                                                        case 'QUIZ':
+                                                            return {
+                                                                icon: (
+                                                                    <ClipboardText
+                                                                        size={16}
+                                                                        className="shrink-0 text-gray-600"
+                                                                    />
+                                                                ),
+                                                                name: 'Quiz',
+                                                                color: 'text-orange-500',
+                                                            };
+                                                        case 'ASSIGNMENT':
+                                                            return {
+                                                                icon: (
+                                                                    <File
+                                                                        size={16}
+                                                                        className="shrink-0 text-gray-600"
+                                                                    />
+                                                                ),
+                                                                name: 'Assignment',
+                                                                color: 'text-blue-500',
+                                                            };
+                                                        default:
+                                                            return {
+                                                                icon: (
+                                                                    <FileDoc
+                                                                        size={16}
+                                                                        className="shrink-0 text-gray-600"
+                                                                    />
+                                                                ),
+                                                                name:
+                                                                    sourceType
+                                                                        .charAt(0)
+                                                                        .toUpperCase() +
+                                                                    sourceType
+                                                                        .slice(1)
+                                                                        .toLowerCase(),
+                                                                color: 'text-gray-500',
+                                                            };
+                                                    }
+                                                };
 
-                                            const slideTypeInfo = getSlideTypeInfo(
-                                                count.source_type
-                                            );
+                                                const slideTypeInfo = getSlideTypeInfo(
+                                                    count.source_type
+                                                );
 
-                                            return (
-                                                <div
-                                                    key={count.source_type}
-                                                    className="flex items-center gap-2"
-                                                >
-                                                    {slideTypeInfo.icon}
-                                                    <span className="text-sm text-gray-700">
-                                                        {count.slide_count} {slideTypeInfo.name}{' '}
-                                                        {getTerminology(
-                                                            ContentTerms.Slides,
-                                                            SystemTerms.Slides
-                                                        ).toLocaleLowerCase()}
-                                                        {count.slide_count !== 1 ? 's' : ''}
-                                                    </span>
-                                                </div>
-                                            );
-                                        })}
+                                                return (
+                                                    <div
+                                                        key={count.source_type}
+                                                        className="flex items-center gap-2"
+                                                    >
+                                                        {slideTypeInfo.icon}
+                                                        <span className="text-sm text-gray-700">
+                                                            {count.slide_count} {slideTypeInfo.name}{' '}
+                                                            {getTerminology(
+                                                                ContentTerms.Slides,
+                                                                SystemTerms.Slides
+                                                            ).toLocaleLowerCase()}
+                                                            {count.slide_count !== 1 ? 's' : ''}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })}
                                         {form.getValues('courseData').instructors.length > 0 && (
                                             <div className="flex items-center gap-2">
                                                 <ChalkboardTeacher
