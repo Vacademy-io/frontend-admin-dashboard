@@ -147,115 +147,131 @@ export function ChangesPreviewModal({
 
     const computeCourseWideSlideChanges = async (courseData: any) => {
         try {
-            // Gather all subjectId + packageSessionId pairs for the course
-            const subjectSessionPairs: Array<{
-                subjectId: string;
-                packageSessionId: string;
-                levelId: string;
-                sessionId: string;
-            }> = [];
-            courseData.sessions?.forEach((session: any) => {
-                const sessionId = session.session_dto?.id;
-                session.level_with_details?.forEach((level: any) => {
-                    const levelId = level.id;
-                    level.subjects?.forEach((subject: any) => {
-                        const subjectId = subject.id;
-                        const packageSessionId = getPackageSessionId({
-                            courseId: courseData.course.id,
-                            levelId,
-                            sessionId,
-                        });
-                        if (subjectId && packageSessionId) {
-                            subjectSessionPairs.push({
-                                subjectId,
-                                packageSessionId,
-                                levelId,
-                                sessionId,
-                            });
-                        }
-                    });
-                });
-            });
-
-            // Fetch chapters for each subject/session
-            const chapters: Array<{ id: string; name: string }> = [];
-            const modulesBatches = await Promise.all(
-                subjectSessionPairs.map((p) =>
-                    fetchModulesWithChapters(p.subjectId, p.packageSessionId)
-                )
-            );
-            modulesBatches.forEach((modules: unknown[]) => {
-                (
-                    modules as Array<{
-                        chapters?: Array<{ chapter?: { id: string; chapter_name?: string } }>;
-                    }>
-                )?.forEach((m) => {
-                    m.chapters?.forEach((c) => {
-                        if (c?.chapter?.id) {
-                            chapters.push({
-                                id: c.chapter.id,
-                                name: c.chapter.chapter_name || 'Untitled Chapter',
-                            });
-                        }
-                    });
-                });
-            });
-
-            // Dedupe chapters by id
-            const uniqueChaptersMap = new Map<string, string>();
-            chapters.forEach((c) => uniqueChaptersMap.set(c.id, c.name));
-
-            // Fetch slides for each chapter and compute new/updated counts
-            const chapterIds = Array.from(uniqueChaptersMap.keys());
-            const slidesBatches = await Promise.all(
-                chapterIds.map((cid) =>
-                    authenticatedAxiosInstance
-                        .get(`${GET_SLIDES}?chapterId=${cid}`)
-                        .then((r) => ({ id: cid, slides: r.data }))
-                )
-            );
-
-            const byChapter: Array<{
-                chapterId: string;
-                chapterName: string;
-                newCount: number;
-                updatedCount: number;
-            }> = [];
-            let totalNew = 0;
-            let totalUpdated = 0;
-
-            slidesBatches.forEach(({ id, slides }) => {
-                let newCount = 0;
-                const updatedCount = 0;
-                (slides || []).forEach((s: any) => {
-                    // parent_id null means newly added slide at any level
-                    const isNew = s?.parent_id == null;
-                    if (isNew) newCount += 1;
-                });
-                if (newCount + updatedCount > 0) {
-                    byChapter.push({
-                        chapterId: id,
-                        chapterName: uniqueChaptersMap.get(id) || 'Untitled Chapter',
-                        newCount,
-                        updatedCount,
-                    });
-                    totalNew += newCount;
-                    totalUpdated += updatedCount;
-                }
-            });
-
-            return {
-                totals: {
-                    newSlides: totalNew,
-                    updatedSlides: totalUpdated,
-                    chaptersWithChanges: byChapter.length,
-                },
-                byChapter,
-            };
+            const subjectSessionPairs = gatherSubjectSessionPairs(courseData);
+            const chapters = await fetchChaptersForSubjects(subjectSessionPairs);
+            const slidesData = await fetchSlidesForChapters(chapters);
+            return processSlidesData(chapters, slidesData);
         } catch (e) {
             console.error('Error computing course-wide slide changes:', e);
             return null;
         }
+    };
+
+    const gatherSubjectSessionPairs = (courseData: any) => {
+        const subjectSessionPairs: Array<{
+            subjectId: string;
+            packageSessionId: string;
+            levelId: string;
+            sessionId: string;
+        }> = [];
+
+        courseData.sessions?.forEach((session: any) => {
+            const sessionId = session.session_dto?.id;
+            session.level_with_details?.forEach((level: any) => {
+                const levelId = level.id;
+                level.subjects?.forEach((subject: any) => {
+                    const subjectId = subject.id;
+                    const packageSessionId = getPackageSessionId({
+                        courseId: courseData.course.id,
+                        levelId,
+                        sessionId,
+                    });
+                    if (subjectId && packageSessionId) {
+                        subjectSessionPairs.push({
+                            subjectId,
+                            packageSessionId,
+                            levelId,
+                            sessionId,
+                        });
+                    }
+                });
+            });
+        });
+
+        return subjectSessionPairs;
+    };
+
+    const fetchChaptersForSubjects = async (subjectSessionPairs: any[]) => {
+        const modulesBatches = await Promise.all(
+            subjectSessionPairs.map((p) =>
+                fetchModulesWithChapters(p.subjectId, p.packageSessionId)
+            )
+        );
+
+        const chapters: Array<{ id: string; name: string }> = [];
+        modulesBatches.forEach((modules: unknown[]) => {
+            (
+                modules as Array<{
+                    chapters?: Array<{ chapter?: { id: string; chapter_name?: string } }>;
+                }>
+            )?.forEach((m) => {
+                m.chapters?.forEach((c) => {
+                    if (c?.chapter?.id) {
+                        chapters.push({
+                            id: c.chapter.id,
+                            name: c.chapter.chapter_name || 'Untitled Chapter',
+                        });
+                    }
+                });
+            });
+        });
+
+        // Dedupe chapters by id
+        const uniqueChaptersMap = new Map<string, string>();
+        chapters.forEach((c) => uniqueChaptersMap.set(c.id, c.name));
+
+        return uniqueChaptersMap;
+    };
+
+    const fetchSlidesForChapters = async (chaptersMap: Map<string, string>) => {
+        const chapterIds = Array.from(chaptersMap.keys());
+        return await Promise.all(
+            chapterIds.map((cid) =>
+                authenticatedAxiosInstance
+                    .get(`${GET_SLIDES}?chapterId=${cid}`)
+                    .then((r) => ({ id: cid, slides: r.data }))
+            )
+        );
+    };
+
+    const processSlidesData = (chaptersMap: Map<string, string>, slidesBatches: any[]) => {
+        const byChapter: Array<{
+            chapterId: string;
+            chapterName: string;
+            newCount: number;
+            updatedCount: number;
+        }> = [];
+        let totalNew = 0;
+        let totalUpdated = 0;
+
+        slidesBatches.forEach(({ id, slides }) => {
+            let newCount = 0;
+            const updatedCount = 0;
+            (slides || []).forEach((s: any) => {
+                // parent_id null means newly added slide at any level
+                const isNew = s?.parent_id == null;
+                if (isNew) newCount += 1;
+            });
+            if (newCount + updatedCount > 0) {
+                byChapter.push({
+                    chapterId: id,
+                    chapterName: chaptersMap.get(id) || 'Untitled Chapter',
+                    newCount,
+                    updatedCount,
+                });
+                totalNew += newCount;
+                totalUpdated += updatedCount;
+            }
+        });
+
+        return {
+            totals: {
+                newSlides: totalNew,
+                updatedSlides: totalUpdated,
+                chaptersWithChanges: byChapter.length,
+            },
+            byChapter,
+        };
     };
 
     const calculateNewCourseChanges = async (courseData: any) => {

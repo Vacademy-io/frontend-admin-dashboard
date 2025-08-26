@@ -18,22 +18,10 @@ export const useContentStore = create<ContentStore>((set, get) => ({
     activeItem: null,
 
     setItems: (items) => {
-        console.log(`[ContentStore] 🏪 setItems called:`, {
-            itemsType: typeof items,
-            isArray: Array.isArray(items),
-            length: items?.length || 0,
-            firstTwo: items?.slice(0, 2).map((item) => ({ id: item.id, title: item.title })) || [],
-            caller: new Error().stack?.split('\n')[2]?.trim() || 'Unknown caller',
-        });
         set({ items });
     },
 
     setActiveItem: (item) => {
-        console.log(`[ContentStore] 🎯 setActiveItem called:`, {
-            itemId: item?.id || 'null',
-            itemTitle: item?.title || 'null',
-            caller: new Error().stack?.split('\n')[2]?.trim() || 'Unknown caller',
-        });
         set({ activeItem: item });
     },
 

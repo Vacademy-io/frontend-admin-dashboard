@@ -5,14 +5,12 @@ import 'react-quill/dist/quill.snow.css';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { PopoverClose } from '@radix-ui/react-popover';
 import SelectField from '@/components/design-system/select-field';
-import { MainViewQuillEditor } from '@/components/quill/MainViewQuillEditor';
+import { RichTextEditor } from '@/components/editor/RichTextEditor';
 import { QuestionPaperTemplateFormProps } from '../../../-utils/question-paper-template-form';
 import { formatStructure } from '../../../-utils/helper';
 import { QUESTION_TYPES } from '@/constants/dummy-data';
-import { MyInput } from '@/components/design-system/input';
-import { useEffect } from 'react';
-import { CollapsibleQuillEditor } from '../CollapsibleQuillEditor';
 import { Badge } from '@/components/ui/badge';
+import { useEffect } from 'react';
 
 export const OneWordQuestionPaperTemplateMainView = ({
     form,
@@ -20,7 +18,7 @@ export const OneWordQuestionPaperTemplateMainView = ({
     className,
     showQuestionNumber = true,
 }: QuestionPaperTemplateFormProps) => {
-    const { control, getValues } = form;
+    const { control, getValues, setValue } = form;
     const explanationsType = getValues('explanationsType') || 'Explanation:';
     const questionsType = getValues('questionsType') || '';
 
@@ -29,11 +27,11 @@ export const OneWordQuestionPaperTemplateMainView = ({
     const level = getValues(`questions.${currentQuestionIndex}.level`) || '';
 
     useEffect(() => {
-        const validAnswrs = form.getValues(`questions.${currentQuestionIndex}.validAnswers`);
+        const validAnswrs = getValues(`questions.${currentQuestionIndex}.validAnswers`);
         if (!validAnswrs) {
-            form.setValue(`questions.${currentQuestionIndex}.validAnswers`, [0]);
+            setValue(`questions.${currentQuestionIndex}.validAnswers`, [0]);
         }
-    }, []);
+    }, [currentQuestionIndex, getValues, setValue]);
 
     if (allQuestions.length === 0) {
         return (
@@ -85,10 +83,11 @@ export const OneWordQuestionPaperTemplateMainView = ({
                         render={({ field }) => (
                             <FormItem className="w-full">
                                 <FormControl>
-                                    <CollapsibleQuillEditor
+                                    <RichTextEditor
                                         value={field.value}
                                         onBlur={field.onBlur}
                                         onChange={field.onChange}
+                                        minHeight={100}
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -118,10 +117,11 @@ export const OneWordQuestionPaperTemplateMainView = ({
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
-                                <MainViewQuillEditor
+                                <RichTextEditor
                                     value={field.value}
                                     onBlur={field.onBlur}
                                     onChange={field.onChange}
+                                    minHeight={100}
                                 />
                             </FormControl>
                             <FormMessage />
@@ -148,14 +148,13 @@ export const OneWordQuestionPaperTemplateMainView = ({
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
-                                <div className="flex flex-row flex-wrap items-center gap-4">
-                                    <div className="flex items-center gap-2">
-                                        <MyInput
-                                            input={field.value}
-                                            onChangeFunction={field.onChange}
-                                        />
-                                    </div>
-                                </div>
+                                <input
+                                    type="text"
+                                    value={field.value || ''}
+                                    onChange={(e) => field.onChange(e.target.value)}
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+                                    placeholder="Enter the correct answer"
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -170,10 +169,11 @@ export const OneWordQuestionPaperTemplateMainView = ({
                     render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
-                                <MainViewQuillEditor
+                                <RichTextEditor
                                     value={field.value}
                                     onBlur={field.onBlur}
                                     onChange={field.onChange}
+                                    minHeight={120}
                                 />
                             </FormControl>
                             <FormMessage />
