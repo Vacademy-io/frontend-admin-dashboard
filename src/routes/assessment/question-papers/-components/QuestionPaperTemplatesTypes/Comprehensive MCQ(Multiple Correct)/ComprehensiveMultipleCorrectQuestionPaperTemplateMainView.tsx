@@ -220,14 +220,14 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                         currentQuestionIndex={currentQuestionIndex}
                         control={control}
                         optionsType={optionsType}
-                        isSelected={option1?.isSelected}
+                        isSelected={option1?.isSelected ?? false}
                     />
                     <OptionField
                         optionIndex={1}
                         currentQuestionIndex={currentQuestionIndex}
                         control={control}
                         optionsType={optionsType}
-                        isSelected={option2?.isSelected}
+                        isSelected={option2?.isSelected ?? false}
                     />
                 </div>
                 <div className="flex gap-4">
@@ -236,14 +236,14 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                         currentQuestionIndex={currentQuestionIndex}
                         control={control}
                         optionsType={optionsType}
-                        isSelected={option3?.isSelected}
+                        isSelected={option3?.isSelected ?? false}
                     />
                     <OptionField
                         optionIndex={3}
                         currentQuestionIndex={currentQuestionIndex}
                         control={control}
                         optionsType={optionsType}
-                        isSelected={option4?.isSelected}
+                        isSelected={option4?.isSelected ?? false}
                     />
                 </div>
             </div>
