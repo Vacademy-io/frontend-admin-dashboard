@@ -6,12 +6,12 @@ import {
     getUserRoles,
     getTokenFromCookie,
     generateSSOUrl,
-    SSO_CONFIG,
     canAccessLearnerPlatform,
 } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { Student } from 'phosphor-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 interface SSOSwitcherProps {
     variant?: 'button' | 'dropdown' | 'inline';
@@ -19,6 +19,7 @@ interface SSOSwitcherProps {
 }
 
 export function SSOSwitcher({ variant = 'button', className = '' }: SSOSwitcherProps) {
+    const { instituteDetails } = useInstituteDetailsStore();
     const [userRoles, setUserRoles] = React.useState<string[]>([]);
     const [canSwitchToLearner, setCanSwitchToLearner] = React.useState(false);
 
@@ -32,11 +33,14 @@ export function SSOSwitcher({ variant = 'button', className = '' }: SSOSwitcherP
     }, []);
 
     const switchToLearnerPlatform = () => {
-        const ssoUrl = generateSSOUrl(SSO_CONFIG.LEARNER_DOMAIN, '/dashboard');
+        const ssoUrl = generateSSOUrl(
+            instituteDetails?.learner_portal_base_url ?? '',
+            '/dashboard'
+        );
         if (ssoUrl) {
             window.location.href = ssoUrl;
         } else {
-            window.location.href = `https://${SSO_CONFIG.LEARNER_DOMAIN}/login`;
+            window.location.href = `https://${instituteDetails?.learner_portal_base_url ?? ''}/login`;
         }
     };
 

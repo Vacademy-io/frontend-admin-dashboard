@@ -46,7 +46,6 @@ import {
 } from '@/components/ui/select';
 import { useSessionDetailsStore } from '../../-store/useSessionDetailsStore';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -863,23 +862,21 @@ export default function ScheduleStep1() {
                         </FormItem>
                     )}
                 />
-                {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
-                    <SelectField
-                        label="Subject"
-                        name="subject"
-                        labelStyle="text-sm font-medium"
-                        options={[
-                            { value: 'none', label: 'Select Subject', _id: -1 },
-                            ...SubjectFilterData.map((option, index) => ({
-                                value: option.name,
-                                label: option.name,
-                                _id: index,
-                            })),
-                        ]}
-                        control={form.control}
-                        className="mt-[8px] w-56 font-thin"
-                    />
-                )}
+                <SelectField
+                    label="Subject"
+                    name="subject"
+                    labelStyle="text-sm font-medium"
+                    options={[
+                        { value: 'none', label: 'Select Subject', _id: -1 },
+                        ...SubjectFilterData.map((option, index) => ({
+                            value: option.name,
+                            label: option.name,
+                            _id: index,
+                        })),
+                    ]}
+                    control={form.control}
+                    className="mt-[8px] w-56 font-thin"
+                />
             </div>
 
             <div className="flex h-full flex-col gap-6">

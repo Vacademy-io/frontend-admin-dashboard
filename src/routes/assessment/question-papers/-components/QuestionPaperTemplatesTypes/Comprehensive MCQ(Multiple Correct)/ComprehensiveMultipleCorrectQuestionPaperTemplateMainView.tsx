@@ -12,6 +12,76 @@ import { formatStructure } from '../../../-utils/helper';
 import { QUESTION_TYPES } from '@/constants/dummy-data';
 import { Badge } from '@/components/ui/badge';
 
+// Extracted component for rendering individual options
+const OptionField = ({
+    optionIndex,
+    currentQuestionIndex,
+    control,
+    optionsType,
+    isSelected
+}: {
+    optionIndex: number;
+    currentQuestionIndex: number;
+    control: any;
+    optionsType: string;
+    isSelected: boolean;
+}) => {
+    const optionLabel = optionsType ? formatStructure(optionsType, String.fromCharCode(97 + optionIndex)) : `(${String.fromCharCode(97 + optionIndex)}.)`;
+
+    return (
+        <div
+            className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
+                isSelected ? 'border border-primary-300 bg-primary-50' : ''
+            }`}
+        >
+            <div className="flex w-full items-center gap-4">
+                <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
+                    <span className="!p-0 text-sm">{optionLabel}</span>
+                </div>
+                <FormField
+                    control={control}
+                    name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${optionIndex}.name`}
+                    render={({ field }) => (
+                        <FormItem className="w-full">
+                            <FormControl>
+                                <RichTextEditor
+                                    value={field.value}
+                                    onBlur={field.onBlur}
+                                    onChange={field.onChange}
+                                    minHeight={80}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            </div>
+            <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
+                <FormField
+                    control={control}
+                    name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${optionIndex}.isSelected`}
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormControl>
+                                <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    className={`mt-1 size-5 border-2 shadow-none ${
+                                        field.value
+                                            ? 'border-none bg-green-500 text-white'
+                                            : ''
+                                    }`}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            </div>
+        </div>
+    );
+};
+
 export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
     form,
     currentQuestionIndex,
@@ -75,6 +145,8 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                     </PopoverContent>
                 </Popover>
             </div>
+
+            {/* Comprehension Text */}
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>Comprehension Text</span>
                 <FormField
@@ -95,6 +167,8 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                     )}
                 />
             </div>
+
+            {/* Question */}
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <div className="flex items-center gap-2">
                     <span>
@@ -137,224 +211,44 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                 </div>
             </div>
 
+            {/* Options */}
             <div className="flex w-full grow flex-col gap-4">
                 <span className="-mb-3">{answersType}</span>
                 <div className="flex gap-4">
-                    <div
-                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option1?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
-                        }`}
-                    >
-                        <div className="flex w-full items-center gap-4">
-                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                                <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, 'a') : '(a.)'}
-                                </span>
-                            </div>
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${0}.name`}
-                                render={({ field }) => (
-                                    <FormItem className="w-full">
-                                        <FormControl>
-                                            <RichTextEditor
-                                                value={field.value}
-                                                onBlur={field.onBlur}
-                                                onChange={field.onChange}
-                                                minHeight={80}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${0}.isSelected`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                                className={`mt-1 size-5 border-2 shadow-none ${
-                                                    field.value
-                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
-                                                        : '' // Default styles when unchecked
-                                                }`}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    </div>
-                    <div
-                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option2?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
-                        }`}
-                    >
-                        <div className="flex w-full items-center gap-4">
-                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                                <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, 'b') : '(b.)'}
-                                </span>
-                            </div>
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${1}.name`}
-                                render={({ field }) => (
-                                    <FormItem className="w-full">
-                                        <FormControl>
-                                            <RichTextEditor
-                                                value={field.value}
-                                                onBlur={field.onBlur}
-                                                onChange={field.onChange}
-                                                minHeight={80}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${1}.isSelected`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                                className={`mt-1 size-5 border-2 shadow-none ${
-                                                    field.value
-                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
-                                                        : '' // Default styles when unchecked
-                                                }`}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    </div>
+                    <OptionField
+                        optionIndex={0}
+                        currentQuestionIndex={currentQuestionIndex}
+                        control={control}
+                        optionsType={optionsType}
+                        isSelected={option1?.isSelected}
+                    />
+                    <OptionField
+                        optionIndex={1}
+                        currentQuestionIndex={currentQuestionIndex}
+                        control={control}
+                        optionsType={optionsType}
+                        isSelected={option2?.isSelected}
+                    />
                 </div>
                 <div className="flex gap-4">
-                    <div
-                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option3?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
-                        }`}
-                    >
-                        <div className="flex w-full items-center gap-4">
-                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                                <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, 'c') : '(c.)'}
-                                </span>
-                            </div>
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${2}.name`}
-                                render={({ field }) => (
-                                    <FormItem className="w-full">
-                                        <FormControl>
-                                            <RichTextEditor
-                                                value={field.value}
-                                                onBlur={field.onBlur}
-                                                onChange={field.onChange}
-                                                minHeight={80}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${2}.isSelected`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                                className={`mt-1 size-5 border-2 shadow-none ${
-                                                    field.value
-                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
-                                                        : '' // Default styles when unchecked
-                                                }`}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    </div>
-                    <div
-                        className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option4?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
-                        }`}
-                    >
-                        <div className="flex w-full items-center gap-4">
-                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-3">
-                                <span className="!p-0 text-sm">
-                                    {optionsType ? formatStructure(optionsType, 'd') : '(d.)'}
-                                </span>
-                            </div>
-                            {
-                                <FormField
-                                    control={control}
-                                    name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${3}.name`}
-                                    render={({ field }) => (
-                                        <FormItem className="w-full">
-                                            <FormControl>
-                                                <RichTextEditor
-                                                    value={field.value}
-                                                    onBlur={field.onBlur}
-                                                    onChange={field.onChange}
-                                                    minHeight={80}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            }
-                        </div>
-                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${3}.isSelected`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                                className={`mt-1 size-5 border-2 shadow-none ${
-                                                    field.value
-                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
-                                                        : '' // Default styles when unchecked
-                                                }`}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    </div>
+                    <OptionField
+                        optionIndex={2}
+                        currentQuestionIndex={currentQuestionIndex}
+                        control={control}
+                        optionsType={optionsType}
+                        isSelected={option3?.isSelected}
+                    />
+                    <OptionField
+                        optionIndex={3}
+                        currentQuestionIndex={currentQuestionIndex}
+                        control={control}
+                        optionsType={optionsType}
+                        isSelected={option4?.isSelected}
+                    />
                 </div>
             </div>
 
+            {/* Explanation */}
             <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>{explanationsType}</span>
                 <FormField

@@ -1,7 +1,7 @@
 import QRCode from 'react-qr-code';
 import { Copy, DownloadSimple, DotsThree } from 'phosphor-react';
 import { MyButton } from '@/components/design-system/button';
-import { BASE_URL_LEARNER_DASHBOARD, HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
+import { BASE_URL_LEARNER_DASHBOARD } from '@/constants/urls';
 import { copyToClipboard } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper';
 import {
     DropdownMenu,
@@ -15,10 +15,11 @@ import { useLiveSessionStore } from '../schedule/-store/sessionIdstore';
 import { useNavigate } from '@tanstack/react-router';
 import { useSessionDetailsStore } from '../-store/useSessionDetailsStore';
 
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useState, useEffect } from 'react';
 import DeleteSessionDialog from './delete-session-dialog';
 import type { SessionBySessionIdResponse } from '../-services/utils';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface DraftSessionCardProps {
     session: DraftSession;
@@ -46,7 +47,6 @@ export default function DraftSessionCard({ session }: DraftSessionCardProps) {
     const navigate = useNavigate();
     const { setSessionId } = useLiveSessionStore();
     const { setSessionDetails } = useSessionDetailsStore();
-    const { showForInstitutes } = useInstituteDetailsStore();
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
     const handleEditSession = async () => {
@@ -117,9 +117,10 @@ export default function DraftSessionCard({ session }: DraftSessionCardProps) {
             </div>
 
             <div className="flex w-full items-center justify-start gap-8 text-sm text-neutral-500">
-                {!showForInstitutes([HOLISTIC_INSTITUTE_ID])}
                 <div className="flex items-center gap-2">
-                    <span className="text-black">Subject:</span>
+                    <span className="text-black">
+                        {getTerminology(ContentTerms.Subjects, SystemTerms.Subjects)}:
+                    </span>
                     <span>{session.subject}</span>
                 </div>
 

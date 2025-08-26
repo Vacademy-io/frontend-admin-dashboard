@@ -24,7 +24,6 @@ import { AddSessionDataType } from '@/routes/manage-institute/sessions/-componen
 import { useAddSession } from '@/services/study-library/session-management/addSession';
 import { AddLevelData } from '@/routes/study-library/courses/course-details/-components/add-course-details-form';
 import { useAddLevel } from '@/routes/study-library/courses/course-details/-services/add-level';
-import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
@@ -447,47 +446,43 @@ export const StepTwoForm = ({
                                     </FormItem>
                                 )}
                             />
-                            {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
-                                <FormField
-                                    control={form.control}
-                                    name="course"
-                                    render={({ field: { value } }) => (
-                                        <FormItem>
-                                            <FormControl>
-                                                <div className="flex flex-col gap-1">
-                                                    <div>
-                                                        {getTerminology(
-                                                            ContentTerms.Course,
-                                                            SystemTerms.Course
-                                                        )}
-                                                        <span className="text-subtitle text-danger-600">
-                                                            *
-                                                        </span>
-                                                    </div>
-                                                    <MyDropdown
-                                                        currentValue={value.name}
-                                                        dropdownList={courseList}
-                                                        handleChange={handleCourseChange}
-                                                        placeholder={`Select ${getTerminology(
-                                                            ContentTerms.Course,
-                                                            SystemTerms.Course
-                                                        )}`}
-                                                        error={
-                                                            form.formState.errors.course?.id
-                                                                ?.message ||
-                                                            form.formState.errors.course?.name
-                                                                ?.message
-                                                        }
-                                                        required={true}
-                                                        showAddCourseButton={true}
-                                                        onAddCourse={handleAddCourse}
-                                                    />
+                            <FormField
+                                control={form.control}
+                                name="course"
+                                render={({ field: { value } }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <div className="flex flex-col gap-1">
+                                                <div>
+                                                    {getTerminology(
+                                                        ContentTerms.Course,
+                                                        SystemTerms.Course
+                                                    )}
+                                                    <span className="text-subtitle text-danger-600">
+                                                        *
+                                                    </span>
                                                 </div>
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
-                            )}
+                                                <MyDropdown
+                                                    currentValue={value.name}
+                                                    dropdownList={courseList}
+                                                    handleChange={handleCourseChange}
+                                                    placeholder={`Select ${getTerminology(
+                                                        ContentTerms.Course,
+                                                        SystemTerms.Course
+                                                    )}`}
+                                                    error={
+                                                        form.formState.errors.course?.id?.message ||
+                                                        form.formState.errors.course?.name?.message
+                                                    }
+                                                    required={true}
+                                                    showAddCourseButton={true}
+                                                    onAddCourse={handleAddCourse}
+                                                />
+                                            </div>
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
 
                             <FormField
                                 control={form.control}
@@ -506,7 +501,7 @@ export const StepTwoForm = ({
                                                     </span>
                                                 </div>
                                                 <MyDropdown
-                                                    currentValue={value.name}
+                                                    currentValue={value}
                                                     dropdownList={sessionList}
                                                     handleChange={handleSessionChange}
                                                     placeholder={`Select ${getTerminology(
@@ -667,31 +662,27 @@ export const StepTwoForm = ({
                                     </FormItem>
                                 )}
                             />
-                            {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
-                                <FormField
-                                    control={form.control}
-                                    name="collegeName"
-                                    render={({ field: { onChange, value, ...field } }) => (
-                                        <FormItem>
-                                            <FormControl>
-                                                <MyInput
-                                                    inputType="text"
-                                                    label="College/School Name"
-                                                    inputPlaceholder="Enter Student's College/School Name"
-                                                    input={value}
-                                                    onChangeFunction={onChange}
-                                                    error={
-                                                        form.formState.errors.collegeName?.message
-                                                    }
-                                                    size="large"
-                                                    className="w-full"
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                        </FormItem>
-                                    )}
-                                />
-                            )}
+                            <FormField
+                                control={form.control}
+                                name="collegeName"
+                                render={({ field: { onChange, value, ...field } }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                inputType="text"
+                                                label="College/School Name"
+                                                inputPlaceholder="Enter Student's College/School Name"
+                                                input={value}
+                                                onChangeFunction={onChange}
+                                                error={form.formState.errors.collegeName?.message}
+                                                size="large"
+                                                className="w-full"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
                         </div>
                     </form>
                 </Form>

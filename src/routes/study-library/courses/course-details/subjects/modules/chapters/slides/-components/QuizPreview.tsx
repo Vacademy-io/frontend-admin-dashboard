@@ -184,63 +184,82 @@ const QuizPreview = ({ activeItem, routeParams }: QuizPreviewProps) => {
         });
     };
 
-    const handleEdit = (index: number) => {
-        const question = form.getValues(`questions.${index}`);
-
-        // Ensure all required option fields are present for the question type
+    const initializeQuestionFields = (question: any) => {
+        // Initialize MCQ single choice options
         if (question.questionType === 'MCQS' && !question.singleChoiceOptions) {
             question.singleChoiceOptions = Array(4).fill({
                 id: '',
                 name: '',
                 isSelected: false,
             });
-        } else if (question.questionType === 'MCQM' && !question.multipleChoiceOptions) {
+        }
+
+        // Initialize MCQ multiple choice options
+        if (question.questionType === 'MCQM' && !question.multipleChoiceOptions) {
             question.multipleChoiceOptions = Array(4).fill({
                 id: '',
                 name: '',
                 isSelected: false,
             });
-        } else if (question.questionType === 'CMCQS' && !question.csingleChoiceOptions) {
+        }
+
+        // Initialize Comprehensive MCQ single choice options
+        if (question.questionType === 'CMCQS' && !question.csingleChoiceOptions) {
             question.csingleChoiceOptions = Array(4).fill({
                 id: '',
                 name: '',
                 isSelected: false,
             });
-        } else if (question.questionType === 'CMCQM' && !question.cmultipleChoiceOptions) {
+        }
+
+        // Initialize Comprehensive MCQ multiple choice options
+        if (question.questionType === 'CMCQM' && !question.cmultipleChoiceOptions) {
             question.cmultipleChoiceOptions = Array(4).fill({
                 id: '',
                 name: '',
                 isSelected: false,
             });
-        } else if (question.questionType === 'TRUE_FALSE' && !question.trueFalseOptions) {
+        }
+
+        // Initialize True/False options
+        if (question.questionType === 'TRUE_FALSE' && !question.trueFalseOptions) {
             question.trueFalseOptions = Array(2).fill({
                 id: '',
                 name: '',
                 isSelected: false,
             });
-        } else if (
-            (question.questionType === 'NUMERIC' || question.questionType === 'CNUMERIC') &&
-            !question.decimals
-        ) {
+        }
+
+        // Initialize Numeric question fields
+        if ((question.questionType === 'NUMERIC' || question.questionType === 'CNUMERIC') && !question.decimals) {
             question.decimals = 0;
             question.numericType = '';
             question.validAnswers = [0];
-        } else if (
-            (question.questionType === 'LONG_ANSWER' || question.questionType === 'ONE_WORD') &&
-            !question.subjectiveAnswerText
-        ) {
+        }
+
+        // Initialize Subjective answer fields
+        if ((question.questionType === 'LONG_ANSWER' || question.questionType === 'ONE_WORD') && !question.subjectiveAnswerText) {
             question.subjectiveAnswerText = '';
         }
 
+        return question;
+    };
+
+    const handleEdit = (index: number) => {
+        const question = form.getValues(`questions.${index}`);
+
+        // Initialize all required fields based on question type
+        const initializedQuestion = initializeQuestionFields(question);
+
         // Prefill CMCQS/CMCQM options for edit dialog just like MCQ types
-        if (question.questionType === 'CMCQS' && question.singleChoiceOptions) {
-            question.csingleChoiceOptions = question.singleChoiceOptions;
+        if (initializedQuestion.questionType === 'CMCQS' && initializedQuestion.singleChoiceOptions) {
+            initializedQuestion.csingleChoiceOptions = initializedQuestion.singleChoiceOptions;
         }
-        if (question.questionType === 'CMCQM' && question.multipleChoiceOptions) {
-            question.cmultipleChoiceOptions = question.multipleChoiceOptions;
+        if (initializedQuestion.questionType === 'CMCQM' && initializedQuestion.multipleChoiceOptions) {
+            initializedQuestion.cmultipleChoiceOptions = initializedQuestion.multipleChoiceOptions;
         }
 
-        editForm.reset({ ...form.getValues(), questions: [question] });
+        editForm.reset({ ...form.getValues(), questions: [initializedQuestion] });
         setEditIndex(index);
     };
 

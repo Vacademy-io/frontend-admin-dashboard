@@ -1,4 +1,3 @@
-import { HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 import { SidebarItemsType } from '@/types/layout-container/layout-container-types';
 import { SubModuleType } from '@/schemas/student/student-list/institute-schema';
 import { SUB_MODULE_SIDEBAR_MAPPING, controlledTabs, modules } from './constant';
@@ -158,18 +157,6 @@ export function filterMenuItems(
 ) {
     // Define the tabs that should be controlled by tab settings
     let filteredList = filterSidebarByRole(menuList);
-
-    // Filters menu items based on institute-specific rules
-    if (instituteId === HOLISTIC_INSTITUTE_ID) {
-        filteredList = filteredList.filter(
-            (item) =>
-                item.id === 'dashboard' ||
-                item.id === 'student-mangement' ||
-                item.id === 'live-classes' ||
-                item.id === 'settings' ||
-                item.id === 'attendance-tracker'
-        );
-    }
 
     // Apply tab settings filtering if functions are provided
     if (isTabVisible && isSubItemVisible) {

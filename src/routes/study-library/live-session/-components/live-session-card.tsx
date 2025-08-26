@@ -4,7 +4,6 @@ import { MyDialog } from '@/components/design-system/dialog';
 import { Copy, DownloadSimple, LockSimple, DotsThree } from 'phosphor-react';
 import { Badge } from '@/components/ui/badge';
 import { MyButton } from '@/components/design-system/button';
-import { BASE_URL_LEARNER_DASHBOARD, HOLISTIC_INSTITUTE_ID } from '@/constants/urls';
 import { copyToClipboard } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper';
 import {
     DropdownMenu,
@@ -37,6 +36,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import DeleteSessionDialog from './delete-session-dialog';
 import { getSessionJoinLink } from '../-utils/live-sesstions';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface LiveSessionCardProps {
     session: LiveSession;
@@ -236,12 +237,12 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
             </div>
 
             <div className="flex w-full items-center justify-start gap-8 text-sm text-neutral-500">
-                {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
-                    <div className="flex items-center gap-2">
-                        <span className="text-black">Subject:</span>
-                        <span>{session.subject}</span>
-                    </div>
-                )}
+                <div className="flex items-center gap-2">
+                    <span className="text-black">
+                        {getTerminology(ContentTerms.Subjects, SystemTerms.Subjects)}:
+                    </span>
+                    <span>{session.subject}</span>
+                </div>
 
                 <div className="flex items-center gap-2">
                     <span className="text-black">Start Date & Time:</span>
