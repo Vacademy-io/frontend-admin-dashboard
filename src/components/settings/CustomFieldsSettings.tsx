@@ -860,20 +860,16 @@ const CustomFieldsSettings: React.FC = () => {
                         Institute Fields
                     </h2>
                     <p className="mt-2 text-sm text-gray-600">
-                        Select fields using the checkboxes on the left to create groups. You can
-                        select system fields, institute fields, and custom fields. Use the &quot;Add
-                        Group&quot; button to combine selected fields.
+                        Select fields using the checkboxes on the left to create groups. All fields
+                        are part of institute fields. Use the &quot;Add Group&quot; button to
+                        combine selected fields.
                     </p>
                 </div>
 
-                <div className="space-y-8 p-6">
-                    {/* Fixed Institute Fields Subsection */}
-                    <div>
-                        <h3 className="mb-4 text-lg font-semibold text-gray-900">System Fields</h3>
-                        <p className="mb-4 text-sm text-gray-600">
-                            System fields are predefined and cannot be modified, but can be included
-                            in groups.
-                        </p>
+                <div className="space-y-6 p-6">
+                    {/* All Institute Fields */}
+                    <div className="space-y-4">
+                        {/* System Fields Table */}
                         <div className="overflow-x-auto">
                             <table className="w-full">
                                 <thead>
@@ -943,225 +939,174 @@ const CustomFieldsSettings: React.FC = () => {
                                 </tbody>
                             </table>
                         </div>
-                    </div>
 
-                    {/* Institute Fields Subsection */}
-                    <div>
-                        <h3 className="mb-4 text-lg font-semibold text-gray-900">
-                            Institute Fields
-                        </h3>
-                        {instituteFields.length === 0 ? (
-                            <div className="py-8 text-center text-gray-500">
-                                <Settings className="mx-auto mb-3 size-10 text-gray-300" />
-                                <p>No standard institute fields available.</p>
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                {instituteFields.map((field) => (
-                                    <div
-                                        key={field.id}
-                                        className="rounded-lg border border-gray-200 p-4 hover:bg-gray-50"
-                                    >
-                                        {/* Field Name and Delete Button Row */}
-                                        <div className="mb-4 flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedFields.has(field.id)}
-                                                    onChange={() => handleFieldSelection(field.id)}
-                                                    className="size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                                />
-                                                <div className="w-48">
-                                                    <input
-                                                        type="text"
-                                                        value={field.name}
-                                                        onChange={(e) =>
-                                                            handleInstituteFieldNameChange(
-                                                                field.id,
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                        className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
-                                                        placeholder="Field name"
-                                                    />
-                                                </div>
-                                                <div className="w-48">
-                                                    <select
-                                                        value={field.type}
-                                                        onChange={(e) =>
-                                                            handleInstituteFieldTypeChange(
-                                                                field.id,
-                                                                e.target.value as
-                                                                    | 'text'
-                                                                    | 'dropdown'
-                                                            )
-                                                        }
-                                                        className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
-                                                    >
-                                                        <option value="text">Text Field</option>
-                                                        <option value="dropdown">Dropdown</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={() => handleRemoveInstituteField(field.id)}
-                                                className="rounded bg-red-500 px-3 py-2 text-white transition-colors hover:bg-red-600"
-                                                title="Delete field"
-                                            >
-                                                <Trash2 className="size-4" />
-                                            </button>
-                                        </div>
-
-                                        {/* Visibility Controls */}
-                                        <div className="mb-3">
-                                            <div className="flex flex-wrap gap-2">
-                                                {visibilityLabels.map(
-                                                    ({ key, label, icon: Icon }) => (
-                                                        <VisibilityToggle
-                                                            key={key}
-                                                            checked={
-                                                                field.visibility[
-                                                                    key as keyof FieldVisibility
-                                                                ]
-                                                            }
-                                                            onChange={() =>
-                                                                handleInstituteFieldVisibilityChange(
-                                                                    field.id,
-                                                                    key as keyof FieldVisibility
-                                                                )
-                                                            }
-                                                            label={label}
-                                                            icon={Icon}
-                                                        />
+                        {/* Editable Institute Fields */}
+                        {instituteFields.map((field) => (
+                            <div
+                                key={field.id}
+                                className="rounded-lg border border-gray-200 p-4 hover:bg-gray-50"
+                            >
+                                {/* Field Name and Delete Button Row */}
+                                <div className="mb-4 flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedFields.has(field.id)}
+                                            onChange={() => handleFieldSelection(field.id)}
+                                            className="size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <div className="w-48">
+                                            <input
+                                                type="text"
+                                                value={field.name}
+                                                onChange={(e) =>
+                                                    handleInstituteFieldNameChange(
+                                                        field.id,
+                                                        e.target.value
                                                     )
-                                                )}
-                                            </div>
+                                                }
+                                                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                                                placeholder="Field name"
+                                            />
                                         </div>
-
-                                        {/* Dropdown Options Manager */}
-                                        {field.type === 'dropdown' && (
-                                            <DropdownOptionsManager field={field} />
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Custom Fields Subsection */}
-                    <div>
-                        <h3 className="mb-4 text-lg font-semibold text-gray-900">Custom Fields</h3>
-                        {customFields.length === 0 ? (
-                            <div className="py-8 text-center text-gray-500">
-                                <Edit2 className="mx-auto mb-3 size-10 text-gray-300" />
-                                <p>No custom fields created yet.</p>
-                                <p className="text-sm">Click Add Custom Field to get started.</p>
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                {customFields.map((field) => (
-                                    <div
-                                        key={field.id}
-                                        className="rounded-lg border border-gray-200 p-4 hover:bg-gray-50"
-                                    >
-                                        {/* Field Name and Delete Button Row */}
-                                        <div className="mb-4 flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedFields.has(field.id)}
-                                                    onChange={() => handleFieldSelection(field.id)}
-                                                    className="size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                                />
-                                                <div className="w-48">
-                                                    <input
-                                                        type="text"
-                                                        value={field.name}
-                                                        onChange={(e) =>
-                                                            handleCustomFieldNameChange(
-                                                                field.id,
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                        className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
-                                                        placeholder="Field name"
-                                                    />
-                                                </div>
-                                                <div className="w-48">
-                                                    <select
-                                                        value={field.type}
-                                                        onChange={(e) =>
-                                                            handleCustomFieldTypeChange(
-                                                                field.id,
-                                                                e.target.value as
-                                                                    | 'text'
-                                                                    | 'dropdown'
-                                                            )
-                                                        }
-                                                        className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
-                                                    >
-                                                        <option value="text">Text Field</option>
-                                                        <option value="dropdown">Dropdown</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={() => handleRemoveCustomField(field.id)}
-                                                className="rounded bg-red-500 px-3 py-2 text-white transition-colors hover:bg-red-600"
-                                                title="Delete field"
-                                            >
-                                                <Trash2 className="size-4" />
-                                            </button>
-                                        </div>
-
-                                        {/* Visibility Controls */}
-                                        <div className="mb-3">
-                                            <div className="flex flex-wrap gap-2">
-                                                {visibilityLabels.map(
-                                                    ({ key, label, icon: Icon }) => (
-                                                        <VisibilityToggle
-                                                            key={key}
-                                                            checked={
-                                                                field.visibility[
-                                                                    key as keyof FieldVisibility
-                                                                ]
-                                                            }
-                                                            onChange={() =>
-                                                                handleCustomFieldVisibilityChange(
-                                                                    field.id,
-                                                                    key as keyof FieldVisibility
-                                                                )
-                                                            }
-                                                            label={label}
-                                                            icon={Icon}
-                                                        />
+                                        <div className="w-48">
+                                            <select
+                                                value={field.type}
+                                                onChange={(e) =>
+                                                    handleInstituteFieldTypeChange(
+                                                        field.id,
+                                                        e.target.value as 'text' | 'dropdown'
                                                     )
-                                                )}
-                                            </div>
+                                                }
+                                                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                                            >
+                                                <option value="text">Text Field</option>
+                                                <option value="dropdown">Dropdown</option>
+                                            </select>
                                         </div>
-
-                                        {/* Dropdown Options Manager */}
-                                        {field.type === 'dropdown' && (
-                                            <DropdownOptionsManager field={field} />
-                                        )}
                                     </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
+                                    <button
+                                        onClick={() => handleRemoveInstituteField(field.id)}
+                                        className="rounded bg-red-500 px-3 py-2 text-white transition-colors hover:bg-red-600"
+                                        title="Delete field"
+                                    >
+                                        <Trash2 className="size-4" />
+                                    </button>
+                                </div>
 
-            {/* Field Groups Section */}
-            {fieldGroups.length > 0 && (
-                <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-                    <div className="border-b border-gray-200 p-6">
-                        <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-900">
-                            <FolderPlus className="size-5 text-blue-600" />
-                            Field Groups
-                        </h2>
-                    </div>
-                    <div className="space-y-6 p-6">
+                                {/* Visibility Controls */}
+                                <div className="mb-3">
+                                    <div className="flex flex-wrap gap-2">
+                                        {visibilityLabels.map(({ key, label, icon: Icon }) => (
+                                            <VisibilityToggle
+                                                key={key}
+                                                checked={
+                                                    field.visibility[key as keyof FieldVisibility]
+                                                }
+                                                onChange={() =>
+                                                    handleInstituteFieldVisibilityChange(
+                                                        field.id,
+                                                        key as keyof FieldVisibility
+                                                    )
+                                                }
+                                                label={label}
+                                                icon={Icon}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Dropdown Options Manager */}
+                                {field.type === 'dropdown' && (
+                                    <DropdownOptionsManager field={field} />
+                                )}
+                            </div>
+                        ))}
+
+                        {/* Custom Fields */}
+                        {customFields.map((field) => (
+                            <div
+                                key={field.id}
+                                className="rounded-lg border border-gray-200 p-4 hover:bg-gray-50"
+                            >
+                                {/* Field Name and Delete Button Row */}
+                                <div className="mb-4 flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedFields.has(field.id)}
+                                            onChange={() => handleFieldSelection(field.id)}
+                                            className="size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <div className="w-48">
+                                            <input
+                                                type="text"
+                                                value={field.name}
+                                                onChange={(e) =>
+                                                    handleCustomFieldNameChange(
+                                                        field.id,
+                                                        e.target.value
+                                                    )
+                                                }
+                                                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                                                placeholder="Field name"
+                                            />
+                                        </div>
+                                        <div className="w-48">
+                                            <select
+                                                value={field.type}
+                                                onChange={(e) =>
+                                                    handleCustomFieldTypeChange(
+                                                        field.id,
+                                                        e.target.value as 'text' | 'dropdown'
+                                                    )
+                                                }
+                                                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                                            >
+                                                <option value="text">Text Field</option>
+                                                <option value="dropdown">Dropdown</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => handleRemoveCustomField(field.id)}
+                                        className="rounded bg-red-500 px-3 py-2 text-white transition-colors hover:bg-red-600"
+                                        title="Delete field"
+                                    >
+                                        <Trash2 className="size-4" />
+                                    </button>
+                                </div>
+
+                                {/* Visibility Controls */}
+                                <div className="mb-3">
+                                    <div className="flex flex-wrap gap-2">
+                                        {visibilityLabels.map(({ key, label, icon: Icon }) => (
+                                            <VisibilityToggle
+                                                key={key}
+                                                checked={
+                                                    field.visibility[key as keyof FieldVisibility]
+                                                }
+                                                onChange={() =>
+                                                    handleCustomFieldVisibilityChange(
+                                                        field.id,
+                                                        key as keyof FieldVisibility
+                                                    )
+                                                }
+                                                label={label}
+                                                icon={Icon}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Dropdown Options Manager */}
+                                {field.type === 'dropdown' && (
+                                    <DropdownOptionsManager field={field} />
+                                )}
+                            </div>
+                        ))}
+
+                        {/* Field Groups */}
                         {fieldGroups.map((group) => (
                             <div
                                 key={group.id}
@@ -1260,9 +1205,22 @@ const CustomFieldsSettings: React.FC = () => {
                                 </div>
                             </div>
                         ))}
+
+                        {/* Empty State */}
+                        {instituteFields.length === 0 &&
+                            customFields.length === 0 &&
+                            fieldGroups.length === 0 && (
+                                <div className="py-8 text-center text-gray-500">
+                                    <Settings className="mx-auto mb-3 size-10 text-gray-300" />
+                                    <p>No institute fields available.</p>
+                                    <p className="text-sm">
+                                        Click Add Custom Field to get started.
+                                    </p>
+                                </div>
+                            )}
                     </div>
                 </div>
-            )}
+            </div>
 
             {/* Add Custom Field Modal */}
             {showAddModal && (
