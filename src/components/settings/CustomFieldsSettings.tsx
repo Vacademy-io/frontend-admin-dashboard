@@ -13,6 +13,7 @@ import {
     User,
     ClipboardList,
     Trash2,
+    FolderPlus,
 } from 'lucide-react';
 
 // Types
@@ -37,6 +38,12 @@ interface FixedField {
     id: string;
     name: string;
     visibility: FieldVisibility;
+}
+
+interface FieldGroup {
+    id: string;
+    name: string;
+    fields: (CustomField | FixedField)[];
 }
 
 // Dummy data
@@ -345,8 +352,14 @@ const CustomFieldsSettings: React.FC = () => {
     const [fixedFields, setFixedFields] = useState<FixedField[]>(initialFixedFields);
     const [instituteFields, setInstituteFields] = useState<CustomField[]>(initialInstituteFields);
     const [customFields, setCustomFields] = useState<CustomField[]>(initialCustomFields);
+    const [fieldGroups, setFieldGroups] = useState<FieldGroup[]>([]);
     const [showAddModal, setShowAddModal] = useState(false);
-    const [editingField, setEditingField] = useState<CustomField | null>(null);
+    const [showGroupModal, setShowGroupModal] = useState(false);
+    const [selectedFields, setSelectedFields] = useState<Set<string>>(new Set());
+    const [newGroup, setNewGroup] = useState<Partial<FieldGroup>>({
+        name: '',
+        fields: [],
+    });
     const [newField, setNewField] = useState<Partial<CustomField>>({
         name: '',
         type: 'text',
@@ -585,7 +598,95 @@ const CustomFieldsSettings: React.FC = () => {
 
     const handleSaveChanges = () => {
         // TODO: API call to save changes
-        console.log('Saving changes:', { fixedFields, instituteFields, customFields });
+        console.log('Saving changes:', { fixedFields, instituteFields, customFields, fieldGroups });
+    };
+
+    const handleFieldSelection = (fieldId: string) => {
+        setSelectedFields((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(fieldId)) {
+                newSet.delete(fieldId);
+            } else {
+                newSet.add(fieldId);
+            }
+            return newSet;
+        });
+    };
+
+    const handleCreateGroup = () => {
+        if (selectedFields.size === 0) return;
+
+        const selectedFieldIds = Array.from(selectedFields);
+        const allFields = [...fixedFields, ...instituteFields, ...customFields];
+        const selectedFieldObjects = allFields.filter((field) =>
+            selectedFieldIds.includes(field.id)
+        );
+
+        setNewGroup({
+            name: '',
+            fields: selectedFieldObjects,
+        });
+        setShowGroupModal(true);
+    };
+
+    const handleAddGroup = () => {
+        if (newGroup.name && newGroup.fields && newGroup.fields.length > 0) {
+            const group: FieldGroup = {
+                id: Date.now().toString(),
+                name: newGroup.name,
+                fields: newGroup.fields,
+            };
+            setFieldGroups((prev) => [...prev, group]);
+            setNewGroup({ name: '', fields: [] });
+            setShowGroupModal(false);
+            setSelectedFields(new Set());
+        }
+    };
+
+    const handleAddFieldToGroup = (groupId: string) => {
+        if (newField.name && newField.type) {
+            const field: CustomField = {
+                id: Date.now().toString(),
+                name: newField.name,
+                type: newField.type,
+                options: newField.type === 'dropdown' ? newField.options : undefined,
+                visibility: newField.visibility!,
+            };
+
+            setFieldGroups((prev) =>
+                prev.map((group) =>
+                    group.id === groupId ? { ...group, fields: [...group.fields, field] } : group
+                )
+            );
+
+            setNewField({
+                name: '',
+                type: 'text',
+                options: [],
+                visibility: {
+                    learnersList: false,
+                    enrollRequestList: false,
+                    inviteList: false,
+                    assessmentRegistration: false,
+                    liveSessionRegistration: false,
+                    learnerProfile: false,
+                },
+            });
+        }
+    };
+
+    const handleRemoveGroup = (groupId: string) => {
+        setFieldGroups((prev) => prev.filter((group) => group.id !== groupId));
+    };
+
+    const handleRemoveFieldFromGroup = (groupId: string, fieldId: string) => {
+        setFieldGroups((prev) =>
+            prev.map((group) =>
+                group.id === groupId
+                    ? { ...group, fields: group.fields.filter((field) => field.id !== fieldId) }
+                    : group
+            )
+        );
     };
 
     const VisibilityToggle: React.FC<{
@@ -603,7 +704,7 @@ const CustomFieldsSettings: React.FC = () => {
             }`}
             title={label}
         >
-            {checked ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+            {checked ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
             <span className="hidden lg:inline">{label}</span>
         </button>
     );
@@ -679,13 +780,13 @@ const CustomFieldsSettings: React.FC = () => {
                                         onClick={() => startEditing(index, option)}
                                         className="rounded bg-blue-500 px-2 py-1 text-xs text-white hover:bg-blue-600"
                                     >
-                                        <Edit2 className="h-3 w-3" />
+                                        <Edit2 className="size-3" />
                                     </button>
                                     <button
                                         onClick={() => handleRemoveOption(field.id, index)}
                                         className="rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
                                     >
-                                        <Trash2 className="h-3 w-3" />
+                                        <Trash2 className="size-3" />
                                     </button>
                                 </>
                             )}
@@ -707,7 +808,7 @@ const CustomFieldsSettings: React.FC = () => {
                             disabled={!newOptionValue.trim()}
                             className="rounded bg-green-500 px-3 py-1 text-xs text-white hover:bg-green-600 disabled:opacity-50"
                         >
-                            <Plus className="h-3 w-3" />
+                            <Plus className="size-3" />
                         </button>
                     </div>
                 </div>
@@ -720,17 +821,25 @@ const CustomFieldsSettings: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Custom Fields Settings</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">Custom Fields Settings</h1>
                     <p className="mt-2 text-gray-600">
                         Configure how fields appear across different parts of the system
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
                     <button
+                        onClick={handleCreateGroup}
+                        disabled={selectedFields.size === 0}
+                        className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        <FolderPlus className="size-4" />
+                        Add Group
+                    </button>
+                    <button
                         onClick={() => setShowAddModal(true)}
                         className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700"
                     >
-                        <Plus className="h-4 w-4" />
+                        <Plus className="size-4" />
                         Add Custom Field
                     </button>
                     <button
@@ -747,18 +856,31 @@ const CustomFieldsSettings: React.FC = () => {
             <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
                 <div className="border-b border-gray-200 p-6">
                     <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-900">
-                        <Settings className="h-5 w-5 text-blue-600" />
+                        <Settings className="size-5 text-blue-600" />
                         Institute Fields
                     </h2>
+                    <p className="mt-2 text-sm text-gray-600">
+                        Select fields using the checkboxes on the left to create groups. You can
+                        select system fields, institute fields, and custom fields. Use the &quot;Add
+                        Group&quot; button to combine selected fields.
+                    </p>
                 </div>
 
-                <div className="p-6 space-y-8">
+                <div className="space-y-8 p-6">
                     {/* Fixed Institute Fields Subsection */}
                     <div>
+                        <h3 className="mb-4 text-lg font-semibold text-gray-900">System Fields</h3>
+                        <p className="mb-4 text-sm text-gray-600">
+                            System fields are predefined and cannot be modified, but can be included
+                            in groups.
+                        </p>
                         <div className="overflow-x-auto">
                             <table className="w-full">
                                 <thead>
                                     <tr className="border-b border-gray-200">
+                                        <th className="px-4 py-3 text-center font-medium text-gray-700">
+                                            Select
+                                        </th>
                                         <th className="px-4 py-3 text-left font-medium text-gray-700">
                                             Field Name
                                         </th>
@@ -768,7 +890,7 @@ const CustomFieldsSettings: React.FC = () => {
                                                 className="px-2 py-3 text-center font-medium text-gray-700"
                                             >
                                                 <div className="flex flex-col items-center gap-1">
-                                                    <Icon className="h-4 w-4 text-gray-500" />
+                                                    <Icon className="size-4 text-gray-500" />
                                                     <span className="text-xs">{label}</span>
                                                 </div>
                                             </th>
@@ -781,7 +903,15 @@ const CustomFieldsSettings: React.FC = () => {
                                             key={field.id}
                                             className="border-b border-gray-100 hover:bg-gray-50"
                                         >
-                                            <td className="px-4 py-4">
+                                            <td className="p-4 text-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedFields.has(field.id)}
+                                                    onChange={() => handleFieldSelection(field.id)}
+                                                    className="size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                />
+                                            </td>
+                                            <td className="p-4">
                                                 <span className="font-medium text-gray-900">
                                                     {field.name}
                                                 </span>
@@ -817,9 +947,12 @@ const CustomFieldsSettings: React.FC = () => {
 
                     {/* Institute Fields Subsection */}
                     <div>
+                        <h3 className="mb-4 text-lg font-semibold text-gray-900">
+                            Institute Fields
+                        </h3>
                         {instituteFields.length === 0 ? (
                             <div className="py-8 text-center text-gray-500">
-                                <Settings className="mx-auto mb-3 h-10 w-10 text-gray-300" />
+                                <Settings className="mx-auto mb-3 size-10 text-gray-300" />
                                 <p>No standard institute fields available.</p>
                             </div>
                         ) : (
@@ -830,8 +963,14 @@ const CustomFieldsSettings: React.FC = () => {
                                         className="rounded-lg border border-gray-200 p-4 hover:bg-gray-50"
                                     >
                                         {/* Field Name and Delete Button Row */}
-                                        <div className="flex items-center justify-between mb-4">
+                                        <div className="mb-4 flex items-center justify-between">
                                             <div className="flex items-center gap-4">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedFields.has(field.id)}
+                                                    onChange={() => handleFieldSelection(field.id)}
+                                                    className="size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                />
                                                 <div className="w-48">
                                                     <input
                                                         type="text"
@@ -852,7 +991,9 @@ const CustomFieldsSettings: React.FC = () => {
                                                         onChange={(e) =>
                                                             handleInstituteFieldTypeChange(
                                                                 field.id,
-                                                                e.target.value as 'text' | 'dropdown'
+                                                                e.target.value as
+                                                                    | 'text'
+                                                                    | 'dropdown'
                                                             )
                                                         }
                                                         className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
@@ -867,7 +1008,7 @@ const CustomFieldsSettings: React.FC = () => {
                                                 className="rounded bg-red-500 px-3 py-2 text-white transition-colors hover:bg-red-600"
                                                 title="Delete field"
                                             >
-                                                <Trash2 className="h-4 w-4" />
+                                                <Trash2 className="size-4" />
                                             </button>
                                         </div>
 
@@ -909,9 +1050,10 @@ const CustomFieldsSettings: React.FC = () => {
 
                     {/* Custom Fields Subsection */}
                     <div>
+                        <h3 className="mb-4 text-lg font-semibold text-gray-900">Custom Fields</h3>
                         {customFields.length === 0 ? (
                             <div className="py-8 text-center text-gray-500">
-                                <Edit2 className="mx-auto mb-3 h-10 w-10 text-gray-300" />
+                                <Edit2 className="mx-auto mb-3 size-10 text-gray-300" />
                                 <p>No custom fields created yet.</p>
                                 <p className="text-sm">Click Add Custom Field to get started.</p>
                             </div>
@@ -923,8 +1065,14 @@ const CustomFieldsSettings: React.FC = () => {
                                         className="rounded-lg border border-gray-200 p-4 hover:bg-gray-50"
                                     >
                                         {/* Field Name and Delete Button Row */}
-                                        <div className="flex items-center justify-between mb-4">
+                                        <div className="mb-4 flex items-center justify-between">
                                             <div className="flex items-center gap-4">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedFields.has(field.id)}
+                                                    onChange={() => handleFieldSelection(field.id)}
+                                                    className="size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                />
                                                 <div className="w-48">
                                                     <input
                                                         type="text"
@@ -945,7 +1093,9 @@ const CustomFieldsSettings: React.FC = () => {
                                                         onChange={(e) =>
                                                             handleCustomFieldTypeChange(
                                                                 field.id,
-                                                                e.target.value as 'text' | 'dropdown'
+                                                                e.target.value as
+                                                                    | 'text'
+                                                                    | 'dropdown'
                                                             )
                                                         }
                                                         className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
@@ -960,7 +1110,7 @@ const CustomFieldsSettings: React.FC = () => {
                                                 className="rounded bg-red-500 px-3 py-2 text-white transition-colors hover:bg-red-600"
                                                 title="Delete field"
                                             >
-                                                <Trash2 className="h-4 w-4" />
+                                                <Trash2 className="size-4" />
                                             </button>
                                         </div>
 
@@ -1002,6 +1152,118 @@ const CustomFieldsSettings: React.FC = () => {
                 </div>
             </div>
 
+            {/* Field Groups Section */}
+            {fieldGroups.length > 0 && (
+                <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+                    <div className="border-b border-gray-200 p-6">
+                        <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-900">
+                            <FolderPlus className="size-5 text-blue-600" />
+                            Field Groups
+                        </h2>
+                    </div>
+                    <div className="space-y-6 p-6">
+                        {fieldGroups.map((group) => (
+                            <div
+                                key={group.id}
+                                className="rounded-lg border border-blue-200 bg-blue-50 p-4"
+                            >
+                                <div className="mb-4 flex items-center justify-between">
+                                    <h3 className="text-lg font-semibold text-blue-900">
+                                        {group.name}
+                                    </h3>
+                                    <button
+                                        onClick={() => handleRemoveGroup(group.id)}
+                                        className="rounded bg-red-500 px-3 py-2 text-white transition-colors hover:bg-red-600"
+                                        title="Delete group"
+                                    >
+                                        <Trash2 className="size-4" />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-3">
+                                    {group.fields.map((field) => (
+                                        <div
+                                            key={field.id}
+                                            className="flex items-center justify-between rounded-lg border border-blue-200 bg-white p-3"
+                                        >
+                                            <div className="flex items-center gap-4">
+                                                <span className="font-medium text-gray-900">
+                                                    {field.name}
+                                                </span>
+                                                <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">
+                                                    {'type' in field ? field.type : 'System Field'}
+                                                </span>
+                                                {'type' in field &&
+                                                    field.type === 'dropdown' &&
+                                                    field.options && (
+                                                        <span className="text-sm text-gray-600">
+                                                            {field.options.length} options
+                                                        </span>
+                                                    )}
+                                            </div>
+                                            <button
+                                                onClick={() =>
+                                                    handleRemoveFieldFromGroup(group.id, field.id)
+                                                }
+                                                className="rounded bg-red-400 px-2 py-1 text-xs text-white hover:bg-red-500"
+                                                title="Remove from group"
+                                            >
+                                                <X className="size-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Add Field to Group */}
+                                <div className="mt-4 border-t border-blue-200 pt-4">
+                                    <h4 className="mb-3 text-sm font-medium text-blue-900">
+                                        Add Field to Group
+                                    </h4>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="text"
+                                            value={newField.name}
+                                            onChange={(e) =>
+                                                setNewField((prev) => ({
+                                                    ...prev,
+                                                    name: e.target.value,
+                                                }))
+                                            }
+                                            className="flex-1 rounded-lg border border-blue-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Field name"
+                                        />
+                                        <select
+                                            value={newField.type}
+                                            onChange={(e) =>
+                                                setNewField((prev) => ({
+                                                    ...prev,
+                                                    type: e.target.value as 'text' | 'dropdown',
+                                                    options:
+                                                        e.target.value === 'dropdown'
+                                                            ? ['Option 1']
+                                                            : undefined,
+                                                }))
+                                            }
+                                            className="w-48 rounded-lg border border-blue-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            <option value="text">Text Field</option>
+                                            <option value="dropdown">Dropdown</option>
+                                        </select>
+                                        <button
+                                            onClick={() => handleAddFieldToGroup(group.id)}
+                                            disabled={!newField.name}
+                                            className="rounded-lg bg-blue-600 p-3 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            <Plus className="size-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Add Custom Field Modal */}
             {showAddModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -1015,7 +1277,7 @@ const CustomFieldsSettings: React.FC = () => {
                                     onClick={() => setShowAddModal(false)}
                                     className="text-gray-400 hover:text-gray-600"
                                 >
-                                    <X className="h-6 w-6" />
+                                    <X className="size-6" />
                                 </button>
                             </div>
                         </div>
@@ -1095,7 +1357,7 @@ const CustomFieldsSettings: React.FC = () => {
                                                     }
                                                     className="rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
                                                 >
-                                                    <Trash2 className="h-3 w-3" />
+                                                    <Trash2 className="size-3" />
                                                 </button>
                                             </div>
                                         ))}
@@ -1111,7 +1373,7 @@ const CustomFieldsSettings: React.FC = () => {
                                             }
                                             className="flex items-center gap-2 rounded bg-green-500 px-3 py-1 text-xs text-white hover:bg-green-600"
                                         >
-                                            <Plus className="h-3 w-3" />
+                                            <Plus className="size-3" />
                                             Add Option
                                         </button>
                                     </div>
@@ -1145,9 +1407,9 @@ const CustomFieldsSettings: React.FC = () => {
                                                         },
                                                     }))
                                                 }
-                                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                className="size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                             />
-                                            <Icon className="h-4 w-4 text-gray-500" />
+                                            <Icon className="size-4 text-gray-500" />
                                             <span className="text-sm text-gray-700">{label}</span>
                                         </label>
                                     ))}
@@ -1168,6 +1430,229 @@ const CustomFieldsSettings: React.FC = () => {
                                 className="rounded-lg bg-blue-600 px-6 py-2 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 Add Field
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Add Group Modal */}
+            {showGroupModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="mx-4 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white shadow-xl">
+                        <div className="border-b border-gray-200 p-6">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-xl font-semibold text-gray-900">
+                                    Create Field Group
+                                </h3>
+                                <button
+                                    onClick={() => setShowGroupModal(false)}
+                                    className="text-gray-400 hover:text-gray-600"
+                                >
+                                    <X className="size-6" />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-6 p-6">
+                            {/* Group Name */}
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-gray-700">
+                                    Group Name *
+                                </label>
+                                <input
+                                    type="text"
+                                    value={newGroup.name}
+                                    onChange={(e) =>
+                                        setNewGroup((prev) => ({ ...prev, name: e.target.value }))
+                                    }
+                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Enter group name"
+                                />
+                            </div>
+
+                            {/* Selected Fields Preview */}
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-gray-700">
+                                    Selected Fields ({newGroup.fields?.length || 0})
+                                </label>
+                                <div className="space-y-2">
+                                    {newGroup.fields?.map((field) => (
+                                        <div
+                                            key={field.id}
+                                            className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-3"
+                                        >
+                                            <div className="flex items-center gap-4">
+                                                <span className="font-medium text-gray-900">
+                                                    {field.name}
+                                                </span>
+                                                <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">
+                                                    {'type' in field ? field.type : 'System Field'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Add Custom Field to Group */}
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-gray-700">
+                                    Add Custom Field to Group
+                                </label>
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="text"
+                                            value={newField.name}
+                                            onChange={(e) =>
+                                                setNewField((prev) => ({
+                                                    ...prev,
+                                                    name: e.target.value,
+                                                }))
+                                            }
+                                            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Field name"
+                                        />
+                                        <select
+                                            value={newField.type}
+                                            onChange={(e) =>
+                                                setNewField((prev) => ({
+                                                    ...prev,
+                                                    type: e.target.value as 'text' | 'dropdown',
+                                                    options:
+                                                        e.target.value === 'dropdown'
+                                                            ? ['Option 1']
+                                                            : undefined,
+                                                }))
+                                            }
+                                            className="w-48 rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            <option value="text">Text Field</option>
+                                            <option value="dropdown">Dropdown</option>
+                                        </select>
+                                        <button
+                                            onClick={() => {
+                                                if (newField.name && newField.type) {
+                                                    const field: CustomField = {
+                                                        id: Date.now().toString(),
+                                                        name: newField.name,
+                                                        type: newField.type,
+                                                        options:
+                                                            newField.type === 'dropdown'
+                                                                ? newField.options
+                                                                : undefined,
+                                                        visibility: newField.visibility!,
+                                                    };
+                                                    setNewGroup((prev) => ({
+                                                        ...prev,
+                                                        fields: [...(prev.fields || []), field],
+                                                    }));
+                                                    setNewField({
+                                                        name: '',
+                                                        type: 'text',
+                                                        options: [],
+                                                        visibility: {
+                                                            learnersList: false,
+                                                            enrollRequestList: false,
+                                                            inviteList: false,
+                                                            assessmentRegistration: false,
+                                                            liveSessionRegistration: false,
+                                                            learnerProfile: false,
+                                                        },
+                                                    });
+                                                }
+                                            }}
+                                            disabled={!newField.name}
+                                            className="rounded-lg bg-green-600 p-3 text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            <Plus className="size-4" />
+                                        </button>
+                                    </div>
+
+                                    {/* Initial Options for Dropdown */}
+                                    {newField.type === 'dropdown' && (
+                                        <div>
+                                            <label className="mb-2 block text-sm font-medium text-gray-700">
+                                                Initial Options
+                                            </label>
+                                            <div className="space-y-2">
+                                                {newField.options?.map((option, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="flex items-center gap-2"
+                                                    >
+                                                        <input
+                                                            type="text"
+                                                            value={option}
+                                                            onChange={(e) =>
+                                                                setNewField((prev) => ({
+                                                                    ...prev,
+                                                                    options: prev.options?.map(
+                                                                        (opt, i) =>
+                                                                            i === index
+                                                                                ? e.target.value
+                                                                                : opt
+                                                                    ),
+                                                                }))
+                                                            }
+                                                            className="flex-1 rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                            placeholder={`Option ${index + 1}`}
+                                                        />
+                                                        <button
+                                                            onClick={() =>
+                                                                setNewField((prev) => ({
+                                                                    ...prev,
+                                                                    options: prev.options?.filter(
+                                                                        (_, i) => i !== index
+                                                                    ),
+                                                                }))
+                                                            }
+                                                            className="rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
+                                                        >
+                                                            <Trash2 className="size-3" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                                <button
+                                                    onClick={() =>
+                                                        setNewField((prev) => ({
+                                                            ...prev,
+                                                            options: [
+                                                                ...(prev.options || []),
+                                                                `Option ${(prev.options?.length || 0) + 1}`,
+                                                            ],
+                                                        }))
+                                                    }
+                                                    className="flex items-center gap-2 rounded bg-green-500 px-3 py-1 text-xs text-white hover:bg-green-600"
+                                                >
+                                                    <Plus className="size-3" />
+                                                    Add Option
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end gap-3 border-t border-gray-200 p-6">
+                            <button
+                                onClick={() => setShowGroupModal(false)}
+                                className="rounded-lg bg-gray-100 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-200"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleAddGroup}
+                                disabled={
+                                    !newGroup.name ||
+                                    !newGroup.fields ||
+                                    newGroup.fields.length === 0
+                                }
+                                className="rounded-lg bg-blue-600 px-6 py-2 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                Create Group
                             </button>
                         </div>
                     </div>
