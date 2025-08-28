@@ -43,7 +43,16 @@ interface FixedField {
 interface FieldGroup {
     id: string;
     name: string;
-    fields: (CustomField | FixedField)[];
+    fields: (CustomField | FixedField | GroupField)[];
+    groups?: FieldGroup[];
+}
+
+interface GroupField {
+    id: string;
+    name: string;
+    type: 'group';
+    isGroup: true;
+    originalGroup: FieldGroup;
 }
 
 // Dummy data
@@ -622,9 +631,24 @@ const CustomFieldsSettings: React.FC = () => {
             selectedFieldIds.includes(field.id)
         );
 
+        // Check if any selected items are groups
+        const selectedGroups = fieldGroups.filter((group) => selectedFieldIds.includes(group.id));
+
+        // Combine all selected fields and groups into a single fields array
+        const allSelectedItems: (CustomField | FixedField | GroupField)[] = [
+            ...selectedFieldObjects,
+            ...selectedGroups.map((group) => ({
+                id: group.id,
+                name: group.name,
+                type: 'group' as const,
+                isGroup: true as const,
+                originalGroup: group,
+            })),
+        ];
+
         setNewGroup({
             name: '',
-            fields: selectedFieldObjects,
+            fields: allSelectedItems,
         });
         setShowGroupModal(true);
     };
@@ -860,9 +884,10 @@ const CustomFieldsSettings: React.FC = () => {
                         Institute Fields
                     </h2>
                     <p className="mt-2 text-sm text-gray-600">
-                        Select fields using the checkboxes on the left to create groups. All fields
-                        are part of institute fields. Use the &quot;Add Group&quot; button to
-                        combine selected fields.
+                        Select fields and groups using the checkboxes on the left to create groups.
+                        All fields are part of institute fields. You can create nested groups by
+                        selecting existing groups. Use the &quot;Add Group&quot; button to combine
+                        selected items.
                     </p>
                 </div>
 
@@ -1113,9 +1138,17 @@ const CustomFieldsSettings: React.FC = () => {
                                 className="rounded-lg border border-blue-200 bg-blue-50 p-4"
                             >
                                 <div className="mb-4 flex items-center justify-between">
-                                    <h3 className="text-lg font-semibold text-blue-900">
-                                        {group.name}
-                                    </h3>
+                                    <div className="flex items-center gap-4">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedFields.has(group.id)}
+                                            onChange={() => handleFieldSelection(group.id)}
+                                            className="size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <h3 className="text-lg font-semibold text-blue-900">
+                                            {group.name}
+                                        </h3>
+                                    </div>
                                     <button
                                         onClick={() => handleRemoveGroup(group.id)}
                                         className="rounded bg-red-500 px-3 py-2 text-white transition-colors hover:bg-red-600"
@@ -1126,6 +1159,7 @@ const CustomFieldsSettings: React.FC = () => {
                                 </div>
 
                                 <div className="space-y-3">
+                                    {/* All Fields and Groups */}
                                     {group.fields.map((field) => (
                                         <div
                                             key={field.id}
@@ -1136,7 +1170,11 @@ const CustomFieldsSettings: React.FC = () => {
                                                     {field.name}
                                                 </span>
                                                 <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">
-                                                    {'type' in field ? field.type : 'System Field'}
+                                                    {'isGroup' in field && field.isGroup
+                                                        ? `Group (${field.originalGroup.fields.length} fields)`
+                                                        : 'type' in field
+                                                          ? field.type
+                                                          : 'System Field'}
                                                 </span>
                                                 {'type' in field &&
                                                     field.type === 'dropdown' &&
@@ -1429,10 +1467,10 @@ const CustomFieldsSettings: React.FC = () => {
                                 />
                             </div>
 
-                            {/* Selected Fields Preview */}
+                            {/* Selected Items Preview */}
                             <div>
                                 <label className="mb-2 block text-sm font-medium text-gray-700">
-                                    Selected Fields ({newGroup.fields?.length || 0})
+                                    Selected Items ({newGroup.fields?.length || 0})
                                 </label>
                                 <div className="space-y-2">
                                     {newGroup.fields?.map((field) => (
@@ -1445,7 +1483,11 @@ const CustomFieldsSettings: React.FC = () => {
                                                     {field.name}
                                                 </span>
                                                 <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">
-                                                    {'type' in field ? field.type : 'System Field'}
+                                                    {'isGroup' in field && field.isGroup
+                                                        ? `Group (${field.originalGroup.fields.length} fields)`
+                                                        : 'type' in field
+                                                          ? field.type
+                                                          : 'System Field'}
                                                 </span>
                                             </div>
                                         </div>
