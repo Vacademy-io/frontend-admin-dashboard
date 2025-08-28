@@ -32,12 +32,14 @@ interface CustomField {
     type: 'text' | 'dropdown';
     options?: string[];
     visibility: FieldVisibility;
+    required: boolean;
 }
 
 interface FixedField {
     id: string;
     name: string;
     visibility: FieldVisibility;
+    required: boolean;
 }
 
 interface FieldGroup {
@@ -68,6 +70,7 @@ const initialFixedFields: FixedField[] = [
             liveSessionRegistration: true,
             learnerProfile: true,
         },
+        required: true,
     },
     {
         id: 'email',
@@ -80,6 +83,7 @@ const initialFixedFields: FixedField[] = [
             liveSessionRegistration: true,
             learnerProfile: true,
         },
+        required: true,
     },
     {
         id: 'phone',
@@ -92,6 +96,7 @@ const initialFixedFields: FixedField[] = [
             liveSessionRegistration: true,
             learnerProfile: true,
         },
+        required: false,
     },
     {
         id: 'username',
@@ -104,6 +109,7 @@ const initialFixedFields: FixedField[] = [
             liveSessionRegistration: false,
             learnerProfile: true,
         },
+        required: true,
     },
     {
         id: 'password',
@@ -116,6 +122,7 @@ const initialFixedFields: FixedField[] = [
             liveSessionRegistration: false,
             learnerProfile: false,
         },
+        required: true,
     },
     {
         id: 'batch',
@@ -128,6 +135,7 @@ const initialFixedFields: FixedField[] = [
             liveSessionRegistration: false,
             learnerProfile: true,
         },
+        required: false,
     },
 ];
 
@@ -144,6 +152,7 @@ const initialInstituteFields: CustomField[] = [
             liveSessionRegistration: true,
             learnerProfile: true,
         },
+        required: true,
     },
     {
         id: 'collegeSchool',
@@ -157,6 +166,7 @@ const initialInstituteFields: CustomField[] = [
             liveSessionRegistration: false,
             learnerProfile: true,
         },
+        required: false,
     },
     {
         id: 'gender',
@@ -171,6 +181,7 @@ const initialInstituteFields: CustomField[] = [
             liveSessionRegistration: true,
             learnerProfile: true,
         },
+        required: false,
     },
     {
         id: 'fatherGuardianName',
@@ -184,6 +195,7 @@ const initialInstituteFields: CustomField[] = [
             liveSessionRegistration: false,
             learnerProfile: true,
         },
+        required: false,
     },
     {
         id: 'motherGuardianName',
@@ -197,6 +209,7 @@ const initialInstituteFields: CustomField[] = [
             liveSessionRegistration: false,
             learnerProfile: true,
         },
+        required: false,
     },
     {
         id: 'fatherGuardianMobile',
@@ -210,6 +223,7 @@ const initialInstituteFields: CustomField[] = [
             liveSessionRegistration: false,
             learnerProfile: true,
         },
+        required: false,
     },
     {
         id: 'fatherGuardianEmail',
@@ -223,6 +237,7 @@ const initialInstituteFields: CustomField[] = [
             liveSessionRegistration: false,
             learnerProfile: true,
         },
+        required: false,
     },
     {
         id: 'motherGuardianMobile',
@@ -236,6 +251,7 @@ const initialInstituteFields: CustomField[] = [
             liveSessionRegistration: false,
             learnerProfile: true,
         },
+        required: false,
     },
     {
         id: 'motherGuardianEmail',
@@ -249,6 +265,7 @@ const initialInstituteFields: CustomField[] = [
             liveSessionRegistration: false,
             learnerProfile: true,
         },
+        required: false,
     },
     {
         id: 'city',
@@ -262,6 +279,7 @@ const initialInstituteFields: CustomField[] = [
             liveSessionRegistration: false,
             learnerProfile: true,
         },
+        required: false,
     },
     {
         id: 'state',
@@ -275,6 +293,7 @@ const initialInstituteFields: CustomField[] = [
             liveSessionRegistration: false,
             learnerProfile: true,
         },
+        required: false,
     },
     {
         id: 'sessionExpiry',
@@ -288,6 +307,7 @@ const initialInstituteFields: CustomField[] = [
             liveSessionRegistration: false,
             learnerProfile: true,
         },
+        required: false,
     },
     {
         id: 'status',
@@ -302,6 +322,7 @@ const initialInstituteFields: CustomField[] = [
             liveSessionRegistration: false,
             learnerProfile: true,
         },
+        required: true,
     },
 ];
 
@@ -319,6 +340,7 @@ const initialCustomFields: CustomField[] = [
             liveSessionRegistration: false,
             learnerProfile: true,
         },
+        required: false,
     },
     {
         id: '2',
@@ -332,6 +354,7 @@ const initialCustomFields: CustomField[] = [
             liveSessionRegistration: true,
             learnerProfile: true,
         },
+        required: true,
     },
     {
         id: '3',
@@ -345,6 +368,7 @@ const initialCustomFields: CustomField[] = [
             liveSessionRegistration: false,
             learnerProfile: true,
         },
+        required: false,
     },
 ];
 
@@ -373,6 +397,7 @@ const CustomFieldsSettings: React.FC = () => {
         name: '',
         type: 'text',
         options: [],
+        required: false,
         visibility: {
             learnersList: false,
             enrollRequestList: false,
@@ -396,6 +421,19 @@ const CustomFieldsSettings: React.FC = () => {
                               ...field.visibility,
                               [visibilityKey]: !field.visibility[visibilityKey],
                           },
+                      }
+                    : field
+            )
+        );
+    };
+
+    const handleFixedFieldRequiredChange = (fieldId: string) => {
+        setFixedFields((prev) =>
+            prev.map((field) =>
+                field.id === fieldId
+                    ? {
+                          ...field,
+                          required: !field.required,
                       }
                     : field
             )
@@ -441,6 +479,19 @@ const CustomFieldsSettings: React.FC = () => {
         );
     };
 
+    const handleInstituteFieldRequiredChange = (fieldId: string) => {
+        setInstituteFields((prev) =>
+            prev.map((field) =>
+                field.id === fieldId
+                    ? {
+                          ...field,
+                          required: !field.required,
+                      }
+                    : field
+            )
+        );
+    };
+
     const handleRemoveInstituteField = (fieldId: string) => {
         setInstituteFields((prev) => prev.filter((field) => field.id !== fieldId));
     };
@@ -478,6 +529,19 @@ const CustomFieldsSettings: React.FC = () => {
                           ...field,
                           type: newType,
                           options: newType === 'dropdown' ? ['Option 1'] : undefined,
+                      }
+                    : field
+            )
+        );
+    };
+
+    const handleCustomFieldRequiredChange = (fieldId: string) => {
+        setCustomFields((prev) =>
+            prev.map((field) =>
+                field.id === fieldId
+                    ? {
+                          ...field,
+                          required: !field.required,
                       }
                     : field
             )
@@ -585,6 +649,7 @@ const CustomFieldsSettings: React.FC = () => {
                 name: newField.name,
                 type: newField.type,
                 options: newField.type === 'dropdown' ? newField.options : undefined,
+                required: newField.required || false,
                 visibility: newField.visibility!,
             };
             setCustomFields((prev) => [...prev, field]);
@@ -592,6 +657,7 @@ const CustomFieldsSettings: React.FC = () => {
                 name: '',
                 type: 'text',
                 options: [],
+                required: false,
                 visibility: {
                     learnersList: false,
                     enrollRequestList: false,
@@ -674,6 +740,7 @@ const CustomFieldsSettings: React.FC = () => {
                 name: newField.name,
                 type: newField.type,
                 options: newField.type === 'dropdown' ? newField.options : undefined,
+                required: newField.required || false,
                 visibility: newField.visibility!,
             };
 
@@ -905,6 +972,9 @@ const CustomFieldsSettings: React.FC = () => {
                                         <th className="px-4 py-3 text-left font-medium text-gray-700">
                                             Field Name
                                         </th>
+                                        <th className="px-4 py-3 text-center font-medium text-gray-700">
+                                            Required
+                                        </th>
                                         {visibilityLabels.map(({ key, label, icon: Icon }) => (
                                             <th
                                                 key={key}
@@ -933,12 +1003,34 @@ const CustomFieldsSettings: React.FC = () => {
                                                 />
                                             </td>
                                             <td className="p-4">
-                                                <span className="font-medium text-gray-900">
-                                                    {field.name}
-                                                </span>
-                                                <span className="ml-2 rounded bg-gray-100 px-2 py-1 text-xs text-gray-500">
-                                                    System Field
-                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="relative">
+                                                        <span className="font-medium text-gray-900">
+                                                            {field.name}
+                                                        </span>
+                                                        {field.required && (
+                                                            <span className="absolute -right-1 -top-3 mb-1 text-lg font-bold text-red-500">
+                                                                *
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-500">
+                                                        System Field
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="p-4 text-center">
+                                                <label className="relative inline-flex cursor-pointer items-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={field.required}
+                                                        onChange={() =>
+                                                            handleFixedFieldRequiredChange(field.id)
+                                                        }
+                                                        className="peer sr-only"
+                                                    />
+                                                    <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:size-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"></div>
+                                                </label>
                                             </td>
                                             {visibilityLabels.map(({ key, label, icon: Icon }) => (
                                                 <td key={key} className="px-2 py-4 text-center">
@@ -981,18 +1073,25 @@ const CustomFieldsSettings: React.FC = () => {
                                             className="size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                         />
                                         <div className="w-48">
-                                            <input
-                                                type="text"
-                                                value={field.name}
-                                                onChange={(e) =>
-                                                    handleInstituteFieldNameChange(
-                                                        field.id,
-                                                        e.target.value
-                                                    )
-                                                }
-                                                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
-                                                placeholder="Field name"
-                                            />
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={field.name}
+                                                    onChange={(e) =>
+                                                        handleInstituteFieldNameChange(
+                                                            field.id,
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 pr-8 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                                                    placeholder="Field name"
+                                                />
+                                                {field.required && (
+                                                    <span className="pointer-events-none absolute -top-3 right-2 mt-2 text-lg font-bold text-red-500">
+                                                        *
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                         <div className="w-48">
                                             <select
@@ -1008,6 +1107,22 @@ const CustomFieldsSettings: React.FC = () => {
                                                 <option value="text">Text Field</option>
                                                 <option value="dropdown">Dropdown</option>
                                             </select>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-medium text-gray-700">
+                                                Required:
+                                            </span>
+                                            <label className="relative inline-flex cursor-pointer items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={field.required}
+                                                    onChange={() =>
+                                                        handleInstituteFieldRequiredChange(field.id)
+                                                    }
+                                                    className="peer sr-only"
+                                                />
+                                                <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:size-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"></div>
+                                            </label>
                                         </div>
                                     </div>
                                     <button
@@ -1064,18 +1179,25 @@ const CustomFieldsSettings: React.FC = () => {
                                             className="size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                         />
                                         <div className="w-48">
-                                            <input
-                                                type="text"
-                                                value={field.name}
-                                                onChange={(e) =>
-                                                    handleCustomFieldNameChange(
-                                                        field.id,
-                                                        e.target.value
-                                                    )
-                                                }
-                                                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
-                                                placeholder="Field name"
-                                            />
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={field.name}
+                                                    onChange={(e) =>
+                                                        handleCustomFieldNameChange(
+                                                            field.id,
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 pr-8 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                                                    placeholder="Field name"
+                                                />
+                                                {field.required && (
+                                                    <span className="pointer-events-none absolute -top-3 right-2 mt-2 text-lg font-bold text-red-500">
+                                                        *
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                         <div className="w-48">
                                             <select
@@ -1091,6 +1213,22 @@ const CustomFieldsSettings: React.FC = () => {
                                                 <option value="text">Text Field</option>
                                                 <option value="dropdown">Dropdown</option>
                                             </select>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-medium text-gray-700">
+                                                Required:
+                                            </span>
+                                            <label className="relative inline-flex cursor-pointer items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={field.required}
+                                                    onChange={() =>
+                                                        handleCustomFieldRequiredChange(field.id)
+                                                    }
+                                                    className="peer sr-only"
+                                                />
+                                                <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:size-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"></div>
+                                            </label>
                                         </div>
                                     </div>
                                     <button
@@ -1166,9 +1304,16 @@ const CustomFieldsSettings: React.FC = () => {
                                             className="flex items-center justify-between rounded-lg border border-blue-200 bg-white p-3"
                                         >
                                             <div className="flex items-center gap-4">
-                                                <span className="font-medium text-gray-900">
-                                                    {field.name}
-                                                </span>
+                                                <div className="relative">
+                                                    <span className="font-medium text-gray-900">
+                                                        {field.name}
+                                                    </span>
+                                                    {'required' in field && field.required && (
+                                                        <span className="absolute -right-1 -top-3 text-lg font-bold text-red-500">
+                                                            *
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">
                                                     {'isGroup' in field && field.isGroup
                                                         ? `Group (${field.originalGroup.fields.length} fields)`
@@ -1203,18 +1348,25 @@ const CustomFieldsSettings: React.FC = () => {
                                         Add Field to Group
                                     </h4>
                                     <div className="flex items-center gap-3">
-                                        <input
-                                            type="text"
-                                            value={newField.name}
-                                            onChange={(e) =>
-                                                setNewField((prev) => ({
-                                                    ...prev,
-                                                    name: e.target.value,
-                                                }))
-                                            }
-                                            className="flex-1 rounded-lg border border-blue-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
-                                            placeholder="Field name"
-                                        />
+                                        <div className="relative flex-1">
+                                            <input
+                                                type="text"
+                                                value={newField.name}
+                                                onChange={(e) =>
+                                                    setNewField((prev) => ({
+                                                        ...prev,
+                                                        name: e.target.value,
+                                                    }))
+                                                }
+                                                className="w-full rounded-lg border border-blue-300 px-3 py-2 pr-8 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                                                placeholder="Field name"
+                                            />
+                                            {newField.required && (
+                                                <span className="pointer-events-none absolute right-2 top-3 text-lg font-bold text-red-500">
+                                                    *
+                                                </span>
+                                            )}
+                                        </div>
                                         <select
                                             value={newField.type}
                                             onChange={(e) =>
@@ -1227,11 +1379,30 @@ const CustomFieldsSettings: React.FC = () => {
                                                             : undefined,
                                                 }))
                                             }
-                                            className="w-48 rounded-lg border border-blue-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                                            className="w-48 rounded-lg border border-blue-300 px-3 py-2 focus:ring-blue-500"
                                         >
                                             <option value="text">Text Field</option>
                                             <option value="dropdown">Dropdown</option>
                                         </select>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-medium text-gray-700">
+                                                Required:
+                                            </span>
+                                            <label className="relative inline-flex cursor-pointer items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={newField.required || false}
+                                                    onChange={(e) =>
+                                                        setNewField((prev) => ({
+                                                            ...prev,
+                                                            required: e.target.checked,
+                                                        }))
+                                                    }
+                                                    className="peer sr-only"
+                                                />
+                                                <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:size-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"></div>
+                                            </label>
+                                        </div>
                                         <button
                                             onClick={() => handleAddFieldToGroup(group.id)}
                                             disabled={!newField.name}
@@ -1284,15 +1455,25 @@ const CustomFieldsSettings: React.FC = () => {
                                 <label className="mb-2 block text-sm font-medium text-gray-700">
                                     Field Name *
                                 </label>
-                                <input
-                                    type="text"
-                                    value={newField.name}
-                                    onChange={(e) =>
-                                        setNewField((prev) => ({ ...prev, name: e.target.value }))
-                                    }
-                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Enter field name"
-                                />
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={newField.name}
+                                        onChange={(e) =>
+                                            setNewField((prev) => ({
+                                                ...prev,
+                                                name: e.target.value,
+                                            }))
+                                        }
+                                        className="w-full rounded-lg border border-gray-300 px-3 py-2 pr-8 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Enter field name"
+                                    />
+                                    {newField.required && (
+                                        <span className="pointer-events-none absolute right-2 top-3 text-lg font-bold text-red-500">
+                                            *
+                                        </span>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Field Type */}
@@ -1317,6 +1498,30 @@ const CustomFieldsSettings: React.FC = () => {
                                     <option value="text">Text Field</option>
                                     <option value="dropdown">Dropdown with options</option>
                                 </select>
+                            </div>
+
+                            {/* Required Field */}
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-gray-700">
+                                    Required Field
+                                </label>
+                                <label className="relative inline-flex cursor-pointer items-center">
+                                    <input
+                                        type="checkbox"
+                                        checked={newField.required}
+                                        onChange={(e) =>
+                                            setNewField((prev) => ({
+                                                ...prev,
+                                                required: e.target.checked,
+                                            }))
+                                        }
+                                        className="peer sr-only"
+                                    />
+                                    <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:size-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"></div>
+                                    <span className="ml-3 text-sm font-medium text-gray-900">
+                                        {newField.required ? 'Required' : 'Optional'}
+                                    </span>
+                                </label>
                             </div>
 
                             {/* Initial Options for Dropdown */}
@@ -1479,9 +1684,16 @@ const CustomFieldsSettings: React.FC = () => {
                                             className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-3"
                                         >
                                             <div className="flex items-center gap-4">
-                                                <span className="font-medium text-gray-900">
-                                                    {field.name}
-                                                </span>
+                                                <div className="relative">
+                                                    <span className="font-medium text-gray-900">
+                                                        {field.name}
+                                                    </span>
+                                                    {'required' in field && field.required && (
+                                                        <span className="absolute -right-1 -top-3 text-lg font-bold text-red-500">
+                                                            *
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">
                                                     {'isGroup' in field && field.isGroup
                                                         ? `Group (${field.originalGroup.fields.length} fields)`
@@ -1502,18 +1714,25 @@ const CustomFieldsSettings: React.FC = () => {
                                 </label>
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-3">
-                                        <input
-                                            type="text"
-                                            value={newField.name}
-                                            onChange={(e) =>
-                                                setNewField((prev) => ({
-                                                    ...prev,
-                                                    name: e.target.value,
-                                                }))
-                                            }
-                                            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
-                                            placeholder="Field name"
-                                        />
+                                        <div className="relative flex-1">
+                                            <input
+                                                type="text"
+                                                value={newField.name}
+                                                onChange={(e) =>
+                                                    setNewField((prev) => ({
+                                                        ...prev,
+                                                        name: e.target.value,
+                                                    }))
+                                                }
+                                                className="w-full rounded-lg border border-gray-300 px-3 py-2 pr-8 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                                                placeholder="Field name"
+                                            />
+                                            {newField.required && (
+                                                <span className="pointer-events-none absolute right-2 top-3 text-lg font-bold text-red-500">
+                                                    *
+                                                </span>
+                                            )}
+                                        </div>
                                         <select
                                             value={newField.type}
                                             onChange={(e) =>
@@ -1531,6 +1750,25 @@ const CustomFieldsSettings: React.FC = () => {
                                             <option value="text">Text Field</option>
                                             <option value="dropdown">Dropdown</option>
                                         </select>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-medium text-gray-700">
+                                                Required:
+                                            </span>
+                                            <label className="relative inline-flex cursor-pointer items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={newField.required || false}
+                                                    onChange={(e) =>
+                                                        setNewField((prev) => ({
+                                                            ...prev,
+                                                            required: e.target.checked,
+                                                        }))
+                                                    }
+                                                    className="peer sr-only"
+                                                />
+                                                <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:size-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"></div>
+                                            </label>
+                                        </div>
                                         <button
                                             onClick={() => {
                                                 if (newField.name && newField.type) {
@@ -1542,6 +1780,7 @@ const CustomFieldsSettings: React.FC = () => {
                                                             newField.type === 'dropdown'
                                                                 ? newField.options
                                                                 : undefined,
+                                                        required: newField.required || false,
                                                         visibility: newField.visibility!,
                                                     };
                                                     setNewGroup((prev) => ({
