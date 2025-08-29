@@ -46,5 +46,6 @@ export function getDateFromUTCString(utcString: string): string {
 }
 
 export function extractTextFromHTML(htmlString: string) {
+    if (!htmlString) return '';
     return htmlString.replace(/<[^>]*>/g, '');
 }
