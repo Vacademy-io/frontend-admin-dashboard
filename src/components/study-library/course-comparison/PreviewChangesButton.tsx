@@ -24,17 +24,9 @@ export const PreviewChangesButton: React.FC<PreviewChangesButtonProps> = ({
 }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // Debug what sessionId is being passed
-    console.log('🔍 PreviewChangesButton received props:', {
-        currentCourseId,
-        originalCourseId,
-        subjectId,
-        packageSessionId,
-        chapterId,
-    });
+
 
     const handleClick = () => {
-        console.log('🔍 PreviewChangesButton clicked with packageSessionId:', packageSessionId);
         setIsModalOpen(true);
     };
 

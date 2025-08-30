@@ -103,10 +103,12 @@ export default function EmailComposer({
         try {
             const form = new FormData();
             form.append('file', file);
-            const res = await fetch(
-                'https://backend-stage.vacademy.io/media-service/public/upload-file',
-                { method: 'PUT', body: form }
-            );
+            const backendBase =
+                import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io';
+            const res = await fetch(`${backendBase}/media-service/public/upload-file`, {
+                method: 'PUT',
+                body: form,
+            });
             if (!res.ok) throw new Error(res.statusText);
             const urlText = await res.text();
             if (!/^https?:\/\//i.test(urlText)) throw new Error('Invalid upload URL');
