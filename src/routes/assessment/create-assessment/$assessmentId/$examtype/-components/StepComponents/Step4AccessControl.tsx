@@ -40,9 +40,6 @@ import { MyFilterOption } from '@/types/assessments/my-filter';
 import { RoleTypeSelectedFilter } from '@/routes/dashboard/-components/RoleTypeComponent';
 import { UserRolesDataEntry } from '@/types/dashboard/user-roles';
 import Step4InviteUsers from './-components/Step4InviteUsers';
-import useIntroJsTour, { Step } from '@/hooks/use-intro';
-import { IntroKey } from '@/constants/storage/introKey';
-import { createAssesmentSteps } from '@/constants/intro/steps';
 
 interface Role {
     roleId: string;
@@ -236,15 +233,6 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
     const onInvalid = (err: unknown) => {
         console.log(err);
     };
-
-    useIntroJsTour({
-        key: IntroKey.assessmentStep4Access,
-        steps: createAssesmentSteps
-            .filter((step) => step.element === '#access-control')
-            .flatMap((step) => step.subStep || [])
-            .filter((subStep): subStep is Step => subStep !== undefined),
-        className: 'tooltip-postion',
-    });
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {

@@ -19,9 +19,6 @@ import { DashboardLoader, ErrorBoundary } from '@/components/core/dashboard-load
 import RootErrorComponent from '@/components/core/deafult-error';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { StudentSidebar } from '../student-side-view/student-side-view';
-import useIntroJsTour from '@/hooks/use-intro';
-import { IntroKey } from '@/constants/storage/introKey';
-import { studentManagementSteps } from '@/constants/intro/steps';
 import { EmptyStudentListImage } from '@/assets/svgs';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { NoCourseDialog } from '@/components/common/students/no-course-dialog';
@@ -71,11 +68,6 @@ export const StudentsListSection = () => {
             setIsOpen(true);
         }
     }, [instituteDetails]);
-
-    useIntroJsTour({
-        key: IntroKey.studentManagementFirstTimeVisit,
-        steps: studentManagementSteps,
-    });
 
     useEffect(() => {
         setNavHeading(

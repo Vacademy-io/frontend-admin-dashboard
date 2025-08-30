@@ -2,9 +2,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { MyButton } from '@/components/design-system/button';
 import { CalendarBlank } from 'phosphor-react';
 import { useNavigate } from '@tanstack/react-router';
-import useIntroJsTour from '@/hooks/use-intro';
-import { IntroKey } from '@/constants/storage/introKey';
-import { createAssesmentSteps } from '@/constants/intro/steps';
 
 export const ScheduleTestHeaderDescription = () => {
     const isMobile = useIsMobile();
@@ -22,15 +19,6 @@ export const ScheduleTestHeaderDescription = () => {
             },
         });
     };
-
-    useIntroJsTour({
-        key: IntroKey.assessmentFirstTimeVisit,
-        steps: createAssesmentSteps.filter((step) => step.element === '#create-assessment'),
-        partial: true,
-        onTourExit: () => {
-            console.log('Tour Completed');
-        },
-    });
 
     return (
         <div

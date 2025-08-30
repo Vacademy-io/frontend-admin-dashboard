@@ -46,9 +46,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useTestAccessStore } from '../../-utils/zustand-global-states/step3-adding-participants';
 import { useParams } from '@tanstack/react-router';
 import { BASE_URL_LEARNER_DASHBOARD } from '@/constants/urls';
-import useIntroJsTour, { Step } from '@/hooks/use-intro';
-import { IntroKey } from '@/constants/storage/introKey';
-import { createAssesmentSteps } from '@/constants/intro/steps';
 import { convertDateFormat } from './Step1BasicInfo';
 import { handleGetIndividualStudentList } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services';
 import { getInstituteId } from '@/constants/helper';
@@ -413,14 +410,6 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             shouldTouch: true,
         });
     };
-
-    useIntroJsTour({
-        key: IntroKey.assessmentStep3Participants,
-        steps: createAssesmentSteps
-            .filter((step) => step.element === '#add-participants')
-            .flatMap((step) => step.subStep || [])
-            .filter((subStep): subStep is Step => subStep !== undefined),
-    });
 
     const { data: studentList } = useSuspenseQuery(
         handleGetIndividualStudentList({ instituteId, assessmentId })

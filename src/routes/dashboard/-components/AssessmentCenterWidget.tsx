@@ -56,7 +56,7 @@ export default function AssessmentCenterWidget({
     ];
 
     return (
-        <Card className="grow bg-neutral-50 shadow-none">
+        <Card className="flex h-full grow flex-col bg-neutral-50 shadow-none">
             <CardHeader className="p-4">
                 <div className="flex flex-col items-start justify-between gap-y-2">
                     <div className="flex items-center gap-2">
@@ -80,7 +80,7 @@ export default function AssessmentCenterWidget({
                     </div>
                 </div>
             </CardHeader>
-            <div className="space-y-3 px-4 pb-4">
+            <div className="flex-1 space-y-3 px-4 pb-4">
                 <div className="grid grid-cols-1 gap-3">
                     {assessmentFeatures.map((feature) => (
                         <MyButton
