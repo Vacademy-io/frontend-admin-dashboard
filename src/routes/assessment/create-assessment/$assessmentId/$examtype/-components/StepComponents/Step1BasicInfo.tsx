@@ -29,9 +29,6 @@ import { AxiosError } from 'axios';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { CaretLeft } from 'phosphor-react';
 import { useParams } from '@tanstack/react-router';
-import useIntroJsTour, { Step } from '@/hooks/use-intro';
-import { IntroKey } from '@/constants/storage/introKey';
-import { createAssesmentSteps } from '@/constants/intro/steps';
 import { useSectionDetailsStore } from '../../-utils/zustand-global-states/step2-add-questions';
 import { useTestAccessStore } from '../../-utils/zustand-global-states/step3-adding-participants';
 import { useAccessControlStore } from '../../-utils/zustand-global-states/step4-access-control';
@@ -209,14 +206,6 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
     const onInvalid = (err: unknown) => {
         console.log(err);
     };
-
-    useIntroJsTour({
-        key: IntroKey.assessmentStep1BasicInfo,
-        steps: createAssesmentSteps
-            .filter((step) => step.element === '#basic-info')
-            .flatMap((step) => step.subStep || [])
-            .filter((subStep): subStep is Step => subStep !== undefined),
-    });
 
     const [assessmentDetails, setAssessmentDetails] = useState<Steps>([]);
     const [isLoading, setIsLoading] = useState(false);

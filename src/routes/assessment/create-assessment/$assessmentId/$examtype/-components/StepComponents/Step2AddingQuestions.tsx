@@ -24,9 +24,6 @@ import { getSubjectNameById } from '@/routes/assessment/question-papers/-utils/h
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { MyInput } from '@/components/design-system/input';
-import useIntroJsTour, { Step } from '@/hooks/use-intro';
-import { IntroKey } from '@/constants/storage/introKey';
-import { createAssesmentSteps } from '@/constants/intro/steps';
 type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 
 const Step2AddingQuestions: React.FC<StepContentProps> = ({
@@ -346,14 +343,6 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
             oldData.current = initialFormValues;
         }
     }, [assessmentDetails, assessmentId]);
-
-    useIntroJsTour({
-        key: IntroKey.assessmentStep2Questions,
-        steps: createAssesmentSteps
-            .filter((step) => step.element === '#add-question')
-            .flatMap((step) => step.subStep || [])
-            .filter((subStep): subStep is Step => subStep !== undefined),
-    });
 
     if (isLoading || handleSubmitStep2Form.status === 'pending') return <DashboardLoader />;
 

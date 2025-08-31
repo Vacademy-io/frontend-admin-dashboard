@@ -12,9 +12,6 @@ import { toast } from 'sonner';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { Checkbox } from '@/components/ui/checkbox';
-import useIntroJsTour from '@/hooks/use-intro';
-import { IntroKey } from '@/constants/storage/introKey';
-import { inviteSteps } from '@/constants/intro/steps';
 import { AddCourseButton } from '@/components/common/study-library/add-course/add-course-button';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
 import { CourseFormData } from '@/components/common/study-library/add-course/add-course-form';
@@ -186,11 +183,6 @@ export const CreateInviteDialog = ({
         if (maxValue && maxValue > len) setValue('batches.maxCourses', len);
     }, [watch('batches.learnerChoiceCourses')?.length]);
 
-    useIntroJsTour({
-        key: IntroKey.inviteFirstTimeVisit,
-        steps: inviteSteps,
-        enable: open,
-    });
     return (
         <MyDialog
             heading="Invite Learner"
