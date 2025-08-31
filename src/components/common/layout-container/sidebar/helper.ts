@@ -124,8 +124,13 @@ export function filterMenuListByModules(
 
     return menuList
         .filter((item) => {
-            // Always allow dashboard and settings
-            if (item.id === 'dashboard' || item.id === 'settings' || item.id === 'announcement') {
+            // Always allow key tabs irrespective of module mapping
+            if (
+                item.id === 'dashboard' ||
+                item.id === 'settings' ||
+                item.id === 'announcement' ||
+                item.id === 'user-tags'
+            ) {
                 return true;
             }
 

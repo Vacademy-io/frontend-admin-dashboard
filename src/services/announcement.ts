@@ -15,7 +15,7 @@ export type ModeType =
 
 export type MediumType = 'WHATSAPP' | 'PUSH_NOTIFICATION' | 'EMAIL';
 
-export type RecipientType = 'ROLE' | 'USER' | 'PACKAGE_SESSION';
+export type RecipientType = 'ROLE' | 'USER' | 'PACKAGE_SESSION' | 'TAG';
 
 export interface CreateAnnouncementRequest {
     title: string;

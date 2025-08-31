@@ -7,6 +7,7 @@ import {
     FileMagnifyingGlass,
     HeadCircuit,
     ChartLineUp,
+    Tag,
 } from '@phosphor-icons/react';
 import { SidebarItemsType } from '../../../../types/layout-container/layout-container-types';
 import { GearSix, Lightning, NotePencil, UsersFour } from 'phosphor-react';
@@ -86,6 +87,23 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItem: 'Invite',
                 subItemLink: '/manage-students/invite',
                 subItemId: 'invite',
+            },
+        ],
+    },
+    {
+        icon: Tag,
+        title: 'Manage User Tags',
+        id: 'user-tags',
+        subItems: [
+            {
+                subItem: 'Link Tag',
+                subItemLink: '/user-tags/link',
+                subItemId: 'link-tag',
+            },
+            {
+                subItem: 'Institute Tags',
+                subItemLink: '/user-tags/institute',
+                subItemId: 'institute-tags',
             },
         ],
     },
