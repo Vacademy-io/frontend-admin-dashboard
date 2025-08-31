@@ -29,6 +29,15 @@ import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { StudentTable } from '@/types/student-table-types';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    addUsersToTagByName,
+    getUserTags,
+    deactivateUserTags,
+    type TagItem,
+} from '@/services/tag-management';
 
 export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean }) => {
     const { selectedStudent } = useStudentSidebar();
@@ -46,6 +55,11 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
         getCredentials(isSubmissionTab ? selectedStudent?.id || '' : selectedStudent?.user_id || '')
             ?.password || 'password not found'
     );
+    const [userTags, setUserTags] = useState<{ active: TagItem[]; inactive: TagItem[] } | null>(
+        null
+    );
+    const [newTagInput, setNewTagInput] = useState('');
+    const [tagsLoading, setTagsLoading] = useState(false);
     const {
         openIndividualShareCredentialsDialog,
         openIndividualSendEmailDialog,
@@ -145,6 +159,24 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
             setDaysUntilExpiry(0);
         }
     }, [selectedStudent, instituteDetails, password, studentDetails]);
+
+    useEffect(() => {
+        const loadUserTags = async () => {
+            const id = isSubmissionTab ? selectedStudent?.id : selectedStudent?.user_id;
+            if (!id) return;
+            setTagsLoading(true);
+            try {
+                const res = await getUserTags(id);
+                setUserTags({ active: res.activeTags || [], inactive: res.inactiveTags || [] });
+            } catch (e) {
+                setUserTags({ active: [], inactive: [] });
+            } finally {
+                setTagsLoading(false);
+            }
+        };
+        loadUserTags();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedStudent?.id, selectedStudent?.user_id]);
 
     if (isLoading) {
         return <DashboardLoader />;
@@ -260,6 +292,135 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
 
             {/* Compact overview sections */}
             <div className="space-y-2.5">
+                {/* User Tags section */}
+                <div className="rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 p-3">
+                    <div className="mb-2 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Users className="size-4 text-purple-600" />
+                            <h4 className="text-xs font-semibold text-neutral-700">User Tags</h4>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Label className="text-[10px] text-neutral-500">Add tag by name</Label>
+                            <Input
+                                className="h-7 w-40 text-xs"
+                                placeholder="e.g. VIP Student"
+                                value={newTagInput}
+                                onChange={(e) => setNewTagInput(e.target.value)}
+                            />
+                            <Button
+                                size="sm"
+                                disabled={tagsLoading || !newTagInput.trim() || !selectedStudent}
+                                onClick={async () => {
+                                    if (!selectedStudent || !newTagInput.trim()) return;
+                                    setTagsLoading(true);
+                                    try {
+                                        await addUsersToTagByName(newTagInput.trim(), [
+                                            isSubmissionTab
+                                                ? selectedStudent.id
+                                                : selectedStudent.user_id,
+                                        ]);
+                                        const res = await getUserTags(
+                                            isSubmissionTab
+                                                ? selectedStudent.id
+                                                : selectedStudent.user_id
+                                        );
+                                        setUserTags({
+                                            active: res.activeTags || [],
+                                            inactive: res.inactiveTags || [],
+                                        });
+                                        setNewTagInput('');
+                                        toast.success('Tag added');
+                                    } catch (e) {
+                                        toast.error('Failed to add tag');
+                                    } finally {
+                                        setTagsLoading(false);
+                                    }
+                                }}
+                            >
+                                Add
+                            </Button>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                        <div>
+                            <div className="mb-1 text-[11px] font-medium text-neutral-600">
+                                Active Tags
+                            </div>
+                            {tagsLoading ? (
+                                <div className="text-xs text-neutral-500">Loading...</div>
+                            ) : userTags && userTags.active.length > 0 ? (
+                                <div className="flex flex-wrap gap-1.5">
+                                    {userTags.active.map((t) => (
+                                        <div
+                                            key={t.id}
+                                            className="flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-1 text-[11px]"
+                                        >
+                                            <span>{t.tagName}</span>
+                                            {!t.defaultTag && (
+                                                <button
+                                                    type="button"
+                                                    className="text-neutral-500 hover:text-neutral-700"
+                                                    onClick={async () => {
+                                                        if (!selectedStudent) return;
+                                                        setTagsLoading(true);
+                                                        try {
+                                                            await deactivateUserTags(
+                                                                isSubmissionTab
+                                                                    ? selectedStudent.id
+                                                                    : selectedStudent.user_id,
+                                                                [t.id]
+                                                            );
+                                                            const res = await getUserTags(
+                                                                isSubmissionTab
+                                                                    ? selectedStudent.id
+                                                                    : selectedStudent.user_id
+                                                            );
+                                                            setUserTags({
+                                                                active: res.activeTags || [],
+                                                                inactive: res.inactiveTags || [],
+                                                            });
+                                                            toast.success('Tag removed');
+                                                        } catch (err) {
+                                                            toast.error('Failed to remove tag');
+                                                        } finally {
+                                                            setTagsLoading(false);
+                                                        }
+                                                    }}
+                                                    aria-label="Remove tag"
+                                                >
+                                                    ×
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-xs text-neutral-500">No active tags</div>
+                            )}
+                        </div>
+                        <div>
+                            <div className="mb-1 text-[11px] font-medium text-neutral-600">
+                                Inactive Tags
+                            </div>
+                            {tagsLoading ? (
+                                <div className="text-xs text-neutral-500">Loading...</div>
+                            ) : userTags && userTags.inactive.length > 0 ? (
+                                <div className="flex flex-wrap gap-1.5">
+                                    {userTags.inactive.map((t) => (
+                                        <div
+                                            key={t.id}
+                                            className="flex items-center gap-1 rounded-full bg-neutral-50 px-2 py-1 text-[11px] text-neutral-500"
+                                        >
+                                            <span>{t.tagName}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-xs text-neutral-500">No inactive tags</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
                 {selectedStudent != null ? (
                     overviewData?.map((studentDetail, key) => {
                         // Define icons and colors for each section

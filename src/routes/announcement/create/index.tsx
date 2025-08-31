@@ -31,6 +31,9 @@ import useLocalStorage from '@/hooks/use-local-storage';
 import TipTapEditor from '@/components/tiptap/TipTapEditor';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Smartphone, Tablet, Laptop } from 'lucide-react';
+import { MultiSelect, type OptionType } from '@/components/design-system/multi-select';
+import { getInstituteTags, getUserCountsByTags, type TagItem } from '@/services/tag-management';
+import { getInstituteId } from '@/constants/helper';
 
 export const Route = createFileRoute('/announcement/create/')({
     component: () => (
@@ -81,6 +84,13 @@ function CreateAnnouncementPage() {
     const [recipients, setRecipients] = useState<CreateAnnouncementRequest['recipients']>([
         { recipientType: 'ROLE', recipientId: 'STUDENT' },
     ]);
+    // For TAG recipient rows, hold selected tagIds by row index
+    const [tagSelections, setTagSelections] = useState<Record<number, string[]>>({});
+    const [tagOptions, setTagOptions] = useState<OptionType[]>([]);
+    const [tagMapById, setTagMapById] = useState<Record<string, TagItem>>({});
+    const [tagsLoading, setTagsLoading] = useState(false);
+    const [estimatedUsers, setEstimatedUsers] = useState<number | null>(null);
+    const [estimatingUsers, setEstimatingUsers] = useState(false);
     const [scheduleType, setScheduleType] = useState<'IMMEDIATE' | 'ONE_TIME' | 'RECURRING'>(
         'IMMEDIATE'
     );
@@ -106,6 +116,49 @@ function CreateAnnouncementPage() {
     useEffect(() => {
         setNavHeading('Create Announcement');
     }, [setNavHeading]);
+
+    // Load institute tags for TAG recipients
+    useEffect(() => {
+        (async () => {
+            setTagsLoading(true);
+            try {
+                const tags = await getInstituteTags();
+                const options = tags.map((t) => ({ label: t.tagName, value: t.id }));
+                const map: Record<string, TagItem> = {};
+                tags.forEach((t) => {
+                    map[t.id] = t;
+                });
+                setTagOptions(options);
+                setTagMapById(map);
+            } finally {
+                setTagsLoading(false);
+            }
+        })();
+    }, []);
+
+    // Optional UX: estimate users for selected tags (ANY-of semantics)
+    useEffect(() => {
+        const allTagIds = Array.from(new Set(Object.values(tagSelections).flat().filter(Boolean)));
+        if (allTagIds.length === 0) {
+            setEstimatedUsers(null);
+            return;
+        }
+        let cancelled = false;
+        (async () => {
+            setEstimatingUsers(true);
+            try {
+                const res = await getUserCountsByTags(allTagIds);
+                if (!cancelled) setEstimatedUsers(res?.totalUsers ?? null);
+            } catch {
+                if (!cancelled) setEstimatedUsers(null);
+            } finally {
+                if (!cancelled) setEstimatingUsers(false);
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [tagSelections]);
 
     // Prefill from schedule page (query: scheduleType, startDate)
     useEffect(() => {
@@ -324,6 +377,19 @@ function CreateAnnouncementPage() {
                             Add
                         </Button>
                     </div>
+                    <div className="text-xs text-muted-foreground">
+                        Tags target users linked to the selected tags. If multiple tags are
+                        selected, users with any of those tags will receive the announcement.
+                        Recipients (Role/Package Session/User/Tag) may be mixed; server dedupes.
+                        <a
+                            href="https://docs.vacademy.io/notification/announcements"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="underline"
+                        >
+                            Announcement API usage
+                        </a>
+                    </div>
                     <div className="grid gap-3">
                         {recipients.map((r, idx) => (
                             <div key={idx} className="grid grid-cols-1 gap-2 md:grid-cols-3">
@@ -336,10 +402,18 @@ function CreateAnnouncementPage() {
                                             recipientType: val as
                                                 | 'ROLE'
                                                 | 'USER'
-                                                | 'PACKAGE_SESSION',
+                                                | 'PACKAGE_SESSION'
+                                                | 'TAG',
                                             recipientId: '',
                                         };
                                         setRecipients(updated);
+                                        // Initialize/clear tag selections when switching types
+                                        setTagSelections((prev) => {
+                                            const next = { ...prev };
+                                            if (val === 'TAG') next[idx] = next[idx] || [];
+                                            else delete next[idx];
+                                            return next;
+                                        });
                                     }}
                                 >
                                     <SelectTrigger>
@@ -350,6 +424,8 @@ function CreateAnnouncementPage() {
                                         <SelectItem value="PACKAGE_SESSION">
                                             PACKAGE_SESSION
                                         </SelectItem>
+                                        <SelectItem value="USER">USER</SelectItem>
+                                        <SelectItem value="TAG">TAG</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 {r.recipientType === 'ROLE' ? (
@@ -370,7 +446,7 @@ function CreateAnnouncementPage() {
                                             <SelectItem value="STUDENT">STUDENT</SelectItem>
                                         </SelectContent>
                                     </Select>
-                                ) : (
+                                ) : r.recipientType === 'PACKAGE_SESSION' ? (
                                     <Input
                                         placeholder={'Package Session ID'}
                                         value={r.recipientId}
@@ -380,6 +456,40 @@ function CreateAnnouncementPage() {
                                             setRecipients(updated);
                                         }}
                                     />
+                                ) : r.recipientType === 'USER' ? (
+                                    <Input
+                                        placeholder={'User ID'}
+                                        value={r.recipientId}
+                                        onChange={(e) => {
+                                            const updated = [...recipients];
+                                            updated[idx] = { ...r, recipientId: e.target.value };
+                                            setRecipients(updated);
+                                        }}
+                                    />
+                                ) : (
+                                    <div className="col-span-2">
+                                        <MultiSelect
+                                            options={tagOptions}
+                                            selected={tagSelections[idx] || []}
+                                            onChange={(vals) =>
+                                                setTagSelections((prev) => ({
+                                                    ...prev,
+                                                    [idx]: vals,
+                                                }))
+                                            }
+                                            placeholder={
+                                                tagsLoading
+                                                    ? 'Loading tags…'
+                                                    : 'Select one or more tags'
+                                            }
+                                            disabled={tagsLoading}
+                                        />
+                                        <div className="mt-1 text-xs text-muted-foreground">
+                                            Tags target users linked to the selected tags. If
+                                            multiple tags are selected, users with any of those tags
+                                            will receive the announcement.
+                                        </div>
+                                    </div>
                                 )}
                                 <Button
                                     variant="ghost"
@@ -392,6 +502,14 @@ function CreateAnnouncementPage() {
                             </div>
                         ))}
                     </div>
+                    {/* Estimated users (optional UX) */}
+                    {Object.values(tagSelections).flat().length > 0 && (
+                        <div className="text-xs text-neutral-600">
+                            {estimatingUsers
+                                ? 'Estimating users…'
+                                : `Estimated users (any of selected tags): ${estimatedUsers ?? '—'}`}
+                        </div>
+                    )}
                 </section>
 
                 <Separator />
@@ -780,6 +898,57 @@ function CreateAnnouncementPage() {
                                 }
                                 setErrors({});
 
+                                // Validate TAG recipients (require institute and at least one tag per TAG row)
+                                const anyTagRow = recipients.some((r) => r.recipientType === 'TAG');
+                                if (anyTagRow) {
+                                    const missingTags = recipients.some(
+                                        (r, idx) =>
+                                            r.recipientType === 'TAG' && !tagSelections[idx]?.length
+                                    );
+                                    if (missingTags) {
+                                        toast({
+                                            title: 'Select at least one tag',
+                                            description:
+                                                'You have a TAG recipient without any selected tags.',
+                                            variant: 'destructive',
+                                        });
+                                        return;
+                                    }
+                                    const instId = getInstituteId();
+                                    if (!instId) {
+                                        toast({
+                                            title: 'Institute required',
+                                            description:
+                                                'An institute must be selected to target TAG recipients.',
+                                            variant: 'destructive',
+                                        });
+                                        return;
+                                    }
+                                }
+
+                                // Expand TAG selections into recipient entries with names
+                                const expandedRecipients: CreateAnnouncementRequest['recipients'] =
+                                    [];
+                                recipients.forEach((r, idx) => {
+                                    if (r.recipientType === 'TAG') {
+                                        const ids = tagSelections[idx] || [];
+                                        ids.forEach((tagId) => {
+                                            const tag = tagMapById[tagId];
+                                            expandedRecipients.push({
+                                                recipientType: 'TAG',
+                                                recipientId: tagId,
+                                                recipientName: tag?.tagName,
+                                            });
+                                        });
+                                    } else if (r.recipientType && r.recipientId) {
+                                        expandedRecipients.push({
+                                            recipientType: r.recipientType,
+                                            recipientId: r.recipientId,
+                                            recipientName: r.recipientName,
+                                        });
+                                    }
+                                });
+
                                 setIsSubmitting(true);
                                 const payload: Omit<CreateAnnouncementRequest, 'instituteId'> = {
                                     title,
@@ -787,7 +956,7 @@ function CreateAnnouncementPage() {
                                     createdBy: getUserId(),
                                     createdByName: getUserName(),
                                     createdByRole: primaryRole,
-                                    recipients,
+                                    recipients: expandedRecipients,
                                     modes: selectedModes.map((m) => ({
                                         modeType: m,
                                         settings: modeSettings[m] ?? {},
