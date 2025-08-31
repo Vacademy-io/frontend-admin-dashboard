@@ -55,7 +55,7 @@ import { TIMEZONE_OPTIONS, STREAMING_OPTIONS, WAITING_ROOM_OPTIONS } from '../-c
 export default function ScheduleStep1() {
     // Hooks and State
     const navigate = useNavigate();
-    const { setSessionId, step1Data, setStep1Data, sessionId } = useLiveSessionStore();
+    const { setSessionId, step1Data, setStep1Data, sessionId, isEdit } = useLiveSessionStore();
     const { sessionDetails } = useSessionDetailsStore();
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [selectedMusicFile, setSelectedMusicFile] = useState<File | null>(null);
@@ -67,6 +67,7 @@ export default function ScheduleStep1() {
         'everyday' | 'weekday' | 'exceptSunday' | 'custom' | null
     >(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isFormInitialized, setIsFormInitialized] = useState(false);
 
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
@@ -108,23 +109,22 @@ export default function ScheduleStep1() {
         }
     };
 
-    // Form Setup
-    const form = useForm<z.infer<typeof sessionFormSchema>>({
-        resolver: zodResolver(sessionFormSchema),
-        defaultValues: step1Data || {
+    // Initialize default values
+    const getDefaultValues = useCallback(() => {
+        const defaultTimezone = getBrowserTimezone();
+        const defaultTime = getCurrentTimeInTimezone(defaultTimezone);
+
+        return {
             title: '',
-            meetingType:
-                sessionDetails?.schedule?.recurrence_type === 'weekly'
-                    ? RecurringType.WEEKLY
-                    : RecurringType.ONCE,
+            meetingType: RecurringType.ONCE,
             recurringSchedule: WEEK_DAYS.map((day) => ({
                 day: day.label,
                 isSelect: false,
                 sessions: [
                     {
                         startTime: '00:00',
-                        durationHours: '',
-                        durationMinutes: '',
+                        durationHours: '0',
+                        durationMinutes: '30',
                         link: '',
                         countAttendanceDaily: false,
                         thumbnailFileId: '',
@@ -132,20 +132,26 @@ export default function ScheduleStep1() {
                 ],
             })),
             subject: 'none',
-            timeZone: getBrowserTimezone(),
+            timeZone: defaultTimezone,
+            startTime: defaultTime,
             events: '1',
             openWaitingRoomBefore: '15',
             sessionType: SessionType.LIVE,
-            streamingType: sessionDetails?.schedule?.session_streaming_service_type
-                ? sessionDetails?.schedule?.session_streaming_service_type
-                : '',
+            streamingType: SessionPlatform.EMBED_IN_APP,
             allowRewind: false,
             allowPause: false,
             enableWaitingRoom: false,
             sessionPlatform: StreamingPlatform.OTHER,
-            durationMinutes: '00',
-            durationHours: '00',
-        },
+            durationMinutes: '30',
+            durationHours: '0',
+            defaultLink: '',
+        };
+    }, []);
+
+    // Form Setup
+    const form = useForm<z.infer<typeof sessionFormSchema>>({
+        resolver: zodResolver(sessionFormSchema),
+        defaultValues: getDefaultValues(),
         mode: 'onChange',
     });
     // Auto-update "Select days" dropdown when days are toggled manually
@@ -177,34 +183,45 @@ export default function ScheduleStep1() {
     const prevSelectedDaysRef = useRef<string[]>([]);
     useEffect(() => {
         if (!recurringSchedule) return;
+
         const selectedDays = recurringSchedule.filter((d) => d.isSelect).map((d) => d.day);
         const newDays = selectedDays.filter((d) => !prevSelectedDaysRef.current.includes(d));
-        if (newDays.length) {
-            const defaultStartDateTime = form.getValues('startTime') || '';
-            const startTimeVal = defaultStartDateTime.split('T')[1] || '';
-            const dh = form.getValues('durationHours');
-            const dm = form.getValues('durationMinutes');
-            const lnk = form.getValues('defaultLink');
+
+        if (newDays.length > 0) {
+            const currentStartTime = form.getValues('startTime') || '';
+            const timeValue = currentStartTime.split('T')[1] || '';
+            const currentDurationHours = form.getValues('durationHours') || '0';
+            const currentDurationMinutes = form.getValues('durationMinutes') || '30';
+            const currentLink = form.getValues('defaultLink') || '';
+
             newDays.forEach((dayLabel) => {
                 const idx = recurringSchedule.findIndex((d) => d.day === dayLabel);
                 if (idx !== -1) {
-                    form.setValue(`recurringSchedule.${idx}.sessions.0.startTime`, startTimeVal);
-                    form.setValue(`recurringSchedule.${idx}.sessions.0.durationHours`, dh);
-                    form.setValue(`recurringSchedule.${idx}.sessions.0.durationMinutes`, dm);
-                    form.setValue(`recurringSchedule.${idx}.sessions.0.link`, lnk);
+                    form.setValue(`recurringSchedule.${idx}.sessions.0.startTime`, timeValue);
+                    form.setValue(
+                        `recurringSchedule.${idx}.sessions.0.durationHours`,
+                        currentDurationHours
+                    );
+                    form.setValue(
+                        `recurringSchedule.${idx}.sessions.0.durationMinutes`,
+                        currentDurationMinutes
+                    );
+                    form.setValue(`recurringSchedule.${idx}.sessions.0.link`, currentLink);
                     form.setValue(`recurringSchedule.${idx}.sessions.0.thumbnailFileId`, '');
                 }
             });
         }
         prevSelectedDaysRef.current = selectedDays;
-    }, [recurringSchedule]);
+    }, [recurringSchedule, form]);
+
+    // Watch form values and auto-fill recurring schedule sessions
+    const durationHours = form.watch('durationHours');
+    const durationMinutes = form.watch('durationMinutes');
+    const defaultLink = form.watch('defaultLink');
+    const startTimeValue = form.watch('startTime');
 
     useEffect(() => {
-        const durationHours = form.watch('durationHours');
-        const durationMinutes = form.watch('durationMinutes');
-        const link = form.watch('defaultLink');
-        const defaultStartDateTime = form.watch('startTime') || '';
-        const startTimeValue = defaultStartDateTime.split('T')[1] || '';
+        const timeValue = startTimeValue?.split('T')[1] || '';
         const updatedSchedule = form.getValues('recurringSchedule')?.map((day) => {
             if (!day.isSelect) return day;
             return {
@@ -213,153 +230,164 @@ export default function ScheduleStep1() {
                     idx === 0
                         ? {
                               ...session,
-                              startTime: startTimeValue,
-                              durationHours,
-                              durationMinutes,
-                              link,
+                              startTime: timeValue,
+                              durationHours: durationHours || '0',
+                              durationMinutes: durationMinutes || '30',
+                              link: defaultLink || '',
                           }
                         : session
                 ),
             };
         });
-        form.setValue('recurringSchedule', updatedSchedule);
-    }, [
-        form.watch('durationHours'),
-        form.watch('durationMinutes'),
-        form.watch('defaultLink'),
-        form.watch('startTime'),
-    ]);
+        if (updatedSchedule) {
+            form.setValue('recurringSchedule', updatedSchedule);
+        }
+    }, [durationHours, durationMinutes, defaultLink, startTimeValue, form]);
 
+    // Auto-detect platform from link
     useEffect(() => {
-        const subscription = form.watch((value, { name }) => {
-            if (name === 'defaultLink' && value.defaultLink) {
-                const link = value.defaultLink.toLowerCase();
+        const link = defaultLink?.toLowerCase() || '';
 
-                if (link.includes('youtube.com') || link.includes('youtu.be')) {
-                    form.setValue('sessionPlatform', StreamingPlatform.YOUTUBE);
-                } else if (link.includes('meet.google.com')) {
-                    form.setValue('sessionPlatform', StreamingPlatform.MEET);
-                } else if (link.includes('zoom.us')) {
-                    form.setValue('sessionPlatform', StreamingPlatform.ZOOM);
-                } else {
-                    form.setValue('sessionPlatform', StreamingPlatform.OTHER);
-                    form.setValue('streamingType', SessionPlatform.REDIRECT_TO_OTHER_PLATFORM);
-                }
-            }
-        });
-    }, [form.watch('defaultLink')]);
+        if (!link) return;
 
-    // Effect to update start time when timezone changes
+        if (link.includes('youtube.com') || link.includes('youtu.be')) {
+            form.setValue('sessionPlatform', StreamingPlatform.YOUTUBE);
+        } else if (link.includes('meet.google.com')) {
+            form.setValue('sessionPlatform', StreamingPlatform.MEET);
+        } else if (link.includes('zoom.us')) {
+            form.setValue('sessionPlatform', StreamingPlatform.ZOOM);
+        } else {
+            form.setValue('sessionPlatform', StreamingPlatform.OTHER);
+            form.setValue('streamingType', SessionPlatform.REDIRECT_TO_OTHER_PLATFORM);
+        }
+    }, [defaultLink, form]);
+
+    // Update start time when timezone changes (only for new sessions)
+    const selectedTimezone = form.watch('timeZone');
     useEffect(() => {
-        const selectedTimezone = form.watch('timeZone');
-        const defaultTime = getCurrentTimeInTimezone(selectedTimezone);
-        form.setValue('startTime', defaultTime);
-    }, [form.watch('timeZone')]);
-
-    useEffect(() => {
-        if (sessionDetails) {
-            form.setValue('id', sessionDetails.schedule.session_id);
-            form.setValue('title', sessionDetails.schedule.title);
-            form.setValue('subject', sessionDetails.schedule.subject ?? 'none');
-            form.setValue('description', sessionDetails.schedule.description_html ?? '');
-
-            // Set timezone and current time for editing mode
-            const savedTimezone = (sessionDetails.schedule as any).time_zone || 'Asia/Kolkata';
-            form.setValue('timeZone', savedTimezone);
-
-            // Set current time in the saved timezone
-            const currentTime = getCurrentTimeInTimezone(savedTimezone);
+        // Only update time if not in edit mode or if form doesn't have an existing time
+        if (!sessionDetails && selectedTimezone) {
+            const currentTime = getCurrentTimeInTimezone(selectedTimezone);
             form.setValue('startTime', currentTime);
-
-            form.setValue('defaultLink', sessionDetails.schedule.default_meet_link ?? '');
-            form.setValue(
-                'sessionPlatform',
-                sessionDetails.schedule.link_type ?? StreamingPlatform.YOUTUBE
-            );
-            form.setValue(
-                'streamingType',
-                sessionDetails.schedule.session_streaming_service_type ?? 'embed'
-            );
-
-            // Set timezone if available, otherwise keep default
-            if ((sessionDetails.schedule as any).time_zone) {
-                form.setValue('timeZone', (sessionDetails.schedule as any).time_zone);
-            }
-
-            if (sessionDetails.schedule.start_time && sessionDetails.schedule.last_entry_time) {
-                const start = new Date(sessionDetails.schedule.start_time);
-                const end = new Date(sessionDetails.schedule.last_entry_time);
-                if (end > start) {
-                    const durationMs = end.getTime() - start.getTime();
-                    const hours = Math.floor(durationMs / 3600000);
-                    const minutes = Math.floor((durationMs % 3600000) / 60000);
-                    form.setValue('durationHours', String(hours));
-                    form.setValue('durationMinutes', String(minutes));
-                }
-            }
-            if (sessionDetails?.schedule?.recurrence_type === 'weekly') {
-                form.setValue('meetingType', RecurringType.WEEKLY);
-                form.setValue('endDate', sessionDetails.schedule.session_end_date);
-                const transformedSchedules = WEEK_DAYS.map((day) => {
-                    const matchingSchedule = sessionDetails.schedule.added_schedules.find(
-                        (schedule) => schedule.day.toLowerCase() === day.label.toLowerCase()
-                    );
-                    return {
-                        day: day.label,
-                        isSelect: !!matchingSchedule,
-                        sessions: matchingSchedule
-                            ? [
-                                  {
-                                      id: matchingSchedule.id,
-                                      startTime: matchingSchedule.startTime,
-                                      durationHours: String(
-                                          Math.floor(parseInt(matchingSchedule.duration) / 60)
-                                      ),
-                                      durationMinutes: String(
-                                          parseInt(matchingSchedule.duration) % 60
-                                      ),
-                                      link: matchingSchedule.link || '',
-                                      thumbnailFileId: matchingSchedule.thumbnailFileId || '',
-                                  },
-                              ]
-                            : [
-                                  {
-                                      startTime: '00:00',
-                                      durationHours: '',
-                                      durationMinutes: '',
-                                      link: '',
-                                      thumbnailFileId: '',
-                                  },
-                              ],
-                    };
-                });
-                form.setValue('recurringSchedule', transformedSchedules);
-            }
-            if (sessionDetails.schedule.waiting_room_time) {
-                form.setValue('enableWaitingRoom', true);
-                form.setValue(
-                    'openWaitingRoomBefore',
-                    String(sessionDetails.schedule.waiting_room_time)
-                );
-            }
-            // Populate playback settings toggles
-            form.setValue('allowRewind', sessionDetails.schedule.allow_rewind ?? false);
-            form.setValue('allowPause', sessionDetails.schedule.allow_play_pause ?? false);
         }
-    }, [sessionDetails]);
+    }, [selectedTimezone, sessionDetails, form]);
 
+    // Populate form when sessionDetails is available (edit mode)
     useEffect(() => {
-        if (step1Data) {
-            form.reset(step1Data);
+        if (!sessionDetails) {
+            if (!isFormInitialized) {
+                setIsFormInitialized(true);
+            }
+            return;
         }
-    }, [step1Data]);
+
+        const schedule = sessionDetails.schedule;
+
+        // Update form values
+        form.setValue('id', schedule.session_id);
+        form.setValue('title', schedule.title || '');
+        form.setValue('subject', schedule.subject || 'none');
+        form.setValue('description', schedule.description_html || '');
+
+        // Set timezone and current time for editing mode
+        const savedTimezone = (schedule as any).time_zone || 'Asia/Kolkata';
+        form.setValue('timeZone', savedTimezone);
+
+        // Set current time in the saved timezone for new sessions
+        const currentTime = getCurrentTimeInTimezone(savedTimezone);
+        form.setValue('startTime', currentTime);
+
+        form.setValue('defaultLink', schedule.default_meet_link || '');
+        form.setValue('sessionPlatform', schedule.link_type || StreamingPlatform.OTHER);
+        form.setValue(
+            'streamingType',
+            schedule.session_streaming_service_type || SessionPlatform.EMBED_IN_APP
+        );
+
+        // Calculate and set duration
+        if (schedule.start_time && schedule.last_entry_time) {
+            const start = new Date(schedule.start_time);
+            const end = new Date(schedule.last_entry_time);
+            if (end > start) {
+                const durationMs = end.getTime() - start.getTime();
+                const hours = Math.floor(durationMs / 3600000);
+                const minutes = Math.floor((durationMs % 3600000) / 60000);
+                form.setValue('durationHours', String(hours));
+                form.setValue('durationMinutes', String(minutes));
+            }
+        }
+
+        // Handle recurring sessions
+        if (schedule.recurrence_type === 'weekly') {
+            form.setValue('meetingType', RecurringType.WEEKLY);
+            form.setValue('endDate', schedule.session_end_date);
+
+            const transformedSchedules = WEEK_DAYS.map((day) => {
+                const matchingSchedule = schedule.added_schedules.find(
+                    (scheduleItem) => scheduleItem.day.toLowerCase() === day.label.toLowerCase()
+                );
+                return {
+                    day: day.label,
+                    isSelect: !!matchingSchedule,
+                    sessions: matchingSchedule
+                        ? [
+                              {
+                                  id: matchingSchedule.id,
+                                  startTime: matchingSchedule.startTime,
+                                  durationHours: String(
+                                      Math.floor(parseInt(matchingSchedule.duration) / 60)
+                                  ),
+                                  durationMinutes: String(parseInt(matchingSchedule.duration) % 60),
+                                  link: matchingSchedule.link || '',
+                                  thumbnailFileId: matchingSchedule.thumbnailFileId || '',
+                                  countAttendanceDaily:
+                                      matchingSchedule.countAttendanceDaily || false,
+                              },
+                          ]
+                        : [
+                              {
+                                  startTime: '00:00',
+                                  durationHours: '0',
+                                  durationMinutes: '30',
+                                  link: '',
+                                  thumbnailFileId: '',
+                                  countAttendanceDaily: false,
+                              },
+                          ],
+                };
+            });
+            form.setValue('recurringSchedule', transformedSchedules);
+        }
+
+        // Handle waiting room settings
+        if (schedule.waiting_room_time) {
+            form.setValue('enableWaitingRoom', true);
+            form.setValue('openWaitingRoomBefore', String(schedule.waiting_room_time));
+        }
+
+        // Set playback settings
+        form.setValue('allowRewind', schedule.allow_rewind || false);
+        form.setValue('allowPause', schedule.allow_play_pause || false);
+
+        setIsFormInitialized(true);
+    }, [sessionDetails, form]);
+
+    // Initialize form with step1Data when available
+    useEffect(() => {
+        if (step1Data && !sessionDetails) {
+            form.reset(step1Data);
+            setIsFormInitialized(true);
+        } else if (!step1Data && !sessionDetails && !isFormInitialized) {
+            setIsFormInitialized(true);
+        }
+    }, [step1Data, sessionDetails, form, isFormInitialized]);
 
     // Set the form's id field when sessionId exists (coming back from step 2)
     useEffect(() => {
-        if (sessionId && !sessionDetails) {
+        if (sessionId && !sessionDetails && !form.getValues('id')) {
             form.setValue('id', sessionId);
         }
-    }, [sessionId, sessionDetails]);
+    }, [sessionId, sessionDetails, form]);
 
     const { control, watch } = form;
     // Watch the selected streaming platform to conditionally render/disable options
@@ -1797,32 +1825,47 @@ export default function ScheduleStep1() {
         );
 
     return (
-        <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit, onError)} className="flex flex-col gap-8">
-                <div className="sticky top-[72px] z-[9] m-0 flex items-center justify-between border-b border-neutral-200 bg-white p-0 py-2">
-                    <h1>Live Session Information</h1>
-                    <MyButton
-                        type="submit"
-                        scale="large"
-                        buttonType="primary"
-                        disable={isSubmitting}
+        <>
+            {!isFormInitialized ? (
+                <div className="flex h-64 items-center justify-center">
+                    <Loader2 className="size-8 animate-spin" />
+                </div>
+            ) : (
+                <FormProvider {...form}>
+                    <form
+                        onSubmit={form.handleSubmit(onSubmit, onError)}
+                        className="flex flex-col gap-8"
                     >
-                        {isSubmitting ? <Loader2 className="animate-spin text-white" /> : 'Next'}
-                    </MyButton>
-                </div>
+                        <div className="sticky top-[72px] z-[9] m-0 flex items-center justify-between border-b border-neutral-200 bg-white p-0 py-2">
+                            <h1>Live Session Information</h1>
+                            <MyButton
+                                type="submit"
+                                scale="large"
+                                buttonType="primary"
+                                disable={isSubmitting}
+                            >
+                                {isSubmitting ? (
+                                    <Loader2 className="animate-spin text-white" />
+                                ) : (
+                                    'Next'
+                                )}
+                            </MyButton>
+                        </div>
 
-                <div className="flex flex-col gap-8">
-                    {renderBasicInformation()}
-                    {renderMeetingTypeSelection()}
-                    {renderTimezoneSelection()}
-                    {renderSessionTiming()}
-                    {renderLiveClassLink()}
-                    {renderStreamingChoices()}
-                    {renderWaitingRoomAndUpload()}
-                    {renderRecurringSchedule()}
-                    <Separator />
-                </div>
-            </form>
-        </FormProvider>
+                        <div className="flex flex-col gap-8">
+                            {renderBasicInformation()}
+                            {renderMeetingTypeSelection()}
+                            {renderTimezoneSelection()}
+                            {renderSessionTiming()}
+                            {renderLiveClassLink()}
+                            {renderStreamingChoices()}
+                            {renderWaitingRoomAndUpload()}
+                            {renderRecurringSchedule()}
+                            <Separator />
+                        </div>
+                    </form>
+                </FormProvider>
+            )}
+        </>
     );
 }

@@ -55,7 +55,7 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
     const [scheduledSessionDetails, setScheduleSessionDetails] =
         useState<SessionDetailsResponse | null>(null);
     const queryClient = useQueryClient();
-    const { showForInstitutes } = useInstituteDetailsStore();
+    const { instituteDetails } = useInstituteDetailsStore();
     // Use mutateAsync to ensure data is fetched before opening dialog
     const {
         mutateAsync: fetchReportAsync,
@@ -64,7 +64,7 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
         error,
     } = useLiveSessionReport();
 
-    const joinLink = getSessionJoinLink(session);
+    const joinLink = getSessionJoinLink(session, instituteDetails?.learner_portal_base_url ?? '');
     const formattedDateTime = `${session.meeting_date} ${session.start_time}`;
 
     const navigate = useNavigate();

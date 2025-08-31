@@ -13,7 +13,7 @@ export const Route = createFileRoute('/study-library/live-session/schedule/step1
 
 function RouteComponent() {
     const { setNavHeading } = useNavHeadingStore();
-    const { clearSessionId, clearStep1Data } = useLiveSessionStore();
+    const { clearSessionId, clearStep1Data, isEdit } = useLiveSessionStore();
     const navigate = useNavigate();
 
     const heading = (
@@ -28,9 +28,12 @@ function RouteComponent() {
 
     useEffect(() => {
         setNavHeading(heading);
-        clearSessionId();
-        clearStep1Data();
-    }, []);
+        // Only clear data if not in edit mode
+        if (!isEdit) {
+            clearSessionId();
+            clearStep1Data();
+        }
+    }, [isEdit, setNavHeading, clearSessionId, clearStep1Data]);
     return (
         <LayoutContainer>
             <Helmet>
