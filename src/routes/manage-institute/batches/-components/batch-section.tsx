@@ -12,7 +12,6 @@ import { useGetStudentBatch } from '@/routes/manage-students/students-list/-hook
 import { EnrollManuallyButton } from '@/components/common/students/enroll-manually/enroll-manually-button';
 import { useDeleteBatches } from '@/routes/manage-institute/batches/-services/delete-batches';
 import { toast } from 'sonner';
-import { CreateBatchDialog } from './create-batch-dialog';
 import createInviteLink from '@/routes/manage-students/invite/-utils/createInviteLink';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
@@ -45,6 +44,7 @@ const BatchCard = ({ batch }: batchCardProps) => {
     const navigate = useNavigate();
     const { levelName, packageName } = useGetStudentBatch(batch.package_session_id);
     const deleteBatchesMutation = useDeleteBatches();
+    const { instituteDetails } = useInstituteDetailsStore();
 
     const handleViewBatch = () => {
         const batchName = `${levelName} ${packageName}`;
@@ -73,7 +73,10 @@ const BatchCard = ({ batch }: batchCardProps) => {
     };
 
     const handleCopyInviteCode = () => {
-        const fullInviteLink = createInviteLink(batch.invite_code);
+        const fullInviteLink = createInviteLink(
+            batch.invite_code,
+            instituteDetails?.learner_portal_base_url
+        );
         navigator.clipboard.writeText(fullInviteLink);
         toast.success('Invite link copied to clipboard');
     };
@@ -169,8 +172,8 @@ const BatchCard = ({ batch }: batchCardProps) => {
                 }
             >
                 <p className="text-neutral-600">
-                    Are you sure you want to delete the batch "{batch.batch_name}"? This action
-                    cannot be undone.
+                    Are you sure you want to delete the batch &quot;{batch.batch_name}&quot;? This
+                    action cannot be undone.
                 </p>
             </MyDialog>
         </>
@@ -205,7 +208,7 @@ export const BatchSection = ({ batch, currentSessionId }: BatchSectionProps) => 
                     </p>
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                         {filteredBatches.map((batchLevel, index) => (
-                            <BatchCard batch={batchLevel} />
+                            <BatchCard batch={batchLevel} key={index} />
                         ))}
                     </div>
                 </div>

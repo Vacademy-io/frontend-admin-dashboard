@@ -45,7 +45,6 @@ import { useSavedAssessmentStore } from '../../-utils/global-states';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTestAccessStore } from '../../-utils/zustand-global-states/step3-adding-participants';
 import { useParams } from '@tanstack/react-router';
-import { BASE_URL_LEARNER_DASHBOARD } from '@/constants/urls';
 import useIntroJsTour, { Step } from '@/hooks/use-intro';
 import { IntroKey } from '@/constants/storage/introKey';
 import { createAssesmentSteps } from '@/constants/intro/steps';
@@ -161,7 +160,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
             },
             join_link:
                 storeDataStep3?.join_link ||
-                `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}`,
+                `${instituteDetails?.learner_portal_base_url}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}`,
             show_leaderboard: storeDataStep3?.show_leaderboard || true,
             notify_student: storeDataStep3?.notify_student || {
                 when_assessment_created: true,
@@ -413,7 +412,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                     student_details: checkedStudentList,
                 },
                 join_link:
-                    `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}` ||
+                    `${instituteDetails?.learner_portal_base_url}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}` ||
                     '',
                 show_leaderboard:
                     assessmentDetails[currentStep]?.saved_data?.notifications
