@@ -12,7 +12,7 @@ export function LearnerTab({ onClose }: LearnerTabProps) {
 
     const handleSwitchToLearner = () => {
         // Navigate to learner platform
-        window.location.href = 'https://learn.vacademy.io';
+        window.location.href = import.meta.env.VITE_LEARNER_DASHBOARD_URL;
     };
 
     const handleContinueAsAdmin = () => {
@@ -27,33 +27,38 @@ export function LearnerTab({ onClose }: LearnerTabProps) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
-                        <GraduationCap className="h-8 w-8 text-blue-600" />
+                    <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-blue-100">
+                        <GraduationCap className="size-8 text-blue-600" />
                     </div>
                     <CardTitle className="text-xl">Welcome Back!</CardTitle>
                     <CardDescription>
-                        You have access to both admin and learner features. Choose how you'd like to proceed:
+                        You have access to both admin and learner features. Choose how you'd like to
+                        proceed:
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="space-y-3">
                         <div className="flex items-center space-x-3 rounded-lg border p-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-                                <BookOpen className="h-5 w-5 text-green-600" />
+                            <div className="flex size-10 items-center justify-center rounded-full bg-green-100">
+                                <BookOpen className="size-5 text-green-600" />
                             </div>
                             <div className="flex-1">
                                 <h3 className="font-medium">Continue as Learner</h3>
-                                <p className="text-sm text-gray-500">Access your courses and learning materials</p>
+                                <p className="text-sm text-gray-500">
+                                    Access your courses and learning materials
+                                </p>
                             </div>
                         </div>
 
                         <div className="flex items-center space-x-3 rounded-lg border p-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100">
-                                <Users className="h-5 w-5 text-purple-600" />
+                            <div className="flex size-10 items-center justify-center rounded-full bg-purple-100">
+                                <Users className="size-5 text-purple-600" />
                             </div>
                             <div className="flex-1">
                                 <h3 className="font-medium">Continue as Admin</h3>
-                                <p className="text-sm text-gray-500">Manage your institute and courses</p>
+                                <p className="text-sm text-gray-500">
+                                    Manage your institute and courses
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -67,7 +72,7 @@ export function LearnerTab({ onClose }: LearnerTabProps) {
                             onClick={handleSwitchToLearner}
                             className="flex-1"
                         >
-                            <BookOpen className="mr-2 h-4 w-4" />
+                            <BookOpen className="mr-2 size-4" />
                             Go to Learner Portal
                         </MyButton>
 
@@ -79,7 +84,7 @@ export function LearnerTab({ onClose }: LearnerTabProps) {
                             onClick={handleContinueAsAdmin}
                             className="flex-1"
                         >
-                            <Users className="mr-2 h-4 w-4" />
+                            <Users className="mr-2 size-4" />
                             Stay as Admin
                         </MyButton>
                     </div>

@@ -29,9 +29,29 @@ import { TokenKey } from '@/constants/auth/tokens';
 import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
 import useLocalStorage from '@/hooks/use-local-storage';
 import TipTapEditor from '@/components/tiptap/TipTapEditor';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Smartphone, Tablet, Laptop } from 'lucide-react';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+    DialogDescription,
+} from '@/components/ui/dialog';
+import {
+    Smartphone,
+    Tablet,
+    Laptop,
+    Bell,
+    Pin,
+    MessageSquare,
+    Megaphone,
+    Folder,
+    Users,
+    ClipboardList,
+    type LucideIcon,
+} from 'lucide-react';
 import { MultiSelect, type OptionType } from '@/components/design-system/multi-select';
+import { TIMEZONE_OPTIONS } from '@/routes/study-library/live-session/schedule/-constants/options';
 import { getInstituteTags, getUserCountsByTags, type TagItem } from '@/services/tag-management';
 import { getInstituteId } from '@/constants/helper';
 
@@ -81,16 +101,21 @@ function CreateAnnouncementPage() {
             WHATSAPP: { template: '', variables: {} },
         }
     );
+    const [syncPushFromTitleContent, setSyncPushFromTitleContent] = useState<boolean>(true);
     const [recipients, setRecipients] = useState<CreateAnnouncementRequest['recipients']>([
         { recipientType: 'ROLE', recipientId: 'STUDENT' },
     ]);
     // For TAG recipient rows, hold selected tagIds by row index
     const [tagSelections, setTagSelections] = useState<Record<number, string[]>>({});
+    const [tagFilterByRow, setTagFilterByRow] = useState<
+        Record<number, 'ALL' | 'DEFAULT' | 'INSTITUTE'>
+    >({});
     const [tagOptions, setTagOptions] = useState<OptionType[]>([]);
     const [tagMapById, setTagMapById] = useState<Record<string, TagItem>>({});
     const [tagsLoading, setTagsLoading] = useState(false);
     const [estimatedUsers, setEstimatedUsers] = useState<number | null>(null);
     const [estimatingUsers, setEstimatingUsers] = useState(false);
+    const [rowTagEstimates, setRowTagEstimates] = useState<Record<number, number | null>>({});
     const [scheduleType, setScheduleType] = useState<'IMMEDIATE' | 'ONE_TIME' | 'RECURRING'>(
         'IMMEDIATE'
     );
@@ -104,6 +129,9 @@ function CreateAnnouncementPage() {
     const [oneTimeStart, setOneTimeStart] = useState<string>('');
     const [oneTimeEnd] = useState<string>('');
     const [cronExpression, setCronExpression] = useState<string>('');
+    const [isReviewOpen, setIsReviewOpen] = useState(false);
+    const [isBatchDialogOpen, setIsBatchDialogOpen] = useState(false);
+    // placeholder for future autocomplete; keep local dialog input state instead
 
     // Permissions
     const [allowedModes, setAllowedModes] = useState<Record<ModeType, boolean>>(
@@ -154,6 +182,38 @@ function CreateAnnouncementPage() {
             } finally {
                 if (!cancelled) setEstimatingUsers(false);
             }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [tagSelections]);
+
+    // Per-row tag estimates
+    useEffect(() => {
+        const entries = Object.entries(tagSelections);
+        if (entries.length === 0) {
+            setRowTagEstimates({});
+            return;
+        }
+        let cancelled = false;
+        (async () => {
+            const results: Record<number, number | null> = {};
+            await Promise.all(
+                entries.map(async ([idxStr, ids]) => {
+                    const idx = Number(idxStr);
+                    if (!ids || ids.length === 0) {
+                        results[idx] = null;
+                        return;
+                    }
+                    try {
+                        const res = await getUserCountsByTags(ids);
+                        results[idx] = res?.totalUsers ?? null;
+                    } catch {
+                        results[idx] = null;
+                    }
+                })
+            );
+            if (!cancelled) setRowTagEstimates(results);
         })();
         return () => {
             cancelled = true;
@@ -234,11 +294,237 @@ function CreateAnnouncementPage() {
         })();
     }, [primaryRole]);
 
+    // Utility: extract plain text from HTML for previews/notifications
+    const extractTextFromHtml = (html: string): string => {
+        try {
+            const withoutTags = (html || '').replace(/<[^>]*>/g, ' ');
+            return withoutTags.replace(/\s+/g, ' ').trim();
+        } catch {
+            return html;
+        }
+    };
+
+    // Auto-populate Push Notification title/body from Title & Content
+    useEffect(() => {
+        if (!syncPushFromTitleContent) return;
+        setMediumConfigs((prev) => ({
+            ...prev,
+            PUSH_NOTIFICATION: {
+                ...prev.PUSH_NOTIFICATION,
+                title: title,
+                body: extractTextFromHtml(htmlContent).slice(0, 200),
+            },
+        }));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [title, htmlContent, syncPushFromTitleContent]);
+
+    // Derived UI helpers
+    const pushTitleLen = ((mediumConfigs.PUSH_NOTIFICATION?.title as string) || '').length;
+    const pushBodyLen = ((mediumConfigs.PUSH_NOTIFICATION?.body as string) || '').length;
+
+    const reviewRecipientItems = useMemo(() => {
+        const items: Array<{ type: string; text: string }> = [];
+        recipients.forEach((r, idx) => {
+            if (r.recipientType === 'TAG') {
+                const ids = tagSelections[idx] || [];
+                ids.forEach((id) => {
+                    const tag = tagMapById[id];
+                    items.push({ type: 'TAG', text: tag?.tagName || id });
+                });
+            } else {
+                items.push({
+                    type: r.recipientType,
+                    text: r.recipientId || r.recipientName || '—',
+                });
+            }
+        });
+        return items;
+    }, [recipients, tagSelections, tagMapById]);
+
+    const dateToLocalInput = (dt: Date) => {
+        const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000)
+            .toISOString()
+            .slice(0, 16);
+        return local;
+    };
+
+    const applyModePreset = (preset: 'GENERAL' | 'PINNED') => {
+        if (preset === 'GENERAL') {
+            setSelectedModes((prev) =>
+                prev.includes('SYSTEM_ALERT') ? prev : [...prev, 'SYSTEM_ALERT']
+            );
+            setModeSettings((prev) => ({
+                ...prev,
+                SYSTEM_ALERT: prev.SYSTEM_ALERT ?? defaultModeSettings('SYSTEM_ALERT'),
+            }));
+            setSelectedMediums((prev) => {
+                return Array.from(new Set([...prev, 'PUSH_NOTIFICATION', 'EMAIL'])) as MediumType[];
+            });
+        } else {
+            setSelectedModes((prev) =>
+                prev.includes('DASHBOARD_PIN') ? prev : [...prev, 'DASHBOARD_PIN']
+            );
+            setModeSettings((prev) => ({
+                ...prev,
+                DASHBOARD_PIN: prev.DASHBOARD_PIN ?? defaultModeSettings('DASHBOARD_PIN'),
+            }));
+            setSelectedMediums((prev) => {
+                return Array.from(new Set([...prev, 'PUSH_NOTIFICATION'])) as MediumType[];
+            });
+        }
+    };
+
+    const applyScheduleQuickPick = (
+        pick: 'NOW' | 'TODAY_5PM' | 'TOMORROW_9AM' | 'NEXT_MON_9AM'
+    ) => {
+        const now = new Date();
+        if (pick === 'NOW') {
+            setScheduleType('IMMEDIATE');
+            return;
+        }
+        const target = new Date(now);
+        if (pick === 'TODAY_5PM') {
+            target.setHours(17, 0, 0, 0);
+            if (target < now) target.setDate(target.getDate() + 1);
+        } else if (pick === 'TOMORROW_9AM') {
+            target.setDate(target.getDate() + 1);
+            target.setHours(9, 0, 0, 0);
+        } else if (pick === 'NEXT_MON_9AM') {
+            const day = target.getDay();
+            const delta = (8 - day) % 7 || 7; // days until next Monday
+            target.setDate(target.getDate() + delta);
+            target.setHours(9, 0, 0, 0);
+        }
+        setScheduleType('ONE_TIME');
+        setOneTimeStart(dateToLocalInput(target));
+    };
+
+    const applyCronTemplate = (tmpl: 'DAILY_9' | 'MON_9' | 'HOURLY') => {
+        if (tmpl === 'DAILY_9') setCronExpression('0 0 9 * * ?');
+        else if (tmpl === 'MON_9') setCronExpression('0 0 9 ? * MON');
+        else if (tmpl === 'HOURLY') setCronExpression('0 0 * * * ?');
+        setScheduleType('RECURRING');
+    };
+
+    const addRecipientPreset = (preset: 'ALL_STUDENTS' | 'ALL_TEACHERS' | 'SPECIFIC_BATCH') => {
+        if (preset === 'ALL_STUDENTS') {
+            setRecipients((prev) => [
+                ...prev,
+                { recipientType: 'ROLE', recipientId: 'STUDENT', recipientName: '' },
+            ]);
+            return;
+        }
+        if (preset === 'ALL_TEACHERS') {
+            setRecipients((prev) => [
+                ...prev,
+                { recipientType: 'ROLE', recipientId: 'TEACHER', recipientName: '' },
+            ]);
+            return;
+        }
+        setIsBatchDialogOpen(true);
+    };
+
+    const removeRecipientAtIndex = (idx: number) => {
+        setRecipients((prev) => prev.filter((_, i) => i !== idx));
+        setTagSelections((prev) => {
+            const next = { ...prev };
+            delete next[idx];
+            return next;
+        });
+        setTagFilterByRow((prev) => {
+            const next = { ...prev };
+            delete next[idx];
+            return next;
+        });
+    };
+
     return (
         <div className="p-4">
             {/* TODO: Build dynamic UI based on institute + notification settings */}
             <h2 className="text-xl font-semibold">Create Announcement</h2>
             <div className="mt-6 grid max-w-3xl gap-8">
+                {/* Review Dialog */}
+                <Dialog open={isReviewOpen} onOpenChange={setIsReviewOpen}>
+                    <DialogContent className="max-w-3xl">
+                        <DialogHeader>
+                            <DialogTitle>Review Announcement</DialogTitle>
+                            <DialogDescription>Confirm details before creating.</DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4">
+                            <div>
+                                <div className="text-sm font-medium">Title</div>
+                                <div className="text-sm text-neutral-700">{title || '—'}</div>
+                            </div>
+                            <div>
+                                <div className="text-sm font-medium">Modes</div>
+                                <div className="text-sm text-neutral-700">
+                                    {selectedModes.join(', ') || '—'}
+                                </div>
+                            </div>
+                            <div>
+                                <div className="text-sm font-medium">Mediums</div>
+                                <div className="text-sm text-neutral-700">
+                                    {selectedMediums.join(', ') || '—'}
+                                </div>
+                            </div>
+                            <div>
+                                <div className="text-sm font-medium">Audience</div>
+                                <div className="flex flex-wrap gap-2 text-xs">
+                                    {reviewRecipientItems.length === 0 && <span>—</span>}
+                                    {reviewRecipientItems.map((it, i) => (
+                                        <span key={i} className="rounded-full border px-2 py-0.5">
+                                            <span className="font-medium">{it.type}</span>
+                                            <span>{' : '}</span>
+                                            <span>{it.text}</span>
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <div className="text-sm font-medium">Schedule</div>
+                                <div className="text-sm text-neutral-700">
+                                    {scheduleType === 'IMMEDIATE' && `IMMEDIATE (${timezone})`}
+                                    {scheduleType === 'ONE_TIME' &&
+                                        `ONE_TIME at ${oneTimeStart || '—'} (${timezone})`}
+                                    {scheduleType === 'RECURRING' &&
+                                        `RECURRING ${cronExpression || '—'} (${timezone})`}
+                                </div>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="secondary" onClick={() => setIsReviewOpen(false)}>
+                                Back
+                            </Button>
+                            <Button
+                                onClick={() => {
+                                    setIsReviewOpen(false);
+                                    // Trigger main create button click by simulating same handler
+                                    const el = document.querySelector(
+                                        'button:contains("Create Announcement")'
+                                    ) as HTMLButtonElement | null;
+                                    el?.click();
+                                }}
+                                disabled={isSubmitting}
+                            >
+                                Confirm & Create
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+                <BatchDialog
+                    open={isBatchDialogOpen}
+                    onOpenChange={(v) => setIsBatchDialogOpen(v)}
+                    onConfirm={(id) =>
+                        setRecipients((prev) => [
+                            ...prev,
+                            {
+                                recipientType: 'PACKAGE_SESSION',
+                                recipientId: id,
+                                recipientName: '',
+                            },
+                        ])
+                    }
+                />
                 {/* Basic */}
                 <section className="grid gap-3">
                     <Label>Title</Label>
@@ -361,34 +647,46 @@ function CreateAnnouncementPage() {
                 <section className="grid gap-3">
                     <div className="flex items-center justify-between">
                         <h3 className="text-lg font-medium">Recipients</h3>
-                        <Button
-                            variant="secondary"
-                            onClick={() =>
-                                setRecipients((prev) => [
-                                    ...prev,
-                                    {
-                                        recipientType: 'ROLE',
-                                        recipientId: 'STUDENT',
-                                        recipientName: '',
-                                    },
-                                ])
-                            }
-                        >
-                            Add
-                        </Button>
+                        <div className="flex gap-2">
+                            <Button
+                                variant="secondary"
+                                onClick={() => addRecipientPreset('ALL_STUDENTS')}
+                            >
+                                + All Students
+                            </Button>
+                            <Button
+                                variant="secondary"
+                                onClick={() => addRecipientPreset('ALL_TEACHERS')}
+                            >
+                                + All Teachers
+                            </Button>
+                            <Button
+                                variant="secondary"
+                                onClick={() => addRecipientPreset('SPECIFIC_BATCH')}
+                            >
+                                + Specific Batch
+                            </Button>
+                            <Button
+                                variant="secondary"
+                                onClick={() =>
+                                    setRecipients((prev) => [
+                                        ...prev,
+                                        {
+                                            recipientType: 'ROLE',
+                                            recipientId: 'STUDENT',
+                                            recipientName: '',
+                                        },
+                                    ])
+                                }
+                            >
+                                Add
+                            </Button>
+                        </div>
                     </div>
                     <div className="text-xs text-muted-foreground">
                         Tags target users linked to the selected tags. If multiple tags are
                         selected, users with any of those tags will receive the announcement.
                         Recipients (Role/Package Session/User/Tag) may be mixed; server dedupes.
-                        <a
-                            href="https://docs.vacademy.io/notification/announcements"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="underline"
-                        >
-                            Announcement API usage
-                        </a>
                     </div>
                     <div className="grid gap-3">
                         {recipients.map((r, idx) => (
@@ -411,6 +709,12 @@ function CreateAnnouncementPage() {
                                         setTagSelections((prev) => {
                                             const next = { ...prev };
                                             if (val === 'TAG') next[idx] = next[idx] || [];
+                                            else delete next[idx];
+                                            return next;
+                                        });
+                                        setTagFilterByRow((prev) => {
+                                            const next = { ...prev };
+                                            if (val === 'TAG') next[idx] = next[idx] || 'ALL';
                                             else delete next[idx];
                                             return next;
                                         });
@@ -468,8 +772,45 @@ function CreateAnnouncementPage() {
                                     />
                                 ) : (
                                     <div className="col-span-2">
+                                        <div className="mb-1 flex items-center gap-2">
+                                            <Label className="text-xs">Filter</Label>
+                                            <Select
+                                                value={tagFilterByRow[idx] || 'ALL'}
+                                                onValueChange={(val) =>
+                                                    setTagFilterByRow((prev) => ({
+                                                        ...prev,
+                                                        [idx]: val as
+                                                            | 'ALL'
+                                                            | 'DEFAULT'
+                                                            | 'INSTITUTE',
+                                                    }))
+                                                }
+                                            >
+                                                <SelectTrigger className="h-7 w-40 text-xs">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="ALL">All</SelectItem>
+                                                    <SelectItem value="DEFAULT">Default</SelectItem>
+                                                    <SelectItem value="INSTITUTE">
+                                                        Institute
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
                                         <MultiSelect
-                                            options={tagOptions}
+                                            options={(() => {
+                                                const filter = tagFilterByRow[idx] || 'ALL';
+                                                if (filter === 'ALL') return tagOptions;
+                                                const filtered = tagOptions.filter((opt) => {
+                                                    const tag = tagMapById[opt.value];
+                                                    if (!tag) return true;
+                                                    if (filter === 'DEFAULT')
+                                                        return Boolean(tag.defaultTag);
+                                                    return !tag.defaultTag;
+                                                });
+                                                return filtered;
+                                            })()}
                                             selected={tagSelections[idx] || []}
                                             onChange={(vals) =>
                                                 setTagSelections((prev) => ({
@@ -489,19 +830,81 @@ function CreateAnnouncementPage() {
                                             multiple tags are selected, users with any of those tags
                                             will receive the announcement.
                                         </div>
+                                        {Array.isArray(tagSelections[idx]) &&
+                                            (tagSelections[idx]?.length ?? 0) > 0 && (
+                                                <div className="mt-1 text-xs text-neutral-600">
+                                                    {' '}
+                                                    Estimated users for this row:{' '}
+                                                    {rowTagEstimates[idx] ?? '—'}
+                                                </div>
+                                            )}
                                     </div>
                                 )}
-                                <Button
-                                    variant="ghost"
-                                    onClick={() =>
-                                        setRecipients(recipients.filter((_, i) => i !== idx))
-                                    }
-                                >
+                                <Button variant="ghost" onClick={() => removeRecipientAtIndex(idx)}>
                                     Remove
                                 </Button>
                             </div>
                         ))}
                     </div>
+                    {/* Recipient chips summary */}
+                    {recipients.length > 0 && (
+                        <div className="flex flex-wrap gap-2 text-xs">
+                            {recipients.map((r, idx) => {
+                                if (r.recipientType === 'TAG') {
+                                    const ids = tagSelections[idx] || [];
+                                    return ids.map((id) => {
+                                        const tag = tagMapById[id];
+                                        return (
+                                            <span
+                                                key={`${idx}-${id}`}
+                                                className="inline-flex items-center gap-2 rounded-full border px-2 py-0.5"
+                                            >
+                                                <span className="font-medium">TAG</span>
+                                                <span className="text-neutral-600">
+                                                    {tag?.tagName || id}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    className="text-neutral-500 hover:text-neutral-800"
+                                                    onClick={() => {
+                                                        setTagSelections((prev) => {
+                                                            const next = { ...prev };
+                                                            next[idx] = (next[idx] || []).filter(
+                                                                (x) => x !== id
+                                                            );
+                                                            return next;
+                                                        });
+                                                    }}
+                                                    aria-label="Remove tag"
+                                                >
+                                                    ×
+                                                </button>
+                                            </span>
+                                        );
+                                    });
+                                }
+                                return (
+                                    <span
+                                        key={idx}
+                                        className="inline-flex items-center gap-2 rounded-full border px-2 py-0.5"
+                                    >
+                                        <span className="font-medium">{r.recipientType}</span>
+                                        <span className="text-neutral-600">
+                                            {r.recipientId || r.recipientName || '—'}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            className="text-neutral-500 hover:text-neutral-800"
+                                            onClick={() => removeRecipientAtIndex(idx)}
+                                            aria-label="Remove recipient"
+                                        >
+                                            ×
+                                        </button>
+                                    </span>
+                                );
+                            })}
+                        </div>
+                    )}
                     {/* Estimated users (optional UX) */}
                     {Object.values(tagSelections).flat().length > 0 && (
                         <div className="text-xs text-neutral-600">
@@ -517,50 +920,63 @@ function CreateAnnouncementPage() {
                 {/* Modes */}
                 <section className="grid gap-3">
                     <h3 className="text-lg font-medium">Modes</h3>
+                    <p className="text-sm text-muted-foreground">
+                        Pick where and how your announcement appears. Choose one or more modes.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => applyModePreset('GENERAL')}
+                        >
+                            General Announcement
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => applyModePreset('PINNED')}
+                        >
+                            Pinned Update
+                        </Button>
+                    </div>
                     {loadingPermissions ? (
                         <div className="text-sm text-neutral-500">Loading permissions…</div>
                     ) : (
-                        <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
-                            {(
-                                [
-                                    'SYSTEM_ALERT',
-                                    'DASHBOARD_PIN',
-                                    'DM',
-                                    'STREAM',
-                                    'RESOURCES',
-                                    'COMMUNITY',
-                                    'TASKS',
-                                ] as ModeType[]
-                            ).map((m) => (
-                                <label key={m} className="flex items-center gap-2">
-                                    <Checkbox
-                                        checked={selectedModes.includes(m)}
-                                        onCheckedChange={(checked) => {
-                                            const isChecked = Boolean(checked);
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                            {getModeMeta({
+                                title,
+                                contentText: extractTextFromHtml(htmlContent),
+                            }).map((meta) => {
+                                const selected = selectedModes.includes(meta.type);
+                                const disabled = allowedModes[meta.type] === false;
+                                return (
+                                    <ModeCard
+                                        key={meta.type}
+                                        label={meta.label}
+                                        description={meta.description}
+                                        Icon={meta.Icon}
+                                        selected={selected}
+                                        disabled={disabled}
+                                        onToggle={() => {
+                                            if (disabled) return;
+                                            const willSelect = !selected;
                                             setSelectedModes((prev) =>
-                                                isChecked
-                                                    ? [...prev, m]
-                                                    : prev.filter((x) => x !== m)
+                                                willSelect
+                                                    ? [...prev, meta.type]
+                                                    : prev.filter((x) => x !== meta.type)
                                             );
-                                            if (isChecked && !modeSettings[m]) {
-                                                // initialize minimal settings
+                                            if (willSelect && !modeSettings[meta.type]) {
                                                 setModeSettings((prev) => ({
                                                     ...prev,
-                                                    [m]: defaultModeSettings(m),
+                                                    [meta.type]: defaultModeSettings(meta.type),
                                                 }));
                                             }
                                         }}
-                                        disabled={allowedModes[m] === false}
-                                    />
-                                    <span
-                                        className={
-                                            allowedModes[m] === false ? 'text-neutral-400' : ''
-                                        }
                                     >
-                                        {m}
-                                    </span>
-                                </label>
-                            ))}
+                                        {meta.renderPreview()}
+                                    </ModeCard>
+                                );
+                            })}
                         </div>
                     )}
 
@@ -587,6 +1003,10 @@ function CreateAnnouncementPage() {
                 {/* Mediums */}
                 <section className="grid gap-3">
                     <h3 className="text-lg font-medium">Mediums</h3>
+                    <p className="text-sm text-muted-foreground">
+                        Select channels to deliver this announcement. Email will reuse the Title and
+                        Content.
+                    </p>
                     <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
                         {(['PUSH_NOTIFICATION', 'EMAIL', 'WHATSAPP'] as MediumType[]).map((med) => (
                             <label key={med} className="flex items-center gap-2">
@@ -611,6 +1031,15 @@ function CreateAnnouncementPage() {
                         {selectedMediums.includes('PUSH_NOTIFICATION') && (
                             <div className="rounded-md border p-4">
                                 <div className="mb-2 font-medium">Push Notification</div>
+                                <div className="mb-2 flex items-center gap-2 text-xs text-neutral-600">
+                                    <Switch
+                                        checked={syncPushFromTitleContent}
+                                        onCheckedChange={(v) =>
+                                            setSyncPushFromTitleContent(Boolean(v))
+                                        }
+                                    />
+                                    <span>Sync from Title and Content</span>
+                                </div>
                                 <div className="grid gap-2 md:grid-cols-2">
                                     <Input
                                         placeholder="Title"
@@ -626,6 +1055,7 @@ function CreateAnnouncementPage() {
                                                 },
                                             }))
                                         }
+                                        disabled={syncPushFromTitleContent}
                                     />
                                     <Input
                                         placeholder="Body"
@@ -641,7 +1071,29 @@ function CreateAnnouncementPage() {
                                                 },
                                             }))
                                         }
+                                        disabled={syncPushFromTitleContent}
                                     />
+                                </div>
+                                {/* push counters */}
+                                <div className="mt-1 grid gap-2 text-[11px] text-neutral-600 md:grid-cols-2">
+                                    <div>Title length: {pushTitleLen} (recommended ≤ 50)</div>
+                                    <div>Body length: {pushBodyLen} (recommended ≤ 150)</div>
+                                </div>
+                                {/* push preview */}
+                                <div className="mt-3 max-w-sm rounded-lg border bg-white p-3 shadow-sm">
+                                    <div className="text-xs font-medium text-neutral-500">
+                                        Push Preview
+                                    </div>
+                                    <div className="mt-1">
+                                        <div className="text-sm font-semibold">
+                                            {(mediumConfigs.PUSH_NOTIFICATION?.title as string) ||
+                                                'Title'}
+                                        </div>
+                                        <div className="text-xs text-neutral-700">
+                                            {(mediumConfigs.PUSH_NOTIFICATION?.body as string) ||
+                                                'Body preview'}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -697,11 +1149,49 @@ function CreateAnnouncementPage() {
                                 <SelectItem value="RECURRING">RECURRING</SelectItem>
                             </SelectContent>
                         </Select>
-                        <Input
-                            placeholder="Timezone (e.g., Asia/Kolkata)"
-                            value={timezone}
-                            onChange={(e) => setTimezone(e.target.value)}
-                        />
+                        <Select value={timezone} onValueChange={(v) => setTimezone(v)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Timezone" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {TIMEZONE_OPTIONS.map((tz) => (
+                                    <SelectItem key={tz.value} value={tz.value}>
+                                        {tz.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs text-neutral-600">Quick picks:</span>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => applyScheduleQuickPick('NOW')}
+                            >
+                                Now
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => applyScheduleQuickPick('TODAY_5PM')}
+                            >
+                                Later today 5pm
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => applyScheduleQuickPick('TOMORROW_9AM')}
+                            >
+                                Tomorrow 9am
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => applyScheduleQuickPick('NEXT_MON_9AM')}
+                            >
+                                Next Monday 9am
+                            </Button>
+                        </div>
                     </div>
                     {scheduleType === 'ONE_TIME' && (
                         <div className="grid gap-3 md:grid-cols-2">
@@ -739,13 +1229,39 @@ function CreateAnnouncementPage() {
                                     </p>
                                 )}
                             </div>
+                            <div>
+                                <Label>Templates</Label>
+                                <div className="mt-1 flex flex-wrap gap-2">
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => applyCronTemplate('DAILY_9')}
+                                    >
+                                        Every day at 9 AM
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => applyCronTemplate('MON_9')}
+                                    >
+                                        Every Monday 9 AM
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => applyCronTemplate('HOURLY')}
+                                    >
+                                        Every hour
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </section>
 
                 <Separator />
 
-                <div>
+                <div className="flex gap-2">
                     <Button
                         disabled={
                             isSubmitting || !title || !htmlContent || selectedModes.length === 0
@@ -1064,6 +1580,13 @@ function CreateAnnouncementPage() {
                     >
                         {isSubmitting ? 'Submitting…' : 'Create Announcement'}
                     </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsReviewOpen(true)}
+                        disabled={isSubmitting}
+                    >
+                        Review and Create
+                    </Button>
                 </div>
             </div>
         </div>
@@ -1099,6 +1622,51 @@ function defaultModeSettings(mode: ModeType): Record<string, unknown> {
                 reminderBeforeMinutes: 0,
             };
     }
+}
+
+// Batch preset dialog
+// Keep minimal UX to paste a Package Session ID
+function BatchDialog({
+    open,
+    onOpenChange,
+    onConfirm,
+}: {
+    open: boolean;
+    onOpenChange: (v: boolean) => void;
+    onConfirm: (id: string) => void;
+}) {
+    const [val, setVal] = useState('');
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Add Specific Batch</DialogTitle>
+                    <DialogDescription>
+                        Enter a Package Session ID to target a specific batch.
+                    </DialogDescription>
+                </DialogHeader>
+                <Input
+                    placeholder="Package Session ID"
+                    value={val}
+                    onChange={(e) => setVal(e.target.value)}
+                />
+                <DialogFooter>
+                    <Button variant="secondary" onClick={() => onOpenChange(false)}>
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={() => {
+                            if (!val) return;
+                            onConfirm(val);
+                            onOpenChange(false);
+                        }}
+                    >
+                        Add
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
 }
 
 function renderModeSettingsForm(
@@ -1416,4 +1984,187 @@ function renderModeSettingsForm(
                 </div>
             );
     }
+}
+
+type ModeCardProps = {
+    label: string;
+    description: string;
+    Icon: LucideIcon;
+    selected: boolean;
+    disabled?: boolean;
+    onToggle: () => void;
+    children?: React.ReactNode;
+};
+
+function ModeCard({
+    label,
+    description,
+    Icon,
+    selected,
+    disabled,
+    onToggle,
+    children,
+}: ModeCardProps) {
+    return (
+        <button
+            type="button"
+            onClick={onToggle}
+            disabled={disabled}
+            className={`group flex flex-col gap-3 rounded-md border p-3 text-left transition ${
+                selected
+                    ? 'border-blue-600 ring-2 ring-blue-600/20'
+                    : 'border-neutral-200 hover:border-neutral-300'
+            } ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+            aria-pressed={selected}
+            aria-label={`${label} mode ${selected ? 'selected' : 'not selected'}`}
+        >
+            <div className="flex items-start gap-3">
+                <div
+                    className={`rounded-md p-2 ${
+                        selected ? 'bg-blue-600/10 text-blue-700' : 'bg-neutral-50 text-neutral-600'
+                    }`}
+                >
+                    <Icon className="size-5" />
+                </div>
+                <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                        <div className="font-medium">{label}</div>
+                        <div
+                            className={`size-2 rounded-full ${
+                                selected
+                                    ? 'bg-blue-600'
+                                    : 'bg-neutral-300 group-hover:bg-neutral-400'
+                            }`}
+                        />
+                    </div>
+                    <div className="mt-1 text-xs text-neutral-600">{description}</div>
+                </div>
+            </div>
+            {selected && children && (
+                <div className="mt-2 rounded border bg-neutral-50 p-2">
+                    <div className="mb-1 text-xs font-medium text-neutral-700">Preview</div>
+                    <div className="text-xs text-neutral-700">{children}</div>
+                </div>
+            )}
+        </button>
+    );
+}
+
+type ModeMeta = {
+    type: ModeType;
+    label: string;
+    description: string;
+    Icon: LucideIcon;
+    renderPreview: () => JSX.Element | null;
+};
+
+function getModeMeta(ctx: { title: string; contentText: string }): ModeMeta[] {
+    const { title, contentText } = ctx;
+    const snippet = (contentText || '').slice(0, 120) + (contentText.length > 120 ? '…' : '');
+    return [
+        {
+            type: 'SYSTEM_ALERT',
+            label: 'System Alert',
+            description:
+                'General announcement. Appears in top navbar alerts for visibility to everyone.',
+            Icon: Bell,
+            renderPreview: () => (
+                <div className="rounded bg-yellow-50 p-2 text-yellow-900">
+                    <div className="flex items-center gap-2 text-[11px]">
+                        <Bell className="size-3.5" />
+                        <span className="font-medium">Alert</span>
+                    </div>
+                    <div className="mt-1 text-[11px]">
+                        <span className="font-semibold">{title || 'Announcement'}</span>
+                        {': '}
+                        {snippet || 'Your alert content will appear here.'}
+                    </div>
+                </div>
+            ),
+        },
+        {
+            type: 'DASHBOARD_PIN',
+            label: 'Dashboard Pin',
+            description: 'Pinned message on the dashboard for a defined time window (hours/days).',
+            Icon: Pin,
+            renderPreview: () => (
+                <div className="rounded border border-dashed p-2">
+                    <div className="flex items-center gap-2 text-[11px]">
+                        <Pin className="size-3.5" />
+                        <span className="font-medium">Pinned on dashboard</span>
+                    </div>
+                    <div className="mt-1 text-[11px]">
+                        <div className="font-semibold">{title || 'Pinned announcement'}</div>
+                        <div className="text-neutral-700">
+                            {snippet || 'Your pinned message will be shown here.'}
+                        </div>
+                    </div>
+                </div>
+            ),
+        },
+        {
+            type: 'DM',
+            label: 'Direct Message',
+            description: 'Sends a message to users’ inbox (DM). Optionally allow replies.',
+            Icon: MessageSquare,
+            renderPreview: () => (
+                <div className="rounded bg-white p-2">
+                    <div className="flex items-center gap-2 text-[11px] text-neutral-700">
+                        <MessageSquare className="size-3.5" />
+                        <span className="font-medium">Inbox</span>
+                    </div>
+                    <div className="mt-1 rounded border bg-neutral-50 p-2 text-[11px]">
+                        <div className="font-semibold">{title || 'New message'}</div>
+                        <div className="text-neutral-700">
+                            {snippet || 'Message preview appears here.'}
+                        </div>
+                    </div>
+                </div>
+            ),
+        },
+        {
+            type: 'STREAM',
+            label: 'Stream',
+            description: 'Post to a batch/class discussion stream (e.g., 2026 – Advanced Maths).',
+            Icon: Megaphone,
+            renderPreview: () => (
+                <div className="rounded border p-2">
+                    <div className="text-[11px] font-medium">2026 – Advanced Maths Class</div>
+                    <div className="mt-1 rounded bg-neutral-50 p-2 text-[11px]">
+                        <div className="font-semibold">{title || 'Stream post'}</div>
+                        <div className="text-neutral-700">
+                            {snippet || 'Discussion message content here.'}
+                        </div>
+                    </div>
+                </div>
+            ),
+        },
+        {
+            type: 'RESOURCES',
+            label: 'Resources',
+            description: 'Share resources (folder/category). Enhancements coming soon.',
+            Icon: Folder,
+            renderPreview: () => (
+                <div className="text-[11px] text-neutral-600">Preview coming soon.</div>
+            ),
+        },
+        {
+            type: 'COMMUNITY',
+            label: 'Community',
+            description: 'Post to communities. Enhancements coming soon.',
+            Icon: Users,
+            renderPreview: () => (
+                <div className="text-[11px] text-neutral-600">Preview coming soon.</div>
+            ),
+        },
+        {
+            type: 'TASKS',
+            label: 'Tasks',
+            description: 'Assign tasks with timelines. Enhancements coming soon.',
+            Icon: ClipboardList,
+            renderPreview: () => (
+                <div className="text-[11px] text-neutral-600">Preview coming soon.</div>
+            ),
+        },
+    ];
 }

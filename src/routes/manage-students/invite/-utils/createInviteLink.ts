@@ -3,7 +3,8 @@ import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtili
 
 export default function createInviteLink(
     inviteCode: string,
-    learnerDashboardUrl = 'https://learner.vacademy.io'
+    learnerDashboardUrl = import.meta.env.VITE_LEARNER_DASHBOARD_URL ||
+        'https://learner.vacademy.io'
 ) {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
