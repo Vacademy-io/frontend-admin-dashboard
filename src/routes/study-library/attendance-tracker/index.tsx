@@ -610,8 +610,7 @@ const AttendanceModal = ({
             const cached = classAttendanceData[student.id];
             if (cached && cached.length) {
                 setStudentClasses(cached);
-                const attended = cached.filter((c) => c.status === 'Present').length;
-                setOverallAttendance(Math.round((attended / cached.length) * 100));
+                setOverallAttendance(student.attendancePercentage);
                 return; // no extra API call needed ✔️
             }
 
@@ -850,13 +849,14 @@ function RouteComponent() {
         const allStudents: AttendanceStudent[] = [];
 
         attendanceData.pages.forEach((pageData) => {
+            console.log('pageData', pageData);
             if (pageData?.content) {
                 const mappedStudents = pageData.content.map((student: ContentType) => {
                     const total = student.sessions.length;
                     const attended = student.sessions.filter(
                         (s) => s.attendanceStatus === 'PRESENT'
                     ).length;
-                    const percent = total > 0 ? Math.round((attended / total) * 100) : 0;
+                    const percent = student.attendancePercentage;
 
                     // Store sessions for modal
                     classAttendanceData[student.studentId] = student.sessions.map((sess) => ({
@@ -925,6 +925,8 @@ function RouteComponent() {
     const exportFullData = (sel: AttendanceStudent[]) => {
         console.log('Exporting full data for', sel.length, 'students');
     };
+
+    console.log('student data  -> ', studentsData);
 
     return (
         <StudentSidebarContext.Provider value={{ selectedStudent, setSelectedStudent }}>
