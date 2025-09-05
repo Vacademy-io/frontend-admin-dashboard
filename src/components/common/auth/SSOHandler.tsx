@@ -39,7 +39,7 @@ export function SSOHandler({ children, onAuthenticationChange }: SSOHandlerProps
                 onAuthenticationChange?.(true);
             } else {
                 console.log('User does not have STUDENT role, redirecting to admin dashboard');
-                window.location.href = 'https://dash.vacademy.io';
+                window.location.href = `https://${import.meta.env.VITE_ADMIN_DOMAIN}`;
             }
         } else {
             onAuthenticationChange?.(false);
@@ -69,7 +69,7 @@ export function useSSO() {
     }, []);
 
     const redirectToAdminDashboard = () => {
-        window.location.href = 'https://dash.vacademy.io';
+        window.location.href = `https://${import.meta.env.VITE_ADMIN_DOMAIN}`;
     };
 
     const hasRole = (role: string) => userRoles.includes(role);
