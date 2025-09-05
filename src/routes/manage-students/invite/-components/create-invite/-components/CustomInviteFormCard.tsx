@@ -44,6 +44,7 @@ const CustomInviteFormCard = ({
         name: 'custom_fields',
     });
     const customFields = getValues('custom_fields');
+    console.log('customFields', customFields);
     return (
         <Card className="mb-4">
             <CardHeader>
