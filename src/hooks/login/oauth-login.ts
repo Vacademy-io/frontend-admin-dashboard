@@ -44,53 +44,53 @@ export const handleLoginOAuthCallback = async () => {
         const accessToken = urlParams.get('accessToken');
         const refreshToken = urlParams.get('refreshToken');
 
-    if (error === 'true' || message) {
-        const errorMsg = message || 'OAuth Authentication failed.';
-        toast.error('OAuth Login Failed', {
-            description: decodeURIComponent(errorMsg),
-            duration: 5000,
-        });
+        if (error === 'true' || message) {
+            const errorMsg = message || 'OAuth Authentication failed.';
+            toast.error('OAuth Login Failed', {
+                description: decodeURIComponent(errorMsg),
+                duration: 5000,
+            });
 
-        return { success: false };
-    }
-
-        if (accessToken && refreshToken) {
-        // Use centralized login flow
-        const result = await handleLoginFlow({
-            loginMethod: 'oauth',
-            accessToken,
-            refreshToken
-        });
-
-        if (!result.success) {
-            // User was blocked or error occurred
-            setTimeout(() => {
-                window.location.href = '/login?error=student_access_denied';
-            }, 2000);
             return { success: false };
         }
 
-        if (result.shouldShowInstituteSelection) {
-            return { success: true, shouldShowInstituteSelection: true };
-        }
+        if (accessToken && refreshToken) {
+            // Use centralized login flow
+            const result = await handleLoginFlow({
+                loginMethod: 'oauth',
+                accessToken,
+                refreshToken,
+            });
 
-        // Determine redirect URL
-        let redirectUrl = result.redirectUrl || '/dashboard';
-
-        if (stateEncoded) {
-            try {
-                const decodedState = JSON.parse(atob(decodeURIComponent(stateEncoded)));
-
-                if (decodedState?.from) {
-                    redirectUrl = decodedState.from;
-                }
-            } catch (err) {
-                // Failed to decode state, using fallback redirect
+            if (!result.success) {
+                // User was blocked or error occurred
+                setTimeout(() => {
+                    window.location.href = '/login?error=student_access_denied';
+                }, 2000);
+                return { success: false };
             }
-        }
 
-        return { success: true, redirectUrl };
-    }
+            if (result.shouldShowInstituteSelection) {
+                return { success: true, shouldShowInstituteSelection: true };
+            }
+
+            // Determine redirect URL
+            let redirectUrl = result.redirectUrl || '/dashboard';
+
+            if (stateEncoded) {
+                try {
+                    const decodedState = JSON.parse(atob(decodeURIComponent(stateEncoded)));
+
+                    if (decodedState?.from) {
+                        redirectUrl = decodedState.from;
+                    }
+                } catch (err) {
+                    // Failed to decode state, using fallback redirect
+                }
+            }
+
+            return { success: true, redirectUrl };
+        }
 
         toast.error('Login failed. Missing tokens.');
         return { success: false };

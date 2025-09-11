@@ -493,6 +493,9 @@ export const useSlidesMutations = (
         },
     });
 
+    // NOTE: Backend sometimes triggers two writes when adding a new DOC
+    // (new slide creation + inter-slide change). We rely on idempotent payloads
+    // and client-side dedup (in component) to avoid duplicate saves.
     const addUpdateDocumentSlideMutation = useMutation({
         mutationFn: async (payload: DocumentSlidePayload) => {
             const response = await authenticatedAxiosInstance.post(

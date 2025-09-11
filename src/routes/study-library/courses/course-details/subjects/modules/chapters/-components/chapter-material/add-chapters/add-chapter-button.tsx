@@ -14,6 +14,30 @@ interface AddChapterButtonProps {
     subjectId?: string;
 }
 
+// Add Chapter Header Actions Component
+const AddChapterHeaderActions = ({
+    submitFn,
+    isPending,
+}: {
+    submitFn: (() => void) | null;
+    isPending: boolean;
+}) => {
+    return (
+        <>
+            <MyButton
+                buttonType="primary"
+                scale="medium"
+                layoutVariant="default"
+                onClick={() => submitFn?.()}
+                disabled={isPending || !submitFn}
+                className="min-w-[120px]"
+            >
+                {isPending ? 'Adding...' : 'Add Chapter'}
+            </MyButton>
+        </>
+    );
+};
+
 export const AddChapterButton = ({
     isTextButton = false,
     moduleId,
@@ -22,6 +46,12 @@ export const AddChapterButton = ({
     subjectId,
 }: AddChapterButtonProps) => {
     const [openDialog, setOpenDialog] = useState(false);
+
+    // Chapter form state for header button
+    const [chapterFormState, setChapterFormState] = useState<{
+        submitFn: (() => void) | null;
+        isPending: boolean;
+    }>({ submitFn: null, isPending: false });
     const triggerButton = isTextButton ? (
         <MyButton
             scale="large"
@@ -39,10 +69,18 @@ export const AddChapterButton = ({
 
     const handleOpenChange = () => {
         setOpenDialog(!openDialog);
+        if (!openDialog) {
+            // Reset form state when closing dialog
+            setChapterFormState({ submitFn: null, isPending: false });
+        }
     };
 
     const handleSubmitSuccess = () => {
         handleOpenChange();
+    };
+
+    const handleChapterFormReady = (submitFn: () => void, isPending: boolean) => {
+        setChapterFormState({ submitFn, isPending });
     };
 
     return (
@@ -52,6 +90,14 @@ export const AddChapterButton = ({
             dialogWidth="min-w-fit"
             open={openDialog}
             onOpenChange={handleOpenChange}
+            headerActions={
+                openDialog ? (
+                    <AddChapterHeaderActions
+                        submitFn={chapterFormState.submitFn}
+                        isPending={chapterFormState.isPending}
+                    />
+                ) : undefined
+            }
         >
             <AddChapterForm
                 module_id={moduleId}
@@ -60,6 +106,8 @@ export const AddChapterButton = ({
                 subject_id={subjectId}
                 onSubmitSuccess={handleSubmitSuccess}
                 mode="create"
+                hideSubmitButton={true}
+                onFormReady={handleChapterFormReady}
             />
         </MyDialog>
     );

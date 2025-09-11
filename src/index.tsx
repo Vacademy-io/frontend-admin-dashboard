@@ -13,6 +13,14 @@ import './i18n';
 import { Toaster } from './components/ui/sonner';
 import { ThemeProvider } from './providers/theme/theme-provider';
 import { CourseSettingsProvider } from './providers/course-settings-provider';
+import useInstituteLogoStore from '@/components/common/layout-container/sidebar/institutelogo-global-zustand';
+import {
+    resolveInstituteForCurrentHost,
+    getPublicUrl,
+    cacheInstituteBranding,
+    getCachedInstituteBranding,
+} from '@/services/domain-routing';
+import { resolveFontStack } from '@/utils/font';
 
 // Initialize Amplitude as early as possible on client
 if (typeof window !== 'undefined') {
@@ -60,6 +68,92 @@ if (!rootElement.innerHTML) {
             originalWarn(...args);
         };
     }
+
+    const initializeBranding = async () => {
+        try {
+            const cached = getCachedInstituteBranding();
+            if (cached) {
+                if (cached.tabText) document.title = cached.tabText;
+                const themeCode = cached.instituteThemeCode ?? cached.theme;
+                if (themeCode) {
+                    localStorage.setItem('theme-code', themeCode);
+                }
+                if (cached.fontFamily) {
+                    const stack = resolveFontStack(cached.fontFamily);
+                    if (stack) {
+                        document.documentElement.style.setProperty('--app-font-family', stack);
+                        document.body.style.fontFamily = stack;
+                    }
+                }
+                if (cached.instituteLogoUrl) {
+                    const store = useInstituteLogoStore.getState();
+                    if (store && store.setInstituteLogo) {
+                        store.setInstituteLogo(cached.instituteLogoUrl);
+                    }
+                }
+                if (cached.tabIconFileId && !cached.tabIconUrl) {
+                    const iconUrl = await getPublicUrl(cached.tabIconFileId || '');
+                    if (iconUrl) {
+                        const link = document.querySelector(
+                            "link[rel='icon']"
+                        ) as HTMLLinkElement | null;
+                        if (link) link.href = iconUrl;
+                    }
+                } else if (cached.tabIconUrl) {
+                    const link = document.querySelector(
+                        "link[rel='icon']"
+                    ) as HTMLLinkElement | null;
+                    if (link) link.href = cached.tabIconUrl;
+                }
+            }
+
+            const data = await resolveInstituteForCurrentHost();
+            if (!data) return;
+
+            const [logoUrl, iconUrl] = await Promise.all([
+                getPublicUrl(data.instituteLogoFileId),
+                getPublicUrl(data.tabIconFileId),
+            ]);
+
+            cacheInstituteBranding(data.instituteId, {
+                ...data,
+                instituteLogoUrl: logoUrl || undefined,
+                tabIconUrl: iconUrl || undefined,
+            });
+
+            if (data.tabText) document.title = data.tabText;
+            if (iconUrl) {
+                const link = document.querySelector("link[rel='icon']") as HTMLLinkElement | null;
+                if (link) link.href = iconUrl;
+            }
+
+            if (logoUrl) {
+                const store = useInstituteLogoStore.getState();
+                if (store && store.setInstituteLogo) {
+                    store.setInstituteLogo(logoUrl);
+                }
+            }
+
+            // Apply theme code if provided
+            const themeCode = data.instituteThemeCode ?? data.theme;
+            if (themeCode) {
+                localStorage.setItem('theme-code', themeCode);
+            }
+
+            // Apply font if provided
+            if (data.fontFamily) {
+                const stack = resolveFontStack(data.fontFamily);
+                if (stack) {
+                    document.documentElement.style.setProperty('--app-font-family', stack);
+                    document.body.style.fontFamily = stack;
+                }
+            }
+        } catch {
+            // ignore branding failures
+        }
+    };
+
+    await initializeBranding();
 
     const root = ReactDOM.createRoot(rootElement);
     const app = (

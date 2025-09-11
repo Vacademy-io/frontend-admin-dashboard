@@ -3,7 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MyButton } from '@/components/design-system/button';
-import { PaperPlaneTilt, Eye, Copy, CircleNotch, Calendar, TrashSimple } from 'phosphor-react';
+import { PaperPlaneTilt, Eye, Copy, CircleNotch, TrashSimple } from 'phosphor-react';
 import { toast } from 'sonner';
 import { useNavigate } from '@tanstack/react-router';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
@@ -317,17 +317,6 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
         }
     };
 
-    const getRelationshipBadge = (relationshipType: string) => {
-        switch (relationshipType) {
-            case 'CREATOR':
-                return <Badge className="bg-blue-100 text-xs text-blue-800">Creator</Badge>;
-            case 'FACULTY_ASSIGNED':
-                return <Badge className="text-xs">Faculty</Badge>;
-            default:
-                return <Badge className="text-xs">{relationshipType}</Badge>;
-        }
-    };
-
     // Thumbnail component that handles async URL fetching
     const CourseThumbnail: React.FC<{ course: GroupedCourse }> = ({ course }) => {
         const { getPublicUrl } = useFileUpload();
@@ -445,205 +434,289 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                     {filteredCourses.map((course) => (
                         <Card
                             key={course.id}
-                            className="flex flex-col transition-shadow hover:shadow-md"
+                            className="flex flex-col border border-gray-200 bg-white transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
                         >
                             {/* Thumbnail */}
                             <CourseThumbnail course={course} />
 
-                            <CardHeader className="pb-2">
+                            <CardHeader className="pb-3">
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="min-w-0 flex-1">
-                                        <CardTitle className="line-clamp-2 text-base font-medium">
+                                        <CardTitle className="line-clamp-2 text-lg font-semibold leading-tight">
                                             {course.packageName}
                                         </CardTitle>
                                     </div>
                                     <div className="flex flex-col items-end gap-1">
                                         {getStatusBadge(course.status)}
-                                        {getRelationshipBadge(course.relationshipType)}
                                         {course.originalCourseId && (
                                             <Badge className="px-1 text-xs">Copy</Badge>
                                         )}
                                     </div>
                                 </div>
-                                <CardDescription className="text-xs">
+                                <CardDescription className="text-xs text-gray-500">
                                     Updated {formatDistanceToNow(new Date(course.updatedAt))} ago
                                 </CardDescription>
                             </CardHeader>
 
-                            <CardContent className="flex flex-1 flex-col justify-between space-y-3 pt-0">
-                                {/* Description */}
-                                {course.courseHtmlDescription && (
-                                    <div className="mb-3">
-                                        <p
-                                            className="line-clamp-2 text-xs text-gray-600"
-                                            dangerouslySetInnerHTML={{
-                                                __html: course.courseHtmlDescription,
-                                            }}
-                                        />
-                                    </div>
-                                )}
-
-                                {/* Session/Level Information */}
-                                <div className="space-y-2">
+                            <CardContent className="flex flex-1 flex-col justify-between p-4 pt-0">
+                                {/* Level Information */}
+                                <div className="mb-4">
                                     {course.sessionLevelCombinations.length > 0 && (
-                                        <div className="space-y-1">
-                                            <h4 className="text-xs font-medium text-gray-700">
-                                                Sessions & Levels:
-                                            </h4>
-                                            <div className="space-y-1">
-                                                {course.sessionLevelCombinations
-                                                    .slice(0, 2)
-                                                    .map((combo, index) => (
-                                                        <div
-                                                            key={index}
-                                                            className="flex items-center gap-2 text-xs text-gray-600"
-                                                        >
-                                                            {combo.sessionInfo.sessionName &&
-                                                                combo.sessionInfo.sessionName !==
-                                                                    'default' && (
-                                                                    <div className="flex items-center gap-1">
-                                                                        <Calendar size={12} />
-                                                                        <span className="truncate">
+                                        <div className="flex flex-wrap gap-1">
+                                            {(() => {
+                                                // Filter out "invited" sessions but keep level information
+                                                const filteredCombinations =
+                                                    course.sessionLevelCombinations.filter(
+                                                        (combo) => {
+                                                            const sessionName =
+                                                                combo.sessionInfo.sessionName?.toLowerCase() ||
+                                                                '';
+                                                            return !sessionName.includes('invited');
+                                                        }
+                                                    );
+
+                                                return (
+                                                    <>
+                                                        {filteredCombinations
+                                                            .slice(0, 3) // Show up to 3 level chips
+                                                            .map(
+                                                                (combo, index) =>
+                                                                    combo.levelInfo.levelName && (
+                                                                        <Badge
+                                                                            key={index}
+                                                                            variant="secondary"
+                                                                            className="rounded-full border border-blue-200 bg-blue-50 px-2 py-1 text-xs text-blue-700"
+                                                                        >
                                                                             {
-                                                                                combo.sessionInfo
-                                                                                    .sessionName
+                                                                                combo.levelInfo
+                                                                                    .levelName
                                                                             }
-                                                                        </span>
-                                                                    </div>
-                                                                )}
-                                                        </div>
-                                                    ))}
-                                            </div>
+                                                                        </Badge>
+                                                                    )
+                                                            )}
+                                                        {filteredCombinations.length > 3 && (
+                                                            <Badge
+                                                                variant="secondary"
+                                                                className="rounded-full bg-gray-50 px-2 py-1 text-xs text-gray-600"
+                                                            >
+                                                                +{filteredCombinations.length - 3}{' '}
+                                                                more
+                                                            </Badge>
+                                                        )}
+                                                    </>
+                                                );
+                                            })()}
                                         </div>
                                     )}
                                 </div>
 
                                 {/* Action Buttons */}
-                                <div className="space-y-2">
-                                    {/* View Button */}
+                                <div className="space-y-3">
+                                    {/* Primary View Button */}
                                     <MyButton
                                         onClick={() => handleViewCourse(course.id)}
-                                        size="sm"
-                                        className="h-8 w-full text-xs"
+                                        size="default"
+                                        className="h-10 w-full text-sm font-medium"
                                     >
-                                        <Eye size={12} className="mr-1" />
-                                        View
+                                        <Eye size={16} className="mr-2" />
+                                        View Course
                                     </MyButton>
 
-                                    {/* Action Buttons */}
+                                    {/* Secondary Action Buttons */}
                                     {course.status === 'DRAFT' && !isAdmin ? (
-                                        // Draft course for non-admin: Only show submit button
-                                        <div>
+                                        // Draft course: Submit (green) and Delete icon buttons
+                                        <div className="flex justify-center gap-2">
                                             <MyButton
                                                 onClick={() => handleSubmitForReview(course.id)}
                                                 size="sm"
-                                                className="h-8 w-full bg-blue-600 text-xs text-white hover:bg-blue-700"
+                                                className="size-9 rounded-full bg-green-600 p-0 text-white hover:bg-green-700"
                                                 disabled={submitReviewMutation.isPending}
+                                                title="Submit for Review"
                                             >
-                                                <PaperPlaneTilt size={12} className="mr-1" />
-                                                Submit
+                                                {submitReviewMutation.isPending ? (
+                                                    <CircleNotch
+                                                        size={16}
+                                                        className="animate-spin"
+                                                    />
+                                                ) : (
+                                                    <PaperPlaneTilt size={16} />
+                                                )}
                                             </MyButton>
-                                        </div>
-                                    ) : (
-                                        // For published courses, show copy button only for non-admin users
-                                        <div>
-                                            {course.status === 'ACTIVE' && !isAdmin ? (
-                                                canCreateCopy(course) ? (
+
+                                            <AlertDialog
+                                                open={deleteDialogOpen === course.id}
+                                                onOpenChange={(open) => {
+                                                    if (open) {
+                                                        setDeleteDialogOpen(course.id);
+                                                    } else {
+                                                        setDeleteDialogOpen(null);
+                                                    }
+                                                }}
+                                            >
+                                                <AlertDialogTrigger asChild>
                                                     <MyButton
-                                                        onClick={() => handleCopyToEdit(course)}
                                                         size="sm"
-                                                        className="h-8 w-full bg-blue-600 text-xs text-white hover:bg-blue-700"
-                                                        disabled={copyingCourseId === course.id}
+                                                        className="size-9 rounded-full bg-red-600 p-0 text-white hover:bg-red-700"
+                                                        disabled={deletingCourseId === course.id}
+                                                        title="Delete Course"
                                                     >
-                                                        {copyingCourseId === course.id ? (
+                                                        {deletingCourseId === course.id ? (
                                                             <CircleNotch
-                                                                size={12}
+                                                                size={16}
                                                                 className="animate-spin"
                                                             />
                                                         ) : (
-                                                            <>
-                                                                <Copy size={12} className="mr-1" />
-                                                                Copy to Edit
-                                                            </>
+                                                            <TrashSimple size={16} />
+                                                        )}
+                                                    </MyButton>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>
+                                                            Are you sure you want to delete this
+                                                            course?
+                                                        </AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            This action cannot be undone. This will
+                                                            permanently delete your course and
+                                                            remove your course data from our
+                                                            servers.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel
+                                                            disabled={
+                                                                deletingCourseId === course.id
+                                                            }
+                                                        >
+                                                            Cancel
+                                                        </AlertDialogCancel>
+                                                        <AlertDialogAction
+                                                            onClick={() =>
+                                                                handleDeleteCourse(course.id)
+                                                            }
+                                                            disabled={
+                                                                deletingCourseId === course.id
+                                                            }
+                                                            className="bg-red-600 text-white hover:bg-red-700"
+                                                        >
+                                                            {deletingCourseId === course.id ? (
+                                                                <CircleNotch
+                                                                    size={12}
+                                                                    className="animate-spin"
+                                                                />
+                                                            ) : (
+                                                                'Delete'
+                                                            )}
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </div>
+                                    ) : (
+                                        // Published course: Copy and Delete icon buttons
+                                        <div className="flex justify-center gap-2">
+                                            {course.status === 'ACTIVE' &&
+                                                !isAdmin &&
+                                                (canCreateCopy(course) ? (
+                                                    <MyButton
+                                                        onClick={() => handleCopyToEdit(course)}
+                                                        size="sm"
+                                                        className="size-9 rounded-full bg-blue-600 p-0 text-white hover:bg-blue-700"
+                                                        disabled={copyingCourseId === course.id}
+                                                        title="Copy to Edit"
+                                                    >
+                                                        {copyingCourseId === course.id ? (
+                                                            <CircleNotch
+                                                                size={16}
+                                                                className="animate-spin"
+                                                            />
+                                                        ) : (
+                                                            <Copy size={16} />
                                                         )}
                                                     </MyButton>
                                                 ) : (
                                                     <MyButton
                                                         size="sm"
-                                                        className="h-8 w-full bg-gray-400 text-xs text-gray-600"
+                                                        className="size-9 cursor-not-allowed rounded-full bg-gray-400 p-0 text-gray-600"
                                                         disabled
+                                                        title="Copy Already Exists"
                                                     >
-                                                        Copy Exists
+                                                        <Copy size={16} />
                                                     </MyButton>
-                                                )
-                                            ) : null}
+                                                ))}
+
+                                            <AlertDialog
+                                                open={deleteDialogOpen === course.id}
+                                                onOpenChange={(open) => {
+                                                    if (open) {
+                                                        setDeleteDialogOpen(course.id);
+                                                    } else {
+                                                        setDeleteDialogOpen(null);
+                                                    }
+                                                }}
+                                            >
+                                                <AlertDialogTrigger asChild>
+                                                    <MyButton
+                                                        size="sm"
+                                                        className="size-9 rounded-full bg-red-600 p-0 text-white hover:bg-red-700"
+                                                        disabled={deletingCourseId === course.id}
+                                                        title="Delete Course"
+                                                    >
+                                                        {deletingCourseId === course.id ? (
+                                                            <CircleNotch
+                                                                size={16}
+                                                                className="animate-spin"
+                                                            />
+                                                        ) : (
+                                                            <TrashSimple size={16} />
+                                                        )}
+                                                    </MyButton>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>
+                                                            Are you sure you want to delete this
+                                                            course?
+                                                        </AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            This action cannot be undone. This will
+                                                            permanently delete your course and
+                                                            remove your course data from our
+                                                            servers.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel
+                                                            disabled={
+                                                                deletingCourseId === course.id
+                                                            }
+                                                        >
+                                                            Cancel
+                                                        </AlertDialogCancel>
+                                                        <AlertDialogAction
+                                                            onClick={() =>
+                                                                handleDeleteCourse(course.id)
+                                                            }
+                                                            disabled={
+                                                                deletingCourseId === course.id
+                                                            }
+                                                            className="bg-red-600 text-white hover:bg-red-700"
+                                                        >
+                                                            {deletingCourseId === course.id ? (
+                                                                <CircleNotch
+                                                                    size={12}
+                                                                    className="animate-spin"
+                                                                />
+                                                            ) : (
+                                                                'Delete'
+                                                            )}
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
                                         </div>
                                     )}
-
-                                    {/* Delete Button */}
-                                    <AlertDialog
-                                        open={deleteDialogOpen === course.id}
-                                        onOpenChange={(open) => {
-                                            if (open) {
-                                                setDeleteDialogOpen(course.id);
-                                            } else {
-                                                setDeleteDialogOpen(null);
-                                            }
-                                        }}
-                                    >
-                                        <AlertDialogTrigger asChild>
-                                            <MyButton
-                                                size="sm"
-                                                className="h-8 w-full bg-red-600 text-xs text-white hover:bg-red-700"
-                                                disabled={deletingCourseId === course.id}
-                                            >
-                                                {deletingCourseId === course.id ? (
-                                                    <CircleNotch
-                                                        size={12}
-                                                        className="animate-spin"
-                                                    />
-                                                ) : (
-                                                    <>
-                                                        <TrashSimple size={12} className="mr-1" />
-                                                        Delete
-                                                    </>
-                                                )}
-                                            </MyButton>
-                                        </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>
-                                                    Are you sure you want to delete this course?
-                                                </AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    This action cannot be undone. This will
-                                                    permanently delete your course and remove your
-                                                    course data from our servers.
-                                                </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel
-                                                    disabled={deletingCourseId === course.id}
-                                                >
-                                                    Cancel
-                                                </AlertDialogCancel>
-                                                <AlertDialogAction
-                                                    onClick={() => handleDeleteCourse(course.id)}
-                                                    disabled={deletingCourseId === course.id}
-                                                    className="bg-red-600 text-white hover:bg-red-700"
-                                                >
-                                                    {deletingCourseId === course.id ? (
-                                                        <CircleNotch
-                                                            size={12}
-                                                            className="animate-spin"
-                                                        />
-                                                    ) : (
-                                                        'Delete'
-                                                    )}
-                                                </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
                                 </div>
                             </CardContent>
                         </Card>
