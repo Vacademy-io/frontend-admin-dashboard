@@ -16,6 +16,53 @@ export interface ContentOption {
     delivery: ContentDelivery;
 }
 
+// New API benefit value types
+export interface ContentBenefitValue {
+    referralBenefits: Array<{
+        referralRange: { min: number; max: number };
+        benefits: Array<{
+            deliveryMediums: string[]; // ["EMAIL", "WHATSAPP"]
+            templateId: string;
+            subject?: string | null;
+            body?: string | null;
+            fileIds: string[];
+        }>;
+    }>;
+}
+
+export interface PercentageDiscountBenefitValue {
+    percentage: number;
+    maxDiscountAmount: number;
+    applyMaximumDiscountAmount: boolean;
+}
+
+export interface FlatDiscountBenefitValue {
+    amount: number;
+}
+
+export type BenefitValue =
+    | ContentBenefitValue
+    | PercentageDiscountBenefitValue
+    | FlatDiscountBenefitValue;
+
+// New API benefit structure
+export interface ApiBenefit {
+    benefitType: 'CONTENT' | 'PERCENTAGE_DISCOUNT' | 'FLAT';
+    benefitValue: BenefitValue;
+}
+
+// API tier structure for referrer benefits
+export interface ApiTier extends ApiBenefit {
+    tierName: string;
+    referralCount: number;
+}
+
+// API referrer discount structure
+export interface ApiReferrerDiscount {
+    tiers: ApiTier[];
+}
+
+// Legacy UI types (keeping for backward compatibility)
 export interface RewardContent {
     contentType: 'pdf' | 'video' | 'audio' | 'course';
     content: ContentOption;
@@ -73,3 +120,6 @@ export interface UnifiedReferralSettings {
     payoutVestingDays: number;
     description?: string;
 }
+
+// Export type alias for backward compatibility
+export type UnifiedReferralSettingsType = UnifiedReferralSettings;

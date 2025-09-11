@@ -1,30 +1,87 @@
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
-import { UnifiedReferralSettings, ReferrerTier } from '@/types/referral';
+import {
+    UnifiedReferralSettings,
+    ApiBenefit,
+    ContentBenefitValue,
+    PercentageDiscountBenefitValue,
+    FlatDiscountBenefitValue,
+    RefereeReward,
+    ReferrerReward,
+} from '@/types/referral';
 import { REFERRAL_API_BASE, REFERRAL_DELETE } from '@/constants/urls';
 import { getInstituteId } from '@/constants/helper';
 
 // API endpoints
 
-// Interface for API reward format
-interface ApiRewardFormat {
-    tier_name: string;
-    referral_count: number;
-    reward: {
-        type: string;
-        value?: number;
-        currency?: string;
-        description: string;
-        content?: unknown;
-        course_id?: string;
-        session_id?: string;
-        level_id?: string;
-        delivery?: unknown;
-        points_per_referral?: number;
-        points_to_reward?: number;
-        points_reward_type?: string;
-        points_reward_value?: number;
-    };
-}
+/**
+ * JSON Structure Examples:
+ *
+ * referee_discount_json:
+ * {
+ *   "benefitType": "PERCENTAGE_DISCOUNT",
+ *   "benefitValue": {
+ *     "percentage": 20.0,
+ *     "maxDiscountAmount": 100.0,
+ *     "applyMaximumDiscountAmount": true
+ *   }
+ * }
+ *
+ * referrer_discount_json:
+ * {
+ *   "benefitType": "CONTENT",
+ *   "benefitValue": {
+ *     "referralBenefits": [
+ *       {
+ *         "referralRange": { "min": 1, "max": 1 },
+ *         "tierName": "First Referral",
+ *         "benefitType": "CONTENT",
+ *         "benefitValue": {
+ *           "referralBenefits": [
+ *             {
+ *               "referralRange": { "min": 1, "max": 1 },
+ *               "benefits": [
+ *                 {
+ *                   "deliveryMediums": ["EMAIL", "WHATSAPP"],
+ *                   "templateId": "referrer_content_v1",
+ *                   "subject": "Welcome Bonus",
+ *                   "body": "Thank you for your referral!",
+ *                   "fileIds": ["file-id-123"]
+ *                 }
+ *               ]
+ *             }
+ *           ]
+ *         },
+ *         "benefits": [
+ *           {
+ *             "deliveryMediums": ["EMAIL", "WHATSAPP"],
+ *             "templateId": "referrer_content_v1",
+ *             "subject": "Welcome Bonus",
+ *             "body": "Thank you for your referral!",
+ *             "fileIds": ["file-id-123"]
+ *           }
+ *         ]
+ *       },
+ *       {
+ *         "referralRange": { "min": 5, "max": 5 },
+ *         "tierName": "Gold Tier",
+ *         "benefitType": "FLAT",
+ *         "benefitValue": {
+ *           "amount": 500.0
+ *         },
+ *         "benefits": [
+ *           {
+ *             "deliveryMediums": ["EMAIL", "WHATSAPP"],
+ *             "templateId": "referrer_reward_v1",
+ *             "subject": "Gold Tier Reward",
+ *             "body": "Reward for Gold Tier",
+ *             "fileIds": []
+ *           }
+ *         ]
+ *       }
+ *     ]
+ *   }
+ * }
+ */
 
 // Types for API requests and responses
 export interface ReferralOptionRequest {
@@ -32,8 +89,8 @@ export interface ReferralOptionRequest {
     status: string;
     source: string; // "INSTITUTE"
     source_id: string; // institute_id
-    referrer_discount_json: string;
-    referee_discount_json: string;
+    referrer_discount_json: string; // JSON string containing ApiBenefit
+    referee_discount_json: string; // JSON string containing ApiBenefit
     referrer_vesting_days: number;
     tag: string | null;
     description: string;
@@ -45,14 +102,230 @@ export interface ReferralOptionResponse {
     status: string;
     source: string;
     source_id: string;
-    referrer_discount_json: string;
-    referee_discount_json: string;
+    referrer_discount_json: string; // JSON string containing ApiBenefit
+    referee_discount_json: string; // JSON string containing ApiBenefit
     referrer_vesting_days: number;
     tag: string | null;
     description: string;
     created_at?: string;
     updated_at?: string;
 }
+
+// Helper functions to convert UI rewards to API benefits
+const convertRefereeRewardToBenefit = (reward: RefereeReward): ApiBenefit => {
+    switch (reward.type) {
+        case 'discount_percentage':
+            return {
+                benefitType: 'PERCENTAGE_DISCOUNT',
+                benefitValue: {
+                    percentage: reward.value || 0,
+                    maxDiscountAmount: 100, // Default max discount
+                    applyMaximumDiscountAmount: true,
+                } as PercentageDiscountBenefitValue,
+            };
+        case 'discount_fixed':
+            return {
+                benefitType: 'FLAT',
+                benefitValue: {
+                    amount: reward.value || 0,
+                } as FlatDiscountBenefitValue,
+            };
+        case 'bonus_content':
+            return {
+                benefitType: 'CONTENT',
+                benefitValue: {
+                    referralBenefits: [
+                        {
+                            referralRange: { min: 1, max: 1 },
+                            benefits: [
+                                {
+                                    deliveryMediums: [
+                                        ...(reward.delivery?.email ? ['EMAIL'] : []),
+                                        ...(reward.delivery?.whatsapp ? ['WHATSAPP'] : []),
+                                    ],
+                                    templateId: 'referee_content_v1',
+                                    subject: reward.content?.content?.title || null,
+                                    body: reward.content?.content?.description || null,
+                                    fileIds: reward.content?.content?.file?.name
+                                        ? [reward.content.content.file.name] // Use file name or ID
+                                        : reward.content?.content?.url
+                                          ? [reward.content.content.url] // Use URL as fallback
+                                          : [],
+                                },
+                            ],
+                        },
+                    ],
+                } as ContentBenefitValue,
+            };
+        default:
+            return {
+                benefitType: 'FLAT',
+                benefitValue: { amount: 0 } as FlatDiscountBenefitValue,
+            };
+    }
+};
+
+const convertReferrerRewardToBenefit = (reward: ReferrerReward): ApiBenefit => {
+    switch (reward.type) {
+        case 'discount_percentage':
+            return {
+                benefitType: 'PERCENTAGE_DISCOUNT',
+                benefitValue: {
+                    percentage: reward.value || 0,
+                    maxDiscountAmount: 100, // Default max discount
+                    applyMaximumDiscountAmount: true,
+                } as PercentageDiscountBenefitValue,
+            };
+        case 'discount_fixed':
+            return {
+                benefitType: 'FLAT',
+                benefitValue: {
+                    amount: reward.value || 0,
+                } as FlatDiscountBenefitValue,
+            };
+        case 'bonus_content':
+            return {
+                benefitType: 'CONTENT',
+                benefitValue: {
+                    referralBenefits: [
+                        {
+                            referralRange: { min: 1, max: 10 }, // Adjust based on tier
+                            benefits: [
+                                {
+                                    deliveryMediums: [
+                                        ...(reward.delivery?.email ? ['EMAIL'] : []),
+                                        ...(reward.delivery?.whatsapp ? ['WHATSAPP'] : []),
+                                    ],
+                                    templateId: 'referrer_content_v1',
+                                    subject: reward.content?.content?.title || null,
+                                    body: reward.content?.content?.description || null,
+                                    fileIds: reward.content?.content?.file?.name
+                                        ? [reward.content.content.file.name] // Use file name or ID
+                                        : reward.content?.content?.url
+                                          ? [reward.content.content.url] // Use URL as fallback
+                                          : [],
+                                },
+                            ],
+                        },
+                    ],
+                } as ContentBenefitValue,
+            };
+        default:
+            return {
+                benefitType: 'FLAT',
+                benefitValue: { amount: 0 } as FlatDiscountBenefitValue,
+            };
+    }
+};
+
+// Helper functions to convert API benefits back to UI rewards
+const convertBenefitToRefereeReward = (benefit: ApiBenefit): RefereeReward => {
+    switch (benefit.benefitType) {
+        case 'PERCENTAGE_DISCOUNT': {
+            const percentageValue = benefit.benefitValue as PercentageDiscountBenefitValue;
+            return {
+                type: 'discount_percentage',
+                value: percentageValue.percentage,
+                description: `${percentageValue.percentage}% discount`,
+            };
+        }
+        case 'FLAT': {
+            const flatValue = benefit.benefitValue as FlatDiscountBenefitValue;
+            return {
+                type: 'discount_fixed',
+                value: flatValue.amount,
+                description: `₹${flatValue.amount} flat discount`,
+            };
+        }
+        case 'CONTENT': {
+            const contentValue = benefit.benefitValue as ContentBenefitValue;
+            const firstBenefit = contentValue.referralBenefits[0]?.benefits[0];
+            return {
+                type: 'bonus_content',
+                description: firstBenefit?.body || 'Bonus content reward',
+                delivery: {
+                    email: firstBenefit?.deliveryMediums.includes('EMAIL') || false,
+                    whatsapp: firstBenefit?.deliveryMediums.includes('WHATSAPP') || false,
+                },
+                content: firstBenefit?.fileIds?.length
+                    ? {
+                          contentType: 'pdf' as const,
+                          content: {
+                              type: 'upload' as const,
+                              title: firstBenefit.subject || 'Bonus Content',
+                              description: firstBenefit.body || undefined,
+                              url: firstBenefit.fileIds[0], // Use first fileId as URL reference
+                              delivery: {
+                                  email: firstBenefit.deliveryMediums.includes('EMAIL'),
+                                  whatsapp: firstBenefit.deliveryMediums.includes('WHATSAPP'),
+                              },
+                          },
+                      }
+                    : undefined,
+            };
+        }
+        default:
+            return {
+                type: 'discount_fixed',
+                value: 0,
+                description: 'No reward',
+            };
+    }
+};
+
+const convertBenefitToReferrerReward = (benefit: ApiBenefit): ReferrerReward => {
+    switch (benefit.benefitType) {
+        case 'PERCENTAGE_DISCOUNT': {
+            const percentageValue = benefit.benefitValue as PercentageDiscountBenefitValue;
+            return {
+                type: 'discount_percentage',
+                value: percentageValue.percentage,
+                description: `${percentageValue.percentage}% discount`,
+            };
+        }
+        case 'FLAT': {
+            const flatValue = benefit.benefitValue as FlatDiscountBenefitValue;
+            return {
+                type: 'discount_fixed',
+                value: flatValue.amount,
+                description: `₹${flatValue.amount} flat discount`,
+            };
+        }
+        case 'CONTENT': {
+            const contentValue = benefit.benefitValue as ContentBenefitValue;
+            const firstBenefit = contentValue.referralBenefits[0]?.benefits[0];
+            return {
+                type: 'bonus_content',
+                description: firstBenefit?.body || 'Bonus content reward',
+                delivery: {
+                    email: firstBenefit?.deliveryMediums.includes('EMAIL') || false,
+                    whatsapp: firstBenefit?.deliveryMediums.includes('WHATSAPP') || false,
+                },
+                content: firstBenefit?.fileIds?.length
+                    ? {
+                          contentType: 'pdf' as const,
+                          content: {
+                              type: 'upload' as const,
+                              title: firstBenefit.subject || 'Bonus Content',
+                              description: firstBenefit.body || undefined,
+                              url: firstBenefit.fileIds[0], // Use first fileId as URL reference
+                              delivery: {
+                                  email: firstBenefit.deliveryMediums.includes('EMAIL'),
+                                  whatsapp: firstBenefit.deliveryMediums.includes('WHATSAPP'),
+                              },
+                          },
+                      }
+                    : undefined,
+            };
+        }
+        default:
+            return {
+                type: 'discount_fixed',
+                value: 0,
+                description: 'No reward',
+            };
+    }
+};
 
 // Helper function to convert UnifiedReferralSettings to API format
 export const convertToApiFormat = (settings: UnifiedReferralSettings): ReferralOptionRequest => {
@@ -63,43 +336,52 @@ export const convertToApiFormat = (settings: UnifiedReferralSettings): ReferralO
         throw new Error('Missing required fields: label, refereeReward, or referrerRewards');
     }
 
-    // Convert referrer rewards to JSON string
+    // Convert referrer rewards to new benefit format with tier data embedded
     const referrerDiscountJson = JSON.stringify({
-        rewards: settings.referrerRewards.map((tier: ReferrerTier) => ({
-            tier_name: tier.tierName,
-            referral_count: tier.referralCount,
-            reward: {
-                type: tier.reward.type,
-                value: tier.reward.value,
-                currency: tier.reward.currency,
-                description: tier.reward.description,
-                content: tier.reward.content,
-                course_id: tier.reward.courseId,
-                session_id: tier.reward.sessionId,
-                level_id: tier.reward.levelId,
-                delivery: tier.reward.delivery,
-                points_per_referral: tier.reward.pointsPerReferral,
-                points_to_reward: tier.reward.pointsToReward,
-                points_reward_type: tier.reward.pointsRewardType,
-                points_reward_value: tier.reward.pointsRewardValue,
-            },
-        })),
-    });
-
-    // Convert referee reward to JSON string
-    const refereeDiscountJson = JSON.stringify({
-        reward: {
-            type: settings.refereeReward.type,
-            value: settings.refereeReward.value,
-            currency: settings.refereeReward.currency,
-            description: settings.refereeReward.description,
-            content: settings.refereeReward.content,
-            course_id: settings.refereeReward.courseId,
-            session_id: settings.refereeReward.sessionId,
-            level_id: settings.refereeReward.levelId,
-            delivery: settings.refereeReward.delivery,
+        benefitType: 'CONTENT', // Default to CONTENT as it can hold multiple tiers
+        benefitValue: {
+            referralBenefits: settings.referrerRewards.map((tier) => {
+                const tierBenefit = convertReferrerRewardToBenefit(tier.reward);
+                return {
+                    referralRange: {
+                        min: tier.referralCount,
+                        max: tier.referralCount,
+                    },
+                    tierName: tier.tierName,
+                    benefitType: tierBenefit.benefitType,
+                    benefitValue: tierBenefit.benefitValue,
+                    benefits:
+                        tierBenefit.benefitType === 'CONTENT'
+                            ? (
+                                  tierBenefit.benefitValue as ContentBenefitValue
+                              ).referralBenefits[0]?.benefits?.map((benefit) => ({
+                                  ...benefit,
+                                  deliveryMediums: [
+                                      ...(tier.reward.delivery?.email ? ['EMAIL'] : []),
+                                      ...(tier.reward.delivery?.whatsapp ? ['WHATSAPP'] : []),
+                                  ],
+                              })) || []
+                            : [
+                                  {
+                                      deliveryMediums: [
+                                          ...(tier.reward.delivery?.email ? ['EMAIL'] : []),
+                                          ...(tier.reward.delivery?.whatsapp ? ['WHATSAPP'] : []),
+                                      ],
+                                      templateId: 'referrer_reward_v1',
+                                      subject: `${tier.tierName} Reward`,
+                                      body: `Reward for ${tier.tierName}`,
+                                      fileIds: [],
+                                  },
+                              ],
+                };
+            }),
         },
     });
+
+    // Convert referee reward to new benefit format
+    const refereeDiscountJson = JSON.stringify(
+        convertRefereeRewardToBenefit(settings.refereeReward)
+    );
 
     return {
         name: settings.label,
@@ -120,7 +402,64 @@ export const convertFromApiFormat = (
 ): UnifiedReferralSettings => {
     try {
         const referrerDiscountData = JSON.parse(apiResponse.referrer_discount_json);
-        const refereeDiscountData = JSON.parse(apiResponse.referee_discount_json);
+        const refereeDiscountData = JSON.parse(apiResponse.referee_discount_json) as ApiBenefit;
+
+        // Handle new referrer discount JSON format (same structure as referee but with tier data)
+        let referrerRewards;
+        if (
+            referrerDiscountData.benefitType &&
+            referrerDiscountData.benefitValue?.referralBenefits
+        ) {
+            // New format matching referee structure with embedded tier data
+            referrerRewards = referrerDiscountData.benefitValue.referralBenefits.map(
+                (
+                    referralBenefit: {
+                        tierName?: string;
+                        referralRange?: { min: number; max: number };
+                        benefitType: string;
+                        benefitValue:
+                            | ContentBenefitValue
+                            | PercentageDiscountBenefitValue
+                            | FlatDiscountBenefitValue;
+                    },
+                    index: number
+                ) => ({
+                    id: `${apiResponse.id}_tier${index + 1}`,
+                    tierName: referralBenefit.tierName || `Tier ${index + 1}`,
+                    referralCount: referralBenefit.referralRange?.min || index + 1,
+                    reward: convertBenefitToReferrerReward({
+                        benefitType: referralBenefit.benefitType,
+                        benefitValue: referralBenefit.benefitValue,
+                    } as ApiBenefit),
+                })
+            );
+        } else if (referrerDiscountData.tiers && Array.isArray(referrerDiscountData.tiers)) {
+            // Legacy format with tiers array (for backward compatibility)
+            referrerRewards = referrerDiscountData.tiers.map(
+                (
+                    tier: ApiBenefit & { tierName?: string; referralCount?: number },
+                    index: number
+                ) => ({
+                    id: `${apiResponse.id}_tier${index + 1}`,
+                    tierName: tier.tierName || `Tier ${index + 1}`,
+                    referralCount: tier.referralCount || index + 1,
+                    reward: convertBenefitToReferrerReward({
+                        benefitType: tier.benefitType,
+                        benefitValue: tier.benefitValue,
+                    } as ApiBenefit),
+                })
+            );
+        } else {
+            // Fallback for old format (single benefit)
+            referrerRewards = [
+                {
+                    id: `${apiResponse.id}_tier1`,
+                    tierName: 'Default Tier',
+                    referralCount: 1,
+                    reward: convertBenefitToReferrerReward(referrerDiscountData as ApiBenefit),
+                },
+            ];
+        }
 
         return {
             id: apiResponse.id,
@@ -128,37 +467,8 @@ export const convertFromApiFormat = (
             isDefault: apiResponse.tag === 'DEFAULT',
             payoutVestingDays: apiResponse.referrer_vesting_days,
             allowCombineOffers: true, // Default value, adjust as needed
-            refereeReward: {
-                type: refereeDiscountData.reward.type,
-                value: refereeDiscountData.reward.value,
-                currency: refereeDiscountData.reward.currency,
-                description: refereeDiscountData.reward.description,
-                content: refereeDiscountData.reward.content,
-                courseId: refereeDiscountData.reward.course_id,
-                sessionId: refereeDiscountData.reward.session_id,
-                levelId: refereeDiscountData.reward.level_id,
-                delivery: refereeDiscountData.reward.delivery,
-            },
-            referrerRewards: referrerDiscountData.rewards.map((reward: ApiRewardFormat) => ({
-                id: `${apiResponse.id}_${reward.tier_name}`,
-                tierName: reward.tier_name,
-                referralCount: reward.referral_count,
-                reward: {
-                    type: reward.reward.type,
-                    value: reward.reward.value,
-                    currency: reward.reward.currency,
-                    description: reward.reward.description,
-                    content: reward.reward.content,
-                    courseId: reward.reward.course_id,
-                    sessionId: reward.reward.session_id,
-                    levelId: reward.reward.level_id,
-                    delivery: reward.reward.delivery,
-                    pointsPerReferral: reward.reward.points_per_referral,
-                    pointsToReward: reward.reward.points_to_reward,
-                    pointsRewardType: reward.reward.points_reward_type,
-                    pointsRewardValue: reward.reward.points_reward_value,
-                },
-            })),
+            refereeReward: convertBenefitToRefereeReward(refereeDiscountData),
+            referrerRewards,
         };
     } catch (error) {
         console.error('Error parsing referral option data:', error);

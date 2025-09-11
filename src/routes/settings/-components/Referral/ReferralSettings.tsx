@@ -26,6 +26,7 @@ const ReferralSettings = () => {
     // Load referral programs on component mount
     useEffect(() => {
         loadReferralPrograms();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const loadReferralPrograms = async () => {
