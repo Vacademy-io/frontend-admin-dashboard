@@ -4,9 +4,11 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTrigger,
+    DialogClose,
 } from '@/components/ui/dialog';
 import { DialogDescription, DialogTitle } from '@radix-ui/react-dialog';
 import React, { ReactNode } from 'react';
+import { X } from '@phosphor-icons/react';
 
 interface DialogProps {
     trigger?: ReactNode;
@@ -19,6 +21,7 @@ interface DialogProps {
     footer?: JSX.Element;
     isTour?: boolean;
     dialogId?: string;
+    headerActions?: React.ReactNode;
     className?: string;
 }
 
@@ -33,6 +36,7 @@ export const MyDialog = ({
     footer,
     isTour = false,
     dialogId,
+    headerActions,
     className,
 }: DialogProps) => {
     return (
@@ -46,8 +50,22 @@ export const MyDialog = ({
                 }}
             >
                 <DialogTitle className="flex justify-between rounded-lg bg-primary-50">
-                    <DialogHeader className="sticky top-0 z-10 rounded-t-lg px-6 py-4 font-semibold text-primary-500">
-                        {heading}
+                    <DialogHeader className="sticky top-0 z-10 flex w-full items-center justify-between rounded-t-lg px-6 py-4 font-semibold text-primary-500">
+                        <span>{heading}</span>
+                        <div className="flex items-center gap-2">
+                            {headerActions && (
+                                <div className="flex items-center gap-2">{headerActions}</div>
+                            )}
+                            <DialogClose asChild>
+                                <button
+                                    type="button"
+                                    className="rounded-sm p-1 opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                                    aria-label="Close dialog"
+                                >
+                                    <X size={16} />
+                                </button>
+                            </DialogClose>
+                        </div>
                     </DialogHeader>
                 </DialogTitle>
                 <DialogDescription asChild className="m-0 overflow-y-auto overflow-x-hidden p-0">

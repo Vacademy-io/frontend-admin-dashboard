@@ -10,6 +10,8 @@ import { DEFAULT_ADMIN_DISPLAY_SETTINGS } from '@/constants/display-settings/adm
 import { DEFAULT_TEACHER_DISPLAY_SETTINGS } from '@/constants/display-settings/teacher-defaults';
 
 const CACHE_EXPIRY_HOURS = 24;
+const LEGACY_ADMIN_KEY = StorageKey.ADMIN_DISPLAY_SETTINGS;
+const LEGACY_TEACHER_KEY = StorageKey.TEACHER_DISPLAY_SETTINGS;
 
 type RoleKey = typeof ADMIN_DISPLAY_SETTINGS_KEY | typeof TEACHER_DISPLAY_SETTINGS_KEY;
 
@@ -19,10 +21,13 @@ interface CachedDisplaySettings {
     instituteId: string;
 }
 
-function getLocalStorageKey(role: RoleKey): StorageKey {
-    return role === ADMIN_DISPLAY_SETTINGS_KEY
-        ? StorageKey.ADMIN_DISPLAY_SETTINGS
-        : StorageKey.TEACHER_DISPLAY_SETTINGS;
+function getLocalStorageKey(role: RoleKey, instituteId?: string | null): string {
+    const prefix =
+        role === ADMIN_DISPLAY_SETTINGS_KEY
+            ? StorageKey.ADMIN_DISPLAY_SETTINGS
+            : StorageKey.TEACHER_DISPLAY_SETTINGS;
+    const id = instituteId ?? getInstituteId();
+    return id ? `${prefix}-${id}` : prefix;
 }
 
 function getDefaults(role: RoleKey): DisplaySettingsData {
@@ -331,23 +336,45 @@ function readCache(role: RoleKey): DisplaySettingsData | null {
     try {
         const instituteId = getInstituteId();
         if (!instituteId) return null;
-        const raw = localStorage.getItem(getLocalStorageKey(role));
+
+        // Migrate legacy cache (without institute suffix) to per-institute key
+        const legacyKey =
+            role === ADMIN_DISPLAY_SETTINGS_KEY ? LEGACY_ADMIN_KEY : LEGACY_TEACHER_KEY;
+        const legacyRaw = localStorage.getItem(legacyKey);
+        if (legacyRaw) {
+            try {
+                const legacyParsed: CachedDisplaySettings = JSON.parse(legacyRaw);
+                if (legacyParsed?.instituteId === instituteId && legacyParsed?.data) {
+                    const newKey = getLocalStorageKey(role, instituteId);
+                    localStorage.setItem(newKey, JSON.stringify(legacyParsed));
+                }
+            } catch {
+                // ignore
+            } finally {
+                localStorage.removeItem(legacyKey);
+            }
+        }
+
+        const key = getLocalStorageKey(role, instituteId);
+        const raw = localStorage.getItem(key);
         if (!raw) return null;
         const parsed: CachedDisplaySettings = JSON.parse(raw);
-        if (parsed.instituteId !== instituteId) {
-            localStorage.removeItem(getLocalStorageKey(role));
-            return null;
-        }
         const age = Date.now() - parsed.timestamp;
         const expiry = CACHE_EXPIRY_HOURS * 60 * 60 * 1000;
         if (age > expiry) {
-            localStorage.removeItem(getLocalStorageKey(role));
+            localStorage.removeItem(key);
             return null;
         }
         return mergeDisplayWithDefaults(parsed.data, role);
     } catch (e) {
         console.error('Error reading display settings cache', e);
-        localStorage.removeItem(getLocalStorageKey(role));
+        try {
+            const instituteId = getInstituteId();
+            const key = getLocalStorageKey(role, instituteId);
+            localStorage.removeItem(key);
+        } catch {
+            // ignore
+        }
         return null;
     }
 }
@@ -356,24 +383,39 @@ function writeCache(role: RoleKey, data: DisplaySettingsData): void {
     try {
         const instituteId = getInstituteId();
         if (!instituteId) return;
+        const key = getLocalStorageKey(role, instituteId);
         const payload: CachedDisplaySettings = {
             data,
             timestamp: Date.now(),
             instituteId,
         };
-        localStorage.setItem(getLocalStorageKey(role), JSON.stringify(payload));
+        localStorage.setItem(key, JSON.stringify(payload));
     } catch (e) {
         console.error('Error writing display settings cache', e);
     }
 }
 
 export function clearDisplaySettingsCache(role?: RoleKey): void {
-    if (role) {
-        localStorage.removeItem(getLocalStorageKey(role));
-        return;
+    try {
+        const instituteId = getInstituteId();
+        if (role) {
+            localStorage.removeItem(getLocalStorageKey(role, instituteId));
+            // Clean legacy key too
+            localStorage.removeItem(
+                role === ADMIN_DISPLAY_SETTINGS_KEY ? LEGACY_ADMIN_KEY : LEGACY_TEACHER_KEY
+            );
+            return;
+        }
+        if (instituteId) {
+            localStorage.removeItem(getLocalStorageKey(ADMIN_DISPLAY_SETTINGS_KEY, instituteId));
+            localStorage.removeItem(getLocalStorageKey(TEACHER_DISPLAY_SETTINGS_KEY, instituteId));
+        }
+        // Clean legacy keys as well
+        localStorage.removeItem(LEGACY_ADMIN_KEY);
+        localStorage.removeItem(LEGACY_TEACHER_KEY);
+    } catch {
+        // ignore
     }
-    localStorage.removeItem(StorageKey.ADMIN_DISPLAY_SETTINGS);
-    localStorage.removeItem(StorageKey.TEACHER_DISPLAY_SETTINGS);
 }
 
 export async function getDisplaySettings(

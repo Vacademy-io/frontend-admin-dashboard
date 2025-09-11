@@ -8,8 +8,17 @@ import {
 } from '@/types/course-settings';
 
 const COURSE_SETTINGS_KEY = 'COURSE_SETTING';
-const LOCALSTORAGE_KEY = 'course-settings-cache';
+const LOCALSTORAGE_KEY_PREFIX = 'course-settings-cache';
+const LEGACY_LOCALSTORAGE_KEY = 'course-settings-cache';
 const CACHE_EXPIRY_HOURS = 24; // Cache expires after 24 hours
+
+/**
+ * Build per-institute localStorage key
+ */
+const getLocalStorageKey = (instituteId: string | null | undefined): string | null => {
+    if (!instituteId) return null;
+    return `${LOCALSTORAGE_KEY_PREFIX}-${instituteId}`;
+};
 
 interface CachedCourseSettings {
     data: CourseSettingsData;
@@ -25,16 +34,38 @@ const getCachedSettings = (): CourseSettingsData | null => {
         const instituteId = getInstituteId();
         if (!instituteId) return null;
 
-        const cached = localStorage.getItem(LOCALSTORAGE_KEY);
+        // Migration from legacy single-key cache to per-institute key
+        const legacyCached = localStorage.getItem(LEGACY_LOCALSTORAGE_KEY);
+        if (legacyCached) {
+            try {
+                const legacyData: CachedCourseSettings = JSON.parse(legacyCached);
+                if (legacyData?.instituteId === instituteId && legacyData?.data) {
+                    const newKey = getLocalStorageKey(instituteId);
+                    if (newKey) {
+                        localStorage.setItem(
+                            newKey,
+                            JSON.stringify({
+                                data: legacyData.data,
+                                timestamp: legacyData.timestamp || Date.now(),
+                                instituteId,
+                            } as CachedCourseSettings)
+                        );
+                    }
+                }
+            } catch (e) {
+                // ignore parse errors on legacy cache
+            } finally {
+                localStorage.removeItem(LEGACY_LOCALSTORAGE_KEY);
+            }
+        }
+
+        const key = getLocalStorageKey(instituteId);
+        if (!key) return null;
+
+        const cached = localStorage.getItem(key);
         if (!cached) return null;
 
         const cachedData: CachedCourseSettings = JSON.parse(cached);
-
-        // Check if cache is for the same institute
-        if (cachedData.instituteId !== instituteId) {
-            localStorage.removeItem(LOCALSTORAGE_KEY);
-            return null;
-        }
 
         // Check if cache has expired
         const now = Date.now();
@@ -42,14 +73,20 @@ const getCachedSettings = (): CourseSettingsData | null => {
         const expiryTime = CACHE_EXPIRY_HOURS * 60 * 60 * 1000; // Convert to milliseconds
 
         if (cacheAge > expiryTime) {
-            localStorage.removeItem(LOCALSTORAGE_KEY);
+            localStorage.removeItem(key);
             return null;
         }
 
         return mergeWithDefaults(cachedData.data);
     } catch (error) {
         console.error('Error reading cached course settings:', error);
-        localStorage.removeItem(LOCALSTORAGE_KEY);
+        try {
+            const instituteId = getInstituteId();
+            const key = getLocalStorageKey(instituteId);
+            if (key) localStorage.removeItem(key);
+        } catch {
+            // ignore
+        }
         return null;
     }
 };
@@ -62,13 +99,16 @@ const setCachedSettings = (settings: CourseSettingsData): void => {
         const instituteId = getInstituteId();
         if (!instituteId) return;
 
+        const key = getLocalStorageKey(instituteId);
+        if (!key) return;
+
         const cacheData: CachedCourseSettings = {
             data: settings,
             timestamp: Date.now(),
             instituteId,
         };
 
-        localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(cacheData));
+        localStorage.setItem(key, JSON.stringify(cacheData));
     } catch (error) {
         console.error('Error caching course settings:', error);
     }
@@ -78,7 +118,15 @@ const setCachedSettings = (settings: CourseSettingsData): void => {
  * Clear cached course settings
  */
 export const clearCourseSettingsCache = (): void => {
-    localStorage.removeItem(LOCALSTORAGE_KEY);
+    try {
+        const instituteId = getInstituteId();
+        const key = getLocalStorageKey(instituteId);
+        if (key) localStorage.removeItem(key);
+        // Clean legacy key as well just in case
+        localStorage.removeItem(LEGACY_LOCALSTORAGE_KEY);
+    } catch {
+        // ignore
+    }
 };
 
 /**

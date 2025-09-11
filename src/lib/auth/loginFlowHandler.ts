@@ -17,6 +17,9 @@ import { trackEvent, identifyUser } from '@/lib/amplitude';
 import { getDisplaySettingsFromCache } from '@/services/display-settings';
 import { ADMIN_DISPLAY_SETTINGS_KEY, TEACHER_DISPLAY_SETTINGS_KEY } from '@/types/display-settings';
 import type { QueryClient } from '@tanstack/react-query';
+import { getCachedInstituteBranding } from '@/services/domain-routing';
+import { getCourseSettings } from '@/services/course-settings';
+import { getDisplaySettings } from '@/services/display-settings';
 
 export interface LoginFlowResult {
     success: boolean;
@@ -79,6 +82,40 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
         // Get user roles from token
         const userRoles = getUserRoles(accessToken);
 
+        // Check domain-specific role restrictions
+        const cachedBranding = getCachedInstituteBranding();
+        if (cachedBranding?.role === 'ADMIN') {
+            // Domain requires ADMIN role - check if user has ADMIN role
+            const hasAdminRole = userRoles.includes('ADMIN');
+
+            if (!hasAdminRole) {
+                // Track blocked login attempt
+                trackEvent('Login Blocked', {
+                    login_method: loginMethod,
+                    reason: 'admin_role_required',
+                    user_roles: userRoles,
+                    required_role: 'ADMIN',
+                    timestamp: new Date().toISOString(),
+                });
+
+                // Clear tokens and show error
+                removeCookiesAndLogout();
+
+                toast.error('Access Denied', {
+                    description:
+                        'This portal requires ADMIN privileges. Please contact your administrator.',
+                    className: 'error-toast',
+                    duration: 5000,
+                });
+
+                return {
+                    success: false,
+                    error: 'admin_role_required',
+                    userRoles,
+                };
+            }
+        }
+
         // Check if user should be blocked (only has STUDENT role)
         if (shouldBlockStudentLogin()) {
             // Track blocked login attempt
@@ -127,6 +164,11 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
             // Set the selected institute
             setSelectedInstitute(instituteResult.selectedInstitute.id);
 
+            // Refresh settings caches for this institute (non-blocking)
+            void getCourseSettings(true).catch(() => {});
+            void getDisplaySettings(ADMIN_DISPLAY_SETTINGS_KEY, true).catch(() => {});
+            void getDisplaySettings(TEACHER_DISPLAY_SETTINGS_KEY, true).catch(() => {});
+
             // Determine redirect URL from Display Settings (cached), fallback to dashboard
             const roleKey = hasAdminRole
                 ? ADMIN_DISPLAY_SETTINGS_KEY
@@ -135,13 +177,10 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
 
             let redirectUrl = ds?.postLoginRedirectRoute || '/dashboard';
 
-            // Preserve learner tab hint if user also has STUDENT role and route points to dashboard
-            if (
-                hasStudentRole &&
-                instituteResult.selectedInstitute.roles.length > 1 &&
-                (redirectUrl === '/dashboard' || redirectUrl.startsWith('/dashboard?'))
-            ) {
-                redirectUrl = '/dashboard?showLearnerTab=true';
+            // Prefer afterLoginRoute from domain resolve if available
+            const cached = getCachedInstituteBranding();
+            if (cached?.afterLoginRoute) {
+                redirectUrl = cached.afterLoginRoute;
             }
 
             return {
@@ -154,10 +193,11 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
             };
         }
 
-        // Fallback - navigate to dashboard
+        // Fallback - navigate to dashboard or afterLoginRoute
+        const cached = getCachedInstituteBranding();
         return {
             success: true,
-            redirectUrl: '/dashboard',
+            redirectUrl: cached?.afterLoginRoute || '/dashboard',
             userRoles,
         };
     } catch (error) {
@@ -195,13 +235,47 @@ export const handleInstituteSelection = (instituteId: string): LoginFlowResult =
         const hasAdminRole = selectedInstitute.roles.includes('ADMIN');
         const userRoles = getUserRoles(getTokenFromCookie(TokenKey.accessToken));
 
+        // Check domain-specific role restrictions
+        const cachedBranding = getCachedInstituteBranding();
+        if (cachedBranding?.role === 'ADMIN') {
+            // Domain requires ADMIN role - check if user has ADMIN role
+            if (!hasAdminRole) {
+                // Track blocked login attempt
+                trackEvent('Login Blocked', {
+                    login_method: 'institute_selection',
+                    reason: 'admin_role_required',
+                    user_roles: userRoles,
+                    required_role: 'ADMIN',
+                    institute_id: instituteId,
+                    timestamp: new Date().toISOString(),
+                });
+
+                return {
+                    success: false,
+                    error: 'admin_role_required',
+                    userRoles,
+                };
+            }
+        }
+
         // Set the selected institute
         setSelectedInstitute(instituteId);
+
+        // Refresh settings caches for this institute (non-blocking)
+        void getCourseSettings(true).catch(() => {});
+        void getDisplaySettings(ADMIN_DISPLAY_SETTINGS_KEY, true).catch(() => {});
+        void getDisplaySettings(TEACHER_DISPLAY_SETTINGS_KEY, true).catch(() => {});
 
         // Determine redirect URL from Display Settings (cached), fallback to dashboard
         const roleKey = hasAdminRole ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
         const ds = getDisplaySettingsFromCache(roleKey);
         let redirectUrl = ds?.postLoginRedirectRoute || '/dashboard';
+
+        // Prefer afterLoginRoute from domain resolve if available
+        const cached = getCachedInstituteBranding();
+        if (cached?.afterLoginRoute) {
+            redirectUrl = cached.afterLoginRoute;
+        }
 
         // Preserve learner tab hint if user also has STUDENT role and route points to dashboard
         if (

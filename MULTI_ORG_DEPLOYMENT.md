@@ -23,6 +23,12 @@ The following environment variables have been introduced to replace hardcoded va
 ### Contact Configuration
 - `VITE_SUPPORT_EMAIL` - Support email address (default: `hello@vacademy.io`)
 
+### Institute IDs Configuration
+- `VITE_SSDC_INSTITUTE_ID` - SSDC Institute ID (default: `69ca11c6-54e1-4e99-9498-50c9a4272ce6`)
+- `VITE_SHUBHAM_INSTITUTE_ID` - Shubham Institute ID (default: `d0de8707-f36c-43a0-953c-019ca507c81d`)
+- `VITE_CODE_CIRCLE_INSTITUTE_ID` - Code Circle Institute ID (default: `dd9b9687-56ee-467a-9fc4-8c5835eae7f9`)
+- `VITE_HOLISTIC_INSTITUTE_ID` - Holistic Institute ID (default: `bd9f2362-84d1-4e01-9762-a5196f9bac80`)
+
 ### Optional Configuration
 - `VITE_ASSEMBLYAI_API_KEY` - Assembly AI API key for transcription features
 - `VITE_PRODUCT_NAME` - Product branding name (default: `VeduBox`)
@@ -49,16 +55,16 @@ The following environment variables have been introduced to replace hardcoded va
 - `src/hooks/login/oauth-login.ts` - Backend URL
 - `src/hooks/signup/oauth-signup.ts` - Backend URL
 
-## Institute-Specific Code to Remove
+## Institute-Specific Configuration
 
-**⚠️ IMPORTANT:** The following hardcoded institute IDs and related conditional logic should be removed for multi-org deployment:
+**✅ UPDATED:** The institute IDs have been converted to use environment variables for multi-org deployment:
 
-### Hardcoded Institute IDs (in `src/constants/urls.ts`)
+### Institute IDs (in `src/constants/urls.ts`)
 ```typescript
-export const SSDC_INSTITUTE_ID = '69ca11c6-54e1-4e99-9498-50c9a4272ce6';
-export const SHUBHAM_INSTITUTE_ID = 'd0de8707-f36c-43a0-953c-019ca507c81d';
-export const CODE_CIRCLE_INSTITUTE_ID = 'dd9b9687-56ee-467a-9fc4-8c5835eae7f9';
-export const HOLISTIC_INSTITUTE_ID = 'bd9f2362-84d1-4e01-9762-a5196f9bac80';
+export const SSDC_INSTITUTE_ID = import.meta.env.VITE_SSDC_INSTITUTE_ID || '69ca11c6-54e1-4e99-9498-50c9a4272ce6';
+export const SHUBHAM_INSTITUTE_ID = import.meta.env.VITE_SHUBHAM_INSTITUTE_ID || 'd0de8707-f36c-43a0-953c-019ca507c81d';
+export const CODE_CIRCLE_INSTITUTE_ID = import.meta.env.VITE_CODE_CIRCLE_INSTITUTE_ID || 'dd9b9687-56ee-467a-9fc4-8c5835eae7f9';
+export const HOLISTIC_INSTITUTE_ID = import.meta.env.VITE_HOLISTIC_INSTITUTE_ID || 'bd9f2362-84d1-4e01-9762-a5196f9bac80';
 ```
 
 ### Files with Institute-Specific Logic to Review and Remove:

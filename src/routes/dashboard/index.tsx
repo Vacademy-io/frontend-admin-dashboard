@@ -145,7 +145,6 @@ function DashboardPage() {
     return (
         <LayoutContainer>
             <DashboardComponent onOpenAllAlerts={() => setShowAllAlerts(true)} />
-            {showLearnerTab && <LearnerTab onClose={() => setShowLearnerTab(false)} />}
             <BaseDialog open={showAllAlerts} onOpenChange={setShowAllAlerts}>
                 <BaseDialogContent className="max-w-lg p-0">
                     <BaseDialogTitle className="px-4 py-3 text-base">System Alerts</BaseDialogTitle>

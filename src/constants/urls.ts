@@ -2,11 +2,15 @@ export const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'https://backend-sta
 export const BASE_URL_LEARNER_DASHBOARD =
     import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io';
 
-// These hardcoded institute IDs should be removed in multi-org deployment
-export const SSDC_INSTITUTE_ID = '69ca11c6-54e1-4e99-9498-50c9a4272ce6';
-export const SHUBHAM_INSTITUTE_ID = 'd0de8707-f36c-43a0-953c-019ca507c81d';
-export const CODE_CIRCLE_INSTITUTE_ID = 'dd9b9687-56ee-467a-9fc4-8c5835eae7f9';
-export const HOLISTIC_INSTITUTE_ID = 'bd9f2362-84d1-4e01-9762-a5196f9bac80';
+// Institute IDs from environment variables for multi-org deployment
+export const SSDC_INSTITUTE_ID =
+    import.meta.env.VITE_SSDC_INSTITUTE_ID || '69ca11c6-54e1-4e99-9498-50c9a4272ce6';
+export const SHUBHAM_INSTITUTE_ID =
+    import.meta.env.VITE_SHUBHAM_INSTITUTE_ID || 'd0de8707-f36c-43a0-953c-019ca507c81d';
+export const CODE_CIRCLE_INSTITUTE_ID =
+    import.meta.env.VITE_CODE_CIRCLE_INSTITUTE_ID || 'dd9b9687-56ee-467a-9fc4-8c5835eae7f9';
+export const HOLISTIC_INSTITUTE_ID =
+    import.meta.env.VITE_HOLISTIC_INSTITUTE_ID || 'bd9f2362-84d1-4e01-9762-a5196f9bac80';
 
 export const REQUEST_OTP = `${BASE_URL}/auth-service/v1/request-otp`;
 export const LOGIN_OTP = `${BASE_URL}/auth-service/v1/login-otp`;
@@ -99,6 +103,8 @@ export const GET_SIGNED_URL_PUBLIC = `${BASE_URL}/media-service/public/get-signe
 export const ACKNOWLEDGE = `${BASE_URL}/media-service/acknowledge`;
 export const GET_PUBLIC_URL = `${BASE_URL}/media-service/get-public-url`;
 export const GET_PUBLIC_URL_PUBLIC = `${BASE_URL}/media-service/public/get-public-url`;
+// Domain routing - resolve institute by domain/subdomain (public)
+export const DOMAIN_ROUTING_RESOLVE = `${BASE_URL}/admin-core-service/public/domain-routing/v1/resolve`;
 export const GET_DETAILS = `${BASE_URL}/media-service/get-details/ids`;
 export const ACKNOWLEDGE_FOR_PUBLIC_URL = `${BASE_URL}/media-service/acknowledge-get-details`;
 

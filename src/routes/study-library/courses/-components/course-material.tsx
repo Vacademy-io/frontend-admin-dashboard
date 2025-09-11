@@ -557,23 +557,20 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
     }
 
     return (
-        <div className="relative flex w-full flex-col gap-8 text-neutral-600">
+        <div className="relative flex w-full flex-col gap-2 text-neutral-600">
             <div className="flex flex-col items-end gap-4">
                 <AddCourseButton />
             </div>
-            <div className="flex items-center gap-8">
-                <div className="flex flex-col gap-2">
-                    <div className="text-h3 font-semibold">
+            <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-1">
+                    <div className="text-h5 font-semibold">
                         Explore {getTerminology(ContentTerms.Course, SystemTerms.Course)}s
                     </div>
-                    <div className="text-subtitle">
+                    <div className="text-sm">
                         Effortlessly organize, upload, and track educational resources in one place.
                         Provide students with easy access to the materials they need to succeed,
                         ensuring a seamless learning experience.
                     </div>
-                </div>
-                <div className="flex flex-col items-center gap-4">
-                    <CourseCatalog />
                 </div>
             </div>
 
