@@ -15,7 +15,7 @@ import { LiveSession } from '../schedule/-services/utils';
 import { handleDownloadQRCode } from '@/routes/homework-creation/create-assessment/$assessmentId/$examtype/-utils/helper';
 import { useQueryClient } from '@tanstack/react-query';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import Papa from 'papaparse';
 import { fetchSessionDetails, SessionDetailsResponse } from '../-hooks/useSessionDetails';
@@ -38,6 +38,7 @@ import DeleteSessionDialog from './delete-session-dialog';
 import { getSessionJoinLink } from '../-utils/live-sesstions';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { fromZonedTime, format, formatInTimeZone } from 'date-fns-tz';
 
 interface LiveSessionCardProps {
     session: LiveSession;
@@ -56,6 +57,80 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
         useState<SessionDetailsResponse | null>(null);
     const queryClient = useQueryClient();
     const { instituteDetails } = useInstituteDetailsStore();
+
+    // Helper function to get user's local timezone
+    const getUserTimezone = (): string => {
+        try {
+            return Intl.DateTimeFormat().resolvedOptions().timeZone;
+        } catch (error) {
+            console.error('Error detecting user timezone:', error);
+            return 'Asia/Kolkata'; // fallback
+        }
+    };
+
+    // Helper function to convert session datetime to user's local timezone
+    const convertSessionToLocalTime = useCallback(() => {
+        try {
+            // Get session timezone (fallback to Asia/Kolkata if not provided)
+            const sessionTimezone = session.timezone || 'Asia/Kolkata';
+            const userTimezone = getUserTimezone();
+
+            // Create date strings
+            const sessionStartString = `${session.meeting_date}T${session.start_time}`;
+            const sessionEndString = `${session.meeting_date}T${session.last_entry_time}`;
+
+            // Parse the dates and treat them as if they're in the session's timezone
+            const sessionStartInSessionTZ = fromZonedTime(sessionStartString, sessionTimezone);
+            const sessionEndInSessionTZ = fromZonedTime(sessionEndString, sessionTimezone);
+
+            // Format times in both session timezone and user's local timezone
+            const sessionTimeFormatted = formatInTimeZone(
+                sessionStartInSessionTZ,
+                sessionTimezone,
+                'yyyy-dd-MM h:mm a'
+            );
+            const localTimeFormatted = formatInTimeZone(
+                sessionStartInSessionTZ,
+                userTimezone,
+                'yyyy-dd-MM h:mm a'
+            );
+
+            const sessionEndTimeFormatted = formatInTimeZone(
+                sessionEndInSessionTZ,
+                sessionTimezone,
+                'h:mm a'
+            );
+            const localEndTimeFormatted = formatInTimeZone(
+                sessionEndInSessionTZ,
+                userTimezone,
+                'h:mm a'
+            );
+
+            return {
+                sessionTimezone,
+                userTimezone,
+                sessionTimeFormatted,
+                localTimeFormatted,
+                sessionEndTimeFormatted,
+                localEndTimeFormatted,
+                isLocalTime: sessionTimezone === userTimezone,
+            };
+        } catch (error) {
+            console.error('Error converting session time to local timezone:', error);
+            // Fallback: show original format
+            return {
+                sessionTimezone: session.timezone || 'UTC',
+                userTimezone: getUserTimezone(),
+                sessionTimeFormatted: `${session.meeting_date} ${session.start_time}`,
+                localTimeFormatted: `${session.meeting_date} ${session.start_time}`,
+                sessionEndTimeFormatted: session.last_entry_time,
+                localEndTimeFormatted: session.last_entry_time,
+                isLocalTime: false,
+            };
+        }
+    }, [session]);
+
+    const timeInfo = convertSessionToLocalTime();
     // Use mutateAsync to ensure data is fetched before opening dialog
     const {
         mutateAsync: fetchReportAsync,
@@ -243,23 +318,25 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                     </span>
                     <span>{session.subject}</span>
                 </div>
-
-                <div className="flex items-center gap-2">
-                    <span className="text-black">Start Date & Time:</span>
-                    <span>{formattedDateTime}</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                    <span className="text-black">End Time:</span>
-                    <span>{session.last_entry_time}</span>
-                </div>
-
+                {!timeInfo.isLocalTime && (
+                    <div className="flex items-center gap-2">
+                        <span className="text-black">Start Date & Time:</span>
+                        <span className="">
+                            {timeInfo.localTimeFormatted} ({timeInfo.userTimezone})
+                        </span>
+                    </div>
+                )}
+                {!timeInfo.isLocalTime && (
+                    <div className="flex items-center gap-2">
+                        <span className="text-black">End Time:</span>
+                        <span className="">{timeInfo.localEndTimeFormatted}</span>
+                    </div>
+                )}
                 <div className="flex items-center gap-2">
                     <span className="text-black">Meeting Type:</span>
                     <span>{session.recurrence_type}</span>
                 </div>
             </div>
-
             <div className="flex justify-between">
                 <div className="flex items-center gap-4 overflow-hidden text-sm text-neutral-500">
                     <h1 className="!font-normal text-black">Join Link:</h1>

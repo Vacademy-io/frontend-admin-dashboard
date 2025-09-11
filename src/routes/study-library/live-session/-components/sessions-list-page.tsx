@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { MyButton } from '@/components/design-system/button';
 import { SessionStatus, sessionStatusLabels } from '../-constants/enums';
@@ -24,6 +24,7 @@ import { CaretDown, VideoCameraSlash } from 'phosphor-react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
+import { toZonedTime, fromZonedTime, format as formatTZ } from 'date-fns-tz';
 import { useQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { useFilterDataForAssesment } from '@/routes/assessment/assessment-list/-utils.ts/useFiltersData';
@@ -73,6 +74,106 @@ export default function SessionListPage() {
     const tokenData = getTokenDecodedData(accessToken);
     const INSTITUTE_ID = (tokenData && Object.keys(tokenData.authorities)[0]) || '';
 
+    // Helper function to get user's local timezone
+    const getUserTimezone = (): string => {
+        try {
+            return Intl.DateTimeFormat().resolvedOptions().timeZone;
+        } catch (error) {
+            console.error('Error detecting user timezone:', error);
+            return 'Asia/Kolkata';
+        }
+    };
+
+    // Helper function to convert session datetime to user's local timezone
+    const convertSessionToLocalTime = useCallback(
+        (
+            session: LiveSession
+        ): { localStartTime: Date; localEndTime: Date; isCurrentlyLive: boolean } => {
+            try {
+                // Get session timezone (fallback to Asia/Kolkata if not provided)
+                const sessionTimezone = session.timezone || 'Asia/Kolkata';
+
+                // Create date strings
+                const sessionStartString = `${session.meeting_date}T${session.start_time}`;
+                const sessionEndString = `${session.meeting_date}T${session.last_entry_time}`;
+
+                // Parse the dates and treat them as if they're in the session's timezone
+                // Then convert to UTC (which JavaScript Date represents)
+                const sessionStartInSessionTZ = fromZonedTime(sessionStartString, sessionTimezone);
+                const sessionEndInSessionTZ = fromZonedTime(sessionEndString, sessionTimezone);
+
+                // Get the current time
+                const now = new Date();
+
+                // Check if session is currently live
+                const isCurrentlyLive =
+                    now >= sessionStartInSessionTZ && now <= sessionEndInSessionTZ;
+
+                return {
+                    localStartTime: sessionStartInSessionTZ,
+                    localEndTime: sessionEndInSessionTZ,
+                    isCurrentlyLive,
+                };
+            } catch (error) {
+                console.error('Error converting session time to local timezone:', error);
+                // Fallback: treat as if it's already in local timezone
+                const fallbackStartTime = new Date(`${session.meeting_date}T${session.start_time}`);
+                const fallbackEndTime = new Date(
+                    `${session.meeting_date}T${session.last_entry_time}`
+                );
+                const now = new Date();
+                return {
+                    localStartTime: fallbackStartTime,
+                    localEndTime: fallbackEndTime,
+                    isCurrentlyLive: now >= fallbackStartTime && now <= fallbackEndTime,
+                };
+            }
+        },
+        []
+    );
+
+    // Helper function to convert draft session datetime to user's local timezone
+    const convertDraftSessionToLocalTime = useCallback(
+        (session: DraftSessionDay): { localDateTime: Date | null } => {
+            try {
+                if (!session.meeting_date || !session.start_time) {
+                    return { localDateTime: null };
+                }
+
+                // Get session timezone (fallback to Asia/Kolkata if not provided)
+                const sessionTimezone = session.timezone || 'Asia/Kolkata';
+
+                // Combine meeting_date and start_time
+                const sessionStartString = `${session.meeting_date}T${session.start_time}`;
+
+                // Create date in session's timezone
+                const sessionStartInSessionTZ = toZonedTime(
+                    new Date(sessionStartString),
+                    sessionTimezone
+                );
+
+                // Convert to user's local timezone
+                const userTimezone = getUserTimezone();
+                const localStartTime = toZonedTime(sessionStartInSessionTZ, userTimezone);
+
+                return {
+                    localDateTime: localStartTime,
+                };
+            } catch (error) {
+                console.error('Error converting draft session time to local timezone:', error);
+                // Fallback: treat as if it's already in local timezone
+                const fallbackDateTime =
+                    session.meeting_date && session.start_time
+                        ? new Date(`${session.meeting_date}T${session.start_time}`)
+                        : null;
+                return {
+                    localDateTime: fallbackDateTime,
+                };
+            }
+        },
+        []
+    );
+
     // Flatten helper
     const flattenByDate = (sessionsByDate: SessionsByDate[]): LiveSession[] =>
         sessionsByDate.flatMap((day) => day.sessions);
@@ -103,22 +204,31 @@ export default function SessionListPage() {
     const filteredLive = useMemo(
         () =>
             liveSessions?.filter((s) => {
-                // Exclude sessions that have expired by date/time
-                const expiryDateTime = new Date(`${s.meeting_date}T${s.last_entry_time}`);
-                if (expiryDateTime < new Date()) return false;
+                // Check timezone-aware live status
+                const { isCurrentlyLive, localStartTime, localEndTime } =
+                    convertSessionToLocalTime(s);
+
+                if (!isCurrentlyLive) {
+                    return false;
+                }
+
                 const matchName = s.title.toLowerCase().includes(searchQuery.toLowerCase());
-                const date = new Date(s.meeting_date);
+                // Use the local datetime for date filtering
                 const matchDate =
-                    (!startDate || date >= startDate) && (!endDate || date <= endDate);
+                    (!startDate || localStartTime >= startDate) &&
+                    (!endDate || localStartTime <= endDate);
                 const matchType =
                     !meetingTypeFilter ||
                     (meetingTypeFilter === 'custom'
                         ? s.recurrence_type === RecurringType.WEEKLY
-                        : s.recurrence_type === meetingTypeFilter
-                    );
+                        : s.recurrence_type === meetingTypeFilter);
                 const matchSubject = !subjectFilter || s.subject === subjectFilter;
                 const matchAccess = !accessFilter || s.access_level === accessFilter;
-                return matchName && matchDate && matchType && matchSubject && matchAccess;
+
+                const finalMatch =
+                    matchName && matchDate && matchType && matchSubject && matchAccess;
+
+                return finalMatch;
             }) || [],
         [
             liveSessions,
@@ -128,23 +238,24 @@ export default function SessionListPage() {
             meetingTypeFilter,
             subjectFilter,
             accessFilter,
+            convertSessionToLocalTime,
         ]
     );
     const filteredUpcoming = useMemo(
         () =>
             flattenByDate(upcomingSessions || []).filter((s) => {
+                // Convert session time to local timezone for accurate filtering
+                const { localStartTime } = convertSessionToLocalTime(s);
+
                 const matchName = s.title.toLowerCase().includes(searchQuery.toLowerCase());
-                const date = new Date(s.meeting_date);
                 return (
                     matchName &&
-                    (!startDate || date >= startDate) &&
-                    (!endDate || date <= endDate) &&
+                    (!startDate || localStartTime >= startDate) &&
+                    (!endDate || localStartTime <= endDate) &&
                     (!meetingTypeFilter ||
                         (meetingTypeFilter === 'custom'
                             ? s.recurrence_type === RecurringType.WEEKLY
-                            : s.recurrence_type === meetingTypeFilter
-                        )
-                    ) &&
+                            : s.recurrence_type === meetingTypeFilter)) &&
                     (!subjectFilter || s.subject === subjectFilter) &&
                     (!accessFilter || s.access_level === accessFilter)
                 );
@@ -157,23 +268,24 @@ export default function SessionListPage() {
             meetingTypeFilter,
             subjectFilter,
             accessFilter,
+            convertSessionToLocalTime,
         ]
     );
     const filteredPast = useMemo(
         () =>
             flattenByDate(pastSessions || []).filter((s) => {
+                // Convert session time to local timezone for accurate filtering
+                const { localStartTime } = convertSessionToLocalTime(s);
+
                 const matchName = s.title.toLowerCase().includes(searchQuery.toLowerCase());
-                const date = new Date(s.meeting_date);
                 return (
                     matchName &&
-                    (!startDate || date >= startDate) &&
-                    (!endDate || date <= endDate) &&
+                    (!startDate || localStartTime >= startDate) &&
+                    (!endDate || localStartTime <= endDate) &&
                     (!meetingTypeFilter ||
                         (meetingTypeFilter === 'custom'
                             ? s.recurrence_type === RecurringType.WEEKLY
-                            : s.recurrence_type === meetingTypeFilter
-                        )
-                    ) &&
+                            : s.recurrence_type === meetingTypeFilter)) &&
                     (!subjectFilter || s.subject === subjectFilter) &&
                     (!accessFilter || s.access_level === accessFilter)
                 );
@@ -186,23 +298,24 @@ export default function SessionListPage() {
             meetingTypeFilter,
             subjectFilter,
             accessFilter,
+            convertSessionToLocalTime,
         ]
     );
     const filteredDraft = useMemo(
         () =>
             draftSessions?.filter((d) => {
+                // Convert draft session time to local timezone for accurate filtering
+                const { localDateTime } = convertDraftSessionToLocalTime(d);
+
                 const matchName = d.title.toLowerCase().includes(searchQuery.toLowerCase());
-                const date = d.meeting_date ? new Date(d.meeting_date) : null;
                 return (
                     matchName &&
-                    (!startDate || (date && date >= startDate)) &&
-                    (!endDate || (date && date <= endDate)) &&
+                    (!startDate || (localDateTime && localDateTime >= startDate)) &&
+                    (!endDate || (localDateTime && localDateTime <= endDate)) &&
                     (!meetingTypeFilter ||
                         (meetingTypeFilter === 'custom'
                             ? d.recurrence_type === RecurringType.WEEKLY
-                            : d.recurrence_type === meetingTypeFilter
-                        )
-                    ) &&
+                            : d.recurrence_type === meetingTypeFilter)) &&
                     (!subjectFilter || d.subject === subjectFilter) &&
                     (!accessFilter || d.access_level === accessFilter)
                 );
@@ -215,6 +328,7 @@ export default function SessionListPage() {
             meetingTypeFilter,
             subjectFilter,
             accessFilter,
+            convertDraftSessionToLocalTime,
         ]
     );
 
