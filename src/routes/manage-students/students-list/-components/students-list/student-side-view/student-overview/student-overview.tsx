@@ -46,7 +46,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
     const [daysUntilExpiry, setDaysUntilExpiry] = useState<number>(0);
     const [copiedField, setCopiedField] = useState<string>('');
     const userId = isSubmissionTab ? selectedStudent?.id : selectedStudent?.user_id;
-    const { data: studentDetails, isLoading, isError } = useGetStudentDetails(userId || '');
+    const { data: studentDetails, isLoading, isError, error } = useGetStudentDetails(userId || '');
 
     const { getDetailsFromPackageSessionId, instituteDetails } = useInstituteDetailsStore();
 
@@ -183,6 +183,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
     }
 
     if (isError) {
+        console.error(error);
         return <div>Error fetching student details</div>;
     }
 
