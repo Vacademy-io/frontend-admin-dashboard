@@ -53,6 +53,7 @@ interface InstituteDetailsStore {
     }) => BatchForSessionType | null;
     getSessionNameById: (sessionId: string) => string | null;
     showForInstitutes: (instituteIds: string[]) => boolean;
+    getInstituteSettings: () => InstituteDetailsType | null;
 }
 
 export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get) => ({

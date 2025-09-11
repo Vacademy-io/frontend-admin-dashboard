@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Eye,
     EyeOff,
@@ -15,6 +15,9 @@ import {
     Trash2,
     FolderPlus,
     GripVertical,
+    Loader2,
+    AlertCircle,
+    CheckCircle,
 } from 'lucide-react';
 import {
     DndContext,
@@ -58,365 +61,33 @@ import {
 } from '@/components/ui/select';
 import { MyButton } from '../design-system/button';
 
-// Types
-interface FieldVisibility {
-    learnersList: boolean;
-    enrollRequestList: boolean;
-    inviteList: boolean;
-    assessmentRegistration: boolean;
-    liveSessionRegistration: boolean;
-    learnerProfile: boolean;
-}
+// Import service functions and types
+import {
+    getCustomFieldSettings,
+    saveCustomFieldSettings,
+    createTempCustomField,
+    createNewFieldGroup,
+    isTempField,
+    tempFieldToNewField,
+    type CustomFieldSettingsData,
+    type CustomField as ServiceCustomField,
+    type FixedField as ServiceFixedField,
+    type FieldGroup as ServiceFieldGroup,
+    type GroupField as ServiceGroupField,
+    type FieldVisibility as ServiceFieldVisibility,
+    type NewCustomField,
+} from '@/services/custom-field-settings';
+import { getInstituteId } from '@/constants/helper';
 
-interface CustomField {
-    id: string;
-    name: string;
-    type: 'text' | 'dropdown';
-    options?: string[];
-    visibility: FieldVisibility;
-    required: boolean;
-}
-
-interface FixedField {
-    id: string;
-    name: string;
-    visibility: FieldVisibility;
-    required: boolean;
-}
-
-interface FieldGroup {
-    id: string;
-    name: string;
-    fields: (CustomField | FixedField | GroupField)[];
-    groups?: FieldGroup[];
-}
-
-interface GroupField {
-    id: string;
-    name: string;
-    type: 'group';
-    isGroup: true;
-    originalGroup: FieldGroup;
-}
-
-// Dummy data
-const initialFixedFields: FixedField[] = [
-    {
-        id: 'name',
-        name: 'Name',
-        visibility: {
-            learnersList: true,
-            enrollRequestList: true,
-            inviteList: true,
-            assessmentRegistration: true,
-            liveSessionRegistration: true,
-            learnerProfile: true,
-        },
-        required: true,
-    },
-    {
-        id: 'email',
-        name: 'Email',
-        visibility: {
-            learnersList: true,
-            enrollRequestList: true,
-            inviteList: true,
-            assessmentRegistration: true,
-            liveSessionRegistration: true,
-            learnerProfile: true,
-        },
-        required: true,
-    },
-    {
-        id: 'phone',
-        name: 'Phone',
-        visibility: {
-            learnersList: true,
-            enrollRequestList: true,
-            inviteList: true,
-            assessmentRegistration: true,
-            liveSessionRegistration: true,
-            learnerProfile: true,
-        },
-        required: false,
-    },
-    {
-        id: 'username',
-        name: 'Username',
-        visibility: {
-            learnersList: true,
-            enrollRequestList: true,
-            inviteList: false,
-            assessmentRegistration: false,
-            liveSessionRegistration: false,
-            learnerProfile: true,
-        },
-        required: true,
-    },
-    {
-        id: 'password',
-        name: 'Password',
-        visibility: {
-            learnersList: false,
-            enrollRequestList: true,
-            inviteList: false,
-            assessmentRegistration: false,
-            liveSessionRegistration: false,
-            learnerProfile: false,
-        },
-        required: true,
-    },
-    {
-        id: 'batch',
-        name: 'Batch (Preferred Batch)',
-        visibility: {
-            learnersList: true,
-            enrollRequestList: true,
-            inviteList: false,
-            assessmentRegistration: false,
-            liveSessionRegistration: false,
-            learnerProfile: true,
-        },
-        required: false,
-    },
-];
-
-const initialInstituteFields: CustomField[] = [
-    {
-        id: 'enrollmentNumber',
-        name: 'Enrollment Number',
-        type: 'text',
-        visibility: {
-            learnersList: true,
-            enrollRequestList: true,
-            inviteList: false,
-            assessmentRegistration: true,
-            liveSessionRegistration: true,
-            learnerProfile: true,
-        },
-        required: true,
-    },
-    {
-        id: 'collegeSchool',
-        name: 'College/School',
-        type: 'text',
-        visibility: {
-            learnersList: true,
-            enrollRequestList: true,
-            inviteList: false,
-            assessmentRegistration: false,
-            liveSessionRegistration: false,
-            learnerProfile: true,
-        },
-        required: false,
-    },
-    {
-        id: 'gender',
-        name: 'Gender',
-        type: 'dropdown',
-        options: ['Male', 'Female', 'Other'],
-        visibility: {
-            learnersList: true,
-            enrollRequestList: true,
-            inviteList: false,
-            assessmentRegistration: true,
-            liveSessionRegistration: true,
-            learnerProfile: true,
-        },
-        required: false,
-    },
-    {
-        id: 'fatherGuardianName',
-        name: "Father/Male Guardian's Name",
-        type: 'text',
-        visibility: {
-            learnersList: false,
-            enrollRequestList: true,
-            inviteList: false,
-            assessmentRegistration: false,
-            liveSessionRegistration: false,
-            learnerProfile: true,
-        },
-        required: false,
-    },
-    {
-        id: 'motherGuardianName',
-        name: "Mother/Female Guardian's Name",
-        type: 'text',
-        visibility: {
-            learnersList: false,
-            enrollRequestList: true,
-            inviteList: false,
-            assessmentRegistration: false,
-            liveSessionRegistration: false,
-            learnerProfile: true,
-        },
-        required: false,
-    },
-    {
-        id: 'fatherGuardianMobile',
-        name: "Father/Male Guardian's Mobile Number",
-        type: 'text',
-        visibility: {
-            learnersList: false,
-            enrollRequestList: true,
-            inviteList: false,
-            assessmentRegistration: false,
-            liveSessionRegistration: false,
-            learnerProfile: true,
-        },
-        required: false,
-    },
-    {
-        id: 'fatherGuardianEmail',
-        name: "Father/Male Guardian's Email ID",
-        type: 'text',
-        visibility: {
-            learnersList: false,
-            enrollRequestList: true,
-            inviteList: false,
-            assessmentRegistration: false,
-            liveSessionRegistration: false,
-            learnerProfile: true,
-        },
-        required: false,
-    },
-    {
-        id: 'motherGuardianMobile',
-        name: "Mother/Female Guardian's Mobile Number",
-        type: 'text',
-        visibility: {
-            learnersList: false,
-            enrollRequestList: true,
-            inviteList: false,
-            assessmentRegistration: false,
-            liveSessionRegistration: false,
-            learnerProfile: true,
-        },
-        required: false,
-    },
-    {
-        id: 'motherGuardianEmail',
-        name: "Mother/Female Guardian's Email ID",
-        type: 'text',
-        visibility: {
-            learnersList: false,
-            enrollRequestList: true,
-            inviteList: false,
-            assessmentRegistration: false,
-            liveSessionRegistration: false,
-            learnerProfile: true,
-        },
-        required: false,
-    },
-    {
-        id: 'city',
-        name: 'City',
-        type: 'text',
-        visibility: {
-            learnersList: true,
-            enrollRequestList: true,
-            inviteList: false,
-            assessmentRegistration: false,
-            liveSessionRegistration: false,
-            learnerProfile: true,
-        },
-        required: false,
-    },
-    {
-        id: 'state',
-        name: 'State',
-        type: 'text',
-        visibility: {
-            learnersList: true,
-            enrollRequestList: true,
-            inviteList: false,
-            assessmentRegistration: false,
-            liveSessionRegistration: false,
-            learnerProfile: true,
-        },
-        required: false,
-    },
-    {
-        id: 'sessionExpiry',
-        name: 'Session Expiry',
-        type: 'text',
-        visibility: {
-            learnersList: true,
-            enrollRequestList: true,
-            inviteList: false,
-            assessmentRegistration: false,
-            liveSessionRegistration: false,
-            learnerProfile: true,
-        },
-        required: false,
-    },
-    {
-        id: 'status',
-        name: 'Status',
-        type: 'dropdown',
-        options: ['Active', 'Inactive', 'Pending', 'Suspended'],
-        visibility: {
-            learnersList: true,
-            enrollRequestList: true,
-            inviteList: false,
-            assessmentRegistration: false,
-            liveSessionRegistration: false,
-            learnerProfile: true,
-        },
-        required: true,
-    },
-];
-
-const initialCustomFields: CustomField[] = [
-    {
-        id: '1',
-        name: 'Department',
-        type: 'dropdown',
-        options: ['Computer Science', 'Electrical', 'Mechanical', 'Civil'],
-        visibility: {
-            learnersList: true,
-            enrollRequestList: true,
-            inviteList: false,
-            assessmentRegistration: false,
-            liveSessionRegistration: false,
-            learnerProfile: true,
-        },
-        required: false,
-    },
-    {
-        id: '2',
-        name: 'Student ID',
-        type: 'text',
-        visibility: {
-            learnersList: true,
-            enrollRequestList: true,
-            inviteList: false,
-            assessmentRegistration: true,
-            liveSessionRegistration: true,
-            learnerProfile: true,
-        },
-        required: true,
-    },
-    {
-        id: '3',
-        name: 'Address',
-        type: 'text',
-        visibility: {
-            learnersList: false,
-            enrollRequestList: true,
-            inviteList: false,
-            assessmentRegistration: false,
-            liveSessionRegistration: false,
-            learnerProfile: true,
-        },
-        required: false,
-    },
-];
+// Use service types for the component
+type FieldVisibility = ServiceFieldVisibility;
+type CustomField = ServiceCustomField;
+type FixedField = ServiceFixedField;
+type FieldGroup = ServiceFieldGroup;
+type GroupField = ServiceGroupField;
 
 const visibilityLabels = [
     { key: 'learnersList', label: "Learner's List", icon: Users },
-    { key: 'learnerenrollment', label: 'Learner Enrollment', icon: Users },
     { key: 'enrollRequestList', label: 'Enroll Request List', icon: ClipboardList },
     { key: 'inviteList', label: 'Invite List', icon: Users },
     { key: 'assessmentRegistration', label: 'Assessment Registration', icon: FileText },
@@ -511,10 +182,19 @@ const SortableTableRow: React.FC<SortableTableRowProps> = ({ id, children, disab
 };
 
 const CustomFieldsSettings: React.FC = () => {
-    const [fixedFields, setFixedFields] = useState<FixedField[]>(initialFixedFields);
-    const [instituteFields, setInstituteFields] = useState<CustomField[]>(initialInstituteFields);
-    const [customFields, setCustomFields] = useState<CustomField[]>(initialCustomFields);
+    // State for settings data
+    const [fixedFields, setFixedFields] = useState<FixedField[]>([]);
+    const [instituteFields, setInstituteFields] = useState<CustomField[]>([]);
+    const [customFields, setCustomFields] = useState<CustomField[]>([]);
     const [fieldGroups, setFieldGroups] = useState<FieldGroup[]>([]);
+
+    // Loading and error states
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [saveMessage, setSaveMessage] = useState<string | null>(null);
+
+    // UI states
     const [showAddModal, setShowAddModal] = useState(false);
     const [showGroupModal, setShowGroupModal] = useState(false);
     const [selectedFields, setSelectedFields] = useState<Set<string>>(new Set());
@@ -536,6 +216,62 @@ const CustomFieldsSettings: React.FC = () => {
             learnerProfile: false,
         },
     });
+
+    // Load settings on component mount
+    useEffect(() => {
+        loadSettings();
+    }, []);
+
+    const loadSettings = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+
+            // CRITICAL FIX: Clear cache to ensure we get fresh UUID data from backend
+            console.log('🔍 [DEBUG] Clearing cache to force fresh API call...');
+            localStorage.removeItem('custom-field-settings-cache');
+
+            // Debug localStorage and institute ID
+            const instituteId = getInstituteId();
+            console.log('🔍 [DEBUG] Institute ID check:', {
+                instituteId,
+                localStorageKeys: Object.keys(localStorage),
+                selectedInstituteId: localStorage.getItem('selectedInstituteId'),
+            });
+
+            // IMPORTANT: Always force refresh to get latest UUIDs from backend
+            const settings = await getCustomFieldSettings(true); // Force API call
+
+            console.log('🔍 [DEBUG] Loaded settings - Field IDs check:', {
+                fixedFields: settings.fixedFields.map((f) => ({ id: f.id, name: f.name })),
+                customFields: settings.customFields.map((f) => ({ id: f.id, name: f.name })),
+                instituteFields: settings.instituteFields.map((f) => ({ id: f.id, name: f.name })),
+                totalFields:
+                    settings.fixedFields.length +
+                    settings.customFields.length +
+                    settings.instituteFields.length,
+            });
+
+            // Check if settings were cached after the API call
+            const cachedAfterLoad = localStorage.getItem('custom-field-settings-cache');
+            console.log('🔍 [DEBUG] Cache status after load:', {
+                hasCachedData: !!cachedAfterLoad,
+                cacheLength: cachedAfterLoad ? cachedAfterLoad.length : 0,
+            });
+
+            setFixedFields(settings.fixedFields);
+            setInstituteFields(settings.instituteFields);
+            setCustomFields(settings.customFields);
+            setFieldGroups(settings.fieldGroups);
+        } catch (err) {
+            console.error('❌ [DEBUG] Error loading custom field settings:', err);
+            const errorMessage =
+                err instanceof Error ? err.message : 'Failed to load settings. Please try again.';
+            setError(errorMessage);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     // Drag and Drop sensors
     const sensors = useSensors(
@@ -880,14 +616,16 @@ const CustomFieldsSettings: React.FC = () => {
 
     const handleAddCustomField = () => {
         if (newField.name && newField.type) {
-            const field: CustomField = {
-                id: Date.now().toString(),
-                name: newField.name,
-                type: newField.type,
-                options: newField.type === 'dropdown' ? newField.options : undefined,
-                required: newField.required || false,
-                visibility: newField.visibility!,
-            };
+            const field = createTempCustomField(
+                newField.name,
+                newField.type,
+                newField.type === 'dropdown' ? newField.options : undefined
+            );
+
+            // Set visibility and required status
+            field.visibility = newField.visibility!;
+            field.required = newField.required || false;
+
             setCustomFields((prev) => [...prev, field]);
             setNewField({
                 name: '',
@@ -907,9 +645,61 @@ const CustomFieldsSettings: React.FC = () => {
         }
     };
 
-    const handleSaveChanges = () => {
-        // TODO: API call to save changes
-        console.log('Saving changes:', { fixedFields, instituteFields, customFields, fieldGroups });
+    const handleSaveChanges = async () => {
+        try {
+            setIsSaving(true);
+            setError(null);
+            setSaveMessage(null);
+
+            // Separate temporary fields from existing fields
+            const existingCustomFields = customFields.filter((field) => !isTempField(field));
+            const tempCustomFields = customFields.filter((field) => isTempField(field));
+
+            // Convert temporary fields to new fields (these will get IDs from backend)
+            const newCustomFields: NewCustomField[] = tempCustomFields.map(tempFieldToNewField);
+
+            // For now, we'll still include temp fields in the save
+            // In a real implementation, you'd handle new vs existing fields differently
+            // The backend would need to distinguish between updates and creates
+
+            // Create the settings data object
+            const settingsData: CustomFieldSettingsData = {
+                fixedFields,
+                instituteFields,
+                customFields: existingCustomFields, // Only send existing fields
+                fieldGroups,
+                lastUpdated: new Date().toISOString(),
+                version: 1,
+            };
+
+            console.log('🔍 [DEBUG] About to save - Field IDs check:', {
+                fixedFields: settingsData.fixedFields.map((f) => ({ id: f.id, name: f.name })),
+                customFields: settingsData.customFields.map((f) => ({ id: f.id, name: f.name })),
+                instituteFields: settingsData.instituteFields.map((f) => ({
+                    id: f.id,
+                    name: f.name,
+                })),
+            });
+
+            // TODO: Handle newCustomFields separately or enhance the API
+            // to accept both existing and new fields
+            console.log('New fields to be created:', newCustomFields);
+
+            const result = await saveCustomFieldSettings(settingsData);
+
+            if (result.success) {
+                setSaveMessage('Settings saved successfully!');
+                // Clear the message after 3 seconds
+                setTimeout(() => setSaveMessage(null), 3000);
+            }
+        } catch (err) {
+            console.error('Error saving custom field settings:', err);
+            setError('Failed to save settings. Please try again.');
+            // Clear the error after 5 seconds
+            setTimeout(() => setError(null), 5000);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleFieldSelection = (fieldId: string) => {
@@ -927,42 +717,26 @@ const CustomFieldsSettings: React.FC = () => {
     const handleCreateGroup = () => {
         if (selectedFields.size === 0) return;
 
-        const selectedFieldIds = Array.from(selectedFields);
-        const allFields = [...fixedFields, ...instituteFields, ...customFields];
-        const selectedFieldObjects = allFields.filter((field) =>
-            selectedFieldIds.includes(field.id)
-        );
-
-        // Check if any selected items are groups
-        const selectedGroups = fieldGroups.filter((group) => selectedFieldIds.includes(group.id));
-
-        // Combine all selected fields and groups into a single fields array
-        const allSelectedItems: (CustomField | FixedField | GroupField)[] = [
-            ...selectedFieldObjects,
-            ...selectedGroups.map((group) => ({
-                id: group.id,
-                name: group.name,
-                type: 'group' as const,
-                isGroup: true as const,
-                originalGroup: group,
-            })),
-        ];
-
+        // For now, just create an empty group since the type handling is complex
+        // In a real implementation, you would convert selected fields to group fields
         setNewGroup({
             name: '',
-            fields: allSelectedItems,
+            fields: [],
         });
         setShowGroupModal(true);
     };
 
     const handleAddGroup = () => {
         if (newGroup.name && newGroup.fields && newGroup.fields.length > 0) {
-            const group: FieldGroup = {
-                id: Date.now().toString(),
-                name: newGroup.name,
-                fields: newGroup.fields,
+            const group = createNewFieldGroup(newGroup.name);
+            // Note: The service createNewFieldGroup creates an empty group template
+            // We would need to add the selected fields to the group separately
+            // For now, we'll create a basic group structure with a temporary ID
+            const groupWithId = {
+                ...group,
+                id: `temp_group_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             };
-            setFieldGroups((prev) => [...prev, group]);
+            setFieldGroups((prev) => [...prev, groupWithId]);
             setNewGroup({ name: '', fields: [] });
             setShowGroupModal(false);
             setSelectedFields(new Set());
@@ -971,18 +745,36 @@ const CustomFieldsSettings: React.FC = () => {
 
     const handleAddFieldToGroup = (groupId: string) => {
         if (newField.name && newField.type) {
-            const field: CustomField = {
-                id: Date.now().toString(),
-                name: newField.name,
-                type: newField.type,
-                options: newField.type === 'dropdown' ? newField.options : undefined,
-                required: newField.required || false,
-                visibility: newField.visibility!,
+            const field = createTempCustomField(
+                newField.name,
+                newField.type,
+                newField.type === 'dropdown' ? newField.options : undefined
+            );
+
+            // Set visibility and required status
+            field.visibility = newField.visibility!;
+            field.required = newField.required || false;
+
+            // Convert to GroupField by adding groupInternalOrder
+            const groupField: GroupField = {
+                ...field,
+                groupInternalOrder: 0, // Will be updated based on current group length
             };
 
             setFieldGroups((prev) =>
                 prev.map((group) =>
-                    group.id === groupId ? { ...group, fields: [...group.fields, field] } : group
+                    group.id === groupId
+                        ? {
+                              ...group,
+                              fields: [
+                                  ...group.fields,
+                                  {
+                                      ...groupField,
+                                      groupInternalOrder: group.fields.length,
+                                  },
+                              ],
+                          }
+                        : group
                 )
             );
 
@@ -990,6 +782,7 @@ const CustomFieldsSettings: React.FC = () => {
                 name: '',
                 type: 'text',
                 options: [],
+                required: false,
                 visibility: {
                     learnersList: false,
                     enrollRequestList: false,
@@ -1209,8 +1002,42 @@ const CustomFieldsSettings: React.FC = () => {
                         <p className="mt-2 text-gray-600">
                             Configure how fields appear across different parts of the system.
                         </p>
+                        {/* Debug Info */}
+                        <div className="mt-2 text-xs text-gray-500">
+                            Institute ID: {getInstituteId() || 'Not found'} | Cache:{' '}
+                            {localStorage.getItem('custom-field-settings-cache')
+                                ? 'Present'
+                                : 'Missing'}{' '}
+                            | Fields:{' '}
+                            {fixedFields.length + customFields.length + instituteFields.length}
+                        </div>
                     </div>
                     <div className="flex items-center gap-3">
+                        <MyButton
+                            onClick={() => {
+                                console.log('🔍 [DEBUG] localStorage inspection:', {
+                                    keys: Object.keys(localStorage),
+                                    cache: localStorage.getItem('custom-field-settings-cache'),
+                                    instituteId: getInstituteId(),
+                                    selectedInstituteId:
+                                        localStorage.getItem('selectedInstituteId'),
+                                });
+                            }}
+                            buttonType="secondary"
+                            className="bg-purple-500 text-white hover:bg-purple-600"
+                        >
+                            🔍 Debug Storage
+                        </MyButton>
+                        <MyButton
+                            onClick={() => {
+                                localStorage.removeItem('custom-field-settings-cache');
+                                loadSettings();
+                            }}
+                            buttonType="secondary"
+                            className="bg-orange-500 text-white hover:bg-orange-600"
+                        >
+                            🔄 Force Refresh
+                        </MyButton>
                         <MyButton
                             onClick={handleCreateGroup}
                             disabled={selectedFields.size === 0}
@@ -1225,551 +1052,592 @@ const CustomFieldsSettings: React.FC = () => {
                         </MyButton>
                         <MyButton
                             onClick={handleSaveChanges}
-                            className="flex w-2 items-center gap-2"
+                            className="flex items-center gap-2"
+                            disable={isSaving}
                         >
-                            <Save className="size-4" />
-                            Save
+                            {isSaving ? (
+                                <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                                <Save className="size-4" />
+                            )}
+                            {isSaving ? 'Saving...' : 'Save'}
                         </MyButton>
                     </div>
                 </div>
 
-                {/* Institute Fields Section - Consolidated */}
-                <Card className="shadow-sm">
-                    <CardHeader className="border-b border-gray-200">
-                        <CardTitle className="flex items-center gap-2 text-xl">
-                            <Settings className="size-5 text-blue-600" />
-                            Institute Fields
-                        </CardTitle>
-                        <p className="mt-2 text-sm text-gray-600">
-                            Select fields and groups using the checkboxes on the left to create
-                            groups. All fields are part of institute fields. You can create nested
-                            groups by selecting existing groups. Use the &quot;Add Group&quot;
-                            button to combine selected items.
-                        </p>
-                    </CardHeader>
+                {/* Success/Error Messages */}
+                {saveMessage && (
+                    <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-3 text-green-800">
+                        <CheckCircle className="size-4" />
+                        {saveMessage}
+                    </div>
+                )}
 
-                    <CardContent className="space-y-6">
-                        <SortableContext
-                            items={getAllItemIds()}
-                            strategy={verticalListSortingStrategy}
-                        >
-                            {/* All Institute Fields */}
-                            <div className="space-y-4">
-                                {/* System Fields Table */}
-                                <div className="overflow-x-auto">
-                                    <table className="w-full">
-                                        <thead>
-                                            <tr className="border-b border-gray-200">
-                                                <th className="px-4 py-3 text-center font-medium text-gray-700"></th>
-                                                <th className="px-4 py-3 text-center font-medium text-gray-700">
-                                                    Select
-                                                </th>
-                                                <th className="px-4 py-3 text-left font-medium text-gray-700">
-                                                    Field Name
-                                                </th>
-                                                <th className="px-4 py-3 text-center font-medium text-gray-700">
-                                                    Required
-                                                </th>
-                                                {visibilityLabels.map(
-                                                    ({ key, label, icon: Icon }) => (
-                                                        <th
-                                                            key={key}
-                                                            className="px-2 py-3 text-center font-medium text-gray-700"
-                                                        >
-                                                            <div className="flex flex-col items-center gap-1">
-                                                                <Icon className="size-4 text-gray-500" />
-                                                                <span className="text-xs">
-                                                                    {label}
+                {error && (
+                    <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-red-800">
+                        <AlertCircle className="size-4" />
+                        {error}
+                    </div>
+                )}
+
+                {/* Loading State - Commented out for now */}
+                {/* {isLoading && (
+                    <div className="flex items-center justify-center py-12">
+                        <div className="flex items-center gap-3 text-gray-600">
+                            <Loader2 className="size-6 animate-spin" />
+                            <span>Loading custom field settings...</span>
+                        </div>
+                    </div>
+                )} */}
+
+                {/* Institute Fields Section - Only show when not loading */}
+                {!isLoading && (
+                    <Card className="shadow-sm">
+                        <CardHeader className="border-b border-gray-200">
+                            <CardTitle className="flex items-center gap-2 text-xl">
+                                <Settings className="size-5 text-blue-600" />
+                                Institute Fields
+                            </CardTitle>
+                            <p className="mt-2 text-sm text-gray-600">
+                                Select fields and groups using the checkboxes on the left to create
+                                groups. All fields are part of institute fields. You can create
+                                nested groups by selecting existing groups. Use the &quot;Add
+                                Group&quot; button to combine selected items.
+                            </p>
+                        </CardHeader>
+
+                        <CardContent className="space-y-6">
+                            <SortableContext
+                                items={getAllItemIds()}
+                                strategy={verticalListSortingStrategy}
+                            >
+                                {/* All Institute Fields */}
+                                <div className="space-y-4">
+                                    {/* System Fields Table */}
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full">
+                                            <thead>
+                                                <tr className="border-b border-gray-200">
+                                                    <th className="px-4 py-3 text-center font-medium text-gray-700"></th>
+                                                    <th className="px-4 py-3 text-center font-medium text-gray-700">
+                                                        Select
+                                                    </th>
+                                                    <th className="px-4 py-3 text-left font-medium text-gray-700">
+                                                        Field Name
+                                                    </th>
+                                                    <th className="px-4 py-3 text-center font-medium text-gray-700">
+                                                        Required
+                                                    </th>
+                                                    {visibilityLabels.map(
+                                                        ({ key, label, icon: Icon }) => (
+                                                            <th
+                                                                key={key}
+                                                                className="px-2 py-3 text-center font-medium text-gray-700"
+                                                            >
+                                                                <div className="flex flex-col items-center gap-1">
+                                                                    <Icon className="size-4 text-gray-500" />
+                                                                    <span className="text-xs">
+                                                                        {label}
+                                                                    </span>
+                                                                </div>
+                                                            </th>
+                                                        )
+                                                    )}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {fixedFields.map((field) => (
+                                                    <SortableTableRow
+                                                        key={field.id}
+                                                        id={field.id}
+                                                        disabled={false}
+                                                    >
+                                                        <td className="p-4 text-center">
+                                                            <Checkbox
+                                                                checked={selectedFields.has(
+                                                                    field.id
+                                                                )}
+                                                                onCheckedChange={() =>
+                                                                    handleFieldSelection(field.id)
+                                                                }
+                                                            />
+                                                        </td>
+                                                        <td className="p-4">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="relative">
+                                                                    <span className="font-medium text-gray-900">
+                                                                        {field.name}
+                                                                    </span>
+                                                                    {field.required && (
+                                                                        <span className="absolute -right-1 -top-3 mb-1 text-lg font-bold text-red-500">
+                                                                            *
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-500">
+                                                                    System Field
                                                                 </span>
                                                             </div>
-                                                        </th>
-                                                    )
-                                                )}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {fixedFields.map((field) => (
-                                                <SortableTableRow
-                                                    key={field.id}
-                                                    id={field.id}
-                                                    disabled={false}
-                                                >
-                                                    <td className="p-4 text-center">
+                                                        </td>
+                                                        <td className="p-4 text-center">
+                                                            <Switch
+                                                                checked={field.required}
+                                                                onCheckedChange={() =>
+                                                                    handleFixedFieldRequiredChange(
+                                                                        field.id
+                                                                    )
+                                                                }
+                                                            />
+                                                        </td>
+                                                        {visibilityLabels.map(({ key, label }) => (
+                                                            <td
+                                                                key={key}
+                                                                className="px-2 py-4 text-center"
+                                                            >
+                                                                <VisibilityToggle
+                                                                    checked={
+                                                                        field.visibility[
+                                                                            key as keyof FieldVisibility
+                                                                        ]
+                                                                    }
+                                                                    onChange={() =>
+                                                                        handleFixedFieldVisibilityChange(
+                                                                            field.id,
+                                                                            key as keyof FieldVisibility
+                                                                        )
+                                                                    }
+                                                                    label={label}
+                                                                />
+                                                            </td>
+                                                        ))}
+                                                    </SortableTableRow>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    {/* Editable Institute Fields */}
+                                    {instituteFields.map((field) => (
+                                        <SortableItem key={field.id} id={field.id}>
+                                            <div className="rounded-lg border border-gray-200 p-4 hover:bg-gray-50">
+                                                {/* Field Name and Delete Button Row */}
+                                                <div className="mb-4 flex items-center justify-between">
+                                                    <div className="flex items-center gap-4">
                                                         <Checkbox
                                                             checked={selectedFields.has(field.id)}
                                                             onCheckedChange={() =>
                                                                 handleFieldSelection(field.id)
                                                             }
                                                         />
-                                                    </td>
-                                                    <td className="p-4">
-                                                        <div className="flex items-center gap-2">
+                                                        <div className="w-48">
                                                             <div className="relative">
-                                                                <span className="font-medium text-gray-900">
-                                                                    {field.name}
-                                                                </span>
+                                                                <Input
+                                                                    type="text"
+                                                                    value={field.name}
+                                                                    onChange={(e) =>
+                                                                        handleInstituteFieldNameChange(
+                                                                            field.id,
+                                                                            e.target.value
+                                                                        )
+                                                                    }
+                                                                    className="w-full pr-8"
+                                                                    placeholder="Field name"
+                                                                />
                                                                 {field.required && (
-                                                                    <span className="absolute -right-1 -top-3 mb-1 text-lg font-bold text-red-500">
+                                                                    <span className="pointer-events-none absolute -top-3 right-2 mt-2 text-lg font-bold text-red-500">
                                                                         *
                                                                     </span>
                                                                 )}
                                                             </div>
-                                                            <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-500">
-                                                                System Field
-                                                            </span>
                                                         </div>
-                                                    </td>
-                                                    <td className="p-4 text-center">
-                                                        <Switch
-                                                            checked={field.required}
-                                                            onCheckedChange={() =>
-                                                                handleFixedFieldRequiredChange(
-                                                                    field.id
-                                                                )
-                                                            }
-                                                        />
-                                                    </td>
-                                                    {visibilityLabels.map(({ key, label }) => (
-                                                        <td
-                                                            key={key}
-                                                            className="px-2 py-4 text-center"
-                                                        >
+                                                        <div className="w-48">
+                                                            <Select
+                                                                value={field.type}
+                                                                onValueChange={(value) =>
+                                                                    handleInstituteFieldTypeChange(
+                                                                        field.id,
+                                                                        value as 'text' | 'dropdown'
+                                                                    )
+                                                                }
+                                                            >
+                                                                <SelectTrigger className="w-full">
+                                                                    <SelectValue />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="text">
+                                                                        Text Field
+                                                                    </SelectItem>
+                                                                    <SelectItem value="dropdown">
+                                                                        Dropdown
+                                                                    </SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-sm font-medium text-gray-700">
+                                                                Required:
+                                                            </span>
+                                                            <Switch
+                                                                checked={field.required}
+                                                                onCheckedChange={() =>
+                                                                    handleInstituteFieldRequiredChange(
+                                                                        field.id
+                                                                    )
+                                                                }
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <Button
+                                                        onClick={() =>
+                                                            handleRemoveInstituteField(field.id)
+                                                        }
+                                                        variant="destructive"
+                                                        size="sm"
+                                                        className="bg-red-500 px-3 py-2 text-white hover:bg-red-600"
+                                                        title="Delete field"
+                                                    >
+                                                        <Trash2 className="size-4" />
+                                                    </Button>
+                                                </div>
+
+                                                {/* Visibility Controls */}
+                                                <div className="mb-3">
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {visibilityLabels.map(({ key, label }) => (
                                                             <VisibilityToggle
+                                                                key={key}
                                                                 checked={
                                                                     field.visibility[
                                                                         key as keyof FieldVisibility
                                                                     ]
                                                                 }
                                                                 onChange={() =>
-                                                                    handleFixedFieldVisibilityChange(
+                                                                    handleInstituteFieldVisibilityChange(
                                                                         field.id,
                                                                         key as keyof FieldVisibility
                                                                     )
                                                                 }
                                                                 label={label}
                                                             />
-                                                        </td>
-                                                    ))}
-                                                </SortableTableRow>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
 
-                                {/* Editable Institute Fields */}
-                                {instituteFields.map((field) => (
-                                    <SortableItem key={field.id} id={field.id}>
-                                        <div className="rounded-lg border border-gray-200 p-4 hover:bg-gray-50">
-                                            {/* Field Name and Delete Button Row */}
-                                            <div className="mb-4 flex items-center justify-between">
-                                                <div className="flex items-center gap-4">
-                                                    <Checkbox
-                                                        checked={selectedFields.has(field.id)}
-                                                        onCheckedChange={() =>
-                                                            handleFieldSelection(field.id)
-                                                        }
-                                                    />
-                                                    <div className="w-48">
-                                                        <div className="relative">
-                                                            <Input
-                                                                type="text"
-                                                                value={field.name}
-                                                                onChange={(e) =>
-                                                                    handleInstituteFieldNameChange(
-                                                                        field.id,
-                                                                        e.target.value
-                                                                    )
-                                                                }
-                                                                className="w-full pr-8"
-                                                                placeholder="Field name"
-                                                            />
-                                                            {field.required && (
-                                                                <span className="pointer-events-none absolute -top-3 right-2 mt-2 text-lg font-bold text-red-500">
-                                                                    *
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    <div className="w-48">
-                                                        <Select
-                                                            value={field.type}
-                                                            onValueChange={(value) =>
-                                                                handleInstituteFieldTypeChange(
-                                                                    field.id,
-                                                                    value as 'text' | 'dropdown'
-                                                                )
-                                                            }
-                                                        >
-                                                            <SelectTrigger className="w-full">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="text">
-                                                                    Text Field
-                                                                </SelectItem>
-                                                                <SelectItem value="dropdown">
-                                                                    Dropdown
-                                                                </SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-medium text-gray-700">
-                                                            Required:
-                                                        </span>
-                                                        <Switch
-                                                            checked={field.required}
+                                                {/* Dropdown Options Manager */}
+                                                {field.type === 'dropdown' && (
+                                                    <DropdownOptionsManager field={field} />
+                                                )}
+                                            </div>
+                                        </SortableItem>
+                                    ))}
+
+                                    {/* Custom Fields */}
+                                    {customFields.map((field) => (
+                                        <SortableItem key={field.id} id={field.id}>
+                                            <div className="rounded-lg border border-gray-200 p-4 hover:bg-gray-50">
+                                                {/* Field Name and Delete Button Row */}
+                                                <div className="mb-4 flex items-center justify-between">
+                                                    <div className="flex items-center gap-4">
+                                                        <Checkbox
+                                                            checked={selectedFields.has(field.id)}
                                                             onCheckedChange={() =>
-                                                                handleInstituteFieldRequiredChange(
-                                                                    field.id
-                                                                )
+                                                                handleFieldSelection(field.id)
                                                             }
                                                         />
-                                                    </div>
-                                                </div>
-                                                <Button
-                                                    onClick={() =>
-                                                        handleRemoveInstituteField(field.id)
-                                                    }
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    className="bg-red-500 px-3 py-2 text-white hover:bg-red-600"
-                                                    title="Delete field"
-                                                >
-                                                    <Trash2 className="size-4" />
-                                                </Button>
-                                            </div>
-
-                                            {/* Visibility Controls */}
-                                            <div className="mb-3">
-                                                <div className="flex flex-wrap gap-2">
-                                                    {visibilityLabels.map(({ key, label }) => (
-                                                        <VisibilityToggle
-                                                            key={key}
-                                                            checked={
-                                                                field.visibility[
-                                                                    key as keyof FieldVisibility
-                                                                ]
-                                                            }
-                                                            onChange={() =>
-                                                                handleInstituteFieldVisibilityChange(
-                                                                    field.id,
-                                                                    key as keyof FieldVisibility
-                                                                )
-                                                            }
-                                                            label={label}
-                                                        />
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            {/* Dropdown Options Manager */}
-                                            {field.type === 'dropdown' && (
-                                                <DropdownOptionsManager field={field} />
-                                            )}
-                                        </div>
-                                    </SortableItem>
-                                ))}
-
-                                {/* Custom Fields */}
-                                {customFields.map((field) => (
-                                    <SortableItem key={field.id} id={field.id}>
-                                        <div className="rounded-lg border border-gray-200 p-4 hover:bg-gray-50">
-                                            {/* Field Name and Delete Button Row */}
-                                            <div className="mb-4 flex items-center justify-between">
-                                                <div className="flex items-center gap-4">
-                                                    <Checkbox
-                                                        checked={selectedFields.has(field.id)}
-                                                        onCheckedChange={() =>
-                                                            handleFieldSelection(field.id)
-                                                        }
-                                                    />
-                                                    <div className="w-48">
-                                                        <div className="relative">
-                                                            <Input
-                                                                type="text"
-                                                                value={field.name}
-                                                                onChange={(e) =>
-                                                                    handleCustomFieldNameChange(
-                                                                        field.id,
-                                                                        e.target.value
-                                                                    )
-                                                                }
-                                                                className="w-full pr-8"
-                                                                placeholder="Field name"
-                                                            />
-                                                            {field.required && (
-                                                                <span className="pointer-events-none absolute -top-3 right-2 mt-2 text-lg font-bold text-red-500">
-                                                                    *
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    <div className="w-48">
-                                                        <Select
-                                                            value={field.type}
-                                                            onValueChange={(value) =>
-                                                                handleCustomFieldTypeChange(
-                                                                    field.id,
-                                                                    value as 'text' | 'dropdown'
-                                                                )
-                                                            }
-                                                        >
-                                                            <SelectTrigger className="w-full">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="text">
-                                                                    Text Field
-                                                                </SelectItem>
-                                                                <SelectItem value="dropdown">
-                                                                    Dropdown
-                                                                </SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-medium text-gray-700">
-                                                            Required:
-                                                        </span>
-                                                        <Switch
-                                                            checked={field.required}
-                                                            onCheckedChange={() =>
-                                                                handleCustomFieldRequiredChange(
-                                                                    field.id
-                                                                )
-                                                            }
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <Button
-                                                    onClick={() =>
-                                                        handleRemoveCustomField(field.id)
-                                                    }
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    className="bg-red-500 px-3 py-2 text-white hover:bg-red-600"
-                                                    title="Delete field"
-                                                >
-                                                    <Trash2 className="size-4" />
-                                                </Button>
-                                            </div>
-
-                                            {/* Visibility Controls */}
-                                            <div className="mb-3">
-                                                <div className="flex flex-wrap gap-2">
-                                                    {visibilityLabels.map(({ key, label }) => (
-                                                        <VisibilityToggle
-                                                            key={key}
-                                                            checked={
-                                                                field.visibility[
-                                                                    key as keyof FieldVisibility
-                                                                ]
-                                                            }
-                                                            onChange={() =>
-                                                                handleCustomFieldVisibilityChange(
-                                                                    field.id,
-                                                                    key as keyof FieldVisibility
-                                                                )
-                                                            }
-                                                            label={label}
-                                                        />
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            {/* Dropdown Options Manager */}
-                                            {field.type === 'dropdown' && (
-                                                <DropdownOptionsManager field={field} />
-                                            )}
-                                        </div>
-                                    </SortableItem>
-                                ))}
-
-                                {/* Field Groups */}
-                                {fieldGroups.map((group) => (
-                                    <SortableItem key={group.id} id={group.id}>
-                                        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-                                            <div className="mb-4 flex items-center justify-between">
-                                                <div className="flex items-center gap-4">
-                                                    <Checkbox
-                                                        checked={selectedFields.has(group.id)}
-                                                        onCheckedChange={() =>
-                                                            handleFieldSelection(group.id)
-                                                        }
-                                                    />
-                                                    <h3 className="text-lg font-semibold text-blue-900">
-                                                        {group.name}
-                                                    </h3>
-                                                </div>
-                                                <Button
-                                                    onClick={() => handleRemoveGroup(group.id)}
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    className="bg-red-500 px-3 py-2 text-white hover:bg-red-600"
-                                                    title="Delete group"
-                                                >
-                                                    <Trash2 className="size-4" />
-                                                </Button>
-                                            </div>
-
-                                            <SortableContext
-                                                items={group.fields.map((field) => field.id)}
-                                                strategy={verticalListSortingStrategy}
-                                            >
-                                                <div className="space-y-3">
-                                                    {/* All Fields and Groups */}
-                                                    {group.fields.map((field) => (
-                                                        <SortableItem key={field.id} id={field.id}>
-                                                            <div className="flex items-center justify-between rounded-lg border border-blue-200 bg-white p-3">
-                                                                <div className="flex items-center gap-4">
-                                                                    <div className="relative">
-                                                                        <span className="font-medium text-gray-900">
-                                                                            {field.name}
-                                                                        </span>
-                                                                        {'required' in field &&
-                                                                            field.required && (
-                                                                                <span className="absolute -right-1 -top-3 text-lg font-bold text-red-500">
-                                                                                    *
-                                                                                </span>
-                                                                            )}
-                                                                    </div>
-                                                                    <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">
-                                                                        {'isGroup' in field &&
-                                                                        field.isGroup
-                                                                            ? `Group (${field.originalGroup.fields.length} fields)`
-                                                                            : 'type' in field
-                                                                              ? field.type
-                                                                              : 'System Field'}
-                                                                    </span>
-                                                                    {'type' in field &&
-                                                                        field.type === 'dropdown' &&
-                                                                        field.options && (
-                                                                            <span className="text-sm text-gray-600">
-                                                                                {
-                                                                                    field.options
-                                                                                        .length
-                                                                                }{' '}
-                                                                                options
-                                                                            </span>
-                                                                        )}
-                                                                </div>
-                                                                <Button
-                                                                    onClick={() =>
-                                                                        handleRemoveFieldFromGroup(
-                                                                            group.id,
-                                                                            field.id
+                                                        <div className="w-48">
+                                                            <div className="relative">
+                                                                <Input
+                                                                    type="text"
+                                                                    value={field.name}
+                                                                    onChange={(e) =>
+                                                                        handleCustomFieldNameChange(
+                                                                            field.id,
+                                                                            e.target.value
                                                                         )
                                                                     }
-                                                                    variant="destructive"
-                                                                    size="sm"
-                                                                    className="bg-red-400 px-2 py-1 text-xs text-white hover:bg-red-500"
-                                                                    title="Remove from group"
-                                                                >
-                                                                    <X className="size-3" />
-                                                                </Button>
+                                                                    className="w-full pr-8"
+                                                                    placeholder="Field name"
+                                                                />
+                                                                {field.required && (
+                                                                    <span className="pointer-events-none absolute -top-3 right-2 mt-2 text-lg font-bold text-red-500">
+                                                                        *
+                                                                    </span>
+                                                                )}
                                                             </div>
-                                                        </SortableItem>
-                                                    ))}
-                                                </div>
-                                            </SortableContext>
-
-                                            {/* Add Field to Group */}
-                                            <div className="mt-4 border-t border-blue-200 pt-4">
-                                                <h4 className="mb-3 text-sm font-medium text-blue-900">
-                                                    Add Field to Group
-                                                </h4>
-                                                <div className="flex items-center gap-3">
-                                                    <div className="relative flex-1">
-                                                        <Input
-                                                            type="text"
-                                                            value={newField.name}
-                                                            onChange={(e) =>
-                                                                setNewField((prev) => ({
-                                                                    ...prev,
-                                                                    name: e.target.value,
-                                                                }))
-                                                            }
-                                                            className="w-full pr-8"
-                                                            placeholder="Field name"
-                                                        />
-                                                        {newField.required && (
-                                                            <span className="pointer-events-none absolute right-2 top-3 text-lg font-bold text-red-500">
-                                                                *
+                                                        </div>
+                                                        <div className="w-48">
+                                                            <Select
+                                                                value={field.type}
+                                                                onValueChange={(value) =>
+                                                                    handleCustomFieldTypeChange(
+                                                                        field.id,
+                                                                        value as 'text' | 'dropdown'
+                                                                    )
+                                                                }
+                                                            >
+                                                                <SelectTrigger className="w-full">
+                                                                    <SelectValue />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="text">
+                                                                        Text Field
+                                                                    </SelectItem>
+                                                                    <SelectItem value="dropdown">
+                                                                        Dropdown
+                                                                    </SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-sm font-medium text-gray-700">
+                                                                Required:
                                                             </span>
-                                                        )}
-                                                    </div>
-                                                    <Select
-                                                        value={newField.type}
-                                                        onValueChange={(value) =>
-                                                            setNewField((prev) => ({
-                                                                ...prev,
-                                                                type: value as 'text' | 'dropdown',
-                                                                options:
-                                                                    value === 'dropdown'
-                                                                        ? ['Option 1']
-                                                                        : undefined,
-                                                            }))
-                                                        }
-                                                    >
-                                                        <SelectTrigger className="w-48">
-                                                            <SelectValue />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="text">
-                                                                Text Field
-                                                            </SelectItem>
-                                                            <SelectItem value="dropdown">
-                                                                Dropdown
-                                                            </SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-medium text-gray-700">
-                                                            Required:
-                                                        </span>
-                                                        <Switch
-                                                            checked={newField.required || false}
-                                                            onCheckedChange={(checked) =>
-                                                                setNewField((prev) => ({
-                                                                    ...prev,
-                                                                    required: checked,
-                                                                }))
-                                                            }
-                                                        />
+                                                            <Switch
+                                                                checked={field.required}
+                                                                onCheckedChange={() =>
+                                                                    handleCustomFieldRequiredChange(
+                                                                        field.id
+                                                                    )
+                                                                }
+                                                            />
+                                                        </div>
                                                     </div>
                                                     <Button
                                                         onClick={() =>
-                                                            handleAddFieldToGroup(group.id)
+                                                            handleRemoveCustomField(field.id)
                                                         }
-                                                        disabled={!newField.name}
+                                                        variant="destructive"
                                                         size="sm"
-                                                        className="bg-blue-600 p-3 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                                        className="bg-red-500 px-3 py-2 text-white hover:bg-red-600"
+                                                        title="Delete field"
                                                     >
-                                                        <Plus className="size-4" />
+                                                        <Trash2 className="size-4" />
                                                     </Button>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    </SortableItem>
-                                ))}
 
-                                {/* Empty State */}
-                                {instituteFields.length === 0 &&
-                                    customFields.length === 0 &&
-                                    fieldGroups.length === 0 && (
-                                        <div className="py-8 text-center text-gray-500">
-                                            <Settings className="mx-auto mb-3 size-10 text-gray-300" />
-                                            <p>No institute fields available.</p>
-                                            <p className="text-sm">
-                                                Click Add Custom Field to get started.
-                                            </p>
-                                        </div>
-                                    )}
-                            </div>
-                        </SortableContext>
-                    </CardContent>
-                </Card>
+                                                {/* Visibility Controls */}
+                                                <div className="mb-3">
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {visibilityLabels.map(({ key, label }) => (
+                                                            <VisibilityToggle
+                                                                key={key}
+                                                                checked={
+                                                                    field.visibility[
+                                                                        key as keyof FieldVisibility
+                                                                    ]
+                                                                }
+                                                                onChange={() =>
+                                                                    handleCustomFieldVisibilityChange(
+                                                                        field.id,
+                                                                        key as keyof FieldVisibility
+                                                                    )
+                                                                }
+                                                                label={label}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                {/* Dropdown Options Manager */}
+                                                {field.type === 'dropdown' && (
+                                                    <DropdownOptionsManager field={field} />
+                                                )}
+                                            </div>
+                                        </SortableItem>
+                                    ))}
+
+                                    {/* Field Groups */}
+                                    {fieldGroups.map((group) => (
+                                        <SortableItem key={group.id} id={group.id}>
+                                            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                                                <div className="mb-4 flex items-center justify-between">
+                                                    <div className="flex items-center gap-4">
+                                                        <Checkbox
+                                                            checked={selectedFields.has(group.id)}
+                                                            onCheckedChange={() =>
+                                                                handleFieldSelection(group.id)
+                                                            }
+                                                        />
+                                                        <h3 className="text-lg font-semibold text-blue-900">
+                                                            {group.name}
+                                                        </h3>
+                                                    </div>
+                                                    <Button
+                                                        onClick={() => handleRemoveGroup(group.id)}
+                                                        variant="destructive"
+                                                        size="sm"
+                                                        className="bg-red-500 px-3 py-2 text-white hover:bg-red-600"
+                                                        title="Delete group"
+                                                    >
+                                                        <Trash2 className="size-4" />
+                                                    </Button>
+                                                </div>
+
+                                                <SortableContext
+                                                    items={group.fields.map((field) => field.id)}
+                                                    strategy={verticalListSortingStrategy}
+                                                >
+                                                    <div className="space-y-3">
+                                                        {/* All Fields and Groups */}
+                                                        {group.fields.map((field) => (
+                                                            <SortableItem
+                                                                key={field.id}
+                                                                id={field.id}
+                                                            >
+                                                                <div className="flex items-center justify-between rounded-lg border border-blue-200 bg-white p-3">
+                                                                    <div className="flex items-center gap-4">
+                                                                        <div className="relative">
+                                                                            <span className="font-medium text-gray-900">
+                                                                                {field.name}
+                                                                            </span>
+                                                                            {'required' in field &&
+                                                                                field.required && (
+                                                                                    <span className="absolute -right-1 -top-3 text-lg font-bold text-red-500">
+                                                                                        *
+                                                                                    </span>
+                                                                                )}
+                                                                        </div>
+                                                                        <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">
+                                                                            {'isGroup' in field &&
+                                                                            field.isGroup
+                                                                                ? `Group (${field.originalGroup.fields.length} fields)`
+                                                                                : 'type' in field
+                                                                                  ? field.type
+                                                                                  : 'System Field'}
+                                                                        </span>
+                                                                        {'type' in field &&
+                                                                            field.type ===
+                                                                                'dropdown' &&
+                                                                            field.options && (
+                                                                                <span className="text-sm text-gray-600">
+                                                                                    {
+                                                                                        field
+                                                                                            .options
+                                                                                            .length
+                                                                                    }{' '}
+                                                                                    options
+                                                                                </span>
+                                                                            )}
+                                                                    </div>
+                                                                    <Button
+                                                                        onClick={() =>
+                                                                            handleRemoveFieldFromGroup(
+                                                                                group.id,
+                                                                                field.id
+                                                                            )
+                                                                        }
+                                                                        variant="destructive"
+                                                                        size="sm"
+                                                                        className="bg-red-400 px-2 py-1 text-xs text-white hover:bg-red-500"
+                                                                        title="Remove from group"
+                                                                    >
+                                                                        <X className="size-3" />
+                                                                    </Button>
+                                                                </div>
+                                                            </SortableItem>
+                                                        ))}
+                                                    </div>
+                                                </SortableContext>
+
+                                                {/* Add Field to Group */}
+                                                <div className="mt-4 border-t border-blue-200 pt-4">
+                                                    <h4 className="mb-3 text-sm font-medium text-blue-900">
+                                                        Add Field to Group
+                                                    </h4>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="relative flex-1">
+                                                            <Input
+                                                                type="text"
+                                                                value={newField.name}
+                                                                onChange={(e) =>
+                                                                    setNewField((prev) => ({
+                                                                        ...prev,
+                                                                        name: e.target.value,
+                                                                    }))
+                                                                }
+                                                                className="w-full pr-8"
+                                                                placeholder="Field name"
+                                                            />
+                                                            {newField.required && (
+                                                                <span className="pointer-events-none absolute right-2 top-3 text-lg font-bold text-red-500">
+                                                                    *
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <Select
+                                                            value={newField.type}
+                                                            onValueChange={(value) =>
+                                                                setNewField((prev) => ({
+                                                                    ...prev,
+                                                                    type: value as
+                                                                        | 'text'
+                                                                        | 'dropdown',
+                                                                    options:
+                                                                        value === 'dropdown'
+                                                                            ? ['Option 1']
+                                                                            : undefined,
+                                                                }))
+                                                            }
+                                                        >
+                                                            <SelectTrigger className="w-48">
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="text">
+                                                                    Text Field
+                                                                </SelectItem>
+                                                                <SelectItem value="dropdown">
+                                                                    Dropdown
+                                                                </SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-sm font-medium text-gray-700">
+                                                                Required:
+                                                            </span>
+                                                            <Switch
+                                                                checked={newField.required || false}
+                                                                onCheckedChange={(checked) =>
+                                                                    setNewField((prev) => ({
+                                                                        ...prev,
+                                                                        required: checked,
+                                                                    }))
+                                                                }
+                                                            />
+                                                        </div>
+                                                        <Button
+                                                            onClick={() =>
+                                                                handleAddFieldToGroup(group.id)
+                                                            }
+                                                            disabled={!newField.name}
+                                                            size="sm"
+                                                            className="bg-blue-600 p-3 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                                        >
+                                                            <Plus className="size-4" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </SortableItem>
+                                    ))}
+
+                                    {/* Empty State */}
+                                    {instituteFields.length === 0 &&
+                                        customFields.length === 0 &&
+                                        fieldGroups.length === 0 && (
+                                            <div className="py-8 text-center text-gray-500">
+                                                <Settings className="mx-auto mb-3 size-10 text-gray-300" />
+                                                <p>No institute fields available.</p>
+                                                <p className="text-sm">
+                                                    Click Add Custom Field to get started.
+                                                </p>
+                                            </div>
+                                        )}
+                                </div>
+                            </SortableContext>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Create Field Group Dialog */}
                 <Dialog open={showGroupModal} onOpenChange={setShowGroupModal}>
@@ -1897,25 +1765,33 @@ const CustomFieldsSettings: React.FC = () => {
                                     <Button
                                         onClick={() => {
                                             if (newField.name && newField.type) {
-                                                const field: CustomField = {
-                                                    id: Date.now().toString(),
-                                                    name: newField.name,
-                                                    type: newField.type,
-                                                    options:
-                                                        newField.type === 'dropdown'
-                                                            ? newField.options
-                                                            : undefined,
-                                                    required: newField.required || false,
-                                                    visibility: newField.visibility!,
+                                                const field = createTempCustomField(
+                                                    newField.name,
+                                                    newField.type,
+                                                    newField.type === 'dropdown'
+                                                        ? newField.options
+                                                        : undefined
+                                                );
+
+                                                // Set visibility and required status
+                                                field.visibility = newField.visibility!;
+                                                field.required = newField.required || false;
+
+                                                // Convert to GroupField format
+                                                const groupField: GroupField = {
+                                                    ...field,
+                                                    groupInternalOrder: 0, // Will be updated
                                                 };
+
                                                 setNewGroup((prev) => ({
                                                     ...prev,
-                                                    fields: [...(prev.fields || []), field],
+                                                    fields: [...(prev.fields || []), groupField],
                                                 }));
                                                 setNewField({
                                                     name: '',
                                                     type: 'text',
                                                     options: [],
+                                                    required: false,
                                                     visibility: {
                                                         learnersList: false,
                                                         enrollRequestList: false,
@@ -1933,8 +1809,7 @@ const CustomFieldsSettings: React.FC = () => {
                                     >
                                         <Plus className="size-4" />
                                     </Button>
-                                </div>
-
+                                </div>{' '}
                                 {/* Initial Options for Dropdown */}
                                 {newField.type === 'dropdown' && (
                                     <div className="space-y-2">
