@@ -92,9 +92,18 @@ export const getRequiredApprovalStatus = (existingFreePlans: FreePlanInfo[]): bo
 };
 
 export const getTotalSteps = (planType: string): number => {
-    if (planType === PaymentPlans.FREE) return 2;
-    if (planType === PaymentPlans.DONATION) return 2;
-    return 3;
+    let baseSteps = 3; // Basic plan creation steps
+
+    if (planType === PaymentPlans.FREE) {
+        baseSteps = 2;
+    } else if (planType === PaymentPlans.DONATION) {
+        baseSteps = 2;
+    }
+
+    // Add one final step for referral configuration
+    baseSteps += 1;
+
+    return baseSteps;
 };
 
 export const currencySymbols: { [key: string]: string } = {

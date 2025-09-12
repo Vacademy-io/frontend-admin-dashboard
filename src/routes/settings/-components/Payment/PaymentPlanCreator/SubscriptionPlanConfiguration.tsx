@@ -285,7 +285,8 @@ export const SubscriptionPlanConfiguration: React.FC<SubscriptionPlanConfigurati
                                         />
                                         <Button
                                             type="button"
-                                            className="rounded border hover:bg-gray-200"
+                                            variant="outline"
+                                            size="sm"
                                             onClick={() => addFeature(idx)}
                                         >
                                             Add

@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { CreditCard, Calendar, DollarSign, Edit, Trash2, Globe, Eye } from 'lucide-react';
+import { CreditCard, Calendar, DollarSign, Edit, Trash2, Globe, Eye, Users } from 'lucide-react';
 import { PaymentPlan, PaymentPlans } from '@/types/payment';
 import { getCurrencySymbol } from './utils/utils';
+import ReferralViewDialog from './ReferralViewDialog';
 
 const getTypeIcon = (type: string) => {
     switch (type) {
@@ -181,114 +182,151 @@ export const PaymentPlanList: React.FC<PaymentPlanListProps> = ({
     onPreview,
     deletingPlanId,
 }) => {
+    const [referralDialogOpen, setReferralDialogOpen] = useState(false);
+    const [selectedPlan, setSelectedPlan] = useState<PaymentPlan | null>(null);
+
+    const handleViewReferral = (plan: PaymentPlan) => {
+        setSelectedPlan(plan);
+        setReferralDialogOpen(true);
+    };
+
     return (
-        <Card className="w-full">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="size-5" />
-                    Payment Options
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-4">
-                    {plans.length === 0 ? (
-                        <div className="py-8 text-center text-gray-500">
-                            <CreditCard className="mx-auto mb-4 size-12 text-gray-300" />
-                            <p>No payment options created yet</p>
-                            <p className="text-sm">
-                                Create your first payment option to start accepting payments
-                            </p>
-                        </div>
-                    ) : (
-                        plans.map((plan, index) => (
-                            <React.Fragment key={plan.id}>
-                                {index > 0 && <Separator className="my-4" />}
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            {getTypeIcon(plan.type)}
-                                            <h3 className="text-lg font-medium">{plan.name}</h3>
-                                            {plan.tag === 'DEFAULT' && (
-                                                <Badge
-                                                    variant="default"
-                                                    className="bg-green-100 text-green-800"
-                                                >
-                                                    Default
+        <>
+            <Card className="w-full">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <CreditCard className="size-5" />
+                        Payment Options
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-4">
+                        {plans.length === 0 ? (
+                            <div className="py-8 text-center text-gray-500">
+                                <CreditCard className="mx-auto mb-4 size-12 text-gray-300" />
+                                <p>No payment options created yet</p>
+                                <p className="text-sm">
+                                    Create your first payment option to start accepting payments
+                                </p>
+                            </div>
+                        ) : (
+                            plans.map((plan, index) => (
+                                <React.Fragment key={plan.id}>
+                                    {index > 0 && <Separator className="my-4" />}
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                {getTypeIcon(plan.type)}
+                                                <h3 className="text-lg font-medium">{plan.name}</h3>
+                                                {plan.tag === 'DEFAULT' && (
+                                                    <Badge
+                                                        variant="default"
+                                                        className="bg-green-100 text-green-800"
+                                                    >
+                                                        Default
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Badge variant="outline" className="capitalize">
+                                                    {plan.type}
                                                 </Badge>
-                                            )}
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Badge variant="outline" className="capitalize">
-                                                {plan.type}
-                                            </Badge>
-                                            {onPreview &&
-                                                (plan.type === PaymentPlans.SUBSCRIPTION ||
-                                                    plan.type === PaymentPlans.DONATION) && (
+                                                {plan.referralOption && (
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        onClick={() => onPreview(plan)}
-                                                        className="text-blue-600 hover:text-blue-700"
+                                                        onClick={() => handleViewReferral(plan)}
+                                                        className="text-green-600 hover:text-green-700"
+                                                        title="View Referral Settings"
                                                     >
-                                                        <Eye className="size-4" />
+                                                        <Users className="size-4" />
                                                     </Button>
                                                 )}
-                                            {onEdit && (
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => onEdit(plan)}
-                                                >
-                                                    <Edit className="size-4" />
-                                                </Button>
-                                            )}
-                                            {onSetDefault && plan.tag !== 'DEFAULT' && (
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => {
-                                                        onSetDefault(plan.id);
-                                                    }}
-                                                >
-                                                    Make Default
-                                                </Button>
-                                            )}
-                                            {onDelete && (
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => onDelete(plan.id)}
-                                                    className="text-red-600 hover:text-red-700"
-                                                    disabled={deletingPlanId === plan.id}
-                                                >
-                                                    {deletingPlanId === plan.id ? (
-                                                        <div className="size-4 animate-spin rounded-full border-b-2 border-red-600"></div>
-                                                    ) : (
-                                                        <Trash2 className="size-4" />
+                                                {onPreview &&
+                                                    (plan.type === PaymentPlans.SUBSCRIPTION ||
+                                                        plan.type === PaymentPlans.DONATION) && (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => onPreview(plan)}
+                                                            className="text-blue-600 hover:text-blue-700"
+                                                        >
+                                                            <Eye className="size-4" />
+                                                        </Button>
                                                     )}
-                                                </Button>
+                                                {onEdit && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => onEdit(plan)}
+                                                    >
+                                                        <Edit className="size-4" />
+                                                    </Button>
+                                                )}
+                                                {onSetDefault && plan.tag !== 'DEFAULT' && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            onSetDefault(plan.id);
+                                                        }}
+                                                    >
+                                                        Make Default
+                                                    </Button>
+                                                )}
+                                                {onDelete && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => onDelete(plan.id)}
+                                                        className="text-red-600 hover:text-red-700"
+                                                        disabled={deletingPlanId === plan.id}
+                                                    >
+                                                        {deletingPlanId === plan.id ? (
+                                                            <div className="size-4 animate-spin rounded-full border-b-2 border-red-600"></div>
+                                                        ) : (
+                                                            <Trash2 className="size-4" />
+                                                        )}
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="ml-7 space-y-1">
+                                            {getPlanPriceDetails(plan).map((detail, idx) => (
+                                                <p key={idx} className="text-sm text-gray-600">
+                                                    {detail}
+                                                </p>
+                                            ))}
+                                            {plan.type !== PaymentPlans.FREE && (
+                                                <p className="mt-2 text-xs text-gray-500">
+                                                    Currency: {plan.currency}
+                                                </p>
+                                            )}
+                                            {plan.referralOption && (
+                                                <div className="mt-2">
+                                                    <Badge
+                                                        variant="secondary"
+                                                        className="bg-green-100 text-xs text-green-800"
+                                                    >
+                                                        🎁 Referral Benefits Available
+                                                    </Badge>
+                                                </div>
                                             )}
                                         </div>
                                     </div>
+                                </React.Fragment>
+                            ))
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
 
-                                    <div className="ml-7 space-y-1">
-                                        {getPlanPriceDetails(plan).map((detail, idx) => (
-                                            <p key={idx} className="text-sm text-gray-600">
-                                                {detail}
-                                            </p>
-                                        ))}
-                                        {plan.type !== PaymentPlans.FREE && (
-                                            <p className="mt-2 text-xs text-gray-500">
-                                                Currency: {plan.currency}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            </React.Fragment>
-                        ))
-                    )}
-                </div>
-            </CardContent>
-        </Card>
+            <ReferralViewDialog
+                isOpen={referralDialogOpen}
+                onClose={() => setReferralDialogOpen(false)}
+                plan={selectedPlan}
+            />
+        </>
     );
 };
