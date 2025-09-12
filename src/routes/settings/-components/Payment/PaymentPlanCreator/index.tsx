@@ -353,7 +353,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                         benefits: [
                             {
                                 deliveryMediums: getDeliveryMediums(tier.reward.delivery),
-                                templateId: getTemplateId(tier.reward.type),
+                                templateId: getTemplateId(tier.reward),
                                 subject: tier.tierName,
                                 body: tier.reward.description,
                                 fileIds: [],
