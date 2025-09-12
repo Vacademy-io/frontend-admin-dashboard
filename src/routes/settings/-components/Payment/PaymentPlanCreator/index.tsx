@@ -36,6 +36,7 @@ import { PlanNavigation } from './PlanNavigation';
 import { ReferralToggle } from './ReferralToggle';
 import { DetailedReferralConfiguration } from './DetailedReferralConfiguration';
 import { DAYS_IN_MONTH } from '@/routes/settings/-constants/terms';
+import { getInstituteId } from '@/constants/helper';
 
 // Helper functions for API transformation
 const getRefereeApiBenefitType = (type: string): string => {
@@ -202,7 +203,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
     const [planData, setPlanData] = useState<Partial<PaymentPlan>>({});
     const [showPreview, setShowPreview] = useState(false);
     const [selectedUnit, setSelectedUnit] = useState<'days' | 'months'>('months');
-
+    const instituteId = getInstituteId();
     // Detailed referral settings state (inline)
     const [includeRefereeReward, setIncludeRefereeReward] = useState(false);
     const [includeReferrerReward, setIncludeReferrerReward] = useState(false);
@@ -366,8 +367,8 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
             apiReferralOption = {
                 name: unifiedSettings.label,
                 status: 'ACTIVE',
-                source: 'payment_plan',
-                source_id: `plan_${Date.now()}`,
+                source: 'INSTITUTE',
+                source_id: instituteId || '',
                 referrer_discount_json: JSON.stringify(referrerDiscountData),
                 referee_discount_json: JSON.stringify(refereeDiscountData),
                 referrer_vesting_days: vestingDays,
