@@ -422,12 +422,16 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         enableHiding: true,
     },
     {
-        accessorKey: 'attendance',
+        accessorKey: 'attendance_percent',
         size: 120,
         minSize: 100,
         maxSize: 180,
         header: 'Attendance',
-        cell: ({ row }) => <CreateClickableCell row={row} columnId="attendance" />,
+        cell: ({ row }) => (
+            <div className="flex">
+                <CreateClickableCell row={row} columnId="attendance_percent" />%
+            </div>
+        ),
         enableHiding: true,
     },
     {
