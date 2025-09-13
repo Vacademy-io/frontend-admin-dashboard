@@ -56,8 +56,7 @@ const getInstituteId = (): string => {
 // Transform UnifiedReferralSettings to API format
 export const transformUnifiedReferralToApiFormat = (
     settings: UnifiedReferralSettings,
-    planName: string,
-    planId: string
+    planName: string
 ) => {
     // Transform referee reward
     const refereeDiscountData = {
@@ -67,7 +66,9 @@ export const transformUnifiedReferralToApiFormat = (
 
     // Transform referrer rewards
     const referrerDiscountData = {
-        benefitType: 'CONTENT',
+        benefitType: getReferrerApiBenefitType(
+            settings.referrerRewards[0]?.reward.type || 'CONTENT'
+        ),
         benefitValue: {
             referralBenefits: settings.referrerRewards.map((tier) => ({
                 referralRange: {
@@ -89,12 +90,12 @@ export const transformUnifiedReferralToApiFormat = (
             })),
         },
     };
-
+    const instituteId = getInstituteId();
     return {
         name: settings.label || `${planName} Referral Program`,
         status: 'ACTIVE',
-        source: 'payment_plan',
-        source_id: planId,
+        source: 'INSTITUTE',
+        source_id: instituteId || '',
         referrer_discount_json: JSON.stringify(referrerDiscountData),
         referee_discount_json: JSON.stringify(refereeDiscountData),
         referrer_vesting_days: settings.payoutVestingDays || 7,
@@ -376,8 +377,7 @@ export const transformLocalPlanToApiFormat = (plan: PaymentPlan): PaymentPlanApi
         ...(plan.unifiedReferralSettings && {
             referral_option: transformUnifiedReferralToApiFormat(
                 plan.unifiedReferralSettings,
-                plan.name,
-                plan.id
+                plan.name
             ),
         }),
         ...(plan.referralOption &&
@@ -664,8 +664,7 @@ export const transformLocalPlanToApiFormatArray = (localPlan: PaymentPlan): Paym
                 referral_option: localPlan.unifiedReferralSettings
                     ? transformUnifiedReferralToApiFormat(
                           localPlan.unifiedReferralSettings,
-                          localPlan.name,
-                          localPlan.id
+                          localPlan.name
                       )
                     : localPlan.apiReferralOption,
             };
@@ -699,8 +698,7 @@ export const transformLocalPlanToApiFormatArray = (localPlan: PaymentPlan): Paym
                 referral_option: localPlan.unifiedReferralSettings
                     ? transformUnifiedReferralToApiFormat(
                           localPlan.unifiedReferralSettings,
-                          localPlan.name,
-                          localPlan.id
+                          localPlan.name
                       )
                     : localPlan.apiReferralOption,
             },
