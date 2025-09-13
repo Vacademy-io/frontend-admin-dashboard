@@ -1,7 +1,7 @@
 import { LockSimple } from 'phosphor-react';
 import { Badge } from '@/components/ui/badge';
 import { LiveSession } from '../schedule/-services/utils';
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Papa from 'papaparse';
 import { toast } from 'sonner';
 import { DownloadSimple } from 'phosphor-react';
@@ -11,11 +11,21 @@ import { fetchSessionDetails, SessionDetailsResponse } from '../-hooks/useSessio
 import { MyButton } from '@/components/design-system/button';
 import { MyTable } from '@/components/design-system/table';
 import { useLiveSessionReport } from '../-hooks/useLiveSessionReport';
-import { reportColumns, REPORT_WIDTH } from '../-constants/reportTable';
+import {
+    attendanceReportColumnsWithCheckbox,
+    AttendanceReportTableData,
+    ATTENDANCE_REPORT_WIDTH,
+} from '../-constants/attendance-report-with-checkbox';
 import { LiveSessionReport } from '../-services/utils';
 import { MyPieChart } from '@/components/design-system/charts/MyPieChart';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { AttendanceBulkActions } from './attendance-bulk-actions';
+import { SendMessageDialog } from '@/routes/manage-students/students-list/-components/students-list/student-list-section/bulk-actions/send-message-dialog';
+import { SendEmailDialog } from '@/routes/manage-students/students-list/-components/students-list/student-list-section/bulk-actions/send-email-dialog';
+import { useDialogStore } from '@/routes/manage-students/students-list/-hooks/useDialogStore';
+import { StudentTable } from '@/types/student-table-types';
+import { BulkActionInfo } from '@/routes/manage-students/students-list/-types/bulk-actions-types';
 
 interface PreviousSessionCardProps {
     session: LiveSession;
@@ -26,9 +36,12 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
     const [scheduledSessionDetails, setScheduleSessionDetails] =
         useState<SessionDetailsResponse | null>(null);
     const [isAttendanceExporting, setIsAttendanceExporting] = useState<boolean>(false);
+    const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
+    const [selectedStudents, setSelectedStudents] = useState<StudentTable[]>([]);
     // using Sonner toast for notifications
 
     const { mutate: fetchReport, data: reportResponse, isPending, error } = useLiveSessionReport();
+    const { openBulkSendMessageDialog, openBulkSendEmailDialog } = useDialogStore();
 
     const fetchSessionDetail = async () => {
         const response = await fetchSessionDetails(session.schedule_id);
@@ -59,11 +72,13 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
         { name: 'Absent', value: attendanceSummary.absent },
     ];
 
-    const convertToReportTableData = (data: LiveSessionReport[]) => {
+    const convertToReportTableData = (data: LiveSessionReport[]): AttendanceReportTableData[] => {
         return data.map((item, idx) => ({
             index: idx + 1,
             username: item.fullName,
             attendanceStatus: item.attendanceStatus,
+            studentId: item.studentId,
+            isSelected: selectedStudentIds.includes(item.studentId),
         }));
     };
 
@@ -75,6 +90,13 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
         total_elements: 0,
         last: true,
     };
+
+    // Calculate selection states
+    const isAllSelected = reportResponse
+        ? selectedStudentIds.length === reportResponse.length
+        : false;
+    const isIndeterminate =
+        selectedStudentIds.length > 0 && selectedStudentIds.length < (reportResponse?.length || 0);
 
     const handleExportPastAttendance = () => {
         setIsAttendanceExporting(true);
@@ -96,6 +118,121 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
         setIsAttendanceExporting(false);
         toast.success('Attendance report downloaded successfully.');
     };
+
+    // Convert LiveSessionReport to StudentTable format
+    const convertToStudentTable = (reportData: LiveSessionReport[]): StudentTable[] => {
+        return reportData.map((report) => ({
+            id: report.studentId,
+            username: report.instituteEnrollmentNumber || null,
+            user_id: report.studentId,
+            email: report.email,
+            full_name: report.fullName,
+            address_line: '',
+            region: null,
+            city: '',
+            pin_code: '',
+            mobile_number: report.mobileNumber,
+            date_of_birth: '',
+            gender: '',
+            father_name: '',
+            mother_name: '',
+            father_mobile_number: '',
+            father_email: '',
+            mother_mobile_number: '',
+            mother_email: '',
+            linked_institute_name: null,
+            created_at: '',
+            updated_at: '',
+            package_session_id: '',
+            institute_enrollment_id: report.instituteEnrollmentNumber || '',
+            status: 'ACTIVE' as const,
+            session_expiry_days: 0,
+            institute_id: '',
+            country: '',
+            expiry_date: 0,
+            face_file_id: null,
+            parents_email: '',
+            parents_mobile_number: '',
+            parents_to_mother_email: '',
+            parents_to_mother_mobile_number: '',
+            destination_package_session_id: '',
+            enroll_invite_id: '',
+            payment_status: '',
+        }));
+    };
+
+    // Checkbox selection handlers
+    const handleSelectStudent = (studentId: string, isSelected: boolean) => {
+        if (isSelected) {
+            setSelectedStudentIds((prev) => [...prev, studentId]);
+        } else {
+            setSelectedStudentIds((prev) => prev.filter((id) => id !== studentId));
+        }
+    };
+
+    const handleSelectAll = () => {
+        if (!reportResponse) return;
+        const allIds = reportResponse.map((report) => report.studentId);
+        setSelectedStudentIds(allIds);
+    };
+
+    const handleClearAll = () => {
+        setSelectedStudentIds([]);
+    };
+
+    const handleSendWhatsApp = () => {
+        if (selectedStudents.length === 0) {
+            toast.error('Please select at least one student');
+            return;
+        }
+
+        const bulkActionInfo: BulkActionInfo = {
+            selectedStudentIds,
+            selectedStudents,
+            displayText: `${selectedStudents.length} students`,
+        };
+
+        openBulkSendMessageDialog(bulkActionInfo);
+    };
+
+    const handleSendEmail = () => {
+        if (selectedStudents.length === 0) {
+            toast.error('Please select at least one student');
+            return;
+        }
+
+        const bulkActionInfo: BulkActionInfo = {
+            selectedStudentIds,
+            selectedStudents,
+            displayText: `${selectedStudents.length} students`,
+        };
+
+        openBulkSendEmailDialog(bulkActionInfo);
+    };
+
+    // Update selected students when selectedStudentIds changes
+    React.useEffect(() => {
+        if (reportResponse) {
+            const studentTableData = convertToStudentTable(reportResponse);
+            const filtered = studentTableData.filter((student) =>
+                selectedStudentIds.includes(student.user_id)
+            );
+            setSelectedStudents(filtered);
+        }
+    }, [selectedStudentIds, reportResponse]);
+
+    // Focus management for dialog
+    React.useEffect(() => {
+        if (openDialog && reportResponse && reportResponse.length > 0) {
+            // Small delay to ensure the table is rendered
+            setTimeout(() => {
+                const firstCheckbox = document.querySelector('[role="checkbox"]') as HTMLElement;
+                if (firstCheckbox) {
+                    firstCheckbox.focus();
+                }
+            }, 100);
+        }
+    }, [openDialog, reportResponse]);
 
     const duration = useMemo(() => {
         if (
@@ -163,169 +300,187 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
                     <span className="text-black">End Time:</span>
                     <span>{session.last_entry_time}</span>
                 </div>
-                <div
-                    className="flex items-center gap-2 text-primary-500"
-                    onClick={handleOpenDialog}
-                >
-                    <span>View Attendance Report</span>
-                    <MyDialog
-                        heading="Attendance Report"
-                        open={openDialog}
-                        onOpenChange={handleOpenDialog}
-                        className="w-[80vw] max-w-4xl"
+                <div className="flex items-center gap-2 text-primary-500">
+                    <button
+                        type="button"
+                        className="hover:text-primary-600 flex items-center gap-2 rounded-sm text-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                        onClick={handleOpenDialog}
                     >
-                        <div className="flex flex-col gap-3 p-4 text-sm">
-                            {/* Header */}
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <h2 className="text-xl font-bold">
-                                        {scheduledSessionDetails?.title}
-                                    </h2>
-                                    <p className="text-neutral-500">
-                                        {scheduledSessionDetails?.meetingDate}{' '}
-                                        {scheduledSessionDetails?.scheduleStartTime}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Basic Details */}
-                            <div className="rounded-lg">
-                                <h3 className="mb-1 font-semibold">Basic Class Details</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2">
-                                    <div className="flex gap-2">
-                                        <span className="font-bold">Session:</span>
-                                        <span>
-                                            {scheduledSessionDetails?.accessLevel === 'private'
-                                                ? 'Paid Members'
-                                                : 'Open Session'}
-                                        </span>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <span className="font-bold">Occurrence:</span>
-                                        <span>{scheduledSessionDetails?.recurrenceType}</span>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <span className="font-bold">Type:</span>
-                                        <span>{scheduledSessionDetails?.accessLevel}</span>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <span className="font-bold">Duration:</span>
-                                        <span>{duration}</span>
-                                    </div>
-                                    {/*
-                                    <div className="flex gap-2">
-                                        <span className="font-bold">Time Zone:</span>
-                                        <span>{}</span>
-                                    </div> */}
-                                </div>
-                            </div>
-
-                            {/* Description */}
-                            <div className="rounded-lg">
-                                <h3 className="mb-1 text-lg font-semibold">Description</h3>
-                                <div className="prose prose-sm max-w-none text-neutral-600">
-                                    {scheduledSessionDetails?.descriptionHtml ? (
-                                        <div
-                                            dangerouslySetInnerHTML={{
-                                                __html: scheduledSessionDetails?.descriptionHtml,
-                                            }}
-                                        />
-                                    ) : (
-                                        'No description available.'
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Insights & Attendance */}
-                            <div className="rounded-lg">
-                                <h3 className="mb-2 text-lg font-semibold">
-                                    Participants Insights
-                                </h3>
-                                <div className="flex items-center justify-center rounded-md bg-neutral-100 p-4">
-                                    <div className="flex w-1/2 flex-col items-center justify-center gap-3">
-                                        <MyPieChart data={pieChartData} />
-                                        <div className="text-lg font-semibold">
-                                            Total Participants: {attendanceSummary.total}
-                                        </div>
-                                    </div>
-                                    <div className="flex w-1/2 flex-col gap-4">
-                                        <div className="flex flex-col gap-3">
-                                            <div className="flex items-center gap-2">
-                                                <div className="size-4 rounded-full bg-success-400"></div>
-                                                <div className="flex items-center gap-2 text-black">
-                                                    <span className="font-medium">Attendees:</span>
-                                                    <span className="font-semibold text-success-600">
-                                                        {attendanceSummary.present}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <div className="size-4 rounded-full bg-success-200"></div>
-                                                <div className="flex items-center gap-2 text-black">
-                                                    <span className="font-medium">
-                                                        Not Attendees:
-                                                    </span>
-                                                    <span className="font-semibold text-red-600">
-                                                        {attendanceSummary.absent}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="rounded-lg p-3">
-                                            <div className="text-left">
-                                                <div className="text-sm font-medium text-neutral-600">
-                                                    Attendance Percentage
-                                                </div>
-                                                <div className="text-xl font-bold text-primary-500">
-                                                    {attendanceSummary.total > 0
-                                                        ? (
-                                                              (attendanceSummary.present /
-                                                                  attendanceSummary.total) *
-                                                              100
-                                                          ).toFixed(2)
-                                                        : '0.00'}
-                                                    %
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="mt-4 rounded-lg">
-                                <div className="mb-4 flex items-center justify-between">
-                                    <h3 className="text-lg font-semibold">Attendance</h3>
-                                    <MyButton
-                                        type="button"
-                                        scale="medium"
-                                        buttonType="primary"
-                                        className="flex items-center"
-                                        onClick={handleExportPastAttendance}
-                                    >
-                                        {isAttendanceExporting ? (
-                                            <DashboardLoader />
-                                        ) : (
-                                            <>
-                                                <DownloadSimple size={20} className="mr-2" />
-                                                CSV
-                                            </>
-                                        )}
-                                    </MyButton>
-                                </div>
-                                <MyTable
-                                    data={tableData}
-                                    columns={reportColumns}
-                                    isLoading={isPending}
-                                    error={error as Error | null}
-                                    columnWidths={REPORT_WIDTH}
-                                    currentPage={0}
-                                    // className="!w-full"
-                                />
-                            </div>
-                        </div>
-                    </MyDialog>
+                        <span>View Attendance Report</span>
+                    </button>
                 </div>
             </div>
+
+            {/* Attendance Report Dialog */}
+            <MyDialog
+                heading="Attendance Report"
+                open={openDialog}
+                onOpenChange={handleOpenDialog}
+                className="w-[80vw] max-w-4xl"
+            >
+                <div className="flex flex-col gap-3 p-4 text-sm">
+                    {/* Header */}
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <h2 className="text-xl font-bold">{scheduledSessionDetails?.title}</h2>
+                            <p className="text-neutral-500">
+                                {scheduledSessionDetails?.meetingDate}{' '}
+                                {scheduledSessionDetails?.scheduleStartTime}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Basic Details */}
+                    <div className="rounded-lg">
+                        <h3 className="mb-1 font-semibold">Basic Class Details</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2">
+                            <div className="flex gap-2">
+                                <span className="font-bold">Session:</span>
+                                <span>
+                                    {scheduledSessionDetails?.accessLevel === 'private'
+                                        ? 'Paid Members'
+                                        : 'Open Session'}
+                                </span>
+                            </div>
+                            <div className="flex gap-2">
+                                <span className="font-bold">Occurrence:</span>
+                                <span>{scheduledSessionDetails?.recurrenceType}</span>
+                            </div>
+                            <div className="flex gap-2">
+                                <span className="font-bold">Type:</span>
+                                <span>{scheduledSessionDetails?.accessLevel}</span>
+                            </div>
+                            <div className="flex gap-2">
+                                <span className="font-bold">Duration:</span>
+                                <span>{duration}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Description */}
+                    <div className="rounded-lg">
+                        <h3 className="mb-1 text-lg font-semibold">Description</h3>
+                        <div className="prose prose-sm max-w-none text-neutral-600">
+                            {scheduledSessionDetails?.descriptionHtml ? (
+                                <div
+                                    dangerouslySetInnerHTML={{
+                                        __html: scheduledSessionDetails?.descriptionHtml,
+                                    }}
+                                />
+                            ) : (
+                                'No description available.'
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Insights & Attendance */}
+                    <div className="rounded-lg">
+                        <h3 className="mb-2 text-lg font-semibold">Participants Insights</h3>
+                        <div className="flex items-center justify-center rounded-md bg-neutral-100 p-4">
+                            <div className="flex w-1/2 flex-col items-center justify-center gap-3">
+                                <MyPieChart data={pieChartData} />
+                                <div className="text-lg font-semibold">
+                                    Total Participants: {attendanceSummary.total}
+                                </div>
+                            </div>
+                            <div className="flex w-1/2 flex-col gap-4">
+                                <div className="flex flex-col gap-3">
+                                    <div className="flex items-center gap-2">
+                                        <div className="size-4 rounded-full bg-success-400"></div>
+                                        <div className="flex items-center gap-2 text-black">
+                                            <span className="font-medium">Attendees:</span>
+                                            <span className="font-semibold text-success-600">
+                                                {attendanceSummary.present}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="size-4 rounded-full bg-success-200"></div>
+                                        <div className="flex items-center gap-2 text-black">
+                                            <span className="font-medium">Not Attendees:</span>
+                                            <span className="font-semibold text-red-600">
+                                                {attendanceSummary.absent}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="rounded-lg p-3">
+                                    <div className="text-left">
+                                        <div className="text-sm font-medium text-neutral-600">
+                                            Attendance Percentage
+                                        </div>
+                                        <div className="text-xl font-bold text-primary-500">
+                                            {attendanceSummary.total > 0
+                                                ? (
+                                                      (attendanceSummary.present /
+                                                          attendanceSummary.total) *
+                                                      100
+                                                  ).toFixed(2)
+                                                : '0.00'}
+                                            %
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-4 rounded-lg">
+                        <div className="mb-4 flex items-center justify-between">
+                            <h3 className="text-lg font-semibold">Attendance</h3>
+                            <div className="flex items-center gap-2">
+                                {/* Bulk Actions */}
+                                {reportResponse && reportResponse.length > 0 && (
+                                    <AttendanceBulkActions
+                                        selectedCount={selectedStudentIds.length}
+                                        selectedStudentIds={selectedStudentIds}
+                                        selectedStudents={selectedStudents}
+                                        onReset={handleClearAll}
+                                        onSendWhatsApp={handleSendWhatsApp}
+                                        onSendEmail={handleSendEmail}
+                                    />
+                                )}
+                                <MyButton
+                                    type="button"
+                                    scale="medium"
+                                    buttonType="primary"
+                                    className="flex items-center"
+                                    onClick={handleExportPastAttendance}
+                                >
+                                    {isAttendanceExporting ? (
+                                        <DashboardLoader />
+                                    ) : (
+                                        <>
+                                            <DownloadSimple size={20} className="mr-2" />
+                                            CSV
+                                        </>
+                                    )}
+                                </MyButton>
+                            </div>
+                        </div>
+
+                        <MyTable
+                            data={tableData}
+                            columns={attendanceReportColumnsWithCheckbox(
+                                selectedStudentIds,
+                                handleSelectStudent,
+                                handleSelectAll,
+                                handleClearAll,
+                                isAllSelected,
+                                isIndeterminate
+                            )}
+                            isLoading={isPending}
+                            error={error as Error | null}
+                            columnWidths={ATTENDANCE_REPORT_WIDTH}
+                            currentPage={0}
+                        />
+                    </div>
+                </div>
+            </MyDialog>
+
+            {/* Bulk Action Dialogs */}
+            <SendMessageDialog />
+            <SendEmailDialog />
         </div>
     );
 }
