@@ -10,8 +10,6 @@ import {
     getMessageTemplates,
     updateMessageTemplate,
     deleteMessageTemplate,
-    setDefaultTemplate,
-    duplicateTemplate,
 } from '@/services/message-template-service';
 import { templateCacheService } from '@/services/template-cache-service';
 import { TemplateList } from './TemplateList';
@@ -119,39 +117,6 @@ export default function TemplateSettings() {
         setTemplateToDelete(null);
     };
 
-    const handleSetDefault = async (id: string, type: 'EMAIL' | 'WHATSAPP') => {
-        setSaving(true);
-        setError(null);
-        try {
-            await setDefaultTemplate(id, type);
-            // Clear cache to ensure fresh data
-            templateCacheService.clearCache(type);
-            setSuccess('Default template updated successfully!');
-            await loadTemplates();
-        } catch (err) {
-            console.error('Error setting default template:', err);
-            setError('Failed to set default template.');
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleDuplicateTemplate = async (template: MessageTemplate) => {
-        setSaving(true);
-        setError(null);
-        try {
-            await duplicateTemplate(template.id);
-            // Clear cache to ensure fresh data
-            templateCacheService.clearCache(template.type);
-            setSuccess('Template duplicated successfully!');
-            await loadTemplates();
-        } catch (err) {
-            console.error('Error duplicating template:', err);
-            setError('Failed to duplicate template.');
-        } finally {
-            setSaving(false);
-        }
-    };
 
     const handlePreviewTemplate = (template: MessageTemplate) => {
         setPreviewTemplate(template);
@@ -254,8 +219,6 @@ export default function TemplateSettings() {
                     templates={templates}
                     onEdit={handleEditTemplate}
                     onDelete={handleDeleteTemplate}
-                    onSetDefault={handleSetDefault}
-                    onDuplicate={handleDuplicateTemplate}
                     onPreview={handlePreviewTemplate}
                     isDeleting={saving}
                 />

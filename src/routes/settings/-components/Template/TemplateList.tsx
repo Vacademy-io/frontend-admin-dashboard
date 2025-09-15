@@ -11,10 +11,8 @@ import {
 import {
     Edit,
     Trash2,
-    Copy,
     Eye,
     Star,
-    StarOff,
     Mail,
     MessageCircle,
     Calendar,
@@ -26,8 +24,6 @@ interface TemplateListProps {
     templates: MessageTemplate[];
     onEdit: (template: MessageTemplate) => void;
     onDelete: (template: MessageTemplate) => void;
-    onSetDefault: (id: string, type: 'email' | 'whatsapp') => void;
-    onDuplicate: (template: MessageTemplate) => void;
     onPreview: (template: MessageTemplate) => void;
     isDeleting: boolean;
 }
@@ -36,21 +32,19 @@ export const TemplateList: React.FC<TemplateListProps> = ({
     templates,
     onEdit,
     onDelete,
-    onSetDefault,
-    onDuplicate,
     onPreview,
     isDeleting,
 }) => {
-    const getTypeIcon = (type: 'email' | 'whatsapp') => {
-        return type === 'email' ? (
+    const getTypeIcon = (type: 'EMAIL' | 'WHATSAPP') => {
+        return type === 'EMAIL' ? (
             <Mail className="size-4 text-blue-600" />
         ) : (
             <MessageCircle className="size-4 text-green-600" />
         );
     };
 
-    const getTypeColor = (type: 'email' | 'whatsapp') => {
-        return type === 'email' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800';
+    const getTypeColor = (type: 'EMAIL' | 'WHATSAPP') => {
+        return type === 'EMAIL' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800';
     };
 
     const formatDate = (dateString: string) => {
@@ -184,26 +178,8 @@ export const TemplateList: React.FC<TemplateListProps> = ({
                                     >
                                         <Edit className="size-4" />
                                     </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => onDuplicate(template)}
-                                        className="h-8 w-8 p-0"
-                                    >
-                                        <Copy className="size-4" />
-                                    </Button>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    {!template.isDefault && (
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => onSetDefault(template.id, template.type)}
-                                            className="h-8 w-8 p-0 text-yellow-600 hover:text-yellow-700"
-                                        >
-                                            <StarOff className="size-4" />
-                                        </Button>
-                                    )}
                                     <Button
                                         variant="ghost"
                                         size="sm"

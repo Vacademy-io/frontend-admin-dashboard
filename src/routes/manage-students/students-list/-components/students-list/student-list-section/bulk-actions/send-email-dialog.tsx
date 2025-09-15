@@ -29,17 +29,12 @@ interface StudentEmailStatus {
     error?: string;
 }
 
-// Define placeholder variables that users can insert
+// Define placeholder variables that users can insert (only those with available data)
 const PLACEHOLDER_VARIABLES = [
     { label: 'Student Name', value: '{{name}}' },
     { label: 'Email Address', value: '{{email}}' },
     { label: 'Mobile Number', value: '{{mobile_number}}' },
     { label: 'Custom Message', value: '{{custom_message_text}}' },
-    { label: 'Course Name', value: '{{course_name}}' },
-    { label: 'Batch Name', value: '{{batch_name}}' },
-    { label: 'Session Name', value: '{{session_name}}' },
-    { label: 'Login Username', value: '{{username}}' },
-    { label: 'Registration Date', value: '{{registration_date}}' },
     { label: 'Current Date', value: '{{current_date}}' },
 ];
 
@@ -130,11 +125,6 @@ export const SendEmailDialog = () => {
             '{{email}}': sampleStudent.email || 'john.doe@example.com',
             '{{mobile_number}}': sampleStudent.mobile_number || '+1234567890',
             '{{custom_message_text}}': customMessage,
-            '{{course_name}}': 'Mathematics Course', // You can get this from student data
-            '{{batch_name}}': 'Batch A', // You can get this from student data
-            '{{session_name}}': 'Session 2024', // You can get this from student data
-            '{{username}}': sampleStudent.email?.split('@')[0] || 'johndoe',
-            '{{registration_date}}': '2024-01-15', // You can get this from student data
             '{{current_date}}': currentDate,
         };
 
@@ -183,23 +173,55 @@ export const SendEmailDialog = () => {
               ? [selectedStudent]
               : [];
 
+        // Track null values for reporting
+        const nullValueReport = {
+            missingNames: 0,
+            missingEmails: 0,
+            missingMobileNumbers: 0,
+            totalStudents: students.length
+        };
+
         const apiUsersPayload = studentEmailStatuses
             .map((statusEntry) => {
                 const student = students.find((s) => s.user_id === statusEntry.userId);
                 if (!student || !student.email) return null;
 
+                // Track and log null values for debugging
+                if (!student.full_name) {
+                    nullValueReport.missingNames++;
+                    console.warn(`⚠️ Null name for student ${student.user_id}:`, student);
+                }
+                if (!student.email) {
+                    nullValueReport.missingEmails++;
+                    console.warn(`⚠️ Null email for student ${student.user_id}:`, student);
+                }
+                if (!student.mobile_number) {
+                    nullValueReport.missingMobileNumbers++;
+                    console.warn(`⚠️ Null mobile_number for student ${student.user_id}:`, student);
+                }
+
                 return {
                     user_id: student.user_id,
                     channel_id: student.email,
                     placeholders: {
-                        name: student.full_name,
-                        email: student.email,
+                        name: student.full_name || 'Student',
+                        email: student.email || '',
                         mobile_number: student.mobile_number || '',
                         custom_message_text: customMessage,
+                        current_date: new Date().toLocaleDateString(),
                     },
                 };
             })
             .filter((p) => p !== null);
+
+        // Log null value summary
+        console.log('📊 Null Value Report:', {
+            totalStudents: nullValueReport.totalStudents,
+            missingNames: nullValueReport.missingNames,
+            missingEmails: nullValueReport.missingEmails,
+            missingMobileNumbers: nullValueReport.missingMobileNumbers,
+            processedStudents: apiUsersPayload.length
+        });
 
         if (apiUsersPayload.length === 0) {
             toast.error('Could not prepare payload for any student.');

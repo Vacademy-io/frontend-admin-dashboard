@@ -63,7 +63,7 @@ export const TemplatePreview: React.FC<TemplatePreviewProps> = ({
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[90vw]">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
-                        {template.type === 'email' ? (
+                        {template.type === 'EMAIL' ? (
                             <Mail className="size-5 text-blue-600" />
                         ) : (
                             <MessageCircle className="size-5 text-green-600" />

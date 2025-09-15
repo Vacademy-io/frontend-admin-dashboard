@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MyDialog } from '@/components/design-system/dialog';
 import { MyButton } from '@/components/design-system/button';
+import { Textarea } from '@/components/ui/textarea';
 import {
     Select,
     SelectContent,
@@ -9,7 +10,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useDialogStore } from '../../../../-hooks/useDialogStore';
-import { PaperPlaneTilt, Spinner, CircleNotch } from '@phosphor-icons/react';
+import { PaperPlaneTilt, Spinner, CircleNotch, Eye } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { templateCacheService } from '@/services/template-cache-service';
 import { MessageTemplate } from '@/types/message-template-types';
@@ -17,6 +18,14 @@ import { MessageTemplate } from '@/types/message-template-types';
 // Message templates will be loaded dynamically from API
 
 type MessageSendingStatus = 'pending' | 'sending' | 'sent' | 'failed';
+
+// Define placeholder variables that users can insert (only those with available data)
+const PLACEHOLDER_VARIABLES = [
+    { label: 'Student Name', value: '{{name}}' },
+    { label: 'Mobile Number', value: '{{mobile_number}}' },
+    { label: 'Custom Message', value: '{{custom_message_text}}' },
+    { label: 'Current Date', value: '{{current_date}}' },
+];
 
 interface StudentMessageStatus {
     userId: string;
@@ -34,6 +43,10 @@ export const SendMessageDialog = () => {
     const [isBulkSending, setIsBulkSending] = useState(false);
     const [messageTemplates, setMessageTemplates] = useState<MessageTemplate[]>([]);
     const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
+    const [customMessage, setCustomMessage] = useState(
+        'Please check your dashboard for updates.'
+    );
+    const [showPreview, setShowPreview] = useState(false);
 
     const loadMessageTemplates = async () => {
         setIsLoadingTemplates(true);
@@ -91,6 +104,13 @@ export const SendMessageDialog = () => {
         setIsBulkSending(true);
         toast.info('Starting to send messages...', { id: 'bulk-send-progress' });
 
+        // Track null values for reporting
+        const nullValueReport = {
+            missingNames: 0,
+            missingMobileNumbers: 0,
+            totalStudents: bulkActionInfo.selectedStudents.length
+        };
+
         // Initialize status for all students
         const initialStatuses = bulkActionInfo.selectedStudents.map((student) => ({
             userId: student.user_id,
@@ -105,16 +125,31 @@ export const SendMessageDialog = () => {
             );
 
             try {
-                // Replace placeholders in the message
-                let messageContent = template.content.replace(/\{\{name\}\}/g, student.full_name);
-                // Add other placeholder replacements as needed
+                // Replace placeholders in the message with available data only
+                const currentDate = new Date().toLocaleDateString();
+
+                // Track and log null values for debugging
+                if (!student.full_name) {
+                    nullValueReport.missingNames++;
+                    console.warn(`⚠️ Null name for student ${student.user_id}:`, student);
+                }
+                if (!student.mobile_number) {
+                    nullValueReport.missingMobileNumbers++;
+                    console.warn(`⚠️ Null mobile_number for student ${student.user_id}:`, student);
+                }
+
+                let messageContent = template.content.replace(/\{\{name\}\}/g, student.full_name || 'Student');
                 messageContent = messageContent.replace(
                     /\{\{mobile_number\}\}/g,
                     student.mobile_number || ''
                 );
                 messageContent = messageContent.replace(
                     /\{\{custom_message_text\}\}/g,
-                    'Please check your dashboard for updates.'
+                    customMessage
+                );
+                messageContent = messageContent.replace(
+                    /\{\{current_date\}\}/g,
+                    currentDate
                 );
 
                 await mockSendMessageAPI(student.user_id, student.full_name, messageContent);
@@ -137,6 +172,14 @@ export const SendMessageDialog = () => {
             }
         }
 
+        // Log null value summary
+        console.log('📊 Null Value Report (WhatsApp):', {
+            totalStudents: nullValueReport.totalStudents,
+            missingNames: nullValueReport.missingNames,
+            missingMobileNumbers: nullValueReport.missingMobileNumbers,
+            processedStudents: bulkActionInfo.selectedStudents.length
+        });
+
         setIsBulkSending(false);
         const sentCount = studentMessageStatuses.filter((s) => s.status === 'sent').length;
         const failedCount = studentMessageStatuses.filter((s) => s.status === 'failed').length;
@@ -146,10 +189,43 @@ export const SendMessageDialog = () => {
         });
     };
 
+    // Function to generate preview with sample data
+    const generatePreview = () => {
+        if (!selectedTemplateId || !bulkActionInfo?.selectedStudents.length) {
+            return '';
+        }
+
+        const template = messageTemplates.find((t) => t.id === selectedTemplateId);
+        if (!template) return '';
+
+        const sampleStudent = bulkActionInfo.selectedStudents[0];
+        const currentDate = new Date().toLocaleDateString();
+
+        const replacements = {
+            '{{name}}': sampleStudent?.full_name || 'John Doe',
+            '{{mobile_number}}': sampleStudent?.mobile_number || '+1234567890',
+            '{{custom_message_text}}': customMessage,
+            '{{current_date}}': currentDate,
+        };
+
+        let previewContent = template.content;
+
+        // Replace all placeholders
+        Object.entries(replacements).forEach(([placeholder, value]) => {
+            previewContent = previewContent.replace(
+                new RegExp(placeholder.replace(/[{}]/g, '\\$&'), 'g'),
+                value
+            );
+        });
+
+        return previewContent;
+    };
+
     const handleClose = () => {
         if (isBulkSending) return;
         setStudentMessageStatuses([]);
         setSelectedTemplateId('');
+        setShowPreview(false);
         closeAllDialogs();
     };
 
@@ -244,13 +320,73 @@ export const SendMessageDialog = () => {
                     </Select>
                 </div>
 
+                {/* Custom Message Field */}
+                <div>
+                    <label className="mb-2 block text-sm font-medium text-neutral-700">
+                        Custom Message Text (for {'{{custom_message_text}}'} placeholder)
+                    </label>
+                    <Textarea
+                        value={customMessage}
+                        onChange={(e) => setCustomMessage(e.target.value)}
+                        placeholder="Enter custom message text that will replace {{custom_message_text}} variable"
+                        disabled={isBulkSending}
+                        className="min-h-[80px]"
+                    />
+                </div>
+
+                {/* Available Variables */}
+                <div>
+                    <div className="mb-2 text-sm font-medium text-neutral-700">
+                        Available Variables (click to insert):
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {PLACEHOLDER_VARIABLES.map((placeholder) => (
+                            <MyButton
+                                key={placeholder.value}
+                                buttonType="secondary"
+                                scale="small"
+                                onClick={() => {
+                                    // For WhatsApp, we can't edit the template content directly
+                                    // This is just for reference
+                                }}
+                                disabled={isBulkSending}
+                                className="px-3 py-1 text-xs hover:bg-blue-50 hover:text-blue-700"
+                            >
+                                {placeholder.label}
+                            </MyButton>
+                        ))}
+                    </div>
+                </div>
+
                 {selectedTemplateId && (
-                    <div className="rounded-lg bg-neutral-50 p-3">
-                        <div className="mb-1 text-sm font-medium text-neutral-700">Preview:</div>
-                        <div className="text-sm text-neutral-600">
-                            {messageTemplates.find((t) => t.id === selectedTemplateId)?.content ||
-                                ''}
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div className="text-sm font-medium text-neutral-700">Template Preview:</div>
+                            <MyButton
+                                buttonType="secondary"
+                                scale="small"
+                                onClick={() => setShowPreview(!showPreview)}
+                                disabled={!selectedTemplateId}
+                                className="text-xs"
+                            >
+                                <Eye className="mr-1 size-3" />
+                                {showPreview ? 'Hide Preview' : 'Show Preview'}
+                            </MyButton>
                         </div>
+
+                        {showPreview ? (
+                            <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3">
+                                <div className="text-sm text-neutral-800 whitespace-pre-wrap">
+                                    {generatePreview()}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="rounded-lg bg-neutral-50 p-3">
+                                <div className="text-sm text-neutral-600">
+                                    {messageTemplates.find((t) => t.id === selectedTemplateId)?.content || ''}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 
