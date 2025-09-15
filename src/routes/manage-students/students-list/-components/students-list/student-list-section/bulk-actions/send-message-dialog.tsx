@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MyDialog } from '@/components/design-system/dialog';
 import { MyButton } from '@/components/design-system/button';
 import {
@@ -9,28 +9,12 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useDialogStore } from '../../../../-hooks/useDialogStore';
-import { PaperPlaneTilt, Spinner } from '@phosphor-icons/react';
+import { PaperPlaneTilt, Spinner, CircleNotch } from '@phosphor-icons/react';
 import { toast } from 'sonner';
+import { getMessageTemplates } from '@/services/message-template-service';
+import { MessageTemplate } from '@/types/message-template-types';
 
-// Define message templates
-const MESSAGE_TEMPLATES = [
-    {
-        id: 'template1',
-        name: 'Welcome Message',
-        content: 'Hello {{name}}! Welcome to our learning platform.',
-    },
-    {
-        id: 'template2',
-        name: 'Session Reminder',
-        content: 'Hi {{name}}, this is a reminder about your upcoming session.',
-    },
-    {
-        id: 'template3',
-        name: 'Assignment Due',
-        content: 'Hey {{name}}, your assignment is due soon. Please complete it on time.',
-    },
-    { id: 'template4', name: 'Custom Message', content: 'Hi {{name}}, {{custom_message_text}}' },
-];
+// Message templates will be loaded dynamically from API
 
 type MessageSendingStatus = 'pending' | 'sending' | 'sent' | 'failed';
 
@@ -43,13 +27,26 @@ interface StudentMessageStatus {
 
 export const SendMessageDialog = () => {
     const { isSendMessageOpen, bulkActionInfo, closeAllDialogs } = useDialogStore();
-    const [selectedTemplateId, setSelectedTemplateId] = useState<string>(
-        MESSAGE_TEMPLATES[0]?.id || ''
-    );
+    const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
     const [studentMessageStatuses, setStudentMessageStatuses] = useState<StudentMessageStatus[]>(
         []
     );
     const [isBulkSending, setIsBulkSending] = useState(false);
+    const [messageTemplates, setMessageTemplates] = useState<MessageTemplate[]>([]);
+    const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
+
+    const loadMessageTemplates = async () => {
+        setIsLoadingTemplates(true);
+        try {
+            const response = await getMessageTemplates('whatsapp');
+            setMessageTemplates(response.templates);
+        } catch (error) {
+            console.error('Error loading message templates:', error);
+            toast.error('Failed to load message templates');
+        } finally {
+            setIsLoadingTemplates(false);
+        }
+    };
 
     // Mock API function - replace with your actual API
     const mockSendMessageAPI = (
@@ -84,7 +81,7 @@ export const SendMessageDialog = () => {
             return;
         }
 
-        const template = MESSAGE_TEMPLATES.find((t) => t.id === selectedTemplateId);
+        const template = messageTemplates.find((t) => t.id === selectedTemplateId);
         if (!template) {
             toast.error('Selected template not found.');
             setIsBulkSending(false);
@@ -125,11 +122,15 @@ export const SendMessageDialog = () => {
                 setStudentMessageStatuses((prev) =>
                     prev.map((s) => (s.userId === student.user_id ? { ...s, status: 'sent' } : s))
                 );
-            } catch (error: any) {
+            } catch (error: unknown) {
                 setStudentMessageStatuses((prev) =>
                     prev.map((s) =>
                         s.userId === student.user_id
-                            ? { ...s, status: 'failed', error: error.message }
+                            ? {
+                                  ...s,
+                                  status: 'failed',
+                                  error: error instanceof Error ? error.message : 'Unknown error',
+                              }
                             : s
                     )
                 );
@@ -148,9 +149,16 @@ export const SendMessageDialog = () => {
     const handleClose = () => {
         if (isBulkSending) return;
         setStudentMessageStatuses([]);
-        setSelectedTemplateId(MESSAGE_TEMPLATES[0]?.id || '');
+        setSelectedTemplateId('');
         closeAllDialogs();
     };
+
+    // Load templates when dialog opens
+    useEffect(() => {
+        if (isSendMessageOpen) {
+            loadMessageTemplates();
+        }
+    }, [isSendMessageOpen]);
 
     const selectedStudentsCount = bulkActionInfo?.selectedStudents.length || 0;
 
@@ -206,17 +214,32 @@ export const SendMessageDialog = () => {
                     <Select
                         value={selectedTemplateId}
                         onValueChange={(value: string) => setSelectedTemplateId(value)}
-                        disabled={isBulkSending}
+                        disabled={isBulkSending || isLoadingTemplates}
                     >
                         <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select a template" />
+                            <SelectValue
+                                placeholder={
+                                    isLoadingTemplates
+                                        ? 'Loading templates...'
+                                        : 'Select a template'
+                                }
+                            />
                         </SelectTrigger>
                         <SelectContent>
-                            {MESSAGE_TEMPLATES.map((template) => (
-                                <SelectItem key={template.id} value={template.id}>
-                                    {template.name}
+                            {isLoadingTemplates ? (
+                                <SelectItem value="loading" disabled>
+                                    <div className="flex items-center gap-2">
+                                        <CircleNotch className="size-4 animate-spin" />
+                                        Loading templates...
+                                    </div>
                                 </SelectItem>
-                            ))}
+                            ) : (
+                                messageTemplates.map((template) => (
+                                    <SelectItem key={template.id} value={template.id}>
+                                        {template.name}
+                                    </SelectItem>
+                                ))
+                            )}
                         </SelectContent>
                     </Select>
                 </div>
@@ -225,7 +248,7 @@ export const SendMessageDialog = () => {
                     <div className="rounded-lg bg-neutral-50 p-3">
                         <div className="mb-1 text-sm font-medium text-neutral-700">Preview:</div>
                         <div className="text-sm text-neutral-600">
-                            {MESSAGE_TEMPLATES.find((t) => t.id === selectedTemplateId)?.content ||
+                            {messageTemplates.find((t) => t.id === selectedTemplateId)?.content ||
                                 ''}
                         </div>
                     </div>

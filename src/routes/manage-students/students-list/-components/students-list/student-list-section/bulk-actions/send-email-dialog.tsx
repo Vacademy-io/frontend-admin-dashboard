@@ -11,33 +11,13 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useDialogStore } from '../../../../-hooks/useDialogStore';
-import { PaperPlaneTilt, Spinner, Eye } from '@phosphor-icons/react';
+import { PaperPlaneTilt, Spinner, Eye, CircleNotch } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
+import { getMessageTemplates } from '@/services/message-template-service';
+import { MessageTemplate } from '@/types/message-template-types';
 
-// Define email templates
-const EMAIL_TEMPLATES = [
-    {
-        id: 'template1',
-        name: 'Welcome Email',
-        subject: 'Welcome to Our Learning Platform',
-        content:
-            'Dear {{name}},\n\nWelcome to our learning platform! We are excited to have you join us.\n\nYour login credentials:\nEmail: {{email}}\nMobile: {{mobile_number}}\n\nBest regards,\nThe Team',
-    },
-    {
-        id: 'template2',
-        name: 'Session Update',
-        subject: 'Session Update - {{name}}',
-        content:
-            'Hi {{name}},\n\nThis is an update regarding your current session.\n\nPlease check your dashboard for the latest information.\n\nBest regards,\nThe Team',
-    },
-    {
-        id: 'template3',
-        name: 'Custom Email',
-        subject: 'Important Update',
-        content: 'Dear {{name}},\n\n{{custom_message_text}}\n\nBest regards,\nThe Team',
-    },
-];
+// Email templates will be loaded dynamically from API
 
 type EmailSendingStatus = 'pending' | 'sending' | 'sent' | 'failed';
 
@@ -75,15 +55,30 @@ export const SendEmailDialog = () => {
         'Thank you for being part of our learning community.'
     );
     const [showPreviewModal, setShowPreviewModal] = useState(false);
+    const [emailTemplates, setEmailTemplates] = useState<MessageTemplate[]>([]);
+    const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
 
     const emailSubjectRef = useRef<HTMLInputElement>(null);
     const emailBodyRef = useRef<HTMLTextAreaElement>(null);
 
+    const loadEmailTemplates = async () => {
+        setIsLoadingTemplates(true);
+        try {
+            const response = await getMessageTemplates('email');
+            setEmailTemplates(response.templates);
+        } catch (error) {
+            console.error('Error loading email templates:', error);
+            toast.error('Failed to load email templates');
+        } finally {
+            setIsLoadingTemplates(false);
+        }
+    };
+
     const handleSelectEmailTemplate = (templateId: string) => {
-        const template = EMAIL_TEMPLATES.find((t) => t.id === templateId);
+        const template = emailTemplates.find((t) => t.id === templateId);
         if (template) {
             setSelectedTemplateId(template.id);
-            setEmailSubject(template.subject);
+            setEmailSubject(template.subject ?? '');
             setEmailBody(template.content);
             toast.info(`Template "${template.name}" loaded.`);
         }
@@ -289,7 +284,7 @@ export const SendEmailDialog = () => {
         closeAllDialogs();
     };
 
-    // Initialize email statuses when dialog opens
+    // Initialize email statuses and load templates when dialog opens
     useEffect(() => {
         if (isSendEmailOpen) {
             const students = isBulkAction
@@ -307,6 +302,9 @@ export const SendEmailDialog = () => {
                     status: 'pending' as EmailSendingStatus,
                 }))
             );
+
+            // Load email templates
+            loadEmailTemplates();
         }
     }, [isSendEmailOpen, bulkActionInfo, selectedStudent, isBulkAction]);
 
@@ -378,18 +376,33 @@ export const SendEmailDialog = () => {
                                     setEmailBody('');
                                 }
                             }}
-                            disabled={isBulkEmailSending}
+                            disabled={isBulkEmailSending || isLoadingTemplates}
                         >
                             <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select a template" />
+                                <SelectValue
+                                    placeholder={
+                                        isLoadingTemplates
+                                            ? 'Loading templates...'
+                                            : 'Select a template'
+                                    }
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="none">No template - Start fresh</SelectItem>
-                                {EMAIL_TEMPLATES.map((template) => (
-                                    <SelectItem key={template.id} value={template.id}>
-                                        {template.name}
+                                {isLoadingTemplates ? (
+                                    <SelectItem value="loading" disabled>
+                                        <div className="flex items-center gap-2">
+                                            <CircleNotch className="size-4 animate-spin" />
+                                            Loading templates...
+                                        </div>
                                     </SelectItem>
-                                ))}
+                                ) : (
+                                    emailTemplates.map((template) => (
+                                        <SelectItem key={template.id} value={template.id}>
+                                            {template.name}
+                                        </SelectItem>
+                                    ))
+                                )}
                             </SelectContent>
                         </Select>
                     </div>
