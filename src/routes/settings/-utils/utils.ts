@@ -9,6 +9,7 @@ import AdminDisplaySettings from '../-components/RoleDisplay/AdminDisplaySetting
 import TeacherDisplaySettings from '../-components/RoleDisplay/TeacherDisplaySettings';
 import StudentDisplaySettings from '@/routes/settings/-components/RoleDisplay/StudentDisplaySettings';
 import CertificatesSettings from '../-components/Certificates/CertificatesSettings';
+import TemplateSettings from '../-components/Template/TemplateSettings';
 
 export const getAvailableSettingsTabs = () => {
     return [
@@ -61,6 +62,11 @@ export const getAvailableSettingsTabs = () => {
             tab: SettingsTabs.Certificates,
             value: 'Certificate Settings',
             component: CertificatesSettings,
+        },
+        {
+            tab: SettingsTabs.Templates,
+            value: 'Template Settings',
+            component: TemplateSettings,
         },
     ];
 };
