@@ -42,6 +42,7 @@ export interface LiveSession {
     registration_form_link_for_public_sessions: string;
     allow_rewind?: boolean | null;
     allow_play_pause?: boolean | null;
+    timezone?: string; // Changed from time_zone to timezone to match API response
 }
 
 export const createLiveSessionStep1 = async (data: LiveSessionStep1RequestDTO) => {

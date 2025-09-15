@@ -40,6 +40,7 @@ export interface LiveSessionStep1RequestDTO {
     is_live?: boolean;
     session_streaming_service_type?: string;
     cover_file_id?: string | null;
+    time_zone?: string;
 }
 
 interface ScheduleDTO {
@@ -132,6 +133,7 @@ export function transformFormToDTOStep1(
         sessionPlatform,
         allowRewind,
         allowPause,
+        timeZone,
     } = form;
 
     // Convert hours and minutes to total duration in hours
@@ -226,6 +228,7 @@ export function transformFormToDTOStep1(
         allow_play_pause: allowPause,
         session_streaming_service_type: streamingType,
         cover_file_id: coverFileId,
+        time_zone: timeZone,
     };
 }
 
