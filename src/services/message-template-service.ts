@@ -2,11 +2,12 @@ import {
     MessageTemplate,
     CreateTemplateRequest,
     UpdateTemplateRequest,
-    TemplateListResponse
+    TemplateListResponse,
 } from '@/types/message-template-types';
 import { getInstituteId } from '@/constants/helper';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://backend-stage.vacademy.io/admin-core-service';
+const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL || 'https://backend-stage.vacademy.io/admin-core-service';
 
 // Get access token from localStorage or cookies
 const getAccessToken = (): string | null => {
@@ -16,7 +17,7 @@ const getAccessToken = (): string | null => {
 
     // Try to get from cookies
     const cookies = document.cookie.split(';');
-    const tokenCookie = cookies.find(cookie => cookie.trim().startsWith('accessToken='));
+    const tokenCookie = cookies.find((cookie) => cookie.trim().startsWith('accessToken='));
     if (tokenCookie) {
         const tokenValue = tokenCookie.split('=')[1];
         return tokenValue ? tokenValue : null;
@@ -26,7 +27,9 @@ const getAccessToken = (): string | null => {
 };
 
 // Helper function to safely parse settingJson
-const parseSettingJson = (settingJson: string | undefined): { variables: string[]; isDefault: boolean } => {
+const parseSettingJson = (
+    settingJson: string | undefined
+): { variables: string[]; isDefault: boolean } => {
     if (!settingJson || settingJson === 'string') {
         return { variables: [], isDefault: false };
     }
@@ -35,7 +38,7 @@ const parseSettingJson = (settingJson: string | undefined): { variables: string[
         const settings = JSON.parse(settingJson);
         return {
             variables: settings.variables || [],
-            isDefault: settings.isDefault || false
+            isDefault: settings.isDefault || false,
         };
     } catch (error) {
         console.warn('Failed to parse settingJson:', settingJson, error);
@@ -43,7 +46,9 @@ const parseSettingJson = (settingJson: string | undefined): { variables: string[
     }
 };
 
-export const createMessageTemplate = async (template: CreateTemplateRequest): Promise<MessageTemplate> => {
+export const createMessageTemplate = async (
+    template: CreateTemplateRequest
+): Promise<MessageTemplate> => {
     try {
         const accessToken = getAccessToken();
         if (!accessToken) {
@@ -55,8 +60,8 @@ export const createMessageTemplate = async (template: CreateTemplateRequest): Pr
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': '*/*',
-                'Authorization': `Bearer ${accessToken}`,
+                Accept: '*/*',
+                Authorization: `Bearer ${accessToken}`,
             },
             body: JSON.stringify({
                 type: template.type,
@@ -68,11 +73,11 @@ export const createMessageTemplate = async (template: CreateTemplateRequest): Pr
                 contentType: 'text/plain',
                 settingJson: JSON.stringify({
                     variables: template.variables,
-                    isDefault: template.isDefault
+                    isDefault: template.isDefault,
                 }),
                 canDelete: true,
                 createdBy: 'current-user', // You may need to get this from auth context
-                updatedBy: 'current-user'
+                updatedBy: 'current-user',
             }),
         });
 
@@ -87,7 +92,7 @@ export const createMessageTemplate = async (template: CreateTemplateRequest): Pr
         return {
             id: result.id || result.templateId,
             name: result.name,
-            type: result.type,
+            type: result.type?.toUpperCase() || 'EMAIL', // Normalize type to uppercase
             subject: result.subject || '',
             content: result.content,
             variables: parseSettingJson(result.settingJson).variables,
@@ -102,7 +107,7 @@ export const createMessageTemplate = async (template: CreateTemplateRequest): Pr
 };
 
 export const getMessageTemplates = async (
-    type?: 'email' | 'whatsapp',
+    type?: 'EMAIL' | 'WHATSAPP',
     page = 1,
     limit = 50
 ): Promise<TemplateListResponse> => {
@@ -114,15 +119,14 @@ export const getMessageTemplates = async (
 
         const instituteId = getInstituteId();
 
-        // Use type-specific endpoint if type is specified, otherwise use general endpoint
-        const url = type
-            ? `${API_BASE_URL}/institute/template/v1/institute/${instituteId}/type/${encodeURIComponent(type)}`
-            : `${API_BASE_URL}/institute/template/v1/institute/${instituteId}`;
+        // Always use the general endpoint to get all templates, then filter client-side
+        // This ensures we get all templates regardless of case sensitivity issues
+        const url = `${API_BASE_URL}/institute/template/v1/institute/${instituteId}`;
 
         const response = await fetch(url, {
             headers: {
-                'Accept': '*/*',
-                'Authorization': `Bearer ${accessToken}`,
+                Accept: '*/*',
+                Authorization: `Bearer ${accessToken}`,
             },
         });
 
@@ -134,17 +138,24 @@ export const getMessageTemplates = async (
         const result = await response.json();
 
         // Debug logging to understand the API response structure
-        console.log('getMessageTemplates API Response:', { type, url, result, isArray: Array.isArray(result) });
+        console.log('getMessageTemplates API Response:', {
+            type,
+            url,
+            result,
+            isArray: Array.isArray(result),
+        });
 
         // Transform the API response to match our TemplateListResponse interface
         // The API returns an array directly, not wrapped in an object
-        let templates = Array.isArray(result) ? result : (result.templates || result.data || []);
+        let templates = Array.isArray(result) ? result : result.templates || result.data || [];
 
-        // Filter by type if specified (handle both uppercase and lowercase)
+        // Filter by type if specified (normalize both to uppercase for comparison)
         if (type) {
-            templates = templates.filter((template: any) =>
-                template.type?.toLowerCase() === type.toLowerCase()
-            );
+            templates = templates.filter((template: Record<string, unknown>) => {
+                const templateType = (template.type as string)?.toUpperCase();
+                const filterType = type.toUpperCase();
+                return templateType === filterType;
+            });
         }
 
         // Apply pagination
@@ -153,19 +164,19 @@ export const getMessageTemplates = async (
         const paginatedTemplates = templates.slice(startIndex, endIndex);
 
         // Transform templates to match our MessageTemplate interface
-        const transformedTemplates = paginatedTemplates.map((template: any) => {
-            const { variables, isDefault } = parseSettingJson(template.settingJson);
+        const transformedTemplates = paginatedTemplates.map((template: Record<string, unknown>) => {
+            const { variables, isDefault } = parseSettingJson(template.settingJson as string);
 
             return {
-                id: template.id || template.templateId,
-                name: template.name,
-                type: template.type?.toLowerCase() || 'email', // Normalize type to lowercase
-                subject: template.subject || '',
-                content: template.content,
+                id: (template.id || template.templateId) as string,
+                name: template.name as string,
+                type: (template.type as string)?.toUpperCase() || 'EMAIL', // Normalize type to uppercase
+                subject: (template.subject as string) || '',
+                content: template.content as string,
                 variables: variables,
                 isDefault: isDefault,
-                createdAt: template.createdAt || new Date().toISOString(),
-                updatedAt: template.updatedAt || new Date().toISOString(),
+                createdAt: (template.createdAt as string) || new Date().toISOString(),
+                updatedAt: (template.updatedAt as string) || new Date().toISOString(),
             };
         });
 
@@ -173,7 +184,7 @@ export const getMessageTemplates = async (
             originalCount: templates.length,
             paginatedCount: paginatedTemplates.length,
             transformedCount: transformedTemplates.length,
-            transformedTemplates
+            transformedTemplates,
         });
 
         return {
@@ -197,8 +208,8 @@ export const getMessageTemplate = async (id: string): Promise<MessageTemplate> =
 
         const response = await fetch(`${API_BASE_URL}/institute/template/v1/get/${id}`, {
             headers: {
-                'Accept': '*/*',
-                'Authorization': `Bearer ${accessToken}`,
+                Accept: '*/*',
+                Authorization: `Bearer ${accessToken}`,
             },
         });
 
@@ -213,7 +224,7 @@ export const getMessageTemplate = async (id: string): Promise<MessageTemplate> =
         return {
             id: result.id || result.templateId,
             name: result.name,
-            type: result.type,
+            type: result.type?.toUpperCase() || 'EMAIL', // Normalize type to uppercase
             subject: result.subject || '',
             content: result.content,
             variables: parseSettingJson(result.settingJson).variables,
@@ -227,7 +238,9 @@ export const getMessageTemplate = async (id: string): Promise<MessageTemplate> =
     }
 };
 
-export const updateMessageTemplate = async (template: UpdateTemplateRequest): Promise<MessageTemplate> => {
+export const updateMessageTemplate = async (
+    template: UpdateTemplateRequest
+): Promise<MessageTemplate> => {
     try {
         const accessToken = getAccessToken();
         if (!accessToken) {
@@ -235,14 +248,13 @@ export const updateMessageTemplate = async (template: UpdateTemplateRequest): Pr
         }
 
         const { id, ...updateData } = template;
-        const instituteId = getInstituteId();
 
         const response = await fetch(`${API_BASE_URL}/institute/template/v1/update`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': '*/*',
-                'Authorization': `Bearer ${accessToken}`,
+                Accept: '*/*',
+                Authorization: `Bearer ${accessToken}`,
             },
             body: JSON.stringify({
                 id: id,
@@ -254,10 +266,10 @@ export const updateMessageTemplate = async (template: UpdateTemplateRequest): Pr
                 contentType: 'text/plain',
                 settingJson: JSON.stringify({
                     variables: updateData.variables || [],
-                    isDefault: updateData.isDefault || false
+                    isDefault: updateData.isDefault || false,
                 }),
                 canDelete: true,
-                updatedBy: 'current-user'
+                updatedBy: 'current-user',
             }),
         });
 
@@ -272,7 +284,7 @@ export const updateMessageTemplate = async (template: UpdateTemplateRequest): Pr
         return {
             id: result.id || result.templateId,
             name: result.name,
-            type: result.type,
+            type: result.type?.toUpperCase() || 'EMAIL', // Normalize type to uppercase
             subject: result.subject || '',
             content: result.content,
             variables: parseSettingJson(result.settingJson).variables,
@@ -296,8 +308,8 @@ export const deleteMessageTemplate = async (id: string): Promise<void> => {
         const response = await fetch(`${API_BASE_URL}/institute/template/v1/${id}`, {
             method: 'DELETE',
             headers: {
-                'Accept': '*/*',
-                'Authorization': `Bearer ${accessToken}`,
+                Accept: '*/*',
+                Authorization: `Bearer ${accessToken}`,
             },
         });
 
@@ -311,7 +323,10 @@ export const deleteMessageTemplate = async (id: string): Promise<void> => {
     }
 };
 
-export const setDefaultTemplate = async (id: string, type: 'email' | 'whatsapp'): Promise<MessageTemplate> => {
+export const setDefaultTemplate = async (
+    id: string,
+    type: 'EMAIL' | 'WHATSAPP'
+): Promise<MessageTemplate> => {
     try {
         const accessToken = getAccessToken();
         if (!accessToken) {
@@ -322,8 +337,8 @@ export const setDefaultTemplate = async (id: string, type: 'email' | 'whatsapp')
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': '*/*',
-                'Authorization': `Bearer ${accessToken}`,
+                Accept: '*/*',
+                Authorization: `Bearer ${accessToken}`,
             },
             body: JSON.stringify({ type }),
         });
@@ -339,7 +354,7 @@ export const setDefaultTemplate = async (id: string, type: 'email' | 'whatsapp')
         return {
             id: result.id || result.templateId,
             name: result.name,
-            type: result.type,
+            type: result.type?.toUpperCase() || 'EMAIL', // Normalize type to uppercase
             subject: result.subject || '',
             content: result.content,
             variables: parseSettingJson(result.settingJson).variables,
@@ -363,8 +378,8 @@ export const duplicateTemplate = async (id: string): Promise<MessageTemplate> =>
         const response = await fetch(`${API_BASE_URL}/institute/template/v1/duplicate/${id}`, {
             method: 'POST',
             headers: {
-                'Accept': '*/*',
-                'Authorization': `Bearer ${accessToken}`,
+                Accept: '*/*',
+                Authorization: `Bearer ${accessToken}`,
             },
         });
 
@@ -379,7 +394,7 @@ export const duplicateTemplate = async (id: string): Promise<MessageTemplate> =>
         return {
             id: result.id || result.templateId,
             name: result.name,
-            type: result.type,
+            type: result.type?.toUpperCase() || 'EMAIL', // Normalize type to uppercase
             subject: result.subject || '',
             content: result.content,
             variables: parseSettingJson(result.settingJson).variables,
@@ -395,7 +410,7 @@ export const duplicateTemplate = async (id: string): Promise<MessageTemplate> =>
 
 // Search templates with filters
 export const searchMessageTemplates = async (searchParams: {
-    type?: 'email' | 'whatsapp';
+    type?: 'EMAIL' | 'WHATSAPP';
     searchText?: string;
     canDelete?: boolean;
     contentType?: string;
@@ -428,8 +443,8 @@ export const searchMessageTemplates = async (searchParams: {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': '*/*',
-                'Authorization': `Bearer ${accessToken}`,
+                Accept: '*/*',
+                Authorization: `Bearer ${accessToken}`,
             },
             body: JSON.stringify(searchData),
         });
@@ -442,20 +457,22 @@ export const searchMessageTemplates = async (searchParams: {
         const result = await response.json();
 
         // Transform the API response to match our TemplateListResponse interface
-        const templates = (result.content || result.templates || result.data || []).map((template: any) => {
-            const { variables, isDefault } = parseSettingJson(template.settingJson);
-            return {
-                id: template.id || template.templateId,
-                name: template.name,
-                type: template.type,
-                subject: template.subject || '',
-                content: template.content,
-                variables: variables,
-                isDefault: isDefault,
-                createdAt: template.createdAt || new Date().toISOString(),
-                updatedAt: template.updatedAt || new Date().toISOString(),
-            };
-        });
+        const templates = (result.content || result.templates || result.data || []).map(
+            (template: Record<string, unknown>) => {
+                const { variables, isDefault } = parseSettingJson(template.settingJson as string);
+                return {
+                    id: (template.id || template.templateId) as string,
+                    name: template.name as string,
+                    type: (template.type as string)?.toUpperCase() || 'EMAIL', // Normalize type to uppercase
+                    subject: (template.subject as string) || '',
+                    content: template.content as string,
+                    variables: variables,
+                    isDefault: isDefault,
+                    createdAt: (template.createdAt as string) || new Date().toISOString(),
+                    updatedAt: (template.updatedAt as string) || new Date().toISOString(),
+                };
+            }
+        );
 
         return {
             templates,

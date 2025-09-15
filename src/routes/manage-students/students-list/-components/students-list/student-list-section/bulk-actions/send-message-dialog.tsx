@@ -11,7 +11,7 @@ import {
 import { useDialogStore } from '../../../../-hooks/useDialogStore';
 import { PaperPlaneTilt, Spinner, CircleNotch } from '@phosphor-icons/react';
 import { toast } from 'sonner';
-import { getMessageTemplates } from '@/services/message-template-service';
+import { templateCacheService } from '@/services/template-cache-service';
 import { MessageTemplate } from '@/types/message-template-types';
 
 // Message templates will be loaded dynamically from API
@@ -38,8 +38,8 @@ export const SendMessageDialog = () => {
     const loadMessageTemplates = async () => {
         setIsLoadingTemplates(true);
         try {
-            const response = await getMessageTemplates('whatsapp');
-            setMessageTemplates(response.templates);
+            const templates = await templateCacheService.getTemplates('WHATSAPP');
+            setMessageTemplates(templates);
         } catch (error) {
             console.error('Error loading message templates:', error);
             toast.error('Failed to load message templates');

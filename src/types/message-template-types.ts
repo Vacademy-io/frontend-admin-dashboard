@@ -1,7 +1,7 @@
 export interface MessageTemplate {
     id: string;
     name: string;
-    type: 'email' | 'whatsapp';
+    type: 'EMAIL' | 'WHATSAPP';
     subject?: string; // For email templates
     content: string;
     variables: string[]; // Available variables like {{student_name}}, {{course_name}}, etc.
@@ -14,7 +14,7 @@ export interface MessageTemplate {
 
 export interface CreateTemplateRequest {
     name: string;
-    type: 'email' | 'whatsapp';
+    type: 'EMAIL' | 'WHATSAPP';
     subject?: string;
     content: string;
     variables: string[];
@@ -24,7 +24,7 @@ export interface CreateTemplateRequest {
 export interface UpdateTemplateRequest {
     id: string;
     name?: string;
-    type?: 'email' | 'whatsapp';
+    type?: 'EMAIL' | 'WHATSAPP';
     subject?: string;
     content?: string;
     variables?: string[];

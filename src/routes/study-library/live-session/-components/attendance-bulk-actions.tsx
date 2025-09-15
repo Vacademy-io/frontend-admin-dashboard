@@ -36,6 +36,7 @@ export const AttendanceBulkActions = ({
             const timer = setTimeout(() => setIsAnimating(false), 300);
             return () => clearTimeout(timer);
         }
+        return undefined;
     }, [selectedCount]);
 
     if (selectedCount === 0) {
@@ -98,8 +99,6 @@ export const AttendanceBulkActions = ({
                 <MyDropdown
                     dropdownList={dropdownList}
                     onSelect={handleMenuOptionsChange}
-                    isOpen={isOpen}
-                    onOpenChange={setIsOpen}
                 >
                     <MyButton
                         buttonType="primary"

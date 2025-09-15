@@ -14,7 +14,7 @@ import { useDialogStore } from '../../../../-hooks/useDialogStore';
 import { PaperPlaneTilt, Spinner, Eye, CircleNotch } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
-import { getMessageTemplates } from '@/services/message-template-service';
+import { templateCacheService } from '@/services/template-cache-service';
 import { MessageTemplate } from '@/types/message-template-types';
 
 // Email templates will be loaded dynamically from API
@@ -64,8 +64,8 @@ export const SendEmailDialog = () => {
     const loadEmailTemplates = async () => {
         setIsLoadingTemplates(true);
         try {
-            const response = await getMessageTemplates('email');
-            setEmailTemplates(response.templates);
+            const templates = await templateCacheService.getTemplates('EMAIL');
+            setEmailTemplates(templates);
         } catch (error) {
             console.error('Error loading email templates:', error);
             toast.error('Failed to load email templates');

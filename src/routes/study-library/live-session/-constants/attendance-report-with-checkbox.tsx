@@ -32,7 +32,7 @@ export const attendanceReportColumnsWithCheckbox = (
                         }
                     }}
                     ref={(el) => {
-                        if (el) el.indeterminate = isIndeterminate;
+                        if (el) (el as HTMLInputElement).indeterminate = isIndeterminate;
                     }}
                     onClick={(e) => e.stopPropagation()}
                 />

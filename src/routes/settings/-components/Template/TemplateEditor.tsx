@@ -36,7 +36,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
 }) => {
     const [formData, setFormData] = useState<CreateTemplateRequest>({
         name: '',
-        type: 'email',
+        type: 'EMAIL',
         subject: '',
         content: '',
         variables: [],
@@ -61,7 +61,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
         } else {
             setFormData({
                 name: '',
-                type: 'email',
+                type: 'EMAIL',
                 subject: '',
                 content: '',
                 variables: [],
@@ -226,10 +226,10 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                                 <div className="flex gap-2">
                                     <Button
                                         type="button"
-                                        variant={formData.type === 'email' ? 'default' : 'outline'}
-                                        onClick={() => handleInputChange('type', 'email')}
+                                        variant={formData.type === 'EMAIL' ? 'default' : 'outline'}
+                                        onClick={() => handleInputChange('type', 'EMAIL')}
                                         className={`flex h-10 items-center gap-2 px-4 ${
-                                            formData.type === 'email'
+                                            formData.type === 'EMAIL'
                                                 ? 'hover:bg-primary-600 bg-primary-500 text-white'
                                                 : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                                         }`}
@@ -240,11 +240,11 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                                     <Button
                                         type="button"
                                         variant={
-                                            formData.type === 'whatsapp' ? 'default' : 'outline'
+                                            formData.type === 'WHATSAPP' ? 'default' : 'outline'
                                         }
-                                        onClick={() => handleInputChange('type', 'whatsapp')}
+                                        onClick={() => handleInputChange('type', 'WHATSAPP')}
                                         className={`flex h-10 items-center gap-2 px-4 ${
-                                            formData.type === 'whatsapp'
+                                            formData.type === 'WHATSAPP'
                                                 ? 'hover:bg-primary-600 bg-primary-500 text-white'
                                                 : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                                         }`}
@@ -274,7 +274,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                         </div>
 
                         {/* Subject (for email templates) */}
-                        {formData.type === 'email' && (
+                        {formData.type === 'EMAIL' && (
                             <div className="space-y-3">
                                 <Label htmlFor="subject" className="text-sm font-medium">
                                     Email Subject
@@ -302,7 +302,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                                     onClick={() => setShowPreview(!showPreview)}
                                     disabled={
                                         !formData.content.trim() &&
-                                        !(formData.type === 'email' && formData.subject.trim())
+                                        !(formData.type === 'EMAIL' && formData.subject?.trim())
                                     }
                                     className={`flex h-8 items-center gap-2 ${
                                         showPreview
@@ -509,8 +509,8 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
             <Dialog
                 open={
                     showPreview &&
-                    (formData.content.trim() ||
-                        (formData.type === 'email' && formData.subject.trim()))
+                    (!!formData.content.trim() ||
+                        (formData.type === 'EMAIL' && !!formData.subject?.trim()))
                 }
                 onOpenChange={setShowPreview}
             >
@@ -535,7 +535,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                         {generatePreview().content && (
                             <div className="space-y-2">
                                 <div className="text-sm font-medium text-gray-700">
-                                    {formData.type === 'email' ? 'Email Body:' : 'Message Content:'}
+                                    {formData.type === 'EMAIL' ? 'Email Body:' : 'Message Content:'}
                                 </div>
                                 <div className="max-h-96 overflow-y-auto whitespace-pre-wrap rounded-lg border border-gray-200 bg-gray-50 p-4 text-gray-800">
                                     {generatePreview().content}

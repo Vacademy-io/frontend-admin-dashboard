@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, CheckCircle, Loader2, FileText, Plus, Trash2 } from 'lucide-react';
 import { MyButton } from '@/components/design-system/button';
+import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { MessageTemplate, CreateTemplateRequest } from '@/types/message-template-types';
 import {
@@ -12,6 +13,7 @@ import {
     setDefaultTemplate,
     duplicateTemplate,
 } from '@/services/message-template-service';
+import { templateCacheService } from '@/services/template-cache-service';
 import { TemplateList } from './TemplateList';
 import { TemplateEditor } from './TemplateEditor';
 import { TemplatePreview } from './TemplatePreview';
@@ -22,7 +24,7 @@ export default function TemplateSettings() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
-    const [selectedType, setSelectedType] = useState<'all' | 'email' | 'whatsapp'>('all');
+    const [selectedType, setSelectedType] = useState<'all' | 'EMAIL' | 'WHATSAPP'>('all');
     const [showEditor, setShowEditor] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<MessageTemplate | null>(null);
     const [previewTemplate, setPreviewTemplate] = useState<MessageTemplate | null>(null);
@@ -73,6 +75,8 @@ export default function TemplateSettings() {
                 await createMessageTemplate(templateData);
                 setSuccess('Template created successfully!');
             }
+            // Clear cache to ensure fresh data
+            templateCacheService.clearCache(templateData.type);
             setShowEditor(false);
             setEditingTemplate(null);
             await loadTemplates();
@@ -96,6 +100,8 @@ export default function TemplateSettings() {
         setError(null);
         try {
             await deleteMessageTemplate(templateToDelete.id);
+            // Clear cache to ensure fresh data
+            templateCacheService.clearCache(templateToDelete.type);
             setSuccess('Template deleted successfully!');
             setShowDeleteConfirm(false);
             setTemplateToDelete(null);
@@ -113,11 +119,13 @@ export default function TemplateSettings() {
         setTemplateToDelete(null);
     };
 
-    const handleSetDefault = async (id: string, type: 'email' | 'whatsapp') => {
+    const handleSetDefault = async (id: string, type: 'EMAIL' | 'WHATSAPP') => {
         setSaving(true);
         setError(null);
         try {
             await setDefaultTemplate(id, type);
+            // Clear cache to ensure fresh data
+            templateCacheService.clearCache(type);
             setSuccess('Default template updated successfully!');
             await loadTemplates();
         } catch (err) {
@@ -133,6 +141,8 @@ export default function TemplateSettings() {
         setError(null);
         try {
             await duplicateTemplate(template.id);
+            // Clear cache to ensure fresh data
+            templateCacheService.clearCache(template.type);
             setSuccess('Template duplicated successfully!');
             await loadTemplates();
         } catch (err) {
@@ -162,6 +172,7 @@ export default function TemplateSettings() {
             const timer = setTimeout(() => setSuccess(null), 3000);
             return () => clearTimeout(timer);
         }
+        return undefined;
     }, [success]);
 
     useEffect(() => {
@@ -169,6 +180,7 @@ export default function TemplateSettings() {
             const timer = setTimeout(() => setError(null), 5000);
             return () => clearTimeout(timer);
         }
+        return undefined;
     }, [error]);
 
     return (
@@ -214,8 +226,8 @@ export default function TemplateSettings() {
             <div className="flex space-x-1 rounded-lg bg-gray-100 p-1">
                 {[
                     { key: 'all', label: 'All Templates' },
-                    { key: 'email', label: 'Email Templates' },
-                    { key: 'whatsapp', label: 'WhatsApp Templates' },
+                    { key: 'EMAIL', label: 'Email Templates' },
+                    { key: 'WHATSAPP', label: 'WhatsApp Templates' },
                 ].map((tab) => (
                     <button
                         key={tab.key}
@@ -284,15 +296,15 @@ export default function TemplateSettings() {
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="flex flex-col sm:flex-row gap-3 pt-6 border-t">
-                        <MyButton
+                        <Button
                             variant="outline"
                             onClick={cancelDeleteTemplate}
                             disabled={saving}
                             className="w-full sm:w-auto px-6 py-2.5"
                         >
                             Cancel
-                        </MyButton>
-                        <MyButton
+                        </Button>
+                        <Button
                             variant="destructive"
                             onClick={confirmDeleteTemplate}
                             disabled={saving}
@@ -309,7 +321,7 @@ export default function TemplateSettings() {
                                     Delete Template
                                 </>
                             )}
-                        </MyButton>
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
