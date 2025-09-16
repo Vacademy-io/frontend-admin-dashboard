@@ -59,7 +59,7 @@ export const useBulkUploadMutation = (
         onSuccess: (data, variables, context) => {
             toast.success('CSV uploaded successfully');
             if (options?.onSuccess) {
-                options.onSuccess(data, variables, context, undefined);
+                options.onSuccess(data, variables, context);
             }
         },
         onError: (error, variables, context) => {
@@ -76,7 +76,7 @@ export const useBulkUploadMutation = (
             }
 
             if (options?.onError) {
-                options.onError(error, variables, context, undefined);
+                options.onError(error, variables, context);
             }
         },
         ...options,
