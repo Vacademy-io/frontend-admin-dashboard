@@ -30,7 +30,7 @@ export interface RefereeReward {
     sessionId?: string;
     levelId?: string;
     delivery?: ContentDelivery;
-    description: string;
+    description?: string;
 }
 
 export interface ReferrerReward {
@@ -52,7 +52,7 @@ export interface ReferrerReward {
     pointsToReward?: number;
     pointsRewardType?: 'discount_percentage' | 'discount_fixed' | 'membership_days';
     pointsRewardValue?: number;
-    description: string;
+    description?: string;
 }
 
 export interface ReferrerTier {

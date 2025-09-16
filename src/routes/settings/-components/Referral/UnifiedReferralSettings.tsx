@@ -10,7 +10,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -85,7 +84,7 @@ export interface UnifiedReferralSettings {
         sessionId?: string;
         levelId?: string;
         delivery?: ContentDelivery;
-        description: string;
+        description?: string;
     };
 
     // Referrer Settings - Tiered rewards
@@ -119,7 +118,7 @@ export interface ReferrerTier {
         pointsToReward?: number;
         pointsRewardType?: 'discount_percentage' | 'discount_fixed' | 'membership_days';
         pointsRewardValue?: number;
-        description: string;
+        description?: string;
     };
 }
 
@@ -179,36 +178,15 @@ export const UnifiedReferralSettings: React.FC<UnifiedReferralSettingsProps> = (
     editingSettings,
 }) => {
     const [formData, setFormData] = useState<Partial<UnifiedReferralSettings>>({
-        label: 'Referral Program',
+        label: '',
         isDefault: false,
         allowCombineOffers: true,
         payoutVestingDays: 7,
         refereeReward: {
-            type: 'discount_percentage',
-            value: 10,
-            currency: 'INR',
-            description: '10% discount on course enrollment',
+            type: 'bonus_content',
             delivery: { email: true, whatsapp: false },
         },
-        referrerRewards: [
-            {
-                id: '1',
-                tierName: 'First Referral',
-                referralCount: 1,
-                reward: {
-                    type: 'bonus_content',
-                    content: {
-                        contentType: 'pdf',
-                        content: {
-                            type: 'upload',
-                            title: 'Study Guide',
-                            delivery: { email: true, whatsapp: false },
-                        },
-                    },
-                    description: 'Free study guide for your first referral',
-                },
-            },
-        ],
+        referrerRewards: [],
     });
 
     const [editingTier, setEditingTier] = useState<ReferrerTier | null>(null);
@@ -217,38 +195,18 @@ export const UnifiedReferralSettings: React.FC<UnifiedReferralSettingsProps> = (
     useEffect(() => {
         if (editingSettings) {
             setFormData(editingSettings);
-        } else {
+        } else if (isOpen) {
+            // Only reset form data when dialog opens for a new referral program
             setFormData({
-                label: 'Referral Program',
+                label: '',
                 isDefault: false,
                 allowCombineOffers: true,
                 payoutVestingDays: 7,
                 refereeReward: {
-                    type: 'discount_percentage',
-                    value: 10,
-                    currency: 'INR',
-                    description: '10% discount on course enrollment',
+                    type: 'bonus_content',
                     delivery: { email: true, whatsapp: false },
                 },
-                referrerRewards: [
-                    {
-                        id: '1',
-                        tierName: 'First Referral',
-                        referralCount: 1,
-                        reward: {
-                            type: 'bonus_content',
-                            content: {
-                                contentType: 'pdf',
-                                content: {
-                                    type: 'upload',
-                                    title: 'Study Guide',
-                                    delivery: { email: true, whatsapp: false },
-                                },
-                            },
-                            description: 'Free study guide for your first referral',
-                        },
-                    },
-                ],
+                referrerRewards: [],
             });
         }
     }, [editingSettings, isOpen]);
@@ -378,7 +336,7 @@ export const UnifiedReferralSettings: React.FC<UnifiedReferralSettingsProps> = (
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <RefereeRewardEditor
-                                reward={formData.refereeReward!}
+                                reward={formData.refereeReward}
                                 onChange={(reward) =>
                                     setFormData({ ...formData, refereeReward: reward })
                                 }
@@ -457,10 +415,6 @@ export const UnifiedReferralSettings: React.FC<UnifiedReferralSettingsProps> = (
                                                         {getRewardTypeLabel(tier.reward.type)}
                                                     </span>
                                                 </div>
-
-                                                <p className="text-sm text-gray-700">
-                                                    {tier.reward.description}
-                                                </p>
                                             </div>
                                         ))}
                                 </div>
@@ -567,20 +521,37 @@ export const UnifiedReferralSettings: React.FC<UnifiedReferralSettingsProps> = (
 
 // Enhanced Referee Reward Editor Component
 interface RefereeRewardEditorProps {
-    reward: UnifiedReferralSettings['refereeReward'];
+    reward?: UnifiedReferralSettings['refereeReward'];
     onChange: (reward: UnifiedReferralSettings['refereeReward']) => void;
 }
 
 const RefereeRewardEditor: React.FC<RefereeRewardEditorProps> = ({ reward, onChange }) => {
+    // If no reward is provided, initialize with a default reward
+    const currentReward = reward || {
+        type: 'bonus_content' as const,
+        delivery: { email: true, whatsapp: false },
+    };
+
+    // If the reward was undefined and we're using default, call onChange to update parent
+    React.useEffect(() => {
+        if (!reward) {
+            const defaultReward = {
+                type: 'bonus_content' as const,
+                delivery: { email: true, whatsapp: false },
+            };
+            onChange(defaultReward);
+        }
+    }, [reward, onChange]);
+
     return (
         <div className="space-y-4">
             <div className="space-y-2">
                 <Label>Reward Type</Label>
                 <Select
-                    value={reward.type}
+                    value={currentReward.type || 'bonus_content'}
                     onValueChange={(value) =>
                         onChange({
-                            ...reward,
+                            ...currentReward,
                             type: value as UnifiedReferralSettings['refereeReward']['type'],
                         })
                     }
@@ -624,47 +595,50 @@ const RefereeRewardEditor: React.FC<RefereeRewardEditorProps> = ({ reward, onCha
             </div>
 
             {/* Conditional Fields based on reward type */}
-            {(reward.type === 'discount_percentage' || reward.type === 'free_days') && (
+            {(currentReward.type === 'discount_percentage' ||
+                currentReward.type === 'free_days') && (
                 <div className="space-y-2">
                     <Label>
-                        {reward.type === 'discount_percentage'
+                        {currentReward.type === 'discount_percentage'
                             ? 'Discount Percentage'
                             : 'Number of Days'}
                     </Label>
                     <div className="flex items-center gap-2">
                         <Input
                             type="number"
-                            value={reward.value || ''}
+                            value={currentReward.value || ''}
                             onChange={(e) =>
-                                onChange({ ...reward, value: parseInt(e.target.value) || 0 })
+                                onChange({ ...currentReward, value: parseInt(e.target.value) || 0 })
                             }
                             placeholder="Enter value"
                             min="1"
-                            max={reward.type === 'discount_percentage' ? '100' : '365'}
+                            max={currentReward.type === 'discount_percentage' ? '100' : '365'}
                         />
                         <span className="text-sm text-gray-500">
-                            {reward.type === 'discount_percentage' ? '%' : 'days'}
+                            {currentReward.type === 'discount_percentage' ? '%' : 'days'}
                         </span>
                     </div>
                 </div>
             )}
 
-            {reward.type === 'discount_fixed' && (
+            {currentReward.type === 'discount_fixed' && (
                 <div className="space-y-2">
                     <Label>Discount Amount</Label>
                     <div className="flex items-center gap-2">
                         <Input
                             type="number"
-                            value={reward.value || ''}
+                            value={currentReward.value || ''}
                             onChange={(e) =>
-                                onChange({ ...reward, value: parseInt(e.target.value) || 0 })
+                                onChange({ ...currentReward, value: parseInt(e.target.value) || 0 })
                             }
                             placeholder="Enter amount"
                             min="1"
                         />
                         <Select
-                            value={reward.currency || 'INR'}
-                            onValueChange={(value) => onChange({ ...reward, currency: value })}
+                            value={currentReward.currency || 'INR'}
+                            onValueChange={(value) =>
+                                onChange({ ...currentReward, currency: value })
+                            }
                         >
                             <SelectTrigger className="w-24">
                                 <SelectValue />
@@ -679,33 +653,23 @@ const RefereeRewardEditor: React.FC<RefereeRewardEditorProps> = ({ reward, onCha
                 </div>
             )}
 
-            {reward.type === 'bonus_content' && (
+            {currentReward.type === 'bonus_content' && (
                 <ContentEditor
-                    content={reward.content}
-                    onChange={(content) => onChange({ ...reward, content })}
+                    content={currentReward.content}
+                    onChange={(content) => onChange({ ...currentReward, content })}
                 />
             )}
 
-            {reward.type === 'free_course' && (
+            {currentReward.type === 'free_course' && (
                 <CourseSelector
-                    courseId={reward.courseId}
-                    sessionId={reward.sessionId}
-                    levelId={reward.levelId}
-                    onChange={(selection) => onChange({ ...reward, ...selection })}
-                    delivery={reward.delivery || { email: true, whatsapp: false }}
-                    onDeliveryChange={(delivery) => onChange({ ...reward, delivery })}
+                    courseId={currentReward.courseId}
+                    sessionId={currentReward.sessionId}
+                    levelId={currentReward.levelId}
+                    onChange={(selection) => onChange({ ...currentReward, ...selection })}
+                    delivery={currentReward.delivery || { email: true, whatsapp: false }}
+                    onDeliveryChange={(delivery) => onChange({ ...currentReward, delivery })}
                 />
             )}
-
-            <div className="space-y-2">
-                <Label>Description</Label>
-                <Textarea
-                    value={reward.description}
-                    onChange={(e) => onChange({ ...reward, description: e.target.value })}
-                    placeholder="Describe what the referee will receive"
-                    rows={2}
-                />
-            </div>
         </div>
     );
 };
@@ -868,18 +832,6 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ content, onChange }) => {
                     value={contentOption.title}
                     onChange={(e) => setContentOption({ ...contentOption, title: e.target.value })}
                     placeholder="e.g., Welcome Bonus Study Guide"
-                />
-            </div>
-
-            <div className="space-y-2">
-                <Label>Content Description</Label>
-                <Textarea
-                    value={contentOption.description || ''}
-                    onChange={(e) =>
-                        setContentOption({ ...contentOption, description: e.target.value })
-                    }
-                    placeholder="Describe the content"
-                    rows={2}
                 />
             </div>
 
@@ -1070,7 +1022,6 @@ const ReferrerTierCreator: React.FC<ReferrerTierCreatorProps> = ({
         referralCount: 1,
         reward: {
             type: 'bonus_content',
-            description: '',
         },
     });
 
@@ -1133,41 +1084,10 @@ const ReferrerTierCreator: React.FC<ReferrerTierCreatorProps> = ({
                 pointsToReward: formData.reward.pointsToReward,
                 pointsRewardType: formData.reward.pointsRewardType,
                 pointsRewardValue: formData.reward.pointsRewardValue,
-                description: formData.reward.description || getDefaultDescription(),
             },
         };
 
         onSave(tier);
-    };
-
-    const getDefaultDescription = () => {
-        switch (formData.reward?.type) {
-            case 'discount_percentage':
-                return `${formData.reward.value}% discount on next payment`;
-            case 'discount_fixed':
-                return `Fixed ${formData.reward.currency === 'USD' ? '$' : '₹'}${formData.reward.value} discount`;
-            case 'bonus_content':
-                return `Free content reward`;
-            case 'free_days':
-                return `${formData.reward.value} days added to membership`;
-            case 'free_course':
-                return `Free course access reward`;
-            case 'points_system': {
-                const pointsPerReferral = formData.reward.pointsPerReferral || 0;
-                const pointsToReward = formData.reward.pointsToReward || 0;
-                const rewardValue = formData.reward.pointsRewardValue || 0;
-                const rewardType = formData.reward.pointsRewardType || 'discount_percentage';
-                const rewardSuffix =
-                    rewardType === 'discount_percentage'
-                        ? '% discount'
-                        : rewardType === 'membership_days'
-                          ? ' free days'
-                          : '₹ discount';
-                return `Earn ${pointsPerReferral} points per referral. Get ${rewardValue}${rewardSuffix} for ${pointsToReward} points.`;
-            }
-            default:
-                return 'Referral reward';
-        }
     };
 
     return (
@@ -1564,24 +1484,6 @@ const ReferrerTierCreator: React.FC<ReferrerTierCreatorProps> = ({
                             </div>
                         </div>
                     )}
-
-                    <div className="space-y-2">
-                        <Label>Description</Label>
-                        <Textarea
-                            value={formData.reward?.description || ''}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    reward: {
-                                        ...formData.reward!,
-                                        description: e.target.value,
-                                    },
-                                })
-                            }
-                            placeholder="Describe what the referrer will receive at this tier"
-                            rows={2}
-                        />
-                    </div>
                 </div>
 
                 <div className="flex justify-end gap-2 pt-4">
