@@ -88,7 +88,7 @@ const PlanReferralMappingCard = ({ form }: PlanReferralMappingCardProps) => {
                                 onClick={handleApplyToAllPlans}
                                 disable={planIds.length === 0}
                             >
-                                Apply Same to All
+                                Apply to all
                             </MyButton>
                         )}
                         <MyButton
