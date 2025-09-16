@@ -27,7 +27,6 @@ import { ReferralProgramDialog } from './ReferralProgramDialog';
 import InstituteBrandingCard from './-components/InstituteBrandingCard';
 import CoursePreviewCard from './-components/CoursePreviewCard';
 import PaymentPlanCard from './-components/PaymentPlanCard';
-import DiscountSettingsCard from './-components/DiscountSettingsCard';
 import PlanReferralMappingCard from './-components/PlanReferralMappingCard';
 import { PlanReferralConfigDialog } from './PlanReferralConfigDialog';
 import RestrictSameBatch from './-components/RestrictSameBatch';
@@ -715,8 +714,7 @@ const GenerateInviteLinkDialog = ({
                                 extractYouTubeVideoId={extractYouTubeVideoId}
                             />
                             <PaymentPlanCard form={form} />
-                            {/* Discount Settings Card */}
-                            <DiscountSettingsCard form={form} />
+
                             {/* Referral Program Card */}
                             <PlanReferralMappingCard form={form} />
                             {/* New Card for Restrict to Same Batch */}

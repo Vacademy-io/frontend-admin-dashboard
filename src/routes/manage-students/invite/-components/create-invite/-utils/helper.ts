@@ -36,13 +36,6 @@ export interface ReferralData {
     updated_at: string; // Consider `Date` if you parse it
 }
 
-interface ReferrerReward {
-    referral_count: number;
-    reward: {
-        type: string;
-    };
-}
-
 type ApiCourseData = {
     course: {
         id: string;
@@ -604,29 +597,107 @@ export function getPaymentOptionBySessionId(
 export function convertReferralData(data: ReferralData[]) {
     if (!data) return [];
 
+    // Helper function to convert benefit format to UI format
+    const convertBenefitToUiFormat = (benefitData: Record<string, unknown>) => {
+        const benefitValue = benefitData.benefitValue as Record<string, unknown>;
+
+        switch (benefitData.benefitType) {
+            case 'PERCENTAGE_DISCOUNT':
+                return {
+                    type: 'discount_percentage',
+                    value: (benefitValue?.percentage as number) || 0,
+                    currency: 'INR',
+                };
+            case 'FLAT':
+                return {
+                    type: 'discount_fixed',
+                    value: (benefitValue?.amount as number) || 0,
+                    currency: 'INR',
+                };
+            case 'FREE_MEMBERSHIP_DAYS':
+                return {
+                    type: 'free_days',
+                    value: (benefitValue?.free_days as number) || 0,
+                    currency: 'INR',
+                };
+            case 'CONTENT':
+                return {
+                    type: 'bonus_content',
+                    value: 0,
+                    currency: 'INR',
+                };
+            default: {
+                // Fallback to old format if it exists
+                const oldFormatReward = benefitData as Record<
+                    string,
+                    { type?: string; value?: number; currency?: string }
+                >;
+                return {
+                    type: oldFormatReward?.reward?.type || '',
+                    value: oldFormatReward?.reward?.value || 0,
+                    currency: oldFormatReward?.reward?.currency || 'INR',
+                };
+            }
+        }
+    };
+
     return (
         data?.map((item) => {
             const refereeDiscountJson = safeJsonParse(item.referee_discount_json, {
+                benefitType: '',
+                benefitValue: {},
                 reward: { type: '', value: 0, currency: '' },
             });
             const referrerDiscountJson = safeJsonParse(item.referrer_discount_json, {
+                benefitType: '',
+                benefitValue: { referralBenefits: [] },
                 rewards: [],
             });
+
+            // Convert referee benefit
+            const refereeBenefit = convertBenefitToUiFormat(refereeDiscountJson);
+
+            // Convert referrer benefits
+            let referrerBenefit: Array<{ referralCount: number; type: string }> = [];
+
+            // Handle new format with referralBenefits
+            if (referrerDiscountJson?.benefitValue?.referralBenefits) {
+                const referralBenefits = referrerDiscountJson.benefitValue
+                    .referralBenefits as Array<{
+                    referralRange?: { min?: number };
+                    referralCount?: number;
+                }>;
+                referrerBenefit = referralBenefits.map((benefit) => ({
+                    referralCount: benefit?.referralRange?.min || benefit?.referralCount || 0,
+                    type:
+                        referrerDiscountJson.benefitType === 'PERCENTAGE_DISCOUNT'
+                            ? 'discount_percentage'
+                            : referrerDiscountJson.benefitType === 'FLAT'
+                              ? 'discount_fixed'
+                              : referrerDiscountJson.benefitType === 'FREE_MEMBERSHIP_DAYS'
+                                ? 'free_days'
+                                : referrerDiscountJson.benefitType === 'CONTENT'
+                                  ? 'bonus_content'
+                                  : 'points_system',
+                }));
+            }
+            // Handle old format with rewards array
+            else if (referrerDiscountJson?.rewards) {
+                const oldFormatRewards = referrerDiscountJson.rewards as Array<{
+                    referral_count?: number;
+                    reward?: { type?: string };
+                }>;
+                referrerBenefit = oldFormatRewards.map((reward) => ({
+                    referralCount: reward?.referral_count || 0,
+                    type: reward?.reward?.type || '',
+                }));
+            }
+
             return {
                 id: item?.id,
                 name: item?.name,
-                refereeBenefit: {
-                    type: refereeDiscountJson?.reward?.type || '',
-                    value: refereeDiscountJson?.reward?.value || 0,
-                    currency: refereeDiscountJson?.reward?.currency || '',
-                },
-                referrerBenefit:
-                    referrerDiscountJson?.rewards?.map((reward: ReferrerReward) => {
-                        return {
-                            referralCount: reward?.referral_count || 0,
-                            type: reward?.reward?.type || '',
-                        };
-                    }) || [],
+                refereeBenefit,
+                referrerBenefit,
                 vestingPeriod: item?.referrer_vesting_days || 0,
                 combineOffers: true,
             };
@@ -654,28 +725,23 @@ export function getDefaultMatchingReferralData(data: ReferralData[]) {
             vestingPeriod: 0,
             combineOffers: false,
         };
-    const refereeDiscountJson = safeJsonParse(item.referee_discount_json, {
-        reward: { type: '', value: 0, currency: '' },
-    });
-    const referrerDiscountJson = safeJsonParse(item.referrer_discount_json, { rewards: [] });
-    return {
-        id: item.id,
-        name: item.name,
-        refereeBenefit: {
-            type: refereeDiscountJson?.reward?.type || '',
-            value: refereeDiscountJson?.reward?.value || 0,
-            currency: refereeDiscountJson?.reward?.currency || '',
-        },
-        referrerBenefit:
-            referrerDiscountJson?.rewards?.map((reward: ReferrerReward) => {
-                return {
-                    referralCount: reward?.referral_count || 0,
-                    type: reward?.reward?.type || '',
-                };
-            }) || [],
-        vestingPeriod: item.referrer_vesting_days || 0,
-        combineOffers: true,
-    };
+
+    // Use the same conversion logic as convertReferralData
+    const convertedData = convertReferralData([item]);
+    return (
+        convertedData[0] || {
+            id: item.id,
+            name: item.name,
+            refereeBenefit: {
+                type: '',
+                value: 0,
+                currency: '',
+            },
+            referrerBenefit: [],
+            vestingPeriod: item.referrer_vesting_days || 0,
+            combineOffers: true,
+        }
+    );
 }
 
 interface SelectedPlan {
