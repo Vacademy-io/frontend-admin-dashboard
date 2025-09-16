@@ -1,10 +1,11 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useSearch } from '@tanstack/react-router';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { AdminSlidesView } from './admin/AdminSlidesView';
 import { NonAdminSlidesView } from './non-admin/NonAdminSlidesView';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 import { useMemo } from 'react';
+import { QuickAddView, type ChapterSearchParamsForQuickAdd } from './quick-add';
 
 interface ChapterSearchParams {
     courseId: string;
@@ -16,6 +17,7 @@ interface ChapterSearchParams {
     sessionId: string;
     timestamp?: number;
     currentPage?: number;
+    quickAdd?: boolean;
 }
 
 export const Route = createFileRoute(
@@ -33,12 +35,15 @@ export const Route = createFileRoute(
             sessionId: search.sessionId as string,
             ...(typeof search.timestamp === 'number' && { timestamp: search.timestamp }),
             ...(typeof search.currentPage === 'number' && { currentPage: search.currentPage }),
+            ...(typeof search.quickAdd === 'boolean' && { quickAdd: search.quickAdd }),
         };
     },
 });
 
-function RouteComponent() {
-    const searchParams = Route.useSearch();
+function RouteComponent(): JSX.Element {
+    const searchParams = useSearch({
+        from: '/study-library/courses/course-details/subjects/modules/chapters/slides/',
+    });
     const { courseId } = searchParams;
     const { studyLibraryData } = useStudyLibraryStore();
 
@@ -68,10 +73,13 @@ function RouteComponent() {
         };
     }, [courseId, studyLibraryData]);
 
-    // Route to appropriate view based on user role
-    if (userRole === 'ADMIN') {
-        return <AdminSlidesView {...searchParams} />;
-    } else {
-        return <NonAdminSlidesView {...searchParams} />;
+    if (searchParams.quickAdd) {
+        return <QuickAddView search={searchParams as unknown as ChapterSearchParamsForQuickAdd} />;
     }
+
+    return userRole === 'ADMIN' ? (
+        <AdminSlidesView {...searchParams} />
+    ) : (
+        <NonAdminSlidesView {...searchParams} />
+    );
 }

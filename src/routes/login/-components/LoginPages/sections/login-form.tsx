@@ -371,7 +371,7 @@ export function LoginForm() {
                         </div>
                         <div className="mt-4">
                             <Heading
-                                heading="Glad To Have You Back!"
+                                heading="Glad to have you back!"
                                 subHeading="Login and take the reins - your admin tools are waiting!"
                             />
                         </div>
