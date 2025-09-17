@@ -18,6 +18,8 @@ const TanStackRouterDevtools =
         : React.lazy(() =>
               import('@tanstack/router-devtools').then((res) => ({
                   default: res.TanStackRouterDevtools,
+              })).catch(() => ({
+                  default: () => null
               }))
           );
 

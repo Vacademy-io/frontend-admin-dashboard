@@ -4,14 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { EmailRichTextEditor } from './EmailRichTextEditor';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { MessageTemplate, CreateTemplateRequest, TEMPLATE_VARIABLES } from '@/types/message-template-types';
-import { Info, Edit, Plus, Eye, BookOpen, Users, Calendar, GraduationCap, School, Award, Database } from 'lucide-react';
+import { Info, Edit, Plus, Eye, X, User, BookOpen, Users, Building, Calendar, Clock, Globe, GraduationCap, School, MapPin, Award, FileText, Database } from 'lucide-react';
 import { extractVariablesFromContent, insertVariableAtCursor } from './TemplateEditorUtils';
-import { TemplatePreview } from './TemplatePreview';
 
 interface TemplateEditorProps {
     template: MessageTemplate | null;
@@ -36,6 +34,10 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
     });
     const [templateType, setTemplateType] = useState<string>('utility');
     const [showPreview, setShowPreview] = useState(false);
+    const [selectedVariable, setSelectedVariable] = useState<string>('');
+    const [customMessage, setCustomMessage] = useState(
+        'Thank you for being part of our learning community.'
+    );
 
     useEffect(() => {
         if (template) {
@@ -115,22 +117,25 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
         setFormData((prev) => ({ ...prev, variables: allVariables }));
     };
 
-    const getTemplateTypeOptions = (name?: string): 'marketing' | 'utility' | 'transactional' => {
+    const getTemplateTypeOptions = (name?: string) => {
         const templateName = (name || formData.name).toLowerCase();
-
         if (templateName.includes('welcome') || templateName.includes('enrollment')) return 'marketing';
         if (templateName.includes('assignment') || templateName.includes('reminder')) return 'utility';
         if (templateName.includes('certificate') || templateName.includes('completion')) return 'transactional';
-
         return 'utility';
     };
 
+    const getStatusOptions = () => {
+        return formData.isDefault ? 'active' : 'draft';
+    };
 
     const handleInsertVariable = (variable: string) => {
-        // For rich text editor, we'll insert the variable directly
-        const currentContent = formData.content;
-        const newContent = currentContent + (currentContent ? ' ' : '') + variable;
-        setFormData((prev) => ({ ...prev, content: newContent }));
+        const textarea = document.getElementById('content') as HTMLTextAreaElement;
+        if (textarea) {
+            insertVariableAtCursor(textarea, variable, formData.content, (newContent) => {
+                setFormData((prev) => ({ ...prev, content: newContent }));
+            });
+        }
     };
 
     const getCategoryIcon = (category: string) => {
@@ -194,7 +199,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
     return (
         <>
             <Dialog open={true} onOpenChange={onClose}>
-                <DialogContent className="max-h-[95vh] w-[95vw] max-w-7xl overflow-hidden p-0 sm:max-w-7xl">
+                <DialogContent className="max-h-[95vh] w-[95vw] max-w-7xl overflow-hidden p-0">
                     <DialogHeader className="px-6 py-4 border-b border-gray-200">
                         <DialogTitle className="flex items-center gap-2">
                             {template ? (
@@ -211,9 +216,9 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                         </DialogTitle>
                     </DialogHeader>
 
-                    <div className="flex flex-col lg:flex-row h-[calc(95vh-120px)]">
+                    <div className="flex h-[calc(95vh-120px)]">
                         {/* Main Content Area */}
-                        <div className="flex-1 p-4 sm:p-6 overflow-y-auto">
+                        <div className="flex-1 p-6 overflow-y-auto">
                             <form onSubmit={handleSubmit} className="space-y-6">
                                 {/* Template Name */}
                                 <div className="space-y-2">
@@ -250,17 +255,17 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                                     <Label htmlFor="content" className="text-sm font-medium">
                                         Email Body
                                     </Label>
-                                    <EmailRichTextEditor
+                                    <Textarea
+                                        id="content"
                                         value={formData.content}
-                                        onChange={handleContentChange}
+                                        onChange={(e) => handleContentChange(e.target.value)}
                                         placeholder="Enter email body content..."
-                                        minHeight={200}
-                                        className="w-full"
+                                        className="w-full min-h-[200px] resize-none"
                                     />
                                 </div>
 
                                 {/* Template Type and Status */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label className="text-sm font-medium">Email Type</Label>
                                         <Select
@@ -333,7 +338,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                         </Alert>
 
                         {/* Actions */}
-                                <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t">
+                                <div className="flex justify-end gap-3 pt-6 border-t">
                             <Button
                                 type="button"
                                 variant="outline"
@@ -369,7 +374,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                         </div>
 
                         {/* Sidebar - Dynamic Values */}
-                        <div className="w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-gray-200 bg-gray-50/50 p-4 sm:p-6 overflow-y-auto">
+                        <div className="w-80 border-l border-gray-200 bg-gray-50/50 p-6 overflow-y-auto">
                             <div className="space-y-6">
                                 <div>
                                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -420,22 +425,32 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
 
             {/* Template Preview Modal */}
             {showPreview && (
-                <TemplatePreview
-                    template={{
-                        id: 'preview',
-                        name: formData.name || 'Preview Template',
-                        type: formData.type,
-                        subject: formData.subject || '',
-                        content: formData.content || '',
-                        variables: formData.variables || [],
-                        isDefault: formData.isDefault,
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString(),
-                        createdBy: 'Current User'
-                    }}
-                    isOpen={showPreview}
-                onClose={() => setShowPreview(false)}
-            />
+                <Dialog open={showPreview} onOpenChange={setShowPreview}>
+                    <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                                <Eye className="size-5" />
+                                Template Preview
+                            </DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            {formData.type === 'EMAIL' && formData.subject && (
+                                <div>
+                                    <Label className="text-sm font-medium text-gray-600">Subject:</Label>
+                                    <div className="p-3 bg-gray-50 border rounded-md text-sm">
+                                        {formData.subject}
+                                    </div>
+                                </div>
+                            )}
+                            <div>
+                                <Label className="text-sm font-medium text-gray-600">Content:</Label>
+                                <div className="p-3 bg-gray-50 border rounded-md text-sm whitespace-pre-wrap">
+                                    {formData.content || 'No content'}
+                                </div>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
             )}
         </>
     );

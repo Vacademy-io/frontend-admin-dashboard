@@ -1,68 +1,138 @@
-import { CreateTemplateRequest } from '@/types/message-template-types';
+/**
+ * Utility functions for template editor
+ */
 
-export const generatePreview = (formData: CreateTemplateRequest, customMessage: string) => {
-    const currentDate = new Date().toLocaleDateString();
-
-    const replacements = {
-        '{{name}}': 'John Doe',
-        '{{email}}': 'john.doe@example.com',
-        '{{mobile_number}}': '+1234567890',
-        '{{custom_message_text}}': customMessage,
-        '{{course_name}}': 'Mathematics Course',
-        '{{batch_name}}': 'Batch A',
-        '{{session_name}}': 'Session 2024',
-        '{{username}}': 'johndoe',
-        '{{registration_date}}': '2024-01-15',
-        '{{current_date}}': currentDate,
-        '{{student_name}}': 'John Doe',
-        '{{student_email}}': 'john.doe@example.com',
-        '{{student_phone}}': '+1234567890',
-        '{{student_id}}': 'STU001',
-        '{{enrollment_number}}': 'ENR001',
-    };
-
-    let previewSubject = formData.subject || '';
-    let previewContent = formData.content || '';
-
-    // Replace all placeholders
-    Object.entries(replacements).forEach(([placeholder, value]) => {
-        previewSubject = previewSubject.replace(
-            new RegExp(placeholder.replace(/[{}]/g, '\\$&'), 'g'),
-            value
-        );
-        previewContent = previewContent.replace(
-            new RegExp(placeholder.replace(/[{}]/g, '\\$&'), 'g'),
-            value
-        );
-    });
-
-    return { subject: previewSubject, content: previewContent };
-};
-
+/**
+ * Extract variables from template content
+ * @param content - The template content to extract variables from
+ * @returns Array of unique variables found in the content
+ */
 export const extractVariablesFromContent = (content: string): string[] => {
+    if (!content) return [];
+
+    // Match variables in the format {{variable_name}}
     const variableRegex = /\{\{([^}]+)\}\}/g;
     const matches = content.match(variableRegex);
-    return matches ? [...new Set(matches)] : [];
+
+    if (!matches) return [];
+
+    // Extract variable names and remove duplicates
+    const variables = matches.map(match => match.replace(/[{}]/g, ''));
+    return [...new Set(variables)];
 };
 
-export const insertVariableAtCursor = (
-    textarea: HTMLTextAreaElement,
-    variable: string,
-    currentContent: string,
-    setContent: (content: string) => void
-) => {
+/**
+ * Insert a variable at the current cursor position
+ * @param textarea - The textarea element
+ * @param variable - The variable to insert (without curly braces)
+ */
+export const insertVariableAtCursor = (textarea: HTMLTextAreaElement, variable: string): void => {
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const before = currentContent.substring(0, start);
-    const after = currentContent.substring(end);
-    const newContent = before + variable + after;
+    const text = textarea.value;
+    const before = text.substring(0, start);
+    const after = text.substring(end, text.length);
 
-    setContent(newContent);
+    const variableText = `{{${variable}}}`;
+    const newText = before + variableText + after;
+
+    // Update the textarea value
+    textarea.value = newText;
 
     // Set cursor position after the inserted variable
-    setTimeout(() => {
-        textarea.focus();
-        textarea.setSelectionRange(start + variable.length, start + variable.length);
-    }, 0);
+    const newCursorPosition = start + variableText.length;
+    textarea.setSelectionRange(newCursorPosition, newCursorPosition);
+
+    // Trigger input event to update React state
+    const event = new Event('input', { bubbles: true });
+    textarea.dispatchEvent(event);
 };
 
+/**
+ * Get cursor position in textarea
+ * @param textarea - The textarea element
+ * @returns Object with start and end cursor positions
+ */
+export const getCursorPosition = (textarea: HTMLTextAreaElement): { start: number; end: number } => {
+    return {
+        start: textarea.selectionStart,
+        end: textarea.selectionEnd
+    };
+};
+
+/**
+ * Set cursor position in textarea
+ * @param textarea - The textarea element
+ * @param start - Start position
+ * @param end - End position
+ */
+export const setCursorPosition = (textarea: HTMLTextAreaElement, start: number, end: number): void => {
+    textarea.setSelectionRange(start, end);
+    textarea.focus();
+};
+
+/**
+ * Get text around cursor position
+ * @param textarea - The textarea element
+ * @param radius - Number of characters to include around cursor
+ * @returns Object with text before, at, and after cursor
+ */
+export const getTextAroundCursor = (textarea: HTMLTextAreaElement, radius: number = 10): {
+    before: string;
+    at: string;
+    after: string;
+} => {
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+
+    const beforeStart = Math.max(0, start - radius);
+    const afterEnd = Math.min(text.length, end + radius);
+
+    return {
+        before: text.substring(beforeStart, start),
+        at: text.substring(start, end),
+        after: text.substring(end, afterEnd)
+    };
+};
+
+/**
+ * Replace all occurrences of a variable in content
+ * @param content - The content to replace in
+ * @param oldVariable - The old variable name (without curly braces)
+ * @param newVariable - The new variable name (without curly braces)
+ * @returns Updated content
+ */
+export const replaceVariable = (content: string, oldVariable: string, newVariable: string): string => {
+    const oldPattern = new RegExp(`\\{\\{${oldVariable}\\}\\}`, 'g');
+    return content.replace(oldPattern, `{{${newVariable}}}`);
+};
+
+/**
+ * Validate variable name
+ * @param variable - The variable name to validate
+ * @returns True if valid, false otherwise
+ */
+export const isValidVariableName = (variable: string): boolean => {
+    // Variable names should be alphanumeric with underscores and dots
+    const variableRegex = /^[a-zA-Z][a-zA-Z0-9_.]*$/;
+    return variableRegex.test(variable);
+};
+
+/**
+ * Format variable for display
+ * @param variable - The variable name
+ * @returns Formatted variable string
+ */
+export const formatVariable = (variable: string): string => {
+    return `{{${variable}}}`;
+};
+
+/**
+ * Parse variable from formatted string
+ * @param formattedVariable - The formatted variable string
+ * @returns Variable name without curly braces
+ */
+export const parseVariable = (formattedVariable: string): string => {
+    return formattedVariable.replace(/[{}]/g, '');
+};
