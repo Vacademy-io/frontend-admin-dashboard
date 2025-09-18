@@ -51,19 +51,14 @@ export const TEMPLATE_VARIABLES = {
         '{{enrollment_number}}',       // Enrollment number
         '{{username}}',                // Login username
         '{{registration_date}}',       // Registration date
+        '{{student_unique_link}}',     // Student unique link
+        '{{student_referral_code}}',   // Student referral code
     ],
     course: [
         '{{course_name}}',
         '{{course_description}}',
         '{{course_duration}}',
         '{{course_price}}',
-    ],
-    session: [
-        '{{session_name}}',
-        '{{session_date}}',
-        '{{session_time}}',
-        '{{session_duration}}',
-        '{{session_link}}',
     ],
     batch: [
         '{{batch_name}}',
@@ -168,6 +163,8 @@ export const VACADEMY_DATA_FIELDS: VacademyDataField[] = [
     { value: 'learner.studentId', label: 'Student ID', category: 'learner', dataType: 'text', description: 'Student\'s unique ID' },
     { value: 'learner.enrollmentNumber', label: 'Enrollment Number', category: 'learner', dataType: 'text', description: 'Student\'s enrollment number' },
     { value: 'learner.registrationDate', label: 'Registration Date', category: 'learner', dataType: 'date', description: 'Student\'s registration date' },
+    { value: 'learner.uniqueLink', label: 'Student Unique Link', category: 'learner', dataType: 'text', description: 'Student\'s unique personal link' },
+    { value: 'learner.referralCode', label: 'Student Referral Code', category: 'learner', dataType: 'text', description: 'Student\'s referral code' },
 
     // Course fields
     { value: 'course.name', label: 'Course Name', category: 'course', dataType: 'text', description: 'Name of the course' },
@@ -184,12 +181,6 @@ export const VACADEMY_DATA_FIELDS: VacademyDataField[] = [
     { value: 'batch.endDate', label: 'Batch End Date', category: 'batch', dataType: 'date', description: 'Batch end date' },
     { value: 'batch.capacity', label: 'Batch Capacity', category: 'batch', dataType: 'number', description: 'Maximum number of students in batch' },
 
-    // Session fields
-    { value: 'session.name', label: 'Session Name', category: 'session', dataType: 'text', description: 'Name of the session' },
-    { value: 'session.date', label: 'Session Date', category: 'session', dataType: 'date', description: 'Date of the session' },
-    { value: 'session.time', label: 'Session Time', category: 'session', dataType: 'text', description: 'Time of the session' },
-    { value: 'session.duration', label: 'Session Duration', category: 'session', dataType: 'text', description: 'Duration of the session' },
-    { value: 'session.link', label: 'Session Link', category: 'session', dataType: 'text', description: 'Link to join the session' },
 
     // Institute fields
     { value: 'institute.name', label: 'Institute Name', category: 'institute', dataType: 'text', description: 'Name of the institute' },

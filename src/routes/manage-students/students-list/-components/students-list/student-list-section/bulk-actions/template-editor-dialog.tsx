@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { EmailRichTextEditor } from './EmailRichTextEditor';
+import { EmailRichTextEditor } from '@/routes/settings/-components/Template/EmailRichTextEditor';
 import {
     Select,
     SelectContent,
@@ -29,20 +29,33 @@ import {
     Award,
     Database,
 } from 'lucide-react';
-import { extractVariablesFromContent } from './TemplateEditorUtils';
+import { extractVariablesFromContent } from '@/routes/settings/-components/Template/TemplateEditorUtils';
+import { createMessageTemplate, updateMessageTemplate } from '@/services/message-template-service';
+import { templateCacheService } from '@/services/template-cache-service';
+import { toast } from 'sonner';
 
-interface TemplateEditorProps {
-    template: MessageTemplate | null;
-    onSave: (template: CreateTemplateRequest) => void;
+interface TemplateEditorDialogProps {
+    isOpen: boolean;
     onClose: () => void;
-    isSaving: boolean;
+    onSave?: (template: MessageTemplate) => void;
+    onSaveAndSend?: (template: MessageTemplate) => void;
+    template?: MessageTemplate | null;
+    isSaving?: boolean;
+    isSending?: boolean;
+    primaryButtonText?: string;
+    showPreviewButton?: boolean;
 }
 
-export const TemplateEditor: React.FC<TemplateEditorProps> = ({
-    template,
-    onSave,
+export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
+    isOpen,
     onClose,
-    isSaving,
+    onSave,
+    onSaveAndSend,
+    template = null,
+    isSaving = false,
+    isSending = false,
+    primaryButtonText = 'Save',
+    showPreviewButton = true,
 }) => {
     const [formData, setFormData] = useState<CreateTemplateRequest>({
         name: '',
@@ -95,7 +108,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
         if (!formData.name.trim() || !formData.content.trim()) {
             return;
         }
-        onSave(formData);
+        handleSave();
     };
 
     const handleContentChange = (content: string) => {
@@ -116,6 +129,13 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
         setFormData((prev) => ({ ...prev, variables: allVariables }));
     };
 
+    const handleInsertVariable = (variable: string) => {
+        // For rich text editor, we'll insert the variable directly
+        const currentContent = formData.content;
+        const newContent = currentContent + (currentContent ? ' ' : '') + variable;
+        setFormData((prev) => ({ ...prev, content: newContent }));
+    };
+
     const getTemplateTypeOptions = (name?: string): 'marketing' | 'utility' | 'transactional' => {
         const templateName = (name || formData.name).toLowerCase();
 
@@ -127,13 +147,6 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
             return 'transactional';
 
         return 'utility';
-    };
-
-    const handleInsertVariable = (variable: string) => {
-        // For rich text editor, we'll insert the variable directly
-        const currentContent = formData.content;
-        const newContent = currentContent + (currentContent ? ' ' : '') + variable;
-        setFormData((prev) => ({ ...prev, content: newContent }));
     };
 
     const getCategoryIcon = (category: string) => {
@@ -191,9 +204,53 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
         return descriptions[variable] || 'Dynamic value';
     };
 
+    const handleSave = async () => {
+        if (!formData.name.trim() || !formData.content.trim()) {
+            toast.error('Template name and content are required.');
+            return;
+        }
+
+        try {
+            let savedTemplate: MessageTemplate;
+            if (template) {
+                // Update existing template
+                const updatedTemplate = await updateMessageTemplate({
+                    id: template.id,
+                    ...formData,
+                });
+                savedTemplate = updatedTemplate;
+                toast.success('Template updated successfully!');
+            } else {
+                // Create new template
+                savedTemplate = await createMessageTemplate(formData);
+                toast.success('Template created successfully!');
+            }
+
+            // Clear cache to ensure fresh data
+            templateCacheService.clearCache('EMAIL');
+
+            // Call the appropriate callback
+            if (onSaveAndSend) {
+                onSaveAndSend(savedTemplate);
+            } else if (onSave) {
+                onSave(savedTemplate);
+            }
+
+            onClose();
+        } catch (error) {
+            console.error('Error saving template:', error);
+            toast.error(template ? 'Failed to update template.' : 'Failed to create template.');
+        }
+    };
+
+    const handleClose = () => {
+        if (isSaving || isSending) return;
+        onClose();
+    };
+
     return (
         <>
-            <Dialog open={true} onOpenChange={onClose}>
+            <Dialog open={isOpen} onOpenChange={handleClose}>
                 <DialogContent className="max-h-[95vh] w-[95vw] max-w-7xl overflow-hidden p-0 sm:max-w-7xl">
                     <DialogHeader className="border-b border-gray-200 px-6 py-4">
                         <DialogTitle className="flex items-center gap-2">
@@ -312,7 +369,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        onClick={onClose}
+                                        onClick={handleClose}
                                         className="h-10 px-6"
                                     >
                                         Cancel
@@ -321,6 +378,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                                         type="submit"
                                         disabled={
                                             isSaving ||
+                                            isSending ||
                                             !formData.name.trim() ||
                                             !formData.content.trim()
                                         }
@@ -328,9 +386,9 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                                     >
                                         {isSaving
                                             ? 'Saving...'
-                                            : template
-                                              ? 'Update Template'
-                                              : 'Create Template'}
+                                            : isSending
+                                              ? 'Sending...'
+                                              : primaryButtonText}
                                     </Button>
                                 </div>
                             </form>

@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MyDialog } from '@/components/design-system/dialog';
 import { MyButton } from '@/components/design-system/button';
-import { Textarea } from '@/components/ui/textarea';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { useDialogStore } from '../../../../-hooks/useDialogStore';
 import { PaperPlaneTilt, Spinner, CircleNotch, Eye } from '@phosphor-icons/react';
 import { toast } from 'sonner';
@@ -18,14 +10,6 @@ import { MessageTemplate } from '@/types/message-template-types';
 // Message templates will be loaded dynamically from API
 
 type MessageSendingStatus = 'pending' | 'sending' | 'sent' | 'failed';
-
-// Define placeholder variables that users can insert (only those with available data)
-const PLACEHOLDER_VARIABLES = [
-    { label: 'Student Name', value: '{{name}}' },
-    { label: 'Mobile Number', value: '{{mobile_number}}' },
-    { label: 'Custom Message', value: '{{custom_message_text}}' },
-    { label: 'Current Date', value: '{{current_date}}' },
-];
 
 interface StudentMessageStatus {
     userId: string;
@@ -43,9 +27,6 @@ export const SendMessageDialog = () => {
     const [isBulkSending, setIsBulkSending] = useState(false);
     const [messageTemplates, setMessageTemplates] = useState<MessageTemplate[]>([]);
     const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
-    const [customMessage, setCustomMessage] = useState(
-        'Please check your dashboard for updates.'
-    );
     const [showPreview, setShowPreview] = useState(false);
 
     const loadMessageTemplates = async () => {
@@ -108,7 +89,7 @@ export const SendMessageDialog = () => {
         const nullValueReport = {
             missingNames: 0,
             missingMobileNumbers: 0,
-            totalStudents: bulkActionInfo.selectedStudents.length
+            totalStudents: bulkActionInfo.selectedStudents.length,
         };
 
         // Initialize status for all students
@@ -138,19 +119,19 @@ export const SendMessageDialog = () => {
                     console.warn(`⚠️ Null mobile_number for student ${student.user_id}:`, student);
                 }
 
-                let messageContent = template.content.replace(/\{\{name\}\}/g, student.full_name || 'Student');
+                let messageContent = template.content.replace(
+                    /\{\{name\}\}/g,
+                    student.full_name || 'Student'
+                );
                 messageContent = messageContent.replace(
                     /\{\{mobile_number\}\}/g,
                     student.mobile_number || ''
                 );
                 messageContent = messageContent.replace(
                     /\{\{custom_message_text\}\}/g,
-                    customMessage
+                    'Please check your dashboard for updates.'
                 );
-                messageContent = messageContent.replace(
-                    /\{\{current_date\}\}/g,
-                    currentDate
-                );
+                messageContent = messageContent.replace(/\{\{current_date\}\}/g, currentDate);
 
                 await mockSendMessageAPI(student.user_id, student.full_name, messageContent);
 
@@ -177,7 +158,7 @@ export const SendMessageDialog = () => {
             totalStudents: nullValueReport.totalStudents,
             missingNames: nullValueReport.missingNames,
             missingMobileNumbers: nullValueReport.missingMobileNumbers,
-            processedStudents: bulkActionInfo.selectedStudents.length
+            processedStudents: bulkActionInfo.selectedStudents.length,
         });
 
         setIsBulkSending(false);
@@ -204,7 +185,7 @@ export const SendMessageDialog = () => {
         const replacements = {
             '{{name}}': sampleStudent?.full_name || 'John Doe',
             '{{mobile_number}}': sampleStudent?.mobile_number || '+1234567890',
-            '{{custom_message_text}}': customMessage,
+            '{{custom_message_text}}': 'Please check your dashboard for updates.',
             '{{current_date}}': currentDate,
         };
 
@@ -243,7 +224,7 @@ export const SendMessageDialog = () => {
             heading="Send WhatsApp Message"
             open={isSendMessageOpen}
             onOpenChange={handleClose}
-            dialogWidth="w-[90vw] max-w-md"
+            dialogWidth="w-[95vw] max-w-4xl"
             footer={
                 <div className="flex items-center justify-end gap-2">
                     <MyButton
@@ -261,7 +242,7 @@ export const SendMessageDialog = () => {
                         disable={
                             !selectedTemplateId || selectedStudentsCount === 0 || isBulkSending
                         }
-                        className="min-w-[120px] bg-green-600 text-white hover:bg-green-700"
+                        className="min-w-[100px] bg-green-600 text-white hover:bg-green-700"
                     >
                         {isBulkSending ? (
                             <>
@@ -278,90 +259,95 @@ export const SendMessageDialog = () => {
                 </div>
             }
         >
-            <div className="space-y-4">
-                <div className="mb-4 text-sm text-neutral-600">
-                    Select a template to send to {selectedStudentsCount} student(s).
+            <div className="space-y-6">
+                {/* Header Info */}
+                <div className="rounded-lg bg-green-50 p-4">
+                    <div className="flex items-center gap-3">
+                        <div className="flex size-10 items-center justify-center rounded-full bg-green-100">
+                            <span className="text-lg">📱</span>
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-semibold text-green-800">
+                                WhatsApp Message Templates
+                            </h3>
+                            <p className="text-sm text-green-700">
+                                Select a template to send to {selectedStudentsCount} student(s)
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
-                <div>
-                    <label className="mb-2 block text-sm font-medium text-neutral-700">
-                        Message Template
-                    </label>
-                    <Select
-                        value={selectedTemplateId}
-                        onValueChange={(value: string) => setSelectedTemplateId(value)}
-                        disabled={isBulkSending || isLoadingTemplates}
-                    >
-                        <SelectTrigger className="w-full">
-                            <SelectValue
-                                placeholder={
-                                    isLoadingTemplates
-                                        ? 'Loading templates...'
-                                        : 'Select a template'
-                                }
-                            />
-                        </SelectTrigger>
-                        <SelectContent>
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    {/* Left Column - Template Selection */}
+                    <div className="space-y-4">
+                        <div>
+                            <h4 className="mb-3 text-sm font-semibold text-neutral-800">
+                                Choose Template
+                            </h4>
+
                             {isLoadingTemplates ? (
-                                <SelectItem value="loading" disabled>
-                                    <div className="flex items-center gap-2">
+                                <div className="flex h-32 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50">
+                                    <div className="flex items-center gap-2 text-neutral-600">
                                         <CircleNotch className="size-4 animate-spin" />
-                                        Loading templates...
+                                        <span className="text-sm">Loading templates...</span>
                                     </div>
-                                </SelectItem>
+                                </div>
                             ) : (
-                                messageTemplates.map((template) => (
-                                    <SelectItem key={template.id} value={template.id}>
-                                        {template.name}
-                                    </SelectItem>
-                                ))
+                                <div className="scrollbar-hide max-h-80 space-y-2 overflow-y-auto">
+                                    {messageTemplates.map((template) => (
+                                        <div
+                                            key={template.id}
+                                            onClick={() => setSelectedTemplateId(template.id)}
+                                            className={`cursor-pointer rounded-lg border p-4 transition-all ${
+                                                selectedTemplateId === template.id
+                                                    ? 'border-secondary bg-secondary text-secondary-foreground'
+                                                    : 'border-neutral-200 bg-white hover:border-secondary hover:bg-secondary/5'
+                                            }`}
+                                        >
+                                            <div className="flex items-start gap-3">
+                                                <div className="flex size-8 items-center justify-center rounded-full bg-green-100 text-green-600">
+                                                    <span className="text-sm">📄</span>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <h5 className="text-sm font-medium">
+                                                        {template.name}
+                                                    </h5>
+                                                    <p className="mt-1 line-clamp-2 text-xs text-neutral-600">
+                                                        {template.content.substring(0, 100)}...
+                                                    </p>
+                                                </div>
+                                                {selectedTemplateId === template.id && (
+                                                    <div className="text-secondary-foreground">
+                                                        <span className="text-sm">✓</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    {messageTemplates.length === 0 && (
+                                        <div className="flex h-32 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50">
+                                            <div className="text-center">
+                                                <div className="text-sm text-neutral-600">
+                                                    No templates available
+                                                </div>
+                                                <div className="mt-1 text-xs text-neutral-500">
+                                                    Contact admin to add WhatsApp templates
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             )}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                {/* Custom Message Field */}
-                <div>
-                    <label className="mb-2 block text-sm font-medium text-neutral-700">
-                        Custom Message Text (for {'{{custom_message_text}}'} placeholder)
-                    </label>
-                    <Textarea
-                        value={customMessage}
-                        onChange={(e) => setCustomMessage(e.target.value)}
-                        placeholder="Enter custom message text that will replace {{custom_message_text}} variable"
-                        disabled={isBulkSending}
-                        className="min-h-[80px]"
-                    />
-                </div>
-
-                {/* Available Variables */}
-                <div>
-                    <div className="mb-2 text-sm font-medium text-neutral-700">
-                        Available Variables (click to insert):
+                        </div>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                        {PLACEHOLDER_VARIABLES.map((placeholder) => (
-                            <MyButton
-                                key={placeholder.value}
-                                buttonType="secondary"
-                                scale="small"
-                                onClick={() => {
-                                    // For WhatsApp, we can't edit the template content directly
-                                    // This is just for reference
-                                }}
-                                disabled={isBulkSending}
-                                className="px-3 py-1 text-xs hover:bg-blue-50 hover:text-blue-700"
-                            >
-                                {placeholder.label}
-                            </MyButton>
-                        ))}
-                    </div>
-                </div>
 
-                {selectedTemplateId && (
-                    <div className="space-y-3">
+                    {/* Right Column - Preview */}
+                    <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <div className="text-sm font-medium text-neutral-700">Template Preview:</div>
+                            <h4 className="text-sm font-semibold text-neutral-800">
+                                Message Preview
+                            </h4>
                             <MyButton
                                 buttonType="secondary"
                                 scale="small"
@@ -370,61 +356,140 @@ export const SendMessageDialog = () => {
                                 className="text-xs"
                             >
                                 <Eye className="mr-1 size-3" />
-                                {showPreview ? 'Hide Preview' : 'Show Preview'}
+                                {showPreview ? 'Hide' : 'Show'} Preview
                             </MyButton>
                         </div>
 
-                        {showPreview ? (
-                            <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3">
-                                <div className="text-sm text-neutral-800 whitespace-pre-wrap">
-                                    {generatePreview()}
+                        {selectedTemplateId ? (
+                            <div className="space-y-3">
+                                {/* Template Info */}
+                                <div className="rounded-lg border border-neutral-200 bg-white p-4">
+                                    <div className="mb-2 flex items-center gap-2">
+                                        <span className="text-sm font-medium text-neutral-800">
+                                            {
+                                                messageTemplates.find(
+                                                    (t) => t.id === selectedTemplateId
+                                                )?.name
+                                            }
+                                        </span>
+                                        <span className="rounded-full bg-green-100 px-2 py-1 text-xs text-green-700">
+                                            WhatsApp
+                                        </span>
+                                    </div>
+
+                                    {showPreview ? (
+                                        <div className="rounded-lg bg-green-50 p-3">
+                                            <div className="whitespace-pre-wrap text-sm text-neutral-800">
+                                                {generatePreview()}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="rounded-lg bg-neutral-50 p-3">
+                                            <div className="text-sm text-neutral-600">
+                                                {messageTemplates.find(
+                                                    (t) => t.id === selectedTemplateId
+                                                )?.content || ''}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Recipients Info */}
+                                <div className="rounded-lg border border-neutral-200 bg-white p-4">
+                                    <h5 className="mb-2 text-sm font-medium text-neutral-800">
+                                        Recipients ({selectedStudentsCount})
+                                    </h5>
+                                    <div className="space-y-1">
+                                        {bulkActionInfo?.selectedStudents
+                                            .slice(0, 3)
+                                            .map((student, index) => (
+                                                <div
+                                                    key={student.user_id}
+                                                    className="flex items-center gap-2 text-xs"
+                                                >
+                                                    <div className="flex size-6 items-center justify-center rounded-full bg-green-100 text-green-600">
+                                                        {index + 1}
+                                                    </div>
+                                                    <span className="text-neutral-700">
+                                                        {student.full_name}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        {selectedStudentsCount > 3 && (
+                                            <div className="text-xs text-neutral-500">
+                                                +{selectedStudentsCount - 3} more students
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ) : (
-                            <div className="rounded-lg bg-neutral-50 p-3">
-                                <div className="text-sm text-neutral-600">
-                                    {messageTemplates.find((t) => t.id === selectedTemplateId)?.content || ''}
+                            <div className="flex h-64 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50">
+                                <div className="text-center">
+                                    <div className="text-sm text-neutral-600">
+                                        Select a template to see preview
+                                    </div>
+                                    <div className="mt-1 text-xs text-neutral-500">
+                                        Choose from the available templates on the left
+                                    </div>
                                 </div>
                             </div>
                         )}
                     </div>
-                )}
+                </div>
 
+                {/* Progress Section */}
                 {isBulkSending && studentMessageStatuses.length > 0 && (
-                    <div className="max-h-48 space-y-2 overflow-y-auto pr-2">
-                        <p className="mb-2 text-sm font-medium">
-                            Sending Progress (
-                            {
-                                studentMessageStatuses.filter(
-                                    (s) => s.status === 'sent' || s.status === 'failed'
-                                ).length
-                            }
-                            /{studentMessageStatuses.length}):
-                        </p>
-                        {studentMessageStatuses.map((s) => (
-                            <div
-                                key={s.userId}
-                                className="flex items-center justify-between rounded bg-neutral-100 p-1.5 text-xs"
-                            >
-                                <span className="max-w-[150px] truncate">{s.name}</span>
-                                <div className="shrink-0">
-                                    {s.status === 'pending' && (
-                                        <span className="text-neutral-500">Pending...</span>
-                                    )}
-                                    {s.status === 'sending' && (
-                                        <Spinner className="size-3 animate-spin text-blue-500" />
-                                    )}
-                                    {s.status === 'sent' && (
-                                        <span className="font-medium text-green-600">Sent</span>
-                                    )}
-                                    {s.status === 'failed' && (
-                                        <span className="font-medium text-red-600" title={s.error}>
-                                            Failed
-                                        </span>
-                                    )}
+                    <div className="rounded-lg border border-neutral-200 bg-white p-4">
+                        <div className="mb-3 flex items-center justify-between">
+                            <h5 className="text-sm font-semibold text-neutral-800">
+                                Sending Progress
+                            </h5>
+                            <span className="text-sm text-neutral-600">
+                                {
+                                    studentMessageStatuses.filter(
+                                        (s) => s.status === 'sent' || s.status === 'failed'
+                                    ).length
+                                }
+                                /{studentMessageStatuses.length}
+                            </span>
+                        </div>
+                        <div className="max-h-48 space-y-2 overflow-y-auto">
+                            {studentMessageStatuses.map((s) => (
+                                <div
+                                    key={s.userId}
+                                    className="flex items-center justify-between rounded bg-neutral-50 p-2 text-xs"
+                                >
+                                    <span className="max-w-[200px] truncate font-medium">
+                                        {s.name}
+                                    </span>
+                                    <div className="shrink-0">
+                                        {s.status === 'pending' && (
+                                            <span className="text-neutral-500">Pending...</span>
+                                        )}
+                                        {s.status === 'sending' && (
+                                            <div className="flex items-center gap-1">
+                                                <Spinner className="size-3 animate-spin text-blue-500" />
+                                                <span className="text-blue-600">Sending...</span>
+                                            </div>
+                                        )}
+                                        {s.status === 'sent' && (
+                                            <span className="font-medium text-green-600">
+                                                ✓ Sent
+                                            </span>
+                                        )}
+                                        {s.status === 'failed' && (
+                                            <span
+                                                className="font-medium text-red-600"
+                                                title={s.error}
+                                            >
+                                                ✗ Failed
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 )}
             </div>

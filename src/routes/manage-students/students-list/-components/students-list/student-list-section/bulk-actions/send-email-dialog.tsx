@@ -1,21 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { MyDialog } from '@/components/design-system/dialog';
-import { MyButton } from '@/components/design-system/button';
-import { MyInput } from '@/components/design-system/input';
-import { Textarea } from '@/components/ui/textarea';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+import React, { useState, useEffect } from 'react';
 import { useDialogStore } from '../../../../-hooks/useDialogStore';
-import { PaperPlaneTilt, Spinner, Eye, CircleNotch } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
-import { templateCacheService } from '@/services/template-cache-service';
 import { MessageTemplate } from '@/types/message-template-types';
+import { getInstituteId } from '@/constants/helper';
+import { TemplateSelectionDialog } from './template-selection-dialog';
+import { TemplateEditorDialog } from './template-editor-dialog';
+import { TemplatePreviewDialog } from './template-preview-dialog';
 
 // Email templates will be loaded dynamically from API
 
@@ -29,129 +20,130 @@ interface StudentEmailStatus {
     error?: string;
 }
 
-// Define placeholder variables that users can insert (only those with available data)
-const PLACEHOLDER_VARIABLES = [
-    { label: 'Student Name', value: '{{name}}' },
-    { label: 'Email Address', value: '{{email}}' },
-    { label: 'Mobile Number', value: '{{mobile_number}}' },
-    { label: 'Custom Message', value: '{{custom_message_text}}' },
-    { label: 'Current Date', value: '{{current_date}}' },
-];
-
 export const SendEmailDialog = () => {
     const { isSendEmailOpen, bulkActionInfo, selectedStudent, isBulkAction, closeAllDialogs } =
         useDialogStore();
-    const [emailSubject, setEmailSubject] = useState('');
-    const [emailBody, setEmailBody] = useState('');
-    const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+    const [selectedTemplate, setSelectedTemplate] = useState<MessageTemplate | null>(null);
     const [studentEmailStatuses, setStudentEmailStatuses] = useState<StudentEmailStatus[]>([]);
     const [isBulkEmailSending, setIsBulkEmailSending] = useState(false);
-    const [customMessage, setCustomMessage] = useState(
-        'Thank you for being part of our learning community.'
-    );
-    const [showPreviewModal, setShowPreviewModal] = useState(false);
-    const [emailTemplates, setEmailTemplates] = useState<MessageTemplate[]>([]);
-    const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
 
-    const emailSubjectRef = useRef<HTMLInputElement>(null);
-    const emailBodyRef = useRef<HTMLTextAreaElement>(null);
+    // New dialog states
+    const [showTemplateSelection, setShowTemplateSelection] = useState(false);
+    const [showTemplateEditor, setShowTemplateEditor] = useState(false);
+    const [showTemplatePreview, setShowTemplatePreview] = useState(false);
+    const [editingTemplate, setEditingTemplate] = useState<MessageTemplate | null>(null);
 
-    const loadEmailTemplates = async () => {
-        setIsLoadingTemplates(true);
-        try {
-            const templates = await templateCacheService.getTemplates('EMAIL');
-            setEmailTemplates(templates);
-        } catch (error) {
-            console.error('Error loading email templates:', error);
-            toast.error('Failed to load email templates');
-        } finally {
-            setIsLoadingTemplates(false);
-        }
+    const handleSelectEmailTemplate = (template: MessageTemplate) => {
+        setSelectedTemplate(template);
+        setShowTemplateSelection(false);
+        setShowTemplatePreview(true);
     };
 
-    const handleSelectEmailTemplate = (templateId: string) => {
-        const template = emailTemplates.find((t) => t.id === templateId);
-        if (template) {
-            setSelectedTemplateId(template.id);
-            setEmailSubject(template.subject ?? '');
-            setEmailBody(template.content);
-            toast.info(`Template "${template.name}" loaded.`);
-        }
+    const handleCreateNewTemplate = () => {
+        console.log('Creating new template - setting showTemplateEditor to true');
+        setEditingTemplate(null);
+        setShowTemplateSelection(false);
+        setShowTemplateEditor(true);
     };
 
-    // Function to insert placeholder at cursor position
-    const insertPlaceholder = (placeholder: string, isSubject: boolean = false) => {
-        const textarea = isSubject ? emailSubjectRef.current : emailBodyRef.current;
-        if (!textarea) return;
-
-        const start = textarea.selectionStart || 0;
-        const end = textarea.selectionEnd || 0;
-        const currentValue = isSubject ? emailSubject : emailBody;
-        const newValue =
-            currentValue.substring(0, start) + placeholder + currentValue.substring(end);
-
-        if (isSubject) {
-            setEmailSubject(newValue);
-        } else {
-            setEmailBody(newValue);
-        }
-
-        // Set cursor position after inserted placeholder
-        setTimeout(() => {
-            if (textarea) {
-                textarea.selectionStart = textarea.selectionEnd = start + placeholder.length;
-                textarea.focus();
-            }
-        }, 0);
+    const handleTemplateSavedAndSent = async (template: MessageTemplate) => {
+        // Use the template for sending
+        setSelectedTemplate(template);
+        setShowTemplateEditor(false);
+        setShowTemplatePreview(true);
+        // Send the email immediately
+        await handleSendBulkEmail();
     };
 
-    // Function to generate preview with sample data
-    const generatePreview = () => {
-        const students = isBulkAction
-            ? bulkActionInfo?.selectedStudents || []
-            : selectedStudent
-              ? [selectedStudent]
-              : [];
+    const handleSendEmail = async (template: MessageTemplate) => {
+        setSelectedTemplate(template);
+        setShowTemplatePreview(false);
+        await handleSendBulkEmail();
+    };
 
-        if (!students.length) return { subject: emailSubject, body: emailBody };
+    // Function to map template variables with actual student data
+    const mapTemplateVariables = (template: string, student: any): string => {
+        if (!template || !student) return template;
 
-        const sampleStudent = students[0];
-        if (!sampleStudent) return { subject: emailSubject, body: emailBody };
+        const currentDate = new Date();
+        const currentTime = currentDate.toLocaleTimeString();
+        const currentYear = currentDate.getFullYear().toString();
+        const currentMonth = (currentDate.getMonth() + 1).toString();
+        const currentDay = currentDate.getDate().toString();
 
-        const currentDate = new Date().toLocaleDateString();
+        // Create comprehensive variable mapping
+        const variableMap: Record<string, string> = {
+            // Student variables
+            '{{name}}': student.full_name || 'Student',
+            '{{student_name}}': student.full_name || 'Student',
+            '{{email}}': student.email || '',
+            '{{student_email}}': student.email || '',
+            '{{mobile_number}}': student.mobile_number || '',
+            '{{student_phone}}': student.mobile_number || '',
+            '{{student_id}}': student.user_id || '',
+            '{{enrollment_number}}': student.enrollment_number || student.user_id || '',
+            '{{username}}': student.username || student.email || '',
+            '{{registration_date}}': student.created_at ? new Date(student.created_at).toLocaleDateString() : '',
+            '{{student_unique_link}}': student.unique_link || '',
+            '{{student_referral_code}}': student.referral_code || '',
 
-        const replacements = {
-            '{{name}}': sampleStudent.full_name || 'John Doe',
-            '{{email}}': sampleStudent.email || 'john.doe@example.com',
-            '{{mobile_number}}': sampleStudent.mobile_number || '+1234567890',
-            '{{custom_message_text}}': customMessage,
-            '{{current_date}}': currentDate,
+            // Course variables (if available in student data)
+            '{{course_name}}': student.course_name || 'Your Course',
+            '{{course_description}}': student.course_description || 'Course Description',
+            '{{course_duration}}': student.course_duration || 'Course Duration',
+            '{{course_price}}': student.course_price || 'Course Price',
+
+            // Batch variables (if available in student data)
+            '{{batch_name}}': student.batch_name || 'Your Batch',
+            '{{batch_id}}': student.batch_id || '',
+            '{{batch_start_date}}': student.batch_start_date ? new Date(student.batch_start_date).toLocaleDateString() : '',
+            '{{batch_end_date}}': student.batch_end_date ? new Date(student.batch_end_date).toLocaleDateString() : '',
+
+            // Institute variables (if available in student data)
+            '{{institute_name}}': student.institute_name || 'Your Institute',
+            '{{institute_address}}': student.institute_address || 'Institute Address',
+            '{{institute_phone}}': student.institute_phone || 'Institute Phone',
+            '{{institute_email}}': student.institute_email || 'Institute Email',
+            '{{institute_website}}': student.institute_website || 'Institute Website',
+
+            // Attendance variables (if available in student data)
+            '{{attendance_status}}': student.attendance_status || 'Attendance Status',
+            '{{attendance_date}}': student.attendance_date ? new Date(student.attendance_date).toLocaleDateString() : '',
+            '{{attendance_percentage}}': student.attendance_percentage || '0',
+
+            // Custom variables
+            '{{custom_message_text}}': 'Thank you for being part of our learning community.',
+            '{{custom_field_1}}': student.custom_field_1 || '',
+            '{{custom_field_2}}': student.custom_field_2 || '',
+
+            // General variables
+            '{{current_date}}': currentDate.toLocaleDateString(),
+            '{{current_time}}': currentTime,
+            '{{year}}': currentYear,
+            '{{month}}': currentMonth,
+            '{{day}}': currentDay,
         };
 
-        let previewSubject = emailSubject;
-        let previewBody = emailBody;
-
-        // Replace all placeholders
-        Object.entries(replacements).forEach(([placeholder, value]) => {
-            previewSubject = previewSubject.replace(
-                new RegExp(placeholder.replace(/[{}]/g, '\\$&'), 'g'),
-                value
-            );
-            previewBody = previewBody.replace(
-                new RegExp(placeholder.replace(/[{}]/g, '\\$&'), 'g'),
-                value
-            );
+        // Replace all variables in the template
+        let mappedTemplate = template;
+        Object.entries(variableMap).forEach(([variable, value]) => {
+            const regex = new RegExp(variable.replace(/[{}]/g, '\\$&'), 'g');
+            mappedTemplate = mappedTemplate.replace(regex, value);
         });
 
-        return { subject: previewSubject, body: previewBody };
+        return mappedTemplate;
     };
 
     const handleSendBulkEmail = async () => {
-        const trimmedEmailSubject = emailSubject.trim();
-        const trimmedEmailBody = emailBody.trim();
+        if (!selectedTemplate) {
+            toast.error('No template selected.');
+            return;
+        }
 
+        const trimmedEmailSubject = selectedTemplate.subject?.trim() || '';
+        const trimmedEmailBody = selectedTemplate.content?.trim() || '';
         if (!trimmedEmailSubject || !trimmedEmailBody) {
-            toast.error('Subject and body are required.');
+            toast.error('Template subject and body are required.');
             return;
         }
 
@@ -178,7 +170,7 @@ export const SendEmailDialog = () => {
             missingNames: 0,
             missingEmails: 0,
             missingMobileNumbers: 0,
-            totalStudents: students.length
+            totalStudents: students.length,
         };
 
         const apiUsersPayload = studentEmailStatuses
@@ -200,14 +192,20 @@ export const SendEmailDialog = () => {
                     console.warn(`⚠️ Null mobile_number for student ${student.user_id}:`, student);
                 }
 
+                // Map template variables for this student
+                const mappedSubject = mapTemplateVariables(trimmedEmailSubject, student);
+                const mappedBody = mapTemplateVariables(trimmedEmailBody, student);
+
                 return {
                     user_id: student.user_id,
                     channel_id: student.email,
+                    subject: mappedSubject, // Send mapped subject
+                    body: mappedBody, // Send mapped body
                     placeholders: {
                         name: student.full_name || 'Student',
                         email: student.email || '',
                         mobile_number: student.mobile_number || '',
-                        custom_message_text: customMessage,
+                        custom_message_text: 'Thank you for being part of our learning community.',
                         current_date: new Date().toLocaleDateString(),
                     },
                 };
@@ -220,7 +218,7 @@ export const SendEmailDialog = () => {
             missingNames: nullValueReport.missingNames,
             missingEmails: nullValueReport.missingEmails,
             missingMobileNumbers: nullValueReport.missingMobileNumbers,
-            processedStudents: apiUsersPayload.length
+            processedStudents: apiUsersPayload.length,
         });
 
         if (apiUsersPayload.length === 0) {
@@ -232,66 +230,100 @@ export const SendEmailDialog = () => {
             return;
         }
 
-        // Prepare email body
-        const finalApiBody = trimmedEmailBody.replace(/\n/g, '<br />');
+        // Send individual requests for each student with personalized content
+        const instituteId = getInstituteId();
+        const baseUrl = `${import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io'}/notification-service/v1/send-email-to-users-public`;
+        const url = instituteId ? `${baseUrl}?instituteId=${instituteId}` : baseUrl;
 
-        const requestBody = {
-            body: finalApiBody,
-            notification_type: 'EMAIL',
-            subject: trimmedEmailSubject,
-            source: 'STUDENT_MANAGEMENT_BULK_EMAIL',
-            source_id: uuidv4(),
-            users: apiUsersPayload,
-        };
+        let successCount = 0;
+        let failureCount = 0;
+        const errors: string[] = [];
 
-        try {
-            const response = await fetch(
-                `${import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io'}/notification-service/v1/send-email-to-users-public`,
-                {
+        // Process each student individually
+        for (const userPayload of apiUsersPayload) {
+            try {
+                // Convert newlines to HTML for the personalized body
+                const personalizedBody = userPayload.body.replace(/\n/g, '<br />');
+
+                const requestBody = {
+                    body: personalizedBody,
+                    notification_type: 'EMAIL',
+                    subject: userPayload.subject,
+                    source: 'STUDENT_MANAGEMENT_BULK_EMAIL',
+                    source_id: uuidv4(),
+                    users: [{
+                        user_id: userPayload.user_id,
+                        channel_id: userPayload.channel_id,
+                        placeholders: userPayload.placeholders,
+                    }],
+                };
+
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(requestBody),
-                }
-            );
+                });
 
-            if (response.ok) {
-                toast.success(`Successfully sent request for ${apiUsersPayload.length} email(s).`, {
-                    id: 'bulk-email-progress',
-                });
+                if (response.ok) {
+                    successCount++;
+                    // Update status for this specific student
+                    setStudentEmailStatuses((prevStatuses) =>
+                        prevStatuses.map((s) =>
+                            s.userId === userPayload.user_id
+                                ? { ...s, status: 'sent' }
+                                : s
+                        )
+                    );
+                } else {
+                    failureCount++;
+                    const errorData = await response
+                        .json()
+                        .catch(() => ({ message: 'Failed to parse error response' }));
+                    const errorMsg = `Student ${userPayload.user_id}: ${errorData.message || response.statusText}`;
+                    errors.push(errorMsg);
+
+                    // Update status for this specific student
+                    setStudentEmailStatuses((prevStatuses) =>
+                        prevStatuses.map((s) =>
+                            s.userId === userPayload.user_id
+                                ? { ...s, status: 'failed', error: errorMsg }
+                                : s
+                        )
+                    );
+                }
+            } catch (error: any) {
+                failureCount++;
+                const errorMsg = `Student ${userPayload.user_id}: ${error.message || 'Network error'}`;
+                errors.push(errorMsg);
+
+                // Update status for this specific student
                 setStudentEmailStatuses((prevStatuses) =>
-                    prevStatuses.map((s) => ({ ...s, status: 'sent' }))
-                );
-            } else {
-                const errorData = await response
-                    .json()
-                    .catch(() => ({ message: 'Failed to parse error response' }));
-                console.error('API Error:', response.status, errorData);
-                toast.error(`API Error: ${errorData.message || response.statusText}`, {
-                    id: 'bulk-email-progress',
-                });
-                setStudentEmailStatuses((prevStatuses) =>
-                    prevStatuses.map((s) => ({
-                        ...s,
-                        status: 'failed',
-                        error: errorData.message || response.statusText,
-                    }))
+                    prevStatuses.map((s) =>
+                        s.userId === userPayload.user_id
+                            ? { ...s, status: 'failed', error: errorMsg }
+                            : s
+                    )
                 );
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error: any) {
-            console.error('Network or other error sending email:', error);
-            toast.error(`Error: ${error.message || 'An unexpected error occurred.'}`, {
+        }
+
+        // Show final results
+        if (successCount > 0 && failureCount === 0) {
+            toast.success(`Successfully sent ${successCount} personalized email(s).`, {
                 id: 'bulk-email-progress',
             });
-            setStudentEmailStatuses((prevStatuses) =>
-                prevStatuses.map((s) => ({
-                    ...s,
-                    status: 'failed',
-                    error: error.message || 'Network error',
-                }))
-            );
+        } else if (successCount > 0 && failureCount > 0) {
+            toast.warning(`Sent ${successCount} email(s), ${failureCount} failed.`, {
+                id: 'bulk-email-progress',
+            });
+            console.error('Email sending errors:', errors);
+        } else {
+            toast.error(`Failed to send all ${failureCount} email(s).`, {
+                id: 'bulk-email-progress',
+            });
+            console.error('Email sending errors:', errors);
         }
 
         setIsBulkEmailSending(false);
@@ -299,14 +331,16 @@ export const SendEmailDialog = () => {
 
     const handleClose = () => {
         if (isBulkEmailSending) return;
-        setEmailSubject('');
-        setEmailBody('');
-        setSelectedTemplateId('');
+        setSelectedTemplate(null);
         setStudentEmailStatuses([]);
+        setShowTemplateSelection(false);
+        setShowTemplateEditor(false);
+        setShowTemplatePreview(false);
+        setEditingTemplate(null);
         closeAllDialogs();
     };
 
-    // Initialize email statuses and load templates when dialog opens
+    // Initialize email statuses and show template selection when dialog opens
     useEffect(() => {
         if (isSendEmailOpen) {
             const students = isBulkAction
@@ -325,293 +359,70 @@ export const SendEmailDialog = () => {
                 }))
             );
 
-            // Load email templates
-            loadEmailTemplates();
+            // Automatically show template selection dialog
+            setShowTemplateSelection(true);
         }
     }, [isSendEmailOpen, bulkActionInfo, selectedStudent, isBulkAction]);
 
-    const recipientCount = studentEmailStatuses.length;
+    // Debug state changes
+    useEffect(() => {
+        console.log('Dialog states:', {
+            isSendEmailOpen,
+            showTemplateSelection,
+            showTemplateEditor,
+            showTemplatePreview,
+            editingTemplate: editingTemplate?.name || 'null',
+        });
+    }, [
+        isSendEmailOpen,
+        showTemplateSelection,
+        showTemplateEditor,
+        showTemplatePreview,
+        editingTemplate,
+    ]);
 
     return (
         <>
-            <MyDialog
-                heading="Send Email to Students"
-                open={isSendEmailOpen}
-                onOpenChange={handleClose}
-                dialogWidth="w-[90vw] max-w-2xl"
-                footer={
-                    <div className="flex items-center justify-end gap-2">
-                        <MyButton
-                            buttonType="secondary"
-                            scale="medium"
-                            onClick={handleClose}
-                            disable={isBulkEmailSending}
-                        >
-                            Cancel
-                        </MyButton>
-                        <MyButton
-                            buttonType="primary"
-                            scale="medium"
-                            onClick={handleSendBulkEmail}
-                            disable={
-                                !emailSubject.trim() ||
-                                !emailBody.trim() ||
-                                recipientCount === 0 ||
-                                isBulkEmailSending
-                            }
-                            className="min-w-[120px] bg-blue-600 text-white hover:bg-blue-700"
-                        >
-                            {isBulkEmailSending ? (
-                                <>
-                                    <Spinner className="mr-2 size-4 animate-spin" />
-                                    Sending...
-                                </>
-                            ) : (
-                                <>
-                                    <PaperPlaneTilt className="mr-2 size-4" />
-                                    Send to {recipientCount}
-                                </>
-                            )}
-                        </MyButton>
-                    </div>
-                }
-            >
-                <div className="space-y-4">
-                    <div className="mb-4 text-sm text-neutral-600">
-                        Compose your email below. {recipientCount} student(s) with email addresses
-                        will receive it.
-                    </div>
+            {/* Template Selection Dialog - Shows directly when isSendEmailOpen is true */}
+            <TemplateSelectionDialog
+                isOpen={isSendEmailOpen && showTemplateSelection}
+                onClose={handleClose}
+                onSelectTemplate={handleSelectEmailTemplate}
+                onCreateNew={handleCreateNewTemplate}
+                studentEmailStatuses={studentEmailStatuses}
+                isBulkEmailSending={isBulkEmailSending}
+                onSendEmail={async (template: MessageTemplate) => {
+                    setSelectedTemplate(template);
+                    setShowTemplateSelection(false);
+                    await handleSendBulkEmail();
+                }}
+            />
 
-                    {/* Template Selection */}
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-neutral-700">
-                            Email Template (Optional)
-                        </label>
-                        <Select
-                            value={selectedTemplateId}
-                            onValueChange={(value: string) => {
-                                if (value && value !== 'none') {
-                                    handleSelectEmailTemplate(value);
-                                } else {
-                                    setSelectedTemplateId('');
-                                    setEmailSubject('');
-                                    setEmailBody('');
-                                }
-                            }}
-                            disabled={isBulkEmailSending || isLoadingTemplates}
-                        >
-                            <SelectTrigger className="w-full">
-                                <SelectValue
-                                    placeholder={
-                                        isLoadingTemplates
-                                            ? 'Loading templates...'
-                                            : 'Select a template'
-                                    }
-                                />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="none">No template - Start fresh</SelectItem>
-                                {isLoadingTemplates ? (
-                                    <SelectItem value="loading" disabled>
-                                        <div className="flex items-center gap-2">
-                                            <CircleNotch className="size-4 animate-spin" />
-                                            Loading templates...
-                                        </div>
-                                    </SelectItem>
-                                ) : (
-                                    emailTemplates.map((template) => (
-                                        <SelectItem key={template.id} value={template.id}>
-                                            {template.name}
-                                        </SelectItem>
-                                    ))
-                                )}
-                            </SelectContent>
-                        </Select>
-                    </div>
+            {/* Template Editor Dialog */}
+            <TemplateEditorDialog
+                isOpen={showTemplateEditor}
+                onClose={() => {
+                    console.log('Closing template editor');
+                    setShowTemplateEditor(false);
+                }}
+                onSaveAndSend={handleTemplateSavedAndSent}
+                template={editingTemplate}
+                isSending={isBulkEmailSending}
+                primaryButtonText="Save & Send"
+                showPreviewButton={true}
+            />
 
-                    {/* Subject */}
-                    <div>
-                        <div className="mb-2 flex items-center justify-between">
-                            <label className="text-sm font-medium text-neutral-700">
-                                Subject *
-                            </label>
-                            <MyButton
-                                buttonType="secondary"
-                                scale="small"
-                                onClick={() => setShowPreviewModal(true)}
-                                disabled={!emailSubject.trim() && !emailBody.trim()}
-                                className="text-xs"
-                            >
-                                <Eye className="mr-1 size-3" />
-                                Show Preview
-                            </MyButton>
-                        </div>
-                        <MyInput
-                            ref={emailSubjectRef}
-                            inputType="text"
-                            input={emailSubject}
-                            onChangeFunction={(e) => setEmailSubject(e.target.value)}
-                            inputPlaceholder="Your email subject"
-                            disabled={isBulkEmailSending}
-                        />
-                        <div className="mt-2 flex flex-wrap gap-1">
-                            {PLACEHOLDER_VARIABLES.slice(0, 4).map((placeholder) => (
-                                <MyButton
-                                    key={placeholder.value}
-                                    buttonType="secondary"
-                                    scale="small"
-                                    onClick={() => insertPlaceholder(placeholder.value, true)}
-                                    disabled={isBulkEmailSending}
-                                    className="px-2 py-1 text-xs"
-                                >
-                                    {placeholder.label}
-                                </MyButton>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Body */}
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-neutral-700">
-                            Body *
-                        </label>
-                        <div className="mb-2 text-xs text-neutral-600">
-                            Click buttons below to insert variables:
-                        </div>
-                        <div className="mb-3 flex flex-wrap gap-1">
-                            {PLACEHOLDER_VARIABLES.map((placeholder) => (
-                                <MyButton
-                                    key={placeholder.value}
-                                    buttonType="secondary"
-                                    scale="small"
-                                    onClick={() => insertPlaceholder(placeholder.value)}
-                                    disabled={isBulkEmailSending}
-                                    className="px-2 py-1 text-xs hover:bg-blue-50 hover:text-blue-700"
-                                >
-                                    {placeholder.label}
-                                </MyButton>
-                            ))}
-                        </div>
-                        <Textarea
-                            ref={emailBodyRef}
-                            value={emailBody}
-                            onChange={(e) => setEmailBody(e.target.value)}
-                            placeholder="Type your email message here... Click the buttons above to insert variables."
-                            disabled={isBulkEmailSending}
-                            className="min-h-[200px]"
-                        />
-                    </div>
-
-                    {/* Custom Message Field */}
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-neutral-700">
-                            Custom Message Text (for custom_message_text placeholder)
-                        </label>
-                        <MyInput
-                            inputType="text"
-                            input={customMessage}
-                            onChangeFunction={(e) => setCustomMessage(e.target.value)}
-                            inputPlaceholder="Enter your custom message..."
-                            disabled={isBulkEmailSending}
-                        />
-                    </div>
-
-                    {/* Sending Progress */}
-                    {isBulkEmailSending && studentEmailStatuses.length > 0 && (
-                        <div className="max-h-48 space-y-2 overflow-y-auto pr-2">
-                            <p className="mb-2 text-sm font-medium">
-                                Sending Progress (
-                                {
-                                    studentEmailStatuses.filter(
-                                        (s) => s.status === 'sent' || s.status === 'failed'
-                                    ).length
-                                }
-                                /{studentEmailStatuses.length}):
-                            </p>
-                            {studentEmailStatuses.map((s) => (
-                                <div
-                                    key={s.userId}
-                                    className="flex items-center justify-between rounded bg-neutral-100 p-1.5 text-xs"
-                                >
-                                    <span className="max-w-[200px] truncate">
-                                        {s.name} ({s.email})
-                                    </span>
-                                    <div className="shrink-0">
-                                        {s.status === 'pending' && (
-                                            <span className="text-neutral-500">Pending...</span>
-                                        )}
-                                        {s.status === 'sending' && (
-                                            <Spinner className="size-3 animate-spin text-blue-500" />
-                                        )}
-                                        {s.status === 'sent' && (
-                                            <span className="font-medium text-green-600">Sent</span>
-                                        )}
-                                        {s.status === 'failed' && (
-                                            <span
-                                                className="font-medium text-red-600"
-                                                title={s.error}
-                                            >
-                                                Failed
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </MyDialog>
-
-            {/* Email Preview Modal */}
-            <MyDialog
-                heading="Email Preview"
-                open={showPreviewModal}
-                onOpenChange={setShowPreviewModal}
-                dialogWidth="w-[90vw] max-w-2xl"
-                footer={
-                    <div className="flex items-center justify-end">
-                        <MyButton
-                            buttonType="secondary"
-                            scale="medium"
-                            onClick={() => setShowPreviewModal(false)}
-                        >
-                            Close
-                        </MyButton>
-                    </div>
-                }
-            >
-                <div className="space-y-4">
-                    <div className="mb-4 flex items-center gap-2 text-sm text-neutral-600">
-                        <Eye className="size-4 text-blue-600" />
-                        <span>Preview using data from the first selected student</span>
-                    </div>
-
-                    {generatePreview().subject && (
-                        <div className="space-y-2">
-                            <div className="text-sm font-medium text-neutral-700">Subject:</div>
-                            <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3 text-neutral-800">
-                                {generatePreview().subject}
-                            </div>
-                        </div>
-                    )}
-
-                    {generatePreview().body && (
-                        <div className="space-y-2">
-                            <div className="text-sm font-medium text-neutral-700">Email Body:</div>
-                            <div className="max-h-96 overflow-y-auto whitespace-pre-wrap rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-neutral-800">
-                                {generatePreview().body}
-                            </div>
-                        </div>
-                    )}
-
-                    {!generatePreview().subject && !generatePreview().body && (
-                        <div className="py-8 text-center text-neutral-500">
-                            <Eye className="mx-auto mb-2 size-8 opacity-50" />
-                            <p>No content to preview. Add a subject or body to see the preview.</p>
-                        </div>
-                    )}
-                </div>
-            </MyDialog>
+            {/* Template Preview Dialog */}
+            <TemplatePreviewDialog
+                isOpen={showTemplatePreview}
+                onClose={() => {
+                    setShowTemplatePreview(false);
+                    setShowTemplateSelection(true);
+                }}
+                template={selectedTemplate}
+                onUseTemplate={handleSendEmail}
+                isSending={isBulkEmailSending}
+            />
         </>
     );
 };

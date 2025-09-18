@@ -14,7 +14,7 @@ import Typography from '@tiptap/extension-typography';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Eye, Code, Monitor, Tablet, Smartphone } from 'lucide-react';
+import { Eye, Code, Monitor, Tablet, Smartphone, FileText } from 'lucide-react';
 import './EmailRichTextEditor.css';
 
 interface EmailRichTextEditorProps {
@@ -25,6 +25,7 @@ interface EmailRichTextEditorProps {
   minHeight?: number | string;
   className?: string;
   onInsertVariable?: (variable: string) => void;
+  subject?: string;
 }
 
 export function EmailRichTextEditor({
@@ -35,6 +36,7 @@ export function EmailRichTextEditor({
   minHeight = 200,
   className = '',
   onInsertVariable,
+  subject = '',
 }: EmailRichTextEditorProps) {
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
@@ -150,28 +152,28 @@ export function EmailRichTextEditor({
     <div className={`rounded-md border bg-white shadow-sm ${className || ''}`.trim()}>
       {/* View Toggle Buttons */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between border-b p-3 gap-3">
-        <div className="flex items-center gap-2">
+        <div className="toggle-button-group flex items-center gap-1 p-1">
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => setContentView('editor')}
-            className={`flex items-center gap-2 ${
+            className={`flex items-center gap-2 transition-all duration-200 rounded-md ${
               contentView === 'editor'
-                ? 'bg-primary-600 text-white border-primary-600 font-semibold'
-                : 'text-gray-600 hover:bg-gray-50'
+                ? 'toggle-button-active'
+                : 'toggle-button-inactive'
             }`}
           >
-            <Code className="size-4" />
+            <FileText className="size-4" />
             Rich Editor
           </Button>
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => setContentView('source')}
-            className={`flex items-center gap-2 ${
+            className={`flex items-center gap-2 transition-all duration-200 rounded-md ${
               contentView === 'source'
-                ? 'bg-primary-600 text-white border-primary-600 font-semibold'
-                : 'text-gray-600 hover:bg-gray-50'
+                ? 'toggle-button-active'
+                : 'toggle-button-inactive'
             }`}
           >
             <Code className="size-4" />
@@ -515,6 +517,12 @@ export function EmailRichTextEditor({
                   </div>
                 </div>
                 <div className="p-6 min-h-[200px]">
+                  {subject && (
+                    <div className="mb-4 pb-4 border-b border-gray-200">
+                      <div className="text-sm font-medium text-gray-600 mb-1">Subject:</div>
+                      <div className="text-lg font-semibold text-gray-900">{subject}</div>
+                    </div>
+                  )}
                   {value ? (
                     <div
                       className="prose prose-sm max-w-none"
