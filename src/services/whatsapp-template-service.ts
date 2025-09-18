@@ -91,10 +91,7 @@ export class WhatsAppTemplateService {
                 components: [
                     {
                         type: 'BODY',
-                        text: 'Hi {{1}}, you have been successfully enrolled in the course {{2}}. Your start date is {{3}}.',
-                        example: {
-                            body_text: ['John', 'Introduction to Python', 'October 1, 2025']
-                        }
+                        text: 'Hi {{1}}, you have been successfully enrolled in the course {{2}}. Your start date is {{3}}.'
                     }
                 ],
                 createdAt: '2024-01-20T10:00:00Z',
@@ -110,9 +107,6 @@ export class WhatsAppTemplateService {
                     {
                         type: 'BODY',
                         text: 'Hi {{1}}, this is a reminder that your assignment {{2}} is due on {{3}}.',
-                        example: {
-                            body_text: ['Sarah', 'Math Homework', 'January 25, 2024']
-                        }
                     }
                 ],
                 createdAt: '2024-01-19T10:00:00Z',
@@ -128,9 +122,6 @@ export class WhatsAppTemplateService {
                     {
                         type: 'BODY',
                         text: 'Congratulations {{1}}! You have successfully completed the {{2}} batch. Your certificate is ready for download.',
-                        example: {
-                            body_text: ['Alex', 'Web Development']
-                        }
                     }
                 ],
                 createdAt: '2024-01-18T10:00:00Z',
@@ -146,9 +137,6 @@ export class WhatsAppTemplateService {
                     {
                         type: 'BODY',
                         text: 'Exciting news! A new batch of {{1}} is starting on {{2}}. Register now to secure your spot!',
-                        example: {
-                            body_text: ['Data Science', 'February 1, 2024']
-                        }
                     }
                 ],
                 createdAt: '2024-01-17T10:00:00Z',

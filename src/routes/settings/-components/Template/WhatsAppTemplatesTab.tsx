@@ -178,6 +178,7 @@ export const WhatsAppTemplatesTab: React.FC = () => {
             const timer = setTimeout(() => setSuccess(null), 3000);
             return () => clearTimeout(timer);
         }
+        return undefined;
     }, [success]);
 
     useEffect(() => {
@@ -185,6 +186,7 @@ export const WhatsAppTemplatesTab: React.FC = () => {
             const timer = setTimeout(() => setError(null), 5000);
             return () => clearTimeout(timer);
         }
+        return undefined;
     }, [error]);
 
     const approvedTemplates = filteredTemplates.filter(t => t.status === 'APPROVED');

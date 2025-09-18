@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, Mail } from 'lucide-react';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
-import { EmailTemplatesTab } from './EmailTemplatesTab';
-import { WhatsAppTemplatesTab } from './WhatsAppTemplatesTab';
+import { EmailTemplatesTab } from './email/EmailTemplatesTab';
+import { WhatsAppTemplatesTab } from '@/routes/settings/-components/Template/WhatsAppTemplatesTab';
 
 export default function TemplateSettings() {
     const [activeTab, setActiveTab] = useState<'email' | 'whatsapp'>('email');
@@ -11,14 +11,14 @@ export default function TemplateSettings() {
     return (
         <div className="space-y-6">
             {/* Header */}
-                <div className="space-y-1">
-                    <h1 className="flex items-center gap-2 text-lg font-bold">
-                        <FileText className="size-6" />
-                        Template Settings
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                        Create and manage email and WhatsApp message templates for bulk actions
-                    </p>
+            <div className="space-y-1">
+                <h1 className="flex items-center gap-2 text-lg font-bold">
+                    <FileText className="size-6" />
+                    Template Settings
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                    Create and manage email and WhatsApp message templates for bulk actions
+                </p>
             </div>
 
             {/* Tabbed Interface */}

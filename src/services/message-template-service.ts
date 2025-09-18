@@ -65,18 +65,18 @@ export const createMessageTemplate = async (
             },
             body: JSON.stringify({
                 type: template.type,
-                vendorId: 'default', // You may need to get this from context
+                vendorId: 'default',
                 instituteId: instituteId,
                 name: template.name,
                 subject: template.subject || '',
                 content: template.content,
                 contentType: 'text/plain',
-                settingJson: JSON.stringify({
-                    variables: template.variables,
-                    isDefault: template.isDefault,
-                }),
+                settingJson: {
+                    variables: template.variables || [],
+                    isDefault: template.isDefault || false,
+                },
                 canDelete: true,
-                createdBy: 'current-user', // You may need to get this from auth context
+                createdBy: 'current-user',
                 updatedBy: 'current-user',
             }),
         });
@@ -264,10 +264,10 @@ export const updateMessageTemplate = async (
                 subject: updateData.subject || '',
                 content: updateData.content || '',
                 contentType: 'text/plain',
-                settingJson: JSON.stringify({
+                settingJson: {
                     variables: updateData.variables || [],
                     isDefault: updateData.isDefault || false,
-                }),
+                },
                 canDelete: true,
                 updatedBy: 'current-user',
             }),

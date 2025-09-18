@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, Mail } from 'lucide-react';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
-import { EmailTemplatesTab } from './EmailTemplatesTab';
+import { EmailTemplatesTab } from '@/components/templates/email/EmailTemplatesTab';
 import { WhatsAppTemplatesTab } from './WhatsAppTemplatesTab';
 
 export default function TemplateSettings() {

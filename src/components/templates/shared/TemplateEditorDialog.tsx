@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { EmailRichTextEditor } from '@/routes/settings/-components/Template/EmailRichTextEditor';
+import { EmailRichTextEditor } from './EmailRichTextEditor';
 import {
     Select,
     SelectContent,
@@ -29,7 +29,7 @@ import {
     Award,
     Database,
 } from 'lucide-react';
-import { extractVariablesFromContent } from '@/routes/settings/-components/Template/TemplateEditorUtils';
+import { extractVariablesFromContent } from './TemplateEditorUtils';
 import { createMessageTemplate, updateMessageTemplate } from '@/services/message-template-service';
 import { templateCacheService } from '@/services/template-cache-service';
 import { toast } from 'sonner';

@@ -5,8 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { MessageTemplate } from '@/types/message-template-types';
 import { getInstituteId } from '@/constants/helper';
 import { TemplateSelectionDialog } from './template-selection-dialog';
-import { TemplateEditorDialog } from './template-editor-dialog';
-import { TemplatePreviewDialog } from './template-preview-dialog';
+import { TemplateEditorDialog, TemplatePreviewDialog } from '@/components/templates/shared';
+import { mapTemplateVariables } from '@/utils/template-variable-mapper';
 
 // Email templates will be loaded dynamically from API
 
@@ -61,78 +61,6 @@ export const SendEmailDialog = () => {
         await handleSendBulkEmail();
     };
 
-    // Function to map template variables with actual student data
-    const mapTemplateVariables = (template: string, student: any): string => {
-        if (!template || !student) return template;
-
-        const currentDate = new Date();
-        const currentTime = currentDate.toLocaleTimeString();
-        const currentYear = currentDate.getFullYear().toString();
-        const currentMonth = (currentDate.getMonth() + 1).toString();
-        const currentDay = currentDate.getDate().toString();
-
-        // Create comprehensive variable mapping
-        const variableMap: Record<string, string> = {
-            // Student variables
-            '{{name}}': student.full_name || 'Student',
-            '{{student_name}}': student.full_name || 'Student',
-            '{{email}}': student.email || '',
-            '{{student_email}}': student.email || '',
-            '{{mobile_number}}': student.mobile_number || '',
-            '{{student_phone}}': student.mobile_number || '',
-            '{{student_id}}': student.user_id || '',
-            '{{enrollment_number}}': student.enrollment_number || student.user_id || '',
-            '{{username}}': student.username || student.email || '',
-            '{{registration_date}}': student.created_at ? new Date(student.created_at).toLocaleDateString() : '',
-            '{{student_unique_link}}': student.unique_link || '',
-            '{{student_referral_code}}': student.referral_code || '',
-
-            // Course variables (if available in student data)
-            '{{course_name}}': student.course_name || 'Your Course',
-            '{{course_description}}': student.course_description || 'Course Description',
-            '{{course_duration}}': student.course_duration || 'Course Duration',
-            '{{course_price}}': student.course_price || 'Course Price',
-
-            // Batch variables (if available in student data)
-            '{{batch_name}}': student.batch_name || 'Your Batch',
-            '{{batch_id}}': student.batch_id || '',
-            '{{batch_start_date}}': student.batch_start_date ? new Date(student.batch_start_date).toLocaleDateString() : '',
-            '{{batch_end_date}}': student.batch_end_date ? new Date(student.batch_end_date).toLocaleDateString() : '',
-
-            // Institute variables (if available in student data)
-            '{{institute_name}}': student.institute_name || 'Your Institute',
-            '{{institute_address}}': student.institute_address || 'Institute Address',
-            '{{institute_phone}}': student.institute_phone || 'Institute Phone',
-            '{{institute_email}}': student.institute_email || 'Institute Email',
-            '{{institute_website}}': student.institute_website || 'Institute Website',
-
-            // Attendance variables (if available in student data)
-            '{{attendance_status}}': student.attendance_status || 'Attendance Status',
-            '{{attendance_date}}': student.attendance_date ? new Date(student.attendance_date).toLocaleDateString() : '',
-            '{{attendance_percentage}}': student.attendance_percentage || '0',
-
-            // Custom variables
-            '{{custom_message_text}}': 'Thank you for being part of our learning community.',
-            '{{custom_field_1}}': student.custom_field_1 || '',
-            '{{custom_field_2}}': student.custom_field_2 || '',
-
-            // General variables
-            '{{current_date}}': currentDate.toLocaleDateString(),
-            '{{current_time}}': currentTime,
-            '{{year}}': currentYear,
-            '{{month}}': currentMonth,
-            '{{day}}': currentDay,
-        };
-
-        // Replace all variables in the template
-        let mappedTemplate = template;
-        Object.entries(variableMap).forEach(([variable, value]) => {
-            const regex = new RegExp(variable.replace(/[{}]/g, '\\$&'), 'g');
-            mappedTemplate = mappedTemplate.replace(regex, value);
-        });
-
-        return mappedTemplate;
-    };
 
     const handleSendBulkEmail = async () => {
         if (!selectedTemplate) {
@@ -193,8 +121,14 @@ export const SendEmailDialog = () => {
                 }
 
                 // Map template variables for this student
-                const mappedSubject = mapTemplateVariables(trimmedEmailSubject, student);
-                const mappedBody = mapTemplateVariables(trimmedEmailBody, student);
+                const mappedSubject = mapTemplateVariables(trimmedEmailSubject, {
+                    context: 'student-management',
+                    student: student
+                });
+                const mappedBody = mapTemplateVariables(trimmedEmailBody, {
+                    context: 'student-management',
+                    student: student
+                });
 
                 return {
                     user_id: student.user_id,
@@ -231,9 +165,9 @@ export const SendEmailDialog = () => {
         }
 
         // Send individual requests for each student with personalized content
-        const instituteId = getInstituteId();
-        const baseUrl = `${import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io'}/notification-service/v1/send-email-to-users-public`;
-        const url = instituteId ? `${baseUrl}?instituteId=${instituteId}` : baseUrl;
+            const instituteId = getInstituteId();
+            const baseUrl = `${import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io'}/notification-service/v1/send-email-to-users-public`;
+            const url = instituteId ? `${baseUrl}?instituteId=${instituteId}` : baseUrl;
 
         let successCount = 0;
         let failureCount = 0;
@@ -241,6 +175,11 @@ export const SendEmailDialog = () => {
 
         // Process each student individually
         for (const userPayload of apiUsersPayload) {
+            if (!userPayload) {
+                console.warn('Skipping null user payload');
+                continue;
+            }
+
             try {
                 // Convert newlines to HTML for the personalized body
                 const personalizedBody = userPayload.body.replace(/\n/g, '<br />');
@@ -258,29 +197,29 @@ export const SendEmailDialog = () => {
                     }],
                 };
 
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestBody),
-                });
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody),
+            });
 
-                if (response.ok) {
+            if (response.ok) {
                     successCount++;
                     // Update status for this specific student
-                    setStudentEmailStatuses((prevStatuses) =>
+                setStudentEmailStatuses((prevStatuses) =>
                         prevStatuses.map((s) =>
                             s.userId === userPayload.user_id
                                 ? { ...s, status: 'sent' }
                                 : s
                         )
-                    );
-                } else {
+                );
+            } else {
                     failureCount++;
-                    const errorData = await response
-                        .json()
-                        .catch(() => ({ message: 'Failed to parse error response' }));
+                const errorData = await response
+                    .json()
+                    .catch(() => ({ message: 'Failed to parse error response' }));
                     const errorMsg = `Student ${userPayload.user_id}: ${errorData.message || response.statusText}`;
                     errors.push(errorMsg);
 
@@ -343,6 +282,12 @@ export const SendEmailDialog = () => {
     // Initialize email statuses and show template selection when dialog opens
     useEffect(() => {
         if (isSendEmailOpen) {
+            console.log('🎯 SendEmailDialog: Dialog opened, initializing...', {
+                isBulkAction,
+                selectedStudentsCount: bulkActionInfo?.selectedStudents?.length || 0,
+                selectedStudent: selectedStudent?.full_name || 'none'
+            });
+
             const students = isBulkAction
                 ? bulkActionInfo?.selectedStudents || []
                 : selectedStudent
@@ -360,7 +305,15 @@ export const SendEmailDialog = () => {
             );
 
             // Automatically show template selection dialog
+            console.log('🎯 SendEmailDialog: Setting showTemplateSelection to true');
             setShowTemplateSelection(true);
+        } else {
+            // Reset states when dialog closes
+            console.log('🎯 SendEmailDialog: Dialog closed, resetting states');
+            setShowTemplateSelection(false);
+            setShowTemplateEditor(false);
+            setShowTemplatePreview(false);
+            setEditingTemplate(null);
         }
     }, [isSendEmailOpen, bulkActionInfo, selectedStudent, isBulkAction]);
 
@@ -391,11 +344,7 @@ export const SendEmailDialog = () => {
                 onCreateNew={handleCreateNewTemplate}
                 studentEmailStatuses={studentEmailStatuses}
                 isBulkEmailSending={isBulkEmailSending}
-                onSendEmail={async (template: MessageTemplate) => {
-                    setSelectedTemplate(template);
-                    setShowTemplateSelection(false);
-                    await handleSendBulkEmail();
-                }}
+                onSendEmail={handleSendEmail}
             />
 
             {/* Template Editor Dialog */}

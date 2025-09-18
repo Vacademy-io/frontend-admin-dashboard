@@ -116,6 +116,13 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
         setFormData((prev) => ({ ...prev, variables: allVariables }));
     };
 
+    const handleInsertVariable = (variable: string) => {
+        // For rich text editor, we'll insert the variable directly
+        const currentContent = formData.content;
+        const newContent = currentContent + (currentContent ? ' ' : '') + variable;
+        setFormData((prev) => ({ ...prev, content: newContent }));
+    };
+
     const getTemplateTypeOptions = (name?: string): 'marketing' | 'utility' | 'transactional' => {
         const templateName = (name || formData.name).toLowerCase();
 
@@ -127,13 +134,6 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
             return 'transactional';
 
         return 'utility';
-    };
-
-    const handleInsertVariable = (variable: string) => {
-        // For rich text editor, we'll insert the variable directly
-        const currentContent = formData.content;
-        const newContent = currentContent + (currentContent ? ' ' : '') + variable;
-        setFormData((prev) => ({ ...prev, content: newContent }));
     };
 
     const getCategoryIcon = (category: string) => {
