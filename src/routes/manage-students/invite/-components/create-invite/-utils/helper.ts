@@ -597,112 +597,151 @@ export function getPaymentOptionBySessionId(
 export function convertReferralData(data: ReferralData[]) {
     if (!data) return [];
 
-    // Helper function to convert benefit format to UI format
-    const convertBenefitToUiFormat = (benefitData: Record<string, unknown>) => {
-        const benefitValue = benefitData.benefitValue as Record<string, unknown>;
+    // Import the conversion logic from the referral service
+    const convertFromApiFormat = (apiResponse: ReferralData) => {
+        try {
+            const referrerDiscountData = JSON.parse(apiResponse.referrer_discount_json);
+            const refereeDiscountData = JSON.parse(apiResponse.referee_discount_json);
 
-        switch (benefitData.benefitType) {
-            case 'PERCENTAGE_DISCOUNT':
+            // Helper function to convert new tier format to referee reward
+            const convertNewTierFormatToRefereeReward = (tierData: Record<string, unknown>) => {
+                const tiers = tierData.tiers as Array<Record<string, unknown>>;
+                if (tiers && tiers[0]) {
+                    const firstTier = tiers[0];
+                    const benefits = firstTier.benefits as Array<Record<string, unknown>>;
+                    if (benefits && benefits[0]) {
+                        return convertBenefitToReward(benefits[0]);
+                    }
+                }
+
+                // Fallback to default
                 return {
                     type: 'discount_percentage',
-                    value: (benefitValue?.percentage as number) || 0,
+                    value: 10,
+                    currency: 'USD',
+                };
+            };
+
+            // Helper function to convert new tier format to referrer rewards
+            const convertNewTierFormatToReferrerRewards = (tierData: Record<string, unknown>) => {
+                const tiers = tierData.tiers as Array<Record<string, unknown>>;
+                if (tiers && Array.isArray(tiers)) {
+                    return tiers.map((tier) => {
+                        const benefits = tier.benefits as Array<Record<string, unknown>>;
+                        const benefit = benefits && benefits[0] ? benefits[0] : null;
+
+                        const referralRange = tier.referralRange as Record<string, unknown>;
+
+                        // Convert to the simplified format expected by the form
+                        return {
+                            referralCount: (referralRange?.min as number) || 1,
+                            type: benefit ? getBenefitType(benefit) : 'discount_percentage',
+                        };
+                    });
+                }
+                return [];
+            };
+
+            // Helper function to convert benefit to reward (with enhanced fields but fallback to form schema)
+            const convertBenefitToReward = (benefit: Record<string, unknown>) => {
+                const benefitValue = benefit.value as Record<string, unknown>;
+                const type = getBenefitType(benefit);
+
+                const reward = {
+                    type,
+                    value: getRewardValue(benefit, benefitValue, type),
                     currency: 'INR',
+                    // Enhanced fields for display (will be preserved but form schema only requires the basic structure)
+                    ...(type === 'bonus_content' && {
+                        contentType: (benefitValue?.contentUrl as string) ? 'link' : 'upload',
+                        contentUrl: benefitValue?.contentUrl as string,
+                        fileIds: benefitValue?.fileIds as string[],
+                        template: benefitValue?.templateId as string,
+                        title: (benefit.description as string) || 'Bonus Content',
+                    }),
+                    ...(type === 'points_system' && {
+                        pointsPerReferral: (benefitValue?.points as number) || 0,
+                        pointTriggers:
+                            (benefit.pointTriggers as Array<Record<string, unknown>>) || [],
+                    }),
                 };
-            case 'FLAT':
-                return {
-                    type: 'discount_fixed',
-                    value: (benefitValue?.amount as number) || 0,
-                    currency: 'INR',
-                };
-            case 'FREE_MEMBERSHIP_DAYS':
-                return {
-                    type: 'free_days',
-                    value: (benefitValue?.free_days as number) || 0,
-                    currency: 'INR',
-                };
-            case 'CONTENT':
-                return {
-                    type: 'bonus_content',
-                    value: 0,
-                    currency: 'INR',
-                };
-            default: {
-                // Fallback to old format if it exists
-                const oldFormatReward = benefitData as Record<
-                    string,
-                    { type?: string; value?: number; currency?: string }
-                >;
-                return {
-                    type: oldFormatReward?.reward?.type || '',
-                    value: oldFormatReward?.reward?.value || 0,
-                    currency: oldFormatReward?.reward?.currency || 'INR',
-                };
-            }
+
+                return reward;
+            };
+
+            // Helper function to get benefit type
+            const getBenefitType = (benefit: Record<string, unknown>) => {
+                switch (benefit.type) {
+                    case 'PERCENTAGE_DISCOUNT':
+                        return 'discount_percentage';
+                    case 'FLAT_DISCOUNT':
+                        return 'discount_fixed';
+                    case 'FREE_MEMBERSHIP_DAYS':
+                        return 'free_days';
+                    case 'CONTENT':
+                        return 'bonus_content';
+                    case 'POINTS':
+                        return 'points_system';
+                    default:
+                        return 'discount_percentage';
+                }
+            };
+
+            // Helper function to get reward value
+            const getRewardValue = (
+                benefit: Record<string, unknown>,
+                benefitValue: Record<string, unknown>,
+                type: string
+            ) => {
+                switch (type) {
+                    case 'discount_percentage':
+                        return (benefitValue?.percentage as number) || 0;
+                    case 'discount_fixed':
+                        return (benefitValue?.amount as number) || 0;
+                    case 'free_days':
+                        return (benefitValue?.days as number) || 0;
+                    case 'points_system':
+                        return (benefitValue?.points as number) || 0;
+                    case 'bonus_content':
+                        return 0; // Content benefits don't have a numeric value
+                    default:
+                        return 10;
+                }
+            };
+
+            // Handle referee reward - convert from new tier-based format
+            const refereeReward = convertNewTierFormatToRefereeReward(refereeDiscountData);
+
+            // Handle referrer rewards - convert from new tier-based format
+            const referrerRewards = convertNewTierFormatToReferrerRewards(referrerDiscountData);
+
+            return {
+                id: apiResponse.id,
+                name: apiResponse.name,
+                refereeBenefit: refereeReward,
+                referrerBenefit: referrerRewards,
+                vestingPeriod: apiResponse.referrer_vesting_days,
+                combineOffers: true,
+            };
+        } catch (error) {
+            console.error('Error parsing referral option data:', error);
+            // Return fallback data
+            return {
+                id: apiResponse.id,
+                name: apiResponse.name,
+                refereeBenefit: {
+                    type: 'discount_percentage',
+                    value: 10,
+                    currency: 'USD',
+                },
+                referrerBenefit: [],
+                vestingPeriod: apiResponse.referrer_vesting_days || 0,
+                combineOffers: true,
+            };
         }
     };
 
-    return (
-        data?.map((item) => {
-            const refereeDiscountJson = safeJsonParse(item.referee_discount_json, {
-                benefitType: '',
-                benefitValue: {},
-                reward: { type: '', value: 0, currency: '' },
-            });
-            const referrerDiscountJson = safeJsonParse(item.referrer_discount_json, {
-                benefitType: '',
-                benefitValue: { referralBenefits: [] },
-                rewards: [],
-            });
-
-            // Convert referee benefit
-            const refereeBenefit = convertBenefitToUiFormat(refereeDiscountJson);
-
-            // Convert referrer benefits
-            let referrerBenefit: Array<{ referralCount: number; type: string }> = [];
-
-            // Handle new format with referralBenefits
-            if (referrerDiscountJson?.benefitValue?.referralBenefits) {
-                const referralBenefits = referrerDiscountJson.benefitValue
-                    .referralBenefits as Array<{
-                    referralRange?: { min?: number };
-                    referralCount?: number;
-                }>;
-                referrerBenefit = referralBenefits.map((benefit) => ({
-                    referralCount: benefit?.referralRange?.min || benefit?.referralCount || 0,
-                    type:
-                        referrerDiscountJson.benefitType === 'PERCENTAGE_DISCOUNT'
-                            ? 'discount_percentage'
-                            : referrerDiscountJson.benefitType === 'FLAT'
-                              ? 'discount_fixed'
-                              : referrerDiscountJson.benefitType === 'FREE_MEMBERSHIP_DAYS'
-                                ? 'free_days'
-                                : referrerDiscountJson.benefitType === 'CONTENT'
-                                  ? 'bonus_content'
-                                  : 'points_system',
-                }));
-            }
-            // Handle old format with rewards array
-            else if (referrerDiscountJson?.rewards) {
-                const oldFormatRewards = referrerDiscountJson.rewards as Array<{
-                    referral_count?: number;
-                    reward?: { type?: string };
-                }>;
-                referrerBenefit = oldFormatRewards.map((reward) => ({
-                    referralCount: reward?.referral_count || 0,
-                    type: reward?.reward?.type || '',
-                }));
-            }
-
-            return {
-                id: item?.id,
-                name: item?.name,
-                refereeBenefit,
-                referrerBenefit,
-                vestingPeriod: item?.referrer_vesting_days || 0,
-                combineOffers: true,
-            };
-        }) || []
-    );
+    return data.map(convertFromApiFormat);
 }
 
 export function getDefaultMatchingReferralData(data: ReferralData[]) {
