@@ -9,7 +9,7 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import GenerateInviteLinkDialog from './GenerateInviteLinkDialog';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useStudyLibraryQuery } from '@/routes/study-library/courses/-services/getStudyLibraryDetails';
 import { transformApiDataToDummyStructure } from './-utils/helper';
 import { useForm } from 'react-hook-form';
@@ -33,6 +33,7 @@ const CreateInvite = () => {
     const dummyCourses = transformApiDataToDummyStructure(studyLibraryCoursesData).dummyCourses;
     const dummyBatches = transformApiDataToDummyStructure(studyLibraryCoursesData).dummyBatches;
     const dummyBatchesTyped: DummyBatchesType = dummyBatches;
+    const queryClient = useQueryClient();
 
     // Initialize form with react-hook-form
     const form = useForm<CreateInviteFormValues>({
@@ -246,7 +247,7 @@ const CreateInvite = () => {
                                             <CaretDown size={18} />
                                         </button>
                                         {showSessionDropdown && selectedBatches.length === 0 && (
-                                            <div className="animate-slideDown absolute z-10 mt-1 w-full rounded border bg-white shadow">
+                                            <div className="absolute z-10 mt-1 w-full rounded border bg-white shadow">
                                                 {sessions.map((session) => (
                                                     <div
                                                         key={session.sessionId}
@@ -305,7 +306,7 @@ const CreateInvite = () => {
                                         {showLevelDropdown &&
                                             selectedSession &&
                                             selectedBatches.length === 0 && (
-                                                <div className="animate-slideDown absolute z-10 mt-1 w-full rounded border bg-white shadow">
+                                                <div className="absolute z-10 mt-1 w-full rounded border bg-white shadow">
                                                     {levels.map((level) => (
                                                         <div
                                                             key={level.levelId}
@@ -393,7 +394,12 @@ const CreateInvite = () => {
                                 scale="medium"
                                 buttonType="primary"
                                 disable={selectedBatches.length === 0}
-                                onClick={() => setValue('showSummaryDialog', true)}
+                                onClick={async () => {
+                                    setValue('showSummaryDialog', true);
+                                    await queryClient.invalidateQueries({
+                                        queryKey: ['GET_PAYMENT_DETAILS'],
+                                    });
+                                }}
                             >
                                 Continue
                             </MyButton>

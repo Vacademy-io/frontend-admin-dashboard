@@ -48,8 +48,8 @@ interface PaymentPlanCreatorProps {
     defaultCurrency?: string;
     isSaving?: boolean;
     existingFreePlans?: FreePlanInfo[];
-    requireApproval?: boolean;
-    setRequireApproval?: (value: boolean) => void;
+    requireApproval: boolean;
+    setRequireApproval: (value: boolean) => void;
 }
 
 export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
@@ -70,6 +70,9 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
     const [showPreview, setShowPreview] = useState(false);
     const [selectedUnit, setSelectedUnit] = useState<'days' | 'months'>('months');
     const previewRef = useRef<HTMLDivElement>(null);
+    const onApprovalChange = (value: boolean) => {
+        setRequireApproval(value);
+    };
 
     // Initialize form data when creating new plan
     useEffect(() => {
@@ -80,7 +83,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                 currency: defaultCurrency,
                 isDefault: false,
                 features: featuresGlobal,
-                requireApproval: false,
+                requireApproval: requireApproval || false,
                 config: {
                     subscription: {
                         customIntervals: [] as CustomInterval[],
@@ -409,7 +412,7 @@ export const PaymentPlanCreator: React.FC<PaymentPlanCreatorProps> = ({
                                     planType={planData.type as PaymentPlanType}
                                     requireApproval={requireApproval}
                                     existingFreePlans={existingFreePlans}
-                                    onApprovalChange={setRequireApproval || (() => {})}
+                                    onApprovalChange={onApprovalChange}
                                 />
                             )}
 

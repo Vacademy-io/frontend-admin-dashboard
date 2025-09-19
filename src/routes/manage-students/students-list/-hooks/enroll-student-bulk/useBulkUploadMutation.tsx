@@ -56,13 +56,13 @@ export const useBulkUploadMutation = (
 ) => {
     return useMutation<string, Error, SubmitBulkUploadParams, unknown>({
         mutationFn: submitBulkUploadData,
-        onSuccess: (data: string) => {
+        onSuccess: (data, variables, context) => {
             toast.success('CSV uploaded successfully');
             if (options?.onSuccess) {
-                options.onSuccess(data, {} as SubmitBulkUploadParams, {});
+                options.onSuccess(data, variables, context);
             }
         },
-        onError: (error: Error) => {
+        onError: (error, variables, context) => {
             if (axios.isAxiosError(error)) {
                 console.error('Upload error details:', {
                     response: error.response?.data,
@@ -76,7 +76,7 @@ export const useBulkUploadMutation = (
             }
 
             if (options?.onError) {
-                options.onError(error, {} as SubmitBulkUploadParams, {});
+                options.onError(error, variables, context);
             }
         },
         ...options,

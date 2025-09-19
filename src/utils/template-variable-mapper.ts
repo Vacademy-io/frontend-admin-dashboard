@@ -62,7 +62,7 @@ const createBaseVariableMap = (customVariables: Record<string, string> = {}): Re
         '{{custom_message_text}}': 'Thank you for being part of our learning community.',
         '{{support_email}}': '', // Will be set dynamically from institute data
         '{{support_link}}': '', // Will be set dynamically from institute data
-        '{{institute_logo}}': 'Institute Logo',
+        '{{institute_logo}}': 'https://via.placeholder.com/200x100?text=Institute+Logo',
     };
 
     // Add custom variables
@@ -107,7 +107,7 @@ const addStudentVariables = (variableMap: Record<string, string>, student: any, 
 
     // Institute variables (always try to map, use fallback if not available)
         variableMap['{{institute_name}}'] = getNestedValue(student, 'institute_name', 'Your Institute');
-        variableMap['{{institute_address}}'] = getNestedValue(student, 'institute_address', 'Institute Address');
+        variableMap['{{institute_address}}'] = getNestedValue(student, 'institute_address', 'Contact us for address details');
         variableMap['{{institute_phone}}'] = getNestedValue(student, 'institute_phone', 'Institute Phone');
         variableMap['{{institute_email}}'] = getNestedValue(student, 'institute_email', 'Institute Email');
         variableMap['{{institute_website}}'] = getNestedValue(student, 'institute_website', 'Institute Website');
@@ -169,7 +169,7 @@ const addStudentVariables = (variableMap: Record<string, string>, student: any, 
 
     // Additional variables that might be missing
     variableMap['{{referral_custom_content}}'] = getNestedValue(student, 'referral_custom_content', '');
-    variableMap['{{institute_logo}}'] = getNestedValue(student, 'institute_logo', 'Institute Logo');
+    variableMap['{{institute_logo}}'] = getNestedValue(student, 'institute_logo', 'https://via.placeholder.com/200x100?text=Institute+Logo');
 };
 
 const addCourseVariables = (variableMap: Record<string, string>, course: any): void => {

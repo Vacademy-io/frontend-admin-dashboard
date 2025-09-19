@@ -27,8 +27,8 @@ import { ReferralProgramDialog } from './ReferralProgramDialog';
 import InstituteBrandingCard from './-components/InstituteBrandingCard';
 import CoursePreviewCard from './-components/CoursePreviewCard';
 import PaymentPlanCard from './-components/PaymentPlanCard';
-import DiscountSettingsCard from './-components/DiscountSettingsCard';
-import ReferralProgramCard from './-components/ReferralProgramCard';
+import PlanReferralMappingCard from './-components/PlanReferralMappingCard';
+import { PlanReferralConfigDialog } from './PlanReferralConfigDialog';
 import RestrictSameBatch from './-components/RestrictSameBatch';
 import CustomInviteFormCard from './-components/CustomInviteFormCard';
 import LearnerAccessDurationCard from './-components/LearnerAccessDurationCard';
@@ -151,6 +151,10 @@ const GenerateInviteLinkDialog = ({
             selectedReferralId: 'r1',
             showReferralDialog: false,
             showAddReferralDialog: false,
+            // New per-plan referral fields
+            planReferralMappings: {},
+            selectedPlanForReferral: '',
+            showPlanReferralDialog: false,
             restrictToSameBatch: false,
             accessDurationType: 'define',
             accessDurationDays: '',
@@ -710,10 +714,9 @@ const GenerateInviteLinkDialog = ({
                                 extractYouTubeVideoId={extractYouTubeVideoId}
                             />
                             <PaymentPlanCard form={form} />
-                            {/* Discount Settings Card */}
-                            <DiscountSettingsCard form={form} />
+
                             {/* Referral Program Card */}
-                            <ReferralProgramCard form={form} />
+                            <PlanReferralMappingCard form={form} />
                             {/* New Card for Restrict to Same Batch */}
                             <RestrictSameBatch form={form} />
                             {/* Customize Invite Form Card */}
@@ -796,6 +799,8 @@ const GenerateInviteLinkDialog = ({
             <ReferralProgramDialog form={form} />
             {/* Add New Referral Program Dialog */}
             <AddReferralProgramDialog form={form} />
+            {/* Plan Referral Configuration Dialog */}
+            <PlanReferralConfigDialog form={form} />
         </Dialog>
     );
 };

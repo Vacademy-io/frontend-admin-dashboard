@@ -8,9 +8,7 @@ export const useAddReply = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (reply: DoubtType, replyId?: string) => {
-            console.log('reply: ', reply);
-            console.log('replyId: ', replyId);
+        mutationFn: async (reply: DoubtType) => {
             if (reply.id != undefined) {
                 return authenticatedAxiosInstance.post(`${ADD_DOUBT}?doubtId=${reply.id}`, reply);
             } else {

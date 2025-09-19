@@ -366,7 +366,7 @@ const PaymentSettings = () => {
         });
     };
 
-    const handleSavePaymentPlan = async (plan: PaymentPlan, approvalOverride?: boolean) => {
+    const handleSavePaymentPlan = async (plan: PaymentPlan) => {
         setIsSaving(true);
         try {
             const apiPlans = transformLocalPlanToApiFormatArray(plan);
@@ -379,7 +379,7 @@ const PaymentSettings = () => {
                 source: 'INSTITUTE',
                 source_id: instituteId ?? '',
                 type: plan.type.toUpperCase(),
-                require_approval: plan.requireApproval ?? approvalOverride ?? requireApproval,
+                require_approval: requireApproval,
                 payment_plans: apiPlans,
                 payment_option_metadata_json: JSON.stringify({
                     currency: plan.currency,
