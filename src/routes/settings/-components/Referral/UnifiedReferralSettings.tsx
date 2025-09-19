@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -366,6 +366,9 @@ export const UnifiedReferralSettings: React.FC<UnifiedReferralSettingsProps> = (
                         <TrendingUp className="size-5" />
                         {editingSettings ? 'Edit Referral Program' : 'Create Referral Program'}
                     </DialogTitle>
+                    <DialogDescription>
+                        {editingSettings ? 'Modify your referral program settings and rewards' : 'Set up a new referral program to encourage student referrals'}
+                    </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-6">
@@ -1299,6 +1302,9 @@ const ReferrerTierCreator: React.FC<ReferrerTierCreatorProps> = ({
                     <DialogTitle>
                         {editingTier ? 'Edit Reward Tier' : 'Create Reward Tier'}
                     </DialogTitle>
+                    <DialogDescription>
+                        {editingTier ? 'Modify the reward tier settings and benefits' : 'Create a new reward tier with specific benefits and requirements'}
+                    </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4">

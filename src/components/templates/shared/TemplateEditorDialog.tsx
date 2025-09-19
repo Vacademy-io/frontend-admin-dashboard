@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -321,6 +321,9 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
                                 </>
                             )}
                         </DialogTitle>
+                        <DialogDescription>
+                            {template ? 'Modify your email template content and settings' : 'Create a new email template with dynamic variables'}
+                        </DialogDescription>
                     </DialogHeader>
 
                     <div className="flex h-[calc(95vh-120px)] flex-col lg:flex-row">

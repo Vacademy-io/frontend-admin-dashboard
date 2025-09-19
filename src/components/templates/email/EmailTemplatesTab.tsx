@@ -81,15 +81,18 @@ export const EmailTemplatesTab: React.FC = () => {
     };
 
     const handleSaveTemplate = async (templateData: CreateTemplateRequest) => {
+        console.log('handleSaveTemplate called with:', templateData);
         setIsSaving(true);
         try {
             if (editingTemplate) {
+                console.log('Updating existing template:', editingTemplate.id);
                 // Update existing template
                 await updateMessageTemplate({
                     id: editingTemplate.id,
                     ...templateData,
                 });
             } else {
+                console.log('Creating new template');
                 // Create new template
                 await createMessageTemplate(templateData);
             }
@@ -101,6 +104,7 @@ export const EmailTemplatesTab: React.FC = () => {
             setShowEditor(false);
             setEditingTemplate(null);
         } catch (error) {
+            console.error('Error in handleSaveTemplate:', error);
             // Error is already handled by toast.error
         } finally {
             setIsSaving(false);

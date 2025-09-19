@@ -60,6 +60,9 @@ const createBaseVariableMap = (customVariables: Record<string, string> = {}): Re
         '{{month}}': currentMonth,
         '{{day}}': currentDay,
         '{{custom_message_text}}': 'Thank you for being part of our learning community.',
+        '{{support_email}}': '', // Will be set dynamically from institute data
+        '{{support_link}}': '', // Will be set dynamically from institute data
+        '{{institute_logo}}': 'Institute Logo',
     };
 
     // Add custom variables
@@ -84,55 +87,60 @@ const addStudentVariables = (variableMap: Record<string, string>, student: any, 
     variableMap['{{enrollment_number}}'] = getNestedValue(student, 'enrollment_number', getNestedValue(student, 'user_id', ''));
     variableMap['{{username}}'] = getNestedValue(student, 'username', getNestedValue(student, 'email', ''));
     variableMap['{{registration_date}}'] = formatDate(getNestedValue(student, 'created_at'), '');
-    variableMap['{{student_unique_link}}'] = getNestedValue(student, 'unique_link', '');
+    variableMap['{{student_unique_link}}'] = getNestedValue(student, 'student_unique_link', '');
     variableMap['{{student_referral_code}}'] = getNestedValue(student, 'referral_code', '');
 
-    // Course variables (only if available)
-    if (getNestedValue(student, 'course_name')) {
+    // Course variables (always try to map, use fallback if not available)
         variableMap['{{course_name}}'] = getNestedValue(student, 'course_name', 'Your Course');
         variableMap['{{course_description}}'] = getNestedValue(student, 'course_description', 'Course Description');
+    variableMap['{{course_price}}'] = getNestedValue(student, 'course_price', 'Course Price');
         variableMap['{{course_duration}}'] = getNestedValue(student, 'course_duration', 'Course Duration');
-        variableMap['{{course_price}}'] = getNestedValue(student, 'course_price', 'Course Price');
-    }
+    variableMap['{{course_start_date}}'] = formatDate(getNestedValue(student, 'course_start_date'), '');
+    variableMap['{{course_end_date}}'] = formatDate(getNestedValue(student, 'course_end_date'), '');
+    variableMap['{{course_instructor}}'] = getNestedValue(student, 'course_instructor', 'Course Instructor');
 
-    // Batch variables (only if available)
-    if (getNestedValue(student, 'batch_name')) {
+    // Batch variables (always try to map, use fallback if not available)
         variableMap['{{batch_name}}'] = getNestedValue(student, 'batch_name', 'Your Batch');
         variableMap['{{batch_id}}'] = getNestedValue(student, 'batch_id', '');
         variableMap['{{batch_start_date}}'] = formatDate(getNestedValue(student, 'batch_start_date'), '');
         variableMap['{{batch_end_date}}'] = formatDate(getNestedValue(student, 'batch_end_date'), '');
-    }
 
-    // Institute variables (only if available)
-    if (getNestedValue(student, 'institute_name')) {
+    // Institute variables (always try to map, use fallback if not available)
         variableMap['{{institute_name}}'] = getNestedValue(student, 'institute_name', 'Your Institute');
         variableMap['{{institute_address}}'] = getNestedValue(student, 'institute_address', 'Institute Address');
         variableMap['{{institute_phone}}'] = getNestedValue(student, 'institute_phone', 'Institute Phone');
         variableMap['{{institute_email}}'] = getNestedValue(student, 'institute_email', 'Institute Email');
         variableMap['{{institute_website}}'] = getNestedValue(student, 'institute_website', 'Institute Website');
-    }
 
-    // Live class variables (only if available)
-    if (getNestedValue(student, 'live_class_title')) {
+    // Support variables (use institute data, fallback to default)
+        variableMap['{{support_email}}'] = getNestedValue(student, 'institute_email', 'support@vacademy.com');
+        variableMap['{{support_link}}'] = getNestedValue(student, 'institute_website', 'https://support.vacademy.com');
+
+    // Live class variables (always try to map, use fallback if not available)
         variableMap['{{live_class_title}}'] = getNestedValue(student, 'live_class_title', 'Live Class Session');
+    variableMap['{{live_class_name}}'] = getNestedValue(student, 'live_class_title', 'Live Class Session');
         variableMap['{{live_class_date}}'] = formatDate(getNestedValue(student, 'live_class_date'), '');
         variableMap['{{live_class_time}}'] = getNestedValue(student, 'live_class_time', '');
+    variableMap['{{live_class_start_time}}'] = getNestedValue(student, 'live_class_time', '');
+    variableMap['{{live_class_end_time}}'] = getNestedValue(student, 'live_class_time', '');
         variableMap['{{live_class_duration}}'] = getNestedValue(student, 'live_class_duration', '');
         variableMap['{{live_class_instructor}}'] = getNestedValue(student, 'live_class_instructor', 'Instructor');
+    variableMap['{{live_class_link}}'] = getNestedValue(student, 'live_class_meeting_link', '');
         variableMap['{{live_class_meeting_link}}'] = getNestedValue(student, 'live_class_meeting_link', '');
         variableMap['{{live_class_meeting_id}}'] = getNestedValue(student, 'live_class_meeting_id', '');
         variableMap['{{live_class_password}}'] = getNestedValue(student, 'live_class_password', '');
         variableMap['{{live_class_platform}}'] = getNestedValue(student, 'live_class_platform', 'Online Platform');
         variableMap['{{live_class_room}}'] = getNestedValue(student, 'live_class_room', '');
         variableMap['{{live_class_notes}}'] = getNestedValue(student, 'live_class_notes', '');
+    variableMap['{{live_class_description}}'] = getNestedValue(student, 'live_class_notes', '');
+    variableMap['{{live_class_batch}}'] = getNestedValue(student, 'batch_name', 'Your Batch');
         variableMap['{{live_class_recording_link}}'] = getNestedValue(student, 'live_class_recording_link', '');
         variableMap['{{live_class_status}}'] = getNestedValue(student, 'live_class_status', 'upcoming');
         variableMap['{{next_live_class_date}}'] = formatDate(getNestedValue(student, 'next_live_class_date'), '');
         variableMap['{{next_live_class_time}}'] = getNestedValue(student, 'next_live_class_time', '');
-    }
+    variableMap['{{next_live_class_title}}'] = getNestedValue(student, 'live_class_title', 'Next Live Class');
 
-    // Referral variables (only if available)
-    if (getNestedValue(student, 'referral_code')) {
+    // Referral variables (always try to map, use fallback if not available)
         variableMap['{{referral_code}}'] = getNestedValue(student, 'referral_code', '');
         variableMap['{{referral_link}}'] = getNestedValue(student, 'referral_link', '');
         variableMap['{{referral_count}}'] = getNestedValue(student, 'referral_count', '0');
@@ -141,22 +149,27 @@ const addStudentVariables = (variableMap: Record<string, string>, student: any, 
         variableMap['{{referral_status}}'] = getNestedValue(student, 'referral_status', 'active');
         variableMap['{{referred_by}}'] = getNestedValue(student, 'referred_by', '');
         variableMap['{{referred_by_name}}'] = getNestedValue(student, 'referred_by_name', '');
+    variableMap['{{referral_date}}'] = formatDate(getNestedValue(student, 'referral_program_start'), '');
         variableMap['{{referral_program_start}}'] = formatDate(getNestedValue(student, 'referral_program_start'), '');
         variableMap['{{referral_program_end}}'] = formatDate(getNestedValue(student, 'referral_program_end'), '');
         variableMap['{{referral_terms}}'] = getNestedValue(student, 'referral_terms', '');
         variableMap['{{referral_benefits}}'] = getNestedValue(student, 'referral_benefits', '');
-    }
 
-    // Attendance variables (only if available and context is student-management)
-    if (context === 'student-management' && getNestedValue(student, 'attendance_status')) {
-        variableMap['{{attendance_status}}'] = getNestedValue(student, 'attendance_status', 'Attendance Status');
+    // Attendance variables (always try to map, use fallback if not available)
+    variableMap['{{attendance_status}}'] = getNestedValue(student, 'attendance_status', 'Present');
         variableMap['{{attendance_date}}'] = formatDate(getNestedValue(student, 'attendance_date'), '');
         variableMap['{{attendance_percentage}}'] = getNestedValue(student, 'attendance_percentage', '0');
-    }
+    variableMap['{{attendance_total_classes}}'] = getNestedValue(student, 'attendance_total_classes', '0');
+    variableMap['{{attendance_attended_classes}}'] = getNestedValue(student, 'attendance_attended_classes', '0');
+    variableMap['{{attendance_last_class_date}}'] = formatDate(getNestedValue(student, 'attendance_last_class_date'), '');
 
-    // Custom fields (only if available)
+    // Custom fields (always try to map, use fallback if not available)
     variableMap['{{custom_field_1}}'] = getNestedValue(student, 'custom_field_1', '');
     variableMap['{{custom_field_2}}'] = getNestedValue(student, 'custom_field_2', '');
+
+    // Additional variables that might be missing
+    variableMap['{{referral_custom_content}}'] = getNestedValue(student, 'referral_custom_content', '');
+    variableMap['{{institute_logo}}'] = getNestedValue(student, 'institute_logo', 'Institute Logo');
 };
 
 const addCourseVariables = (variableMap: Record<string, string>, course: any): void => {
@@ -238,19 +251,74 @@ export const mapTemplateVariables = (
         // Replace variables in template
         const { mappedTemplate, replacementCount, unmappedVariables } = replaceVariablesInTemplate(template, variableMap);
 
-        // Log mapping results for debugging
-        console.log('Variable mapping completed:', {
-            context,
-            studentId: student?.user_id || 'N/A',
-            studentName: student?.full_name || 'N/A',
-            courseId: course?.id || 'N/A',
-            courseName: course?.name || 'N/A',
-            originalTemplate: template.substring(0, 100) + '...',
-            mappedTemplate: mappedTemplate.substring(0, 100) + '...',
-            replacementsMade: replacementCount,
-            unmappedVariables: unmappedVariables.length > 0 ? unmappedVariables : 'None',
-            totalVariables: Object.keys(variableMap).length
+        // Log detailed mapping information
+        console.log('=== VARIABLE MAPPING DETAILS ===');
+        console.log('Context:', context);
+        console.log('Student ID:', student?.user_id || 'N/A');
+        console.log('Student Name:', student?.full_name || 'N/A');
+        console.log('Total Variables Mapped:', Object.keys(variableMap).length);
+        console.log('Replacements Made:', replacementCount);
+        console.log('Unmapped Variables:', unmappedVariables.length > 0 ? unmappedVariables : 'None');
+
+        // Log real values available in student object
+        console.log('=== REAL VALUES AVAILABLE ===');
+        console.log('Course Data:', {
+            course_name: student?.course_name,
+            course_description: student?.course_description,
+            course_price: student?.course_price,
+            course_duration: student?.course_duration,
+            course_instructor: student?.course_instructor
         });
+
+        console.log('Batch Data:', {
+            batch_name: student?.batch_name,
+            batch_id: student?.batch_id,
+            batch_start_date: student?.batch_start_date,
+            batch_end_date: student?.batch_end_date
+        });
+
+        console.log('Attendance Data:', {
+            attendance_status: student?.attendance_status,
+            attendance_percentage: student?.attendance_percentage,
+            attendance_total_classes: student?.attendance_total_classes,
+            attendance_attended_classes: student?.attendance_attended_classes
+        });
+
+        console.log('Institute Data:', {
+            institute_name: student?.institute_name,
+            institute_address: student?.institute_address,
+            institute_phone: student?.institute_phone,
+            institute_email: student?.institute_email,
+            institute_website: student?.institute_website
+        });
+
+        console.log('Referral Data:', {
+            referral_code: student?.referral_code,
+            referral_count: student?.referral_count,
+            referral_rewards: student?.referral_rewards,
+            referral_status: student?.referral_status
+        });
+
+        // Log mapped values for key variables
+        console.log('=== MAPPED VALUES ===');
+        console.log('Key Mapped Variables:', {
+            '{{name}}': variableMap['{{name}}'],
+            '{{student_name}}': variableMap['{{student_name}}'],
+            '{{course_name}}': variableMap['{{course_name}}'],
+            '{{batch_name}}': variableMap['{{batch_name}}'],
+            '{{attendance_status}}': variableMap['{{attendance_status}}'],
+            '{{attendance_percentage}}': variableMap['{{attendance_percentage}}'],
+            '{{institute_name}}': variableMap['{{institute_name}}'],
+            '{{institute_email}}': variableMap['{{institute_email}}'],
+            '{{support_email}}': variableMap['{{support_email}}'],
+            '{{support_link}}': variableMap['{{support_link}}'],
+            '{{current_time}}': variableMap['{{current_time}}'],
+            '{{year}}': variableMap['{{year}}'],
+            '{{month}}': variableMap['{{month}}'],
+            '{{day}}': variableMap['{{day}}']
+        });
+
+        console.log('=== END VARIABLE MAPPING ===');
 
         return mappedTemplate;
     } catch (error) {

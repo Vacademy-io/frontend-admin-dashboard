@@ -63,12 +63,14 @@ export const createMessageTemplate = async (
     template: CreateTemplateRequest
 ): Promise<MessageTemplate> => {
     try {
+        console.log('createMessageTemplate called with:', template);
         const accessToken = getAccessToken();
         if (!accessToken) {
             throw new Error('Access token not found. Please login again.');
         }
 
         const instituteId = getInstituteId();
+        console.log('Making API call to create template:', { instituteId, template });
         const response = await fetch(`${API_BASE_URL}/institute/template/v1/create`, {
             method: 'POST',
             headers: {
@@ -255,12 +257,14 @@ export const updateMessageTemplate = async (
     template: UpdateTemplateRequest
 ): Promise<MessageTemplate> => {
     try {
+        console.log('updateMessageTemplate called with:', template);
         const accessToken = getAccessToken();
         if (!accessToken) {
             throw new Error('Access token not found. Please login again.');
         }
 
         const { id, ...updateData } = template;
+        console.log('Making API call to update template:', { id, updateData });
 
         const response = await fetch(`${API_BASE_URL}/institute/template/v1/update`, {
             method: 'PUT',

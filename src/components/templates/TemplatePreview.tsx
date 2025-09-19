@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { FileText, MessageCircle, Eye, Smartphone, Tablet, Monitor } from 'lucide-react';
 import { MessageTemplate } from '@/types/message-template-types';
@@ -75,6 +75,9 @@ export const TemplatePreview: React.FC<TemplatePreviewProps> = ({
             <Eye className="size-5" />
             {getTemplateTypeLabel()} Preview
           </DialogTitle>
+          <DialogDescription>
+            Preview how your {getTemplateTypeLabel().toLowerCase()} will appear on different devices
+          </DialogDescription>
           <div className="mt-3 flex flex-wrap items-center gap-2 sm:gap-3">
             <Button
               variant="outline"

@@ -7,6 +7,7 @@ import { getInstituteId } from '@/constants/helper';
 import { TemplateSelectionDialog } from './template-selection-dialog';
 import { TemplateEditorDialog, TemplatePreviewDialog } from '@/components/templates/shared';
 import { mapTemplateVariables } from '@/utils/template-variable-mapper';
+import { bulkEmailService, BulkEmailOptions } from '@/services/bulkEmailService';
 
 // Email templates will be loaded dynamically from API
 
@@ -83,63 +84,44 @@ export const SendEmailDialog = () => {
         return { trimmedEmailSubject, trimmedEmailBody };
     };
 
-    const prepareStudentPayloads = (trimmedEmailSubject: string, trimmedEmailBody: string) => {
+    const prepareStudentPayloads = async (trimmedEmailSubject: string, trimmedEmailBody: string) => {
         const students = isBulkAction
             ? bulkActionInfo?.selectedStudents || []
             : selectedStudent
               ? [selectedStudent]
               : [];
 
-        const nullValueReport = {
-            missingNames: 0,
-            missingEmails: 0,
-            missingMobileNumbers: 0,
-            totalStudents: students.length,
-        };
+        console.log('Preparing bulk email for', students.length, 'students');
 
-        const apiUsersPayload = studentEmailStatuses
-            .map((statusEntry) => {
-                const student = students.find((s) => s.user_id === statusEntry.userId);
-                if (!student || !student.email) return null;
-
-                // Track and log null values for debugging
-                if (!student.full_name) {
-                    nullValueReport.missingNames++;
+        try {
+            // Use the new bulk email service
+            const result = await bulkEmailService.sendBulkEmail({
+                template: trimmedEmailBody,
+                subject: trimmedEmailSubject,
+                students,
+                context: 'student-management',
+                notificationType: 'EMAIL',
+                source: 'STUDENT_MANAGEMENT_BULK_EMAIL',
+                sourceId: uuidv4(),
+                enrichmentOptions: {
+                    includeCourse: true,
+                    includeBatch: true,
+                    includeInstitute: true,
+                    includeAttendance: true,
+                    includeLiveClass: true,
+                    includeReferral: true,
+                    includeCustomFields: true
                 }
-                if (!student.email) {
-                    nullValueReport.missingEmails++;
-                }
-                if (!student.mobile_number) {
-                    nullValueReport.missingMobileNumbers++;
-                }
+            });
 
-                // Map template variables for this student
-                const mappedSubject = mapTemplateVariables(trimmedEmailSubject, {
-                    context: 'student-management',
-                    student: student
-                });
-                const mappedBody = mapTemplateVariables(trimmedEmailBody, {
-                    context: 'student-management',
-                    student: student
-                });
+            console.log('Bulk email result:', result);
+            return result;
 
-                return {
-                    user_id: student.user_id,
-                    channel_id: student.email,
-                    subject: mappedSubject,
-                    body: mappedBody,
-                    placeholders: {
-                        name: student.full_name || 'Student',
-                        email: student.email || '',
-                        mobile_number: student.mobile_number || '',
-                        custom_message_text: 'Thank you for being part of our learning community.',
-                        current_date: new Date().toLocaleDateString(),
-                    },
-                };
-            })
-            .filter((p) => p !== null);
-
-        return { apiUsersPayload, nullValueReport };
+        } catch (error) {
+            console.error('Error preparing bulk email:', error);
+            toast.error('Failed to prepare email data. Please try again.');
+            return null;
+        }
     };
 
     const sendEmailToStudent = async (userPayload: any, url: string) => {
@@ -216,52 +198,73 @@ export const SendEmailDialog = () => {
 
         const { trimmedEmailSubject, trimmedEmailBody } = validation;
 
-        // Prepare student payloads
-        const { apiUsersPayload, nullValueReport } = prepareStudentPayloads(trimmedEmailSubject, trimmedEmailBody);
-
-        if (apiUsersPayload.length === 0) {
-            toast.error('Could not prepare payload for any student.');
-            setIsBulkEmailSending(false);
-            setStudentEmailStatuses((prevStatuses) =>
-                prevStatuses.map((s) => ({ ...s, status: 'pending' }))
-            );
-            return;
-        }
-
         // Set up sending state
         setIsBulkEmailSending(true);
-        toast.info('Processing emails...', { id: 'bulk-email-progress' });
+        toast.info('Enriching student data and sending emails...', { id: 'bulk-email-progress' });
 
         setStudentEmailStatuses((prevStatuses) =>
             prevStatuses.map((s) => ({ ...s, status: 'sending' }))
         );
 
-        // Prepare API URL
-        const instituteId = getInstituteId();
-        const baseUrl = `${import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io'}/notification-service/v1/send-email-to-users-public`;
-        const url = instituteId ? `${baseUrl}?instituteId=${instituteId}` : baseUrl;
+        try {
+            // Use the new bulk email service
+            const result = await prepareStudentPayloads(trimmedEmailSubject, trimmedEmailBody);
 
-        // Process each student
-        let successCount = 0;
-        let failureCount = 0;
-
-        for (const userPayload of apiUsersPayload) {
-            if (!userPayload) continue;
-
-            const result = await sendEmailToStudent(userPayload, url);
-
-            if (result.success) {
-                successCount++;
-                updateStudentStatus(userPayload.user_id, 'sent');
-            } else {
-                failureCount++;
-                updateStudentStatus(userPayload.user_id, 'failed', result.error || 'Unknown error');
+            if (!result || !result.success) {
+                toast.error('Failed to send bulk email. Please try again.');
+                setIsBulkEmailSending(false);
+                setStudentEmailStatuses((prevStatuses) =>
+                    prevStatuses.map((s) => ({ ...s, status: 'pending' }))
+                );
+                return;
             }
-        }
 
-        // Show results and reset state
-        showFinalResults(successCount, failureCount);
-        setIsBulkEmailSending(false);
+            // Update student statuses based on result
+            const students = isBulkAction
+                ? bulkActionInfo?.selectedStudents || []
+                : selectedStudent
+                  ? [selectedStudent]
+                  : [];
+
+            students.forEach(student => {
+                const hasError = result.errors?.some(error => error.studentId === student.user_id);
+                if (hasError) {
+                    const error = result.errors?.find(error => error.studentId === student.user_id);
+                    updateStudentStatus(student.user_id, 'failed', error?.error || 'Unknown error');
+                } else {
+                    updateStudentStatus(student.user_id, 'sent');
+                }
+            });
+
+            // Show results
+            const successCount = result.processedStudents - result.failedStudents;
+            const failureCount = result.failedStudents;
+
+            if (successCount > 0 && failureCount === 0) {
+                toast.success(`Successfully sent ${successCount} personalized email(s).`, {
+                    id: 'bulk-email-progress',
+                });
+            } else if (successCount > 0 && failureCount > 0) {
+                toast.warning(`Sent ${successCount} email(s), ${failureCount} failed.`, {
+                    id: 'bulk-email-progress',
+                });
+            } else {
+                toast.error(`Failed to send all ${failureCount} email(s).`, {
+                    id: 'bulk-email-progress',
+                });
+            }
+
+        } catch (error) {
+            console.error('Error in bulk email process:', error);
+            toast.error('An unexpected error occurred. Please try again.');
+
+            // Reset all statuses to pending
+            setStudentEmailStatuses((prevStatuses) =>
+                prevStatuses.map((s) => ({ ...s, status: 'pending' }))
+            );
+        } finally {
+            setIsBulkEmailSending(false);
+        }
     };
 
     const handleClose = () => {

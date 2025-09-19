@@ -97,27 +97,37 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        console.log('Form submit triggered', {
+            isInSourceViewRef: isInSourceViewRef.current,
+            isInSourceView,
+            formData: { name: formData.name, content: formData.content }
+        });
 
         // Don't submit if we're in source view (use ref for immediate check)
         if (isInSourceViewRef.current) {
+            console.log('Prevented submit: in source view (ref)');
             return;
         }
 
         // Don't submit if we're in source view (state check as backup)
         if (isInSourceView) {
+            console.log('Prevented submit: in source view (state)');
             return;
         }
 
-        // Check if the event came from a textarea (source view)
+        // Only prevent submission if the event came from a textarea AND we're in source view
         const target = e.target as HTMLElement;
-        if (target.tagName === 'TEXTAREA') {
-            return; // Don't submit if it came from textarea
+        if (target.tagName === 'TEXTAREA' && isInSourceView) {
+            console.log('Prevented submit: textarea in source view');
+            return; // Don't submit if it came from textarea in source view
         }
 
         if (!formData.name.trim() || !formData.content.trim()) {
+            console.log('Prevented submit: missing required fields');
             return;
         }
 
+        console.log('Proceeding with save');
         handleSave(formData);
     };
 
@@ -228,6 +238,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
     };
 
     const handleSave = (data: CreateTemplateRequest) => {
+        console.log('handleSave called with data:', data);
         onSave(data);
     };
 
@@ -386,6 +397,14 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                                             !formData.name.trim() ||
                                             !formData.content.trim()
                                         }
+                                        onClick={() => {
+                                            console.log('Submit button clicked', {
+                                                isSaving,
+                                                name: formData.name.trim(),
+                                                content: formData.content.trim(),
+                                                disabled: isSaving || !formData.name.trim() || !formData.content.trim()
+                                            });
+                                        }}
                                         className="hover:bg-primary-600 h-10 bg-primary-500 px-6 text-white disabled:bg-gray-300 disabled:text-gray-500"
                                     >
                                         {isSaving
