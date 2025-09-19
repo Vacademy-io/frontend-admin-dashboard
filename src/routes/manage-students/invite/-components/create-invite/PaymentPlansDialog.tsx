@@ -53,28 +53,35 @@ export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
     const [searchQuery, setSearchQuery] = useState<string>('');
 
     useEffect(() => {
-        form.reset({
-            ...form.getValues(),
-            freePlans: splitPlansByType(paymentsData).freePlans,
-            paidPlans: splitPlansByType(paymentsData).paidPlans,
-            selectedPlan: getDefaultPlanFromPaymentsData(paymentsData),
-        });
+        const splitPlans = splitPlansByType(paymentsData);
+
+        // Use setValue with proper type casting to avoid type conflicts
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        form.setValue('freePlans', splitPlans.freePlans as any);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        form.setValue('paidPlans', splitPlans.paidPlans as any);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        form.setValue('selectedPlan', getDefaultPlanFromPaymentsData(paymentsData) as any);
     }, [paymentsData, form]);
+
+    // Watch form values to make them reactive
+    const freePlans = useMemo(() => form.watch('freePlans') || [], [form]);
+    const paidPlans = useMemo(() => form.watch('paidPlans') || [], [form]);
 
     // Filter plans based on search query
     const filteredFreePlans = useMemo(() => {
-        if (!searchQuery.trim()) return form.getValues('freePlans') || [];
-        return (form.getValues('freePlans') || []).filter((plan) =>
+        if (!searchQuery.trim()) return freePlans;
+        return freePlans.filter((plan) =>
             plan.name?.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    }, [searchQuery, form]);
+    }, [searchQuery, freePlans]);
 
     const filteredPaidPlans = useMemo(() => {
-        if (!searchQuery.trim()) return form.getValues('paidPlans') || [];
-        return (form.getValues('paidPlans') || []).filter((plan) =>
+        if (!searchQuery.trim()) return paidPlans;
+        return paidPlans.filter((plan) =>
             plan.name?.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    }, [searchQuery, form]);
+    }, [searchQuery, paidPlans]);
 
     return (
         <ShadDialog
@@ -161,6 +168,11 @@ export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
                                     <Search className="mx-auto mb-2 size-8 opacity-50" />
                                     <p>No free plans found for &ldquo;{searchQuery}&rdquo;</p>
                                 </div>
+                            ) : freePlans.length === 0 ? (
+                                <div className="py-8 text-center text-gray-500">
+                                    <Globe className="mx-auto mb-2 size-8 opacity-50" />
+                                    <p>No free plans available</p>
+                                </div>
                             ) : null}
                         </div>
                     </div>
@@ -231,6 +243,11 @@ export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
                                 <div className="py-8 text-center text-gray-500">
                                     <Search className="mx-auto mb-2 size-8 opacity-50" />
                                     <p>No paid plans found for &ldquo;{searchQuery}&rdquo;</p>
+                                </div>
+                            ) : paidPlans.length === 0 ? (
+                                <div className="py-8 text-center text-gray-500">
+                                    <CreditCard className="mx-auto mb-2 size-8 opacity-50" />
+                                    <p>No paid plans available</p>
                                 </div>
                             ) : null}
                         </div>
