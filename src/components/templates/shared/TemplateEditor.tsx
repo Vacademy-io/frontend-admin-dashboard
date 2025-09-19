@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { EmailRichTextEditor } from './EmailRichTextEditor';
+import { TemplatePreview } from './TemplatePreview';
 import {
     Select,
     SelectContent,
@@ -28,6 +29,7 @@ import {
     School,
     Award,
     Database,
+    Eye,
 } from 'lucide-react';
 import { extractVariablesFromContent } from './TemplateEditorUtils';
 
@@ -53,6 +55,9 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
         isDefault: false,
     });
     const [templateType, setTemplateType] = useState<string>('utility');
+    const [isInSourceView, setIsInSourceView] = useState(false);
+    const isInSourceViewRef = useRef(false);
+    const [showPreview, setShowPreview] = useState(false);
 
     useEffect(() => {
         if (template) {
@@ -92,13 +97,32 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Don't submit if we're in source view (use ref for immediate check)
+        if (isInSourceViewRef.current) {
+            return;
+        }
+
+        // Don't submit if we're in source view (state check as backup)
+        if (isInSourceView) {
+            return;
+        }
+
+        // Check if the event came from a textarea (source view)
+        const target = e.target as HTMLElement;
+        if (target.tagName === 'TEXTAREA') {
+            return; // Don't submit if it came from textarea
+        }
+
         if (!formData.name.trim() || !formData.content.trim()) {
             return;
         }
-        onSave(formData);
+
+        handleSave(formData);
     };
 
     const handleContentChange = (content: string) => {
+
         setFormData((prev) => ({ ...prev, content }));
         const extractedVariables = extractVariablesFromContent(content);
         const subjectVariables = formData.subject
@@ -106,6 +130,11 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
             : [];
         const allVariables = [...new Set([...extractedVariables, ...subjectVariables])];
         setFormData((prev) => ({ ...prev, variables: allVariables }));
+    };
+
+    const handleSourceViewChange = (isSourceView: boolean) => {
+        isInSourceViewRef.current = isSourceView;
+        setIsInSourceView(isSourceView);
     };
 
     const handleSubjectChange = (subject: string) => {
@@ -191,9 +220,39 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
         return descriptions[variable] || 'Dynamic value';
     };
 
+    const handleClose = () => {
+        if (isSaving) {
+            return;
+        }
+        onClose();
+    };
+
+    const handleSave = (data: CreateTemplateRequest) => {
+        onSave(data);
+    };
+
+    const handlePreview = () => {
+        const previewTemplate = {
+            id: template?.id || 'preview',
+            name: formData.name,
+            type: formData.type,
+            subject: formData.subject,
+            content: formData.content,
+            variables: formData.variables,
+            isDefault: formData.isDefault,
+            createdAt: template?.createdAt || new Date().toISOString(),
+            updatedAt: template?.updatedAt || new Date().toISOString(),
+            instituteId: template?.instituteId || '',
+        };
+
+        setShowPreview(true);
+    };
+
     return (
         <>
-            <Dialog open={true} onOpenChange={onClose}>
+            <Dialog open={true} onOpenChange={(open) => {
+                if (!open) handleClose();
+            }}>
                 <DialogContent className="max-h-[95vh] w-[95vw] max-w-7xl overflow-hidden p-0 sm:max-w-7xl">
                     <DialogHeader className="border-b border-gray-200 px-6 py-4">
                         <DialogTitle className="flex items-center gap-2">
@@ -257,6 +316,9 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                                         minHeight={200}
                                         className="w-full"
                                         subject={formData.subject}
+                                        onSourceViewChange={handleSourceViewChange}
+                                        showPreviewButton={true}
+                                        onPreview={handlePreview}
                                     />
                                 </div>
 
@@ -385,6 +447,28 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                     </div>
                 </DialogContent>
             </Dialog>
+
+            {/* Template Preview Dialog */}
+            {showPreview && (
+                <>
+                    <TemplatePreview
+                        isOpen={showPreview}
+                        onClose={() => setShowPreview(false)}
+                        template={{
+                            id: template?.id || 'preview',
+                            name: formData.name,
+                            type: formData.type,
+                            subject: formData.subject,
+                            content: formData.content,
+                            variables: formData.variables,
+                            isDefault: formData.isDefault || false,
+                            createdAt: template?.createdAt || new Date().toISOString(),
+                            updatedAt: template?.updatedAt || new Date().toISOString(),
+                            instituteId: template?.instituteId || '',
+                        }}
+                    />
+                </>
+            )}
         </>
     );
 };

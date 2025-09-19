@@ -61,38 +61,35 @@ export const SendEmailDialog = () => {
     };
 
 
-    const handleSendBulkEmail = async () => {
+    // Helper functions to break down the complex handleSendBulkEmail function
+    const validateEmailTemplate = () => {
         if (!selectedTemplate) {
             toast.error('No template selected.');
-            return;
+            return false;
         }
 
         const trimmedEmailSubject = selectedTemplate.subject?.trim() || '';
         const trimmedEmailBody = selectedTemplate.content?.trim() || '';
         if (!trimmedEmailSubject || !trimmedEmailBody) {
             toast.error('Template subject and body are required.');
-            return;
+            return false;
         }
 
         if (studentEmailStatuses.length === 0) {
             toast.error('No valid recipients to send email to.');
-            return;
+            return false;
         }
 
-        setIsBulkEmailSending(true);
-        toast.info('Processing emails...', { id: 'bulk-email-progress' });
+        return { trimmedEmailSubject, trimmedEmailBody };
+    };
 
-        setStudentEmailStatuses((prevStatuses) =>
-            prevStatuses.map((s) => ({ ...s, status: 'sending' }))
-        );
-
+    const prepareStudentPayloads = (trimmedEmailSubject: string, trimmedEmailBody: string) => {
         const students = isBulkAction
             ? bulkActionInfo?.selectedStudents || []
             : selectedStudent
               ? [selectedStudent]
               : [];
 
-        // Track null values for reporting
         const nullValueReport = {
             missingNames: 0,
             missingEmails: 0,
@@ -129,8 +126,8 @@ export const SendEmailDialog = () => {
                 return {
                     user_id: student.user_id,
                     channel_id: student.email,
-                    subject: mappedSubject, // Send mapped subject
-                    body: mappedBody, // Send mapped body
+                    subject: mappedSubject,
+                    body: mappedBody,
                     placeholders: {
                         name: student.full_name || 'Student',
                         email: student.email || '',
@@ -142,48 +139,26 @@ export const SendEmailDialog = () => {
             })
             .filter((p) => p !== null);
 
-        // Log null value summary
+        return { apiUsersPayload, nullValueReport };
+    };
 
-        if (apiUsersPayload.length === 0) {
-            toast.error('Could not prepare payload for any student.');
-            setIsBulkEmailSending(false);
-            setStudentEmailStatuses((prevStatuses) =>
-                prevStatuses.map((s) => ({ ...s, status: 'pending' }))
-            );
-            return;
-        }
+    const sendEmailToStudent = async (userPayload: any, url: string) => {
+        try {
+            // Convert newlines to HTML for the personalized body
+            const personalizedBody = userPayload.body.replace(/\n/g, '<br />');
 
-        // Send individual requests for each student with personalized content
-            const instituteId = getInstituteId();
-            const baseUrl = `${import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io'}/notification-service/v1/send-email-to-users-public`;
-            const url = instituteId ? `${baseUrl}?instituteId=${instituteId}` : baseUrl;
-
-        let successCount = 0;
-        let failureCount = 0;
-        const errors: string[] = [];
-
-        // Process each student individually
-        for (const userPayload of apiUsersPayload) {
-            if (!userPayload) {
-                continue;
-            }
-
-            try {
-                // Convert newlines to HTML for the personalized body
-                const personalizedBody = userPayload.body.replace(/\n/g, '<br />');
-
-                const requestBody = {
-                    body: personalizedBody,
-                    notification_type: 'EMAIL',
-                    subject: userPayload.subject,
-                    source: 'STUDENT_MANAGEMENT_BULK_EMAIL',
-                    source_id: uuidv4(),
-                    users: [{
-                        user_id: userPayload.user_id,
-                        channel_id: userPayload.channel_id,
-                        placeholders: userPayload.placeholders,
-                    }],
-                };
+            const requestBody = {
+                body: personalizedBody,
+                notification_type: 'EMAIL',
+                subject: userPayload.subject,
+                source: 'STUDENT_MANAGEMENT_BULK_EMAIL',
+                source_id: uuidv4(),
+                users: [{
+                    user_id: userPayload.user_id,
+                    channel_id: userPayload.channel_id,
+                    placeholders: userPayload.placeholders,
+                }],
+            };
 
             const response = await fetch(url, {
                 method: 'POST',
@@ -194,49 +169,31 @@ export const SendEmailDialog = () => {
             });
 
             if (response.ok) {
-                    successCount++;
-                    // Update status for this specific student
-                setStudentEmailStatuses((prevStatuses) =>
-                        prevStatuses.map((s) =>
-                            s.userId === userPayload.user_id
-                                ? { ...s, status: 'sent' }
-                                : s
-                        )
-                );
+                return { success: true, error: null };
             } else {
-                    failureCount++;
                 const errorData = await response
                     .json()
                     .catch(() => ({ message: 'Failed to parse error response' }));
-                    const errorMsg = `Student ${userPayload.user_id}: ${errorData.message || response.statusText}`;
-                    errors.push(errorMsg);
-
-                    // Update status for this specific student
-                    setStudentEmailStatuses((prevStatuses) =>
-                        prevStatuses.map((s) =>
-                            s.userId === userPayload.user_id
-                                ? { ...s, status: 'failed', error: errorMsg }
-                                : s
-                        )
-                    );
-                }
-            } catch (error: any) {
-                failureCount++;
-                const errorMsg = `Student ${userPayload.user_id}: ${error.message || 'Network error'}`;
-                errors.push(errorMsg);
-
-                // Update status for this specific student
-                setStudentEmailStatuses((prevStatuses) =>
-                    prevStatuses.map((s) =>
-                        s.userId === userPayload.user_id
-                            ? { ...s, status: 'failed', error: errorMsg }
-                            : s
-                    )
-                );
+                const errorMsg = `Student ${userPayload.user_id}: ${errorData.message || response.statusText}`;
+                return { success: false, error: errorMsg };
             }
+        } catch (error: any) {
+            const errorMsg = `Student ${userPayload.user_id}: ${error.message || 'Network error'}`;
+            return { success: false, error: errorMsg };
         }
+    };
 
-        // Show final results
+    const updateStudentStatus = (userId: string, status: 'sent' | 'failed', error?: string) => {
+        setStudentEmailStatuses((prevStatuses) =>
+            prevStatuses.map((s) =>
+                s.userId === userId
+                    ? { ...s, status, error }
+                    : s
+            )
+        );
+    };
+
+    const showFinalResults = (successCount: number, failureCount: number) => {
         if (successCount > 0 && failureCount === 0) {
             toast.success(`Successfully sent ${successCount} personalized email(s).`, {
                 id: 'bulk-email-progress',
@@ -250,7 +207,60 @@ export const SendEmailDialog = () => {
                 id: 'bulk-email-progress',
             });
         }
+    };
 
+    const handleSendBulkEmail = async () => {
+        // Validate template and get trimmed content
+        const validation = validateEmailTemplate();
+        if (!validation) return;
+
+        const { trimmedEmailSubject, trimmedEmailBody } = validation;
+
+        // Prepare student payloads
+        const { apiUsersPayload, nullValueReport } = prepareStudentPayloads(trimmedEmailSubject, trimmedEmailBody);
+
+        if (apiUsersPayload.length === 0) {
+            toast.error('Could not prepare payload for any student.');
+            setIsBulkEmailSending(false);
+            setStudentEmailStatuses((prevStatuses) =>
+                prevStatuses.map((s) => ({ ...s, status: 'pending' }))
+            );
+            return;
+        }
+
+        // Set up sending state
+        setIsBulkEmailSending(true);
+        toast.info('Processing emails...', { id: 'bulk-email-progress' });
+
+        setStudentEmailStatuses((prevStatuses) =>
+            prevStatuses.map((s) => ({ ...s, status: 'sending' }))
+        );
+
+        // Prepare API URL
+        const instituteId = getInstituteId();
+        const baseUrl = `${import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io'}/notification-service/v1/send-email-to-users-public`;
+        const url = instituteId ? `${baseUrl}?instituteId=${instituteId}` : baseUrl;
+
+        // Process each student
+        let successCount = 0;
+        let failureCount = 0;
+
+        for (const userPayload of apiUsersPayload) {
+            if (!userPayload) continue;
+
+            const result = await sendEmailToStudent(userPayload, url);
+
+            if (result.success) {
+                successCount++;
+                updateStudentStatus(userPayload.user_id, 'sent');
+            } else {
+                failureCount++;
+                updateStudentStatus(userPayload.user_id, 'failed', result.error || 'Unknown error');
+            }
+        }
+
+        // Show results and reset state
+        showFinalResults(successCount, failureCount);
         setIsBulkEmailSending(false);
     };
 

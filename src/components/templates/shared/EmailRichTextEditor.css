@@ -39,7 +39,7 @@
 .tiptap-content h4,
 .tiptap-content h5,
 .tiptap-content h6 {
-  margin: 1rem 0 0.5rem 0;
+  margin: 1rem 0 0.5rem;
   font-weight: 600;
   line-height: 1.25;
 }

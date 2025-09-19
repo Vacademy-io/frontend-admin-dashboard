@@ -7,7 +7,7 @@ import { templateCacheService } from '@/services/template-cache-service';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 import { getInstituteId } from '@/constants/helper';
-import { Plus, FileText, Eye, CircleNotch, Spinner, Search } from '@phosphor-icons/react';
+import { Plus, FileText, Eye, CircleNotch, Spinner, MagnifyingGlass } from '@phosphor-icons/react';
 
 interface StudentEmailStatus {
     userId: string;

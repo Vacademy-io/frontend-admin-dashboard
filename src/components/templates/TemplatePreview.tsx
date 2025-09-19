@@ -45,7 +45,6 @@ export const TemplatePreview: React.FC<TemplatePreviewProps> = ({
 
   if (!template) return null;
 
-
   const getIcon = () => {
     return template.type === 'EMAIL' ? (
       <FileText className="size-5" />
@@ -68,12 +67,8 @@ export const TemplatePreview: React.FC<TemplatePreviewProps> = ({
     return html.replace(/<[^>]*>/g, '');
   };
 
-  const handleClose = () => {
-    onClose();
-  };
-
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[95vw] max-w-6xl min-w-[500px] h-[90vh] p-0 flex flex-col">
         <DialogHeader className="shrink-0 px-6 py-4 border-b border-gray-200">
           <DialogTitle className="flex items-center gap-2">
@@ -183,7 +178,7 @@ export const TemplatePreview: React.FC<TemplatePreviewProps> = ({
             <div className="flex items-center gap-3">
               <Button
                 variant="outline"
-                onClick={handleClose}
+                onClick={onClose}
                 disabled={isSending}
               >
                 Cancel

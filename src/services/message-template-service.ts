@@ -28,22 +28,35 @@ const getAccessToken = (): string | null => {
 
 // Helper function to safely parse settingJson
 const parseSettingJson = (
-    settingJson: string | undefined
+    settingJson: string | object | undefined
 ): { variables: string[]; isDefault: boolean } => {
-    if (!settingJson || settingJson === 'string') {
+    if (!settingJson) {
         return { variables: [], isDefault: false };
     }
 
-    try {
-        const settings = JSON.parse(settingJson);
+    // If it's already an object, return it directly
+    if (typeof settingJson === 'object') {
         return {
-            variables: settings.variables || [],
-            isDefault: settings.isDefault || false,
+            variables: (settingJson as any).variables || [],
+            isDefault: (settingJson as any).isDefault || false,
         };
-    } catch (error) {
-        console.warn('Failed to parse settingJson:', settingJson, error);
-        return { variables: [], isDefault: false };
     }
+
+    // If it's a string, try to parse it
+    if (typeof settingJson === 'string') {
+        try {
+            const settings = JSON.parse(settingJson);
+            return {
+                variables: settings.variables || [],
+                isDefault: settings.isDefault || false,
+            };
+        } catch (error) {
+            console.warn('Failed to parse settingJson:', settingJson, error);
+            return { variables: [], isDefault: false };
+        }
+    }
+
+    return { variables: [], isDefault: false };
 };
 
 export const createMessageTemplate = async (

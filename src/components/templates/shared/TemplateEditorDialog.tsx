@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { EmailRichTextEditor } from './EmailRichTextEditor';
+import { TemplatePreview } from './TemplatePreview';
 import {
     Select,
     SelectContent,
@@ -68,6 +69,8 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
         isDefault: false,
     });
     const [templateType, setTemplateType] = useState<string>('utility');
+    const [showPreview, setShowPreview] = useState(false);
+    const [isInSourceView, setIsInSourceView] = useState(false);
 
     useEffect(() => {
         if (template) {
@@ -279,6 +282,27 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
         onClose();
     };
 
+    const handlePreview = () => {
+        const previewTemplate = {
+            id: template?.id || 'preview',
+            name: formData.name,
+            type: formData.type,
+            subject: formData.subject,
+            content: formData.content,
+            variables: formData.variables,
+            isDefault: formData.isDefault,
+            createdAt: template?.createdAt || new Date().toISOString(),
+            updatedAt: template?.updatedAt || new Date().toISOString(),
+            instituteId: template?.instituteId || '',
+        };
+
+        setShowPreview(true);
+    };
+
+    const handleSourceViewChange = (isSourceView: boolean) => {
+        setIsInSourceView(isSourceView);
+    };
+
     return (
         <>
             <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -345,6 +369,9 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
                                         minHeight={200}
                                         className="w-full"
                                         subject={formData.subject}
+                                        onSourceViewChange={handleSourceViewChange}
+                                        showPreviewButton={true}
+                                        onPreview={handlePreview}
                                     />
                                 </div>
 
@@ -474,6 +501,28 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
                     </div>
                 </DialogContent>
             </Dialog>
+
+            {/* Template Preview Dialog */}
+            {showPreview && (
+                <>
+                    <TemplatePreview
+                        isOpen={showPreview}
+                        onClose={() => setShowPreview(false)}
+                        template={{
+                            id: template?.id || 'preview',
+                            name: formData.name,
+                            type: formData.type,
+                            subject: formData.subject,
+                            content: formData.content,
+                            variables: formData.variables,
+                            isDefault: formData.isDefault || false,
+                            createdAt: template?.createdAt || new Date().toISOString(),
+                            updatedAt: template?.updatedAt || new Date().toISOString(),
+                            instituteId: template?.instituteId || '',
+                        }}
+                    />
+                </>
+            )}
         </>
     );
 };

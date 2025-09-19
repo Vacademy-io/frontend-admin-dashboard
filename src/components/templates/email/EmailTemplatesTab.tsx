@@ -305,14 +305,16 @@ export const EmailTemplatesTab: React.FC = () => {
 
             {/* Template Preview Dialog */}
             {showPreview && previewTemplate && (
-                <TemplatePreview
-                    template={previewTemplate}
-                    isOpen={showPreview}
-                    onClose={() => {
-                        setShowPreview(false);
-                        setPreviewTemplate(null);
-                    }}
-                />
+                <>
+                    <TemplatePreview
+                        template={previewTemplate}
+                        isOpen={showPreview}
+                        onClose={() => {
+                            setShowPreview(false);
+                            setPreviewTemplate(null);
+                        }}
+                    />
+                </>
             )}
 
             {/* Delete Confirmation Dialog */}

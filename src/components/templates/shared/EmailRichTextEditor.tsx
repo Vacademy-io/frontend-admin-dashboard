@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { EditorContent, useEditor } from '@tiptap/react';
+import { EditorContent, useEditor, Editor } from '@tiptap/react';
 import { Node, mergeAttributes } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -26,7 +26,210 @@ interface EmailRichTextEditorProps {
   className?: string;
   onInsertVariable?: (variable: string) => void;
   subject?: string;
+  onSourceViewChange?: (isSourceView: boolean) => void;
+  showPreviewButton?: boolean;
+  onPreview?: () => void;
 }
+
+// Device presets for preview
+const DEVICE_PRESETS: Record<'mobile' | 'tablet' | 'laptop', { label: string; width: number }> = {
+  mobile: { label: 'Mobile', width: 390 },
+  tablet: { label: 'Tablet', width: 768 },
+  laptop: { label: 'Laptop', width: 1024 },
+};
+
+// Toolbar button component
+const ToolbarButton = ({
+  title,
+  onClick,
+  isActive = false,
+  children
+}: {
+  title: string;
+  onClick: () => void;
+  isActive?: boolean;
+  children: React.ReactNode;
+}) => (
+  <button
+    type="button"
+    title={title}
+    onClick={onClick}
+    className={`rounded px-2 py-1 hover:bg-neutral-100 ${isActive ? 'bg-neutral-200' : ''}`}
+    data-active={isActive}
+  >
+    {children}
+  </button>
+);
+
+// Text formatting toolbar section
+const TextFormattingToolbar = ({ editor }: { editor: Editor | null }) => (
+  <div className="flex items-center gap-1">
+    <ToolbarButton
+      title="Bold"
+      onClick={() => editor?.chain().focus().toggleBold().run()}
+      isActive={editor?.isActive('bold')}
+    >
+      <strong>B</strong>
+    </ToolbarButton>
+    <ToolbarButton
+      title="Italic"
+      onClick={() => editor?.chain().focus().toggleItalic().run()}
+      isActive={editor?.isActive('italic')}
+    >
+      <em>I</em>
+    </ToolbarButton>
+    <ToolbarButton
+      title="Underline"
+      onClick={() => editor?.chain().focus().toggleUnderline().run()}
+      isActive={editor?.isActive('underline')}
+    >
+      <u>U</u>
+    </ToolbarButton>
+    <ToolbarButton
+      title="Highlight"
+      onClick={() => editor?.chain().focus().toggleHighlight().run()}
+      isActive={editor?.isActive('highlight')}
+    >
+      HL
+    </ToolbarButton>
+  </div>
+);
+
+// List formatting toolbar section
+const ListFormattingToolbar = ({ editor }: { editor: Editor | null }) => (
+  <div className="flex items-center gap-1">
+    <ToolbarButton
+      title="Bullet List"
+      onClick={() => editor?.chain().focus().toggleBulletList().run()}
+      isActive={editor?.isActive('bulletList')}
+    >
+      •
+    </ToolbarButton>
+    <ToolbarButton
+      title="Ordered List"
+      onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+      isActive={editor?.isActive('orderedList')}
+    >
+      1.
+    </ToolbarButton>
+    <ToolbarButton
+      title="Blockquote"
+      onClick={() => editor?.chain().focus().toggleBlockquote().run()}
+      isActive={editor?.isActive('blockquote')}
+    >
+      &ldquo; &rdquo;
+    </ToolbarButton>
+  </div>
+);
+
+// Text alignment toolbar section
+const TextAlignmentToolbar = ({ editor }: { editor: Editor | null }) => (
+  <div className="flex items-center gap-1">
+    <ToolbarButton
+      title="Align Left"
+      onClick={() => editor?.chain().focus().setTextAlign('left').run()}
+    >
+      L
+    </ToolbarButton>
+    <ToolbarButton
+      title="Align Center"
+      onClick={() => editor?.chain().focus().setTextAlign('center').run()}
+    >
+      C
+    </ToolbarButton>
+    <ToolbarButton
+      title="Align Right"
+      onClick={() => editor?.chain().focus().setTextAlign('right').run()}
+    >
+      R
+    </ToolbarButton>
+  </div>
+);
+
+// Preview modal component
+const PreviewModal = ({
+  isOpen,
+  onClose,
+  value,
+  subject,
+  previewDevice,
+  setPreviewDevice,
+  previewWidth
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  value: string;
+  subject: string;
+  previewDevice: 'mobile' | 'tablet' | 'laptop';
+  setPreviewDevice: (device: 'mobile' | 'tablet' | 'laptop') => void;
+  previewWidth: number;
+}) => (
+  <Dialog open={isOpen} onOpenChange={onClose}>
+    <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+      <DialogHeader>
+        <DialogTitle>Email Preview</DialogTitle>
+      </DialogHeader>
+      <div className="flex-1 flex flex-col gap-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">Device:</span>
+          <select
+            value={previewDevice}
+            onChange={(e) => setPreviewDevice(e.target.value as 'mobile' | 'tablet' | 'laptop')}
+            className="px-3 py-1 border rounded-md text-sm"
+          >
+            {Object.entries(DEVICE_PRESETS).map(([key, preset]) => (
+              <option key={key} value={key}>
+                {preset.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex-1 flex justify-center overflow-auto">
+          <div
+            className="bg-white border border-gray-300 rounded-lg shadow-lg overflow-hidden"
+            style={{ width: previewWidth }}
+          >
+            <div className="border-b bg-gray-50 px-4 py-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1">
+                    <div className="h-3 w-3 rounded-full bg-red-500"></div>
+                    <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
+                    <div className="h-3 w-3 rounded-full bg-green-500"></div>
+                  </div>
+                  <div className="text-sm font-medium text-gray-700">
+                    {DEVICE_PRESETS[previewDevice].label} Preview
+                  </div>
+                </div>
+                <div className="text-xs text-gray-500">
+                  {previewWidth}px
+                </div>
+              </div>
+            </div>
+            <div className="p-6 min-h-[200px]">
+              {subject && (
+                <div className="mb-4 pb-4 border-b border-gray-200">
+                  <div className="text-sm font-medium text-gray-600 mb-1">Subject:</div>
+                  <div className="text-lg font-semibold text-gray-900">{subject}</div>
+                </div>
+              )}
+              {value ? (
+                <div
+                  className="prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: value }}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-32 text-gray-500 text-sm">
+                  No content to preview
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </DialogContent>
+  </Dialog>
+);
 
 export function EmailRichTextEditor({
   value,
@@ -37,21 +240,23 @@ export function EmailRichTextEditor({
   className = '',
   onInsertVariable,
   subject = '',
+  onSourceViewChange,
+  showPreviewButton = true,
+  onPreview,
 }: EmailRichTextEditorProps) {
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
   const [linkText, setLinkText] = useState('');
   const [contentView, setContentView] = useState<'editor' | 'source'>('editor');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+  // Notify parent when source view changes
+  useEffect(() => {
+    onSourceViewChange?.(contentView === 'source');
+  }, [contentView, onSourceViewChange]);
   const [previewDevice, setPreviewDevice] = useState<'mobile' | 'tablet' | 'laptop'>('laptop');
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
   const [previewWidth, setPreviewWidth] = useState(1024);
-
-  const DEVICE_PRESETS: Record<typeof previewDevice, { label: string; width: number }> = {
-    mobile: { label: 'Mobile', width: 390 },
-    tablet: { label: 'Tablet', width: 768 },
-    laptop: { label: 'Laptop', width: 1024 },
-  };
 
   // Update window width on resize
   useEffect(() => {
@@ -156,7 +361,11 @@ export function EmailRichTextEditor({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setContentView('editor')}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setContentView('editor');
+            }}
             className={`flex items-center gap-2 transition-all duration-200 rounded-md ${
               contentView === 'editor'
                 ? 'toggle-button-active'
@@ -169,7 +378,11 @@ export function EmailRichTextEditor({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setContentView('source')}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setContentView('source');
+            }}
             className={`flex items-center gap-2 transition-all duration-200 rounded-md ${
               contentView === 'source'
                 ? 'toggle-button-active'
@@ -180,16 +393,27 @@ export function EmailRichTextEditor({
             HTML Source
           </Button>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setIsPreviewOpen(true)}
-          disabled={isPreviewOpen}
-          className="flex items-center gap-2 w-full sm:w-auto justify-center"
-        >
-          <Eye className="size-4" />
-          Preview
-        </Button>
+        {showPreviewButton && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (onPreview) {
+                onPreview();
+              } else {
+                setIsPreviewOpen(true);
+              }
+            }}
+            disabled={isPreviewOpen}
+            className="flex items-center gap-2 w-full sm:w-auto justify-center"
+          >
+            <Eye className="size-4" />
+            Preview
+          </Button>
+        )}
       </div>
 
       {/* Editor Content */}
@@ -197,105 +421,11 @@ export function EmailRichTextEditor({
         <>
           {/* Toolbar */}
           <div className="tiptap-toolbar flex flex-wrap items-center gap-1 overflow-x-auto border-b p-2 text-sm">
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            title="Bold"
-            onClick={() => editor?.chain().focus().toggleBold().run()}
-            className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('bold') ? 'bg-neutral-200' : ''}`}
-            data-active={editor?.isActive('bold')}
-          >
-            <strong>B</strong>
-          </button>
-          <button
-            type="button"
-            title="Italic"
-            onClick={() => editor?.chain().focus().toggleItalic().run()}
-            className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('italic') ? 'bg-neutral-200' : ''}`}
-            data-active={editor?.isActive('italic')}
-          >
-            <em>I</em>
-          </button>
-          <button
-            type="button"
-            title="Underline"
-            onClick={() => editor?.chain().focus().toggleUnderline().run()}
-            className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('underline') ? 'bg-neutral-200' : ''}`}
-            data-active={editor?.isActive('underline')}
-          >
-            <u>U</u>
-          </button>
-          <button
-            type="button"
-            title="Highlight"
-            onClick={() => editor?.chain().focus().toggleHighlight().run()}
-            className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('highlight') ? 'bg-neutral-200' : ''}`}
-            data-active={editor?.isActive('highlight')}
-          >
-            HL
-          </button>
-        </div>
-
+            <TextFormattingToolbar editor={editor} />
         <div className="mx-1 h-6 w-px bg-neutral-200" />
-
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            title="Bullet List"
-            onClick={() => editor?.chain().focus().toggleBulletList().run()}
-            className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('bulletList') ? 'bg-neutral-200' : ''}`}
-            data-active={editor?.isActive('bulletList')}
-          >
-            •
-          </button>
-          <button
-            type="button"
-            title="Ordered List"
-            onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-            className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('orderedList') ? 'bg-neutral-200' : ''}`}
-            data-active={editor?.isActive('orderedList')}
-          >
-            1.
-          </button>
-          <button
-            type="button"
-            title="Blockquote"
-            onClick={() => editor?.chain().focus().toggleBlockquote().run()}
-            className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('blockquote') ? 'bg-neutral-200' : ''}`}
-            data-active={editor?.isActive('blockquote')}
-          >
-            &ldquo; &rdquo;
-          </button>
-        </div>
-
+            <ListFormattingToolbar editor={editor} />
         <div className="mx-1 h-6 w-px bg-neutral-200" />
-
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            title="Align Left"
-            onClick={() => editor?.chain().focus().setTextAlign('left').run()}
-            className="rounded px-2 py-1 hover:bg-neutral-100"
-          >
-            L
-          </button>
-          <button
-            type="button"
-            title="Align Center"
-            onClick={() => editor?.chain().focus().setTextAlign('center').run()}
-            className="rounded px-2 py-1 hover:bg-neutral-100"
-          >
-            C
-          </button>
-          <button
-            type="button"
-            title="Align Right"
-            onClick={() => editor?.chain().focus().setTextAlign('right').run()}
-            className="rounded px-2 py-1 hover:bg-neutral-100"
-          >
-            R
-          </button>
-        </div>
+            <TextAlignmentToolbar editor={editor} />
 
         <div className="mx-1 h-6 w-px bg-neutral-200" />
 
@@ -366,7 +496,9 @@ export function EmailRichTextEditor({
         <div className="p-2">
           <Textarea
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => {
+              onChange(e.target.value);
+            }}
             className="min-h-[200px] font-mono text-sm"
             placeholder="Edit raw HTML source..."
           />
@@ -441,104 +573,15 @@ export function EmailRichTextEditor({
       )}
 
       {/* Preview Modal */}
-      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent className="w-[95vw] max-w-6xl min-w-[500px] h-[90vh] p-0 flex flex-col">
-          <DialogHeader className="shrink-0 px-6 py-4 border-b border-gray-200">
-            <DialogTitle className="flex items-center gap-2">
-              <Eye className="size-5" />
-              Email Preview
-            </DialogTitle>
-            <div className="mt-3 flex flex-wrap items-center gap-2 sm:gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPreviewDevice('mobile')}
-                className={`flex items-center gap-2 transition-all rounded-none border-0 border-b-2 ${
-                  previewDevice === 'mobile'
-                    ? 'border-primary-500 text-primary-600 bg-primary-50/50'
-                    : 'border-transparent hover:border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                <Smartphone className="size-4" />
-                Mobile
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPreviewDevice('tablet')}
-                className={`flex items-center gap-2 transition-all rounded-none border-0 border-b-2 ${
-                  previewDevice === 'tablet'
-                    ? 'border-primary-500 text-primary-600 bg-primary-50/50'
-                    : 'border-transparent hover:border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                <Tablet className="size-4" />
-                Tablet
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPreviewDevice('laptop')}
-                className={`flex items-center gap-2 transition-all rounded-none border-0 border-b-2 ${
-                  previewDevice === 'laptop'
-                    ? 'border-primary-500 text-primary-600 bg-primary-50/50'
-                    : 'border-transparent hover:border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                <Monitor className="size-4" />
-                Laptop
-              </Button>
-            </div>
-          </DialogHeader>
-          <div className="flex-1 overflow-y-auto p-6 preview-modal-content scrollbar-hide">
-            <div className="flex justify-center">
-              <div
-                className="border border-gray-300 bg-white rounded-lg overflow-hidden preview-device-frame"
-                style={{
-                  width: `${previewWidth}px`,
-                  maxWidth: '100%'
-                }}
-              >
-                <div className="border-b bg-gray-50 px-4 py-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="flex gap-1">
-                        <div className="h-3 w-3 rounded-full bg-red-500"></div>
-                        <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
-                        <div className="h-3 w-3 rounded-full bg-green-500"></div>
-                      </div>
-                      <div className="text-sm font-medium text-gray-700">
-                        {DEVICE_PRESETS[previewDevice].label} Preview
-                      </div>
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {previewWidth}px
-                    </div>
-                  </div>
-                </div>
-                <div className="p-6 min-h-[200px]">
-                  {subject && (
-                    <div className="mb-4 pb-4 border-b border-gray-200">
-                      <div className="text-sm font-medium text-gray-600 mb-1">Subject:</div>
-                      <div className="text-lg font-semibold text-gray-900">{subject}</div>
-                    </div>
-                  )}
-                  {value ? (
-                    <div
-                      className="prose prose-sm max-w-none"
-                      dangerouslySetInnerHTML={{ __html: value }}
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-32 text-gray-500 text-sm">
-                      No content to preview
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <PreviewModal
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        value={value}
+        subject={subject}
+        previewDevice={previewDevice}
+        setPreviewDevice={setPreviewDevice}
+        previewWidth={previewWidth}
+      />
     </div>
   );
 }

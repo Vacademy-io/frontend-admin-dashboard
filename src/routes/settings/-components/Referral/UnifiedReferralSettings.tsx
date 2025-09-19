@@ -37,11 +37,25 @@ import {
     MessageCircle,
 } from 'lucide-react';
 import { MyButton } from '@/components/design-system/button';
+import TemplateSelector from '@/components/templates/TemplateSelector';
+import TemplatePreview from '@/components/templates/TemplatePreview';
+import { MessageTemplate } from '@/types/message-template-types';
 
 // Enhanced interfaces with multiple programs support
 export interface ContentDelivery {
     email: boolean;
     whatsapp: boolean;
+    emailTemplate?: {
+        id: string;
+        name: string;
+        subject?: string;
+        content: string;
+    };
+    whatsappTemplate?: {
+        id: string;
+        name: string;
+        content: string;
+    };
 }
 
 export interface ContentOption {
@@ -1015,37 +1029,145 @@ interface DeliveryOptionsEditorProps {
 }
 
 const DeliveryOptionsEditor: React.FC<DeliveryOptionsEditorProps> = ({ delivery, onChange }) => {
+    const [previewTemplate, setPreviewTemplate] = React.useState<MessageTemplate | null>(null);
+    const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
+
+    const handleEmailTemplateSelect = (template: MessageTemplate | null) => {
+        const updatedDelivery = { ...delivery };
+        if (template) {
+            updatedDelivery.emailTemplate = {
+                id: template.id,
+                name: template.name,
+                subject: template.subject,
+                content: template.content,
+            };
+        } else {
+            delete updatedDelivery.emailTemplate;
+        }
+        onChange(updatedDelivery);
+    };
+
+    const handleWhatsAppTemplateSelect = (template: MessageTemplate | null) => {
+        const updatedDelivery = { ...delivery };
+        if (template) {
+            updatedDelivery.whatsappTemplate = {
+                id: template.id,
+                name: template.name,
+                content: template.content,
+            };
+        } else {
+            delete updatedDelivery.whatsappTemplate;
+        }
+        onChange(updatedDelivery);
+    };
+
+    const handleEmailTemplatePreview = (template: MessageTemplate) => {
+        setPreviewTemplate(template);
+        setIsPreviewOpen(true);
+    };
+
+    const handleWhatsAppTemplatePreview = (template: MessageTemplate) => {
+        setPreviewTemplate(template);
+        setIsPreviewOpen(true);
+    };
+
+    const handleEmailTemplateCreate = () => {
+        // TODO: Implement template creation functionality
+        console.log('Create email template');
+    };
+
+    const handleWhatsAppTemplateCreate = () => {
+        // TODO: Implement template creation functionality
+        console.log('Create WhatsApp template');
+    };
+
     return (
-        <div className="space-y-2">
-            <Label>Delivery Methods</Label>
-            <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                    <Checkbox
-                        id="email-delivery"
-                        checked={delivery.email}
-                        onCheckedChange={(checked) =>
-                            onChange({ ...delivery, email: checked as boolean })
-                        }
-                    />
-                    <Label htmlFor="email-delivery" className="flex items-center gap-2 text-sm">
-                        <Mail className="size-4" />
-                        Email
-                    </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                    <Checkbox
-                        id="whatsapp-delivery"
-                        checked={delivery.whatsapp}
-                        onCheckedChange={(checked) =>
-                            onChange({ ...delivery, whatsapp: checked as boolean })
-                        }
-                    />
-                    <Label htmlFor="whatsapp-delivery" className="flex items-center gap-2 text-sm">
-                        <MessageCircle className="size-4" />
-                        WhatsApp
-                    </Label>
+        <div className="space-y-4">
+            <div>
+                <Label>Delivery Methods</Label>
+                <div className="flex items-center space-x-4 mt-2">
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="email-delivery"
+                            checked={delivery.email}
+                            onCheckedChange={(checked) =>
+                                onChange({ ...delivery, email: checked as boolean })
+                            }
+                        />
+                        <Label htmlFor="email-delivery" className="flex items-center gap-2 text-sm">
+                            <Mail className="size-4" />
+                            Email
+                        </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="whatsapp-delivery"
+                            checked={delivery.whatsapp}
+                            onCheckedChange={(checked) =>
+                                onChange({ ...delivery, whatsapp: checked as boolean })
+                            }
+                        />
+                        <Label htmlFor="whatsapp-delivery" className="flex items-center gap-2 text-sm">
+                            <MessageCircle className="size-4" />
+                            WhatsApp
+                        </Label>
+                    </div>
                 </div>
             </div>
+
+            {/* Email Template Selection */}
+            {delivery.email && (
+                <TemplateSelector
+                    templateType="EMAIL"
+                    variant="dropdown"
+                    selectedTemplate={delivery.emailTemplate ? {
+                        id: delivery.emailTemplate.id,
+                        name: delivery.emailTemplate.name,
+                        subject: delivery.emailTemplate.subject,
+                        content: delivery.emailTemplate.content,
+                        type: 'EMAIL',
+                        variables: [],
+                        isDefault: false,
+                        createdAt: '',
+                        updatedAt: '',
+                        instituteId: '',
+                    } : null}
+                    onTemplateSelect={handleEmailTemplateSelect}
+                    onTemplatePreview={handleEmailTemplatePreview}
+                    onTemplateCreate={handleEmailTemplateCreate}
+                    placeholder="Select email template"
+                />
+            )}
+
+            {/* WhatsApp Template Selection */}
+            {delivery.whatsapp && (
+                <TemplateSelector
+                    templateType="WHATSAPP"
+                    variant="dropdown"
+                    selectedTemplate={delivery.whatsappTemplate ? {
+                        id: delivery.whatsappTemplate.id,
+                        name: delivery.whatsappTemplate.name,
+                        content: delivery.whatsappTemplate.content,
+                        type: 'WHATSAPP',
+                        variables: [],
+                        isDefault: false,
+                        createdAt: '',
+                        updatedAt: '',
+                        instituteId: '',
+                    } : null}
+                    onTemplateSelect={handleWhatsAppTemplateSelect}
+                    onTemplatePreview={handleWhatsAppTemplatePreview}
+                    onTemplateCreate={handleWhatsAppTemplateCreate}
+                    placeholder="Select WhatsApp template"
+                />
+            )}
+
+            {/* Template Preview Modal */}
+            <TemplatePreview
+                isOpen={isPreviewOpen}
+                onClose={() => setIsPreviewOpen(false)}
+                template={previewTemplate}
+            />
         </div>
     );
 };
