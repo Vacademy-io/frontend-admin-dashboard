@@ -3,7 +3,7 @@ import { InviteLinkFormValues } from '../GenerateInviteLinkSchema';
 import { MyButton } from '@/components/design-system/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Calendar, Gear, Gift, Percent, Star, TrendUp, Users } from 'phosphor-react';
+import { Calendar, Gear, Gift, Percent, Star, TrendUp, Users } from 'phosphor-react';
 import { DollarSign } from 'lucide-react';
 
 interface DiscountSettingsDialogProps {
@@ -20,8 +20,6 @@ export const getReferralTypeLabel = (type: string) => {
             return 'Bonus Content';
         case 'free_days':
             return 'Free Days';
-        case 'free_course':
-            return 'Free Course';
         case 'points_system':
             return 'Points System';
         default:
@@ -39,8 +37,6 @@ export const getReferralTypeIcon = (type: string) => {
             return <Gift className="size-4 text-purple-600" />;
         case 'free_days':
             return <Calendar className="size-4 text-blue-600" />;
-        case 'free_course':
-            return <BookOpen className="size-4 text-indigo-600" />;
         case 'points_system':
             return <Star className="size-4 text-yellow-600" />;
         default:
@@ -88,12 +84,7 @@ const ReferralProgramCard = ({ form }: DiscountSettingsDialogProps) => {
                             <Gift size={18} />
                             <span className="font-semibold">Referee Benefit</span>
                         </div>
-                        {selectedReferral?.refereeBenefit?.type === 'free_course' ? (
-                            <span className="ml-6 flex items-center gap-1 font-semibold text-green-700">
-                                {getReferralTypeIcon(selectedReferral?.refereeBenefit?.type || '')}
-                                <span>Free course access</span>
-                            </span>
-                        ) : selectedReferral?.refereeBenefit?.type === 'free_days' ? (
+                        {selectedReferral?.refereeBenefit?.type === 'free_days' ? (
                             <span className="ml-6 flex items-center gap-1 font-semibold text-green-700">
                                 {getReferralTypeIcon(selectedReferral?.refereeBenefit?.type || '')}
                                 <span>{selectedReferral?.refereeBenefit?.value} free days</span>

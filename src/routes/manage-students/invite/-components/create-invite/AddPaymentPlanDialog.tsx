@@ -1,7 +1,5 @@
-import { Label } from '@/components/ui/label';
 import { savePaymentOption, transformLocalPlanToApiFormat } from '@/services/payment-options';
 import { toast } from 'sonner';
-import { Switch } from '@/components/ui/switch';
 import { getInstituteId } from '@/constants/helper';
 import { PaymentPlan } from '@/types/payment';
 import { InviteLinkFormValues } from './GenerateInviteLinkSchema';
@@ -37,8 +35,9 @@ const AddPaymentPlanDialog = ({ form }: PaymentPlansDialogProps) => {
         setRequireApproval(false);
     };
 
-    const handleSavePaymentPlan = async (plan: PaymentPlan, approvalOverride?: boolean) => {
+    const handleSavePaymentPlan = async (plan: PaymentPlan) => {
         setIsSaving(true);
+        console.log('requireApproval value in handleSavePaymentPlan:', requireApproval);
         try {
             const apiPlan = transformLocalPlanToApiFormat(plan);
             const paymentOptionRequest = {
@@ -48,7 +47,7 @@ const AddPaymentPlanDialog = ({ form }: PaymentPlansDialogProps) => {
                 source: 'INSTITUTE',
                 source_id: instituteId ?? '',
                 type: plan.type,
-                require_approval: approvalOverride ?? requireApproval,
+                require_approval: requireApproval,
                 payment_plans: [apiPlan],
                 payment_option_metadata_json: JSON.stringify({
                     currency: plan.currency,
@@ -117,26 +116,14 @@ const AddPaymentPlanDialog = ({ form }: PaymentPlansDialogProps) => {
                 key={editingPlan?.id}
                 isOpen={showPaymentPlanCreator}
                 onClose={handleClosePaymentPlanCreator}
-                onSave={(plan) => handleSavePaymentPlan(plan, requireApproval)}
+                onSave={(plan) => handleSavePaymentPlan(plan)}
                 editingPlan={editingPlan}
                 featuresGlobal={featuresGlobal}
                 setFeaturesGlobal={setFeaturesGlobal}
                 defaultCurrency={'GBP'}
                 isSaving={isSaving}
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
-                requireApprovalCheckbox={
-                    !editingPlan && (
-                        <div className="mt-4 flex items-center gap-2">
-                            <Label htmlFor="requireApproval">Send for approval</Label>
-                            <Switch
-                                id="requireApproval"
-                                checked={requireApproval}
-                                onCheckedChange={setRequireApproval}
-                            />
-                        </div>
-                    )
-                }
+                requireApproval={requireApproval}
+                setRequireApproval={setRequireApproval}
             />
         </>
     );

@@ -279,18 +279,6 @@ export function PlanReferralConfigDialog({ form }: PlanReferralConfigDialogProps
                                                     </div>
                                                     <div className="ml-6">
                                                         {program?.refereeBenefit?.type ===
-                                                            'free_course' && (
-                                                            <div className="flex items-center gap-2 text-green-700">
-                                                                {getReferralTypeIcon(
-                                                                    program?.refereeBenefit?.type ||
-                                                                        ''
-                                                                )}
-                                                                <span className="text-sm font-medium">
-                                                                    Free course access
-                                                                </span>
-                                                            </div>
-                                                        )}
-                                                        {program?.refereeBenefit?.type ===
                                                             'free_days' && (
                                                             <div className="flex items-center gap-2 text-blue-700">
                                                                 {getReferralTypeIcon(
@@ -305,14 +293,52 @@ export function PlanReferralConfigDialog({ form }: PlanReferralConfigDialogProps
                                                         )}
                                                         {program?.refereeBenefit?.type ===
                                                             'bonus_content' && (
-                                                            <div className="flex items-center gap-2 text-purple-700">
-                                                                {getReferralTypeIcon(
-                                                                    program?.refereeBenefit?.type ||
-                                                                        ''
+                                                            <div className="space-y-1">
+                                                                <div className="flex items-center gap-2 text-purple-700">
+                                                                    {getReferralTypeIcon(
+                                                                        program?.refereeBenefit
+                                                                            ?.type || ''
+                                                                    )}
+                                                                    <span className="text-sm font-medium">
+                                                                        {(
+                                                                            program?.refereeBenefit as {
+                                                                                title?: string;
+                                                                            }
+                                                                        )?.title || 'Bonus Content'}
+                                                                    </span>
+                                                                </div>
+                                                                {(
+                                                                    program?.refereeBenefit as {
+                                                                        contentType?: string;
+                                                                    }
+                                                                )?.contentType && (
+                                                                    <div className="ml-6 text-xs text-purple-600">
+                                                                        Type:{' '}
+                                                                        {(
+                                                                            program?.refereeBenefit as {
+                                                                                contentType?: string;
+                                                                            }
+                                                                        )?.contentType === 'link'
+                                                                            ? 'External Link'
+                                                                            : 'File Upload'}
+                                                                    </div>
                                                                 )}
-                                                                <span className="text-sm font-medium">
-                                                                    Bonus Content
-                                                                </span>
+                                                                {(
+                                                                    program?.refereeBenefit as {
+                                                                        template?: string;
+                                                                    }
+                                                                )?.template && (
+                                                                    <div className="ml-6 text-xs text-purple-600">
+                                                                        Template:{' '}
+                                                                        {
+                                                                            (
+                                                                                program?.refereeBenefit as {
+                                                                                    template?: string;
+                                                                                }
+                                                                            )?.template
+                                                                        }
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         )}
                                                         {program?.refereeBenefit?.type ===
@@ -342,12 +368,42 @@ export function PlanReferralConfigDialog({ form }: PlanReferralConfigDialogProps
                                                                 </span>
                                                             </div>
                                                         )}
+                                                        {program?.refereeBenefit?.type ===
+                                                            'points_system' && (
+                                                            <div className="space-y-1">
+                                                                <div className="flex items-center gap-2 text-indigo-700">
+                                                                    {getReferralTypeIcon(
+                                                                        program?.refereeBenefit
+                                                                            ?.type || ''
+                                                                    )}
+                                                                    <span className="text-sm font-medium">
+                                                                        Points System
+                                                                    </span>
+                                                                </div>
+                                                                {(
+                                                                    program?.refereeBenefit as {
+                                                                        pointsPerReferral?: number;
+                                                                    }
+                                                                )?.pointsPerReferral && (
+                                                                    <div className="ml-6 text-xs text-indigo-600">
+                                                                        {
+                                                                            (
+                                                                                program?.refereeBenefit as {
+                                                                                    pointsPerReferral?: number;
+                                                                                }
+                                                                            )?.pointsPerReferral
+                                                                        }{' '}
+                                                                        points per referral
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
                                                         {![
-                                                            'free_course',
                                                             'free_days',
                                                             'bonus_content',
                                                             'discount_percentage',
                                                             'discount_fixed',
+                                                            'points_system',
                                                         ].includes(
                                                             program?.refereeBenefit?.type || ''
                                                         ) && (
@@ -398,7 +454,10 @@ export function PlanReferralConfigDialog({ form }: PlanReferralConfigDialogProps
                                                                             {benefit.type ===
                                                                             'points_system'
                                                                                 ? 'Points'
-                                                                                : 'Reward'}
+                                                                                : benefit.type ===
+                                                                                    'bonus_content'
+                                                                                  ? 'Content'
+                                                                                  : 'Reward'}
                                                                         </span>
                                                                     </div>
                                                                 ))

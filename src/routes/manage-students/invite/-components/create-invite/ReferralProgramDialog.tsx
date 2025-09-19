@@ -72,14 +72,7 @@ export function ReferralProgramDialog({ form }: ReferralProgramDialogProps) {
                                         <Gift size={16} />
                                         <span className="font-semibold">Referee Benefit:</span>
                                     </div>
-                                    {program?.refereeBenefit?.type === 'free_course' ? (
-                                        <span className="ml-6 flex items-center gap-1 font-semibold text-green-700">
-                                            {getReferralTypeIcon(
-                                                program?.refereeBenefit?.type || ''
-                                            )}
-                                            <span>Free course access</span>
-                                        </span>
-                                    ) : program?.refereeBenefit?.type === 'free_days' ? (
+                                    {program?.refereeBenefit?.type === 'free_days' ? (
                                         <span className="ml-6 flex items-center gap-1 font-semibold text-green-700">
                                             {getReferralTypeIcon(
                                                 program?.refereeBenefit?.type || ''
