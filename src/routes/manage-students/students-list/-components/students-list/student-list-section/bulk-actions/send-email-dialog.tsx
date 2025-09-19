@@ -40,7 +40,6 @@ export const SendEmailDialog = () => {
     };
 
     const handleCreateNewTemplate = () => {
-        console.log('Creating new template - setting showTemplateEditor to true');
         setEditingTemplate(null);
         setShowTemplateSelection(false);
         setShowTemplateEditor(true);
@@ -109,15 +108,12 @@ export const SendEmailDialog = () => {
                 // Track and log null values for debugging
                 if (!student.full_name) {
                     nullValueReport.missingNames++;
-                    console.warn(`⚠️ Null name for student ${student.user_id}:`, student);
                 }
                 if (!student.email) {
                     nullValueReport.missingEmails++;
-                    console.warn(`⚠️ Null email for student ${student.user_id}:`, student);
                 }
                 if (!student.mobile_number) {
                     nullValueReport.missingMobileNumbers++;
-                    console.warn(`⚠️ Null mobile_number for student ${student.user_id}:`, student);
                 }
 
                 // Map template variables for this student
@@ -147,13 +143,6 @@ export const SendEmailDialog = () => {
             .filter((p) => p !== null);
 
         // Log null value summary
-        console.log('📊 Null Value Report:', {
-            totalStudents: nullValueReport.totalStudents,
-            missingNames: nullValueReport.missingNames,
-            missingEmails: nullValueReport.missingEmails,
-            missingMobileNumbers: nullValueReport.missingMobileNumbers,
-            processedStudents: apiUsersPayload.length,
-        });
 
         if (apiUsersPayload.length === 0) {
             toast.error('Could not prepare payload for any student.');
@@ -176,7 +165,6 @@ export const SendEmailDialog = () => {
         // Process each student individually
         for (const userPayload of apiUsersPayload) {
             if (!userPayload) {
-                console.warn('Skipping null user payload');
                 continue;
             }
 
@@ -257,12 +245,10 @@ export const SendEmailDialog = () => {
             toast.warning(`Sent ${successCount} email(s), ${failureCount} failed.`, {
                 id: 'bulk-email-progress',
             });
-            console.error('Email sending errors:', errors);
         } else {
             toast.error(`Failed to send all ${failureCount} email(s).`, {
                 id: 'bulk-email-progress',
             });
-            console.error('Email sending errors:', errors);
         }
 
         setIsBulkEmailSending(false);
@@ -282,11 +268,6 @@ export const SendEmailDialog = () => {
     // Initialize email statuses and show template selection when dialog opens
     useEffect(() => {
         if (isSendEmailOpen) {
-            console.log('🎯 SendEmailDialog: Dialog opened, initializing...', {
-                isBulkAction,
-                selectedStudentsCount: bulkActionInfo?.selectedStudents?.length || 0,
-                selectedStudent: selectedStudent?.full_name || 'none'
-            });
 
             const students = isBulkAction
                 ? bulkActionInfo?.selectedStudents || []
@@ -305,11 +286,9 @@ export const SendEmailDialog = () => {
             );
 
             // Automatically show template selection dialog
-            console.log('🎯 SendEmailDialog: Setting showTemplateSelection to true');
             setShowTemplateSelection(true);
         } else {
             // Reset states when dialog closes
-            console.log('🎯 SendEmailDialog: Dialog closed, resetting states');
             setShowTemplateSelection(false);
             setShowTemplateEditor(false);
             setShowTemplatePreview(false);
@@ -317,22 +296,6 @@ export const SendEmailDialog = () => {
         }
     }, [isSendEmailOpen, bulkActionInfo, selectedStudent, isBulkAction]);
 
-    // Debug state changes
-    useEffect(() => {
-        console.log('Dialog states:', {
-            isSendEmailOpen,
-            showTemplateSelection,
-            showTemplateEditor,
-            showTemplatePreview,
-            editingTemplate: editingTemplate?.name || 'null',
-        });
-    }, [
-        isSendEmailOpen,
-        showTemplateSelection,
-        showTemplateEditor,
-        showTemplatePreview,
-        editingTemplate,
-    ]);
 
     return (
         <>
@@ -351,7 +314,6 @@ export const SendEmailDialog = () => {
             <TemplateEditorDialog
                 isOpen={showTemplateEditor}
                 onClose={() => {
-                    console.log('Closing template editor');
                     setShowTemplateEditor(false);
                 }}
                 onSaveAndSend={handleTemplateSavedAndSent}

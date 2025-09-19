@@ -70,8 +70,9 @@ export const WhatsAppTemplateMappingModal: React.FC<WhatsAppTemplateMappingModal
         const placeholders: string[] = [];
         template.components.forEach((component) => {
             if (component.type === 'BODY' && component.text) {
-                // Find placeholders like {{1}}, {{2}}, etc.
-                const matches = component.text.match(/\{\{(\d+)\}\}/g);
+                // Find placeholders like {{1}}, {{name}}, {{student_name}}, {{custom_field}}, etc.
+                // This regex matches any content inside {{}} brackets, not just numbers
+                const matches = component.text.match(/\{\{([^}]+)\}\}/g);
                 if (matches) {
                     matches.forEach((match) => {
                         const placeholder = match.replace(/[{}]/g, '');

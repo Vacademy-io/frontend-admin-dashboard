@@ -41,7 +41,7 @@ export const EmailTemplatesTab: React.FC = () => {
             setTemplates(emailTemplates);
             setFilteredTemplates(emailTemplates);
         } catch (error) {
-            console.error('Error loading templates:', error);
+            // Error is already handled by toast.error
         } finally {
             setIsLoading(false);
         }
@@ -101,7 +101,7 @@ export const EmailTemplatesTab: React.FC = () => {
             setShowEditor(false);
             setEditingTemplate(null);
         } catch (error) {
-            console.error('Error saving template:', error);
+            // Error is already handled by toast.error
         } finally {
             setIsSaving(false);
         }
@@ -116,7 +116,7 @@ export const EmailTemplatesTab: React.FC = () => {
             setShowDeleteDialog(false);
             setDeleteTemplateId(null);
         } catch (error) {
-            console.error('Error deleting template:', error);
+            // Error is already handled by toast.error
         } finally {
             setIsDeleting(false);
         }

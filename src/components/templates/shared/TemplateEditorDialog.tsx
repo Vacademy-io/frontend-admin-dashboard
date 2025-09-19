@@ -28,6 +28,8 @@ import {
     School,
     Award,
     Database,
+    Video,
+    Gift,
 } from 'lucide-react';
 import { extractVariablesFromContent } from './TemplateEditorUtils';
 import { createMessageTemplate, updateMessageTemplate } from '@/services/message-template-service';
@@ -151,12 +153,14 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
 
     const getCategoryIcon = (category: string) => {
         const iconMap: Record<string, React.ReactNode> = {
-            learner: <GraduationCap className="size-4 text-blue-600" />,
+            student: <GraduationCap className="size-4 text-blue-600" />,
             course: <BookOpen className="size-4 text-green-600" />,
             batch: <Users className="size-4 text-purple-600" />,
             institute: <School className="size-4 text-orange-600" />,
-            session: <Calendar className="size-4 text-pink-600" />,
+            'live class': <Video className="size-4 text-red-600" />,
+            referral: <Gift className="size-4 text-yellow-600" />,
             attendance: <Award className="size-4 text-indigo-600" />,
+            custom: <Edit className="size-4 text-teal-600" />,
             general: <Database className="size-4 text-gray-600" />,
         };
         return iconMap[category.toLowerCase()] || <Database className="size-4 text-gray-600" />;
@@ -192,6 +196,33 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
             '{{attendance_status}}': 'Attendance status',
             '{{attendance_date}}': 'Attendance date',
             '{{attendance_percentage}}': 'Attendance percentage',
+            '{{live_class_title}}': 'Live class session title',
+            '{{live_class_date}}': 'Live class date',
+            '{{live_class_time}}': 'Live class time',
+            '{{live_class_duration}}': 'Live class duration',
+            '{{live_class_instructor}}': 'Live class instructor name',
+            '{{live_class_meeting_link}}': 'Live class meeting link',
+            '{{live_class_meeting_id}}': 'Live class meeting ID',
+            '{{live_class_password}}': 'Live class password',
+            '{{live_class_platform}}': 'Live class platform (Zoom, Google Meet, etc.)',
+            '{{live_class_room}}': 'Live class room/venue',
+            '{{live_class_notes}}': 'Live class notes/agenda',
+            '{{live_class_recording_link}}': 'Live class recording link',
+            '{{live_class_status}}': 'Live class status (upcoming, live, completed)',
+            '{{next_live_class_date}}': 'Next live class date',
+            '{{next_live_class_time}}': 'Next live class time',
+            '{{referral_code}}': "Student's referral code",
+            '{{referral_link}}': "Student's referral link",
+            '{{referral_count}}': 'Number of successful referrals',
+            '{{referral_rewards}}': 'Referral rewards earned',
+            '{{referral_bonus}}': 'Referral bonus amount',
+            '{{referral_status}}': 'Referral status (active, inactive)',
+            '{{referred_by}}': 'Who referred this student',
+            '{{referred_by_name}}': 'Name of the person who referred',
+            '{{referral_program_start}}': 'When referral program started',
+            '{{referral_program_end}}': 'When referral program ends',
+            '{{referral_terms}}': 'Referral terms and conditions',
+            '{{referral_benefits}}': 'Referral benefits description',
             '{{custom_message_text}}': 'Custom message placeholder',
             '{{custom_field_1}}': 'Custom field 1',
             '{{custom_field_2}}': 'Custom field 2',
@@ -238,7 +269,7 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
 
             onClose();
         } catch (error) {
-            console.error('Error saving template:', error);
+            // Error is already handled by toast.error in the catch block
             toast.error(template ? 'Failed to update template.' : 'Failed to create template.');
         }
     };

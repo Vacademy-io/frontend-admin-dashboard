@@ -48,7 +48,7 @@ export const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = (
             setTemplates(emailTemplates);
             setFilteredTemplates(emailTemplates);
         } catch (error) {
-            console.error('Error loading templates:', error);
+            // Error is already handled by toast.error
             toast.error('Failed to load email templates');
         } finally {
             setIsLoadingTemplates(false);
@@ -85,12 +85,11 @@ export const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = (
             await onSendEmail(template);
             onClose();
         } catch (error) {
-            console.error('Error sending email:', error);
+            // Error is already handled by toast.error
         }
     };
 
     const handleCreateNew = () => {
-        console.log('Create New button clicked - calling onCreateNew');
         onCreateNew();
         // Don't close here - let parent handle the dialog flow
     };

@@ -35,7 +35,7 @@ export const SendMessageDialog = () => {
             const templates = await templateCacheService.getTemplates('WHATSAPP');
             setMessageTemplates(templates);
         } catch (error) {
-            console.error('Error loading message templates:', error);
+            // Error is already handled by toast.error
             toast.error('Failed to load message templates');
         } finally {
             setIsLoadingTemplates(false);
@@ -54,12 +54,10 @@ export const SendMessageDialog = () => {
                     // Simulate success/failure randomly
                     if (Math.random() > 0.2) {
                         // 80% success rate
-                        console.log(
-                            `Mock API: Message sent to ${userName} (${userId}): ${message}`
-                        );
+                        // Mock API: Message sent successfully
                         resolve();
                     } else {
-                        console.error(`Mock API: Failed to send to ${userName} (${userId})`);
+                        // Mock API: Failed to send message
                         reject(new Error('Simulated API Error'));
                     }
                 },
@@ -112,11 +110,9 @@ export const SendMessageDialog = () => {
                 // Track and log null values for debugging
                 if (!student.full_name) {
                     nullValueReport.missingNames++;
-                    console.warn(`⚠️ Null name for student ${student.user_id}:`, student);
                 }
                 if (!student.mobile_number) {
                     nullValueReport.missingMobileNumbers++;
-                    console.warn(`⚠️ Null mobile_number for student ${student.user_id}:`, student);
                 }
 
                 let messageContent = template.content.replace(
@@ -154,12 +150,6 @@ export const SendMessageDialog = () => {
         }
 
         // Log null value summary
-        console.log('📊 Null Value Report (WhatsApp):', {
-            totalStudents: nullValueReport.totalStudents,
-            missingNames: nullValueReport.missingNames,
-            missingMobileNumbers: nullValueReport.missingMobileNumbers,
-            processedStudents: bulkActionInfo.selectedStudents.length,
-        });
 
         setIsBulkSending(false);
         const sentCount = studentMessageStatuses.filter((s) => s.status === 'sent').length;
