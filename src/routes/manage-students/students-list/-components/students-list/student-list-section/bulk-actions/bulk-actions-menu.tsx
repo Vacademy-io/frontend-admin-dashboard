@@ -32,7 +32,7 @@ export const BulkActionsMenu = ({ selectedStudents, trigger }: BulkActionsMenuPr
         );
 
         if (validStudents.length === 0) {
-            console.error('No valid students selected');
+            // No valid students selected - error handled by toast
             return;
         }
 

@@ -340,3 +340,18 @@ export const LIVE_SESSION_ALL_ATTENDANCE = `${BASE_URL}/admin-core-service/live-
 // Referral
 export const REFERRAL_API_BASE = `${BASE_URL}/admin-core-service/v1/referral-option`;
 export const REFERRAL_DELETE = `${BASE_URL}/admin-core-service/v1/referral-option/referral-option`;
+
+// Message Templates
+export const MESSAGE_TEMPLATE_BASE = `${BASE_URL}/admin-core-service/institute/template/v1`;
+export const CREATE_MESSAGE_TEMPLATE = `${MESSAGE_TEMPLATE_BASE}/create`;
+export const GET_MESSAGE_TEMPLATES = `${MESSAGE_TEMPLATE_BASE}/institute`;
+export const GET_MESSAGE_TEMPLATE = `${MESSAGE_TEMPLATE_BASE}/get`;
+export const UPDATE_MESSAGE_TEMPLATE = `${MESSAGE_TEMPLATE_BASE}/update`;
+export const DELETE_MESSAGE_TEMPLATE = `${MESSAGE_TEMPLATE_BASE}/delete`;
+export const SEARCH_MESSAGE_TEMPLATES = `${MESSAGE_TEMPLATE_BASE}/search`;
+
+// Notification Service - Email sending
+export const SEND_EMAIL_TO_USERS_PUBLIC = `${NOTIFICATION_SERVICE_BASE}/send-email-to-users-public`;
+
+// Student Data Enrichment Service
+export const STUDENT_DATA_ENRICHMENT_BASE = `${BASE_URL}/admin-core-service`;
