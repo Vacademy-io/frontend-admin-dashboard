@@ -51,20 +51,13 @@ export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
     const { data: paymentsData } = useSuspenseQuery(handleGetPaymentDetails());
 
     useEffect(() => {
-        const splitPlans = splitPlansByType(paymentsData);
-
-        // Use setValue with proper type casting to avoid type conflicts
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        form.setValue('freePlans', splitPlans.freePlans as any);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        form.setValue('paidPlans', splitPlans.paidPlans as any);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        form.setValue('selectedPlan', getDefaultPlanFromPaymentsData(paymentsData) as any);
-    }, [paymentsData, form]);
-
-    // Watch form values to make them reactive
-    const freePlans = form.watch('freePlans') || [];
-    const paidPlans = form.watch('paidPlans') || [];
+        form.reset({
+            ...form.getValues(),
+            freePlans: splitPlansByType(paymentsData).freePlans,
+            paidPlans: splitPlansByType(paymentsData).paidPlans,
+            selectedPlan: getDefaultPlanFromPaymentsData(paymentsData),
+        });
+    }, [paymentsData]);
 
     return (
         <ShadDialog
@@ -82,122 +75,108 @@ export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
                     <div className="mb-4">
                         <div className="mb-2 mt-4 font-semibold">Free Plans</div>
                         <div className="flex flex-col gap-4">
-                            {freePlans.length > 0 ? (
-                                freePlans.map((plan) => (
-                                    <Card
-                                        key={plan.id}
-                                        className={`cursor-pointer border-2 ${form.watch('selectedPlan')?.id === plan.id ? 'border-primary-300 bg-primary-50' : 'border-gray-200'} transition-all`}
-                                        onClick={() => {
-                                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                                            // @ts-expect-error
-                                            form.setValue('selectedPlan', plan);
-                                            form.setValue('showPlansDialog', false);
-                                        }}
-                                    >
-                                        <div className="flex flex-col items-start gap-3 p-4">
-                                            <div className="flex items-center gap-3">
-                                                {getPaymentPlanIcon(plan.type?.toLowerCase() || '')}
-                                                <div className="flex flex-1 flex-col font-semibold">
-                                                    <span>{plan.name}</span>
-                                                </div>
-                                                {form.watch('selectedPlan')?.id === plan.id && (
-                                                    <Badge variant="default" className="ml-auto">
-                                                        Default
-                                                    </Badge>
-                                                )}
+                            {form.getValues('freePlans')?.map((plan) => (
+                                <Card
+                                    key={plan.id}
+                                    className={`cursor-pointer border-2 ${form.watch('selectedPlan')?.id === plan.id ? 'border-primary' : 'border-gray-200'} transition-all`}
+                                    onClick={() => {
+                                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                        // @ts-expect-error
+                                        form.setValue('selectedPlan', plan);
+                                        form.setValue('showPlansDialog', false);
+                                    }}
+                                >
+                                    <div className="flex flex-col items-start gap-3 p-4">
+                                        <div className="flex items-center gap-3">
+                                            {getPaymentPlanIcon(plan.type?.toLowerCase() || '')}
+                                            <div className="flex flex-1 flex-col font-semibold">
+                                                <span>{plan.name}</span>
                                             </div>
-                                            {plan.type?.toLowerCase() === 'donation' ? (
-                                                <div className="flex flex-col gap-2 pl-8 text-xs text-neutral-600">
-                                                    <span>
-                                                        Suggested Amounts:{' '}
-                                                        {getCurrencySymbol(plan.currency || '')}
-                                                        {plan.suggestedAmount?.join(',')}
-                                                    </span>
-                                                    <span>
-                                                        Minimum Amount:{' '}
-                                                        {getCurrencySymbol(plan.currency || '')}
-                                                        {plan.minAmount}
-                                                    </span>
-                                                    <span>Currency: {plan.currency}</span>
-                                                </div>
-                                            ) : (
-                                                <div className="flex flex-col gap-2 pl-8 text-xs text-neutral-600">
-                                                    <span>Free for {plan.days} days</span>
-                                                </div>
+                                            {form.watch('selectedPlan')?.id === plan.id && (
+                                                <Badge variant="default" className="ml-auto">
+                                                    Default
+                                                </Badge>
                                             )}
                                         </div>
-                                    </Card>
-                                ))
-                            ) : (
-                                <div className="py-8 text-center text-gray-500">
-                                    <Globe className="mx-auto mb-2 size-8 opacity-50" />
-                                    <p>No free plans available</p>
-                                </div>
-                            )}
+                                        {plan.type?.toLowerCase() === 'donation' ? (
+                                            <div className="flex flex-col gap-2 pl-8 text-xs text-neutral-600">
+                                                <span>
+                                                    Suggested Amounts:{' '}
+                                                    {getCurrencySymbol(plan.currency || '')}
+                                                    {plan.suggestedAmount?.join(',')}
+                                                </span>
+                                                <span>
+                                                    Minimum Amount:{' '}
+                                                    {getCurrencySymbol(plan.currency || '')}
+                                                    {plan.minAmount}
+                                                </span>
+                                                <span>Currency: {plan.currency}</span>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col gap-2 pl-8 text-xs text-neutral-600">
+                                                <span>Free for {plan.days} days</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </Card>
+                            ))}
                         </div>
                     </div>
                     <div>
                         <div className="mb-2 font-semibold">Paid Plans</div>
                         <div className="flex flex-col gap-4">
-                            {paidPlans.length > 0 ? (
-                                paidPlans.map((plan) => (
-                                    <Card
-                                        key={plan.id}
-                                        className={`cursor-pointer border-2 ${form.watch('selectedPlan')?.id === plan.id ? 'border-primary-300 bg-primary-50' : 'border-gray-200'} transition-all`}
-                                        onClick={() => {
-                                            form.setValue('selectedPlan', plan);
-                                            form.setValue('showPlansDialog', false);
-                                        }}
-                                    >
-                                        <div className="flex flex-col items-start gap-3 p-4">
-                                            <div className="flex items-center gap-3">
-                                                {getPaymentPlanIcon(plan.type?.toLowerCase() || '')}
-                                                <div className="flex flex-1 flex-col">
-                                                    <span>{plan.name}</span>
-                                                </div>
-                                                {form.watch('selectedPlan')?.id === plan.id && (
-                                                    <Badge variant="default" className="ml-auto">
-                                                        Default
-                                                    </Badge>
-                                                )}
+                            {form.getValues('paidPlans')?.map((plan) => (
+                                <Card
+                                    key={plan.id}
+                                    className={`cursor-pointer border-2 ${form.watch('selectedPlan')?.id === plan.id ? 'border-primary' : 'border-gray-200'} transition-all`}
+                                    onClick={() => {
+                                        form.setValue('selectedPlan', plan);
+                                        form.setValue('showPlansDialog', false);
+                                    }}
+                                >
+                                    <div className="flex flex-col items-start gap-3 p-4">
+                                        <div className="flex items-center gap-3">
+                                            {getPaymentPlanIcon(plan.type?.toLowerCase() || '')}
+                                            <div className="flex flex-1 flex-col">
+                                                <span>{plan.name}</span>
                                             </div>
-                                            {plan.type?.toLowerCase() === 'upfront' ||
-                                            plan.type?.toLowerCase() === 'one_time' ? (
-                                                <div className="flex flex-col gap-2 pl-8 text-xs text-neutral-600">
-                                                    <span>
-                                                        Full Price:{' '}
-                                                        {getCurrencySymbol(plan.currency || '')}
-                                                        {plan.price}
-                                                    </span>
-                                                    <span>Currency: {plan.currency}</span>
-                                                </div>
-                                            ) : (
-                                                <div className="flex flex-col gap-2 pl-8 text-xs text-neutral-600">
-                                                    {plan.paymentOption?.map((payment, idx) => {
-                                                        return (
-                                                            <div key={idx} className="flex">
-                                                                <span>
-                                                                    {payment.title}:{' '}
-                                                                    {getCurrencySymbol(
-                                                                        plan.currency || ''
-                                                                    )}
-                                                                    {payment.price}
-                                                                </span>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                    <span>Currency: {plan.currency}</span>
-                                                </div>
+                                            {form.watch('selectedPlan')?.id === plan.id && (
+                                                <Badge variant="default" className="ml-auto">
+                                                    Default
+                                                </Badge>
                                             )}
                                         </div>
-                                    </Card>
-                                ))
-                            ) : (
-                                <div className="py-8 text-center text-gray-500">
-                                    <CreditCard className="mx-auto mb-2 size-8 opacity-50" />
-                                    <p>No paid plans available</p>
-                                </div>
-                            )}
+                                        {plan.type?.toLowerCase() === 'upfront' ||
+                                        plan.type?.toLowerCase() === 'one_time' ? (
+                                            <div className="flex flex-col gap-2 pl-8 text-xs text-neutral-600">
+                                                <span>
+                                                    Full Price:{' '}
+                                                    {getCurrencySymbol(plan.currency || '')}
+                                                    {plan.price}
+                                                </span>
+                                                <span>Currency: {plan.currency}</span>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col gap-2 pl-8 text-xs text-neutral-600">
+                                                {plan.paymentOption?.map((payment, idx) => {
+                                                    return (
+                                                        <div key={idx} className="flex">
+                                                            <span>
+                                                                {payment.title}:{' '}
+                                                                {getCurrencySymbol(
+                                                                    plan.currency || ''
+                                                                )}
+                                                                {payment.price}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })}
+                                                <span>Currency: {plan.currency}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </Card>
+                            ))}
                         </div>
                     </div>
                 </div>
