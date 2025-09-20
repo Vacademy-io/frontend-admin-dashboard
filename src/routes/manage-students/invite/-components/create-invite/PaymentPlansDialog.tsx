@@ -13,10 +13,9 @@ import { UseFormReturn } from 'react-hook-form';
 import { InviteLinkFormValues } from './GenerateInviteLinkSchema';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { handleGetPaymentDetails } from './-services/get-payments';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { getDefaultPlanFromPaymentsData, splitPlansByType } from './-utils/helper';
-import { DollarSign, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { DollarSign } from 'lucide-react';
 
 interface PaymentPlansDialogProps {
     form: UseFormReturn<InviteLinkFormValues>;
@@ -50,7 +49,6 @@ export const getPaymentPlanIcon = (type: string) => {
 
 export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
     const { data: paymentsData } = useSuspenseQuery(handleGetPaymentDetails());
-    const [searchQuery, setSearchQuery] = useState<string>('');
 
     useEffect(() => {
         const splitPlans = splitPlansByType(paymentsData);
@@ -68,23 +66,6 @@ export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
     const freePlans = form.watch('freePlans') || [];
     const paidPlans = form.watch('paidPlans') || [];
 
-    // Filter plans based on search query
-    const filteredFreePlans = (() => {
-        console.log('Free plans:', freePlans, 'Search query:', searchQuery);
-        if (!searchQuery.trim()) return freePlans;
-        return freePlans.filter((plan) =>
-            plan.name?.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-    })();
-
-    const filteredPaidPlans = (() => {
-        console.log('Paid plans:', paidPlans, 'Search query:', searchQuery);
-        if (!searchQuery.trim()) return paidPlans;
-        return paidPlans.filter((plan) =>
-            plan.name?.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-    })();
-
     return (
         <ShadDialog
             open={form.watch('showPlansDialog')}
@@ -96,31 +77,13 @@ export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
                     <ShadDialogDescription className="mt-1">
                         Choose a payment plan for this course
                     </ShadDialogDescription>
-                    {/* Search Input */}
-                    <div className="relative mt-4">
-                        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
-                        <Input
-                            type="text"
-                            placeholder="Search payment plans..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10"
-                        />
-                    </div>
                 </ShadDialogHeader>
                 <div className="flex-1 overflow-auto">
                     <div className="mb-4">
-                        <div className="mb-2 mt-4 font-semibold">
-                            Free Plans
-                            {searchQuery && (
-                                <span className="ml-2 text-sm text-gray-500">
-                                    ({filteredFreePlans.length} found)
-                                </span>
-                            )}
-                        </div>
+                        <div className="mb-2 mt-4 font-semibold">Free Plans</div>
                         <div className="flex flex-col gap-4">
-                            {filteredFreePlans.length > 0 ? (
-                                filteredFreePlans.map((plan) => (
+                            {freePlans.length > 0 ? (
+                                freePlans.map((plan) => (
                                     <Card
                                         key={plan.id}
                                         className={`cursor-pointer border-2 ${form.watch('selectedPlan')?.id === plan.id ? 'border-primary-300 bg-primary-50' : 'border-gray-200'} transition-all`}
@@ -165,31 +128,19 @@ export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
                                         </div>
                                     </Card>
                                 ))
-                            ) : searchQuery ? (
-                                <div className="py-8 text-center text-gray-500">
-                                    <Search className="mx-auto mb-2 size-8 opacity-50" />
-                                    <p>No free plans found for &ldquo;{searchQuery}&rdquo;</p>
-                                </div>
-                            ) : freePlans.length === 0 ? (
+                            ) : (
                                 <div className="py-8 text-center text-gray-500">
                                     <Globe className="mx-auto mb-2 size-8 opacity-50" />
                                     <p>No free plans available</p>
                                 </div>
-                            ) : null}
+                            )}
                         </div>
                     </div>
                     <div>
-                        <div className="mb-2 font-semibold">
-                            Paid Plans
-                            {searchQuery && (
-                                <span className="ml-2 text-sm text-gray-500">
-                                    ({filteredPaidPlans.length} found)
-                                </span>
-                            )}
-                        </div>
+                        <div className="mb-2 font-semibold">Paid Plans</div>
                         <div className="flex flex-col gap-4">
-                            {filteredPaidPlans.length > 0 ? (
-                                filteredPaidPlans.map((plan) => (
+                            {paidPlans.length > 0 ? (
+                                paidPlans.map((plan) => (
                                     <Card
                                         key={plan.id}
                                         className={`cursor-pointer border-2 ${form.watch('selectedPlan')?.id === plan.id ? 'border-primary-300 bg-primary-50' : 'border-gray-200'} transition-all`}
@@ -241,17 +192,12 @@ export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
                                         </div>
                                     </Card>
                                 ))
-                            ) : searchQuery ? (
-                                <div className="py-8 text-center text-gray-500">
-                                    <Search className="mx-auto mb-2 size-8 opacity-50" />
-                                    <p>No paid plans found for &ldquo;{searchQuery}&rdquo;</p>
-                                </div>
-                            ) : paidPlans.length === 0 ? (
+                            ) : (
                                 <div className="py-8 text-center text-gray-500">
                                     <CreditCard className="mx-auto mb-2 size-8 opacity-50" />
                                     <p>No paid plans available</p>
                                 </div>
-                            ) : null}
+                            )}
                         </div>
                     </div>
                 </div>
