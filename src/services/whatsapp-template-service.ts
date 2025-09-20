@@ -8,7 +8,9 @@ import {
     PlaceholderMapping
 } from '@/types/message-template-types';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://backend-stage.vacademy.io/admin-core-service';
+import { MESSAGE_TEMPLATE_BASE } from '@/constants/urls';
+
+const API_BASE_URL = MESSAGE_TEMPLATE_BASE;
 
 // Get access token from localStorage or cookies
 const getAccessToken = (): string | null => {

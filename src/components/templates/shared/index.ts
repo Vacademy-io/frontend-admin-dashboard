@@ -1,10 +1,13 @@
 // Shared template components
 export { TemplateEditor } from './TemplateEditor';
-export { TemplatePreview } from './TemplatePreview';
 export { TemplateEditorDialog } from './TemplateEditorDialog';
+export { TemplatePreview } from './TemplatePreview';
 export { TemplatePreviewDialog } from './TemplatePreviewDialog';
 export { EmailRichTextEditor } from './EmailRichTextEditor';
+export { TemplateTypeSelector } from './TemplateTypeSelector';
 
-// Shared utilities and constants
+// Utilities
+export { extractVariablesFromContent } from './TemplateEditorUtils';
+
+// Constants
 export * from './constants';
-export * from './TemplateEditorUtils';

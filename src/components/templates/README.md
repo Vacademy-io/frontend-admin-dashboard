@@ -1,28 +1,16 @@
-# Template Components Structure
+# Template Components
 
-This directory contains all template-related components organized in a clean, modular structure.
+Centralized template management components for email and WhatsApp messaging.
 
-## 📁 Folder Structure
+## 📁 Structure
 
 ```
 src/components/templates/
-├── README.md                           # This documentation
-├── index.ts                           # Main exports
-├── TemplateSettings.tsx               # Main template settings component
-├── shared/                            # Shared components used across templates
-│   ├── index.ts                       # Shared component exports
-│   ├── constants.ts                   # Template constants and configurations
-│   ├── TemplateEditor.tsx             # Main template editor component
-│   ├── TemplateEditorDialog.tsx       # Dialog wrapper for template editor
-│   ├── TemplatePreview.tsx            # Template preview component
-│   ├── TemplatePreviewDialog.tsx      # Dialog wrapper for template preview
-│   ├── EmailRichTextEditor.tsx        # Rich text editor for email content
-│   ├── EmailRichTextEditor.css        # Styles for rich text editor
-│   └── TemplateEditorUtils.ts         # Utility functions for template editing
-├── email/                             # Email-specific components
-│   └── EmailTemplatesTab.tsx          # Email templates management tab
-└── whatsapp/                          # WhatsApp-specific components
-    └── WhatsAppTemplatesTab.tsx       # WhatsApp templates management tab
+├── index.ts                    # Main exports
+├── TemplateSettings.tsx        # Main settings component
+├── shared/                     # Reusable components
+├── email/                      # Email-specific components
+└── whatsapp/                   # WhatsApp-specific components
 ```
 
 ## 🎯 Component Overview
@@ -85,8 +73,13 @@ src/components/templates/
 
 #### `WhatsAppTemplatesTab`
 - **Purpose**: WhatsApp templates management interface
-- **Status**: Placeholder (coming soon)
-- **Usage**: Will be used in settings page
+- **Features**:
+  - Meta WhatsApp Business API integration
+  - Template syncing and status management
+  - Dynamic value mapping to internal data fields
+  - Real-time preview with mapped values
+  - Category-based field selection
+- **Usage**: Used in settings page
 
 ## 🔧 Usage Examples
 
@@ -161,7 +154,7 @@ Supported variables include:
 
 ## 🚀 Future Enhancements
 
-- [ ] WhatsApp template support
+- [x] WhatsApp template support ✅
 - [ ] Template versioning
 - [ ] Template analytics
 - [ ] Bulk template operations

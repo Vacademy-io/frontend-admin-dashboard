@@ -169,7 +169,7 @@ const addStudentVariables = (variableMap: Record<string, string>, student: any, 
 
     // Additional variables that might be missing
     variableMap['{{referral_custom_content}}'] = getNestedValue(student, 'referral_custom_content', '');
-    variableMap['{{institute_logo}}'] = getNestedValue(student, 'institute_logo', 'https://via.placeholder.com/200x100?text=Institute+Logo');
+    variableMap['{{institute_logo}}'] = getNestedValue(student, 'institute_logo', '');
 };
 
 const addCourseVariables = (variableMap: Record<string, string>, course: any): void => {

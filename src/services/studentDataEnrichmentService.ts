@@ -5,6 +5,8 @@
  * with NO hardcoded or generated data - only real backend data
  */
 
+import { STUDENT_DATA_ENRICHMENT_BASE } from '@/constants/urls';
+
 export interface EnrichedStudentData {
     // Basic student info
     user_id: string;
@@ -115,7 +117,7 @@ export class StudentDataEnrichmentService {
     private authToken: string;
 
     constructor() {
-        this.baseURL = import.meta.env.VITE_API_BASE_URL || 'https://backend-stage.vacademy.io';
+        this.baseURL = STUDENT_DATA_ENRICHMENT_BASE;
         this.authToken = localStorage.getItem('authToken') || '';
     }
 

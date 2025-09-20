@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { MessageTemplate } from '@/types/message-template-types';
 import { getInstituteId } from '@/constants/helper';
 import { TemplateSelectionDialog } from './template-selection-dialog';
-import { TemplateEditorDialog, TemplatePreviewDialog } from '@/components/templates/shared';
+import { TemplateEditorDialog, TemplatePreviewDialog } from '@/components/templates';
 import { mapTemplateVariables } from '@/utils/template-variable-mapper';
 import { bulkEmailService, BulkEmailOptions } from '@/services/bulkEmailService';
 

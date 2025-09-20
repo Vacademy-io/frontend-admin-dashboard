@@ -8,6 +8,7 @@
 import { studentDataEnrichmentService, EnrichedStudentData, DataEnrichmentOptions } from './studentDataEnrichmentService';
 import { mapTemplateVariables } from '@/utils/template-variable-mapper';
 import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
+import { SEND_EMAIL_TO_USERS_PUBLIC } from '@/constants/urls';
 
 export interface BulkEmailPayload {
     body: string;
@@ -316,9 +317,8 @@ export class BulkEmailService {
             // Step 5: Send bulk email using existing API
             console.log('Sending bulk email to', users.length, 'students');
 
-            // Use the existing API endpoint pattern
-            const baseUrl = `${import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io'}/notification-service/v1/send-email-to-users-public`;
-            const url = instituteId ? `${baseUrl}?instituteId=${instituteId}` : baseUrl;
+            // Use the centralized URL from constants
+            const url = instituteId ? `${SEND_EMAIL_TO_USERS_PUBLIC}?instituteId=${instituteId}` : SEND_EMAIL_TO_USERS_PUBLIC;
 
             console.log('API URL:', url);
             console.log('Institute ID:', instituteId);
@@ -502,8 +502,7 @@ export class BulkEmailService {
         console.log('Sending individual emails as fallback...');
 
         const instituteId = this.getInstituteId();
-        const baseUrl = `${import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io'}/notification-service/v1/send-email-to-users-public`;
-        const url = instituteId ? `${baseUrl}?instituteId=${instituteId}` : baseUrl;
+        const url = instituteId ? `${SEND_EMAIL_TO_USERS_PUBLIC}?instituteId=${instituteId}` : SEND_EMAIL_TO_USERS_PUBLIC;
 
         let successCount = 0;
         let failureCount = 0;

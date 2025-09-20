@@ -41,8 +41,7 @@ import { Form } from '@/components/ui/form';
 import { FileUploadComponent } from '@/components/design-system/file-upload';
 import { getTokenFromCookie, getTokenDecodedData } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
-import { TemplateSelector } from '@/components/templates/TemplateSelector';
-import { TemplatePreview } from '@/components/templates/TemplatePreview';
+import { TemplateSelector, TemplatePreview } from '@/components/templates';
 import { MessageTemplate } from '@/types/message-template-types';
 
 // Enhanced interfaces with multiple programs support

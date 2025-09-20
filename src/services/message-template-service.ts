@@ -5,9 +5,14 @@ import {
     TemplateListResponse,
 } from '@/types/message-template-types';
 import { getInstituteId } from '@/constants/helper';
-
-const API_BASE_URL =
-    import.meta.env.VITE_API_BASE_URL || 'https://backend-stage.vacademy.io/admin-core-service';
+import {
+    CREATE_MESSAGE_TEMPLATE,
+    GET_MESSAGE_TEMPLATES,
+    GET_MESSAGE_TEMPLATE,
+    UPDATE_MESSAGE_TEMPLATE,
+    DELETE_MESSAGE_TEMPLATE,
+    SEARCH_MESSAGE_TEMPLATES,
+} from '@/constants/urls';
 
 // Get access token from localStorage or cookies
 const getAccessToken = (): string | null => {
@@ -71,7 +76,7 @@ export const createMessageTemplate = async (
 
         const instituteId = getInstituteId();
         console.log('Making API call to create template:', { instituteId, template });
-        const response = await fetch(`${API_BASE_URL}/institute/template/v1/create`, {
+        const response = await fetch(CREATE_MESSAGE_TEMPLATE, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -136,7 +141,7 @@ export const getMessageTemplates = async (
 
         // Always use the general endpoint to get all templates, then filter client-side
         // This ensures we get all templates regardless of case sensitivity issues
-        const url = `${API_BASE_URL}/institute/template/v1/institute/${instituteId}`;
+        const url = `${GET_MESSAGE_TEMPLATES}/${instituteId}`;
 
         const response = await fetch(url, {
             headers: {
@@ -221,7 +226,7 @@ export const getMessageTemplate = async (id: string): Promise<MessageTemplate> =
             throw new Error('Access token not found. Please login again.');
         }
 
-        const response = await fetch(`${API_BASE_URL}/institute/template/v1/get/${id}`, {
+        const response = await fetch(`${GET_MESSAGE_TEMPLATE}/${id}`, {
             headers: {
                 Accept: '*/*',
                 Authorization: `Bearer ${accessToken}`,
@@ -266,7 +271,7 @@ export const updateMessageTemplate = async (
         const { id, ...updateData } = template;
         console.log('Making API call to update template:', { id, updateData });
 
-        const response = await fetch(`${API_BASE_URL}/institute/template/v1/update`, {
+        const response = await fetch(UPDATE_MESSAGE_TEMPLATE, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -322,7 +327,7 @@ export const deleteMessageTemplate = async (id: string): Promise<void> => {
             throw new Error('Access token not found. Please login again.');
         }
 
-        const response = await fetch(`${API_BASE_URL}/institute/template/v1/${id}`, {
+        const response = await fetch(`${DELETE_MESSAGE_TEMPLATE}/${id}`, {
             method: 'DELETE',
             headers: {
                 Accept: '*/*',
@@ -456,7 +461,7 @@ export const searchMessageTemplates = async (searchParams: {
             sortDirection: searchParams.sortDirection || 'desc',
         };
 
-        const response = await fetch(`${API_BASE_URL}/institute/template/v1/search`, {
+        const response = await fetch(SEARCH_MESSAGE_TEMPLATES, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

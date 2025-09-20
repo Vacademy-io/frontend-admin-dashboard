@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, Mail } from 'lucide-react';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
-import { EmailTemplatesTab } from './email/EmailTemplatesTab';
-import { WhatsAppTemplatesTab } from '@/routes/settings/-components/Template/WhatsAppTemplatesTab';
+import { EmailTemplatesTab } from './email';
+import { WhatsAppTemplatesTab } from './whatsapp';
 
 export default function TemplateSettings() {
     const [activeTab, setActiveTab] = useState<'email' | 'whatsapp'>('email');

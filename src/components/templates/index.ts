@@ -1,19 +1,13 @@
-// Main template settings component
+// Main template components
 export { default as TemplateSettings } from './TemplateSettings';
+export { TemplateSelector } from './TemplateSelector';
+export { TemplatePreview } from './TemplatePreview';
 
 // Shared components
-export { TemplateEditor } from './shared/TemplateEditor';
-export { TemplatePreview } from './shared/TemplatePreview';
-export { TemplateEditorDialog } from './shared/TemplateEditorDialog';
-export { TemplatePreviewDialog } from './shared/TemplatePreviewDialog';
-export { EmailRichTextEditor } from './shared/EmailRichTextEditor';
+export * from './shared';
 
 // Email components
-export { EmailTemplatesTab } from './email/EmailTemplatesTab';
+export * from './email';
 
 // WhatsApp components
-export { WhatsAppTemplatesTab } from './whatsapp/WhatsAppTemplatesTab';
-
-// Shared utilities and constants
-export * from './shared/constants';
-export * from './shared/TemplateEditorUtils';
+export * from './whatsapp';
