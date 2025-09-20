@@ -13,7 +13,7 @@ import { UseFormReturn } from 'react-hook-form';
 import { InviteLinkFormValues } from './GenerateInviteLinkSchema';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { handleGetPaymentDetails } from './-services/get-payments';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { getDefaultPlanFromPaymentsData, splitPlansByType } from './-utils/helper';
 import { DollarSign, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -65,23 +65,25 @@ export function PaymentPlansDialog({ form }: PaymentPlansDialogProps) {
     }, [paymentsData, form]);
 
     // Watch form values to make them reactive
-    const freePlans = useMemo(() => form.watch('freePlans') || [], [form]);
-    const paidPlans = useMemo(() => form.watch('paidPlans') || [], [form]);
+    const freePlans = form.watch('freePlans') || [];
+    const paidPlans = form.watch('paidPlans') || [];
 
     // Filter plans based on search query
-    const filteredFreePlans = useMemo(() => {
+    const filteredFreePlans = (() => {
+        console.log('Free plans:', freePlans, 'Search query:', searchQuery);
         if (!searchQuery.trim()) return freePlans;
         return freePlans.filter((plan) =>
             plan.name?.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    }, [searchQuery, freePlans]);
+    })();
 
-    const filteredPaidPlans = useMemo(() => {
+    const filteredPaidPlans = (() => {
+        console.log('Paid plans:', paidPlans, 'Search query:', searchQuery);
         if (!searchQuery.trim()) return paidPlans;
         return paidPlans.filter((plan) =>
             plan.name?.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    }, [searchQuery, paidPlans]);
+    })();
 
     return (
         <ShadDialog
