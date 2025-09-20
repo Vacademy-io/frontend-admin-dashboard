@@ -59,10 +59,10 @@ const createBaseVariableMap = (customVariables: Record<string, string> = {}): Re
         '{{year}}': currentYear,
         '{{month}}': currentMonth,
         '{{day}}': currentDay,
-        '{{custom_message_text}}': 'Thank you for being part of our learning community.',
+        '{{custom_message_text}}': '',
         '{{support_email}}': '', // Will be set dynamically from institute data
         '{{support_link}}': '', // Will be set dynamically from institute data
-        '{{institute_logo}}': 'https://via.placeholder.com/200x100?text=Institute+Logo',
+        '{{institute_logo}}': '',
     };
 
     // Add custom variables
@@ -77,8 +77,8 @@ const addStudentVariables = (variableMap: Record<string, string>, student: any, 
     if (!student) return;
 
     // Basic student info (always try to map)
-    variableMap['{{name}}'] = getNestedValue(student, 'full_name', 'Student');
-    variableMap['{{student_name}}'] = getNestedValue(student, 'full_name', 'Student');
+    variableMap['{{name}}'] = getNestedValue(student, 'full_name', '');
+    variableMap['{{student_name}}'] = getNestedValue(student, 'full_name', '');
     variableMap['{{email}}'] = getNestedValue(student, 'email', '');
     variableMap['{{student_email}}'] = getNestedValue(student, 'email', '');
     variableMap['{{mobile_number}}'] = getNestedValue(student, 'mobile_number', '');
@@ -90,55 +90,55 @@ const addStudentVariables = (variableMap: Record<string, string>, student: any, 
     variableMap['{{student_unique_link}}'] = getNestedValue(student, 'student_unique_link', '');
     variableMap['{{student_referral_code}}'] = getNestedValue(student, 'referral_code', '');
 
-    // Course variables (always try to map, use fallback if not available)
-        variableMap['{{course_name}}'] = getNestedValue(student, 'course_name', 'Your Course');
-        variableMap['{{course_description}}'] = getNestedValue(student, 'course_description', 'Course Description');
-    variableMap['{{course_price}}'] = getNestedValue(student, 'course_price', 'Course Price');
-        variableMap['{{course_duration}}'] = getNestedValue(student, 'course_duration', 'Course Duration');
+    // Course variables (use only real data from backend - no fallbacks)
+        variableMap['{{course_name}}'] = getNestedValue(student, 'course_name', '');
+        variableMap['{{course_description}}'] = getNestedValue(student, 'course_description', '');
+    variableMap['{{course_price}}'] = getNestedValue(student, 'course_price', '');
+        variableMap['{{course_duration}}'] = getNestedValue(student, 'course_duration', '');
     variableMap['{{course_start_date}}'] = formatDate(getNestedValue(student, 'course_start_date'), '');
     variableMap['{{course_end_date}}'] = formatDate(getNestedValue(student, 'course_end_date'), '');
-    variableMap['{{course_instructor}}'] = getNestedValue(student, 'course_instructor', 'Course Instructor');
+    variableMap['{{course_instructor}}'] = getNestedValue(student, 'course_instructor', '');
 
-    // Batch variables (always try to map, use fallback if not available)
-        variableMap['{{batch_name}}'] = getNestedValue(student, 'batch_name', 'Your Batch');
+    // Batch variables (use only real data from backend - no fallbacks)
+        variableMap['{{batch_name}}'] = getNestedValue(student, 'batch_name', '');
         variableMap['{{batch_id}}'] = getNestedValue(student, 'batch_id', '');
         variableMap['{{batch_start_date}}'] = formatDate(getNestedValue(student, 'batch_start_date'), '');
-        variableMap['{{batch_end_date}}'] = formatDate(getNestedValue(student, 'batch_end_date'), '');
+        variableMap['{{batch_end_date}}'] = formatDate(getNestedValue(student, 'batch_start_date'), '');
 
-    // Institute variables (always try to map, use fallback if not available)
-        variableMap['{{institute_name}}'] = getNestedValue(student, 'institute_name', 'Your Institute');
-        variableMap['{{institute_address}}'] = getNestedValue(student, 'institute_address', 'Contact us for address details');
-        variableMap['{{institute_phone}}'] = getNestedValue(student, 'institute_phone', 'Institute Phone');
-        variableMap['{{institute_email}}'] = getNestedValue(student, 'institute_email', 'Institute Email');
-        variableMap['{{institute_website}}'] = getNestedValue(student, 'institute_website', 'Institute Website');
+    // Institute variables (use only real data from backend - no fallbacks)
+        variableMap['{{institute_name}}'] = getNestedValue(student, 'institute_name', '');
+        variableMap['{{institute_address}}'] = getNestedValue(student, 'institute_address', '');
+        variableMap['{{institute_phone}}'] = getNestedValue(student, 'institute_phone', '');
+        variableMap['{{institute_email}}'] = getNestedValue(student, 'institute_email', '');
+        variableMap['{{institute_website}}'] = getNestedValue(student, 'institute_website', '');
 
-    // Support variables (use institute data, fallback to default)
-        variableMap['{{support_email}}'] = getNestedValue(student, 'institute_email', 'support@vacademy.com');
-        variableMap['{{support_link}}'] = getNestedValue(student, 'institute_website', 'https://support.vacademy.com');
+    // Support variables (use only real data from backend - no fallbacks)
+        variableMap['{{support_email}}'] = getNestedValue(student, 'institute_email', '');
+        variableMap['{{support_link}}'] = getNestedValue(student, 'institute_website', '');
 
-    // Live class variables (always try to map, use fallback if not available)
-        variableMap['{{live_class_title}}'] = getNestedValue(student, 'live_class_title', 'Live Class Session');
-    variableMap['{{live_class_name}}'] = getNestedValue(student, 'live_class_title', 'Live Class Session');
+    // Live class variables (use only real data from backend - no fallbacks)
+        variableMap['{{live_class_title}}'] = getNestedValue(student, 'live_class_title', '');
+    variableMap['{{live_class_name}}'] = getNestedValue(student, 'live_class_title', '');
         variableMap['{{live_class_date}}'] = formatDate(getNestedValue(student, 'live_class_date'), '');
         variableMap['{{live_class_time}}'] = getNestedValue(student, 'live_class_time', '');
     variableMap['{{live_class_start_time}}'] = getNestedValue(student, 'live_class_time', '');
     variableMap['{{live_class_end_time}}'] = getNestedValue(student, 'live_class_time', '');
         variableMap['{{live_class_duration}}'] = getNestedValue(student, 'live_class_duration', '');
-        variableMap['{{live_class_instructor}}'] = getNestedValue(student, 'live_class_instructor', 'Instructor');
+        variableMap['{{live_class_instructor}}'] = getNestedValue(student, 'live_class_instructor', '');
     variableMap['{{live_class_link}}'] = getNestedValue(student, 'live_class_meeting_link', '');
         variableMap['{{live_class_meeting_link}}'] = getNestedValue(student, 'live_class_meeting_link', '');
         variableMap['{{live_class_meeting_id}}'] = getNestedValue(student, 'live_class_meeting_id', '');
         variableMap['{{live_class_password}}'] = getNestedValue(student, 'live_class_password', '');
-        variableMap['{{live_class_platform}}'] = getNestedValue(student, 'live_class_platform', 'Online Platform');
+        variableMap['{{live_class_platform}}'] = getNestedValue(student, 'live_class_platform', '');
         variableMap['{{live_class_room}}'] = getNestedValue(student, 'live_class_room', '');
         variableMap['{{live_class_notes}}'] = getNestedValue(student, 'live_class_notes', '');
     variableMap['{{live_class_description}}'] = getNestedValue(student, 'live_class_notes', '');
-    variableMap['{{live_class_batch}}'] = getNestedValue(student, 'batch_name', 'Your Batch');
+    variableMap['{{live_class_batch}}'] = getNestedValue(student, 'batch_name', '');
         variableMap['{{live_class_recording_link}}'] = getNestedValue(student, 'live_class_recording_link', '');
-        variableMap['{{live_class_status}}'] = getNestedValue(student, 'live_class_status', 'upcoming');
+        variableMap['{{live_class_status}}'] = getNestedValue(student, 'live_class_status', '');
         variableMap['{{next_live_class_date}}'] = formatDate(getNestedValue(student, 'next_live_class_date'), '');
         variableMap['{{next_live_class_time}}'] = getNestedValue(student, 'next_live_class_time', '');
-    variableMap['{{next_live_class_title}}'] = getNestedValue(student, 'live_class_title', 'Next Live Class');
+    variableMap['{{next_live_class_title}}'] = getNestedValue(student, 'live_class_title', '');
 
     // Referral variables (always try to map, use fallback if not available)
         variableMap['{{referral_code}}'] = getNestedValue(student, 'referral_code', '');
@@ -146,7 +146,7 @@ const addStudentVariables = (variableMap: Record<string, string>, student: any, 
         variableMap['{{referral_count}}'] = getNestedValue(student, 'referral_count', '0');
         variableMap['{{referral_rewards}}'] = getNestedValue(student, 'referral_rewards', '0');
         variableMap['{{referral_bonus}}'] = getNestedValue(student, 'referral_bonus', '0');
-        variableMap['{{referral_status}}'] = getNestedValue(student, 'referral_status', 'active');
+        variableMap['{{referral_status}}'] = getNestedValue(student, 'referral_status', '');
         variableMap['{{referred_by}}'] = getNestedValue(student, 'referred_by', '');
         variableMap['{{referred_by_name}}'] = getNestedValue(student, 'referred_by_name', '');
     variableMap['{{referral_date}}'] = formatDate(getNestedValue(student, 'referral_program_start'), '');
@@ -156,7 +156,7 @@ const addStudentVariables = (variableMap: Record<string, string>, student: any, 
         variableMap['{{referral_benefits}}'] = getNestedValue(student, 'referral_benefits', '');
 
     // Attendance variables (always try to map, use fallback if not available)
-    variableMap['{{attendance_status}}'] = getNestedValue(student, 'attendance_status', 'Present');
+    variableMap['{{attendance_status}}'] = getNestedValue(student, 'attendance_status', '');
         variableMap['{{attendance_date}}'] = formatDate(getNestedValue(student, 'attendance_date'), '');
         variableMap['{{attendance_percentage}}'] = getNestedValue(student, 'attendance_percentage', '0');
     variableMap['{{attendance_total_classes}}'] = getNestedValue(student, 'attendance_total_classes', '0');
@@ -175,23 +175,23 @@ const addStudentVariables = (variableMap: Record<string, string>, student: any, 
 const addCourseVariables = (variableMap: Record<string, string>, course: any): void => {
     if (!course) return;
 
-    variableMap['{{course_name}}'] = getNestedValue(course, 'name', 'Your Course');
-    variableMap['{{course_description}}'] = getNestedValue(course, 'description', 'Course Description');
-    variableMap['{{course_duration}}'] = getNestedValue(course, 'duration', 'Course Duration');
-    variableMap['{{course_price}}'] = getNestedValue(course, 'price', 'Course Price');
+    variableMap['{{course_name}}'] = getNestedValue(course, 'name', '');
+    variableMap['{{course_description}}'] = getNestedValue(course, 'description', '');
+    variableMap['{{course_duration}}'] = getNestedValue(course, 'duration', '');
+    variableMap['{{course_price}}'] = getNestedValue(course, 'price', '');
     variableMap['{{course_start_date}}'] = formatDate(getNestedValue(course, 'start_date'), '');
     variableMap['{{course_end_date}}'] = formatDate(getNestedValue(course, 'end_date'), '');
-    variableMap['{{course_instructor}}'] = getNestedValue(course, 'instructor_name', 'Course Instructor');
+    variableMap['{{course_instructor}}'] = getNestedValue(course, 'instructor_name', '');
 };
 
 const addInstituteVariables = (variableMap: Record<string, string>, institute: any): void => {
     if (!institute) return;
 
-    variableMap['{{institute_name}}'] = getNestedValue(institute, 'name', 'Your Institute');
-    variableMap['{{institute_address}}'] = getNestedValue(institute, 'address', 'Institute Address');
-    variableMap['{{institute_phone}}'] = getNestedValue(institute, 'phone', 'Institute Phone');
-    variableMap['{{institute_email}}'] = getNestedValue(institute, 'email', 'Institute Email');
-    variableMap['{{institute_website}}'] = getNestedValue(institute, 'website', 'Institute Website');
+    variableMap['{{institute_name}}'] = getNestedValue(institute, 'name', '');
+    variableMap['{{institute_address}}'] = getNestedValue(institute, 'address', '');
+    variableMap['{{institute_phone}}'] = getNestedValue(institute, 'phone', '');
+    variableMap['{{institute_email}}'] = getNestedValue(institute, 'email', '');
+    variableMap['{{institute_website}}'] = getNestedValue(institute, 'website', '');
 };
 
 const replaceVariablesInTemplate = (template: string, variableMap: Record<string, string>): {

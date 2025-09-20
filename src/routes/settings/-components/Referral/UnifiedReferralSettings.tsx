@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import React, { useState, useEffect, useRef } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,6 +35,15 @@ import {
     MessageCircle,
 } from 'lucide-react';
 import { MyButton } from '@/components/design-system/button';
+import { useFileUpload } from '@/hooks/use-file-upload';
+import { useForm } from 'react-hook-form';
+import { Form } from '@/components/ui/form';
+import { FileUploadComponent } from '@/components/design-system/file-upload';
+import { getTokenFromCookie, getTokenDecodedData } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { TemplateSelector } from '@/components/templates/TemplateSelector';
+import { TemplatePreview } from '@/components/templates/TemplatePreview';
+import { MessageTemplate } from '@/types/message-template-types';
 
 // Enhanced interfaces with multiple programs support
 export interface ContentDelivery {
@@ -676,6 +685,7 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ content, onChange }) => {
     );
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
     const { uploadFile } = useFileUpload();
 
     // Create a simple form for the file upload component

@@ -101,8 +101,8 @@ export class BulkEmailService {
      * Add common placeholders
      */
     private addCommonPlaceholders(placeholders: Record<string, string>, student: any): void {
-        placeholders.name = student.full_name || 'Student';
-        placeholders.student_name = student.full_name || 'Student';
+        placeholders.name = student.full_name || '';
+        placeholders.student_name = student.full_name || '';
         placeholders.email = student.email || '';
         placeholders.student_email = student.email || '';
         placeholders.mobile_number = student.mobile_number || '';
@@ -118,22 +118,22 @@ export class BulkEmailService {
      * Add institute placeholders
      */
     private addInstitutePlaceholders(placeholders: Record<string, string>, student: any): void {
-        placeholders.institute_name = student.institute_name || 'Your Institute';
-        placeholders.institute_address = student.institute_address || 'Address not available';
-        placeholders.institute_phone = student.institute_phone || 'Phone not available';
-        placeholders.institute_email = student.institute_email || 'Email not available';
-        placeholders.institute_website = student.institute_website || 'Website not available';
-        placeholders.institute_logo = student.institute_logo || 'Logo not available';
+        placeholders.institute_name = student.institute_name || '';
+        placeholders.institute_address = student.institute_address || '';
+        placeholders.institute_phone = student.institute_phone || '';
+        placeholders.institute_email = student.institute_email || '';
+        placeholders.institute_website = student.institute_website || '';
+        placeholders.institute_logo = student.institute_logo || '';
     }
 
     /**
      * Add course placeholders
      */
     private addCoursePlaceholders(placeholders: Record<string, string>, student: any): void {
-        placeholders.course_name = student.course_name || 'Your Course';
-        placeholders.course_description = student.course_description || 'Course Description';
-        placeholders.course_price = student.course_price || 'Course Price';
-        placeholders.batch_name = student.batch_name || 'Your Batch';
+        placeholders.course_name = student.course_name || '';
+        placeholders.course_description = student.course_description || '';
+        placeholders.course_price = student.course_price || '';
+        placeholders.batch_name = student.batch_name || '';
         placeholders.batch_id = student.batch_id || '';
         placeholders.batch_start_date = student.batch_start_date ? new Date(student.batch_start_date).toLocaleDateString() : '';
         placeholders.batch_end_date = student.batch_end_date ? new Date(student.batch_end_date).toLocaleDateString() : '';
@@ -144,7 +144,7 @@ export class BulkEmailService {
      */
     private addAttendancePlaceholders(placeholders: Record<string, string>, student: any): void {
         // Use the dynamically calculated attendance data from enrichment service
-        placeholders.attendance_status = student.attendance_status || 'Present';
+        placeholders.attendance_status = student.attendance_status || '';
         placeholders.attendance_date = student.attendance_date || new Date().toLocaleDateString();
         placeholders.attendance_percentage = student.attendance_percentage || '0';
         placeholders.attendance_total_classes = student.attendance_total_classes || '0';
@@ -156,8 +156,8 @@ export class BulkEmailService {
      * Add live class placeholders
      */
     private addLiveClassPlaceholders(placeholders: Record<string, string>, student: any): void {
-        placeholders.live_class_title = student.live_class_title || 'Live Class Session';
-        placeholders.live_class_name = student.live_class_title || 'Live Class Session';
+        placeholders.live_class_title = student.live_class_title || '';
+        placeholders.live_class_name = student.live_class_title || '';
         placeholders.live_class_date = student.live_class_date ? new Date(student.live_class_date).toLocaleDateString() : '';
         placeholders.live_class_time = student.live_class_time || '';
         placeholders.live_class_start_time = student.live_class_time || '';
@@ -166,9 +166,9 @@ export class BulkEmailService {
         placeholders.live_class_link = student.live_class_meeting_link || '';
         placeholders.live_class_meeting_link = student.live_class_meeting_link || '';
         placeholders.live_class_description = student.live_class_notes || '';
-        placeholders.live_class_batch = student.batch_name || 'Your Batch';
-        placeholders.live_class_platform = student.live_class_platform || 'Online Platform';
-        placeholders.live_class_status = student.live_class_status || 'upcoming';
+        placeholders.live_class_batch = student.batch_name || '';
+        placeholders.live_class_platform = student.live_class_platform || '';
+        placeholders.live_class_status = student.live_class_status || '';
         placeholders.next_live_class_date = student.next_live_class_date ? new Date(student.next_live_class_date).toLocaleDateString() : '';
         placeholders.next_live_class_time = student.next_live_class_time || '';
     }
@@ -181,7 +181,7 @@ export class BulkEmailService {
         placeholders.referral_count = student.referral_count || '0';
         placeholders.referral_rewards = student.referral_rewards || '0';
         placeholders.referral_bonus = student.referral_bonus || '0';
-        placeholders.referral_status = student.referral_status || 'active';
+        placeholders.referral_status = student.referral_status || '';
         placeholders.referral_date = student.referral_program_start ? new Date(student.referral_program_start).toLocaleDateString() : '';
         placeholders.referral_benefits = student.referral_benefits || '';
         placeholders.referral_custom_content = student.referral_custom_content || '';
@@ -203,12 +203,12 @@ export class BulkEmailService {
      * Add support placeholders
      */
     private addSupportPlaceholders(placeholders: Record<string, string>, student: any): void {
-        placeholders.custom_message_text = 'Thank you for being part of our learning community.';
+        placeholders.custom_message_text = '';
         placeholders.custom_field_1 = student.custom_field_1 || '';
         placeholders.custom_field_2 = student.custom_field_2 || '';
         // Use institute email and website for support
-        placeholders.support_email = student.institute_email || 'support@vacademy.com';
-        placeholders.support_link = student.institute_website || 'https://support.vacademy.com';
+        placeholders.support_email = student.institute_email || '';
+        placeholders.support_link = student.institute_website || '';
     }
 
     private async makeRequest(endpoint: string, options: RequestInit = {}): Promise<any> {
@@ -454,11 +454,11 @@ export class BulkEmailService {
                         });
 
                         // Add specific mappings for common variables
-                        placeholders.name = student.full_name || 'Student';
+                        placeholders.name = student.full_name || '';
                         placeholders.email = student.email || '';
                         placeholders.mobile_number = student.mobile_number || '';
                         placeholders.current_date = new Date().toLocaleDateString();
-                        placeholders.custom_message_text = 'Thank you for being part of our learning community.';
+                        placeholders.custom_message_text = '';
 
                         fallbackUsers.push({
                             user_id: student.user_id,
