@@ -6,6 +6,8 @@
  */
 
 import { STUDENT_DATA_ENRICHMENT_BASE } from '@/constants/urls';
+import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 export interface EnrichedStudentData {
     // Basic student info
@@ -112,13 +114,66 @@ export interface DataEnrichmentOptions {
     includeCustomFields?: boolean;
 }
 
+// API Payload interfaces for dynamic data fetching
+export interface CourseDataRequest {
+    courseId: string;
+    instituteId: string;
+    includeDetails?: boolean;
+    includePricing?: boolean;
+    includeInstructor?: boolean;
+}
+
+export interface BatchDataRequest {
+    batchId: string;
+    instituteId: string;
+    includeSchedule?: boolean;
+    includeStudents?: boolean;
+}
+
+export interface AttendanceDataRequest {
+    studentId: string;
+    instituteId: string;
+    courseId?: string;
+    batchId?: string;
+    dateRange?: {
+        startDate: string;
+        endDate: string;
+    };
+    includeDetails?: boolean;
+}
+
+export interface LiveClassDataRequest {
+    studentId: string;
+    instituteId: string;
+    courseId?: string;
+    batchId?: string;
+    includeUpcoming?: boolean;
+    includePast?: boolean;
+    limit?: number;
+}
+
+export interface ReferralDataRequest {
+    studentId: string;
+    instituteId: string;
+    includeStats?: boolean;
+    includeRewards?: boolean;
+    includeHistory?: boolean;
+}
+
 export class StudentDataEnrichmentService {
     private baseURL: string;
     private authToken: string;
 
     constructor() {
         this.baseURL = STUDENT_DATA_ENRICHMENT_BASE;
-        this.authToken = localStorage.getItem('authToken') || '';
+        this.authToken = getTokenFromCookie(TokenKey.accessToken) || '';
+    }
+
+    /**
+     * Refresh the authentication token
+     */
+    private refreshToken(): void {
+        this.authToken = getTokenFromCookie(TokenKey.accessToken) || '';
     }
 
     /**
@@ -126,6 +181,16 @@ export class StudentDataEnrichmentService {
      */
     private async makeRequest(endpoint: string, options: RequestInit = {}): Promise<any> {
         try {
+            // Refresh token if needed
+            if (!this.authToken) {
+                this.refreshToken();
+            }
+
+            if (!this.authToken) {
+                throw new Error('No authentication token available');
+            }
+
+
             const response = await fetch(`${this.baseURL}${endpoint}`, {
                 ...options,
                 headers: {
@@ -154,7 +219,6 @@ export class StudentDataEnrichmentService {
                 );
             }
         } catch (error) {
-            console.error(`API request failed for ${endpoint}:`, error);
             throw error;
         }
     }
@@ -162,10 +226,12 @@ export class StudentDataEnrichmentService {
     /**
      * Enrich student data by fetching missing information from APIs
      * NO hardcoded or generated data - only real backend data
+     * Only fetches data for variables that are actually used in the template
      */
     async enrichStudentData(
         students: any[],
-        options: DataEnrichmentOptions = {}
+        options: DataEnrichmentOptions = {},
+        usedVariables: string[] = []
     ): Promise<EnrichedStudentData[]> {
         const {
             includeCourse = true,
@@ -177,13 +243,33 @@ export class StudentDataEnrichmentService {
             includeCustomFields = true,
         } = options;
 
-        console.log('Starting data enrichment for', students.length, 'students');
 
         try {
+            // Determine which data to fetch based on used variables
+            const shouldFetchCourse = usedVariables.some(v =>
+                v.includes('course_') || v.includes('course_name') || v.includes('course_description') ||
+                v.includes('course_price') || v.includes('course_duration') || v.includes('course_instructor')
+            );
+            const shouldFetchBatch = usedVariables.some(v =>
+                v.includes('batch_') || v.includes('batch_name') || v.includes('batch_id') ||
+                v.includes('batch_start_date') || v.includes('batch_end_date')
+            );
+            const shouldFetchAttendance = usedVariables.some(v =>
+                v.includes('attendance_') || v.includes('attendance_status') || v.includes('attendance_percentage') ||
+                v.includes('attendance_total_classes') || v.includes('attendance_attended_classes')
+            );
+            const shouldFetchLiveClass = usedVariables.some(v =>
+                v.includes('live_class_') || v.includes('live_class_name') || v.includes('live_class_time') ||
+                v.includes('live_class_link') || v.includes('live_class_instructor')
+            );
+            const shouldFetchReferral = usedVariables.some(v =>
+                v.includes('referral_') || v.includes('referral_code') || v.includes('referral_count') ||
+                v.includes('referral_rewards') || v.includes('referral_status')
+            );
+
+
             // Get institute data from cache first (no API call needed)
-            console.log('Getting institute data from cache...');
             const instituteData = await this.getCachedInstituteData();
-            console.log('Institute data from cache:', instituteData);
 
             // Enrich student data with real API calls for missing data
             const enrichedStudents: EnrichedStudentData[] = await Promise.all(
@@ -211,49 +297,24 @@ export class StudentDataEnrichmentService {
                         enriched.institute_logo = instituteData.institute_logo;
                     }
 
-                    // Fetch missing data via API calls
-                    await this.fetchMissingStudentData(enriched, student, options);
+                    // Fetch missing data via API calls (only for used variables)
+                    await this.fetchMissingStudentData(enriched, student, {
+                        ...options,
+                        includeCourse: shouldFetchCourse,
+                        includeBatch: shouldFetchBatch,
+                        includeAttendance: shouldFetchAttendance,
+                        includeLiveClass: shouldFetchLiveClass,
+                        includeReferral: shouldFetchReferral,
+                        includeCustomFields: false // Skip custom fields for now
+                    });
 
                     return enriched;
                 })
             );
 
-            console.log('Data enrichment completed for', enrichedStudents.length, 'students');
-
-            // Log detailed enrichment data for first student
-            if (enrichedStudents.length > 0) {
-                console.log('=== ENRICHED STUDENT DATA (First Student) ===');
-                const firstStudent = enrichedStudents[0];
-                if (firstStudent) {
-                    console.log('Student ID:', firstStudent.user_id);
-                    console.log('Student Name:', firstStudent.full_name);
-                    console.log('Course Data:', {
-                        course_name: firstStudent.course_name,
-                        course_description: firstStudent.course_description,
-                        course_price: firstStudent.course_price,
-                    });
-                    console.log('Batch Data:', {
-                        batch_name: firstStudent.batch_name,
-                        batch_id: firstStudent.batch_id,
-                    });
-                    console.log('Attendance Data:', {
-                        attendance_status: firstStudent.attendance_status,
-                        attendance_percentage: firstStudent.attendance_percentage,
-                        attendance_total_classes: firstStudent.attendance_total_classes,
-                        attendance_attended_classes: firstStudent.attendance_attended_classes,
-                    });
-                    console.log('Institute Data:', {
-                        institute_name: firstStudent.institute_name,
-                        institute_email: firstStudent.institute_email,
-                        institute_website: firstStudent.institute_website,
-                    });
-                }
-                console.log('=== END ENRICHED STUDENT DATA ===');
-            }
 
             return enrichedStudents;
         } catch (error) {
-            console.error('Error enriching student data:', error);
             // Return basic student data without enrichment
             return this.createBasicEnrichedStudents(students);
         }
@@ -302,9 +363,9 @@ export class StudentDataEnrichmentService {
         try {
             // Fetch course data if missing and requested
             if (includeCourse && !enriched.course_name) {
-                console.log(`Fetching course data for student ${student.user_id}`);
                 const courseData = await this.fetchCourseData(
-                    student.course_id || student.package_session_id
+                    student.course_id || student.package_session_id,
+                    this.getCurrentInstituteId()
                 );
                 if (courseData) {
                     enriched.course_name = courseData.name;
@@ -312,14 +373,16 @@ export class StudentDataEnrichmentService {
                     enriched.course_price = courseData.price;
                     enriched.course_duration = courseData.duration;
                     enriched.course_instructor = courseData.instructor;
+                    enriched.course_start_date = courseData.startDate;
+                    enriched.course_end_date = courseData.endDate;
                 }
             }
 
             // Fetch batch data if missing and requested
             if (includeBatch && !enriched.batch_name) {
-                console.log(`Fetching batch data for student ${student.user_id}`);
                 const batchData = await this.fetchBatchData(
-                    student.batch_id || student.package_session_id
+                    student.batch_id || student.package_session_id,
+                    this.getCurrentInstituteId()
                 );
                 if (batchData) {
                     enriched.batch_name = batchData.name;
@@ -331,133 +394,236 @@ export class StudentDataEnrichmentService {
 
             // Fetch attendance data if missing and requested
             if (includeAttendance && !enriched.attendance_status) {
-                console.log(`Fetching attendance data for student ${student.user_id}`);
-                const attendanceData = await this.fetchAttendanceData(student.user_id);
+                const attendanceData = await this.fetchAttendanceData(
+                    student.user_id,
+                    student.course_id,
+                    student.batch_id
+                );
                 if (attendanceData) {
                     enriched.attendance_status = attendanceData.status;
                     enriched.attendance_percentage = attendanceData.percentage;
                     enriched.attendance_total_classes = attendanceData.totalClasses;
                     enriched.attendance_attended_classes = attendanceData.attendedClasses;
+                    enriched.attendance_last_class_date = attendanceData.lastClassDate;
                 }
             }
 
             // Fetch live class data if missing and requested
             if (includeLiveClass && !enriched.live_class_title) {
-                console.log(`Fetching live class data for student ${student.user_id}`);
-                const liveClassData = await this.fetchLiveClassData(student.user_id);
+                const liveClassData = await this.fetchLiveClassData(
+                    student.user_id,
+                    student.course_id,
+                    student.batch_id
+                );
                 if (liveClassData) {
                     enriched.live_class_title = liveClassData.title;
                     enriched.live_class_name = liveClassData.name;
                     enriched.live_class_date = liveClassData.date;
                     enriched.live_class_time = liveClassData.time;
+                    enriched.live_class_start_time = liveClassData.startTime;
+                    enriched.live_class_end_time = liveClassData.endTime;
+                    enriched.live_class_duration = liveClassData.duration;
                     enriched.live_class_instructor = liveClassData.instructor;
+                    enriched.live_class_meeting_link = liveClassData.meetingLink;
+                    enriched.live_class_meeting_id = liveClassData.meetingId;
+                    enriched.live_class_password = liveClassData.password;
+                    enriched.live_class_platform = liveClassData.platform;
+                    enriched.live_class_status = liveClassData.status;
+                    enriched.live_class_description = liveClassData.description;
                 }
             }
 
             // Fetch referral data if missing and requested
             if (includeReferral && !enriched.referral_code) {
-                console.log(`Fetching referral data for student ${student.user_id}`);
                 const referralData = await this.fetchReferralData(student.user_id);
                 if (referralData) {
                     enriched.referral_code = referralData.code;
                     enriched.referral_count = referralData.count;
                     enriched.referral_rewards = referralData.rewards;
                     enriched.referral_bonus = referralData.bonus;
+                    enriched.referral_status = referralData.status;
+                    enriched.referral_benefits = referralData.benefits;
+                    enriched.referral_program_start = referralData.programStart;
+                    enriched.referral_program_end = referralData.programEnd;
                 }
             }
         } catch (error) {
-            console.warn(`Error fetching missing data for student ${student.user_id}:`, error);
         }
     }
 
     /**
-     * Fetch course data from API
+     * Fetch course data from API with proper payload
      */
-    private async fetchCourseData(courseId: string): Promise<any> {
+    private async fetchCourseData(courseId: string, instituteId?: string): Promise<any> {
         try {
-            const response = await this.makeRequest(`/courses/${courseId}`);
-            return {
-                name: response.name,
-                description: response.description,
-                price: response.price,
-                duration: response.duration,
-                instructor: response.instructor,
+            const payload: CourseDataRequest = {
+                courseId,
+                instituteId: instituteId || this.getCurrentInstituteId() || '',
+                includeDetails: true,
+                includePricing: true,
+                includeInstructor: true
             };
-        } catch (error) {
-            console.warn('Failed to fetch course data:', error);
-            return null;
-        }
-    }
 
-    /**
-     * Fetch batch data from API
-     */
-    private async fetchBatchData(batchId: string): Promise<any> {
-        try {
-            const response = await this.makeRequest(`/batches/${batchId}`);
+            const response = await this.makeRequest('/courses/details', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+
             return {
-                name: response.name,
-                id: response.id,
+                name: response.name || response.title,
+                description: response.description,
+                price: response.price || response.cost,
+                duration: response.duration || response.length,
+                instructor: response.instructor || response.teacher,
                 startDate: response.start_date,
                 endDate: response.end_date,
             };
         } catch (error) {
-            console.warn('Failed to fetch batch data:', error);
             return null;
         }
     }
 
     /**
-     * Fetch attendance data from API
+     * Fetch batch data from API with proper payload
      */
-    private async fetchAttendanceData(studentId: string): Promise<any> {
+    private async fetchBatchData(batchId: string, instituteId?: string): Promise<any> {
         try {
-            const response = await this.makeRequest(`/students/${studentId}/attendance`);
+            const payload: BatchDataRequest = {
+                batchId,
+                instituteId: instituteId || this.getCurrentInstituteId() || '',
+                includeSchedule: true,
+                includeStudents: false
+            };
+
+            const response = await this.makeRequest('/batches/details', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+
             return {
-                status: response.status,
-                percentage: response.percentage,
-                totalClasses: response.total_classes,
-                attendedClasses: response.attended_classes,
+                name: response.name || response.batch_name,
+                id: response.id || response.batch_id,
+                startDate: response.start_date || response.startDate,
+                endDate: response.end_date || response.endDate,
+                capacity: response.capacity,
+                enrolled: response.enrolled_count,
+                status: response.status
             };
         } catch (error) {
-            console.warn('Failed to fetch attendance data:', error);
             return null;
         }
     }
 
     /**
-     * Fetch live class data from API
+     * Fetch attendance data from API with proper payload
      */
-    private async fetchLiveClassData(studentId: string): Promise<any> {
+    private async fetchAttendanceData(studentId: string, courseId?: string, batchId?: string): Promise<any> {
         try {
-            const response = await this.makeRequest(`/students/${studentId}/live-classes`);
+            const payload: AttendanceDataRequest = {
+                studentId,
+                instituteId: this.getCurrentInstituteId() || '',
+                courseId,
+                batchId,
+                includeDetails: true,
+                dateRange: {
+                    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // Last 30 days
+                    endDate: new Date().toISOString()
+                }
+            };
+
+            const response = await this.makeRequest('/students/attendance', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+
             return {
-                title: response.title,
-                name: response.name,
-                date: response.date,
-                time: response.time,
-                instructor: response.instructor,
+                status: response.attendance_status || response.status,
+                percentage: response.attendance_percentage || response.percentage,
+                totalClasses: response.total_classes || response.total_sessions,
+                attendedClasses: response.attended_classes || response.attended_sessions,
+                lastClassDate: response.last_class_date,
+                attendanceHistory: response.attendance_history || []
             };
         } catch (error) {
-            console.warn('Failed to fetch live class data:', error);
             return null;
         }
     }
 
     /**
-     * Fetch referral data from API
+     * Fetch live class data from API with proper payload
+     */
+    private async fetchLiveClassData(studentId: string, courseId?: string, batchId?: string): Promise<any> {
+        try {
+            const payload: LiveClassDataRequest = {
+                studentId,
+                instituteId: this.getCurrentInstituteId() || '',
+                courseId,
+                batchId,
+                includeUpcoming: true,
+                includePast: false,
+                limit: 5
+            };
+
+            const response = await this.makeRequest('/students/live-classes', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+
+            // Get the most recent/upcoming live class
+            const liveClass = response.live_classes?.[0] || response;
+
+            return {
+                title: liveClass.title || liveClass.class_title,
+                name: liveClass.name || liveClass.class_name,
+                date: liveClass.date || liveClass.class_date,
+                time: liveClass.time || liveClass.class_time,
+                startTime: liveClass.start_time,
+                endTime: liveClass.end_time,
+                duration: liveClass.duration,
+                instructor: liveClass.instructor || liveClass.teacher,
+                meetingLink: liveClass.meeting_link || liveClass.zoom_link,
+                meetingId: liveClass.meeting_id,
+                password: liveClass.password,
+                platform: liveClass.platform || 'Zoom',
+                status: liveClass.status,
+                description: liveClass.description
+            };
+        } catch (error) {
+            return null;
+        }
+    }
+
+    /**
+     * Fetch referral data from API with proper payload
      */
     private async fetchReferralData(studentId: string): Promise<any> {
         try {
-            const response = await this.makeRequest(`/students/${studentId}/referral`);
+            const payload: ReferralDataRequest = {
+                studentId,
+                instituteId: this.getCurrentInstituteId() || '',
+                includeStats: true,
+                includeRewards: true,
+                includeHistory: false
+            };
+
+            const response = await this.makeRequest('/students/referral', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+
             return {
-                code: response.code,
-                count: response.count,
-                rewards: response.rewards,
-                bonus: response.bonus,
+                code: response.referral_code || response.code,
+                count: response.referral_count || response.count,
+                rewards: response.referral_rewards || response.rewards,
+                bonus: response.referral_bonus || response.bonus,
+                status: response.referral_status || response.status,
+                benefits: response.referral_benefits || response.benefits,
+                programStart: response.referral_program_start,
+                programEnd: response.referral_program_end,
+                totalEarnings: response.total_earnings,
+                pendingRewards: response.pending_rewards
             };
         } catch (error) {
-            console.warn('Failed to fetch referral data:', error);
             return null;
         }
     }
@@ -469,11 +635,8 @@ export class StudentDataEnrichmentService {
         try {
             const instituteId = this.getCurrentInstituteId();
             if (!instituteId) {
-                console.warn('No institute ID available');
                 return null;
             }
-
-            console.log('Looking for cached institute data for ID:', instituteId);
 
             // 1. Try localStorage with institute ID as key (most common and fastest)
             const localStorageData = this.getInstituteDataFromLocalStorage(instituteId);
@@ -488,10 +651,8 @@ export class StudentDataEnrichmentService {
             if (domainData) return domainData;
 
             // 4. No cached data found
-            console.log('No cached institute data found');
             return null;
         } catch (error) {
-            console.error('Error getting cached institute data:', error);
             return null;
         }
     }
@@ -515,7 +676,6 @@ export class StudentDataEnrichmentService {
                 };
             }
         } catch (error) {
-            console.warn('Error parsing localStorage institute data:', error);
         }
         return null;
     }
@@ -541,7 +701,6 @@ export class StudentDataEnrichmentService {
                 };
             }
         } catch (error) {
-            console.warn('Error getting institute data from store:', error);
         }
         return null;
     }
@@ -557,16 +716,15 @@ export class StudentDataEnrichmentService {
                 return {
                     institute_id: domainCache.instituteId,
                     institute_name: domainCache.instituteName,
-                    institute_address: domainCache.address || '',
-                    institute_phone: domainCache.phone || '',
-                    institute_email: domainCache.email || '',
-                    institute_website: domainCache.websiteUrl || '',
+                    institute_address: '',
+                    institute_phone: '',
+                    institute_email: '',
+                    institute_website: '',
                     institute_logo:
                         domainCache.instituteLogoUrl || domainCache.instituteLogoFileId || '',
                 };
             }
         } catch (error) {
-            console.warn('Error getting institute data from domain cache:', error);
         }
         return null;
     }

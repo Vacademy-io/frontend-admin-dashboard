@@ -53,6 +53,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
         content: '',
         variables: [],
         isDefault: false,
+        templateType: 'utility',
     });
     const [templateType, setTemplateType] = useState<string>('utility');
     const [isInSourceView, setIsInSourceView] = useState(false);
@@ -61,6 +62,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
 
     useEffect(() => {
         if (template) {
+            const templateTypeValue = getTemplateTypeOptions();
             setFormData({
                 name: template.name,
                 type: template.type,
@@ -68,8 +70,9 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                 content: template.content,
                 variables: template.variables,
                 isDefault: template.isDefault,
+                templateType: templateTypeValue,
             });
-            setTemplateType(getTemplateTypeOptions());
+            setTemplateType(templateTypeValue);
         } else {
             setFormData({
                 name: '',
@@ -78,6 +81,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                 content: '',
                 variables: [],
                 isDefault: false,
+                templateType: 'utility',
             });
             setTemplateType('utility');
         }
@@ -88,6 +92,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
         if (formData.name) {
             const autoType = getTemplateTypeOptions(formData.name);
             setTemplateType(autoType);
+            setFormData(prev => ({ ...prev, templateType: autoType }));
         }
     }, [formData.name]);
 
@@ -340,7 +345,9 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                                         <Select
                                             value={templateType}
                                             onValueChange={(value) => {
+                                                console.log('Template type changed to:', value);
                                                 setTemplateType(value);
+                                                setFormData(prev => ({ ...prev, templateType: value as 'marketing' | 'utility' | 'transactional' }));
                                             }}
                                         >
                                             <SelectTrigger className="w-full">

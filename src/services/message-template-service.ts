@@ -12,31 +12,23 @@ import {
     UPDATE_MESSAGE_TEMPLATE,
     DELETE_MESSAGE_TEMPLATE,
     SEARCH_MESSAGE_TEMPLATES,
+    MESSAGE_TEMPLATE_BASE,
 } from '@/constants/urls';
 
-// Get access token from localStorage or cookies
+import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+
+// Get access token from cookies using the standard method
 const getAccessToken = (): string | null => {
-    // Try to get from localStorage first
-    const token = localStorage.getItem('accessToken');
-    if (token) return token;
-
-    // Try to get from cookies
-    const cookies = document.cookie.split(';');
-    const tokenCookie = cookies.find((cookie) => cookie.trim().startsWith('accessToken='));
-    if (tokenCookie) {
-        const tokenValue = tokenCookie.split('=')[1];
-        return tokenValue ? tokenValue : null;
-    }
-
-    return null;
+    return getTokenFromCookie(TokenKey.accessToken);
 };
 
 // Helper function to safely parse settingJson
 const parseSettingJson = (
     settingJson: string | object | undefined
-): { variables: string[]; isDefault: boolean } => {
+): { variables: string[]; isDefault: boolean; templateType: 'marketing' | 'utility' | 'transactional' } => {
     if (!settingJson) {
-        return { variables: [], isDefault: false };
+        return { variables: [], isDefault: false, templateType: 'utility' };
     }
 
     // If it's already an object, return it directly
@@ -44,6 +36,7 @@ const parseSettingJson = (
         return {
             variables: (settingJson as any).variables || [],
             isDefault: (settingJson as any).isDefault || false,
+            templateType: ((settingJson as any).templateType as 'marketing' | 'utility' | 'transactional') || 'utility',
         };
     }
 
@@ -54,51 +47,58 @@ const parseSettingJson = (
             return {
                 variables: settings.variables || [],
                 isDefault: settings.isDefault || false,
+                templateType: (settings.templateType as 'marketing' | 'utility' | 'transactional') || 'utility',
             };
         } catch (error) {
-            console.warn('Failed to parse settingJson:', settingJson, error);
-            return { variables: [], isDefault: false };
+            return { variables: [], isDefault: false, templateType: 'utility' };
         }
     }
 
-    return { variables: [], isDefault: false };
+    return { variables: [], isDefault: false, templateType: 'utility' };
 };
 
 export const createMessageTemplate = async (
     template: CreateTemplateRequest
 ): Promise<MessageTemplate> => {
     try {
-        console.log('createMessageTemplate called with:', template);
         const accessToken = getAccessToken();
         if (!accessToken) {
             throw new Error('Access token not found. Please login again.');
         }
 
         const instituteId = getInstituteId();
-        console.log('Making API call to create template:', { instituteId, template });
+        const payload = {
+            type: template.type?.toLowerCase() || 'email',
+            vendorId: 'default',
+            instituteId: instituteId,
+            name: template.name,
+            subject: template.subject || '',
+            content: template.content,
+            contentType: 'text/plain',
+            settingJson: {
+                variables: template.variables || [],
+                isDefault: template.isDefault || false,
+                templateType: template.templateType || 'utility',
+            },
+            dynamicParameters: {
+                // Add any dynamic parameters if needed
+            },
+            canDelete: true,
+            createdBy: 'current-user',
+            updatedBy: 'current-user',
+        };
+
+
         const response = await fetch(CREATE_MESSAGE_TEMPLATE, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                Accept: '*/*',
-                Authorization: `Bearer ${accessToken}`,
+                'Accept': '*/*',
+                'Authorization': `Bearer ${accessToken}`,
+                'Origin': window.location.origin,
+                'Referer': window.location.origin + '/',
             },
-            body: JSON.stringify({
-                type: template.type,
-                vendorId: 'default',
-                instituteId: instituteId,
-                name: template.name,
-                subject: template.subject || '',
-                content: template.content,
-                contentType: 'text/plain',
-                settingJson: {
-                    variables: template.variables || [],
-                    isDefault: template.isDefault || false,
-                },
-                canDelete: true,
-                createdBy: 'current-user',
-                updatedBy: 'current-user',
-            }),
+            body: JSON.stringify(payload),
         });
 
         if (!response.ok) {
@@ -117,11 +117,11 @@ export const createMessageTemplate = async (
             content: result.content,
             variables: parseSettingJson(result.settingJson).variables,
             isDefault: parseSettingJson(result.settingJson).isDefault,
+            templateType: parseSettingJson(result.settingJson).templateType,
             createdAt: result.createdAt || new Date().toISOString(),
             updatedAt: result.updatedAt || new Date().toISOString(),
         };
     } catch (error) {
-        console.error('Error creating template:', error);
         throw error;
     }
 };
@@ -145,8 +145,10 @@ export const getMessageTemplates = async (
 
         const response = await fetch(url, {
             headers: {
-                Accept: '*/*',
-                Authorization: `Bearer ${accessToken}`,
+                'Accept': '*/*',
+                'Authorization': `Bearer ${accessToken}`,
+                'Origin': window.location.origin,
+                'Referer': window.location.origin + '/',
             },
         });
 
@@ -156,14 +158,6 @@ export const getMessageTemplates = async (
         }
 
         const result = await response.json();
-
-        // Debug logging to understand the API response structure
-        console.log('getMessageTemplates API Response:', {
-            type,
-            url,
-            result,
-            isArray: Array.isArray(result),
-        });
 
         // Transform the API response to match our TemplateListResponse interface
         // The API returns an array directly, not wrapped in an object
@@ -185,7 +179,7 @@ export const getMessageTemplates = async (
 
         // Transform templates to match our MessageTemplate interface
         const transformedTemplates = paginatedTemplates.map((template: Record<string, unknown>) => {
-            const { variables, isDefault } = parseSettingJson(template.settingJson as string);
+            const { variables, isDefault, templateType } = parseSettingJson(template.settingJson as string);
 
             return {
                 id: (template.id || template.templateId) as string,
@@ -195,16 +189,10 @@ export const getMessageTemplates = async (
                 content: template.content as string,
                 variables: variables,
                 isDefault: isDefault,
+                templateType: templateType,
                 createdAt: (template.createdAt as string) || new Date().toISOString(),
                 updatedAt: (template.updatedAt as string) || new Date().toISOString(),
             };
-        });
-
-        console.log('Transformed templates:', {
-            originalCount: templates.length,
-            paginatedCount: paginatedTemplates.length,
-            transformedCount: transformedTemplates.length,
-            transformedTemplates,
         });
 
         return {
@@ -214,7 +202,6 @@ export const getMessageTemplates = async (
             limit: limit,
         };
     } catch (error) {
-        console.error('Error fetching templates:', error);
         throw error;
     }
 };
@@ -228,8 +215,10 @@ export const getMessageTemplate = async (id: string): Promise<MessageTemplate> =
 
         const response = await fetch(`${GET_MESSAGE_TEMPLATE}/${id}`, {
             headers: {
-                Accept: '*/*',
-                Authorization: `Bearer ${accessToken}`,
+                'Accept': '*/*',
+                'Authorization': `Bearer ${accessToken}`,
+                'Origin': window.location.origin,
+                'Referer': window.location.origin + '/',
             },
         });
 
@@ -249,11 +238,11 @@ export const getMessageTemplate = async (id: string): Promise<MessageTemplate> =
             content: result.content,
             variables: parseSettingJson(result.settingJson).variables,
             isDefault: parseSettingJson(result.settingJson).isDefault,
+            templateType: parseSettingJson(result.settingJson).templateType,
             createdAt: result.createdAt || new Date().toISOString(),
             updatedAt: result.updatedAt || new Date().toISOString(),
         };
     } catch (error) {
-        console.error('Error fetching template:', error);
         throw error;
     }
 };
@@ -262,37 +251,44 @@ export const updateMessageTemplate = async (
     template: UpdateTemplateRequest
 ): Promise<MessageTemplate> => {
     try {
-        console.log('updateMessageTemplate called with:', template);
         const accessToken = getAccessToken();
         if (!accessToken) {
             throw new Error('Access token not found. Please login again.');
         }
 
         const { id, ...updateData } = template;
-        console.log('Making API call to update template:', { id, updateData });
+
+        const payload = {
+            id: id,
+            type: updateData.type?.toLowerCase() || 'email',
+            vendorId: 'default',
+            name: updateData.name || '',
+            subject: updateData.subject || '',
+            content: updateData.content || '',
+            contentType: 'text/plain',
+            settingJson: {
+                variables: updateData.variables || [],
+                isDefault: updateData.isDefault || false,
+                templateType: updateData.templateType || 'utility',
+            },
+            dynamicParameters: {
+                // Add any dynamic parameters if needed
+            },
+            canDelete: true,
+            updatedBy: 'current-user',
+        };
+
 
         const response = await fetch(UPDATE_MESSAGE_TEMPLATE, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                Accept: '*/*',
-                Authorization: `Bearer ${accessToken}`,
+                'Accept': '*/*',
+                'Authorization': `Bearer ${accessToken}`,
+                'Origin': window.location.origin,
+                'Referer': window.location.origin + '/',
             },
-            body: JSON.stringify({
-                id: id,
-                type: updateData.type || 'email',
-                vendorId: 'default',
-                name: updateData.name || '',
-                subject: updateData.subject || '',
-                content: updateData.content || '',
-                contentType: 'text/plain',
-                settingJson: {
-                    variables: updateData.variables || [],
-                    isDefault: updateData.isDefault || false,
-                },
-                canDelete: true,
-                updatedBy: 'current-user',
-            }),
+            body: JSON.stringify(payload),
         });
 
         if (!response.ok) {
@@ -311,11 +307,11 @@ export const updateMessageTemplate = async (
             content: result.content,
             variables: parseSettingJson(result.settingJson).variables,
             isDefault: parseSettingJson(result.settingJson).isDefault,
+            templateType: parseSettingJson(result.settingJson).templateType,
             createdAt: result.createdAt || new Date().toISOString(),
             updatedAt: result.updatedAt || new Date().toISOString(),
         };
     } catch (error) {
-        console.error('Error updating template:', error);
         throw error;
     }
 };
@@ -327,11 +323,24 @@ export const deleteMessageTemplate = async (id: string): Promise<void> => {
             throw new Error('Access token not found. Please login again.');
         }
 
-        const response = await fetch(`${DELETE_MESSAGE_TEMPLATE}/${id}`, {
+        // Use correct URL structure: base URL + ID (matching your curl command)
+        const deleteUrl = `${MESSAGE_TEMPLATE_BASE}/${id}`;
+
+        // Check if template has deletion restrictions
+        try {
+            const template = await getMessageTemplate(id);
+            if (template.isDefault) {
+                throw new Error('Cannot delete default template');
+            }
+        } catch (error) {
+            // Continue with deletion even if template fetch fails
+        }
+
+        const response = await fetch(deleteUrl, {
             method: 'DELETE',
             headers: {
-                Accept: '*/*',
-                Authorization: `Bearer ${accessToken}`,
+                'Accept': '*/*',
+                'Authorization': `Bearer ${accessToken}`,
             },
         });
 
@@ -340,7 +349,6 @@ export const deleteMessageTemplate = async (id: string): Promise<void> => {
             throw new Error(`Failed to delete template: ${response.status} ${errorText}`);
         }
     } catch (error) {
-        console.error('Error deleting template:', error);
         throw error;
     }
 };
@@ -355,7 +363,7 @@ export const setDefaultTemplate = async (
             throw new Error('Access token not found. Please login again.');
         }
 
-        const response = await fetch(`${API_BASE_URL}/institute/template/v1/set-default/${id}`, {
+        const response = await fetch(`${MESSAGE_TEMPLATE_BASE}/set-default/${id}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
@@ -381,11 +389,11 @@ export const setDefaultTemplate = async (
             content: result.content,
             variables: parseSettingJson(result.settingJson).variables,
             isDefault: parseSettingJson(result.settingJson).isDefault,
+            templateType: parseSettingJson(result.settingJson).templateType,
             createdAt: result.createdAt || new Date().toISOString(),
             updatedAt: result.updatedAt || new Date().toISOString(),
         };
     } catch (error) {
-        console.error('Error setting default template:', error);
         throw error;
     }
 };
@@ -397,7 +405,7 @@ export const duplicateTemplate = async (id: string): Promise<MessageTemplate> =>
             throw new Error('Access token not found. Please login again.');
         }
 
-        const response = await fetch(`${API_BASE_URL}/institute/template/v1/duplicate/${id}`, {
+        const response = await fetch(`${MESSAGE_TEMPLATE_BASE}/duplicate/${id}`, {
             method: 'POST',
             headers: {
                 Accept: '*/*',
@@ -421,11 +429,11 @@ export const duplicateTemplate = async (id: string): Promise<MessageTemplate> =>
             content: result.content,
             variables: parseSettingJson(result.settingJson).variables,
             isDefault: parseSettingJson(result.settingJson).isDefault,
+            templateType: parseSettingJson(result.settingJson).templateType,
             createdAt: result.createdAt || new Date().toISOString(),
             updatedAt: result.updatedAt || new Date().toISOString(),
         };
     } catch (error) {
-        console.error('Error duplicating template:', error);
         throw error;
     }
 };
@@ -481,7 +489,7 @@ export const searchMessageTemplates = async (searchParams: {
         // Transform the API response to match our TemplateListResponse interface
         const templates = (result.content || result.templates || result.data || []).map(
             (template: Record<string, unknown>) => {
-                const { variables, isDefault } = parseSettingJson(template.settingJson as string);
+                const { variables, isDefault, templateType } = parseSettingJson(template.settingJson as string);
                 return {
                     id: (template.id || template.templateId) as string,
                     name: template.name as string,
@@ -490,6 +498,7 @@ export const searchMessageTemplates = async (searchParams: {
                     content: template.content as string,
                     variables: variables,
                     isDefault: isDefault,
+                    templateType: templateType,
                     createdAt: (template.createdAt as string) || new Date().toISOString(),
                     updatedAt: (template.updatedAt as string) || new Date().toISOString(),
                 };
@@ -503,7 +512,6 @@ export const searchMessageTemplates = async (searchParams: {
             limit: result.size || result.limit || 50,
         };
     } catch (error) {
-        console.error('Error searching templates:', error);
         throw error;
     }
 };

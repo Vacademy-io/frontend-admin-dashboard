@@ -5,10 +5,15 @@
  * and template variable mapping for all pages
  */
 
-import { studentDataEnrichmentService, EnrichedStudentData, DataEnrichmentOptions } from './studentDataEnrichmentService';
+import { studentDataEnrichmentService, type EnrichedStudentData, type DataEnrichmentOptions } from './studentDataEnrichmentService';
 import { mapTemplateVariables } from '@/utils/template-variable-mapper';
 import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
 import { SEND_EMAIL_TO_USERS_PUBLIC } from '@/constants/urls';
+import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { validateTemplateVariables, type ValidationResult } from '@/utils/template-validation';
+import type { PageContext } from './page-context-resolver';
+import { detectCurrentPageContext } from '@/utils/page-context-detector';
 
 export interface BulkEmailPayload {
     body: string;
@@ -29,6 +34,7 @@ export interface BulkEmailOptions {
     subject: string;
     students: any[];
     context: 'student-management' | 'announcements' | 'attendance-report' | 'referral-settings';
+    pageContext?: PageContext;
     notificationType: 'EMAIL' | 'WHATSAPP';
     source: string;
     sourceId: string;
@@ -57,8 +63,15 @@ export class BulkEmailService {
         this.authToken = this.getAuthToken();
     }
 
+    /**
+     * Refresh the authentication token
+     */
+    private refreshToken(): void {
+        this.authToken = getTokenFromCookie(TokenKey.accessToken) || '';
+    }
+
     private getAuthToken(): string {
-        return localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token') || '';
+        return getTokenFromCookie(TokenKey.accessToken) || '';
     }
 
     private getInstituteId(): string {
@@ -68,6 +81,62 @@ export class BulkEmailService {
         } catch {
             return '';
         }
+    }
+
+    /**
+     * Detect page context from current URL
+     */
+    private detectPageContext(): PageContext {
+        return detectCurrentPageContext();
+    }
+
+    /**
+     * Get session ID from attendance context
+     * This should be implemented based on how the attendance page stores session information
+     */
+    private getSessionIdFromAttendanceContext(): string | null {
+        // Try to get from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('sessionId');
+        if (sessionId) return sessionId;
+
+        // Try to get from localStorage
+        const storedSessionId = localStorage.getItem('currentSessionId');
+        if (storedSessionId) return storedSessionId;
+
+        // Try to get from sessionStorage
+        const sessionStorageId = sessionStorage.getItem('currentSessionId');
+        if (sessionStorageId) return sessionStorageId;
+
+        // Try to get from global window object
+        const globalSessionId = (window as any).currentSessionId;
+        if (globalSessionId) return globalSessionId;
+
+        // Try to extract from URL path
+        const pathMatch = window.location.pathname.match(/\/live-session\/([a-f0-9-]+)/);
+        if (pathMatch) return pathMatch[1];
+
+        return null;
+    }
+
+    /**
+     * Get schedule ID from attendance context
+     */
+    private getScheduleIdFromAttendanceContext(): string | null {
+        // Try to get from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const scheduleId = urlParams.get('scheduleId');
+        if (scheduleId) return scheduleId;
+
+        // Try to get from localStorage
+        const storedScheduleId = localStorage.getItem('currentScheduleId');
+        if (storedScheduleId) return storedScheduleId;
+
+        // Try to get from sessionStorage
+        const sessionStorageId = sessionStorage.getItem('currentScheduleId');
+        if (sessionStorageId) return sessionStorageId;
+
+        return null;
     }
 
     /**
@@ -230,9 +299,35 @@ export class BulkEmailService {
             }
             return await response.json();
         } catch (error) {
-            console.error(`API request failed for ${endpoint}:`, error);
             throw error;
         }
+    }
+
+    /**
+     * Validate template variables before sending
+     */
+    async validateTemplate(options: BulkEmailOptions): Promise<ValidationResult> {
+        const { template, subject, students, pageContext } = options;
+
+        // Get context from first student if available
+        const context: VariableContext = {
+            studentId: students.length > 0 ? (students[0].user_id || students[0].id) : undefined,
+            courseId: students.length > 0 ? students[0].course_id : undefined,
+            batchId: students.length > 0 ? students[0].batch_id : undefined,
+            instituteId: this.getInstituteId(),
+            pageContext: pageContext,
+            studentData: students.length > 0 ? students[0] : null, // Always pass student data
+            // Add session information for attendance context
+            ...(pageContext === 'attendance-report' && {
+                sessionId: this.getSessionIdFromAttendanceContext(),
+                scheduleId: this.getScheduleIdFromAttendanceContext()
+            })
+        };
+
+
+        // Validate the template content
+        const templateContent = `${template} ${subject}`;
+        return await validateTemplateVariables(templateContent, context);
     }
 
     /**
@@ -250,19 +345,60 @@ export class BulkEmailService {
             enrichmentOptions = {}
         } = options;
 
-        console.log('Starting bulk email process for', students.length, 'students');
+        // Auto-detect page context if not provided
+        const detectedContext = this.detectPageContext();
+        const pageContext = detectedContext || context || 'student-management';
+
+        // Step 0: Validate template variables before proceeding
+        const validationResult = await this.validateTemplate({ ...options, pageContext: pageContext });
+
+        if (!validationResult.canSend) {
+
+            // Create a user-friendly error message
+            const missingCount = validationResult.missingVariables.length;
+            const availableCount = Object.keys(validationResult.availableVariables).length;
+
+            let errorMessage = '';
+            if (missingCount > 0) {
+                const missingList = validationResult.missingVariables.slice(0, 3).join(', ');
+                const moreCount = missingCount > 3 ? ` and ${missingCount - 3} more` : '';
+                errorMessage = `Template cannot be sent because ${missingCount} required variable${missingCount > 1 ? 's' : ''} ${missingCount > 1 ? 'are' : 'is'} missing: ${missingList}${moreCount}.`;
+            } else {
+                errorMessage = 'Template validation failed. Please check your template and try again.';
+            }
+
+            if (validationResult.warnings.length > 0) {
+                errorMessage += ` Warnings: ${validationResult.warnings.join(', ')}`;
+            }
+
+            return {
+                success: false,
+                totalStudents: students.length,
+                processedStudents: 0,
+                failedStudents: students.length,
+                errors: [{
+                    studentId: 'validation',
+                    studentName: 'Template Validation',
+                    error: errorMessage,
+                    validationError: validationResult
+                }]
+            };
+        }
+
+        // Step 1: Parse template variables to check if enrichment is needed
+        const usedVariables = this.parseTemplateVariables(template + ' ' + subject);
+
+        // Step 2: Only enrich student data if template has variables
+        let enrichedStudents = students;
+        if (usedVariables.length > 0) {
+            enrichedStudents = await studentDataEnrichmentService.enrichStudentData(
+                students,
+                enrichmentOptions,
+                usedVariables
+            );
+        }
 
         try {
-            // Step 1: Enrich student data
-            console.log('Enriching student data...');
-            const enrichedStudents = await studentDataEnrichmentService.enrichStudentData(
-                students,
-                enrichmentOptions
-            );
-
-            // Step 2: Parse template variables
-            const usedVariables = this.parseTemplateVariables(template + ' ' + subject);
-            console.log('Template uses variables:', usedVariables);
 
             // Step 3: Create payload for each student
             const users: Array<{
@@ -279,12 +415,23 @@ export class BulkEmailService {
 
             for (const student of enrichedStudents) {
                 try {
-                    // Map template variables for this student
-                    const mappedSubject = mapTemplateVariables(subject, { context, student });
-                    const mappedBody = mapTemplateVariables(template, { context, student });
-
                     // Create placeholders object for API
-                    const placeholders = this.createStudentPlaceholders(student);
+                    let placeholders: Record<string, string> = {};
+
+                    if (usedVariables.length > 0) {
+                        // Map template variables for this student only if template has variables
+                        const mappedSubject = mapTemplateVariables(subject, { context, student });
+                        const mappedBody = mapTemplateVariables(template, { context, student });
+                        placeholders = this.createStudentPlaceholders(student);
+                    } else {
+                        // No variables, create minimal placeholders
+                        placeholders = {
+                            name: student.full_name || student.name || 'Student',
+                            student_name: student.full_name || student.name || 'Student',
+                            email: student.email || '',
+                            student_email: student.email || ''
+                        };
+                    }
 
                     users.push({
                         user_id: student.user_id,
@@ -293,7 +440,6 @@ export class BulkEmailService {
                     });
 
                 } catch (error) {
-                    console.error(`Error processing student ${student.user_id}:`, error);
                     errors.push({
                         studentId: student.user_id,
                         studentName: student.full_name || 'Unknown',
@@ -311,55 +457,18 @@ export class BulkEmailService {
                 source_id: sourceId,
                 subject,
                 users,
-                institute_id: instituteId // Add institute ID to payload
+                // Only include institute_id if template has variables that might need institute data
+                ...(usedVariables.length > 0 && instituteId ? { institute_id: instituteId } : {})
             };
 
             // Step 5: Send bulk email using existing API
-            console.log('Sending bulk email to', users.length, 'students');
+            const url = (usedVariables.length > 0 && instituteId) ? `${SEND_EMAIL_TO_USERS_PUBLIC}?instituteId=${instituteId}` : SEND_EMAIL_TO_USERS_PUBLIC;
 
-            // Use the centralized URL from constants
-            const url = instituteId ? `${SEND_EMAIL_TO_USERS_PUBLIC}?instituteId=${instituteId}` : SEND_EMAIL_TO_USERS_PUBLIC;
-
-            console.log('API URL:', url);
-            console.log('Institute ID:', instituteId);
-            console.log('Payload preview:', {
-                body: payload.body.substring(0, 100) + '...',
-                subject: payload.subject,
-                users: payload.users.length,
-                notification_type: payload.notification_type
-            });
-
-            // Log detailed payload information
-            console.log('=== BULK EMAIL PAYLOAD DETAILS ===');
-            console.log('Total Users:', users.length);
-            console.log('Institute ID:', instituteId);
-            console.log('Subject:', payload.subject);
-            console.log('Notification Type:', payload.notification_type);
-
-            // Log sample user data for first user
-            if (users.length > 0) {
-                console.log('=== SAMPLE USER DATA (First User) ===');
-                console.log('User ID:', users[0].user_id);
-                console.log('Channel ID:', users[0].channel_id);
-                console.log('Sample Placeholders:', {
-                    name: users[0].placeholders.name,
-                    student_name: users[0].placeholders.student_name,
-                    course_name: users[0].placeholders.course_name,
-                    batch_name: users[0].placeholders.batch_name,
-                    attendance_status: users[0].placeholders.attendance_status,
-                    attendance_percentage: users[0].placeholders.attendance_percentage,
-                    institute_name: users[0].placeholders.institute_name,
-                    institute_email: users[0].placeholders.institute_email,
-                    support_email: users[0].placeholders.support_email,
-                    support_link: users[0].placeholders.support_link,
-                    current_time: users[0].placeholders.current_time,
-                    year: users[0].placeholders.year,
-                    month: users[0].placeholders.month,
-                    day: users[0].placeholders.day
-                });
+            // Refresh token if needed
+            if (!this.authToken) {
+                this.refreshToken();
             }
 
-            console.log('=== END BULK EMAIL PAYLOAD ===');
 
             const response = await fetch(url, {
                 method: 'POST',
@@ -375,10 +484,9 @@ export class BulkEmailService {
                 let errorMessage = `API request failed: ${response.status} ${response.statusText}`;
                 try {
                     const errorText = await response.text();
-                    console.error('API Error Response:', errorText);
                     errorMessage += ` - ${errorText.substring(0, 200)}`;
                 } catch (e) {
-                    console.error('Could not parse error response:', e);
+                    // Ignore error parsing
                 }
                 throw new Error(errorMessage);
             }
@@ -389,16 +497,12 @@ export class BulkEmailService {
 
             if (!contentType || !contentType.includes('application/json')) {
                 const responseText = await response.text();
-                console.log('Non-JSON response received:', responseText);
-
                 // Check if it's a success message
                 if (responseText.toLowerCase().includes('success') ||
                     responseText.toLowerCase().includes('sent') ||
                     responseText.toLowerCase().includes('notification')) {
-                    console.log('✅ Email sent successfully!');
                     responseData = { success: true, message: responseText };
                 } else {
-                    console.error('Non-JSON response received:', responseText.substring(0, 200));
                     throw new Error(`API returned non-JSON response: ${responseText.substring(0, 100)}`);
                 }
             } else {
@@ -414,14 +518,10 @@ export class BulkEmailService {
                 payload
             };
 
-            console.log('Bulk email completed:', result);
             return result;
 
         } catch (error) {
-            console.error('Error in bulk email process:', error);
-
             // If API fails, try individual email sending as fallback
-            console.log('API failed, trying individual email sending as fallback...');
 
             try {
                 // Re-create users array for fallback
@@ -429,36 +529,46 @@ export class BulkEmailService {
 
                 for (const student of enrichedStudents) {
                     try {
-                        // Map template variables for this student
-                        const mappedSubject = mapTemplateVariables(subject, {
-                            context,
-                            student: student
-                        });
-
-                        const mappedBody = mapTemplateVariables(template, {
-                            context,
-                            student: student
-                        });
-
                         // Create placeholders object for API
-                        const placeholders: Record<string, string> = {};
+                        let placeholders: Record<string, string> = {};
 
-                        // Add all mapped variables as placeholders
-                        Object.keys(student).forEach(key => {
-                            const value = student[key];
-                            if (value !== undefined && value !== null) {
-                                // Convert camelCase to snake_case for API
-                                const apiKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
-                                placeholders[apiKey] = String(value);
-                            }
-                        });
+                        if (usedVariables.length > 0) {
+                            // Map template variables for this student only if template has variables
+                            const mappedSubject = mapTemplateVariables(subject, {
+                                context,
+                                student: student
+                            });
 
-                        // Add specific mappings for common variables
-                        placeholders.name = student.full_name || '';
-                        placeholders.email = student.email || '';
-                        placeholders.mobile_number = student.mobile_number || '';
-                        placeholders.current_date = new Date().toLocaleDateString();
-                        placeholders.custom_message_text = '';
+                            const mappedBody = mapTemplateVariables(template, {
+                                context,
+                                student: student
+                            });
+
+                            // Add all mapped variables as placeholders
+                            Object.keys(student).forEach(key => {
+                                const value = student[key];
+                                if (value !== undefined && value !== null) {
+                                    // Convert camelCase to snake_case for API
+                                    const apiKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+                                    placeholders[apiKey] = String(value);
+                                }
+                            });
+
+                            // Add specific mappings for common variables
+                            placeholders.name = student.full_name || '';
+                            placeholders.email = student.email || '';
+                            placeholders.mobile_number = student.mobile_number || '';
+                            placeholders.current_date = new Date().toLocaleDateString();
+                            placeholders.custom_message_text = '';
+                        } else {
+                            // No variables, create minimal placeholders
+                            placeholders = {
+                                name: student.full_name || student.name || 'Student',
+                                student_name: student.full_name || student.name || 'Student',
+                                email: student.email || '',
+                                student_email: student.email || ''
+                            };
+                        }
 
                         fallbackUsers.push({
                             user_id: student.user_id,
@@ -467,14 +577,13 @@ export class BulkEmailService {
                         });
 
                     } catch (studentError) {
-                        console.error(`Error processing student ${student.user_id}:`, studentError);
+                        // Ignore individual student errors in fallback
                     }
                 }
 
-                const fallbackResult = await this.sendIndividualEmails(fallbackUsers, template, subject, context);
+                const fallbackResult = await this.sendIndividualEmails(fallbackUsers, template, subject, context, usedVariables);
                 return fallbackResult;
             } catch (fallbackError) {
-                console.error('Fallback also failed:', fallbackError);
                 return {
                     success: false,
                     totalStudents: students.length,
@@ -497,12 +606,13 @@ export class BulkEmailService {
         users: Array<{ user_id: string; channel_id: string; placeholders: Record<string, string> }>,
         template: string,
         subject: string,
-        context: string
+        context: string,
+        usedVariables: string[] = []
     ): Promise<BulkEmailResult> {
-        console.log('Sending individual emails as fallback...');
 
         const instituteId = this.getInstituteId();
-        const url = instituteId ? `${SEND_EMAIL_TO_USERS_PUBLIC}?instituteId=${instituteId}` : SEND_EMAIL_TO_USERS_PUBLIC;
+        // Only include instituteId if template has variables that might need institute data
+        const url = (usedVariables.length > 0 && instituteId) ? `${SEND_EMAIL_TO_USERS_PUBLIC}?instituteId=${instituteId}` : SEND_EMAIL_TO_USERS_PUBLIC;
 
         let successCount = 0;
         let failureCount = 0;
@@ -521,8 +631,15 @@ export class BulkEmailService {
                         channel_id: user.channel_id,
                         placeholders: user.placeholders,
                     }],
-                    institute_id: instituteId, // Add institute ID to individual emails too
+                    // Only include institute_id if template has variables that might need institute data
+                    ...(usedVariables.length > 0 && instituteId ? { institute_id: instituteId } : {})
                 };
+
+                // Refresh token if needed
+                if (!this.authToken) {
+                    this.refreshToken();
+                }
+
 
                 const response = await fetch(url, {
                     method: 'POST',
@@ -586,9 +703,9 @@ export class BulkEmailService {
     }
 
     /**
-     * Validate template for a specific context
+     * Validate template for a specific context (legacy method)
      */
-    validateTemplate(template: string, context: string): {
+    validateTemplateLegacy(template: string, context: string): {
         isValid: boolean;
         usedVariables: string[];
         availableVariables: string[];

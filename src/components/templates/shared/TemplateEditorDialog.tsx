@@ -67,13 +67,16 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
         content: '',
         variables: [],
         isDefault: false,
+        templateType: 'utility',
     });
     const [templateType, setTemplateType] = useState<string>('utility');
     const [showPreview, setShowPreview] = useState(false);
     const [isInSourceView, setIsInSourceView] = useState(false);
+    const [isManualTypeChange, setIsManualTypeChange] = useState(false);
 
     useEffect(() => {
         if (template) {
+            const templateTypeValue = getTemplateTypeOptions();
             setFormData({
                 name: template.name,
                 type: template.type,
@@ -81,8 +84,10 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
                 content: template.content,
                 variables: template.variables,
                 isDefault: template.isDefault,
+                templateType: templateTypeValue,
             });
-            setTemplateType(getTemplateTypeOptions());
+            setTemplateType(templateTypeValue);
+            setIsManualTypeChange(false);
         } else {
             setFormData({
                 name: '',
@@ -91,21 +96,31 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
                 content: '',
                 variables: [],
                 isDefault: false,
+                templateType: 'utility',
             });
             setTemplateType('utility');
+            setIsManualTypeChange(false);
         }
     }, [template]);
 
-    // Auto-update template type when name changes
+    // Auto-update template type when name changes (only if not manually changed)
     useEffect(() => {
-        if (formData.name) {
+        if (formData.name && !isManualTypeChange) {
             const autoType = getTemplateTypeOptions(formData.name);
             setTemplateType(autoType);
+            setFormData(prev => ({ ...prev, templateType: autoType }));
         }
-    }, [formData.name]);
+    }, [formData.name, isManualTypeChange]);
 
     const handleInputChange = (field: keyof CreateTemplateRequest, value: string | boolean) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handleTemplateTypeChange = (value: string) => {
+        console.log('Manual template type change:', value);
+        setTemplateType(value);
+        setFormData(prev => ({ ...prev, templateType: value as 'marketing' | 'utility' | 'transactional' }));
+        setIsManualTypeChange(true);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -244,6 +259,9 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
             return;
         }
 
+        console.log('Saving template with formData:', formData);
+        console.log('Current templateType state:', templateType);
+
         try {
             let savedTemplate: MessageTemplate;
             if (template) {
@@ -272,7 +290,7 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
 
             onClose();
         } catch (error) {
-            // Error is already handled by toast.error in the catch block
+            console.error('Error saving template:', error);
             toast.error(template ? 'Failed to update template.' : 'Failed to create template.');
         }
     };
@@ -384,9 +402,7 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
                                         <Label className="text-sm font-medium">Email Type</Label>
                                         <Select
                                             value={templateType}
-                                            onValueChange={(value) => {
-                                                setTemplateType(value);
-                                            }}
+                                            onValueChange={handleTemplateTypeChange}
                                         >
                                             <SelectTrigger className="w-full">
                                                 <SelectValue placeholder="Select email type" />

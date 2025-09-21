@@ -9,6 +9,7 @@ import {
 } from '@/types/message-template-types';
 
 import { MESSAGE_TEMPLATE_BASE } from '@/constants/urls';
+import { validateTemplateVariables, ValidationResult } from '@/utils/template-validation';
 
 const API_BASE_URL = MESSAGE_TEMPLATE_BASE;
 
@@ -74,9 +75,6 @@ export class WhatsAppTemplateService {
 
             return this.metaTemplatesCache;
         } catch (error) {
-            console.error('Error syncing Meta templates:', error);
-            // Return mock data when API is not available
-            console.warn('WhatsApp API not available, returning mock data');
             return this.getMockTemplates();
         }
     }
@@ -188,9 +186,6 @@ export class WhatsAppTemplateService {
             const result = await response.json();
             return result.mapping;
         } catch (error) {
-            console.error('Error getting template mappings:', error);
-            // Return null when API is not available (no mapping exists yet)
-            console.warn('WhatsApp mappings API not available, returning null');
             return null;
         }
     }
@@ -235,9 +230,6 @@ export class WhatsAppTemplateService {
 
             return result.mapping;
         } catch (error) {
-            console.error('Error saving template mapping:', error);
-            // Create a mock mapping for development when API is not available
-            console.warn('WhatsApp mappings API not available, creating mock mapping');
             const mockMapping: WhatsAppTemplateMapping = {
                 id: `mock-${Date.now()}`,
                 templateName: mappingData.templateName,
@@ -310,9 +302,6 @@ export class WhatsAppTemplateService {
 
             return result.mapping;
         } catch (error) {
-            console.error('Error updating template mapping:', error);
-            // Update mock mapping for development when API is not available
-            console.warn('WhatsApp mappings API not available, updating mock mapping');
             const existingIndex = this.mappingsCache.findIndex(m => m.id === mappingId);
             if (existingIndex >= 0) {
                 const existingMapping = this.mappingsCache[existingIndex];
@@ -365,7 +354,6 @@ export class WhatsAppTemplateService {
             // Remove from cache
             this.mappingsCache = this.mappingsCache.filter(m => m.id !== mappingId);
         } catch (error) {
-            console.error('Error deleting template mapping:', error);
             throw error;
         }
     }
@@ -396,9 +384,6 @@ export class WhatsAppTemplateService {
             this.mappingsCache = result.mappings || [];
             return this.mappingsCache;
         } catch (error) {
-            console.error('Error getting all mappings:', error);
-            // Return mock mappings when API is not available
-            console.warn('WhatsApp mappings API not available, returning mock mappings');
             return this.getMockMappings();
         }
     }
@@ -478,6 +463,28 @@ export class WhatsAppTemplateService {
     getAvailableCategories(): string[] {
         const categories = new Set(VACADEMY_DATA_FIELDS.map((field: VacademyDataField) => field.category));
         return Array.from(categories);
+    }
+
+    // Validate WhatsApp template variables
+    async validateTemplate(
+        template: MetaWhatsAppTemplate,
+        context?: {
+            studentId?: string;
+            courseId?: string;
+            batchId?: string;
+            instituteId?: string;
+        }
+    ): Promise<ValidationResult> {
+        const templateContent = template.components
+            .map(component => component.text || '')
+            .join(' ');
+
+        const validationContext = {
+            ...context,
+            instituteId: context?.instituteId || getInstituteId() || undefined
+        };
+
+        return await validateTemplateVariables(templateContent, validationContext);
     }
 
     // Clear cache

@@ -51,7 +51,16 @@ export async function testBulkEmail() {
 
     try {
         // Test template validation
-        const validation = bulkEmailService.validateTemplate(testTemplate, 'student-management');
+        const validation = await bulkEmailService.validateTemplate({
+            template: testTemplate,
+            subject: 'Test Subject',
+            students: testStudents,
+            context: 'student-management',
+            pageContext: 'student-management',
+            notificationType: 'EMAIL',
+            source: 'test',
+            sourceId: 'test-1'
+        });
         console.log('Template validation:', validation);
 
         // Test preview

@@ -6,6 +6,7 @@ export interface MessageTemplate {
     content: string;
     variables: string[]; // Available variables like {{student_name}}, {{course_name}}, etc.
     isDefault: boolean;
+    templateType?: 'marketing' | 'utility' | 'transactional';
     createdAt: string;
     updatedAt: string;
     createdBy?: string;
@@ -19,6 +20,7 @@ export interface CreateTemplateRequest {
     content: string;
     variables: string[];
     isDefault?: boolean;
+    templateType?: 'marketing' | 'utility' | 'transactional';
 }
 
 export interface UpdateTemplateRequest {
@@ -29,6 +31,7 @@ export interface UpdateTemplateRequest {
     content?: string;
     variables?: string[];
     isDefault?: boolean;
+    templateType?: 'marketing' | 'utility' | 'transactional';
 }
 
 export interface TemplateListResponse {

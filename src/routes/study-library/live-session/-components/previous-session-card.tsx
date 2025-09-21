@@ -201,6 +201,12 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
             return;
         }
 
+        // Store session ID and schedule ID for attendance context
+        localStorage.setItem('currentSessionId', session.session_id);
+        localStorage.setItem('currentScheduleId', session.schedule_id);
+        console.log('📋 Stored session ID for attendance context:', session.session_id);
+        console.log('📋 Stored schedule ID for attendance context:', session.schedule_id);
+
         const bulkActionInfo: BulkActionInfo = {
             selectedStudentIds,
             selectedStudents,

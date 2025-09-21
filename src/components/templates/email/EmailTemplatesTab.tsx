@@ -18,6 +18,7 @@ import { templateCacheService } from '@/services/template-cache-service';
 import { TemplateEditor } from '../shared/TemplateEditor';
 import { TemplatePreview } from '../shared/TemplatePreview';
 import { TEMPLATE_TYPE_CONFIG, STATUS_CONFIG, TEMPLATE_TYPE_KEYWORDS, DATE_FORMAT_OPTIONS } from '../shared/constants';
+import { toast } from 'sonner';
 
 export const EmailTemplatesTab: React.FC = () => {
     const [templates, setTemplates] = useState<MessageTemplate[]>([]);
@@ -41,7 +42,8 @@ export const EmailTemplatesTab: React.FC = () => {
             setTemplates(emailTemplates);
             setFilteredTemplates(emailTemplates);
         } catch (error) {
-            // Error is already handled by toast.error
+            console.error('Error loading templates:', error);
+            toast.error('Failed to load templates. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -103,9 +105,10 @@ export const EmailTemplatesTab: React.FC = () => {
 
             setShowEditor(false);
             setEditingTemplate(null);
+            toast.success(editingTemplate ? 'Template updated successfully!' : 'Template created successfully!');
         } catch (error) {
             console.error('Error in handleSaveTemplate:', error);
-            // Error is already handled by toast.error
+            toast.error(editingTemplate ? 'Failed to update template.' : 'Failed to create template.');
         } finally {
             setIsSaving(false);
         }
@@ -119,8 +122,10 @@ export const EmailTemplatesTab: React.FC = () => {
             await loadTemplates();
             setShowDeleteDialog(false);
             setDeleteTemplateId(null);
+            toast.success('Template deleted successfully!');
         } catch (error) {
-            // Error is already handled by toast.error
+            console.error('Error deleting template:', error);
+            toast.error('Failed to delete template. Please try again.');
         } finally {
             setIsDeleting(false);
         }
@@ -132,6 +137,12 @@ export const EmailTemplatesTab: React.FC = () => {
     };
 
     const getTemplateType = (template: MessageTemplate): keyof typeof TEMPLATE_TYPE_CONFIG => {
+        // Use the templateType field if available, otherwise fall back to name-based detection
+        if (template.templateType && template.templateType in TEMPLATE_TYPE_CONFIG) {
+            return template.templateType as keyof typeof TEMPLATE_TYPE_CONFIG;
+        }
+
+        // Fallback to name-based detection for backward compatibility
         const name = template.name.toLowerCase();
         for (const [type, keywords] of Object.entries(TEMPLATE_TYPE_KEYWORDS)) {
             if (keywords.some(keyword => name.includes(keyword))) {

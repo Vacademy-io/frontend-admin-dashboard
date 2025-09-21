@@ -3,11 +3,11 @@ import { useDialogStore } from '../../../../-hooks/useDialogStore';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 import { MessageTemplate } from '@/types/message-template-types';
-import { getInstituteId } from '@/constants/helper';
 import { TemplateSelectionDialog } from './template-selection-dialog';
 import { TemplateEditorDialog, TemplatePreviewDialog } from '@/components/templates';
-import { mapTemplateVariables } from '@/utils/template-variable-mapper';
-import { bulkEmailService, BulkEmailOptions } from '@/services/bulkEmailService';
+import { EmailResultDialog } from '@/components/templates/shared/EmailResultDialog';
+import { ValidationFailureDialog } from '@/components/templates/shared/ValidationFailureDialog';
+import { bulkEmailService } from '@/services/bulkEmailService';
 
 // Email templates will be loaded dynamically from API
 
@@ -33,6 +33,21 @@ export const SendEmailDialog = () => {
     const [showTemplateEditor, setShowTemplateEditor] = useState(false);
     const [showTemplatePreview, setShowTemplatePreview] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<MessageTemplate | null>(null);
+
+    // Result and validation dialog states
+    const [showResultDialog, setShowResultDialog] = useState(false);
+    const [showValidationDialog, setShowValidationDialog] = useState(false);
+    const [emailResult, setEmailResult] = useState<{
+        success: boolean;
+        totalStudents: number;
+        processedStudents: number;
+        failedStudents: number;
+        errors?: Array<{ studentId: string; error: string }>;
+    } | null>(null);
+    const [validationError, setValidationError] = useState<{
+        missingVariables: string[];
+        availableVariables: Record<string, string>;
+    } | null>(null);
 
     const handleSelectEmailTemplate = (template: MessageTemplate) => {
         setSelectedTemplate(template);
@@ -61,7 +76,6 @@ export const SendEmailDialog = () => {
         await handleSendBulkEmail();
     };
 
-
     // Helper functions to break down the complex handleSendBulkEmail function
     const validateEmailTemplate = () => {
         if (!selectedTemplate) {
@@ -84,7 +98,10 @@ export const SendEmailDialog = () => {
         return { trimmedEmailSubject, trimmedEmailBody };
     };
 
-    const prepareStudentPayloads = async (trimmedEmailSubject: string, trimmedEmailBody: string) => {
+    const prepareStudentPayloads = async (
+        trimmedEmailSubject: string,
+        trimmedEmailBody: string
+    ) => {
         const students = isBulkAction
             ? bulkActionInfo?.selectedStudents || []
             : selectedStudent
@@ -110,13 +127,12 @@ export const SendEmailDialog = () => {
                     includeAttendance: true,
                     includeLiveClass: true,
                     includeReferral: true,
-                    includeCustomFields: true
-                }
+                    includeCustomFields: true,
+                },
             });
 
             console.log('Bulk email result:', result);
             return result;
-
         } catch (error) {
             console.error('Error preparing bulk email:', error);
             toast.error('Failed to prepare email data. Please try again.');
@@ -124,71 +140,10 @@ export const SendEmailDialog = () => {
         }
     };
 
-    const sendEmailToStudent = async (userPayload: any, url: string) => {
-        try {
-            // Convert newlines to HTML for the personalized body
-            const personalizedBody = userPayload.body.replace(/\n/g, '<br />');
-
-            const requestBody = {
-                body: personalizedBody,
-                notification_type: 'EMAIL',
-                subject: userPayload.subject,
-                source: 'STUDENT_MANAGEMENT_BULK_EMAIL',
-                source_id: uuidv4(),
-                users: [{
-                    user_id: userPayload.user_id,
-                    channel_id: userPayload.channel_id,
-                    placeholders: userPayload.placeholders,
-                }],
-            };
-
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestBody),
-            });
-
-            if (response.ok) {
-                return { success: true, error: null };
-            } else {
-                const errorData = await response
-                    .json()
-                    .catch(() => ({ message: 'Failed to parse error response' }));
-                const errorMsg = `Student ${userPayload.user_id}: ${errorData.message || response.statusText}`;
-                return { success: false, error: errorMsg };
-            }
-        } catch (error: any) {
-            const errorMsg = `Student ${userPayload.user_id}: ${error.message || 'Network error'}`;
-            return { success: false, error: errorMsg };
-        }
-    };
-
     const updateStudentStatus = (userId: string, status: 'sent' | 'failed', error?: string) => {
         setStudentEmailStatuses((prevStatuses) =>
-            prevStatuses.map((s) =>
-                s.userId === userId
-                    ? { ...s, status, error }
-                    : s
-            )
+            prevStatuses.map((s) => (s.userId === userId ? { ...s, status, error } : s))
         );
-    };
-
-    const showFinalResults = (successCount: number, failureCount: number) => {
-        if (successCount > 0 && failureCount === 0) {
-            toast.success(`Successfully sent ${successCount} personalized email(s).`, {
-                id: 'bulk-email-progress',
-            });
-        } else if (successCount > 0 && failureCount > 0) {
-            toast.warning(`Sent ${successCount} email(s), ${failureCount} failed.`, {
-                id: 'bulk-email-progress',
-            });
-        } else {
-            toast.error(`Failed to send all ${failureCount} email(s).`, {
-                id: 'bulk-email-progress',
-            });
-        }
     };
 
     const handleSendBulkEmail = async () => {
@@ -200,7 +155,6 @@ export const SendEmailDialog = () => {
 
         // Set up sending state
         setIsBulkEmailSending(true);
-        toast.info('Enriching student data and sending emails...', { id: 'bulk-email-progress' });
 
         setStudentEmailStatuses((prevStatuses) =>
             prevStatuses.map((s) => ({ ...s, status: 'sending' }))
@@ -211,7 +165,31 @@ export const SendEmailDialog = () => {
             const result = await prepareStudentPayloads(trimmedEmailSubject, trimmedEmailBody);
 
             if (!result || !result.success) {
-                toast.error('Failed to send bulk email. Please try again.');
+                console.log('❌ Email sending failed, checking for validation error...');
+                console.log('Result:', result);
+                console.log('Success:', result?.success);
+                console.log('Errors:', result?.errors);
+                console.log('Errors length:', result?.errors?.length);
+
+                // Check if this is a validation error
+                const validationError = result?.errors?.find(
+                    (error: any) => error.studentId === 'validation'
+                );
+                console.log('Validation error found:', validationError);
+                if (validationError) {
+                    console.log(
+                        '🚫 Validation error detected, showing validation dialogue:',
+                        validationError
+                    );
+                    setValidationError({
+                        missingVariables: [],
+                        availableVariables: {}
+                    });
+                    setShowValidationDialog(true);
+                } else {
+                    console.log('❌ No validation error found, showing generic error');
+                    toast.error('Failed to send bulk email. Please try again.');
+                }
                 setIsBulkEmailSending(false);
                 setStudentEmailStatuses((prevStatuses) =>
                     prevStatuses.map((s) => ({ ...s, status: 'pending' }))
@@ -226,34 +204,24 @@ export const SendEmailDialog = () => {
                   ? [selectedStudent]
                   : [];
 
-            students.forEach(student => {
-                const hasError = result.errors?.some(error => error.studentId === student.user_id);
+            students.forEach((student) => {
+                const hasError = result.errors?.some(
+                    (error: any) => error.studentId === student.user_id
+                );
                 if (hasError) {
-                    const error = result.errors?.find(error => error.studentId === student.user_id);
+                    const error = result.errors?.find(
+                        (error: any) => error.studentId === student.user_id
+                    );
                     updateStudentStatus(student.user_id, 'failed', error?.error || 'Unknown error');
                 } else {
                     updateStudentStatus(student.user_id, 'sent');
                 }
             });
 
-            // Show results
-            const successCount = result.processedStudents - result.failedStudents;
-            const failureCount = result.failedStudents;
-
-            if (successCount > 0 && failureCount === 0) {
-                toast.success(`Successfully sent ${successCount} personalized email(s).`, {
-                    id: 'bulk-email-progress',
-                });
-            } else if (successCount > 0 && failureCount > 0) {
-                toast.warning(`Sent ${successCount} email(s), ${failureCount} failed.`, {
-                    id: 'bulk-email-progress',
-                });
-            } else {
-                toast.error(`Failed to send all ${failureCount} email(s).`, {
-                    id: 'bulk-email-progress',
-                });
-            }
-
+            // Show results dialogue
+            console.log('🎉 Email sent successfully, showing result dialogue:', result);
+            setEmailResult(result);
+            setShowResultDialog(true);
         } catch (error) {
             console.error('Error in bulk email process:', error);
             toast.error('An unexpected error occurred. Please try again.');
@@ -281,7 +249,6 @@ export const SendEmailDialog = () => {
     // Initialize email statuses and show template selection when dialog opens
     useEffect(() => {
         if (isSendEmailOpen) {
-
             const students = isBulkAction
                 ? bulkActionInfo?.selectedStudents || []
                 : selectedStudent
@@ -308,7 +275,6 @@ export const SendEmailDialog = () => {
             setEditingTemplate(null);
         }
     }, [isSendEmailOpen, bulkActionInfo, selectedStudent, isBulkAction]);
-
 
     return (
         <>
@@ -347,6 +313,32 @@ export const SendEmailDialog = () => {
                 onUseTemplate={handleSendEmail}
                 isSending={isBulkEmailSending}
             />
+
+            {/* Email Result Dialog */}
+            {emailResult && (
+                <EmailResultDialog
+                    isOpen={showResultDialog}
+                    onClose={() => {
+                        setShowResultDialog(false);
+                        setEmailResult(null);
+                    }}
+                    result={emailResult}
+                />
+            )}
+
+            {/* Validation Failure Dialog */}
+            {validationError && (
+                <ValidationFailureDialog
+                    isOpen={showValidationDialog}
+                    onClose={() => {
+                        setShowValidationDialog(false);
+                        setValidationError(null);
+                    }}
+                    missingVariables={validationError.missingVariables || []}
+                    nullOrEmptyVariables={[]}
+                    availableVariables={validationError.availableVariables || {}}
+                />
+            )}
         </>
     );
 };

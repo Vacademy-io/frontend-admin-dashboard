@@ -5,7 +5,7 @@
  * across different parts of the application (student management, course pages, etc.)
  */
 
-export type MappingContext = 'student-management' | 'course' | 'general' | 'assessment' | 'announcement';
+export type MappingContext = 'student-management' | 'course' | 'general' | 'assessment' | 'announcement' | 'attendance-report' | 'referral-settings' | 'announcements';
 
 export interface MappingOptions {
     context: MappingContext;
@@ -233,7 +233,6 @@ export const mapTemplateVariables = (
     options: MappingOptions
 ): string => {
     if (!template) {
-        console.warn('mapTemplateVariables: Missing template');
         return template;
     }
 
@@ -251,78 +250,9 @@ export const mapTemplateVariables = (
         // Replace variables in template
         const { mappedTemplate, replacementCount, unmappedVariables } = replaceVariablesInTemplate(template, variableMap);
 
-        // Log detailed mapping information
-        console.log('=== VARIABLE MAPPING DETAILS ===');
-        console.log('Context:', context);
-        console.log('Student ID:', student?.user_id || 'N/A');
-        console.log('Student Name:', student?.full_name || 'N/A');
-        console.log('Total Variables Mapped:', Object.keys(variableMap).length);
-        console.log('Replacements Made:', replacementCount);
-        console.log('Unmapped Variables:', unmappedVariables.length > 0 ? unmappedVariables : 'None');
-
-        // Log real values available in student object
-        console.log('=== REAL VALUES AVAILABLE ===');
-        console.log('Course Data:', {
-            course_name: student?.course_name,
-            course_description: student?.course_description,
-            course_price: student?.course_price,
-            course_duration: student?.course_duration,
-            course_instructor: student?.course_instructor
-        });
-
-        console.log('Batch Data:', {
-            batch_name: student?.batch_name,
-            batch_id: student?.batch_id,
-            batch_start_date: student?.batch_start_date,
-            batch_end_date: student?.batch_end_date
-        });
-
-        console.log('Attendance Data:', {
-            attendance_status: student?.attendance_status,
-            attendance_percentage: student?.attendance_percentage,
-            attendance_total_classes: student?.attendance_total_classes,
-            attendance_attended_classes: student?.attendance_attended_classes
-        });
-
-        console.log('Institute Data:', {
-            institute_name: student?.institute_name,
-            institute_address: student?.institute_address,
-            institute_phone: student?.institute_phone,
-            institute_email: student?.institute_email,
-            institute_website: student?.institute_website
-        });
-
-        console.log('Referral Data:', {
-            referral_code: student?.referral_code,
-            referral_count: student?.referral_count,
-            referral_rewards: student?.referral_rewards,
-            referral_status: student?.referral_status
-        });
-
-        // Log mapped values for key variables
-        console.log('=== MAPPED VALUES ===');
-        console.log('Key Mapped Variables:', {
-            '{{name}}': variableMap['{{name}}'],
-            '{{student_name}}': variableMap['{{student_name}}'],
-            '{{course_name}}': variableMap['{{course_name}}'],
-            '{{batch_name}}': variableMap['{{batch_name}}'],
-            '{{attendance_status}}': variableMap['{{attendance_status}}'],
-            '{{attendance_percentage}}': variableMap['{{attendance_percentage}}'],
-            '{{institute_name}}': variableMap['{{institute_name}}'],
-            '{{institute_email}}': variableMap['{{institute_email}}'],
-            '{{support_email}}': variableMap['{{support_email}}'],
-            '{{support_link}}': variableMap['{{support_link}}'],
-            '{{current_time}}': variableMap['{{current_time}}'],
-            '{{year}}': variableMap['{{year}}'],
-            '{{month}}': variableMap['{{month}}'],
-            '{{day}}': variableMap['{{day}}']
-        });
-
-        console.log('=== END VARIABLE MAPPING ===');
 
         return mappedTemplate;
     } catch (error) {
-        console.error('Error mapping template variables:', error, { template, options });
         return template; // Return original template if mapping fails
     }
 };
@@ -484,6 +414,77 @@ export const getAvailableVariables = (context: MappingContext): string[] => {
             '{{live_class_instructor}}',
             '{{referral_code}}',
             '{{referral_link}}'
+        ],
+        'attendance-report': [
+            ...baseVariables,
+            '{{name}}',
+            '{{student_name}}',
+            '{{email}}',
+            '{{student_email}}',
+            '{{mobile_number}}',
+            '{{student_phone}}',
+            '{{student_id}}',
+            '{{username}}',
+            '{{enrollment_number}}',
+            '{{attendance_status}}',
+            '{{attendance_percentage}}',
+            '{{attendance_total_classes}}',
+            '{{attendance_attended_classes}}',
+            '{{attendance_last_class_date}}',
+            '{{attendance_date}}',
+            '{{course_name}}',
+            '{{course_description}}',
+            '{{batch_name}}',
+            '{{batch_id}}',
+            '{{institute_name}}',
+            '{{institute_address}}',
+            '{{institute_phone}}',
+            '{{institute_email}}',
+            '{{institute_website}}'
+        ],
+        'referral-settings': [
+            ...baseVariables,
+            '{{name}}',
+            '{{student_name}}',
+            '{{email}}',
+            '{{student_email}}',
+            '{{mobile_number}}',
+            '{{student_phone}}',
+            '{{student_id}}',
+            '{{username}}',
+            '{{enrollment_number}}',
+            '{{referral_code}}',
+            '{{referral_count}}',
+            '{{referral_rewards}}',
+            '{{referral_status}}',
+            '{{referral_date}}',
+            '{{referral_benefits}}',
+            '{{institute_name}}',
+            '{{institute_address}}',
+            '{{institute_phone}}',
+            '{{institute_email}}',
+            '{{institute_website}}'
+        ],
+        'announcements': [
+            ...baseVariables,
+            '{{name}}',
+            '{{student_name}}',
+            '{{email}}',
+            '{{student_email}}',
+            '{{mobile_number}}',
+            '{{student_phone}}',
+            '{{student_id}}',
+            '{{username}}',
+            '{{enrollment_number}}',
+            '{{course_name}}',
+            '{{course_description}}',
+            '{{batch_name}}',
+            '{{batch_id}}',
+            '{{institute_name}}',
+            '{{institute_address}}',
+            '{{institute_phone}}',
+            '{{institute_email}}',
+            '{{institute_website}}'
         ],
         'general': baseVariables
     };

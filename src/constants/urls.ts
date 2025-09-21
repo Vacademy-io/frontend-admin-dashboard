@@ -347,7 +347,7 @@ export const CREATE_MESSAGE_TEMPLATE = `${MESSAGE_TEMPLATE_BASE}/create`;
 export const GET_MESSAGE_TEMPLATES = `${MESSAGE_TEMPLATE_BASE}/institute`;
 export const GET_MESSAGE_TEMPLATE = `${MESSAGE_TEMPLATE_BASE}/get`;
 export const UPDATE_MESSAGE_TEMPLATE = `${MESSAGE_TEMPLATE_BASE}/update`;
-export const DELETE_MESSAGE_TEMPLATE = `${MESSAGE_TEMPLATE_BASE}/delete`;
+export const DELETE_MESSAGE_TEMPLATE = `${MESSAGE_TEMPLATE_BASE}`;
 export const SEARCH_MESSAGE_TEMPLATES = `${MESSAGE_TEMPLATE_BASE}/search`;
 
 // Notification Service - Email sending
