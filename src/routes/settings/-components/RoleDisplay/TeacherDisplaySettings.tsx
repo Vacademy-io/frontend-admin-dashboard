@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { MyButton } from '@/components/design-system/button';
 import type { DisplaySettingsData } from '@/types/display-settings';
 import { TEACHER_DISPLAY_SETTINGS_KEY } from '@/types/display-settings';
-import { getDisplaySettings, saveDisplaySettings } from '@/services/display-settings';
+import { getDisplaySettingsWithFallback, saveDisplaySettings } from '@/services/display-settings';
 import { DEFAULT_TEACHER_DISPLAY_SETTINGS } from '@/constants/display-settings/teacher-defaults';
 import { toast } from 'sonner';
 import type {
@@ -23,7 +23,7 @@ export default function TeacherDisplaySettings() {
 
     useEffect(() => {
         const run = async () => {
-            const s = await getDisplaySettings(TEACHER_DISPLAY_SETTINGS_KEY);
+            const s = await getDisplaySettingsWithFallback(TEACHER_DISPLAY_SETTINGS_KEY);
             // Enforce constraint: teacher should never be able to view settings tab
             s.sidebar = s.sidebar
                 .filter((t) => t.id !== 'settings')

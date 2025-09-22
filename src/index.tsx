@@ -21,6 +21,7 @@ import {
     getCachedInstituteBranding,
 } from '@/services/domain-routing';
 import { resolveFontStack } from '@/utils/font';
+import { useTitleStore } from '@/stores/useTitleStore';
 
 // Initialize Amplitude as early as possible on client
 if (typeof window !== 'undefined') {
@@ -71,9 +72,14 @@ if (!rootElement.innerHTML) {
 
     const initializeBranding = async () => {
         try {
+            const titleStore = useTitleStore.getState();
+
             const cached = getCachedInstituteBranding();
             if (cached) {
-                if (cached.tabText) document.title = cached.tabText;
+                // Set title from cached data with fallback to "Admin Dashboard"
+                const tabText = cached.tabText;
+                const title = tabText && tabText.trim() ? tabText.trim() : 'Admin Dashboard';
+                titleStore.setGlobalTitle(title);
                 const themeCode = cached.instituteThemeCode ?? cached.theme;
                 if (themeCode) {
                     localStorage.setItem('theme-code', themeCode);
@@ -94,21 +100,19 @@ if (!rootElement.innerHTML) {
                 if (cached.tabIconFileId && !cached.tabIconUrl) {
                     const iconUrl = await getPublicUrl(cached.tabIconFileId || '');
                     if (iconUrl) {
-                        const link = document.querySelector(
-                            "link[rel='icon']"
-                        ) as HTMLLinkElement | null;
-                        if (link) link.href = iconUrl;
+                        titleStore.setGlobalFavicon(iconUrl);
                     }
                 } else if (cached.tabIconUrl) {
-                    const link = document.querySelector(
-                        "link[rel='icon']"
-                    ) as HTMLLinkElement | null;
-                    if (link) link.href = cached.tabIconUrl;
+                    titleStore.setGlobalFavicon(cached.tabIconUrl);
                 }
             }
 
             const data = await resolveInstituteForCurrentHost();
-            if (!data) return;
+            if (!data) {
+                // If no data from API, ensure we have a fallback title
+                titleStore.setGlobalTitle('Admin Dashboard');
+                return;
+            }
 
             const [logoUrl, iconUrl] = await Promise.all([
                 getPublicUrl(data.instituteLogoFileId),
@@ -121,10 +125,14 @@ if (!rootElement.innerHTML) {
                 tabIconUrl: iconUrl || undefined,
             });
 
-            if (data.tabText) document.title = data.tabText;
+            // Set title from API response with fallback to "Admin Dashboard"
+            const tabText = data.tabText;
+            const title = tabText && tabText.trim() ? tabText.trim() : 'Admin Dashboard';
+            titleStore.setGlobalTitle(title);
+
+            // Set favicon from API response
             if (iconUrl) {
-                const link = document.querySelector("link[rel='icon']") as HTMLLinkElement | null;
-                if (link) link.href = iconUrl;
+                titleStore.setGlobalFavicon(iconUrl);
             }
 
             if (logoUrl) {
@@ -149,7 +157,9 @@ if (!rootElement.innerHTML) {
                 }
             }
         } catch {
-            // ignore branding failures
+            // ignore branding failures - but ensure we have a fallback title
+            const titleStore = useTitleStore.getState();
+            titleStore.setGlobalTitle('Admin Dashboard');
         }
     };
 

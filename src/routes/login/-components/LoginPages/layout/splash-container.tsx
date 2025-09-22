@@ -2,7 +2,6 @@ import { motion } from 'framer-motion';
 import { LanguageDropdown } from '../../../../../components/common/localization/language-dropdown';
 import { SplashScreenProps } from '@/routes/login/-types/loginTypes';
 import { LoginImage } from '@/assets/svgs';
-import { Vacademy } from '@/svgs';
 import useInstituteLogoStore from '@/components/common/layout-container/sidebar/institutelogo-global-zustand';
 import React, { useEffect, useRef, useState } from 'react';
 import { getSubdomain, HOLISTIC_SUBDOMAIN } from '@/utils/subdomain';
@@ -86,9 +85,7 @@ export const SplashScreen = ({ children, isAnimationEnabled }: SplashScreenProps
                                 alt="Holistic Login"
                                 className="size-2/3 rounded-full"
                             />
-                        ) : (
-                            <Vacademy className="size-full" />
-                        )}
+                        ) : null}
                     </motion.div>
                 </motion.div>
                 {getSubdomain() === HOLISTIC_SUBDOMAIN ? (

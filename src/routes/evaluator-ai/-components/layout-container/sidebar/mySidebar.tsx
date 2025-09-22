@@ -18,10 +18,12 @@ import { Question } from 'phosphor-react';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
 import { WhatsappLogo, EnvelopeSimple } from '@phosphor-icons/react';
 import { useNavigate } from '@tanstack/react-router';
+import useInstituteLogoStore from '@/components/common/layout-container/sidebar/institutelogo-global-zustand';
 
 export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
     const { state }: SidebarStateType = useSidebar();
     const navigate = useNavigate();
+    const { instituteLogo } = useInstituteLogoStore();
 
     return (
         <Sidebar collapsible="icon" className="z-20">
@@ -36,11 +38,9 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                             state == 'expanded' ? 'pl-4' : 'pl-0'
                         }`}
                     >
-                        <img
-                            src={'/vacademy-logo.svg'}
-                            alt="logo"
-                            className="size-12 rounded-full"
-                        />
+                        {instituteLogo ? (
+                            <img src={instituteLogo} alt="logo" className="size-12 rounded-full" />
+                        ) : null}
 
                         <SidebarGroup
                             className={`text-[18px] font-semibold text-primary-500 group-data-[collapsible=icon]:hidden`}

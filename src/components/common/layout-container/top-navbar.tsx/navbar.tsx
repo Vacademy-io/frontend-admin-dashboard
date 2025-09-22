@@ -172,7 +172,7 @@ export function Navbar() {
                                 <img
                                     src={instituteLogo}
                                     alt="logo"
-                                    className="size-8 rounded-full"
+                                    className="size-20 object-contain"
                                 />
                             ) : null}
                         </div>
@@ -402,7 +402,11 @@ export function Navbar() {
                     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
                         <DropdownMenuTrigger className="flex items-center gap-2">
                             {adminLogo !== '' && (
-                                <img src={adminLogo} alt="logo" className="size-10 rounded-full" />
+                                <img
+                                    src={adminLogo}
+                                    alt="logo"
+                                    className="size-10 object-contain"
+                                />
                             )}
                             {isOpen ? <CaretDown /> : <CaretUp />}
                         </DropdownMenuTrigger>
@@ -422,7 +426,7 @@ export function Navbar() {
                                                     <img
                                                         src={adminLogo}
                                                         alt="logo"
-                                                        className="size-48 rounded-full"
+                                                        className="size-48 object-contain"
                                                     />
                                                 )}
                                                 <h1>{adminDetails?.full_name}</h1>
@@ -498,7 +502,7 @@ export function Navbar() {
                                                     <img
                                                         src={instituteLogo}
                                                         alt="logo"
-                                                        className="size-48 rounded-full"
+                                                        className="size-48 object-contain"
                                                     />
                                                 )}
                                                 <h1>{instituteDetails?.institute_name}</h1>
