@@ -25,6 +25,8 @@ import { AssessmentQuestionsTab } from './-components/AssessmentQuestionsTab';
 import AssessmentSubmissionsTab from './-components/AssessmentSubmissionsTab';
 import AssessmentParticipantsTab from './-components/AssessmentParticipantsTab';
 import AssessmentAccessControlTab from './-components/AssessmentAccessControlTab';
+import { SurveyMainOverviewTab } from './-components/survey/SurveyMainOverviewTab';
+import { SurveyIndividualRespondentsTab } from './-components/survey/SurveyIndividualRespondentsTab';
 
 export const Route = createFileRoute(
     '/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/'
@@ -236,7 +238,7 @@ const AssessmentDetailsComponent = () => {
                                             selectedTab === 'submissions' ? 'text-primary-500' : ''
                                         }`}
                                     >
-                                        Submissions
+                                        {examType === 'SURVEY' ? 'Individual Respondents' : 'Submissions'}
                                     </span>
                                 </TabsTrigger>
                             )}
@@ -319,10 +321,18 @@ const AssessmentDetailsComponent = () => {
                     </div>
                     <div className="max-h-[72vh] overflow-y-auto pr-8">
                         <TabsContent value="overview">
-                            <AssessmentOverviewTab />
+                            {examType === 'SURVEY' ? (
+                                <SurveyMainOverviewTab />
+                            ) : (
+                                <AssessmentOverviewTab />
+                            )}
                         </TabsContent>
                         <TabsContent value="submissions">
-                            <AssessmentSubmissionsTab type={assesssmentType} />
+                            {examType === 'SURVEY' ? (
+                                <SurveyIndividualRespondentsTab />
+                            ) : (
+                                <AssessmentSubmissionsTab type={assesssmentType} />
+                            )}
                         </TabsContent>
                         <TabsContent value="basicInfo">
                             <AssessmentBasicInfoTab />
