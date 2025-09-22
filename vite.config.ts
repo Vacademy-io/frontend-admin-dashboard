@@ -174,7 +174,17 @@ export default defineConfig({
     },
     optimizeDeps: {
         exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util', 'pyodide'],
-        include: ['react', 'react-dom', 'react-router-dom', 'axios', 'lodash', 'date-fns', 'pako'],
+        include: [
+            'react',
+            'react-dom',
+            'react-router-dom',
+            'axios',
+            'lodash',
+            'date-fns',
+            'pako',
+            '@tanstack/react-router',
+            '@tanstack/router-devtools'
+        ],
         esbuildOptions: {
             target: 'esnext',
             supported: {
