@@ -2,17 +2,6 @@
 export interface ContentDelivery {
     email: boolean;
     whatsapp: boolean;
-    emailTemplate?: {
-        id: string;
-        name: string;
-        subject?: string;
-        content: string;
-    };
-    whatsappTemplate?: {
-        id: string;
-        name: string;
-        content: string;
-    };
 }
 
 export interface ContentOption {
