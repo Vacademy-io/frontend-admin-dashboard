@@ -216,7 +216,7 @@ export class StudentVariableResolver implements VariableResolver {
             enrollment_number: 'ENR2024001',
             username: 'john.doe',
             registration_date: '2024-01-15',
-            student_unique_link: `${window.location.origin}/student/${studentId}`,
+            student_unique_link: `${window.location.origin}/student/STU001`,
         };
         return examples[variable] || 'N/A';
     }

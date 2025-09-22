@@ -13,6 +13,7 @@ import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { validateTemplateVariables, type ValidationResult } from '@/utils/template-validation';
 import type { PageContext } from './page-context-resolver';
+import type { VariableContext } from './template-variables/types';
 import { detectCurrentPageContext } from '@/utils/page-context-detector';
 
 export interface BulkEmailPayload {
@@ -50,6 +51,7 @@ export interface BulkEmailResult {
         studentId: string;
         studentName: string;
         error: string;
+        validationError?: ValidationResult;
     }>;
     payload?: BulkEmailPayload;
 }
@@ -114,7 +116,7 @@ export class BulkEmailService {
 
         // Try to extract from URL path
         const pathMatch = window.location.pathname.match(/\/live-session\/([a-f0-9-]+)/);
-        if (pathMatch) return pathMatch[1];
+        if (pathMatch) return pathMatch[1] || null;
 
         return null;
     }
@@ -689,7 +691,9 @@ export class BulkEmailService {
         let match;
 
         while ((match = variableRegex.exec(template)) !== null) {
-            variables.push(match[1].trim());
+            if (match[1]) {
+                variables.push(match[1].trim());
+            }
         }
 
         return [...new Set(variables)]; // Remove duplicates
