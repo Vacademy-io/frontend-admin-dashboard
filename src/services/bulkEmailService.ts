@@ -16,9 +16,8 @@ import { SEND_EMAIL_TO_USERS_PUBLIC } from '@/constants/urls';
 import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { validateTemplateVariables, type ValidationResult } from '@/utils/template-validation';
-import { VariableContext } from './template-variables/types';
-import type { PageContext } from './page-context-resolver';
 import type { VariableContext } from './template-variables/types';
+import type { PageContext } from './page-context-resolver';
 import { detectCurrentPageContext } from '@/utils/page-context-detector';
 
 export interface BulkEmailPayload {

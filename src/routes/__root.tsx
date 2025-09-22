@@ -18,8 +18,6 @@ const TanStackRouterDevtools =
         : React.lazy(() =>
               import('@tanstack/router-devtools').then((res) => ({
                   default: res.TanStackRouterDevtools,
-              })).catch(() => ({
-                  default: () => null
               }))
           );
 
@@ -56,17 +54,27 @@ const publicRoutes = [
     '/pricing',
 ];
 
-// Helper functions to break down the complex beforeLoad logic
-const handleRootPathRedirect = (location: any) => {
+export const Route = createRootRouteWithContext<{
+    queryClient: QueryClient;
+}>()({
+    beforeLoad: ({ location }) => {
+        // Special handling for OAuth redirect - don't set tokens here, let the OAuth component handle it
+        if (location.pathname === '/login/oauth/redirect') {
+            return; // Allow the OAuth redirect component to handle the flow
+        }
+
+        // Handle SSO tokens from URL parameters for other routes
+        handleSSOTokens((location.search as string) || '');
+
+        // Redirect root based on subdomain
         if (location.pathname === '/') {
             const subdomain =
                 typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '';
             const isVoltSubdomain = subdomain === 'volt';
             throw redirect({ to: isVoltSubdomain ? '/landing' : '/login' });
         }
-};
 
-const handleAuthTransferRoute = (location: any) => {
+        // Special handling for auth-transfer route
         if (location.pathname === '/auth-transfer') {
             if (isAuthenticated()) {
                 // User has valid tokens, redirect to study library
@@ -81,9 +89,7 @@ const handleAuthTransferRoute = (location: any) => {
                 });
             }
         }
-};
 
-const handleAuthenticationChecks = (location: any) => {
         // Check if the route requires authentication
         const isPublicRoute = publicRoutes.some((route) => location.pathname.startsWith(route));
 
@@ -97,9 +103,7 @@ const handleAuthenticationChecks = (location: any) => {
                 },
             });
         }
-};
 
-const handleAuthenticatedUserLoginAccess = (location: any) => {
         // If user is authenticated and tries to access login page,
         // check for redirect parameter and handle accordingly (unless showing institute selection)
         if (isAuthenticated() && location.pathname.startsWith('/login')) {
@@ -134,31 +138,6 @@ const handleAuthenticatedUserLoginAccess = (location: any) => {
                 throw redirect({ to });
             }
         }
-};
-
-export const Route = createRootRouteWithContext<{
-    queryClient: QueryClient;
-}>()({
-    beforeLoad: ({ location }) => {
-        // Special handling for OAuth redirect - don't set tokens here, let the OAuth component handle it
-        if (location.pathname === '/login/oauth/redirect') {
-            return; // Allow the OAuth redirect component to handle the flow
-        }
-
-        // Handle SSO tokens from URL parameters for other routes
-        handleSSOTokens((location.search as string) || '');
-
-        // Handle root path redirect
-        handleRootPathRedirect(location);
-
-        // Handle auth-transfer route
-        handleAuthTransferRoute(location);
-
-        // Handle authentication checks
-        handleAuthenticationChecks(location);
-
-        // Handle authenticated user accessing login page
-        handleAuthenticatedUserLoginAccess(location);
     },
 
     component: () => (

@@ -6,15 +6,6 @@ html {
     scroll-behavior: smooth;
 }
 
-/* Hide scrollbar utility */
-.scrollbar-hide {
-    -ms-overflow-style: none;  /* Internet Explorer 10+ */
-    scrollbar-width: none;  /* Firefox */
-}
-.scrollbar-hide::-webkit-scrollbar {
-    display: none;  /* Safari and Chrome */
-}
-
 @layer base {
     :root {
         /* ========= Common configs ========= */
@@ -446,10 +437,10 @@ html {
 
 /* Ensure the .reveal container establishes a clear stacking context if needed,
    though position:fixed already does. */
-/* .reveal {
-    position: relative;
-    z-index: 1000;
-} */
+.reveal {
+    /* position: relative; /* Or fixed, absolute if it's not already */
+    /* z-index: 1000; /* Already handled by inline style on your container div */
+}
 
 /* Target the Reveal.js controls specifically */
 .reveal .controls {
@@ -464,11 +455,11 @@ html {
 }
 
 /* Optional: If slides or their backgrounds are an issue */
-/* .reveal .slides > section {
-    By default, slides don't have a high z-index unless transformed or stacked.
-     Ensure their content doesn't create an unexpectedly high z-index.
-    z-index: 1;
-} */
+.reveal .slides > section {
+    /* By default, slides don't have a high z-index unless transformed or stacked.
+     Ensure their content doesn't create an unexpectedly high z-index. */
+    /* z-index: 1; /* Example: keep slides on a base level within .slides */
+}
 
 .reveal .slide-background {
     background-size: contain;
