@@ -10,7 +10,6 @@ export { default as DotIcon } from './dotIcon.svg';
 export { default as DotIconOffline } from './dotIconOffline.svg';
 export { default as Crown } from './crown.svg';
 export { default as Person } from './person.svg';
-export { default as VacademyLogo } from './vacademy-logo.svg';
 export { default as Vacademy } from './vacademy.svg';
 export { default as VacademyAssessLogo } from './vacademy-assess-logo.svg';
 export { default as Thunder } from './thunder.svg';

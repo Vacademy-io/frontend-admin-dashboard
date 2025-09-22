@@ -203,18 +203,6 @@ export const CourseInReviewTab: React.FC = () => {
                             </CardHeader>
 
                             <CardContent className="pt-0">
-                                {/* Session Info */}
-                                <div className="mb-4 rounded-lg bg-gray-50 p-3">
-                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                        <User size={14} />
-                                        <span className="font-medium">Session:</span>
-                                        <span>{course.sessionInfo.sessionName}</span>
-                                    </div>
-                                    <div className="mt-1 text-xs text-gray-500">
-                                        Relationship: {course.relationshipType}
-                                    </div>
-                                </div>
-
                                 <div className="flex flex-col gap-2">
                                     {/* View Button */}
                                     <MyButton

@@ -10,7 +10,7 @@ import {
     FormItem,
     FormLabel,
 } from '@/components/ui/form';
-import { OnboardingSignup, VacademyAssessLogo, VacademyLMSLogo, VacademyLogo } from '@/svgs';
+import { OnboardingSignup, VacademyAssessLogo, VacademyLMSLogo } from '@/svgs';
 import { MyButton } from '@/components/design-system/button';
 import { Plus } from 'phosphor-react';
 import { useNavigate } from '@tanstack/react-router';
@@ -21,6 +21,7 @@ import { FcGoogle } from 'react-icons/fc';
 import { handleOAuthSignUp } from '@/hooks/signup/oauth-signup';
 import VacademyVoltLogo from '@/components/core/volt-logo';
 import VacademyVSmartLogo from '@/components/core/vsmart-logo';
+import useInstituteLogoStore from '@/components/common/layout-container/sidebar/institutelogo-global-zustand';
 
 const items = [
     { id: 'assess', label: 'Assess', description: 'Smart assessment and evaluation platform' },
@@ -40,6 +41,7 @@ const FormSchema = z.object({
 export function SignUpComponent() {
     const navigate = useNavigate();
     const { resetForm } = useOrganizationStore();
+    const { instituteLogo } = useInstituteLogoStore();
 
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
@@ -65,7 +67,13 @@ export function SignUpComponent() {
     return (
         <div className="flex h-screen w-full">
             <div className="flex w-2/5 flex-col items-center justify-center bg-primary-50">
-                <VacademyLogo />
+                {instituteLogo ? (
+                    <img
+                        src={instituteLogo}
+                        alt="Institute Logo"
+                        className="mb-4 size-16 rounded-full object-cover"
+                    />
+                ) : null}
                 <OnboardingSignup className="w-[500px]" />
             </div>
             <div className="flex w-3/5 items-center justify-center">

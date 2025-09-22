@@ -2,6 +2,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { createRootRouteWithContext, Outlet, redirect } from '@tanstack/react-router';
 import React, { Suspense } from 'react';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { usePageTitle } from '@/hooks/use-page-title';
 import {
     getTokenFromCookie,
     isTokenExpired,
@@ -140,13 +141,18 @@ export const Route = createRootRouteWithContext<{
         }
     },
 
-    component: () => (
-        <>
-            <Outlet />
-            <Suspense>
-                <TanStackRouterDevtools />
-            </Suspense>
-            <ReactQueryDevtools initialIsOpen={false} />
-        </>
-    ),
+    component: () => {
+        // Ensure the global title is maintained across all pages
+        usePageTitle();
+
+        return (
+            <>
+                <Outlet />
+                <Suspense>
+                    <TanStackRouterDevtools />
+                </Suspense>
+                <ReactQueryDevtools initialIsOpen={false} />
+            </>
+        );
+    },
 });

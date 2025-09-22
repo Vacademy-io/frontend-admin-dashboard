@@ -3,11 +3,23 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MyButton } from '@/components/design-system/button';
-import { PaperPlaneTilt, Eye, Copy, CircleNotch, TrashSimple } from 'phosphor-react';
+import {
+    PaperPlaneTilt,
+    Eye,
+    Copy,
+    CircleNotch,
+    TrashSimple,
+    ClockCounterClockwise,
+} from 'phosphor-react';
 import { toast } from 'sonner';
 import { useNavigate } from '@tanstack/react-router';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
-import { getMyCourses, createEditableCopy, submitForReview } from '../-services/approval-services';
+import {
+    getMyCourses,
+    createEditableCopy,
+    submitForReview,
+    getMyCourseHistory,
+} from '../-services/approval-services';
 import { formatDistanceToNow } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
@@ -25,6 +37,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { MyDialog } from '@/components/design-system/dialog';
 
 interface PackageEntity {
     id: string;
@@ -125,6 +138,7 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
     const [copyingCourseId, setCopyingCourseId] = useState<string | null>(null);
     const [deletingCourseId, setDeletingCourseId] = useState<string | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState<string | null>(null);
+    const [historyDialogCourseId, setHistoryDialogCourseId] = useState<string | null>(null);
 
     // Delete course mutation
     const deleteCourseMutation = useDeleteCourse();
@@ -178,6 +192,40 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
         },
     });
 
+    // Course History query (teacher)
+    interface CourseHistoryLogItem {
+        timestamp: number;
+        actorUserId: string;
+        action: string;
+        message: string;
+        comment?: string;
+    }
+
+    interface CourseHistoryResponse {
+        courseId: string;
+        courseName: string;
+        status: string;
+        createdByUserId: string;
+        originalCourseId?: string | null;
+        originalCourseName?: string | null;
+        originalCourseStatus?: string | null;
+        versionNumber?: number | null;
+        auditLogs: CourseHistoryLogItem[];
+    }
+
+    const {
+        data: courseHistory,
+        isFetching: isHistoryFetching,
+        error: historyError,
+    } = useQuery<CourseHistoryResponse | undefined>({
+        queryKey: ['teacher-course-history', historyDialogCourseId],
+        queryFn: () => getMyCourseHistory(historyDialogCourseId as string),
+        enabled: Boolean(historyDialogCourseId),
+    });
+
+    const sortByTimestampAsc = (a: CourseHistoryLogItem, b: CourseHistoryLogItem): number =>
+        a.timestamp - b.timestamp;
+
     // Group courses by courseId and filter based on search
     useEffect(() => {
         if (!courses) return;
@@ -185,7 +233,7 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
         // Group courses by courseId
         const groupedMap = new Map<string, GroupedCourse>();
 
-        courses.forEach((response) => {
+        courses.forEach((response: DetailedCourseResponse) => {
             const courseId = response.courseId;
             const course = response.packageEntity;
 
@@ -343,11 +391,11 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                 console.log('Fetching URL for mediaId:', mediaId);
                 setIsLoading(true);
                 getPublicUrl(mediaId)
-                    .then((url) => {
+                    .then((url: string | undefined) => {
                         console.log('Got URL:', url);
                         setImageUrl(url || '');
                     })
-                    .catch((error) => {
+                    .catch((error: unknown) => {
                         console.error('Failed to get thumbnail URL:', error);
                         setImageUrl('');
                     })
@@ -434,7 +482,7 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                     {filteredCourses.map((course) => (
                         <Card
                             key={course.id}
-                            className="flex flex-col border border-gray-200 bg-white transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+                            className="flex flex-col overflow-hidden border border-gray-200 bg-white transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
                         >
                             {/* Thumbnail */}
                             <CourseThumbnail course={course} />
@@ -524,12 +572,12 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
 
                                     {/* Secondary Action Buttons */}
                                     {course.status === 'DRAFT' && !isAdmin ? (
-                                        // Draft course: Submit (green) and Delete icon buttons
-                                        <div className="flex justify-center gap-2">
+                                        // Draft course: Submit (green), History, Delete buttons
+                                        <div className="flex flex-wrap items-center justify-center gap-1.5">
                                             <MyButton
                                                 onClick={() => handleSubmitForReview(course.id)}
-                                                size="sm"
-                                                className="size-9 rounded-full bg-green-600 p-0 text-white hover:bg-green-700"
+                                                size="icon"
+                                                className="size-7 shrink-0 rounded-md bg-green-600 p-0 text-white hover:bg-green-700"
                                                 disabled={submitReviewMutation.isPending}
                                                 title="Submit for Review"
                                             >
@@ -541,6 +589,16 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                                                 ) : (
                                                     <PaperPlaneTilt size={16} />
                                                 )}
+                                            </MyButton>
+
+                                            {/* History button */}
+                                            <MyButton
+                                                onClick={() => setHistoryDialogCourseId(course.id)}
+                                                size="icon"
+                                                className="size-7 shrink-0 rounded-md bg-blue-600 p-0 text-white hover:bg-blue-700"
+                                                title="View History"
+                                            >
+                                                <ClockCounterClockwise size={16} />
                                             </MyButton>
 
                                             <AlertDialog
@@ -555,8 +613,8 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                                             >
                                                 <AlertDialogTrigger asChild>
                                                     <MyButton
-                                                        size="sm"
-                                                        className="size-9 rounded-full bg-red-600 p-0 text-white hover:bg-red-700"
+                                                        size="icon"
+                                                        className="size-7 shrink-0 rounded-md bg-red-600 p-0 text-white hover:bg-red-700"
                                                         disabled={deletingCourseId === course.id}
                                                         title="Delete Course"
                                                     >
@@ -615,14 +673,14 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                                         </div>
                                     ) : (
                                         // Published course: Copy and Delete icon buttons
-                                        <div className="flex justify-center gap-2">
+                                        <div className="flex flex-wrap items-center justify-center gap-1.5">
                                             {course.status === 'ACTIVE' &&
                                                 !isAdmin &&
                                                 (canCreateCopy(course) ? (
                                                     <MyButton
                                                         onClick={() => handleCopyToEdit(course)}
-                                                        size="sm"
-                                                        className="size-9 rounded-full bg-blue-600 p-0 text-white hover:bg-blue-700"
+                                                        size="icon"
+                                                        className="size-7 shrink-0 rounded-md bg-blue-600 p-0 text-white hover:bg-blue-700"
                                                         disabled={copyingCourseId === course.id}
                                                         title="Copy to Edit"
                                                     >
@@ -637,8 +695,8 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                                                     </MyButton>
                                                 ) : (
                                                     <MyButton
-                                                        size="sm"
-                                                        className="size-9 cursor-not-allowed rounded-full bg-gray-400 p-0 text-gray-600"
+                                                        size="icon"
+                                                        className="size-7 shrink-0 cursor-not-allowed rounded-md bg-gray-400 p-0 text-gray-600"
                                                         disabled
                                                         title="Copy Already Exists"
                                                     >
@@ -658,8 +716,8 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                                             >
                                                 <AlertDialogTrigger asChild>
                                                     <MyButton
-                                                        size="sm"
-                                                        className="size-9 rounded-full bg-red-600 p-0 text-white hover:bg-red-700"
+                                                        size="icon"
+                                                        className="size-7 shrink-0 rounded-md bg-red-600 p-0 text-white hover:bg-red-700"
                                                         disabled={deletingCourseId === course.id}
                                                         title="Delete Course"
                                                     >
@@ -723,6 +781,98 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                     ))}
                 </div>
             )}
+            {/* Course History Dialog */}
+            <MyDialog
+                heading={
+                    courseHistory?.courseName
+                        ? `Course History · ${courseHistory.courseName}`
+                        : 'Course History'
+                }
+                open={Boolean(historyDialogCourseId)}
+                onOpenChange={(open) => {
+                    if (!open) setHistoryDialogCourseId(null);
+                }}
+                dialogWidth="max-w-3xl"
+            >
+                {isHistoryFetching ? (
+                    <div className="flex items-center justify-center py-6 text-gray-600">
+                        <CircleNotch size={18} className="mr-2 animate-spin" /> Loading history…
+                    </div>
+                ) : historyError ? (
+                    <div className="rounded-md bg-red-50 p-4 text-red-700">
+                        Failed to load course history.
+                    </div>
+                ) : courseHistory ? (
+                    <div className="space-y-4">
+                        <div className="grid gap-2 sm:grid-cols-2">
+                            <div className="text-sm text-gray-600">
+                                <span className="font-medium text-gray-800">Course ID:</span>{' '}
+                                {courseHistory.courseId}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                                <span className="font-medium text-gray-800">Status:</span>{' '}
+                                {courseHistory.status}
+                            </div>
+                            {courseHistory.versionNumber != null && (
+                                <div className="text-sm text-gray-600">
+                                    <span className="font-medium text-gray-800">Version:</span>{' '}
+                                    {courseHistory.versionNumber}
+                                </div>
+                            )}
+                            {courseHistory.originalCourseName && (
+                                <div className="text-sm text-gray-600">
+                                    <span className="font-medium text-gray-800">Original:</span>{' '}
+                                    {courseHistory.originalCourseName}{' '}
+                                    {courseHistory.originalCourseStatus && (
+                                        <span>({courseHistory.originalCourseStatus})</span>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="pt-2">
+                            <h4 className="mb-2 text-sm font-semibold text-gray-900">Audit Logs</h4>
+                            {courseHistory.auditLogs && courseHistory.auditLogs.length > 0 ? (
+                                <ul className="space-y-3">
+                                    {courseHistory.auditLogs
+                                        .slice()
+                                        .sort(sortByTimestampAsc)
+                                        .map((log: CourseHistoryLogItem, idx: number) => (
+                                            <li
+                                                key={`${log.timestamp}-${idx}`}
+                                                className="rounded-lg border border-gray-100 bg-gray-50 p-3"
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <div className="text-xs font-medium uppercase tracking-wide text-gray-700">
+                                                        {log.action}
+                                                    </div>
+                                                    <div className="text-xs text-gray-500">
+                                                        {new Date(log.timestamp).toLocaleString()}
+                                                    </div>
+                                                </div>
+                                                <div className="mt-1 text-sm text-gray-800">
+                                                    {log.message}
+                                                </div>
+                                                <div className="mt-1 text-xs text-gray-600">
+                                                    By: {log.actorUserId}
+                                                </div>
+                                                {log.comment && (
+                                                    <div className="mt-2 rounded bg-white p-2 text-xs text-gray-700">
+                                                        Comment: {log.comment}
+                                                    </div>
+                                                )}
+                                            </li>
+                                        ))}
+                                </ul>
+                            ) : (
+                                <div className="text-sm text-gray-600">No history available.</div>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="text-sm text-gray-600">No history available.</div>
+                )}
+            </MyDialog>
         </div>
     );
 };
