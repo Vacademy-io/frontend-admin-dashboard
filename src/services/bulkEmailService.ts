@@ -16,7 +16,10 @@ import { SEND_EMAIL_TO_USERS_PUBLIC } from '@/constants/urls';
 import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { validateTemplateVariables, type ValidationResult } from '@/utils/template-validation';
-import type { VariableContext } from './template-variables/types';
+
+import { VariableContext } from './template-variables/types';
+
+
 import type { PageContext } from './page-context-resolver';
 import { detectCurrentPageContext } from '@/utils/page-context-detector';
 
@@ -120,7 +123,8 @@ export class BulkEmailService {
 
         // Try to extract from URL path
         const pathMatch = window.location.pathname.match(/\/live-session\/([a-f0-9-]+)/);
-        if (pathMatch) return pathMatch[1] || null;
+
+        if (pathMatch) return pathMatch[1] ?? null;
 
         return null;
     }
