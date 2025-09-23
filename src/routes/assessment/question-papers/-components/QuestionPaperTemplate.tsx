@@ -126,7 +126,8 @@ export function QuestionPaperTemplate({
                 },
             ],
         });
-        setCurrentQuestionIndex(0);
+        // Set current question index to the newly added question (last question)
+        setCurrentQuestionIndex(questions.length);
         setAddQuestionDialogBox(false);
         form.trigger();
     };
