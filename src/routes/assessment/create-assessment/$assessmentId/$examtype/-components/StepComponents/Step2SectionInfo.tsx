@@ -1,7 +1,7 @@
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import React, { MutableRefObject, useEffect, useState } from 'react';
 import { useFieldArray, UseFormReturn } from 'react-hook-form';
-import { PencilSimpleLine, TrashSimple, X } from 'phosphor-react';
+import { PencilSimpleLine, TrashSimple, X, Check } from 'phosphor-react';
 import {
     AlertDialog,
     AlertDialogCancel,
@@ -53,7 +53,16 @@ export const Step2SectionInfo = ({
     oldData: MutableRefObject<SectionFormType>;
 }) => {
     const { assessmentId, examtype } = Route.useParams();
-    const [enableSectionName, setEnableSectionName] = useState(true);
+    const [enableSectionName, setEnableSectionName] = useState(false);
+    const sectionNameInputRef = React.useRef<HTMLInputElement>(null);
+
+    // Auto-focus input when edit mode is enabled
+    useEffect(() => {
+        if (enableSectionName && sectionNameInputRef.current) {
+            sectionNameInputRef.current.focus();
+            sectionNameInputRef.current.select();
+        }
+    }, [enableSectionName]);
     const { instituteDetails } = useInstituteDetailsStore();
     const { savedAssessmentId } = useSavedAssessmentStore();
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -180,7 +189,7 @@ export const Step2SectionInfo = ({
             <AccordionTrigger className="flex items-center justify-between" id="section-details">
                 <div className="flex w-full items-center justify-between">
                     {allSections?.[index] ? (
-                        <div className="flex items-center justify-start text-primary-500">
+                        <div className="flex items-center justify-start text-primary-500 gap-2">
                             <FormField
                                 control={control}
                                 name={`section.${index}.sectionName`}
@@ -188,6 +197,7 @@ export const Step2SectionInfo = ({
                                     <FormItem>
                                         <FormControl>
                                             <MyInput
+                                                ref={sectionNameInputRef}
                                                 inputType="text"
                                                 inputPlaceholder="00"
                                                 input={field.value}
@@ -195,12 +205,37 @@ export const Step2SectionInfo = ({
                                                 size="large"
                                                 {...field}
                                                 className="!ml-0 w-20 border-none !pl-0 text-primary-500"
-                                                disabled={enableSectionName}
+                                                disabled={!enableSectionName}
+                                                onClick={(e) => {
+                                                    // Prevent accordion toggle when clicking on input
+                                                    e.stopPropagation();
+                                                }}
                                             />
                                         </FormControl>
                                     </FormItem>
                                 )}
                             />
+                            {enableSectionName ? (
+                                <Check
+                                    size={16}
+                                    className="cursor-pointer text-primary-600 hover:text-primary-700 transition-colors"
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Prevent accordion toggle
+                                        setEnableSectionName(false);
+                                        // Trigger form validation to save the changes
+                                        form.trigger(`section.${index}.sectionName`);
+                                    }}
+                                />
+                            ) : (
+                                <PencilSimpleLine
+                                    size={16}
+                                    className="cursor-pointer text-neutral-600 hover:text-primary-600 transition-colors"
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Prevent accordion toggle
+                                        setEnableSectionName(true);
+                                    }}
+                                />
+                            )}
                             {allSections?.[index]!.adaptive_marking_for_each_question.length >
                                 0 && (
                                 <span className="font-thin !text-neutral-600">
@@ -227,33 +262,56 @@ export const Step2SectionInfo = ({
                             )}
                         </div>
                     ) : (
-                        <FormField
-                            control={control}
-                            name={`section.${index}.sectionName`}
-                            render={({ field: { ...field } }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <MyInput
-                                            inputType="text"
-                                            inputPlaceholder="00"
-                                            input={field.value}
-                                            onChangeFunction={field.onChange}
-                                            size="large"
-                                            {...field}
-                                            className="!ml-0 w-20 border-none !pl-0 text-primary-500"
-                                            disabled={enableSectionName}
-                                        />
-                                    </FormControl>
-                                </FormItem>
+                        <div className="flex items-center justify-start text-primary-500 gap-2">
+                            <FormField
+                                control={control}
+                                name={`section.${index}.sectionName`}
+                                render={({ field: { ...field } }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                ref={sectionNameInputRef}
+                                                inputType="text"
+                                                inputPlaceholder="00"
+                                                input={field.value}
+                                                onChangeFunction={field.onChange}
+                                                size="large"
+                                                {...field}
+                                                className="!ml-0 w-20 border-none !pl-0 text-primary-500"
+                                                disabled={!enableSectionName}
+                                                onClick={(e) => {
+                                                    // Prevent accordion toggle when clicking on input
+                                                    e.stopPropagation();
+                                                }}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            {enableSectionName ? (
+                                <Check
+                                    size={16}
+                                    className="cursor-pointer text-primary-600 hover:text-primary-700 transition-colors"
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Prevent accordion toggle
+                                        setEnableSectionName(false);
+                                        // Trigger form validation to save the changes
+                                        form.trigger(`section.${index}.sectionName`);
+                                    }}
+                                />
+                            ) : (
+                                <PencilSimpleLine
+                                    size={16}
+                                    className="cursor-pointer text-neutral-600 hover:text-primary-600 transition-colors"
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Prevent accordion toggle
+                                        setEnableSectionName(true);
+                                    }}
+                                />
                             )}
-                        />
+                        </div>
                     )}
                     <div className="flex items-center gap-4">
-                        <PencilSimpleLine
-                            size={20}
-                            className="text-neutral-600"
-                            onClick={() => setEnableSectionName(!enableSectionName)}
-                        />
                         <TrashSimple
                             size={20}
                             className="text-danger-400"
