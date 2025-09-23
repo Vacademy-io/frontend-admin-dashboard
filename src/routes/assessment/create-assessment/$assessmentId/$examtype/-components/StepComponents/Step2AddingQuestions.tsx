@@ -97,8 +97,6 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
         mode: 'onChange',
     });
 
-    console.log(assessmentDetails[currentStep]?.saved_data);
-
     const { handleSubmit, getValues, control, watch } = form;
     // Store initial data in useRef to ensure it remains constant throughout the form updates
     const oldData = useRef(getValues());
@@ -146,7 +144,6 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                 });
             } else {
                 // Handle non-Axios errors if necessary
-                console.error('Unexpected error:', error);
             }
         },
     });
@@ -162,7 +159,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
     };
 
     const onInvalid = (err: unknown) => {
-        console.log(err);
+        // Handle validation errors
     };
 
     const { append } = useFieldArray({

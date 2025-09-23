@@ -197,8 +197,6 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         name: 'open_test.custom_fields',
     });
 
-    console.log(customFieldsArray);
-
     const handleSubmitStep3Form = useMutation({
         mutationFn: ({
             oldFormData,
@@ -242,7 +240,6 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                 });
             } else {
                 // Handle non-Axios errors if necessary
-                console.error('Unexpected error:', error);
             }
         },
     });
@@ -259,7 +256,6 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     };
 
     const onInvalid = (err: unknown) => {
-        console.log(err);
         // Scroll to the first error field
         const firstErrorField = document.querySelector('[data-error="true"]');
         if (firstErrorField) {

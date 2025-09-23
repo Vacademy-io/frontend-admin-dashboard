@@ -144,7 +144,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                 });
             } else {
                 // Handle non-Axios errors if necessary
-                console.error('Unexpected error:', error);
+                // Handle error silently
             }
         },
     });
@@ -204,7 +204,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                 });
             } else {
                 // Handle non-Axios errors if necessary
-                console.error('Unexpected error:', error);
+                // Handle error silently
             }
         },
     });
@@ -227,11 +227,11 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                 type: examType,
             });
         } catch (error) {
-            console.error('Error during form submission or publish mutation', error);
+            // Handle error silently
         }
     };
     const onInvalid = (err: unknown) => {
-        console.log(err);
+        // Handle validation errors
     };
 
     useEffect(() => {
@@ -271,7 +271,6 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                     }));
                     setExistingInstituteUsersData(filteredData);
                     if (assessmentId !== 'defaultId') {
-                        console.log(filteredData);
                         form.reset({
                             status: assessmentDetails[currentStep]?.status,
                             assessment_creation_access: filteredData.filter(
@@ -305,7 +304,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                     }
                 })
                 .catch((error) => {
-                    console.error(error);
+                    // Handle error silently
                 })
                 .finally(() => {
                     setIsAdminLoading(false);

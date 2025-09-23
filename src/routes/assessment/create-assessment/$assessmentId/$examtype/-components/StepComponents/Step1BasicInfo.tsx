@@ -179,7 +179,6 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 });
             } else {
                 // Handle non-Axios errors if necessary
-                console.error('Unexpected error:', error);
             }
         },
     });
@@ -204,13 +203,11 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
     };
 
     const onInvalid = (err: unknown) => {
-        console.log(err);
+        // Handle validation errors
     };
 
     const [assessmentDetails, setAssessmentDetails] = useState<Steps>([]);
     const [isLoading, setIsLoading] = useState(false);
-
-    console.log(assessmentDetails);
 
     useEffect(() => {
         setIsLoading(true);
@@ -223,7 +220,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 });
                 setAssessmentDetails(response);
             } catch (err) {
-                console.error(err);
+                // Handle error silently
             } finally {
                 setIsLoading(false);
             }
