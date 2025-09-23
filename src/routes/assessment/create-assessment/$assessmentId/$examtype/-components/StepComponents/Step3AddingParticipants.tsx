@@ -260,6 +260,11 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
 
     const onInvalid = (err: unknown) => {
         console.log(err);
+        // Scroll to the first error field
+        const firstErrorField = document.querySelector('[data-error="true"]');
+        if (firstErrorField) {
+            firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
     };
 
     const toggleIsRequired = (id: string) => {
@@ -1177,6 +1182,17 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         setSelectedSection={setSelectedSection}
                         sectionsInfo={sectionsInfo}
                     />
+                    {/* Display validation errors for participant selection */}
+                    {form.formState.errors.select_individually?.student_details?.message && (
+                        <div className="text-sm text-red-600 mt-2" data-error="true">
+                            {form.formState.errors.select_individually.student_details.message}
+                        </div>
+                    )}
+                    {form.formState.errors.select_batch?.batch_details?.message && (
+                        <div className="text-sm text-red-600 mt-2" data-error="true">
+                            {form.formState.errors.select_batch.batch_details.message}
+                        </div>
+                    )}
                     <Separator className="my-4" />
                     <div className="flex items-center justify-between" id="join-link-qr-code">
                         <div className="flex flex-col gap-2">

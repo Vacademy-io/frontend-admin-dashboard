@@ -67,10 +67,26 @@ const testAccessSchema = z.object({
     select_batch: z.object({
         checked: z.boolean(),
         batch_details: z.record(z.array(z.string())),
+    }).superRefine((data, ctx) => {
+        if (data.checked && Object.keys(data.batch_details).length === 0) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Please select at least one batch when choosing batch selection.',
+                path: ['batch_details'],
+            });
+        }
     }),
     select_individually: z.object({
         checked: z.boolean(),
         student_details: z.array(studentSchema),
+    }).superRefine((data, ctx) => {
+        if (data.checked && data.student_details.length === 0) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Please select at least one student when choosing individual selection.',
+                path: ['student_details'],
+            });
+        }
     }),
     join_link: z.string(),
     show_leaderboard: z.boolean(),
