@@ -22,7 +22,7 @@ export interface QuestionTypeProps {
 }
 
 export type QuestionPaperFormType = z.infer<typeof questionsFormSchema>;
-type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
+type QuestionPaperForm = z.infer<ReturnType<typeof uploadQuestionPaperFormSchema>>;
 
 const QuestionType = ({
     icon,

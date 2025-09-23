@@ -13,7 +13,7 @@ export const StudyLibraryQuestionsPreview = ({ activeItem }: { activeItem: Slide
     const { setItems, setActiveItem, items } = useContentStore();
 
     const form = useForm<UploadQuestionPaperFormType>({
-        resolver: zodResolver(uploadQuestionPaperFormSchema),
+        resolver: zodResolver(uploadQuestionPaperFormSchema()),
         mode: 'onChange',
         defaultValues: {
             questionPaperId: '1',

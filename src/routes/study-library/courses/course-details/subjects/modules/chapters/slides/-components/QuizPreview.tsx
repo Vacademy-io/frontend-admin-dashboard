@@ -48,7 +48,7 @@ const QuizPreview = ({ activeItem, routeParams }: QuizPreviewProps) => {
     );
 
     const form = useForm<UploadQuestionPaperFormType>({
-        resolver: zodResolver(uploadQuestionPaperFormSchema),
+        resolver: zodResolver(uploadQuestionPaperFormSchema()),
         mode: 'onChange',
         defaultValues: {
             questionPaperId: '1',
@@ -79,7 +79,7 @@ const QuizPreview = ({ activeItem, routeParams }: QuizPreviewProps) => {
     const [questionToDelete, setQuestionToDelete] = useState<number | null>(null);
 
     const editForm = useForm<UploadQuestionPaperFormType>({
-        resolver: zodResolver(uploadQuestionPaperFormSchema),
+        resolver: zodResolver(uploadQuestionPaperFormSchema()),
         mode: 'onChange',
     });
 

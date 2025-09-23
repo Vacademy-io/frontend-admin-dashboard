@@ -300,6 +300,7 @@ export const Step2SectionInfo = ({
                                 sectionsForm={form}
                                 currentQuestionIndex={currentQuestionIndex}
                                 setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                examType={examtype}
                             />
                         </AlertDialogContent>
                     </AlertDialog>
@@ -335,6 +336,7 @@ export const Step2SectionInfo = ({
                                 sectionsForm={form}
                                 currentQuestionIndex={currentQuestionIndex}
                                 setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                examType={examtype}
                             />
                         </AlertDialogContent>
                     </AlertDialog>
@@ -371,6 +373,7 @@ export const Step2SectionInfo = ({
                                     sectionsForm={form}
                                     currentQuestionIndex={currentQuestionIndex}
                                     setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                    examType={examtype}
                                 />
                             </div>
                         </DialogContent>

@@ -21,7 +21,13 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
     currentQuestionIndex,
     className,
     showQuestionNumber = true,
+    examType,
 }: QuestionPaperTemplateFormProps) => {
+    console.log('🎯 ComprehensiveNumericQuestionPaperTemplateMainView rendered', {
+        examType,
+        currentQuestionIndex,
+        isSurvey: examType === 'SURVEY'
+    });
     // Add defensive check to ensure form is properly initialized
     if (!form || !form.control || !form.getValues || !form.trigger || !form.watch || !form.setValue) {
         console.error('ComprehensiveNumericQuestionPaperTemplateMainView: Form is not properly initialized');
@@ -42,55 +48,15 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
         } catch (error) {
             console.warn('Trigger validation failed:', error);
         }
-    }, [numericType, currentQuestionIndex, trigger]);
+    }, [numericType, currentQuestionIndex]);
 
     const answersType = getValues('answersType') || 'Answer:';
     const explanationsType = getValues('explanationsType') || 'Explanation:';
     const questionsType = getValues('questionsType') || '';
 
-    // const imageDetails = getValues(`questions.${currentQuestionIndex}.imageDetails`);
     const allQuestions = getValues('questions') || [];
     const tags = getValues(`questions.${currentQuestionIndex}.tags`) || [];
     const level = getValues(`questions.${currentQuestionIndex}.level`) || '';
-
-    // const [isExpanded, setIsExpanded] = useState<boolean>(false);
-
-    // interface CollapsibleQuillEditorProps {
-    //     value: string | null | undefined;
-    //     onChange: (content: string) => void;
-    // }
-
-    // const CollapsibleQuillEditor: React.FC<CollapsibleQuillEditorProps> = ({ value, onChange }) => {
-    //     return (
-    //         <div className="">
-    //             {!isExpanded ? (
-    //                 // Render only a single line preview
-    //                 <div className="flex cursor-pointer flex-row gap-1 border bg-primary-100 p-2">
-    //                     <div className="w-full max-w-[50vw] overflow-hidden text-ellipsis whitespace-nowrap text-body">
-    //                         {value && value.replace(/<[^>]+>/g, '')}
-    //                     </div>
-    //                     <button
-    //                         className="text-body text-blue-500"
-    //                         onClick={() => setIsExpanded(true)}
-    //                     >
-    //                         Show More
-    //                     </button>
-    //                 </div>
-    //             ) : (
-    //                 // Render full Quill Editor when expanded
-    //                 <div className="border bg-primary-100 p-2">
-    //                     <MainViewQuillEditor value={value} onChange={onChange} />
-    //                     <button
-    //                         className="mt-2 text-body text-blue-500"
-    //                         onClick={() => setIsExpanded(false)}
-    //                     >
-    //                         Show Less
-    //                     </button>
-    //                 </div>
-    //             )}
-    //         </div>
-    //     );
-    // };
 
     useEffect(() => {
         try {
@@ -101,7 +67,7 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
         } catch (error) {
             console.warn('Setting default valid answers failed:', error);
         }
-    }, [currentQuestionIndex, getValues, setValue]);
+    }, [currentQuestionIndex]);
 
     if (allQuestions.length === 0) {
         return (
@@ -237,15 +203,16 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                 </div>
             </div>
 
-            <div className="flex w-full flex-col gap-4">
-                <div className="flex flex-row justify-between">
-                    <div>{answersType}</div>
-                </div>
+            {examType !== 'SURVEY' && (
+                <div className="flex w-full flex-col gap-4">
+                    <div className="flex flex-row justify-between">
+                        <div>{answersType}</div>
+                    </div>
 
-                <FormField
-                    control={control}
-                    name={`questions.${currentQuestionIndex}.validAnswers`}
-                    render={({ field }) => (
+                    <FormField
+                        control={control}
+                        name={`questions.${currentQuestionIndex}.validAnswers`}
+                        render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
                                 <div className="flex flex-row flex-wrap items-center gap-4">
@@ -299,6 +266,7 @@ export const ComprehensiveNumericQuestionPaperTemplateMainView = ({
                     )}
                 />
             </div>
+            )}
             <div className="mb-6 flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>{explanationsType}</span>
                 <FormField

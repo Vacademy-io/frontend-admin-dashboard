@@ -40,7 +40,7 @@ import { AssignmentFormType } from '@/routes/study-library/courses/course-detail
 import { convertCapitalToTitleCase } from '@/lib/utils';
 
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
-export type UploadQuestionPaperFormType = z.infer<typeof uploadQuestionPaperFormSchema>;
+export type UploadQuestionPaperFormType = z.infer<ReturnType<typeof uploadQuestionPaperFormSchema>>;
 interface QuestionPaperUploadProps {
     isManualCreated: boolean;
     index?: number;
@@ -49,6 +49,7 @@ interface QuestionPaperUploadProps {
     isStudyLibraryAssignment?: boolean;
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
+    examType?: string;
 }
 
 export const QuestionPaperUpload = ({
@@ -59,6 +60,7 @@ export const QuestionPaperUpload = ({
     isStudyLibraryAssignment,
     currentQuestionIndex,
     setCurrentQuestionIndex,
+    examType,
 }: QuestionPaperUploadProps) => {
     const queryClient = useQueryClient();
     const { instituteDetails } = useInstituteDetailsStore();
@@ -66,8 +68,14 @@ export const QuestionPaperUpload = ({
     const { YearClassFilterData, SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+    console.log('📝 Creating QuestionPaperUpload form with examType:', {
+        examType,
+        isSurvey: examType === 'SURVEY'
+    });
+
     const form = useForm<UploadQuestionPaperFormType>({
-        resolver: zodResolver(uploadQuestionPaperFormSchema),
+        resolver: zodResolver(uploadQuestionPaperFormSchema(examType)),
         mode: 'onChange',
         defaultValues: {
             questionPaperId: '1',
@@ -178,7 +186,7 @@ export const QuestionPaperUpload = ({
         },
     });
 
-    function onSubmit(values: z.infer<typeof uploadQuestionPaperFormSchema>) {
+    function onSubmit(values: z.infer<ReturnType<typeof uploadQuestionPaperFormSchema>>) {
         const getIdYearClass = getIdByLevelName(instituteDetails?.levels || [], values.yearClass);
         const getIdSubject = getIdBySubjectName(instituteDetails?.subjects || [], values.subject);
 
@@ -497,6 +505,7 @@ export const QuestionPaperUpload = ({
                                             buttonText="Preview"
                                             currentQuestionIndex={currentQuestionIndex}
                                             setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                            examType={examType}
                                         />
                                     )
                                 )}
@@ -509,6 +518,7 @@ export const QuestionPaperUpload = ({
                                         buttonText="Add Questions"
                                         currentQuestionIndex={currentQuestionIndex}
                                         setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                        examType={examType}
                                     />
                                 )}
                                 {fileUpload && (

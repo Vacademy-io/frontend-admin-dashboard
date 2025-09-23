@@ -18,7 +18,13 @@ export const LongAnswerQuestionPaperTemplateMainView = ({
     currentQuestionIndex,
     className,
     showQuestionNumber = true,
+    examType,
 }: QuestionPaperTemplateFormProps) => {
+    console.log('🎯 LongAnswerQuestionPaperTemplateMainView rendered', {
+        examType,
+        currentQuestionIndex,
+        isSurvey: examType === 'SURVEY'
+    });
     const { control, getValues } = form;
     const explanationsType = getValues('explanationsType') || 'Explanation:';
     const questionsType = getValues('questionsType') || '';
@@ -27,11 +33,15 @@ export const LongAnswerQuestionPaperTemplateMainView = ({
     const level = getValues(`questions.${currentQuestionIndex}.level`) || '';
 
     useEffect(() => {
-        const validAnswrs = form.getValues(`questions.${currentQuestionIndex}.validAnswers`);
-        if (!validAnswrs) {
-            form.setValue(`questions.${currentQuestionIndex}.validAnswers`, [0]);
+        try {
+            const validAnswers = form.getValues(`questions.${currentQuestionIndex}.validAnswers`);
+            if (!validAnswers) {
+                form.setValue(`questions.${currentQuestionIndex}.validAnswers`, [0]);
+            }
+        } catch (error) {
+            console.warn('Setting default valid answers failed:', error);
         }
-    }, []);
+    }, [currentQuestionIndex]);
 
     if (allQuestions.length === 0) {
         return (
@@ -137,25 +147,27 @@ export const LongAnswerQuestionPaperTemplateMainView = ({
                 </div>
             </div>
 
-            <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
-                <span>Answer</span>
-                <FormField
-                    control={control}
-                    name={`questions.${currentQuestionIndex}.subjectiveAnswerText`}
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormControl>
-                                <RichTextEditor
-                                    onBlur={field.onBlur}
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-            </div>
+            {examType !== 'SURVEY' && (
+                <div className="flex w-full flex-col !flex-nowrap items-start gap-1">
+                    <span>Answer</span>
+                    <FormField
+                        control={control}
+                        name={`questions.${currentQuestionIndex}.subjectiveAnswerText`}
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormControl>
+                                    <RichTextEditor
+                                        onBlur={field.onBlur}
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+            )}
 
             <div className="mb-6 flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>{explanationsType}</span>

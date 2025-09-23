@@ -49,6 +49,7 @@ export function QuestionPaperTemplate({
     isAssessment,
     currentQuestionIndex,
     setCurrentQuestionIndex,
+    examType,
 }: QuestionPaperTemplateProps) {
     const [isQuestionPaperTemplateDialog, setIsQuestionPaperTemplateDialog] = useState(false);
     const { instituteLogo } = useInstituteLogoStore();
@@ -203,15 +204,48 @@ export function QuestionPaperTemplate({
         handleMutationViewQuestionPaper.mutate({ questionPaperId });
     };
 
+    // Re-validate form when examType changes
+    useEffect(() => {
+        if (examType) {
+            console.log('🔄 Re-validating form due to examType change', {
+                examType,
+                currentErrors: Object.keys(form.formState.errors),
+                questionCount: form.getValues('questions')?.length || 0
+            });
+            // Clear any existing errors first
+            form.clearErrors();
+            // Then trigger validation with the new schema
+            form.trigger();
+        }
+    }, [examType, form]);
+
     const handleTriggerForm = () => {
+        console.log('🔍 Triggering form validation', {
+            examType,
+            questionCount: form.getValues('questions')?.length || 0,
+            currentErrors: Object.keys(form.formState.errors)
+        });
+
         form.trigger();
-        if (Object.values(form.formState.errors).length > 0) {
+
+        const errors = form.formState.errors;
+        if (Object.values(errors).length > 0) {
+            console.log('❌ Form validation failed with errors:', {
+                examType,
+                errors: errors,
+                errorCount: Object.values(errors).length
+            });
             toast.error('some of your questions are incomplete or needs attentions!', {
                 className: 'error-toast',
                 duration: 3000,
             });
             return;
         }
+
+        console.log('✅ Form validation passed successfully', {
+            examType,
+            questionCount: form.getValues('questions')?.length || 0
+        });
         setIsQuestionPaperTemplateDialog(false);
     };
 
@@ -450,6 +484,7 @@ export function QuestionPaperTemplate({
                                         setCurrentQuestionIndex: setCurrentQuestionIndex,
                                         className:
                                             'dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4',
+                                        examType: examType,
                                     }}
                                 />
                             )}

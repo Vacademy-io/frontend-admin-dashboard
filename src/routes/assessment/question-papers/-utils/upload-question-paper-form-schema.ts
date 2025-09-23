@@ -1,7 +1,13 @@
 import { z } from 'zod';
 import { isQuillContentEmpty } from './helper';
 
-export const uploadQuestionPaperFormSchema = z.object({
+export const uploadQuestionPaperFormSchema = (examType?: string) => {
+    console.log('🔧 Creating validation schema with examType:', {
+        examType,
+        isSurvey: examType === 'SURVEY'
+    });
+
+    return z.object({
     questionPaperId: z
         .string({
             required_error: 'Question Paper ID is required',
@@ -143,23 +149,60 @@ export const uploadQuestionPaperFormSchema = z.object({
                         });
                     }
 
-                    const selectedCount = question.singleChoiceOptions.filter(
-                        (opt) => opt.isSelected
-                    ).length;
-                    if (selectedCount !== 1) {
-                        ctx.addIssue({
-                            code: z.ZodIssueCode.custom,
-                            message: 'MCQS must have exactly one option selected',
-                            path: ['singleChoiceOptions'],
+                    // Skip correct answer validation for survey questions
+                    if (examType !== 'SURVEY') {
+                        const selectedCount = question.singleChoiceOptions.filter(
+                            (opt) => opt.isSelected
+                        ).length;
+                        if (selectedCount !== 1) {
+                            console.log('❌ MCQS validation failed - no correct answer selected', {
+                                examType,
+                                questionType: 'MCQS',
+                                selectedCount,
+                                question: question.questionName
+                            });
+                            ctx.addIssue({
+                                code: z.ZodIssueCode.custom,
+                                message: 'MCQS must have exactly one option selected',
+                                path: ['singleChoiceOptions'],
+                            });
+                        } else {
+                            console.log('✅ MCQS validation passed - correct answer selected', {
+                                examType,
+                                questionType: 'MCQS',
+                                selectedCount,
+                                question: question.questionName
+                            });
+                        }
+                    } else {
+                        console.log('⏭️ Skipping correct answer validation for SURVEY question', {
+                            examType,
+                            questionType: 'MCQS',
+                            question: question.questionName
                         });
                     }
 
                     question.singleChoiceOptions.forEach((opt, index) => {
                         if (!opt?.name?.trim()) {
+                            console.log('❌ MCQS validation failed - option name missing', {
+                                examType,
+                                questionType: 'MCQS',
+                                optionIndex: index,
+                                optionName: opt?.name,
+                                question: question.questionName
+                            });
                             ctx.addIssue({
                                 code: z.ZodIssueCode.custom,
                                 message: `Option ${index + 1} is required`,
                                 path: ['singleChoiceOptions', index, 'name'],
+                            });
+                        } else {
+                            console.log('✅ MCQS option name validation passed', {
+                                examType,
+                                questionType: 'MCQS',
+                                optionIndex: index,
+                                optionName: opt?.name,
+                                question: question.questionName
                             });
                         }
                     });
@@ -185,23 +228,60 @@ export const uploadQuestionPaperFormSchema = z.object({
                         });
                     }
 
-                    const selectedCount = question.multipleChoiceOptions.filter(
-                        (opt) => opt.isSelected
-                    ).length;
-                    if (selectedCount < 1) {
-                        ctx.addIssue({
-                            code: z.ZodIssueCode.custom,
-                            message: 'MCQM must have at least one option selected',
-                            path: ['multipleChoiceOptions'],
+                    // Skip correct answer validation for survey questions
+                    if (examType !== 'SURVEY') {
+                        const selectedCount = question.multipleChoiceOptions.filter(
+                            (opt) => opt.isSelected
+                        ).length;
+                        if (selectedCount < 1) {
+                            console.log('❌ MCQM validation failed - no correct answer selected', {
+                                examType,
+                                questionType: 'MCQM',
+                                selectedCount,
+                                question: question.questionName
+                            });
+                            ctx.addIssue({
+                                code: z.ZodIssueCode.custom,
+                                message: 'MCQM must have at least one option selected',
+                                path: ['multipleChoiceOptions'],
+                            });
+                        } else {
+                            console.log('✅ MCQM validation passed - correct answer selected', {
+                                examType,
+                                questionType: 'MCQM',
+                                selectedCount,
+                                question: question.questionName
+                            });
+                        }
+                    } else {
+                        console.log('⏭️ Skipping correct answer validation for SURVEY question', {
+                            examType,
+                            questionType: 'MCQM',
+                            question: question.questionName
                         });
                     }
 
                     question.multipleChoiceOptions.forEach((opt, index) => {
                         if (!opt.name?.trim()) {
+                            console.log('❌ MCQM validation failed - option name missing', {
+                                examType,
+                                questionType: 'MCQM',
+                                optionIndex: index,
+                                optionName: opt?.name,
+                                question: question.questionName
+                            });
                             ctx.addIssue({
                                 code: z.ZodIssueCode.custom,
                                 message: `Option ${index + 1} is required`,
                                 path: ['multipleChoiceOptions', index, 'name'],
+                            });
+                        } else {
+                            console.log('✅ MCQM option name validation passed', {
+                                examType,
+                                questionType: 'MCQM',
+                                optionIndex: index,
+                                optionName: opt?.name,
+                                question: question.questionName
                             });
                         }
                     });
@@ -227,15 +307,18 @@ export const uploadQuestionPaperFormSchema = z.object({
                         });
                     }
 
-                    const selectedCount = question.csingleChoiceOptions.filter(
-                        (opt) => opt.isSelected
-                    ).length;
-                    if (selectedCount !== 1) {
-                        ctx.addIssue({
-                            code: z.ZodIssueCode.custom,
-                            message: 'CMCQS must have exactly one option selected',
-                            path: ['csingleChoiceOptions'],
-                        });
+                    // Skip correct answer validation for survey questions
+                    if (examType !== 'SURVEY') {
+                        const selectedCount = question.csingleChoiceOptions.filter(
+                            (opt) => opt.isSelected
+                        ).length;
+                        if (selectedCount !== 1) {
+                            ctx.addIssue({
+                                code: z.ZodIssueCode.custom,
+                                message: 'CMCQS must have exactly one option selected',
+                                path: ['csingleChoiceOptions'],
+                            });
+                        }
                     }
 
                     question.csingleChoiceOptions.forEach((opt, index) => {
@@ -269,15 +352,18 @@ export const uploadQuestionPaperFormSchema = z.object({
                         });
                     }
 
-                    const selectedCount = question.cmultipleChoiceOptions.filter(
-                        (opt) => opt.isSelected
-                    ).length;
-                    if (selectedCount < 1) {
-                        ctx.addIssue({
-                            code: z.ZodIssueCode.custom,
-                            message: 'CMCQM must have at least one option selected',
-                            path: ['cmultipleChoiceOptions'],
-                        });
+                    // Skip correct answer validation for survey questions
+                    if (examType !== 'SURVEY') {
+                        const selectedCount = question.cmultipleChoiceOptions.filter(
+                            (opt) => opt.isSelected
+                        ).length;
+                        if (selectedCount < 1) {
+                            ctx.addIssue({
+                                code: z.ZodIssueCode.custom,
+                                message: 'CMCQM must have at least one option selected',
+                                path: ['cmultipleChoiceOptions'],
+                            });
+                        }
                     }
 
                     question.cmultipleChoiceOptions.forEach((opt, index) => {
@@ -308,26 +394,199 @@ export const uploadQuestionPaperFormSchema = z.object({
                         });
                     }
 
-                    const selectedCount = question.trueFalseOptions.filter(
-                        (opt) => opt.isSelected
-                    ).length;
-                    if (selectedCount !== 1) {
-                        ctx.addIssue({
-                            code: z.ZodIssueCode.custom,
-                            message: 'TRUE_FALSE must have exactly one option selected',
-                            path: ['trueFalseOptions'],
+                    // Skip correct answer validation for survey questions
+                    if (examType !== 'SURVEY') {
+                        const selectedCount = question.trueFalseOptions.filter(
+                            (opt) => opt.isSelected
+                        ).length;
+                        if (selectedCount !== 1) {
+                            console.log('❌ TRUE_FALSE validation failed - no correct answer selected', {
+                                examType,
+                                questionType: 'TRUE_FALSE',
+                                selectedCount,
+                                question: question.questionName
+                            });
+                            ctx.addIssue({
+                                code: z.ZodIssueCode.custom,
+                                message: 'TRUE_FALSE must have exactly one option selected',
+                                path: ['trueFalseOptions'],
+                            });
+                        } else {
+                            console.log('✅ TRUE_FALSE validation passed - correct answer selected', {
+                                examType,
+                                questionType: 'TRUE_FALSE',
+                                selectedCount,
+                                question: question.questionName
+                            });
+                        }
+                    } else {
+                        console.log('⏭️ Skipping correct answer validation for SURVEY question', {
+                            examType,
+                            questionType: 'TRUE_FALSE',
+                            question: question.questionName
                         });
                     }
 
                     question.trueFalseOptions.forEach((opt, index) => {
                         if (!opt?.name?.trim()) {
+                            console.log('❌ TRUE_FALSE validation failed - option name missing', {
+                                examType,
+                                questionType: 'TRUE_FALSE',
+                                optionIndex: index,
+                                optionName: opt?.name,
+                                question: question.questionName
+                            });
                             ctx.addIssue({
                                 code: z.ZodIssueCode.custom,
                                 message: `Option ${index + 1} is required`,
                                 path: ['trueFalseOptions', index, 'name'],
                             });
+                        } else {
+                            console.log('✅ TRUE_FALSE option name validation passed', {
+                                examType,
+                                questionType: 'TRUE_FALSE',
+                                optionIndex: index,
+                                optionName: opt?.name,
+                                question: question.questionName
+                            });
                         }
                     });
+                } else if (question.questionType === 'NUMERIC') {
+                    // Validate numeric questions
+                    if (!question.validAnswers || !Array.isArray(question.validAnswers)) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: 'NUMERIC questions must have validAnswers',
+                            path: ['validAnswers'],
+                        });
+                        return;
+                    }
+
+                    // Skip correct answer validation for survey questions
+                    if (examType !== 'SURVEY') {
+                        if (question.validAnswers.length === 0) {
+                            console.log('❌ NUMERIC validation failed - no valid answers', {
+                                examType,
+                                questionType: 'NUMERIC',
+                                question: question.questionName
+                            });
+                            ctx.addIssue({
+                                code: z.ZodIssueCode.custom,
+                                message: 'NUMERIC questions must have at least one valid answer',
+                                path: ['validAnswers'],
+                            });
+                        } else {
+                            console.log('✅ NUMERIC validation passed - valid answers provided', {
+                                examType,
+                                questionType: 'NUMERIC',
+                                validAnswersCount: question.validAnswers.length,
+                                question: question.questionName
+                            });
+                        }
+                    } else {
+                        console.log('⏭️ Skipping correct answer validation for SURVEY question', {
+                            examType,
+                            questionType: 'NUMERIC',
+                            question: question.questionName
+                        });
+                    }
+                } else if (question.questionType === 'CNUMERIC') {
+                    // Validate comprehensive numeric questions
+                    if (!question.validAnswers || !Array.isArray(question.validAnswers)) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: 'CNUMERIC questions must have validAnswers',
+                            path: ['validAnswers'],
+                        });
+                        return;
+                    }
+
+                    // Skip correct answer validation for survey questions
+                    if (examType !== 'SURVEY') {
+                        if (question.validAnswers.length === 0) {
+                            console.log('❌ CNUMERIC validation failed - no valid answers', {
+                                examType,
+                                questionType: 'CNUMERIC',
+                                question: question.questionName
+                            });
+                            ctx.addIssue({
+                                code: z.ZodIssueCode.custom,
+                                message: 'CNUMERIC questions must have at least one valid answer',
+                                path: ['validAnswers'],
+                            });
+                        } else {
+                            console.log('✅ CNUMERIC validation passed - valid answers provided', {
+                                examType,
+                                questionType: 'CNUMERIC',
+                                validAnswersCount: question.validAnswers.length,
+                                question: question.questionName
+                            });
+                        }
+                    } else {
+                        console.log('⏭️ Skipping correct answer validation for SURVEY question', {
+                            examType,
+                            questionType: 'CNUMERIC',
+                            question: question.questionName
+                        });
+                    }
+                } else if (question.questionType === 'ONE_WORD') {
+                    // Validate one word questions
+                    // Skip correct answer validation for survey questions
+                    if (examType !== 'SURVEY') {
+                        if (!question.subjectiveAnswerText || !question.subjectiveAnswerText.trim()) {
+                            console.log('❌ ONE_WORD validation failed - no answer provided', {
+                                examType,
+                                questionType: 'ONE_WORD',
+                                question: question.questionName
+                            });
+                            ctx.addIssue({
+                                code: z.ZodIssueCode.custom,
+                                message: 'ONE_WORD questions must have a correct answer',
+                                path: ['subjectiveAnswerText'],
+                            });
+                        } else {
+                            console.log('✅ ONE_WORD validation passed - answer provided', {
+                                examType,
+                                questionType: 'ONE_WORD',
+                                question: question.questionName
+                            });
+                        }
+                    } else {
+                        console.log('⏭️ Skipping correct answer validation for SURVEY question', {
+                            examType,
+                            questionType: 'ONE_WORD',
+                            question: question.questionName
+                        });
+                    }
+                } else if (question.questionType === 'LONG_ANSWER') {
+                    // Validate long answer questions
+                    // Skip correct answer validation for survey questions
+                    if (examType !== 'SURVEY') {
+                        if (!question.subjectiveAnswerText || !question.subjectiveAnswerText.trim()) {
+                            console.log('❌ LONG_ANSWER validation failed - no answer provided', {
+                                examType,
+                                questionType: 'LONG_ANSWER',
+                                question: question.questionName
+                            });
+                            ctx.addIssue({
+                                code: z.ZodIssueCode.custom,
+                                message: 'LONG_ANSWER questions must have a correct answer',
+                                path: ['subjectiveAnswerText'],
+                            });
+                        } else {
+                            console.log('✅ LONG_ANSWER validation passed - answer provided', {
+                                examType,
+                                questionType: 'LONG_ANSWER',
+                                question: question.questionName
+                            });
+                        }
+                    } else {
+                        console.log('⏭️ Skipping correct answer validation for SURVEY question', {
+                            examType,
+                            questionType: 'LONG_ANSWER',
+                            question: question.questionName
+                        });
+                    }
                 }
 
                 const { numericType, validAnswers } = question;
@@ -353,3 +612,4 @@ export const uploadQuestionPaperFormSchema = z.object({
             })
     ),
 });
+};

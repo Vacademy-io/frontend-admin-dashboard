@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { create } from 'zustand';
 import { uploadQuestionPaperFormSchema } from '../-utils/upload-question-paper-form-schema';
 
-type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
+type QuestionPaperForm = z.infer<ReturnType<typeof uploadQuestionPaperFormSchema>>;
 
 export interface QuestionPaperListInterface {
     questionPaperList: QuestionPaperForm[]; // Array of plain form data
