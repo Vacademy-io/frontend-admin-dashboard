@@ -597,7 +597,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                     <FormLabel className="font-semibold">
                                                         Closed Test:{' '}
                                                         <span className="font-thin">
-                                                            Restrict the Assessment to specific
+                                                            {examType === 'SURVEY' ? 'Restrict the Survey to specific' : 'Restrict the Assessment to specific'}
                                                             participants by assigning it to
                                                             institute batches or selecting
                                                             individual{' '}
@@ -623,7 +623,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                         Open Test:{' '}
                                                         <span className="font-thin">
                                                             Allow anyone to register for this
-                                                            Assessment via a shared link. Institute
+                                                            {examType === 'SURVEY' ? 'Survey' : 'Assessment'} via a shared link. Institute
                                                             {getTerminology(
                                                                 RoleTerms.Learner,
                                                                 SystemTerms.Learner
@@ -643,7 +643,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                     {watch('open_test.checked') && (
                         <>
                             <div className="mt-2 flex flex-col gap-4">
-                                <h1>Assessment Registration</h1>
+                                <h1>{examType === 'SURVEY' ? 'Survey Registration' : 'Assessment Registration'}</h1>
                                 <div className="-mt-2 flex items-start gap-4">
                                     {getStepKey({
                                         assessmentDetails,
@@ -710,7 +710,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                 </div>
                             </div>
                             <div className="mt-2 flex flex-col gap-6">
-                                <h1 className="-mb-5">About Assessment Registration</h1>
+                                <h1 className="-mb-5">{examType === 'SURVEY' ? 'About Survey Registration' : 'About Assessment Registration'}</h1>
                                 <FormField
                                     control={control}
                                     name="open_test.instructions"
@@ -1290,7 +1290,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 />
                                             </FormControl>
                                             <FormLabel className="!mb-[3px] font-thin">
-                                                When Assessment is created
+                                                {examType === 'SURVEY' ? 'When Survey is created' : 'When Assessment is created'}
                                             </FormLabel>
                                         </FormItem>
                                     )}
@@ -1312,7 +1312,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 />
                                             </FormControl>
                                             <FormLabel className="!mb-[3px] font-thin">
-                                                Before Assessment goes live
+                                                {examType === 'SURVEY' ? 'Before Survey goes live' : 'Before Assessment goes live'}
                                             </FormLabel>
                                         </FormItem>
                                     )}
@@ -1349,7 +1349,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 />
                                             </FormControl>
                                             <FormLabel className="!mb-[3px] font-thin">
-                                                When Assessment goes live
+                                                {examType === 'SURVEY' ? 'When Survey goes live' : 'When Assessment goes live'}
                                             </FormLabel>
                                         </FormItem>
                                     )}
@@ -1371,7 +1371,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 />
                                             </FormControl>
                                             <FormLabel className="!mb-[3px] font-thin">
-                                                When assessment reports are generated
+                                                {examType === 'SURVEY' ? 'When survey reports are generated' : 'When assessment reports are generated'}
                                             </FormLabel>
                                         </FormItem>
                                     )}
@@ -1403,7 +1403,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 />
                                             </FormControl>
                                             <FormLabel className="!mb-[3px] font-thin">
-                                                When Assessment is created
+                                                {examType === 'SURVEY' ? 'When Survey is created' : 'When Assessment is created'}
                                             </FormLabel>
                                         </FormItem>
                                     )}
@@ -1425,7 +1425,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 />
                                             </FormControl>
                                             <FormLabel className="!mb-[3px] font-thin">
-                                                Before Assessment goes live
+                                                {examType === 'SURVEY' ? 'Before Survey goes live' : 'Before Assessment goes live'}
                                             </FormLabel>
                                         </FormItem>
                                     )}
@@ -1462,7 +1462,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 />
                                             </FormControl>
                                             <FormLabel className="!mb-[3px] font-thin">
-                                                When Assessment goes live
+                                                {examType === 'SURVEY' ? 'When Survey goes live' : 'When Assessment goes live'}
                                             </FormLabel>
                                         </FormItem>
                                     )}
@@ -1484,7 +1484,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 />
                                             </FormControl>
                                             <FormLabel className="!mb-[3px] font-thin">
-                                                When students appears for the Assessment
+                                                {examType === 'SURVEY' ? 'When students appears for the Survey' : 'When students appears for the Assessment'}
                                             </FormLabel>
                                         </FormItem>
                                     )}
@@ -1506,7 +1506,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 />
                                             </FormControl>
                                             <FormLabel className="!mb-[3px] font-thin">
-                                                When students finishes the Assessment
+                                                {examType === 'SURVEY' ? 'When students finishes the Survey' : 'When students finishes the Assessment'}
                                             </FormLabel>
                                         </FormItem>
                                     )}
@@ -1528,7 +1528,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 />
                                             </FormControl>
                                             <FormLabel className="!mb-[3px] font-thin">
-                                                When assessment reports are generated
+                                                {examType === 'SURVEY' ? 'When survey reports are generated' : 'When assessment reports are generated'}
                                             </FormLabel>
                                         </FormItem>
                                     )}

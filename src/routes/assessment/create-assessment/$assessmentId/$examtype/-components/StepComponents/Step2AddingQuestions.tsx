@@ -33,7 +33,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
 }) => {
     const queryClient = useQueryClient();
     const params = useParams({ strict: false });
-    const examType = params.examtype ?? ''; // Ensure it's a string
+    const examType = params.examtype ?? '' as 'EXAM' | 'MOCK' | 'SURVEY'; // Ensure it's a string
     const assessmentId = params.assessmentId ?? ''; // Ensure it's string | null
     const storeDataStep2 = useSectionDetailsStore((state) => state);
     const { savedAssessmentId } = useSavedAssessmentStore();
@@ -42,7 +42,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
         getAssessmentDetails({
             assessmentId: assessmentId !== 'defaultId' ? assessmentId : savedAssessmentId,
             instituteId: instituteDetails?.id,
-            type: 'EXAM',
+            type: examType,
         })
     );
 
@@ -467,7 +467,7 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                                         <RadioGroupItem value="ASSESSMENT" />
                                                                     </FormControl>
                                                                     <FormLabel className="font-thin">
-                                                                        Entire Assessment Duration
+                                                                        {(examType as string) === 'SURVEY' ? 'Entire Survey Duration' : 'Entire Assessment Duration'}
                                                                     </FormLabel>
                                                                 </FormItem>
                                                             )}
@@ -510,10 +510,10 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                     {form.getValues('testDuration.entireTestDuration.checked') && (
                                         <div className="mt-3 text-sm">
                                             <p>
-                                                Entire Assessment Duration –{' '}
+                                                {(examType as string) === 'SURVEY' ? 'Entire Survey Duration' : 'Entire Assessment Duration'} –{' '}
                                                 <span className="font-light">
                                                     Set a single time limit for the whole
-                                                    assessement.
+                                                    {(examType as string) === 'SURVEY' ? 'survey.' : 'assessment.'}
                                                 </span>
                                             </p>
                                         </div>

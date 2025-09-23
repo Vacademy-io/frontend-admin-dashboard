@@ -400,7 +400,7 @@ export const Step2SectionInfo = ({
                         )}
                     />
                 </div>
-                {watch(`testDuration.questionWiseDuration`) && (
+                {watch(`testDuration.questionWiseDuration`) && examtype !== 'SURVEY' && (
                     <div className="flex w-96 items-center justify-between text-sm font-thin">
                         <h1 className="font-normal">
                             Question Duration{' '}
@@ -481,7 +481,7 @@ export const Step2SectionInfo = ({
                         </div>
                     </div>
                 )}
-                {watch(`testDuration.sectionWiseDuration`) && (
+                {watch(`testDuration.sectionWiseDuration`) && examtype !== 'SURVEY' && (
                     <div className="flex w-96 items-center justify-between text-sm font-thin">
                         <h1 className="font-normal">
                             Section Duration{' '}
@@ -817,7 +817,7 @@ export const Step2SectionInfo = ({
                                     <TableHead>Question Type</TableHead>
                                     {examtype !== 'SURVEY' && <TableHead>Marks</TableHead>}
                                     {examtype !== 'SURVEY' && <TableHead>Penalty</TableHead>}
-                                    {watch(`testDuration.questionWiseDuration`) && (
+                                    {watch(`testDuration.questionWiseDuration`) && examtype !== 'SURVEY' && (
                                         <TableHead>Time</TableHead>
                                     )}
                                 </TableRow>
@@ -892,7 +892,7 @@ export const Step2SectionInfo = ({
                                                             />
                                                         </TableCell>
                                                     )}
-                                                    {watch(`testDuration.questionWiseDuration`) && (
+                                                    {watch(`testDuration.questionWiseDuration`) && examtype !== 'SURVEY' && (
                                                         <TableCell>
                                                             <div className="flex items-center gap-2">
                                                                 <FormField

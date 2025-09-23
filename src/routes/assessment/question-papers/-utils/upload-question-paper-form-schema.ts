@@ -151,20 +151,20 @@ export const uploadQuestionPaperFormSchema = (examType?: string) => {
 
                     // Skip correct answer validation for survey questions
                     if (examType !== 'SURVEY') {
-                        const selectedCount = question.singleChoiceOptions.filter(
-                            (opt) => opt.isSelected
-                        ).length;
-                        if (selectedCount !== 1) {
+                    const selectedCount = question.singleChoiceOptions.filter(
+                        (opt) => opt.isSelected
+                    ).length;
+                    if (selectedCount !== 1) {
                             console.log('❌ MCQS validation failed - no correct answer selected', {
                                 examType,
                                 questionType: 'MCQS',
                                 selectedCount,
                                 question: question.questionName
                             });
-                            ctx.addIssue({
-                                code: z.ZodIssueCode.custom,
-                                message: 'MCQS must have exactly one option selected',
-                                path: ['singleChoiceOptions'],
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: 'MCQS must have exactly one option selected',
+                            path: ['singleChoiceOptions'],
                             });
                         } else {
                             console.log('✅ MCQS validation passed - correct answer selected', {
@@ -230,20 +230,20 @@ export const uploadQuestionPaperFormSchema = (examType?: string) => {
 
                     // Skip correct answer validation for survey questions
                     if (examType !== 'SURVEY') {
-                        const selectedCount = question.multipleChoiceOptions.filter(
-                            (opt) => opt.isSelected
-                        ).length;
-                        if (selectedCount < 1) {
+                    const selectedCount = question.multipleChoiceOptions.filter(
+                        (opt) => opt.isSelected
+                    ).length;
+                    if (selectedCount < 1) {
                             console.log('❌ MCQM validation failed - no correct answer selected', {
                                 examType,
                                 questionType: 'MCQM',
                                 selectedCount,
                                 question: question.questionName
                             });
-                            ctx.addIssue({
-                                code: z.ZodIssueCode.custom,
-                                message: 'MCQM must have at least one option selected',
-                                path: ['multipleChoiceOptions'],
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: 'MCQM must have at least one option selected',
+                            path: ['multipleChoiceOptions'],
                             });
                         } else {
                             console.log('✅ MCQM validation passed - correct answer selected', {
@@ -309,15 +309,15 @@ export const uploadQuestionPaperFormSchema = (examType?: string) => {
 
                     // Skip correct answer validation for survey questions
                     if (examType !== 'SURVEY') {
-                        const selectedCount = question.csingleChoiceOptions.filter(
-                            (opt) => opt.isSelected
-                        ).length;
-                        if (selectedCount !== 1) {
-                            ctx.addIssue({
-                                code: z.ZodIssueCode.custom,
-                                message: 'CMCQS must have exactly one option selected',
-                                path: ['csingleChoiceOptions'],
-                            });
+                    const selectedCount = question.csingleChoiceOptions.filter(
+                        (opt) => opt.isSelected
+                    ).length;
+                    if (selectedCount !== 1) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: 'CMCQS must have exactly one option selected',
+                            path: ['csingleChoiceOptions'],
+                        });
                         }
                     }
 
@@ -354,15 +354,15 @@ export const uploadQuestionPaperFormSchema = (examType?: string) => {
 
                     // Skip correct answer validation for survey questions
                     if (examType !== 'SURVEY') {
-                        const selectedCount = question.cmultipleChoiceOptions.filter(
-                            (opt) => opt.isSelected
-                        ).length;
-                        if (selectedCount < 1) {
-                            ctx.addIssue({
-                                code: z.ZodIssueCode.custom,
-                                message: 'CMCQM must have at least one option selected',
-                                path: ['cmultipleChoiceOptions'],
-                            });
+                    const selectedCount = question.cmultipleChoiceOptions.filter(
+                        (opt) => opt.isSelected
+                    ).length;
+                    if (selectedCount < 1) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: 'CMCQM must have at least one option selected',
+                            path: ['cmultipleChoiceOptions'],
+                        });
                         }
                     }
 
@@ -380,7 +380,7 @@ export const uploadQuestionPaperFormSchema = (examType?: string) => {
                     if (!question.trueFalseOptions || question.trueFalseOptions.length === 0) {
                         ctx.addIssue({
                             code: z.ZodIssueCode.custom,
-                            message: 'TRUE_FALSE questions must have singleChoiceOptions',
+                            message: 'TRUE_FALSE questions must have trueFalseOptions',
                             path: ['trueFalseOptions'],
                         });
                         return;
@@ -396,20 +396,20 @@ export const uploadQuestionPaperFormSchema = (examType?: string) => {
 
                     // Skip correct answer validation for survey questions
                     if (examType !== 'SURVEY') {
-                        const selectedCount = question.trueFalseOptions.filter(
-                            (opt) => opt.isSelected
-                        ).length;
-                        if (selectedCount !== 1) {
+                    const selectedCount = question.trueFalseOptions.filter(
+                        (opt) => opt.isSelected
+                    ).length;
+                    if (selectedCount !== 1) {
                             console.log('❌ TRUE_FALSE validation failed - no correct answer selected', {
                                 examType,
                                 questionType: 'TRUE_FALSE',
                                 selectedCount,
                                 question: question.questionName
                             });
-                            ctx.addIssue({
-                                code: z.ZodIssueCode.custom,
-                                message: 'TRUE_FALSE must have exactly one option selected',
-                                path: ['trueFalseOptions'],
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: 'TRUE_FALSE must have exactly one option selected',
+                            path: ['trueFalseOptions'],
                             });
                         } else {
                             console.log('✅ TRUE_FALSE validation passed - correct answer selected', {

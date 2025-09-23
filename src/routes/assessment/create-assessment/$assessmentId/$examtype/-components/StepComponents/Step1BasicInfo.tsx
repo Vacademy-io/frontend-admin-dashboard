@@ -45,38 +45,6 @@ export function convertDateFormat(dateStr: string) {
     return date.toISOString().slice(0, 16);
 }
 
-const heading = (
-    <div className="flex items-center gap-4">
-        <CaretLeft
-            onClick={() => {
-                useBasicInfoStore.getState().reset();
-                useSectionDetailsStore.getState().reset();
-                useTestAccessStore.getState().reset();
-                useAccessControlStore.getState().reset();
-                window.history.back();
-            }}
-            className="cursor-pointer"
-        />
-        <h1 className="text-lg">Create Assessment</h1>
-    </div>
-);
-
-const headingUpdate = (
-    <div className="flex items-center gap-4">
-        <CaretLeft
-            onClick={() => {
-                useBasicInfoStore.getState().reset();
-                useSectionDetailsStore.getState().reset();
-                useTestAccessStore.getState().reset();
-                useAccessControlStore.getState().reset();
-                window.history.back();
-            }}
-            className="cursor-pointer"
-        />
-        <h1 className="text-lg">Update Assessment</h1>
-    </div>
-);
-
 const Step1BasicInfo: React.FC<StepContentProps> = ({
     currentStep,
     handleCompleteCurrentStep,
@@ -87,6 +55,38 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
     const examType = params.examtype;
     const assessmentId = params.assessmentId;
     const { setNavHeading } = useNavHeadingStore();
+
+    const heading = (
+        <div className="flex items-center gap-4">
+            <CaretLeft
+                onClick={() => {
+                    useBasicInfoStore.getState().reset();
+                    useSectionDetailsStore.getState().reset();
+                    useTestAccessStore.getState().reset();
+                    useAccessControlStore.getState().reset();
+                    window.history.back();
+                }}
+                className="cursor-pointer"
+            />
+            <h1 className="text-lg">{examType === 'SURVEY' ? 'Create Survey' : 'Create Assessment'}</h1>
+        </div>
+    );
+
+    const headingUpdate = (
+        <div className="flex items-center gap-4">
+            <CaretLeft
+                onClick={() => {
+                    useBasicInfoStore.getState().reset();
+                    useSectionDetailsStore.getState().reset();
+                    useTestAccessStore.getState().reset();
+                    useAccessControlStore.getState().reset();
+                    window.history.back();
+                }}
+                className="cursor-pointer"
+            />
+            <h1 className="text-lg">{examType === 'SURVEY' ? 'Update Survey' : 'Update Assessment'}</h1>
+        </div>
+    );
     const storeDataStep1 = useBasicInfoStore((state) => state);
     const { setSavedAssessmentId } = useSavedAssessmentStore();
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
@@ -334,7 +334,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                                 }
                                                 required={true}
                                                 size="large"
-                                                label="Assessment Name"
+                                                label={examType === 'SURVEY' ? 'Survey Name' : 'Assessment Name'}
                                                 {...field}
                                             />
                                         </FormControl>
@@ -370,7 +370,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                         )}
                     </div>
                     <div className="flex flex-col gap-6" id="assessment-instructions">
-                        <h1 className="-mb-5 font-thin">Assessment Instructions</h1>
+                        <h1 className="-mb-5 font-thin">{examType === 'SURVEY' ? 'Survey Instructions' : 'Assessment Instructions'}</h1>
                         <FormField
                             control={control}
                             name="testCreation.assessmentInstructions"
@@ -381,7 +381,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                             onChange={field.onChange}
                                             onBlur={field.onBlur}
                                             value={field.value}
-                                            placeholder="Write the assessment instructions"
+                                            placeholder={examType === 'SURVEY' ? 'Write the survey instructions' : 'Write the assessment instructions'}
                                             minHeight={160}
                                         />
                                     </FormControl>
@@ -584,7 +584,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                 render={({ field }) => (
                                     <FormItem className="flex w-1/2 items-center justify-between">
                                         <FormLabel>
-                                            Allow Assessment Preview
+                                            {examType === 'SURVEY' ? 'Allow Survey Preview' : 'Allow Assessment Preview'}
                                             {getStepKey({
                                                 assessmentDetails,
                                                 currentStep,
@@ -605,7 +605,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                 )}
                             />
                         )}
-                        {watch('assessmentPreview.checked') && (
+                        {watch('assessmentPreview.checked') && examType !== 'SURVEY' && (
                             <SelectField
                                 label="Preview Time Limit"
                                 labelStyle="font-thin"

@@ -125,6 +125,61 @@ export function QuestionPaperTemplate({
                     isSelected: false,
                 },
             ],
+            trueFalseOptions: [
+                {
+                    name: 'True',
+                    isSelected: false,
+                },
+                {
+                    name: 'False',
+                    isSelected: false,
+                },
+            ],
+            csingleChoiceOptions: [
+                {
+                    name: '',
+                    isSelected: false,
+                },
+                {
+                    name: '',
+                    isSelected: false,
+                },
+                {
+                    name: '',
+                    isSelected: false,
+                },
+                {
+                    name: '',
+                    isSelected: false,
+                },
+            ],
+            cmultipleChoiceOptions: [
+                {
+                    name: '',
+                    isSelected: false,
+                },
+                {
+                    name: '',
+                    isSelected: false,
+                },
+                {
+                    name: '',
+                    isSelected: false,
+                },
+                {
+                    name: '',
+                    isSelected: false,
+                },
+            ],
+            validAnswers: [0],
+            subjectiveAnswerText: '',
+            numericType: '',
+            parentRichTextContent: null,
+            decimals: 0,
+            questionResponseType: null,
+            questionPoints: '',
+            reattemptCount: '',
+            timestamp: '',
         });
         // Set current question index to the newly added question (last question)
         setCurrentQuestionIndex(questions.length);
