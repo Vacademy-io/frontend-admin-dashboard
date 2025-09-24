@@ -16,7 +16,7 @@ interface FormData {
     yearClass: string;
     subject: string;
 }
-type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
+type QuestionPaperForm = z.infer<ReturnType<typeof uploadQuestionPaperFormSchema>>;
 
 export const QuestionPaperEditDialog = ({ form }: { form: UseFormReturn<QuestionPaperForm> }) => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);

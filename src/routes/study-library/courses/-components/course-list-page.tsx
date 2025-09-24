@@ -136,7 +136,7 @@ const CourseListPage = ({
                     {/* Tags Section */}
                     {tags.length > 0 && (
                         <>
-                            <div className="mb-1 mt-4 text-sm font-semibold">Tags</div>
+                            <div className="mb-1 mt-4 text-sm font-semibold">Popular Tags</div>
                             <div className="flex flex-col gap-2">
                                 {tags.map((tagValue: string) => (
                                     <label

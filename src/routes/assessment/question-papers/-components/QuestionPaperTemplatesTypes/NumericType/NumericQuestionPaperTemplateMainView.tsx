@@ -19,7 +19,13 @@ export const NumericQuestionPaperTemplateMainView = ({
     currentQuestionIndex,
     className,
     showQuestionNumber = true,
+    examType,
 }: QuestionPaperTemplateFormProps) => {
+    console.log('🎯 NumericQuestionPaperTemplateMainView rendered', {
+        examType,
+        currentQuestionIndex,
+        isSurvey: examType === 'SURVEY'
+    });
     // Add defensive check to ensure form is properly initialized
     if (!form || !form.control || !form.getValues || !form.trigger || !form.watch || !form.setValue) {
         return (
@@ -47,17 +53,17 @@ export const NumericQuestionPaperTemplateMainView = ({
                 setValue(`questions.${currentQuestionIndex}.validAnswers`, [0]);
             }
         } catch (error) {
-            // Silently handle error
+            console.warn('Setting default valid answers failed:', error);
         }
-    }, [currentQuestionIndex, getValues, setValue]);
+    }, [currentQuestionIndex]);
 
     useEffect(() => {
         try {
             trigger(`questions.${currentQuestionIndex}.validAnswers`);
         } catch (error) {
-            // Silently handle error
+            console.warn('Trigger validation failed:', error);
         }
-    }, [numericType, currentQuestionIndex, trigger]);
+    }, [numericType, currentQuestionIndex]);
 
     return (
         <div className={className}>
@@ -187,15 +193,16 @@ export const NumericQuestionPaperTemplateMainView = ({
                 </div>
             </div>
 
-            <div className="flex w-full flex-col gap-4">
-                <div className="flex flex-row justify-between">
-                    <div>{answersType}</div>
-                </div>
+            {examType !== 'SURVEY' && (
+                <div className="flex w-full flex-col gap-4">
+                    <div className="flex flex-row justify-between">
+                        <div>{answersType}</div>
+                    </div>
 
-                <FormField
-                    control={control}
-                    name={`questions.${currentQuestionIndex}.validAnswers`}
-                    render={({ field }) => (
+                    <FormField
+                        control={control}
+                        name={`questions.${currentQuestionIndex}.validAnswers`}
+                        render={({ field }) => (
                         <FormItem className="w-full">
                             <FormControl>
                                 <div className="flex flex-row flex-wrap items-center gap-4">
@@ -249,6 +256,7 @@ export const NumericQuestionPaperTemplateMainView = ({
                     )}
                 />
             </div>
+            )}
             <div className="mb-6 flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>{explanationsType}</span>
                 <FormField

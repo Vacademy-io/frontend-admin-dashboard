@@ -12,7 +12,7 @@ import { uploadQuestionPaperFormSchema } from '@/routes/assessment/question-pape
 import { z } from 'zod';
 import { Switch } from '@/components/ui/switch';
 
-type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
+type QuestionPaperForm = z.infer<ReturnType<typeof uploadQuestionPaperFormSchema>>;
 
 interface VideoQuestionsTimeFrameDialogProps {
     addedQuestionForm: UseFormReturn<QuestionPaperForm>;

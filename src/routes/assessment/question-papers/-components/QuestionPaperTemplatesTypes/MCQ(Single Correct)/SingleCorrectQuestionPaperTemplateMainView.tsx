@@ -17,7 +17,13 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
     currentQuestionIndex,
     className,
     showQuestionNumber = true,
+    examType,
 }: QuestionPaperTemplateFormProps) => {
+    console.log('🎯 SingleCorrectQuestionPaperTemplateMainView rendered', {
+        examType,
+        currentQuestionIndex,
+        isSurvey: examType === 'SURVEY'
+    });
     const { control, getValues, setValue } = form;
     const answersType = getValues('answersType') || 'Answer:';
     const explanationsType = getValues('explanationsType') || 'Explanation:';
@@ -33,6 +39,22 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
     const level = getValues(`questions.${currentQuestionIndex}.level`) || '';
 
     const handleOptionChange = (optionIndex: number) => {
+        // For survey questions, don't handle correct answer selection
+        if (examType === 'SURVEY') {
+            console.log('⏭️ Skipping option selection for SURVEY question', {
+                examType,
+                optionIndex,
+                currentQuestionIndex
+            });
+            return;
+        }
+
+        console.log('✅ Handling option selection for EXAM question', {
+            examType,
+            optionIndex,
+            currentQuestionIndex
+        });
+
         const options = [0, 1, 2, 3];
 
         // Check current state of the selected option
@@ -163,7 +185,7 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                 <div className="flex gap-4">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option1?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
+                            option1?.isSelected && examType !== 'SURVEY' ? 'border border-primary-300 bg-primary-50' : ''
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -191,32 +213,34 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 )}
                             />
                         </div>
-                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.singleChoiceOptions.${0}.isSelected`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={() => handleOptionChange(0)}
-                                                className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
-                                                    field.value
-                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
-                                                        : '' // Default styles when unchecked
-                                                }`}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
+                        {examType !== 'SURVEY' && (
+                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
+                                <FormField
+                                    control={control}
+                                    name={`questions.${currentQuestionIndex}.singleChoiceOptions.${0}.isSelected`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <Checkbox
+                                                    checked={field.value}
+                                                    onCheckedChange={() => handleOptionChange(0)}
+                                                    className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
+                                                        field.value
+                                                            ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
+                                                            : '' // Default styles when unchecked
+                                                    }`}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        )}
                     </div>
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option2?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
+                            option2?.isSelected && examType !== 'SURVEY' ? 'border border-primary-300 bg-primary-50' : ''
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -244,34 +268,36 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 )}
                             />
                         </div>
-                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.singleChoiceOptions.${1}.isSelected`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={() => handleOptionChange(1)}
-                                                className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
-                                                    field.value
-                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
-                                                        : '' // Default styles when unchecked
-                                                }`}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
+                        {examType !== 'SURVEY' && (
+                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
+                                <FormField
+                                    control={control}
+                                    name={`questions.${currentQuestionIndex}.singleChoiceOptions.${1}.isSelected`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <Checkbox
+                                                    checked={field.value}
+                                                    onCheckedChange={() => handleOptionChange(1)}
+                                                    className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
+                                                        field.value
+                                                            ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
+                                                            : '' // Default styles when unchecked
+                                                    }`}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
                 <div className="flex gap-4">
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option3?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
+                            option3?.isSelected && examType !== 'SURVEY' ? 'border border-primary-300 bg-primary-50' : ''
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -300,32 +326,34 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 )}
                             />
                         </div>
-                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.singleChoiceOptions.${2}.isSelected`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={() => handleOptionChange(2)}
-                                                className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
-                                                    field.value
-                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
-                                                        : '' // Default styles when unchecked
-                                                }`}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
+                        {examType !== 'SURVEY' && (
+                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
+                                <FormField
+                                    control={control}
+                                    name={`questions.${currentQuestionIndex}.singleChoiceOptions.${2}.isSelected`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <Checkbox
+                                                    checked={field.value}
+                                                    onCheckedChange={() => handleOptionChange(2)}
+                                                    className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
+                                                        field.value
+                                                            ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
+                                                            : '' // Default styles when unchecked
+                                                    }`}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        )}
                     </div>
                     <div
                         className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                            option4?.isSelected ? 'border border-primary-300 bg-primary-50' : ''
+                            option4?.isSelected && examType !== 'SURVEY' ? 'border border-primary-300 bg-primary-50' : ''
                         }`}
                     >
                         <div className="flex w-full items-center gap-4">
@@ -354,28 +382,30 @@ export const SingleCorrectQuestionPaperTemplateMainView = ({
                                 )}
                             />
                         </div>
-                        <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
-                            <FormField
-                                control={control}
-                                name={`questions.${currentQuestionIndex}.singleChoiceOptions.${3}.isSelected`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={() => handleOptionChange(3)}
-                                                className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
-                                                    field.value
-                                                        ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
-                                                        : '' // Default styles when unchecked
-                                                }`}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
+                        {examType !== 'SURVEY' && (
+                            <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
+                                <FormField
+                                    control={control}
+                                    name={`questions.${currentQuestionIndex}.singleChoiceOptions.${3}.isSelected`}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <Checkbox
+                                                    checked={field.value}
+                                                    onCheckedChange={() => handleOptionChange(3)}
+                                                    className={`mt-1 size-5 rounded-xl border-2 shadow-none ${
+                                                        field.value
+                                                            ? 'border-none bg-green-500 text-white' // Blue background and red tick when checked
+                                                            : '' // Default styles when unchecked
+                                                    }`}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

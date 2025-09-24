@@ -14,12 +14,15 @@ import {
 } from '@/lib/auth/instituteUtils';
 import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { trackEvent, identifyUser } from '@/lib/amplitude';
-import { getDisplaySettingsFromCache } from '@/services/display-settings';
-import { ADMIN_DISPLAY_SETTINGS_KEY, TEACHER_DISPLAY_SETTINGS_KEY } from '@/types/display-settings';
+import { getDisplaySettingsFromCache, getDisplaySettings } from '@/services/display-settings';
+import {
+    ADMIN_DISPLAY_SETTINGS_KEY,
+    TEACHER_DISPLAY_SETTINGS_KEY,
+    type DisplaySettingsData,
+} from '@/types/display-settings';
 import type { QueryClient } from '@tanstack/react-query';
 import { getCachedInstituteBranding } from '@/services/domain-routing';
 import { getCourseSettings } from '@/services/course-settings';
-import { getDisplaySettings } from '@/services/display-settings';
 
 export interface LoginFlowResult {
     success: boolean;
@@ -164,22 +167,81 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
             // Set the selected institute
             setSelectedInstitute(instituteResult.selectedInstitute.id);
 
-            // Refresh settings caches for this institute (non-blocking)
+            // Refresh settings caches for this institute (non-blocking for course settings)
             void getCourseSettings(true).catch(() => {});
-            void getDisplaySettings(ADMIN_DISPLAY_SETTINGS_KEY, true).catch(() => {});
-            void getDisplaySettings(TEACHER_DISPLAY_SETTINGS_KEY, true).catch(() => {});
 
-            // Determine redirect URL from Display Settings (cached), fallback to dashboard
+            // Determine redirect URL from Display Settings - fetch the correct role settings first
             const roleKey = hasAdminRole
                 ? ADMIN_DISPLAY_SETTINGS_KEY
                 : TEACHER_DISPLAY_SETTINGS_KEY;
-            const ds = getDisplaySettingsFromCache(roleKey);
+
+            // Ensure display settings are loaded before getting redirect URL with retry logic
+            let ds: DisplaySettingsData | null = null;
+            const maxRetries = 3;
+            let retryCount = 0;
+
+            while (retryCount < maxRetries && !ds) {
+                try {
+                    console.log(
+                        `🔍 LOGIN DEBUG: Fetching display settings for role: ${roleKey} (attempt ${retryCount + 1}/${maxRetries})`
+                    );
+                    ds = await getDisplaySettings(roleKey, true);
+                    console.log('🔍 LOGIN DEBUG: Display settings fetched successfully:', {
+                        roleKey,
+                        postLoginRedirectRoute: ds?.postLoginRedirectRoute,
+                        attempt: retryCount + 1,
+                        fullSettings: ds,
+                    });
+                    break; // Success, exit retry loop
+                } catch (error) {
+                    retryCount++;
+                    const errorStatus = (error as any)?.response?.status;
+                    console.warn(
+                        `🔍 LOGIN DEBUG: Failed to fetch display settings (attempt ${retryCount}/${maxRetries}) [Status: ${errorStatus}]:`,
+                        error
+                    );
+
+                    if (retryCount >= maxRetries) {
+                        // Final attempt failed, use cache
+                        ds = getDisplaySettingsFromCache(roleKey);
+                        console.log(
+                            '🔍 LOGIN DEBUG: Using cached display settings after all retries failed:',
+                            {
+                                roleKey,
+                                postLoginRedirectRoute: ds?.postLoginRedirectRoute,
+                                cacheAvailable: !!ds,
+                            }
+                        );
+                        break;
+                    } else {
+                        // Wait before retry (exponential backoff)
+                        const delay = Math.pow(2, retryCount - 1) * 500; // 500ms, 1s, 2s
+                        console.log(`🔍 LOGIN DEBUG: Retrying in ${delay}ms...`);
+                        await new Promise((resolve) => setTimeout(resolve, delay));
+                    }
+                }
+            }
 
             let redirectUrl = ds?.postLoginRedirectRoute || '/dashboard';
+            console.log('🔍 LOGIN DEBUG: Determined redirect URL:', {
+                postLoginRedirectRoute: ds?.postLoginRedirectRoute,
+                finalRedirectUrl: redirectUrl,
+                roleKey,
+                hasAdminRole,
+            });
 
             // Prefer afterLoginRoute from domain resolve if available
             const cached = getCachedInstituteBranding();
+            console.log('🔍 LOGIN DEBUG: Checking domain branding override:', {
+                domainBranding: cached,
+                afterLoginRoute: cached?.afterLoginRoute,
+                willOverride: !!cached?.afterLoginRoute,
+            });
             if (cached?.afterLoginRoute) {
+                console.log('🔍 LOGIN DEBUG: OVERRIDING redirect URL with domain branding:', {
+                    originalUrl: redirectUrl,
+                    newUrl: cached.afterLoginRoute,
+                });
                 redirectUrl = cached.afterLoginRoute;
             }
 
@@ -194,10 +256,16 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
         }
 
         // Fallback - navigate to dashboard or afterLoginRoute
+        console.log('🔍 LOGIN DEBUG: Using fallback redirect logic (no selected institute)');
         const cached = getCachedInstituteBranding();
+        const fallbackUrl = cached?.afterLoginRoute || '/dashboard';
+        console.log('🔍 LOGIN DEBUG: Fallback redirect URL:', {
+            domainAfterLoginRoute: cached?.afterLoginRoute,
+            finalFallbackUrl: fallbackUrl,
+        });
         return {
             success: true,
-            redirectUrl: cached?.afterLoginRoute || '/dashboard',
+            redirectUrl: fallbackUrl,
             userRoles,
         };
     } catch (error) {
@@ -218,7 +286,7 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
 /**
  * Handle institute selection and redirect accordingly
  */
-export const handleInstituteSelection = (instituteId: string): LoginFlowResult => {
+export const handleInstituteSelection = async (instituteId: string): Promise<LoginFlowResult> => {
     try {
         const institutes = getInstitutesFromToken();
         const selectedInstitute = institutes.find((inst) => inst.id === instituteId);
@@ -261,14 +329,57 @@ export const handleInstituteSelection = (instituteId: string): LoginFlowResult =
         // Set the selected institute
         setSelectedInstitute(instituteId);
 
-        // Refresh settings caches for this institute (non-blocking)
+        // Refresh settings caches for this institute (non-blocking for course settings)
         void getCourseSettings(true).catch(() => {});
-        void getDisplaySettings(ADMIN_DISPLAY_SETTINGS_KEY, true).catch(() => {});
-        void getDisplaySettings(TEACHER_DISPLAY_SETTINGS_KEY, true).catch(() => {});
 
-        // Determine redirect URL from Display Settings (cached), fallback to dashboard
+        // Determine redirect URL from Display Settings - fetch the correct role settings first
         const roleKey = hasAdminRole ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
-        const ds = getDisplaySettingsFromCache(roleKey);
+
+        // Ensure display settings are loaded before getting redirect URL with retry logic
+        let ds: DisplaySettingsData | null = null;
+        const maxRetries = 3;
+        let retryCount = 0;
+
+        while (retryCount < maxRetries && !ds) {
+            try {
+                console.log(
+                    `🔍 INSTITUTE DEBUG: Fetching display settings for role: ${roleKey} (attempt ${retryCount + 1}/${maxRetries})`
+                );
+                ds = await getDisplaySettings(roleKey, true);
+                console.log('🔍 INSTITUTE DEBUG: Display settings fetched successfully:', {
+                    roleKey,
+                    postLoginRedirectRoute: ds?.postLoginRedirectRoute,
+                    attempt: retryCount + 1,
+                });
+                break; // Success, exit retry loop
+            } catch (error) {
+                retryCount++;
+                console.warn(
+                    `🔍 INSTITUTE DEBUG: Failed to fetch display settings (attempt ${retryCount}/${maxRetries}):`,
+                    error
+                );
+
+                if (retryCount >= maxRetries) {
+                    // Final attempt failed, use cache
+                    ds = getDisplaySettingsFromCache(roleKey);
+                    console.log(
+                        '🔍 INSTITUTE DEBUG: Using cached display settings after all retries failed:',
+                        {
+                            roleKey,
+                            postLoginRedirectRoute: ds?.postLoginRedirectRoute,
+                            cacheAvailable: !!ds,
+                        }
+                    );
+                    break;
+                } else {
+                    // Wait before retry (exponential backoff)
+                    const delay = Math.pow(2, retryCount - 1) * 500; // 500ms, 1s, 2s
+                    console.log(`🔍 INSTITUTE DEBUG: Retrying in ${delay}ms...`);
+                    await new Promise((resolve) => setTimeout(resolve, delay));
+                }
+            }
+        }
+
         let redirectUrl = ds?.postLoginRedirectRoute || '/dashboard';
 
         // Prefer afterLoginRoute from domain resolve if available

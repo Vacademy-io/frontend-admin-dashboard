@@ -459,6 +459,23 @@ export async function getDisplaySettings(
             writeCache(role, defaults);
             return defaults;
         }
+
+        // For other errors (like 403), throw the error so retry logic can handle it
+        throw error;
+    }
+}
+
+/**
+ * Fetch display settings with fallback to defaults (no retry logic)
+ * Use this when you want the old behavior of always returning something
+ */
+export async function getDisplaySettingsWithFallback(
+    role: RoleKey,
+    forceRefresh = false
+): Promise<DisplaySettingsData> {
+    try {
+        return await getDisplaySettings(role, forceRefresh);
+    } catch (error) {
         console.warn('Failed to fetch display settings; using defaults');
         return mergeDisplayWithDefaults(getDefaults(role), role);
     }

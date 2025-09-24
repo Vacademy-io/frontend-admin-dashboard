@@ -169,11 +169,6 @@ export const AdminApprovalDashboard: React.FC = () => {
                                         <CardDescription className="mt-1">
                                             <div className="flex items-center gap-4">
                                                 <span className="flex items-center gap-1">
-                                                    <User size={14} />
-                                                    Creator ID: {course.createdByUserId.slice(0, 8)}
-                                                    ...
-                                                </span>
-                                                <span className="flex items-center gap-1">
                                                     <Clock size={14} />
                                                     Updated{' '}
                                                     {formatDistanceToNow(

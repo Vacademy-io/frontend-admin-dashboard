@@ -13,7 +13,7 @@ import {
     type CourseDetailsTabId,
     type CourseContentTypeSettings,
 } from '@/types/display-settings';
-import { getDisplaySettings, saveDisplaySettings } from '@/services/display-settings';
+import { getDisplaySettingsWithFallback, saveDisplaySettings } from '@/services/display-settings';
 import { DEFAULT_ADMIN_DISPLAY_SETTINGS } from '@/constants/display-settings/admin-defaults';
 import { toast } from 'sonner';
 
@@ -24,7 +24,7 @@ export default function AdminDisplaySettings() {
 
     useEffect(() => {
         const run = async () => {
-            const s = await getDisplaySettings(ADMIN_DISPLAY_SETTINGS_KEY);
+            const s = await getDisplaySettingsWithFallback(ADMIN_DISPLAY_SETTINGS_KEY);
             setSettings(s);
         };
         run();
