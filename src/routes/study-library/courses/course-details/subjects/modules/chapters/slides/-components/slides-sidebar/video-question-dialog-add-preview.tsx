@@ -9,7 +9,7 @@ import { MyButton } from '@/components/design-system/button';
 import { UploadQuestionPaperFormType } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
 import { VideoPlayerTimeFormType } from '../../-form-schemas/video-player-time-schema';
 import { useContentStore } from '../../-stores/chapter-sidebar-store';
-type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
+type QuestionPaperForm = z.infer<ReturnType<typeof uploadQuestionPaperFormSchema>>;
 
 const VideoQuestionDialogAddPreview = ({
     videoQuestionForm,

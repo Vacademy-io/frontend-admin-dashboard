@@ -3,7 +3,7 @@ import { UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 
 // Infer the form type from the schema
-type QuestionFormSchemaType = z.infer<typeof uploadQuestionPaperFormSchema>;
+type QuestionFormSchemaType = z.infer<ReturnType<typeof uploadQuestionPaperFormSchema>>;
 
 export interface UploadImageDialogueProps {
     form: UseFormReturn<QuestionFormSchemaType>; // Type for the form

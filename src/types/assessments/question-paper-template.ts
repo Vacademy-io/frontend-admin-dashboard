@@ -3,7 +3,7 @@ import { Dispatch, SetStateAction } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 
-type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
+type QuestionPaperForm = z.infer<ReturnType<typeof uploadQuestionPaperFormSchema>>;
 export interface QuestionPaperTemplateProps {
     form: UseFormReturn<QuestionPaperForm>;
     questionPaperId: string | undefined;
@@ -14,6 +14,7 @@ export interface QuestionPaperTemplateProps {
     isAssessment?: boolean;
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
+    examType?: string;
 }
 
 export interface QuestionData {

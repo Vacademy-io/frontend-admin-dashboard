@@ -56,7 +56,7 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
         return (storeDataStep3.select_individually?.student_details || []).map(
             (student) => student.user_id
         );
-    }, [storeDataStep3.select_individually?.student_details]);
+    }, [assessmentId, studentList, storeDataStep3.select_individually?.student_details]);
 
     const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
     const { instituteDetails } = useInstituteDetailsStore();
@@ -97,27 +97,29 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
         handlePageChange,
     } = useStudentTable(appliedFilters, setAppliedFilters);
 
-    const studentTableFilteredData = isAssessment
-        ? {
-              ...studentTableData,
-              content:
-                  studentTableData?.content
-                      ?.filter((item) => item.status === 'ACTIVE') // Filter for "ACTIVE" status
-                      .map((item) => ({
-                          id: item.id,
-                          user_id: item.user_id,
-                          full_name: item.full_name,
-                          package_session_id: item.package_session_id,
-                          institute_enrollment_id: item.institute_enrollment_id,
-                          linked_institute_name: item.linked_institute_name,
-                          gender: item.gender,
-                          mobile_number: item.mobile_number,
-                          email: item.email,
-                          city: item.city,
-                          state: item.region,
-                      })) || [],
-          }
-        : studentTableData;
+    const studentTableFilteredData = useMemo(() => {
+        return isAssessment
+            ? {
+                  ...studentTableData,
+                  content:
+                      studentTableData?.content
+                          ?.filter((item) => item.status === 'ACTIVE') // Filter for "ACTIVE" status
+                          .map((item) => ({
+                              id: item.id,
+                              user_id: item.user_id,
+                              full_name: item.full_name,
+                              package_session_id: item.package_session_id,
+                              institute_enrollment_id: item.institute_enrollment_id,
+                              linked_institute_name: item.linked_institute_name,
+                              gender: item.gender,
+                              mobile_number: item.mobile_number,
+                              email: item.email,
+                              city: item.city,
+                              state: item.region,
+                          })) || [],
+              }
+            : studentTableData;
+    }, [isAssessment, studentTableData]);
 
     const [allPagesData, setAllPagesData] = useState<Record<number, StudentTable[]>>({});
     const [rowSelections, setRowSelections] = useState<Record<number, Record<string, boolean>>>({});
@@ -131,6 +133,7 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
             setRowSelections((prev) => {
                 // Get current page selections
                 const currentPageSelections = prev[page] || {};
+
                 // Call the updater function with current selections
                 const newIndexSelections = updaterOrValue(currentPageSelections);
 
@@ -209,23 +212,6 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
     };
 
     const getSelectedStudentIds = (): string[] => {
-        // Setting the selected student details
-        setValue(
-            'select_individually.student_details',
-            getSelectedStudents().map((student) => ({
-                username: student.username || '',
-                user_id: student.user_id,
-                email: student.email,
-                full_name: student.full_name,
-                mobile_number: student.mobile_number,
-                guardian_email: student.parents_email,
-                guardian_mobile_number: student.parents_mobile_number,
-                file_id: '',
-                reattempt_count: 0,
-            }))
-        );
-
-        // Returning the IDs of the selected students
         return getSelectedStudents().map((student) => student.user_id);
     };
 
@@ -233,6 +219,25 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
         (count, pageSelection) => count + Object.keys(pageSelection).length,
         0
     );
+
+    // Update form state when row selections change
+    useEffect(() => {
+        const selectedStudents = getSelectedStudents();
+
+        const studentDetails = selectedStudents.map((student) => ({
+            username: student.username || '',
+            user_id: student.user_id,
+            email: student.email,
+            full_name: student.full_name,
+            mobile_number: student.mobile_number || '',
+            guardian_email: student.parents_email || '',
+            guardian_mobile_number: student.parents_mobile_number || '',
+            file_id: '',
+            reattempt_count: 0,
+        }));
+
+        setValue('select_individually.student_details', studentDetails);
+    }, [rowSelections, allPagesData, setValue]);
 
     useEffect(() => {
         if (studentTableData?.content) {
@@ -268,7 +273,7 @@ export const StudentListTab = ({ form }: { form: UseFormReturn<TestAccessFormTyp
                 ...initialSelections,
             }));
         }
-    }, [studentTableData?.content, page]);
+    }, [studentTableData?.content, page, preExistingStudentIds, studentTableFilteredData?.content]);
 
     if (isLoading) return <DashboardLoader />;
     if (isError) return <RootErrorComponent />;

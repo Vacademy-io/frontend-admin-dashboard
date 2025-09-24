@@ -197,8 +197,6 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         name: 'open_test.custom_fields',
     });
 
-    console.log(customFieldsArray);
-
     const handleSubmitStep3Form = useMutation({
         mutationFn: ({
             oldFormData,
@@ -242,7 +240,6 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                 });
             } else {
                 // Handle non-Axios errors if necessary
-                console.error('Unexpected error:', error);
             }
         },
     });
@@ -259,7 +256,11 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     };
 
     const onInvalid = (err: unknown) => {
-        console.log(err);
+        // Scroll to the first error field
+        const firstErrorField = document.querySelector('[data-error="true"]');
+        if (firstErrorField) {
+            firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
     };
 
     const toggleIsRequired = (id: string) => {
@@ -415,15 +416,14 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         handleGetIndividualStudentList({ instituteId, assessmentId })
     );
 
-    useEffect(() => {
-        if (assessmentId !== 'defaultId') {
-            const checkedStudentList = studentList
+    // Helper function to get checked student list
+    const getCheckedStudentList = () => {
+        return studentList
                 .filter(
                     (user: Step3ParticipantsListIndiviudalStudentInterface) =>
                         user.source === 'ADMIN_PRE_REGISTRATION'
                 )
-                .map((user: Step3ParticipantsListIndiviudalStudentInterface) => {
-                    return {
+            .map((user: Step3ParticipantsListIndiviudalStudentInterface) => ({
                         username: user.username,
                         user_id: user.userId,
                         email: user.userEmail,
@@ -433,30 +433,57 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         guardian_mobile_number: '',
                         file_id: user.faceFileId,
                         reattempt_count: user.reattemptCount,
-                    };
-                });
-            const initialValues = {
+            }));
+    };
+
+    // Helper function to get notification settings
+    const getNotificationSettings = () => {
+        const notifications = assessmentDetails[currentStep]?.saved_data?.notifications;
+
+        return {
+            notify_student: {
+                when_assessment_created: notifications?.participant_when_assessment_created || false,
+                before_assessment_goes_live: {
+                    checked: notifications?.participant_before_assessment_goes_live === 0 ? false : true,
+                    value: notifications?.participant_before_assessment_goes_live
+                        ? String(notifications.participant_before_assessment_goes_live) + ' min'
+                        : '1 min',
+                },
+                when_assessment_live: notifications?.participant_when_assessment_live || false,
+                when_assessment_report_generated: notifications?.participant_when_assessment_report_generated || false,
+            },
+            notify_parent: {
+                when_assessment_created: notifications?.parent_when_assessment_created || false,
+                before_assessment_goes_live: {
+                    checked: notifications?.parent_before_assessment_goes_live === 0 ? false : true,
+                    value: notifications?.parent_before_assessment_goes_live
+                        ? String(notifications.parent_before_assessment_goes_live) + ' min'
+                        : '1 min',
+                },
+                when_assessment_live: notifications?.parent_when_assessment_live || false,
+                when_student_appears: true,
+                when_student_finishes_test: true,
+                when_assessment_report_generated: notifications?.parent_when_assessment_report_generated || false,
+            },
+        };
+    };
+
+    // Helper function to get initial form values
+    const getInitialFormValues = () => {
+        const checkedStudentList = getCheckedStudentList();
+        const notificationSettings = getNotificationSettings();
+        const savedData = assessmentDetails[currentStep]?.saved_data;
+
+        return {
                 status: completedSteps[currentStep] ? 'COMPLETE' : 'INCOMPLETE',
-                closed_test:
-                    assessmentDetails[0]?.saved_data?.assessment_visibility === 'PRIVATE'
-                        ? true
-                        : false,
+            closed_test: assessmentDetails[0]?.saved_data?.assessment_visibility === 'PRIVATE',
                 open_test: {
-                    checked:
-                        assessmentDetails[0]?.saved_data?.assessment_visibility === 'PUBLIC'
-                            ? true
-                            : false,
-                    start_date: assessmentDetails[currentStep]?.saved_data?.registration_open_date
-                        ? convertDateFormat(
-                              assessmentDetails[currentStep]?.saved_data?.registration_open_date ||
-                                  ''
-                          )
-                        : '',
-                    end_date: assessmentDetails[currentStep]?.saved_data?.registration_close_date
-                        ? convertDateFormat(
-                              assessmentDetails[currentStep]?.saved_data?.registration_close_date ||
-                                  ''
-                          )
+                checked: assessmentDetails[0]?.saved_data?.assessment_visibility === 'PUBLIC',
+                start_date: savedData?.registration_open_date
+                    ? convertDateFormat(savedData.registration_open_date)
+                    : '',
+                end_date: savedData?.registration_close_date
+                    ? convertDateFormat(savedData.registration_close_date)
                         : '',
                     instructions: '',
                     custom_fields: getCustomFieldsWhileEditStep3(assessmentDetails),
@@ -474,65 +501,16 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                     checked: false,
                     student_details: checkedStudentList,
                 },
-                join_link:
-                    `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}` ||
-                    '',
-                show_leaderboard:
-                    assessmentDetails[currentStep]?.saved_data?.notifications
-                        ?.participant_show_leaderboard || false,
-                notify_student: {
-                    when_assessment_created:
-                        assessmentDetails[currentStep]?.saved_data?.notifications
-                            ?.participant_when_assessment_created || false,
-                    before_assessment_goes_live: {
-                        checked:
-                            assessmentDetails[currentStep]?.saved_data?.notifications
-                                ?.participant_before_assessment_goes_live === 0
-                                ? false
-                                : true,
-                        value: assessmentDetails[currentStep]?.saved_data?.notifications
-                            ?.participant_before_assessment_goes_live
-                            ? String(
-                                  assessmentDetails[currentStep]?.saved_data?.notifications
-                                      ?.participant_before_assessment_goes_live
-                              ) + ' min'
-                            : '1 min',
-                    },
-                    when_assessment_live:
-                        assessmentDetails[currentStep]?.saved_data?.notifications
-                            ?.participant_when_assessment_live || false,
-                    when_assessment_report_generated:
-                        assessmentDetails[currentStep]?.saved_data?.notifications
-                            ?.participant_when_assessment_report_generated || false,
-                },
-                notify_parent: {
-                    when_assessment_created:
-                        assessmentDetails[currentStep]?.saved_data?.notifications
-                            ?.parent_when_assessment_created || false,
-                    before_assessment_goes_live: {
-                        checked:
-                            assessmentDetails[currentStep]?.saved_data?.notifications
-                                ?.parent_before_assessment_goes_live === 0
-                                ? false
-                                : true,
-                        value: assessmentDetails[currentStep]?.saved_data?.notifications
-                            ?.parent_before_assessment_goes_live
-                            ? String(
-                                  assessmentDetails[currentStep]?.saved_data?.notifications
-                                      ?.parent_before_assessment_goes_live
-                              ) + ' min'
-                            : '1 min',
-                    },
-                    when_assessment_live:
-                        assessmentDetails[currentStep]?.saved_data?.notifications
-                            ?.parent_when_assessment_live || false,
-                    when_student_appears: true,
-                    when_student_finishes_test: true,
-                    when_assessment_report_generated:
-                        assessmentDetails[currentStep]?.saved_data?.notifications
-                            ?.parent_when_assessment_report_generated || false,
-                },
-            };
+            join_link: `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}` || '',
+            show_leaderboard: savedData?.notifications?.participant_show_leaderboard || false,
+            ...notificationSettings,
+        };
+    };
+
+    useEffect(() => {
+        if (assessmentId !== 'defaultId') {
+            const initialValues = getInitialFormValues();
+
             // Store the initial values in the ref
             oldFormData.current = JSON.parse(JSON.stringify(initialValues));
 
@@ -597,7 +575,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                     <FormLabel className="font-semibold">
                                                         Closed Test:{' '}
                                                         <span className="font-thin">
-                                                            Restrict the Assessment to specific
+                                                            {examType === 'SURVEY' ? 'Restrict the Survey to specific' : 'Restrict the Assessment to specific'}
                                                             participants by assigning it to
                                                             institute batches or selecting
                                                             individual{' '}
@@ -623,7 +601,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                         Open Test:{' '}
                                                         <span className="font-thin">
                                                             Allow anyone to register for this
-                                                            Assessment via a shared link. Institute
+                                                            {examType === 'SURVEY' ? 'Survey' : 'Assessment'} via a shared link. Institute
                                                             {getTerminology(
                                                                 RoleTerms.Learner,
                                                                 SystemTerms.Learner
@@ -643,7 +621,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                     {watch('open_test.checked') && (
                         <>
                             <div className="mt-2 flex flex-col gap-4">
-                                <h1>Assessment Registration</h1>
+                                <h1>{examType === 'SURVEY' ? 'Survey Registration' : 'Assessment Registration'}</h1>
                                 <div className="-mt-2 flex items-start gap-4">
                                     {getStepKey({
                                         assessmentDetails,
@@ -710,7 +688,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                 </div>
                             </div>
                             <div className="mt-2 flex flex-col gap-6">
-                                <h1 className="-mb-5">About Assessment Registration</h1>
+                                <h1 className="-mb-5">{examType === 'SURVEY' ? 'About Survey Registration' : 'About Assessment Registration'}</h1>
                                 <FormField
                                     control={control}
                                     name="open_test.instructions"
@@ -1177,6 +1155,17 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                         setSelectedSection={setSelectedSection}
                         sectionsInfo={sectionsInfo}
                     />
+                    {/* Display validation errors for participant selection */}
+                    {form.formState.errors.select_individually?.student_details?.message && (
+                        <div className="text-sm text-red-600 mt-2" data-error="true">
+                            {form.formState.errors.select_individually.student_details.message}
+                        </div>
+                    )}
+                    {form.formState.errors.select_batch?.batch_details?.message && (
+                        <div className="text-sm text-red-600 mt-2" data-error="true">
+                            {String(form.formState.errors.select_batch.batch_details.message)}
+                        </div>
+                    )}
                     <Separator className="my-4" />
                     <div className="flex items-center justify-between" id="join-link-qr-code">
                         <div className="flex flex-col gap-2">
@@ -1290,7 +1279,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 />
                                             </FormControl>
                                             <FormLabel className="!mb-[3px] font-thin">
-                                                When Assessment is created
+                                                {examType === 'SURVEY' ? 'When Survey is created' : 'When Assessment is created'}
                                             </FormLabel>
                                         </FormItem>
                                     )}
@@ -1312,7 +1301,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 />
                                             </FormControl>
                                             <FormLabel className="!mb-[3px] font-thin">
-                                                Before Assessment goes live
+                                                {examType === 'SURVEY' ? 'Before Survey goes live' : 'Before Assessment goes live'}
                                             </FormLabel>
                                         </FormItem>
                                     )}
@@ -1349,7 +1338,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 />
                                             </FormControl>
                                             <FormLabel className="!mb-[3px] font-thin">
-                                                When Assessment goes live
+                                                {examType === 'SURVEY' ? 'When Survey goes live' : 'When Assessment goes live'}
                                             </FormLabel>
                                         </FormItem>
                                     )}
@@ -1371,7 +1360,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 />
                                             </FormControl>
                                             <FormLabel className="!mb-[3px] font-thin">
-                                                When assessment reports are generated
+                                                {examType === 'SURVEY' ? 'When survey reports are generated' : 'When assessment reports are generated'}
                                             </FormLabel>
                                         </FormItem>
                                     )}
@@ -1403,7 +1392,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 />
                                             </FormControl>
                                             <FormLabel className="!mb-[3px] font-thin">
-                                                When Assessment is created
+                                                {examType === 'SURVEY' ? 'When Survey is created' : 'When Assessment is created'}
                                             </FormLabel>
                                         </FormItem>
                                     )}
@@ -1425,7 +1414,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 />
                                             </FormControl>
                                             <FormLabel className="!mb-[3px] font-thin">
-                                                Before Assessment goes live
+                                                {examType === 'SURVEY' ? 'Before Survey goes live' : 'Before Assessment goes live'}
                                             </FormLabel>
                                         </FormItem>
                                     )}
@@ -1462,7 +1451,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 />
                                             </FormControl>
                                             <FormLabel className="!mb-[3px] font-thin">
-                                                When Assessment goes live
+                                                {examType === 'SURVEY' ? 'When Survey goes live' : 'When Assessment goes live'}
                                             </FormLabel>
                                         </FormItem>
                                     )}
@@ -1484,7 +1473,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 />
                                             </FormControl>
                                             <FormLabel className="!mb-[3px] font-thin">
-                                                When students appears for the Assessment
+                                                {examType === 'SURVEY' ? 'When students appears for the Survey' : 'When students appears for the Assessment'}
                                             </FormLabel>
                                         </FormItem>
                                     )}
@@ -1506,7 +1495,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 />
                                             </FormControl>
                                             <FormLabel className="!mb-[3px] font-thin">
-                                                When students finishes the Assessment
+                                                {examType === 'SURVEY' ? 'When students finishes the Survey' : 'When students finishes the Assessment'}
                                             </FormLabel>
                                         </FormItem>
                                     )}
@@ -1528,7 +1517,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                                 />
                                             </FormControl>
                                             <FormLabel className="!mb-[3px] font-thin">
-                                                When assessment reports are generated
+                                                {examType === 'SURVEY' ? 'When survey reports are generated' : 'When assessment reports are generated'}
                                             </FormLabel>
                                         </FormItem>
                                     )}

@@ -44,6 +44,7 @@ export const QuestionPapersList = ({
     isStudyLibraryAssignment,
     currentQuestionIndex,
     setCurrentQuestionIndex,
+    examType,
 }: {
     questionPaperList: PaginatedResponse;
     pageNo: number;
@@ -56,6 +57,7 @@ export const QuestionPapersList = ({
     isStudyLibraryAssignment?: boolean;
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
+    examType?: string;
 }) => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
@@ -222,6 +224,7 @@ export const QuestionPapersList = ({
                                             refetchData={refetchData}
                                             currentQuestionIndex={currentQuestionIndex}
                                             setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                            examType={examType}
                                         />
                                         <DropdownMenuItem
                                             onClick={() =>

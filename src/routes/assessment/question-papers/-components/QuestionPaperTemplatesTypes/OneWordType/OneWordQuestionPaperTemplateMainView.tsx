@@ -17,7 +17,13 @@ export const OneWordQuestionPaperTemplateMainView = ({
     currentQuestionIndex,
     className,
     showQuestionNumber = true,
+    examType,
 }: QuestionPaperTemplateFormProps) => {
+    console.log('🎯 OneWordQuestionPaperTemplateMainView rendered', {
+        examType,
+        currentQuestionIndex,
+        isSurvey: examType === 'SURVEY'
+    });
     const { control, getValues, setValue } = form;
     const explanationsType = getValues('explanationsType') || 'Explanation:';
     const questionsType = getValues('questionsType') || '';
@@ -27,11 +33,15 @@ export const OneWordQuestionPaperTemplateMainView = ({
     const level = getValues(`questions.${currentQuestionIndex}.level`) || '';
 
     useEffect(() => {
-        const validAnswrs = getValues(`questions.${currentQuestionIndex}.validAnswers`);
-        if (!validAnswrs) {
-            setValue(`questions.${currentQuestionIndex}.validAnswers`, [0]);
+        try {
+            const validAnswers = getValues(`questions.${currentQuestionIndex}.validAnswers`);
+            if (!validAnswers) {
+                setValue(`questions.${currentQuestionIndex}.validAnswers`, [0]);
+            }
+        } catch (error) {
+            console.warn('Setting default valid answers failed:', error);
         }
-    }, [currentQuestionIndex, getValues, setValue]);
+    }, [currentQuestionIndex]);
 
     if (allQuestions.length === 0) {
         return (
@@ -139,28 +149,30 @@ export const OneWordQuestionPaperTemplateMainView = ({
                 </div>
             </div>
 
-            <div className="flex w-full flex-col gap-4">
-                <span>Answer</span>
+            {examType !== 'SURVEY' && (
+                <div className="flex w-full flex-col gap-4">
+                    <span>Answer</span>
 
-                <FormField
-                    control={control}
-                    name={`questions.${currentQuestionIndex}.subjectiveAnswerText`}
-                    render={({ field }) => (
-                        <FormItem className="w-full">
-                            <FormControl>
-                                <input
-                                    type="text"
-                                    value={field.value || ''}
-                                    onChange={(e) => field.onChange(e.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
-                                    placeholder="Enter the correct answer"
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-            </div>
+                    <FormField
+                        control={control}
+                        name={`questions.${currentQuestionIndex}.subjectiveAnswerText`}
+                        render={({ field }) => (
+                            <FormItem className="w-full">
+                                <FormControl>
+                                    <input
+                                        type="text"
+                                        value={field.value || ''}
+                                        onChange={(e) => field.onChange(e.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+                                        placeholder="Enter the correct answer"
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+            )}
             <div className="mb-6 flex w-full flex-col !flex-nowrap items-start gap-1">
                 <span>{explanationsType}</span>
                 <FormField
