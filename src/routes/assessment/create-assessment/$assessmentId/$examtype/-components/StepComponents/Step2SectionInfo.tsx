@@ -197,7 +197,6 @@ export const Step2SectionInfo = ({
                                     <FormItem>
                                         <FormControl>
                                             <MyInput
-                                                ref={sectionNameInputRef}
                                                 inputType="text"
                                                 inputPlaceholder="00"
                                                 input={field.value}
@@ -270,7 +269,6 @@ export const Step2SectionInfo = ({
                                     <FormItem>
                                         <FormControl>
                                             <MyInput
-                                                ref={sectionNameInputRef}
                                                 inputType="text"
                                                 inputPlaceholder="00"
                                                 input={field.value}

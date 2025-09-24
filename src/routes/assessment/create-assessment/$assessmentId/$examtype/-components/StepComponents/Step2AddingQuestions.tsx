@@ -210,62 +210,33 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
         });
     };
 
-    useEffect(() => {
-        if (assessmentId !== 'defaultId') {
-            const sections = assessmentDetails[currentStep]?.saved_data?.sections;
-            const initialFormValues = {
-                status: assessmentDetails[currentStep]?.status || 'INCOMPLETE',
+    // Helper function to get test duration settings
+    const getTestDurationSettings = () => {
+        const savedData = assessmentDetails[currentStep]?.saved_data;
+        const durationDistribution = savedData?.duration_distribution;
+        const duration = savedData?.duration ?? 0;
+
+        const isEntireTestDuration = durationDistribution === null || durationDistribution === 'ASSESSMENT';
+        const hasValidDuration = durationDistribution === 'ASSESSMENT' && duration != null && duration > 0;
+
+        return {
+            entireTestDuration: {
+                checked: isEntireTestDuration,
                 testDuration: {
-                    entireTestDuration: {
-                        checked:
-                            assessmentDetails[currentStep]?.saved_data?.duration_distribution ===
-                            null
-                                ? true
-                                : assessmentDetails[currentStep]?.saved_data
-                                        ?.duration_distribution === 'ASSESSMENT'
-                                  ? true
-                                  : false,
-                        testDuration: {
-                            hrs:
-                                assessmentDetails[currentStep]?.saved_data
-                                    ?.duration_distribution === 'ASSESSMENT' &&
-                                assessmentDetails[currentStep]?.saved_data?.duration != null &&
-                                (assessmentDetails[currentStep]?.saved_data?.duration ?? 0) > 0
-                                    ? String(
-                                          Math.floor(
-                                              (assessmentDetails[currentStep]?.saved_data
-                                                  ?.duration ?? 0) / 60
-                                          )
-                                      )
-                                    : '',
-                            min:
-                                assessmentDetails[currentStep]?.saved_data
-                                    ?.duration_distribution === 'ASSESSMENT' &&
-                                assessmentDetails[currentStep]?.saved_data?.duration != null &&
-                                (assessmentDetails[currentStep]?.saved_data?.duration ?? 0) > 0
-                                    ? String(
-                                          Math.floor(
-                                              (assessmentDetails[currentStep]?.saved_data
-                                                  ?.duration ?? 0) % 60
-                                          )
-                                      )
-                                    : '',
-                        },
-                    },
-                    sectionWiseDuration:
-                        assessmentDetails[currentStep]?.saved_data?.duration_distribution ===
-                        'SECTION'
-                            ? true
-                            : false, // Default to false
-                    questionWiseDuration:
-                        assessmentDetails[currentStep]?.saved_data?.duration_distribution ===
-                        'QUESTION'
-                            ? true
-                            : false, // Default to false
+                    hrs: hasValidDuration ? String(Math.floor(duration / 60)) : '',
+                    min: hasValidDuration ? String(Math.floor(duration % 60)) : '',
                 },
-                section:
-                    Array.isArray(sections) && sections.length > 0
-                        ? sections.map((sectionDetails) => ({
+            },
+            sectionWiseDuration: durationDistribution === 'SECTION',
+            questionWiseDuration: durationDistribution === 'QUESTION',
+        };
+    };
+
+    // Helper function to create section from saved data
+    const createSectionFromSavedData = (sectionDetails: any) => {
+        const duration = sectionDetails.duration || 0;
+
+        return {
                               sectionId: sectionDetails.id || '',
                               sectionName: sectionDetails.name || '',
                               questionPaperTitle: '',
@@ -276,13 +247,13 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                               ),
                               yearClass: '',
                               question_duration: {
-                                  hrs: String(Math.floor(sectionDetails.duration / 60)) || '',
-                                  min: String(sectionDetails.duration % 60) || '',
+                hrs: String(Math.floor(duration / 60)) || '',
+                min: String(duration % 60) || '',
                               },
                               section_description: sectionDetails.description?.content || '',
                               section_duration: {
-                                  hrs: String(Math.floor(sectionDetails.duration / 60)) || '',
-                                  min: String(sectionDetails.duration % 60) || '',
+                hrs: String(Math.floor(duration / 60)) || '',
+                min: String(duration % 60) || '',
                               },
                               marks_per_question: '',
                               total_marks: String(sectionDetails.total_marks) || '',
@@ -292,17 +263,18 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                               },
                               partial_marking: false,
                               cutoff_marks: {
-                                  checked: sectionDetails.cutoff_marks > 0 ? true : false,
+                checked: sectionDetails.cutoff_marks > 0,
                                   value: String(sectionDetails.cutoff_marks) || '',
                               },
-                              problem_randomization:
-                                  sectionDetails.problem_randomization === 'RANDOM' ? true : false,
+            problem_randomization: sectionDetails.problem_randomization === 'RANDOM',
                               adaptive_marking_for_each_question: [],
-                          }))
-                        : [
-                              {
+        };
+    };
+
+    // Helper function to create default section
+    const createDefaultSection = () => ({
                                   sectionId: '',
-                                  sectionName: `Section 1`,
+        sectionName: 'Section 1',
                                   questionPaperTitle: '',
                                   subject: '',
                                   yearClass: '',
@@ -329,9 +301,31 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                   },
                                   problem_randomization: false,
                                   adaptive_marking_for_each_question: [],
-                              },
-                          ],
-            };
+    });
+
+    // Helper function to get sections data
+    const getSectionsData = () => {
+        const sections = assessmentDetails[currentStep]?.saved_data?.sections;
+
+        if (Array.isArray(sections) && sections.length > 0) {
+            return sections.map(createSectionFromSavedData);
+        }
+
+        return [createDefaultSection()];
+    };
+
+    // Helper function to get initial form values
+    const getInitialFormValues = () => {
+        return {
+            status: assessmentDetails[currentStep]?.status || 'INCOMPLETE',
+            testDuration: getTestDurationSettings(),
+            section: getSectionsData(),
+        };
+    };
+
+    useEffect(() => {
+        if (assessmentId !== 'defaultId') {
+            const initialFormValues = getInitialFormValues();
 
             // Set initial form values
             form.reset(initialFormValues);
