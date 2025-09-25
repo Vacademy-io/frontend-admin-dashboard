@@ -31,171 +31,83 @@ import {
     RadialBarChart,
     RadialBar
 } from 'recharts';
-import { Users, CheckCircle, Clock, TrendingUp, MessageSquare, Eye } from 'lucide-react';
-
-// Mock data matching the exact UI specification
-const mockSurveyOverviewData = {
-    totalParticipants: 300,
-    completedResponses: 247,
-    completionRate: 82, // 247/300 = 82.33% rounded to 82%
-    questions: [
-        {
-            id: 'q1',
-            text: 'Which subject do you find the most engaging in this course?',
-            type: 'mcq_single_choice',
-            respondents: 246,
-            totalParticipants: 300,
-            responses: [
-                { value: 'Mathematics', count: 86, percentage: 35 },
-                { value: 'Science', count: 69, percentage: 28 },
-                { value: 'Literature', count: 54, percentage: 22 },
-                { value: 'History', count: 37, percentage: 15 }
-            ]
-        },
-        {
-            id: 'q2',
-            text: 'Which learning methods help you understand best? (Select all that apply)',
-            type: 'mcq_multiple_choice',
-            respondents: 247,
-            totalParticipants: 300,
-            responses: [
-                { value: 'Visual Aids', count: 180, percentage: 73 },
-                { value: 'Hands-on Practice', count: 156, percentage: 63 },
-                { value: 'Group Discussion', count: 98, percentage: 40 },
-                { value: 'Reading Materials', count: 74, percentage: 30 }
-            ]
-        },
-        {
-            id: 'q3',
-            text: 'The course materials provided were easy to follow.',
-            type: 'true_false',
-            respondents: 247,
-            totalParticipants: 300,
-            responses: [
-                { value: 'True', count: 193, percentage: 78 },
-                { value: 'False', count: 54, percentage: 22 }
-            ]
-        },
-        {
-            id: 'q4',
-            text: 'What one improvement would make this course more effective?',
-            type: 'short_answer',
-            respondents: 240,
-            totalParticipants: 300,
-            topSuggestions: [
-                { suggestion: 'More practical examples', mentions: 32 },
-                { suggestion: 'Interactive content', mentions: 28 },
-                { suggestion: 'Video tutorials', mentions: 24 },
-                { suggestion: 'Better pacing', mentions: 19 },
-                { suggestion: 'More practice exercises', mentions: 17 }
-            ]
-        },
-        {
-            id: 'q5',
-            text: 'Please provide detailed feedback about your overall learning experience.',
-            type: 'long_answer',
-            respondents: 235,
-            totalParticipants: 300,
-            recentResponses: [
-                {
-                    name: 'John Doe',
-                    email: 'john@example.com',
-                    response: 'The course structure is well-organized and the instructor explains concepts clearly. However, I would appreciate more real-world examples...'
-                },
-                {
-                    name: 'Jane Smith',
-                    email: 'jane@example.com',
-                    response: 'Great course overall! The materials are comprehensive and the pace is just right. My only suggestion would be to include more interactive elements...'
-                },
-                {
-                    name: 'Mike Johnson',
-                    email: 'mike@example.com',
-                    response: 'I found the course content valuable but sometimes difficult to follow. More visual aids and step-by-step examples would be helpful...'
-                }
-            ]
-        },
-        {
-            id: 'q6',
-            text: 'How would you rate this course overall? (Enter a number from 1-10)',
-            type: 'numerical',
-            respondents: 247,
-            totalParticipants: 300,
-            topRatings: [
-                { rating: 8, count: 45 },
-                { rating: 9, count: 42 },
-                { rating: 10, count: 38 },
-                { rating: 7, count: 35 },
-                { rating: 6, count: 28 }
-            ]
-        }
-    ]
-};
+import { Users, CheckCircle, Clock, TrendingUp, MessageSquare, Eye, Loader2, AlertCircle } from 'lucide-react';
+import { useSurveyOverview, useSurveyRespondentResponses } from './hooks/useSurveyData';
+import { TransformedQuestionAnalytics, ResponseDistribution } from './types';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
-// Mock data for individual responses
-const mockIndividualResponses = {
-    q1: [
-        { name: 'John Doe', email: 'john@example.com', response: 'Mathematics' },
-        { name: 'Jane Smith', email: 'jane@example.com', response: 'Science' },
-        { name: 'Mike Johnson', email: 'mike@example.com', response: 'Literature' },
-        { name: 'Sarah Wilson', email: 'sarah@example.com', response: 'Mathematics' },
-        { name: 'David Brown', email: 'david@example.com', response: 'History' },
-        { name: 'Lisa Davis', email: 'lisa@example.com', response: 'Science' }
-    ],
-    q2: [
-        { name: 'John Doe', email: 'john@example.com', response: 'Visual Aids, Hands-on Practice' },
-        { name: 'Jane Smith', email: 'jane@example.com', response: 'Group Discussion, Reading Materials' },
-        { name: 'Mike Johnson', email: 'mike@example.com', response: 'Visual Aids, Reading Materials' },
-        { name: 'Sarah Wilson', email: 'sarah@example.com', response: 'Hands-on Practice, Group Discussion' },
-        { name: 'David Brown', email: 'david@example.com', response: 'Visual Aids, Hands-on Practice, Reading Materials' },
-        { name: 'Lisa Davis', email: 'lisa@example.com', response: 'Visual Aids, Group Discussion' }
-    ],
-    q3: [
-        { name: 'John Doe', email: 'john@example.com', response: 'True' },
-        { name: 'Jane Smith', email: 'jane@example.com', response: 'False' },
-        { name: 'Mike Johnson', email: 'mike@example.com', response: 'True' },
-        { name: 'Sarah Wilson', email: 'sarah@example.com', response: 'True' },
-        { name: 'David Brown', email: 'david@example.com', response: 'True' },
-        { name: 'Lisa Davis', email: 'lisa@example.com', response: 'False' }
-    ],
-    q4: [
-        { name: 'John Doe', email: 'john@example.com', response: 'More practical examples would help understand concepts better' },
-        { name: 'Jane Smith', email: 'jane@example.com', response: 'More interactive content and video tutorials' },
-        { name: 'Mike Johnson', email: 'mike@example.com', response: 'Better pacing and more step-by-step examples' },
-        { name: 'Sarah Wilson', email: 'sarah@example.com', response: 'More real-world applications and case studies' },
-        { name: 'David Brown', email: 'david@example.com', response: 'More practice exercises and quizzes' },
-        { name: 'Lisa Davis', email: 'lisa@example.com', response: 'Clearer instructions and better organization of materials' }
-    ],
-    q5: [
-        { name: 'John Doe', email: 'john@example.com', response: 'The course structure is well-organized and the instructor explains concepts clearly. However, I would appreciate more real-world examples and case studies to better understand how these concepts apply in practice.' },
-        { name: 'Jane Smith', email: 'jane@example.com', response: 'Great course overall! The materials are comprehensive and the pace is just right. My only suggestion would be to include more interactive elements and group activities.' },
-        { name: 'Mike Johnson', email: 'mike@example.com', response: 'I found the course content valuable but sometimes difficult to follow. More visual aids and step-by-step examples would be helpful for understanding complex concepts.' },
-        { name: 'Sarah Wilson', email: 'sarah@example.com', response: 'The course is well-structured and the instructor is knowledgeable. I particularly enjoyed the practical examples and would like to see more case studies from different industries.' },
-        { name: 'David Brown', email: 'david@example.com', response: 'Excellent course with clear explanations and good pacing. The practice exercises are very helpful. I would recommend adding more interactive elements and peer discussion opportunities.' },
-        { name: 'Lisa Davis', email: 'lisa@example.com', response: 'The course has good content but could be better organized. Some concepts are explained well while others need more clarity. More visual aids and step-by-step breakdowns would be beneficial.' }
-    ],
-    q6: [
-        { name: 'John Doe', email: 'john@example.com', response: '8' },
-        { name: 'Jane Smith', email: 'jane@example.com', response: '9' },
-        { name: 'Mike Johnson', email: 'mike@example.com', response: '7' },
-        { name: 'Sarah Wilson', email: 'sarah@example.com', response: '8' },
-        { name: 'David Brown', email: 'david@example.com', response: '9' },
-        { name: 'Lisa Davis', email: 'lisa@example.com', response: '6' }
-    ]
-};
+interface SurveyMainOverviewTabProps {
+    assessmentId: string;
+    sectionIds?: string;
+    assessmentName?: string;
+}
 
-export const SurveyMainOverviewTab: React.FC = () => {
-    const { totalParticipants, completedResponses, completionRate, questions } = mockSurveyOverviewData;
+export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ assessmentId, sectionIds, assessmentName }) => {
+    const { data: overviewData, loading: overviewLoading, error: overviewError } = useSurveyOverview(assessmentId, sectionIds);
+    const { data: respondentData, loading: respondentLoading } = useSurveyRespondentResponses(assessmentId, 1, 100, assessmentName);
+
     const [selectedQuestion, setSelectedQuestion] = useState<any>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-    const handleViewIndividualResponses = (question: any, index: number) => {
+    // Log the sectionIds being passed
+    React.useEffect(() => {
+        console.log('📋 [SurveyMainOverviewTab] Component props:', {
+            assessmentId,
+            sectionIds,
+            timestamp: new Date().toISOString(),
+        });
+    }, [assessmentId, sectionIds]);
+
+    // Show loading state
+    if (overviewLoading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="flex items-center gap-2">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <span>Loading survey data...</span>
+                </div>
+            </div>
+        );
+    }
+
+    // Show error state
+    if (overviewError) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                    <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Survey Data</h3>
+                    <p className="text-gray-600 mb-4">{overviewError}</p>
+                    <Button onClick={() => window.location.reload()}>
+                        Try Again
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+
+    // Show empty state if no data
+    if (!overviewData?.analytics || !overviewData?.questions?.length) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                    <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Survey Data Available</h3>
+                    <p className="text-gray-600">No survey responses found for this assessment.</p>
+                </div>
+            </div>
+        );
+    }
+
+    const { analytics, questions } = overviewData;
+
+    const handleViewIndividualResponses = (question: TransformedQuestionAnalytics, index: number) => {
         setSelectedQuestion({ ...question, index });
         setIsDialogOpen(true);
     };
 
-    const renderQuestionContent = (question: any, index: number) => {
+    const renderQuestionContent = (question: TransformedQuestionAnalytics, index: number) => {
         const questionNumber = `Q${index + 1}`;
 
         return (
@@ -204,13 +116,13 @@ export const SurveyMainOverviewTab: React.FC = () => {
                     <div className="flex justify-between items-start">
                         <div className="flex-1">
                             <CardTitle className="text-lg font-semibold mb-2">
-                                {questionNumber}. {question.text}
+                                {questionNumber}. {question.questionText}
                             </CardTitle>
                             <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-                                <span>{question.respondents} respondents / {question.totalParticipants} total participants</span>
+                                <span>{question.totalResponses} responses</span>
                             </div>
                             <Badge className="bg-primary-100 text-primary-800 border-primary-200 mb-4">
-                                {question.type.replace('_', ' ').toUpperCase()}
+                                {question.questionType.replace('_', ' ').toUpperCase()}
                             </Badge>
                         </div>
                         <Button
@@ -225,11 +137,11 @@ export const SurveyMainOverviewTab: React.FC = () => {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    {question.type === 'mcq_single_choice' && (
+                    {question.questionType === 'mcq_single_choice' && (
                         <div className="space-y-4">
                             <div className="h-64">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={question.responses}>
+                                    <BarChart data={question.responseDistribution}>
                                         <CartesianGrid strokeDasharray="3 3" />
                                         <XAxis dataKey="value" />
                                         <YAxis />
@@ -239,7 +151,7 @@ export const SurveyMainOverviewTab: React.FC = () => {
                                 </ResponsiveContainer>
                             </div>
                             <div className="space-y-2">
-                                {question.responses.map((response: any, idx: number) => (
+                                {question.responseDistribution.map((response: ResponseDistribution, idx: number) => (
                                     <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded">
                                         <span className="font-medium">{response.value}</span>
                                         <span className="text-sm text-gray-600">
@@ -251,11 +163,11 @@ export const SurveyMainOverviewTab: React.FC = () => {
                         </div>
                     )}
 
-                    {question.type === 'mcq_multiple_choice' && (
+                    {question.questionType === 'mcq_multiple_choice' && (
                         <div className="space-y-4">
                             <div className="h-64">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={question.responses}>
+                                    <BarChart data={question.responseDistribution}>
                                         <CartesianGrid strokeDasharray="3 3" />
                                         <XAxis dataKey="value" />
                                         <YAxis />
@@ -265,7 +177,7 @@ export const SurveyMainOverviewTab: React.FC = () => {
                                 </ResponsiveContainer>
                             </div>
                             <div className="space-y-2">
-                                {question.responses.map((response: any, idx: number) => (
+                                {question.responseDistribution.map((response: ResponseDistribution, idx: number) => (
                                     <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded">
                                         <span className="font-medium">{response.value}</span>
                                         <span className="text-sm text-gray-600">
@@ -277,7 +189,7 @@ export const SurveyMainOverviewTab: React.FC = () => {
                         </div>
                     )}
 
-                    {question.type === 'true_false' && (
+                    {question.questionType === 'true_false' && (
                         <div className="space-y-4">
                             <div className="flex items-center justify-center gap-8">
                                 <div className="flex-1 max-w-xs">
@@ -289,8 +201,8 @@ export const SurveyMainOverviewTab: React.FC = () => {
                                                 innerRadius="60%"
                                                 outerRadius="90%"
                                                 data={[
-                                                    { name: 'True', value: question.responses[0].percentage, fill: '#10B981' },
-                                                    { name: 'False', value: question.responses[1].percentage, fill: '#EF4444' }
+                                                    { name: 'True', value: question.responseDistribution[0]?.percentage || 0, fill: '#10B981' },
+                                                    { name: 'False', value: question.responseDistribution[1]?.percentage || 0, fill: '#EF4444' }
                                                 ]}
                                                 startAngle={90}
                                                 endAngle={-270}
@@ -307,7 +219,7 @@ export const SurveyMainOverviewTab: React.FC = () => {
                                                     dominantBaseline="middle"
                                                     className="text-2xl font-bold fill-gray-700"
                                                 >
-                                                    {question.responses[0].percentage}%
+                                                    {question.responseDistribution[0]?.percentage || 0}%
                                                 </text>
                                             </RadialBarChart>
                                         </ResponsiveContainer>
@@ -318,10 +230,10 @@ export const SurveyMainOverviewTab: React.FC = () => {
                                         <div className="w-4 h-4 bg-green-500 rounded-full"></div>
                                         <div>
                                             <div className="text-lg font-semibold text-green-600">
-                                                True: {question.responses[0].percentage}%
+                                                True: {question.responseDistribution[0]?.percentage || 0}%
                                             </div>
                                             <div className="text-sm text-gray-600">
-                                                {question.responses[0].count} responses
+                                                {question.responseDistribution[0]?.count || 0} responses
                                             </div>
                                         </div>
                                     </div>
@@ -329,10 +241,10 @@ export const SurveyMainOverviewTab: React.FC = () => {
                                         <div className="w-4 h-4 bg-red-500 rounded-full"></div>
                                         <div>
                                             <div className="text-lg font-semibold text-red-600">
-                                                False: {question.responses[1].percentage}%
+                                                False: {question.responseDistribution[1]?.percentage || 0}%
                                             </div>
                                             <div className="text-sm text-gray-600">
-                                                {question.responses[1].count} responses
+                                                {question.responseDistribution[1]?.count || 0} responses
                                             </div>
                                         </div>
                                     </div>
@@ -341,37 +253,19 @@ export const SurveyMainOverviewTab: React.FC = () => {
                         </div>
                     )}
 
-                    {question.type === 'short_answer' && (
-                        <div className="space-y-4">
-                            <div className="text-lg font-semibold mb-4">Top 5 Suggestions:</div>
-                            <div className="space-y-3">
-                                {question.topSuggestions.map((suggestion: any, idx: number) => (
-                                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                                        <span className="font-medium">
-                                            {idx + 1}. {suggestion.suggestion}
-                                        </span>
-                                        <Badge variant="secondary">
-                                            {suggestion.mentions} mentions
-                                        </Badge>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {question.type === 'long_answer' && (
+                    {(question.questionType === 'short_answer' || question.questionType === 'long_answer') && (
                         <div className="space-y-4">
                             <div className="text-lg font-semibold mb-4">
-                                Recent Responses ({question.respondents} total responses):
+                                Recent Responses ({question.totalResponses} total responses):
                             </div>
                             <div className="space-y-4">
-                                {question.recentResponses.map((response: any, idx: number) => (
+                                {question.responseDistribution.slice(0, 5).map((response: any, idx: number) => (
                                     <div key={idx} className="p-4 border rounded-lg">
-                                        <div className="font-medium text-sm mb-1">
-                                            {response.name} - {response.email}
-                                        </div>
                                         <div className="text-sm text-gray-700 italic">
-                                            "{response.response}"
+                                            "{response.value}"
+                                        </div>
+                                        <div className="text-xs text-gray-500 mt-1">
+                                            {response.count} similar responses
                                         </div>
                                     </div>
                                 ))}
@@ -379,17 +273,17 @@ export const SurveyMainOverviewTab: React.FC = () => {
                         </div>
                     )}
 
-                    {question.type === 'numerical' && (
+                    {question.questionType === 'numerical' && (
                         <div className="space-y-4">
-                            <div className="text-lg font-semibold mb-4">Top 5 Responses:</div>
+                            <div className="text-lg font-semibold mb-4">Response Distribution:</div>
                             <div className="space-y-3">
-                                {question.topRatings.map((rating: any, idx: number) => (
+                                {question.responseDistribution.slice(0, 5).map((response: any, idx: number) => (
                                     <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded">
                                         <span className="font-medium">
-                                            {idx + 1}. Rating: {rating.rating}
+                                            {idx + 1}. {response.value}
                                         </span>
                                         <Badge variant="secondary">
-                                            {rating.count} responses
+                                            {response.count} responses ({response.percentage}%)
                                         </Badge>
                                     </div>
                                 ))}
@@ -412,12 +306,12 @@ export const SurveyMainOverviewTab: React.FC = () => {
                     <CardContent>
                         <div className="space-y-3">
                             <div className="flex items-baseline gap-2">
-                                <span className="text-4xl font-bold text-gray-900">{completedResponses}</span>
+                                <span className="text-4xl font-bold text-gray-900">{analytics.completedResponses}</span>
                                 <span className="text-lg text-gray-600">responded</span>
                             </div>
                             <div className="flex items-center justify-between">
                                 <div className="text-sm text-gray-500">
-                                    out of <span className="font-semibold text-gray-700">{totalParticipants}</span> sent
+                                    out of <span className="font-semibold text-gray-700">{analytics.totalParticipants}</span> sent
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-gray-600">
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -433,11 +327,11 @@ export const SurveyMainOverviewTab: React.FC = () => {
                         <CardTitle className="text-lg font-semibold text-primary-600">Completion Rate</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-3xl font-bold">{completionRate}%</div>
+                        <div className="text-3xl font-bold">{analytics.completionRate}%</div>
                         <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                             <div
                                 className="bg-blue-500 h-2 rounded-full"
-                                style={{ width: `${completionRate}%` }}
+                                style={{ width: `${analytics.completionRate}%` }}
                             ></div>
                         </div>
                     </CardContent>
@@ -448,9 +342,9 @@ export const SurveyMainOverviewTab: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {questions.map((question, index) => (
                     <div
-                        key={question.id}
+                        key={question.questionId}
                         className={
-                            question.type === 'short_answer' || question.type === 'long_answer' || question.type === 'numerical'
+                            question.questionType === 'short_answer' || question.questionType === 'long_answer' || question.questionType === 'numerical'
                                 ? 'lg:col-span-2'
                                 : ''
                         }
@@ -465,12 +359,20 @@ export const SurveyMainOverviewTab: React.FC = () => {
                 <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto scrollbar-hide">
                     <DialogHeader>
                         <DialogTitle className="text-lg font-semibold">
-                            {selectedQuestion && `Q${selectedQuestion.index + 1}. ${selectedQuestion.text} - Individual Responses`}
+                            {selectedQuestion && `Q${selectedQuestion.index + 1}. ${selectedQuestion.questionText} - Individual Responses`}
                         </DialogTitle>
                     </DialogHeader>
 
                     {selectedQuestion && (
                         <div className="mt-4">
+                            {respondentLoading ? (
+                                <div className="flex items-center justify-center h-32">
+                                    <div className="flex items-center gap-2">
+                                        <Loader2 className="h-5 w-5 animate-spin" />
+                                        <span>Loading responses...</span>
+                                    </div>
+                                </div>
+                            ) : (
                             <Table>
                                 <TableHeader>
                                     <TableRow>
@@ -480,7 +382,7 @@ export const SurveyMainOverviewTab: React.FC = () => {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {mockIndividualResponses[`q${selectedQuestion.index + 1}` as keyof typeof mockIndividualResponses]?.map((respondent, idx) => (
+                                        {respondentData?.content?.map((respondent, idx) => (
                                         <TableRow key={idx}>
                                             <TableCell className="font-medium w-32">{respondent.name}</TableCell>
                                             <TableCell className="w-48">{respondent.email}</TableCell>
@@ -502,6 +404,7 @@ export const SurveyMainOverviewTab: React.FC = () => {
                                     ))}
                                 </TableBody>
                             </Table>
+                            )}
                         </div>
                     )}
                 </DialogContent>

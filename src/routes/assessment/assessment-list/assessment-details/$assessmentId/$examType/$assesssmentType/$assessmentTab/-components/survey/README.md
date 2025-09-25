@@ -8,27 +8,34 @@ This directory contains the survey-specific components for the assessment detail
 survey/
 ├── README.md                           # This documentation
 ├── types.ts                           # TypeScript interfaces and types
-├── surveyDataService.ts               # Mock data service and API functions
+├── hooks/
+│   └── useSurveyData.ts               # Custom React hooks for data fetching
 ├── SurveyMainOverviewTab.tsx          # Main overview tab for surveys
-├── SurveyOverviewTab.tsx              # Detailed overview with analytics
 └── SurveyIndividualRespondentsTab.tsx # Individual respondents view
 ```
 
 ## Features
 
-### 1. Survey Overview Tab
+### 1. Survey Main Overview Tab
 - **Aggregated Analytics**: Total participants, completion rate, average response time
 - **Question Analysis**: Individual question breakdowns with visualizations
 - **Interactive Charts**: Bar charts and pie charts using Recharts
 - **Key Insights**: Top insights and trends from survey responses
+- **API Integration**: Real-time data from backend services
 
 ### 2. Individual Respondents Tab
 - **Respondent List**: Searchable table of all survey participants
 - **Response Viewer**: Modal dialog to view individual responses
 - **Navigation**: Previous/Next buttons to navigate between respondents
 - **Search Functionality**: Filter respondents by name or email
+- **API Integration**: Real-time data from backend services
 
-### 3. Supported Question Types
+### 3. Custom Hooks
+- **useSurveyOverview**: Fetches survey analytics and question data
+- **useSurveyRespondents**: Fetches individual respondent data with pagination
+- **useSurveyRespondentResponses**: Fetches detailed response data
+
+### 4. Supported Question Types
 - **MCQ Single Choice**: Multiple choice with single selection
 - **MCQ Multiple Choice**: Multiple choice with multiple selections
 - **True/False**: Binary choice questions

@@ -6,281 +6,37 @@ import { Input } from '@/components/ui/input';
 import {
     ChevronLeft,
     ChevronRight,
+    Loader2,
+    AlertCircle,
+    Users,
 } from 'lucide-react';
+import { useSurveyRespondents } from './hooks/useSurveyData';
 
-// Mock data for multiple respondents
-const mockRespondentsData = [
-    {
-        id: "1",
-        name: "John Doe",
-        email: "john@example.com",
-        responses: [
-            {
-                id: "q1",
-                questionText: "Which subject do you find the most engaging in this course?",
-                questionType: "MCQ Single Choice",
-                answer: "Mathematics"
-            },
-            {
-                id: "q2",
-                questionText: "Which learning methods help you understand best? (Select all that apply)",
-                questionType: "MCQ Multiple Choice",
-                answer: ["Visual Aids", "Hands-on Practice"]
-            },
-            {
-                id: "q3",
-                questionText: "The course materials provided were easy to follow.",
-                questionType: "True/False",
-                answer: "True"
-            },
-            {
-                id: "q4",
-                questionText: "What one improvement would make this course more effective?",
-                questionType: "Short Answer",
-                answer: "More practical examples would help understand concepts better"
-            },
-            {
-                id: "q5",
-                questionText: "Please provide detailed feedback about your overall learning experience.",
-                questionType: "Long Answer",
-                answer: "The course structure is well-organized and the instructor explains concepts clearly. However, I would appreciate more real-world examples and case studies to better understand how these concepts apply in practice."
-            },
-            {
-                id: "q6",
-                questionText: "How would you rate this course overall? (Enter a number from 1-10)",
-                questionType: "Numerical",
-                answer: "8"
-            }
-        ]
-    },
-    {
-        id: "2",
-        name: "Jane Smith",
-        email: "jane@example.com",
-        responses: [
-            {
-                id: "q1",
-                questionText: "Which subject do you find the most engaging in this course?",
-                questionType: "MCQ Single Choice",
-                answer: "Science"
-            },
-            {
-                id: "q2",
-                questionText: "Which learning methods help you understand best? (Select all that apply)",
-                questionType: "MCQ Multiple Choice",
-                answer: ["Group Discussion", "Reading Materials"]
-            },
-            {
-                id: "q3",
-                questionText: "The course materials provided were easy to follow.",
-                questionType: "True/False",
-                answer: "False"
-            },
-            {
-                id: "q4",
-                questionText: "What one improvement would make this course more effective?",
-                questionType: "Short Answer",
-                answer: "More interactive content and video tutorials"
-            },
-            {
-                id: "q5",
-                questionText: "Please provide detailed feedback about your overall learning experience.",
-                questionType: "Long Answer",
-                answer: "Great course overall! The materials are comprehensive and the pace is just right. My only suggestion would be to include more interactive elements and group activities."
-            },
-            {
-                id: "q6",
-                questionText: "How would you rate this course overall? (Enter a number from 1-10)",
-                questionType: "Numerical",
-                answer: "9"
-            }
-        ]
-    },
-    {
-        id: "3",
-        name: "Mike Johnson",
-        email: "mike@example.com",
-        responses: [
-            {
-                id: "q1",
-                questionText: "Which subject do you find the most engaging in this course?",
-                questionType: "MCQ Single Choice",
-                answer: "Literature"
-            },
-            {
-                id: "q2",
-                questionText: "Which learning methods help you understand best? (Select all that apply)",
-                questionType: "MCQ Multiple Choice",
-                answer: ["Visual Aids", "Reading Materials"]
-            },
-            {
-                id: "q3",
-                questionText: "The course materials provided were easy to follow.",
-                questionType: "True/False",
-                answer: "True"
-            },
-            {
-                id: "q4",
-                questionText: "What one improvement would make this course more effective?",
-                questionType: "Short Answer",
-                answer: "Better pacing and more step-by-step examples"
-            },
-            {
-                id: "q5",
-                questionText: "Please provide detailed feedback about your overall learning experience.",
-                questionType: "Long Answer",
-                answer: "I found the course content valuable but sometimes difficult to follow. More visual aids and step-by-step examples would be helpful for understanding complex concepts."
-            },
-            {
-                id: "q6",
-                questionText: "How would you rate this course overall? (Enter a number from 1-10)",
-                questionType: "Numerical",
-                answer: "7"
-            }
-        ]
-    },
-    {
-        id: "4",
-        name: "Sarah Wilson",
-        email: "sarah@example.com",
-        responses: [
-            {
-                id: "q1",
-                questionText: "Which subject do you find the most engaging in this course?",
-                questionType: "MCQ Single Choice",
-                answer: "History"
-            },
-            {
-                id: "q2",
-                questionText: "Which learning methods help you understand best? (Select all that apply)",
-                questionType: "MCQ Multiple Choice",
-                answer: ["Hands-on Practice", "Group Discussion"]
-            },
-            {
-                id: "q3",
-                questionText: "The course materials provided were easy to follow.",
-                questionType: "True/False",
-                answer: "True"
-            },
-            {
-                id: "q4",
-                questionText: "What one improvement would make this course more effective?",
-                questionType: "Short Answer",
-                answer: "More real-world applications and case studies"
-            },
-            {
-                id: "q5",
-                questionText: "Please provide detailed feedback about your overall learning experience.",
-                questionType: "Long Answer",
-                answer: "The course is well-structured and the instructor is knowledgeable. I particularly enjoyed the practical examples and would like to see more case studies from different industries."
-            },
-            {
-                id: "q6",
-                questionText: "How would you rate this course overall? (Enter a number from 1-10)",
-                questionType: "Numerical",
-                answer: "8"
-            }
-        ]
-    },
-    {
-        id: "5",
-        name: "David Brown",
-        email: "david@example.com",
-        responses: [
-            {
-                id: "q1",
-                questionText: "Which subject do you find the most engaging in this course?",
-                questionType: "MCQ Single Choice",
-                answer: "Mathematics"
-            },
-            {
-                id: "q2",
-                questionText: "Which learning methods help you understand best? (Select all that apply)",
-                questionType: "MCQ Multiple Choice",
-                answer: ["Visual Aids", "Hands-on Practice", "Reading Materials"]
-            },
-            {
-                id: "q3",
-                questionText: "The course materials provided were easy to follow.",
-                questionType: "True/False",
-                answer: "True"
-            },
-            {
-                id: "q4",
-                questionText: "What one improvement would make this course more effective?",
-                questionType: "Short Answer",
-                answer: "More practice exercises and quizzes"
-            },
-            {
-                id: "q5",
-                questionText: "Please provide detailed feedback about your overall learning experience.",
-                questionType: "Long Answer",
-                answer: "Excellent course with clear explanations and good pacing. The practice exercises are very helpful. I would recommend adding more interactive elements and peer discussion opportunities."
-            },
-            {
-                id: "q6",
-                questionText: "How would you rate this course overall? (Enter a number from 1-10)",
-                questionType: "Numerical",
-                answer: "9"
-            }
-        ]
-    },
-    {
-        id: "6",
-        name: "Lisa Davis",
-        email: "lisa@example.com",
-        responses: [
-            {
-                id: "q1",
-                questionText: "Which subject do you find the most engaging in this course?",
-                questionType: "MCQ Single Choice",
-                answer: "Science"
-            },
-            {
-                id: "q2",
-                questionText: "Which learning methods help you understand best? (Select all that apply)",
-                questionType: "MCQ Multiple Choice",
-                answer: ["Visual Aids", "Group Discussion"]
-            },
-            {
-                id: "q3",
-                questionText: "The course materials provided were easy to follow.",
-                questionType: "True/False",
-                answer: "False"
-            },
-            {
-                id: "q4",
-                questionText: "What one improvement would make this course more effective?",
-                questionType: "Short Answer",
-                answer: "Clearer instructions and better organization of materials"
-            },
-            {
-                id: "q5",
-                questionText: "Please provide detailed feedback about your overall learning experience.",
-                questionType: "Long Answer",
-                answer: "The course has good content but could be better organized. Some concepts are explained well while others need more clarity. More visual aids and step-by-step breakdowns would be beneficial."
-            },
-            {
-                id: "q6",
-                questionText: "How would you rate this course overall? (Enter a number from 1-10)",
-                questionType: "Numerical",
-                answer: "6"
-            }
-        ]
-    }
-];
+interface SurveyIndividualRespondentsTabProps {
+    assessmentId: string;
+    sectionIds?: string;
+    assessmentName?: string;
+}
 
-export const SurveyIndividualRespondentsTab: React.FC = () => {
+export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondentsTabProps> = ({ assessmentId, sectionIds, assessmentName }) => {
     const [currentRespondentIndex, setCurrentRespondentIndex] = useState(0);
     const [pageInput, setPageInput] = useState('');
+    const [pageNo, setPageNo] = useState(1);
+    const pageSize = 10;
 
-    const currentRespondent = mockRespondentsData[currentRespondentIndex];
-    const totalRespondents = mockRespondentsData.length;
+    const { data, loading, error } = useSurveyRespondents(assessmentId, pageNo, pageSize, assessmentName, sectionIds);
+
+    const currentRespondent = data?.respondents[currentRespondentIndex];
+    const totalRespondents = data?.respondents.length || 0;
 
     const handlePrevious = () => {
         if (currentRespondentIndex > 0) {
             setCurrentRespondentIndex(currentRespondentIndex - 1);
             setPageInput((currentRespondentIndex).toString());
+        } else if (pageNo > 1) {
+            // Load previous page
+            setPageNo(pageNo - 1);
+            setCurrentRespondentIndex(pageSize - 1);
         }
     };
 
@@ -288,6 +44,10 @@ export const SurveyIndividualRespondentsTab: React.FC = () => {
         if (currentRespondentIndex < totalRespondents - 1) {
             setCurrentRespondentIndex(currentRespondentIndex + 1);
             setPageInput((currentRespondentIndex + 2).toString());
+        } else if (data?.pagination && !data.pagination.last) {
+            // Load next page
+            setPageNo(pageNo + 1);
+            setCurrentRespondentIndex(0);
         }
     };
 
@@ -322,6 +82,54 @@ export const SurveyIndividualRespondentsTab: React.FC = () => {
         setPageInput((currentRespondentIndex + 1).toString());
     }, [currentRespondentIndex]);
 
+    // Reset to first respondent when data changes
+    React.useEffect(() => {
+        if (data?.respondents?.length) {
+            setCurrentRespondentIndex(0);
+        }
+    }, [data?.respondents]);
+
+    // Show loading state
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="flex items-center gap-2">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <span>Loading survey respondents...</span>
+                </div>
+            </div>
+        );
+    }
+
+    // Show error state
+    if (error) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                    <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Respondents</h3>
+                    <p className="text-gray-600 mb-4">{error}</p>
+                    <Button onClick={() => window.location.reload()}>
+                        Try Again
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+
+    // Show empty state
+    if (!data?.respondents?.length) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                    <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Respondents Found</h3>
+                    <p className="text-gray-600">No survey responses found for this assessment.</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6">
             {/* Navigation Controls */}
@@ -329,7 +137,7 @@ export const SurveyIndividualRespondentsTab: React.FC = () => {
                 <Button
                     variant="outline"
                     onClick={handlePrevious}
-                    disabled={currentRespondentIndex <= 0}
+                    disabled={currentRespondentIndex <= 0 && pageNo <= 1}
                     className="flex items-center gap-2"
                 >
                     <ChevronLeft className="h-4 w-4" />
@@ -337,8 +145,8 @@ export const SurveyIndividualRespondentsTab: React.FC = () => {
                 </Button>
 
                 <div className="text-center">
-                    <div className="font-semibold text-lg">{currentRespondent.name}</div>
-                    <div className="text-sm text-gray-600">{currentRespondent.email}</div>
+                    <div className="font-semibold text-lg">{currentRespondent?.name || 'Unknown'}</div>
+                    <div className="text-sm text-gray-600">{currentRespondent?.email || 'No email'}</div>
                     <div className="flex items-center justify-center gap-2 mt-1">
                         <span className="text-xs text-gray-500">
                             Respondent
@@ -357,12 +165,17 @@ export const SurveyIndividualRespondentsTab: React.FC = () => {
                             of {totalRespondents}
                         </span>
                     </div>
+                    {data?.pagination && (
+                        <div className="text-xs text-gray-400 mt-1">
+                            Page {data.pagination.pageNo} of {data.pagination.totalPages}
+                        </div>
+                    )}
                 </div>
 
                 <Button
                     variant="outline"
                     onClick={handleNext}
-                    disabled={currentRespondentIndex >= totalRespondents - 1}
+                    disabled={currentRespondentIndex >= totalRespondents - 1 && data?.pagination?.last}
                     className="flex items-center gap-2"
                 >
                     Next
@@ -372,15 +185,15 @@ export const SurveyIndividualRespondentsTab: React.FC = () => {
 
             {/* Individual Responses */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {currentRespondent.responses.map((response, index) => (
+                {currentRespondent?.responses?.map((response, index) => (
                     <Card key={response.id} className="h-fit">
                         <CardHeader>
                             <div className="flex items-start justify-between gap-2">
                                 <CardTitle className="text-lg font-semibold flex-1">
-                                    Q{index + 1}. {response.questionText}
+                                    Q{index + 1}. Survey Question {index + 1}
                                 </CardTitle>
                                 <Badge className="bg-primary-100 text-primary-800 border-primary-200 w-fit flex-shrink-0">
-                                    {response.questionType}
+                                    Response
                                 </Badge>
                             </div>
                         </CardHeader>
@@ -397,7 +210,11 @@ export const SurveyIndividualRespondentsTab: React.FC = () => {
                             </div>
                         </CardContent>
                     </Card>
-                ))}
+                )) || (
+                    <div className="col-span-2 text-center py-8">
+                        <p className="text-gray-500">No responses available for this respondent.</p>
+                    </div>
+                )}
             </div>
         </div>
     );

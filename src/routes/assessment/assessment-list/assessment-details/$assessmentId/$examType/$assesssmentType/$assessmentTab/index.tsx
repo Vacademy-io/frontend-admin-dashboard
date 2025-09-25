@@ -322,14 +322,26 @@ const AssessmentDetailsComponent = () => {
                     <div className="max-h-[72vh] overflow-y-auto pr-8">
                         <TabsContent value="overview">
                             {examType === 'SURVEY' ? (
-                                <SurveyMainOverviewTab />
+                                <SurveyMainOverviewTab
+                                    assessmentId={assessmentId}
+                                    sectionIds={assessmentDetails[1]?.saved_data.sections
+                                        ?.map((section) => section.id)
+                                        .join(',')}
+                                    assessmentName={assessmentDetails[0]?.assessment_name || ''}
+                                />
                             ) : (
                                 <AssessmentOverviewTab />
                             )}
                         </TabsContent>
                         <TabsContent value="submissions">
                             {examType === 'SURVEY' ? (
-                                <SurveyIndividualRespondentsTab />
+                                <SurveyIndividualRespondentsTab
+                                    assessmentId={assessmentId}
+                                    sectionIds={assessmentDetails[1]?.saved_data.sections
+                                        ?.map((section) => section.id)
+                                        .join(',')}
+                                    assessmentName={assessmentDetails[0]?.assessment_name || ''}
+                                />
                             ) : (
                                 <AssessmentSubmissionsTab type={assesssmentType} />
                             )}
