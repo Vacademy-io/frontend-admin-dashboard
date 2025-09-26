@@ -263,11 +263,6 @@ export function QuestionPaperTemplate({
     // Re-validate form when examType changes
     useEffect(() => {
         if (examType) {
-            console.log('🔄 Re-validating form due to examType change', {
-                examType,
-                currentErrors: Object.keys(form.formState.errors),
-                questionCount: form.getValues('questions')?.length || 0
-            });
             // Clear any existing errors first
             form.clearErrors();
             // Then trigger validation with the new schema

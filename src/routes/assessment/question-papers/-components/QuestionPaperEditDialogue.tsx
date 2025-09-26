@@ -10,11 +10,12 @@ import { z } from 'zod';
 import { uploadQuestionPaperFormSchema } from '../-utils/upload-question-paper-form-schema';
 import { useFilterDataForAssesment } from '../../assessment-list/-utils.ts/useFiltersData';
 import { useState } from 'react';
+import { useNamingSettings } from '@/hooks/useNamingSettings';
 
 interface FormData {
     title: string;
-    yearClass: string;
-    subject: string;
+    yearClass?: string;
+    subject?: string;
 }
 type QuestionPaperForm = z.infer<ReturnType<typeof uploadQuestionPaperFormSchema>>;
 
@@ -22,6 +23,7 @@ export const QuestionPaperEditDialog = ({ form }: { form: UseFormReturn<Question
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const { instituteDetails } = useInstituteDetailsStore();
     const { YearClassFilterData, SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
+    const { getTerminology } = useNamingSettings();
     const { control, handleSubmit } = useForm<FormData>({
         defaultValues: {
             title: form.getValues('title'),
@@ -61,7 +63,7 @@ export const QuestionPaperEditDialog = ({ form }: { form: UseFormReturn<Question
                     />
                     <div className="flex items-center gap-4">
                         <SelectField
-                            label="Year/class"
+                            label={getTerminology('Level', 'Year/Class')}
                             name="yearClass"
                             options={YearClassFilterData.map((option, index) => ({
                                 value: option.name,
@@ -69,11 +71,10 @@ export const QuestionPaperEditDialog = ({ form }: { form: UseFormReturn<Question
                                 _id: index,
                             }))}
                             control={control}
-                            required
                             className="!w-full"
                         />
                         <SelectField
-                            label="Subject"
+                            label={getTerminology('Subject', 'Subject')}
                             name="subject"
                             options={SubjectFilterData.map((option, index) => ({
                                 value: option.name,
@@ -81,7 +82,6 @@ export const QuestionPaperEditDialog = ({ form }: { form: UseFormReturn<Question
                                 _id: index,
                             }))}
                             control={control}
-                            required
                             className="!w-full"
                         />
                     </div>

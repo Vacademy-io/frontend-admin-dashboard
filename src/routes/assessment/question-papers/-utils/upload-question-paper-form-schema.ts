@@ -362,11 +362,6 @@ const validateQuestionByType = (question: any, ctx: z.RefinementCtx, examType: s
 };
 
 export const uploadQuestionPaperFormSchema = (examType?: string) => {
-    console.log('🔧 Creating validation schema with examType:', {
-        examType,
-        isSurvey: examType === 'SURVEY'
-    });
-
     return z.object({
     questionPaperId: z
         .string({
@@ -381,13 +376,13 @@ export const uploadQuestionPaperFormSchema = (examType?: string) => {
     }),
     createdOn: z.date().default(() => new Date()),
     yearClass: z.string({
-        required_error: 'Title is required',
-        invalid_type_error: 'Title must be a string',
-    }),
+        required_error: 'Year/Class is required',
+        invalid_type_error: 'Year/Class must be a string',
+    }).optional(),
     subject: z.string({
-        required_error: 'Title is required',
-        invalid_type_error: 'Title must be a string',
-    }),
+        required_error: 'Subject is required',
+        invalid_type_error: 'Subject must be a string',
+    }).optional(),
     questionsType: z.string({
         required_error: 'Question field is required',
         invalid_type_error: 'Question field must be a string',
