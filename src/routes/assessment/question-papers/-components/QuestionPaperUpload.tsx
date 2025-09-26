@@ -84,8 +84,8 @@ const useFormValidation = (form: any) => {
     const questions = form.getValues('questions');
 
     return {
-        isFormValidWhenManuallyCreated: !!title && !!yearClass && !!subject,
-        isFormValidWhenUploaded: !!title && !!yearClass && !!subject && !!fileUpload,
+        isFormValidWhenManuallyCreated: !!title,
+        isFormValidWhenUploaded: !!title && !!fileUpload,
         hasQuestions: questions.length > 0,
     };
 };

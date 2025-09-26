@@ -24,54 +24,20 @@ const validateSingleChoiceQuestion = (question: any, ctx: z.RefinementCtx, examT
     if (examType !== 'SURVEY') {
         const selectedCount = question[optionsPath].filter((opt: any) => opt.isSelected).length;
         if (selectedCount !== 1) {
-            console.log(`❌ ${optionsName} validation failed - no correct answer selected`, {
-                examType,
-                questionType: optionsName,
-                selectedCount,
-                question: question.questionName
-            });
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: `${optionsName} must have exactly one option selected`,
                 path: [optionsPath],
             });
-        } else {
-            console.log(`✅ ${optionsName} validation passed - correct answer selected`, {
-                examType,
-                questionType: optionsName,
-                selectedCount,
-                question: question.questionName
-            });
         }
-    } else {
-        console.log(`⏭️ Skipping correct answer validation for SURVEY question`, {
-            examType,
-            questionType: optionsName,
-            question: question.questionName
-        });
     }
 
     question[optionsPath].forEach((opt: any, index: number) => {
         if (!opt?.name?.trim()) {
-            console.log(`❌ ${optionsName} validation failed - option name missing`, {
-                examType,
-                questionType: optionsName,
-                optionIndex: index,
-                optionName: opt?.name,
-                question: question.questionName
-            });
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: `Option ${index + 1} is required`,
                 path: [optionsPath, index, 'name'],
-            });
-        } else {
-            console.log(`✅ ${optionsName} option name validation passed`, {
-                examType,
-                questionType: optionsName,
-                optionIndex: index,
-                optionName: opt?.name,
-                question: question.questionName
             });
         }
     });
@@ -100,54 +66,20 @@ const validateMultipleChoiceQuestion = (question: any, ctx: z.RefinementCtx, exa
     if (examType !== 'SURVEY') {
         const selectedCount = question[optionsPath].filter((opt: any) => opt.isSelected).length;
         if (selectedCount < 1) {
-            console.log(`❌ ${optionsName} validation failed - no correct answer selected`, {
-                examType,
-                questionType: optionsName,
-                selectedCount,
-                question: question.questionName
-            });
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: `${optionsName} must have at least one option selected`,
                 path: [optionsPath],
             });
-        } else {
-            console.log(`✅ ${optionsName} validation passed - correct answer selected`, {
-                examType,
-                questionType: optionsName,
-                selectedCount,
-                question: question.questionName
-            });
         }
-    } else {
-        console.log(`⏭️ Skipping correct answer validation for SURVEY question`, {
-            examType,
-            questionType: optionsName,
-            question: question.questionName
-        });
     }
 
     question[optionsPath].forEach((opt: any, index: number) => {
         if (!opt.name?.trim()) {
-            console.log(`❌ ${optionsName} validation failed - option name missing`, {
-                examType,
-                questionType: optionsName,
-                optionIndex: index,
-                optionName: opt?.name,
-                question: question.questionName
-            });
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: `Option ${index + 1} is required`,
                 path: [optionsPath, index, 'name'],
-            });
-        } else {
-            console.log(`✅ ${optionsName} option name validation passed`, {
-                examType,
-                questionType: optionsName,
-                optionIndex: index,
-                optionName: opt?.name,
-                question: question.questionName
             });
         }
     });
@@ -176,54 +108,20 @@ const validateTrueFalseQuestion = (question: any, ctx: z.RefinementCtx, examType
     if (examType !== 'SURVEY') {
         const selectedCount = question.trueFalseOptions.filter((opt: any) => opt.isSelected).length;
         if (selectedCount !== 1) {
-            console.log('❌ TRUE_FALSE validation failed - no correct answer selected', {
-                examType,
-                questionType: 'TRUE_FALSE',
-                selectedCount,
-                question: question.questionName
-            });
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: 'TRUE_FALSE must have exactly one option selected',
                 path: ['trueFalseOptions'],
             });
-        } else {
-            console.log('✅ TRUE_FALSE validation passed - correct answer selected', {
-                examType,
-                questionType: 'TRUE_FALSE',
-                selectedCount,
-                question: question.questionName
-            });
         }
-    } else {
-        console.log('⏭️ Skipping correct answer validation for SURVEY question', {
-            examType,
-            questionType: 'TRUE_FALSE',
-            question: question.questionName
-        });
     }
 
     question.trueFalseOptions.forEach((opt: any, index: number) => {
         if (!opt?.name?.trim()) {
-            console.log('❌ TRUE_FALSE validation failed - option name missing', {
-                examType,
-                questionType: 'TRUE_FALSE',
-                optionIndex: index,
-                optionName: opt?.name,
-                question: question.questionName
-            });
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: `Option ${index + 1} is required`,
                 path: ['trueFalseOptions', index, 'name'],
-            });
-        } else {
-            console.log('✅ TRUE_FALSE option name validation passed', {
-                examType,
-                questionType: 'TRUE_FALSE',
-                optionIndex: index,
-                optionName: opt?.name,
-                question: question.questionName
             });
         }
     });
@@ -243,30 +141,12 @@ const validateNumericQuestion = (question: any, ctx: z.RefinementCtx, examType: 
     // Skip correct answer validation for survey questions
     if (examType !== 'SURVEY') {
         if (question.validAnswers.length === 0) {
-            console.log(`❌ ${questionType} validation failed - no valid answers`, {
-                examType,
-                questionType,
-                question: question.questionName
-            });
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: `${questionType} questions must have at least one valid answer`,
                 path: ['validAnswers'],
             });
-        } else {
-            console.log(`✅ ${questionType} validation passed - valid answers provided`, {
-                examType,
-                questionType,
-                validAnswersCount: question.validAnswers.length,
-                question: question.questionName
-            });
         }
-    } else {
-        console.log(`⏭️ Skipping correct answer validation for SURVEY question`, {
-            examType,
-            questionType,
-            question: question.questionName
-        });
     }
 };
 
@@ -275,29 +155,12 @@ const validateSubjectiveQuestion = (question: any, ctx: z.RefinementCtx, examTyp
     // Skip correct answer validation for survey questions
     if (examType !== 'SURVEY') {
         if (!question.subjectiveAnswerText || !question.subjectiveAnswerText.trim()) {
-            console.log(`❌ ${questionType} validation failed - no answer provided`, {
-                examType,
-                questionType,
-                question: question.questionName
-            });
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: `${questionType} questions must have a correct answer`,
                 path: ['subjectiveAnswerText'],
             });
-        } else {
-            console.log(`✅ ${questionType} validation passed - answer provided`, {
-                examType,
-                questionType,
-                question: question.questionName
-            });
         }
-    } else {
-        console.log(`⏭️ Skipping correct answer validation for SURVEY question`, {
-            examType,
-            questionType,
-            question: question.questionName
-        });
     }
 };
 

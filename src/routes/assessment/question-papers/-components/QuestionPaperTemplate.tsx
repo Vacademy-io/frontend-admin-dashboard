@@ -271,21 +271,11 @@ export function QuestionPaperTemplate({
     }, [examType, form]);
 
     const handleTriggerForm = () => {
-        console.log('🔍 Triggering form validation', {
-            examType,
-            questionCount: form.getValues('questions')?.length || 0,
-            currentErrors: Object.keys(form.formState.errors)
-        });
 
         form.trigger();
 
         const errors = form.formState.errors;
         if (Object.values(errors).length > 0) {
-            console.log('❌ Form validation failed with errors:', {
-                examType,
-                errors: errors,
-                errorCount: Object.values(errors).length
-            });
             toast.error('some of your questions are incomplete or needs attentions!', {
                 className: 'error-toast',
                 duration: 3000,
@@ -293,10 +283,6 @@ export function QuestionPaperTemplate({
             return;
         }
 
-        console.log('✅ Form validation passed successfully', {
-            examType,
-            questionCount: form.getValues('questions')?.length || 0
-        });
         setIsQuestionPaperTemplateDialog(false);
     };
 
