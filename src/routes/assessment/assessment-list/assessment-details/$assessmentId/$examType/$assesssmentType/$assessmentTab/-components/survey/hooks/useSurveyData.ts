@@ -468,14 +468,6 @@ export const useSurveyRespondentResponses = (
         ...filters,
       };
 
-      console.log('🔄 [Survey Hook] useSurveyRespondentResponses - Fetching data:', {
-        assessmentId,
-        assessmentName,
-        pageNo,
-        pageSize,
-        filters: requestFilters,
-        timestamp: new Date().toISOString(),
-      });
 
       const response = await surveyApiService.getRespondentResponses(
         assessmentId,
@@ -484,15 +476,6 @@ export const useSurveyRespondentResponses = (
         requestFilters
       );
 
-      console.log('✅ [Survey Hook] useSurveyRespondentResponses - Data received:', {
-        contentLength: response.content?.length || 0,
-        pageNo: response.page_no,
-        pageSize: response.page_size,
-        totalPages: response.total_pages,
-        totalElements: response.total_elements,
-        last: response.last,
-        timestamp: new Date().toISOString(),
-      });
 
       setData(response);
     } catch (err) {

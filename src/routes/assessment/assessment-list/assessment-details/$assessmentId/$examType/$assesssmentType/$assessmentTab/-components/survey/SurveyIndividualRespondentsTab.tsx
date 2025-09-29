@@ -80,7 +80,6 @@ const parseResponseData = (responseString: string, questionsData: Map<string, an
       questionData: questionData,
     };
   } catch (error) {
-    console.error('Error parsing response data:', error);
     return {
       questionId: 'Unknown',
       questionType: 'Unknown',
@@ -153,7 +152,7 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
                         setQuestionsData(questionMap);
                 }
             } catch (error) {
-                console.warn('Failed to fetch questions data:', error);
+                // Silently handle questions data fetch failure
             } finally {
                 setQuestionsLoading(false);
             }
@@ -359,8 +358,8 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
                                 <div className="p-4 bg-gray-50 rounded-lg border">
                                             <p className="text-sm font-medium">
                                                 {parsedResponse.formattedAnswer}
-                                            </p>
-                                        </div>
+                                    </p>
+                                </div>
                                     </div>
 
 

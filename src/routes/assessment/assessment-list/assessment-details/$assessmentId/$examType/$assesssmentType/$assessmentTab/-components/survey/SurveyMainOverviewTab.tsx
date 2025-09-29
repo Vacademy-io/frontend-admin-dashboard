@@ -34,12 +34,19 @@ import {
 import { Users, CheckCircle, Clock, TrendingUp, MessageSquare, Eye, Loader2, AlertCircle } from 'lucide-react';
 import { useSurveyOverview, useSurveyRespondents } from './hooks/useSurveyData';
 import { TransformedQuestionAnalytics, ResponseDistribution } from './types';
-import { surveyApiService } from '@/services/survey-api';
+import { surveyApiService, AssessmentQuestionPreview, QuestionOptionWithExplanation } from '@/services/survey-api';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
+interface QuestionData {
+    questionContent: string;
+    questionOrder: number;
+    questionType: string;
+    optionsMap: Map<string, string>;
+}
+
 // Helper function to parse response data with question context
-const parseResponseData = (responseString: string, questionsData: Map<string, any>) => {
+const parseResponseData = (responseString: string, questionsData: Map<string, QuestionData>) => {
   try {
     const response = JSON.parse(responseString);
     const responseData = response.responseData || {};
@@ -104,9 +111,8 @@ const parseResponseData = (responseString: string, questionsData: Map<string, an
       rawResponse: response,
       questionData: questionData,
     };
-  } catch (error) {
-    console.error('Error parsing response data:', error);
-    return {
+    } catch (error) {
+        return {
       questionId: 'Unknown',
       questionType: 'Unknown',
       questionContent: 'Survey Question',
@@ -126,7 +132,12 @@ interface SurveyMainOverviewTabProps {
     assessmentId: string;
     sectionIds?: string;
     assessmentName?: string;
-    assessmentDetails?: any;
+    assessmentDetails?: {
+        assessment_visibility?: string;
+        live_assessment_access?: {
+            batch_ids?: string[];
+        };
+    };
 }
 
 export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ assessmentId, sectionIds, assessmentName, assessmentDetails }) => {
@@ -137,9 +148,9 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
     const isPublicSurvey = assessmentDetails?.assessment_visibility === 'PUBLIC';
 
 
-    const [selectedQuestion, setSelectedQuestion] = useState<any>(null);
+    const [selectedQuestion, setSelectedQuestion] = useState<TransformedQuestionAnalytics | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [questionsData, setQuestionsData] = useState<Map<string, any>>(new Map());
+    const [questionsData, setQuestionsData] = useState<Map<string, QuestionData>>(new Map());
     const [questionsLoading, setQuestionsLoading] = useState(false);
     const [batchData, setBatchData] = useState<Map<string, string>>(new Map());
     const [batchLoading, setBatchLoading] = useState(false);
@@ -159,11 +170,11 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                     // Process questions data into a map for easy lookup
                     const questionMap = new Map();
                     Object.entries(questionsResponse).forEach(([sectionId, questions]) => {
-                        questions.forEach((question: any) => {
+                        questions.forEach((question: AssessmentQuestionPreview) => {
                             // Create options map for this question
                             const optionsMap = new Map();
                             if (question.options_with_explanation) {
-                                question.options_with_explanation.forEach((option: any) => {
+                                question.options_with_explanation.forEach((option: QuestionOptionWithExplanation) => {
                                     optionsMap.set(option.id, option.text.content);
                                 });
                             }
@@ -180,7 +191,7 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                     setQuestionsData(questionMap);
                 }
             } catch (error) {
-                console.warn('Failed to fetch questions data:', error);
+                // Silently handle questions data fetch failure
             } finally {
                 setQuestionsLoading(false);
             }
@@ -192,16 +203,7 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
     // Fetch batch data for private surveys
     React.useEffect(() => {
         const fetchBatchData = async () => {
-            console.log('🔍 [Batch Debug] Starting batch data fetch:', {
-                hasAssessmentDetails: !!assessmentDetails,
-                isPublicSurvey,
-                assessmentVisibility: assessmentDetails?.assessment_visibility,
-                liveAssessmentAccess: assessmentDetails?.live_assessment_access,
-                timestamp: new Date().toISOString()
-            });
-
             if (!assessmentDetails || isPublicSurvey) {
-                console.log('🔍 [Batch Debug] Skipping batch fetch - no details or public survey');
                 return;
             }
 
@@ -209,43 +211,17 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                 setBatchLoading(true);
                 const batchIds = assessmentDetails.live_assessment_access?.batch_ids || [];
 
-                console.log('🔍 [Batch Debug] Batch IDs found:', {
-                    batchIds,
-                    batchIdsLength: batchIds.length,
-                    liveAssessmentAccess: assessmentDetails.live_assessment_access
-                });
-
                 if (batchIds.length > 0) {
-                    console.log('🔍 [Batch Debug] Calling getBatchInfo API...');
                     const batchInfo = await surveyApiService.getBatchInfo(batchIds);
-
-                    console.log('🔍 [Batch Debug] Batch API response:', {
-                        batchInfo,
-                        batchInfoLength: batchInfo.length,
-                        batchInfoType: typeof batchInfo
-                    });
-
                     const batchMap = new Map();
                     batchInfo.forEach(batch => {
                         batchMap.set(batch.id, batch.name);
-                        console.log('🔍 [Batch Debug] Mapped batch:', { id: batch.id, name: batch.name });
                     });
-
                     setBatchData(batchMap);
-                    console.log('🔍 [Batch Debug] Final batch map:', {
-                        batchMapSize: batchMap.size,
-                        batchMapEntries: Array.from(batchMap.entries())
-                    });
                 } else {
-                    console.log('🔍 [Batch Debug] No batch IDs found, setting empty map');
                     setBatchData(new Map());
                 }
             } catch (error) {
-                console.error('🔍 [Batch Debug] Error fetching batch data:', {
-                    error: error.message,
-                    errorType: error.constructor.name,
-                    stack: error.stack
-                });
                 setBatchData(new Map());
             } finally {
                 setBatchLoading(false);
@@ -299,14 +275,6 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
     const { analytics, questions } = overviewData;
 
     const handleViewIndividualResponses = (question: TransformedQuestionAnalytics, index: number) => {
-        console.log('🎯 [Dialog] Opening individual responses dialog:', {
-            question: question,
-            questionId: question.questionId,
-            questionText: question.questionText,
-            index: index,
-            timestamp: new Date().toISOString()
-        });
-
         setSelectedQuestion({ ...question, index });
         setIsDialogOpen(true);
     };
@@ -357,7 +325,7 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                                         />
                                         <YAxis tick={{ fontSize: 12 }} />
                                         <Tooltip
-                                            formatter={(value: number, name: string, props: any) => [
+                                            formatter={(value: number, name: string, props: { payload: { percentage: number } }) => [
                                                 `${value} responses (${props.payload.percentage}%)`,
                                                 'Count'
                                             ]}
@@ -410,7 +378,7 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                                         />
                                         <YAxis tick={{ fontSize: 12 }} />
                                         <Tooltip
-                                            formatter={(value: number, name: string, props: any) => [
+                                            formatter={(value: number, name: string, props: { payload: { percentage: number } }) => [
                                                 `${value} responses (${props.payload.percentage}%)`,
                                                 'Count'
                                             ]}
@@ -750,17 +718,6 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                                                         // For now, we'll show the first available batch name since we don't have per-respondent batch data
                                                         const batchName = batchData.size > 0 ? Array.from(batchData.values())[0] : 'N/A';
 
-                                                        // Log batch data for debugging
-                                                        if (idx === 0) { // Only log for first respondent to avoid spam
-                                                            console.log('🔍 [Batch Debug] Rendering table row with batch data:', {
-                                                                batchDataSize: batchData.size,
-                                                                batchDataEntries: Array.from(batchData.entries()),
-                                                                batchName,
-                                                                isPublicSurvey,
-                                                                assessmentVisibility: assessmentDetails?.assessment_visibility,
-                                                                liveAssessmentAccess: assessmentDetails?.live_assessment_access
-                                                            });
-                                                        }
 
                                                         return (
                                         <TableRow key={idx}>

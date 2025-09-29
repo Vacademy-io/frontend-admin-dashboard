@@ -54,7 +54,6 @@ const parseResponseData = (responseString: string) => {
       rawResponse: response,
     };
   } catch (error) {
-    console.error('Error parsing response data:', error);
     return {
       questionId: 'Unknown',
       questionType: 'Unknown',

@@ -50,7 +50,7 @@ export const useEnhancedSurveyRespondents = (
           questionMap = processQuestionsData(questionsResponse);
           setQuestionsData(questionMap);
         } catch (questionsError) {
-          console.warn('Failed to fetch questions data, proceeding without it:', questionsError);
+          // Silently handle questions data fetch failure
         }
       }
 

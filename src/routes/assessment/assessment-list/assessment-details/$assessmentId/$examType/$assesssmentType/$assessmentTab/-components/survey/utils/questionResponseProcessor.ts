@@ -107,7 +107,6 @@ const extractCorrectAnswers = (question: AssessmentQuestionPreview): string[] =>
         return [];
     }
   } catch (error) {
-    console.error('Error parsing evaluation data:', error);
     return [];
   }
 };
@@ -124,7 +123,6 @@ export const processIndividualResponse = (
     const question = questionMap.get(response.questionId);
 
     if (!question) {
-      console.warn(`Question not found for ID: ${response.questionId}`);
       return null;
     }
 
@@ -153,7 +151,6 @@ export const processIndividualResponse = (
       isMarkedForReview: response.isMarkedForReview || false,
     };
   } catch (error) {
-    console.error('Error processing individual response:', error);
     return null;
   }
 };
