@@ -826,3 +826,182 @@ export const activityResponseAssignmentColumns: ColumnDef<ActivityResponseAssign
         header: 'Submissions',
     },
 ];
+
+// Simple cell components for leads
+const LeadDetailsCell = ({ row }: { row: Row<any> }) => {
+    return (
+        <div className="flex items-center justify-center">
+            <button className="rounded bg-primary-500 px-2 py-1 text-xs text-white hover:bg-primary-600">
+                View
+            </button>
+        </div>
+    );
+};
+
+const LeadClickableCell = ({ row, columnId }: { row: Row<any>; columnId: string }) => {
+    const value = row.getValue(columnId) as string;
+    return (
+        <div className="cursor-pointer text-sm text-neutral-700 hover:text-primary-600">
+            {value || '-'}
+        </div>
+    );
+};
+
+// Leads Management Columns
+export const leadsColumns: ColumnDef<any>[] = [
+    {
+        id: 'checkbox',
+        size: 50,
+        minSize: 50,
+        maxSize: 50,
+        enableResizing: false,
+        enablePinning: true,
+        header: ({ table }) => (
+            <Checkbox
+                checked={table.getIsAllRowsSelected()}
+                onCheckedChange={(value) => table.toggleAllRowsSelected(!!value)}
+                className="border-neutral-400 bg-white text-neutral-600 data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
+            />
+        ),
+        cell: ({ row }) => (
+            <Checkbox
+                checked={row.getIsSelected()}
+                onCheckedChange={(value) => row.toggleSelected(!!value)}
+                className="flex size-4 items-center justify-center border-neutral-400 text-neutral-600 shadow-none data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
+            />
+        ),
+    },
+    {
+        id: 'details',
+        size: 80,
+        minSize: 60,
+        maxSize: 120,
+        enablePinning: true,
+        header: 'Details',
+        cell: ({ row }) => <LeadDetailsCell row={row} />,
+    },
+    {
+        accessorKey: 'name',
+        size: 200,
+        minSize: 150,
+        maxSize: 300,
+        enablePinning: true,
+        header: (props) => {
+            const meta = props.table.options.meta as CustomTableMeta;
+            return (
+                <div className="relative">
+                    <MyDropdown
+                        dropdownList={['ASC', 'DESC']}
+                        onSelect={(value) => {
+                            if (typeof value == 'string') meta.onSort?.('name', value);
+                        }}
+                    >
+                        <button className="flex w-full cursor-pointer items-center justify-between">
+                            <div>Name</div>
+                            <div>
+                                <CaretUpDown />
+                            </div>
+                        </button>
+                    </MyDropdown>
+                </div>
+            );
+        },
+        cell: ({ row }) => <LeadClickableCell row={row} columnId="name" />,
+    },
+    {
+        accessorKey: 'email',
+        size: 200,
+        minSize: 150,
+        maxSize: 300,
+        header: 'Email',
+        cell: ({ row }) => <LeadClickableCell row={row} columnId="email" />,
+    },
+    {
+        accessorKey: 'phone',
+        size: 150,
+        minSize: 100,
+        maxSize: 250,
+        header: 'Phone',
+        cell: ({ row }) => <LeadClickableCell row={row} columnId="phone" />,
+    },
+    {
+        accessorKey: 'status',
+        size: 120,
+        minSize: 100,
+        maxSize: 150,
+        header: 'Status',
+        cell: ({ row }) => {
+            const status = row.getValue('status') as string;
+            const statusMap: Record<string, ActivityStatus> = {
+                NEW: 'pending',
+                CONTACTED: 'ongoing',
+                QUALIFIED: 'success',
+                CONVERTED: 'success',
+                LOST: 'error',
+            };
+            return <StatusChips status={statusMap[status] || 'pending'} text={status} />;
+        },
+    },
+    {
+        accessorKey: 'source',
+        size: 150,
+        minSize: 100,
+        maxSize: 200,
+        header: 'Source',
+        cell: ({ row }) => <LeadClickableCell row={row} columnId="source" />,
+    },
+    {
+        accessorKey: 'created_at',
+        size: 150,
+        minSize: 120,
+        maxSize: 200,
+        header: 'Created Date',
+        cell: ({ row }) => {
+            const date = row.getValue('created_at') as string;
+            return <span className="text-sm text-neutral-600">{date ? new Date(date).toLocaleDateString() : '-'}</span>;
+        },
+    },
+    {
+        accessorKey: 'last_contacted',
+        size: 150,
+        minSize: 120,
+        maxSize: 200,
+        header: 'Last Contacted',
+        cell: ({ row }) => {
+            const date = row.getValue('last_contacted') as string;
+            return <span className="text-sm text-neutral-600">{date ? new Date(date).toLocaleDateString() : 'Never'}</span>;
+        },
+    },
+    {
+        accessorKey: 'priority',
+        size: 100,
+        minSize: 80,
+        maxSize: 120,
+        header: 'Priority',
+        cell: ({ row }) => {
+            const priority = row.getValue('priority') as string;
+            const priorityMap: Record<string, ActivityStatus> = {
+                HIGH: 'error',
+                MEDIUM: 'ongoing',
+                LOW: 'pending',
+            };
+            return <StatusChips status={priorityMap[priority] || 'pending'} text={priority} />;
+        },
+    },
+    {
+        id: 'actions',
+        size: 80,
+        minSize: 60,
+        maxSize: 100,
+        enableResizing: false,
+        enablePinning: true,
+        header: 'Actions',
+        cell: ({ row }) => (
+            <div className="flex items-center justify-center">
+                <button className="rounded bg-neutral-100 px-2 py-1 text-xs text-neutral-600 hover:bg-neutral-200">
+                    ...
+                </button>
+            </div>
+        ),
+    },
+];
