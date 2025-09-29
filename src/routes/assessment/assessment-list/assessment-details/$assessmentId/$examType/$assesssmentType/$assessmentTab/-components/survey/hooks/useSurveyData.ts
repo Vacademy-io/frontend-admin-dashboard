@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { surveyApiService } from '@/services/survey-api';
+import { surveyApiService, QuestionsWithSectionsResponse } from '@/services/survey-api';
 import {
   SurveyOverviewResponse,
   SurveyRespondentResponseData,
@@ -10,16 +10,17 @@ import {
   SurveyQuestionType,
   ResponseDistribution,
 } from '../types';
+import { processQuestionsData, processIndividualResponse, groupResponsesByRespondent, ProcessedResponse } from '../utils/questionResponseProcessor';
 
 // Data transformation utilities
 const transformQuestionType = (apiType: string): SurveyQuestionType => {
   const typeMap: Record<string, SurveyQuestionType> = {
-    'MCQ_SINGLE_CHOICE': 'mcq_single_choice',
-    'MCQ_MULTIPLE_CHOICE': 'mcq_multiple_choice',
+    'MCQS': 'mcq_single_choice',
+    'MCQM': 'mcq_multiple_choice',
     'TRUE_FALSE': 'true_false',
-    'SHORT_ANSWER': 'short_answer',
+    'ONE_WORD': 'short_answer',
     'LONG_ANSWER': 'long_answer',
-    'NUMERICAL': 'numerical',
+    'NUMERIC': 'numerical',
     'RATING': 'rating',
   };
   return typeMap[apiType] || 'short_answer';
@@ -100,7 +101,7 @@ const transformSurveyAnalytics = (data: SurveyOverviewResponse): TransformedSurv
   };
 };
 
-const transformQuestionAnalytics = (surveyData: SurveyData): TransformedQuestionAnalytics => {
+const transformQuestionAnalytics = (surveyData: any): TransformedQuestionAnalytics => {
   const question = surveyData.assessment_question_preview_dto;
   const questionText = extractTextFromRichContent(question.question);
   const questionType = transformQuestionType(question.question_type);
@@ -109,87 +110,162 @@ const transformQuestionAnalytics = (surveyData: SurveyData): TransformedQuestion
   let totalResponses = 0;
   let topInsights: string[] = [];
 
-  // Handle MCQ questions
+
+  // Handle MCQ questions (MCQS, MCQM, TRUE_FALSE)
   if (surveyData.mcq_survey_dtos?.length > 0) {
     const mcqData = surveyData.mcq_survey_dtos[0];
-    totalResponses = mcqData.total_respondent;
-    responseDistribution = mcqData.mcq_survey_info_list.map((item: McqSurveyInfo) => ({
-      value: item.option,
-      count: item.respondent_count,
-      percentage: item.percentage,
-    }));
+    totalResponses = mcqData.total_respondent || 0;
 
-    // Generate insights for MCQ
-    if (responseDistribution.length > 0) {
-      const topResponse = responseDistribution.reduce((max, current) =>
-        current.percentage > max.percentage ? current : max
-      );
-      topInsights = [
-        `${topResponse.percentage}% of respondents chose "${topResponse.value}"`,
-        `Total responses: ${totalResponses}`,
-      ];
+    // Create a map of option IDs to option text
+    const optionMap = new Map();
+    const questionOptions = surveyData.assessment_question_preview_dto.options_with_explanation || [];
+    questionOptions.forEach((option: any) => {
+      optionMap.set(option.id, extractTextFromRichContent(option.text) || 'Unknown Option');
+    });
+
+    // Always show all question options, even if some have no responses
+    if (questionOptions.length > 0) {
+      // Create a map of response counts by option ID
+      const responseCounts = new Map();
+      if (mcqData.mcq_survey_info_list?.length > 0) {
+        mcqData.mcq_survey_info_list.forEach((item: any) => {
+          if (item.option !== 'NO_ANSWER') {
+            responseCounts.set(item.option, {
+              count: item.respondent_count || 0,
+              percentage: item.percentage || 0,
+            });
+          }
+        });
+      }
+
+      // Map all question options to response distribution
+      responseDistribution = questionOptions.map((option: any) => {
+        const optionId = option.id;
+        const optionText = extractTextFromRichContent(option.text) || 'Unknown Option';
+        const responseData = responseCounts.get(optionId) || { count: 0, percentage: 0 };
+
+        // Recalculate percentage based on total responses to ensure accuracy
+        const calculatedPercentage = totalResponses > 0 ? (responseData.count / totalResponses) * 100 : 0;
+
+
+        return {
+          value: optionText,
+          count: responseData.count,
+          percentage: calculatedPercentage,
+        };
+      }).sort((a, b) => b.percentage - a.percentage); // Sort by percentage in descending order
+
+      // Generate insights for MCQ
+      if (responseDistribution.length > 0) {
+        const topResponse = responseDistribution.reduce((max, current) =>
+          current.percentage > max.percentage ? current : max
+        );
+        topInsights = [
+          `${Math.round(topResponse.percentage)}% of respondents chose "${topResponse.value}"`,
+          `Total responses: ${totalResponses}`,
+        ];
+      } else {
+        topInsights = [
+          `No responses yet`,
+          `Question has ${questionOptions.length} options`,
+        ];
+      }
     } else {
       topInsights = [
-        `No response data available`,
-        `Total responses: ${totalResponses}`,
+        `No responses yet`,
+        `Question type: ${questionType}`,
       ];
     }
   }
 
-  // Handle text-based questions (short/long answer)
+  // Handle text-based questions (ONE_WORD, LONG_ANSWER)
   else if (surveyData.one_word_long_survey_dtos?.length > 0) {
     const textData = surveyData.one_word_long_survey_dtos[0];
-    totalResponses = textData.total_respondent;
+    totalResponses = textData.total_respondent || 0;
 
-    // For text questions, we'll show recent responses as distribution
-    const recentResponses = textData.latest_response || [];
-    const responseCounts: Record<string, number> = {};
+    // Check if we have response data
+    if (textData.latest_response?.length > 0) {
+      const responseCounts: Record<string, number> = {};
 
-    recentResponses.forEach((response: { response: string; respondent_count: number; percentage: number }) => {
-      const answer = response.answer || '';
-      if (answer.length > 0) {
-        responseCounts[answer] = (responseCounts[answer] || 0) + 1;
-      }
-    });
+      textData.latest_response.forEach((response: any) => {
+        try {
+          // Parse the JSON response to extract the actual answer
+          const parsedResponse = JSON.parse(response.answer);
+          const answer = parsedResponse.responseData?.answer || '';
+          if (answer && answer.trim().length > 0) {
+            responseCounts[answer] = (responseCounts[answer] || 0) + 1;
+          }
+        } catch (error) {
+          // If parsing fails, try to use the answer field directly
+          const answer = response.answer || '';
+          if (answer && answer.trim().length > 0) {
+            responseCounts[answer] = (responseCounts[answer] || 0) + 1;
+          }
+        }
+      });
 
-    responseDistribution = Object.entries(responseCounts)
-      .map(([value, count]) => ({
-        value,
-        count,
-        percentage: totalResponses > 0 ? Math.round((count / totalResponses) * 100) : 0,
-      }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5); // Top 5 responses
+      responseDistribution = Object.entries(responseCounts)
+        .map(([value, count]) => ({
+          value,
+          count,
+          percentage: totalResponses > 0 ? Math.round((count / totalResponses) * 100) : 0,
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5); // Top 5 responses
 
-    topInsights = [
-      `Total responses: ${totalResponses}`,
-      `Recent responses: ${recentResponses.length}`,
-    ];
+      topInsights = [
+        `Total responses: ${totalResponses}`,
+        `Recent responses: ${textData.latest_response.length}`,
+      ];
+    } else {
+      topInsights = [
+        `No responses yet`,
+        `Question type: ${questionType}`,
+      ];
+    }
   }
 
-  // Handle numerical questions
+  // Handle numerical questions (NUMERIC)
   else if (surveyData.number_survey_dtos?.length > 0) {
     const numberData = surveyData.number_survey_dtos[0];
-    totalResponses = numberData.total_respondent;
+    totalResponses = numberData.total_respondent || 0;
 
-    const responseCounts: Record<string, number> = {};
-    numberData.number_survey_info_list.forEach((item: { response: number; respondent_count: number; percentage: number }) => {
-      responseCounts[item.answer] = item.total_responses;
-    });
+    // Check if we have response data
+    if (numberData.number_survey_info_list?.length > 0) {
+      const responseCounts: Record<string, number> = {};
+      numberData.number_survey_info_list.forEach((item: any) => {
+        const value = item.answer?.toString() || '0';
+        responseCounts[value] = item.total_responses || 0;
+      });
 
-    responseDistribution = Object.entries(responseCounts)
-      .map(([value, count]) => ({
-        value,
-        count,
-        percentage: totalResponses > 0 ? Math.round((count / totalResponses) * 100) : 0,
-      }))
-      .sort((a, b) => b.count - a.count);
+      responseDistribution = Object.entries(responseCounts)
+        .map(([value, count]) => ({
+          value,
+          count,
+          percentage: totalResponses > 0 ? Math.round((count / totalResponses) * 100) : 0,
+        }))
+        .sort((a, b) => b.count - a.count);
 
+      topInsights = [
+        `Total responses: ${totalResponses}`,
+        `Most common answer: ${responseDistribution[0]?.value || 'N/A'}`,
+      ];
+    } else {
+      topInsights = [
+        `No responses yet`,
+        `Question type: ${questionType}`,
+      ];
+    }
+  }
+
+  // If no specific response data is available, show basic info
+  if (responseDistribution.length === 0) {
     topInsights = [
-      `Total responses: ${totalResponses}`,
-      `Most common answer: ${responseDistribution[0]?.value || 'N/A'}`,
+      `No responses yet`,
+      `Question type: ${questionType}`,
     ];
   }
+
 
   return {
     questionId: question.question_id,
@@ -247,33 +323,18 @@ export const useSurveyOverview = (assessmentId: string, sectionIds?: string) => 
       setLoading(true);
       setError(null);
 
-      console.log('🔄 [Survey Hook] useSurveyOverview - Fetching data:', {
-        assessmentId,
-        sectionIds,
-        timestamp: new Date().toISOString(),
-      });
 
       const response = await surveyApiService.getSurveyOverview(assessmentId, sectionIds);
 
       const analytics = transformSurveyAnalytics(response);
       const questions = response.all_surveys.map(transformQuestionAnalytics);
 
-      console.log('✅ [Survey Hook] useSurveyOverview - Data transformed:', {
-        analytics,
-        questionsCount: questions.length,
-        timestamp: new Date().toISOString(),
-      });
 
       setData({ analytics, questions });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch survey overview';
       setError(errorMessage);
-      console.error('❌ [Survey Hook] useSurveyOverview - Error:', {
-        error: errorMessage,
-        assessmentId,
-        sectionIds,
-        timestamp: new Date().toISOString(),
-      });
+      console.error('❌ [Survey Hook] useSurveyOverview - Error:', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -338,14 +399,6 @@ export const useSurveyRespondents = (
         ...filters,
       };
 
-      console.log('🔄 [Survey Hook] useSurveyRespondents - Fetching data:', {
-        assessmentId,
-        assessmentName,
-        pageNo,
-        pageSize,
-        filters: requestFilters,
-        timestamp: new Date().toISOString(),
-      });
 
       const response = await surveyApiService.getIndividualResponses(
         assessmentId,
@@ -356,17 +409,6 @@ export const useSurveyRespondents = (
 
       const respondents = transformSurveyRespondents(response);
 
-      console.log('✅ [Survey Hook] useSurveyRespondents - Data transformed:', {
-        respondentsCount: respondents.length,
-        pagination: {
-          pageNo: response.page_no,
-          pageSize: response.page_size,
-          totalPages: response.total_pages,
-          totalElements: response.total_elements,
-          last: response.last,
-        },
-        timestamp: new Date().toISOString(),
-      });
 
       setData({
         respondents,
@@ -381,15 +423,7 @@ export const useSurveyRespondents = (
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch survey respondents';
       setError(errorMessage);
-      console.error('❌ [Survey Hook] useSurveyRespondents - Error:', {
-        error: errorMessage,
-        assessmentId,
-        pageNo,
-        pageSize,
-        assessmentName,
-        sectionIds,
-        timestamp: new Date().toISOString(),
-      });
+      console.error('❌ [Survey Hook] useSurveyRespondents - Error:', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -490,3 +524,4 @@ export const useSurveyRespondentResponses = (
     refetch: fetchData,
   };
 };
+

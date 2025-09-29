@@ -32,32 +32,228 @@ import {
     RadialBar
 } from 'recharts';
 import { Users, CheckCircle, Clock, TrendingUp, MessageSquare, Eye, Loader2, AlertCircle } from 'lucide-react';
-import { useSurveyOverview, useSurveyRespondentResponses } from './hooks/useSurveyData';
+import { useSurveyOverview, useSurveyRespondents } from './hooks/useSurveyData';
 import { TransformedQuestionAnalytics, ResponseDistribution } from './types';
+import { surveyApiService } from '@/services/survey-api';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+
+// Helper function to parse response data with question context
+const parseResponseData = (responseString: string, questionsData: Map<string, any>) => {
+  try {
+    const response = JSON.parse(responseString);
+    const responseData = response.responseData || {};
+
+    // Get question data if available
+    const questionData = questionsData.get(response.questionId);
+
+    // Format the answer based on question type
+    let formattedAnswer = 'No response provided';
+
+    switch (responseData.type) {
+      case 'MCQS':
+      case 'MCQM':
+      case 'TRUE_FALSE':
+        if (responseData.optionIds && responseData.optionIds.length > 0) {
+          if (questionData && questionData.optionsMap) {
+            // Map option IDs to their content
+            const selectedOptions = responseData.optionIds.map((optionId: string) => {
+              const optionText = questionData.optionsMap.get(optionId);
+              return optionText || optionId;
+            });
+            formattedAnswer = selectedOptions.join(', ');
+          } else {
+            formattedAnswer = responseData.optionIds.join(', ');
+          }
+        } else {
+          formattedAnswer = 'No options selected';
+        }
+        break;
+
+      case 'NUMERIC':
+        if (responseData.validAnswer !== null && responseData.validAnswer !== undefined) {
+          formattedAnswer = responseData.validAnswer.toString();
+        } else {
+          formattedAnswer = 'No numeric answer provided';
+        }
+        break;
+
+      case 'ONE_WORD':
+      case 'LONG_ANSWER':
+        if (responseData.answer && responseData.answer.trim() !== '') {
+          formattedAnswer = responseData.answer;
+        } else {
+          formattedAnswer = 'No text answer provided';
+        }
+        break;
+
+      default:
+        formattedAnswer = 'Unknown response type';
+    }
+
+    return {
+      questionId: response.questionId || 'Unknown',
+      questionType: responseData.type || 'Unknown',
+      questionContent: questionData?.questionContent || 'Survey Question',
+      questionOrder: questionData?.questionOrder || 0,
+      formattedAnswer,
+      timeTaken: response.timeTakenInSeconds || 0,
+      durationLeft: response.questionDurationLeftInSeconds || 0,
+      isVisited: response.isVisited || false,
+      isMarkedForReview: response.isMarkedForReview || false,
+      rawResponse: response,
+      questionData: questionData,
+    };
+  } catch (error) {
+    console.error('Error parsing response data:', error);
+    return {
+      questionId: 'Unknown',
+      questionType: 'Unknown',
+      questionContent: 'Survey Question',
+      questionOrder: 0,
+      formattedAnswer: 'Error parsing response data',
+      timeTaken: 0,
+      durationLeft: 0,
+      isVisited: false,
+      isMarkedForReview: false,
+      rawResponse: responseString,
+      questionData: null,
+    };
+  }
+};
 
 interface SurveyMainOverviewTabProps {
     assessmentId: string;
     sectionIds?: string;
     assessmentName?: string;
+    assessmentDetails?: any;
 }
 
-export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ assessmentId, sectionIds, assessmentName }) => {
+export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ assessmentId, sectionIds, assessmentName, assessmentDetails }) => {
     const { data: overviewData, loading: overviewLoading, error: overviewError } = useSurveyOverview(assessmentId, sectionIds);
-    const { data: respondentData, loading: respondentLoading } = useSurveyRespondentResponses(assessmentId, 1, 100, assessmentName);
+    const { data: respondentData, loading: respondentLoading } = useSurveyRespondents(assessmentId, 1, 100, assessmentName, sectionIds);
+
+    // Determine survey type from assessment details
+    const isPublicSurvey = assessmentDetails?.assessment_visibility === 'PUBLIC';
+
 
     const [selectedQuestion, setSelectedQuestion] = useState<any>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [questionsData, setQuestionsData] = useState<Map<string, any>>(new Map());
+    const [questionsLoading, setQuestionsLoading] = useState(false);
+    const [batchData, setBatchData] = useState<Map<string, string>>(new Map());
+    const [batchLoading, setBatchLoading] = useState(false);
 
-    // Log the sectionIds being passed
+
+    // Fetch questions data when component mounts or sectionIds change
     React.useEffect(() => {
-        console.log('📋 [SurveyMainOverviewTab] Component props:', {
-            assessmentId,
-            sectionIds,
-            timestamp: new Date().toISOString(),
-        });
+        const fetchQuestionsData = async () => {
+            if (!sectionIds || !assessmentId) return;
+
+            try {
+                setQuestionsLoading(true);
+                const sectionIdsArray = sectionIds.split(',').filter(id => id.trim());
+                if (sectionIdsArray.length > 0) {
+                    const questionsResponse = await surveyApiService.getQuestionsWithSections(assessmentId, sectionIdsArray);
+
+                    // Process questions data into a map for easy lookup
+                    const questionMap = new Map();
+                    Object.entries(questionsResponse).forEach(([sectionId, questions]) => {
+                        questions.forEach((question: any) => {
+                            // Create options map for this question
+                            const optionsMap = new Map();
+                            if (question.options_with_explanation) {
+                                question.options_with_explanation.forEach((option: any) => {
+                                    optionsMap.set(option.id, option.text.content);
+                                });
+                            }
+
+                            questionMap.set(question.question_id, {
+                                questionContent: question.question.content,
+                                questionOrder: question.question_order,
+                                questionType: question.question_type,
+                                optionsMap: optionsMap
+                            });
+                        });
+                    });
+
+                    setQuestionsData(questionMap);
+                }
+            } catch (error) {
+                console.warn('Failed to fetch questions data:', error);
+            } finally {
+                setQuestionsLoading(false);
+            }
+        };
+
+        fetchQuestionsData();
     }, [assessmentId, sectionIds]);
+
+    // Fetch batch data for private surveys
+    React.useEffect(() => {
+        const fetchBatchData = async () => {
+            console.log('🔍 [Batch Debug] Starting batch data fetch:', {
+                hasAssessmentDetails: !!assessmentDetails,
+                isPublicSurvey,
+                assessmentVisibility: assessmentDetails?.assessment_visibility,
+                liveAssessmentAccess: assessmentDetails?.live_assessment_access,
+                timestamp: new Date().toISOString()
+            });
+
+            if (!assessmentDetails || isPublicSurvey) {
+                console.log('🔍 [Batch Debug] Skipping batch fetch - no details or public survey');
+                return;
+            }
+
+            try {
+                setBatchLoading(true);
+                const batchIds = assessmentDetails.live_assessment_access?.batch_ids || [];
+
+                console.log('🔍 [Batch Debug] Batch IDs found:', {
+                    batchIds,
+                    batchIdsLength: batchIds.length,
+                    liveAssessmentAccess: assessmentDetails.live_assessment_access
+                });
+
+                if (batchIds.length > 0) {
+                    console.log('🔍 [Batch Debug] Calling getBatchInfo API...');
+                    const batchInfo = await surveyApiService.getBatchInfo(batchIds);
+
+                    console.log('🔍 [Batch Debug] Batch API response:', {
+                        batchInfo,
+                        batchInfoLength: batchInfo.length,
+                        batchInfoType: typeof batchInfo
+                    });
+
+                    const batchMap = new Map();
+                    batchInfo.forEach(batch => {
+                        batchMap.set(batch.id, batch.name);
+                        console.log('🔍 [Batch Debug] Mapped batch:', { id: batch.id, name: batch.name });
+                    });
+
+                    setBatchData(batchMap);
+                    console.log('🔍 [Batch Debug] Final batch map:', {
+                        batchMapSize: batchMap.size,
+                        batchMapEntries: Array.from(batchMap.entries())
+                    });
+                } else {
+                    console.log('🔍 [Batch Debug] No batch IDs found, setting empty map');
+                    setBatchData(new Map());
+                }
+            } catch (error) {
+                console.error('🔍 [Batch Debug] Error fetching batch data:', {
+                    error: error.message,
+                    errorType: error.constructor.name,
+                    stack: error.stack
+                });
+                setBatchData(new Map());
+            } finally {
+                setBatchLoading(false);
+            }
+        };
+
+        fetchBatchData();
+    }, [assessmentDetails, isPublicSurvey]);
 
     // Show loading state
     if (overviewLoading) {
@@ -103,6 +299,14 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
     const { analytics, questions } = overviewData;
 
     const handleViewIndividualResponses = (question: TransformedQuestionAnalytics, index: number) => {
+        console.log('🎯 [Dialog] Opening individual responses dialog:', {
+            question: question,
+            questionId: question.questionId,
+            questionText: question.questionText,
+            index: index,
+            timestamp: new Date().toISOString()
+        });
+
         setSelectedQuestion({ ...question, index });
         setIsDialogOpen(true);
     };
@@ -138,25 +342,52 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                 </CardHeader>
                 <CardContent>
                     {question.questionType === 'mcq_single_choice' && (
-                        <div className="space-y-4">
+                        <div className="space-y-6">
+                            {/* Bar Chart Section */}
                             <div className="h-64">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={question.responseDistribution}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="value" />
-                                        <YAxis />
-                                        <Tooltip formatter={(value: number) => [`${value} responses`, 'Count']} />
-                                        <Bar dataKey="count" fill="#8884d8" />
+                                    <BarChart data={question.responseDistribution} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                        <XAxis
+                                            dataKey="value"
+                                            tick={{ fontSize: 12 }}
+                                            angle={-45}
+                                            textAnchor="end"
+                                            height={80}
+                                        />
+                                        <YAxis tick={{ fontSize: 12 }} />
+                                        <Tooltip
+                                            formatter={(value: number, name: string, props: any) => [
+                                                `${value} responses (${props.payload.percentage}%)`,
+                                                'Count'
+                                            ]}
+                                            labelStyle={{ color: '#374151' }}
+                                            contentStyle={{
+                                                backgroundColor: '#f9fafb',
+                                                border: '1px solid #e5e7eb',
+                                                borderRadius: '8px',
+                                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                            }}
+                                        />
+                                        <Bar
+                                            dataKey="count"
+                                            fill="#8884d8"
+                                            radius={[4, 4, 0, 0]}
+                                        />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
+
+                            {/* Legend Section Below Bar Chart */}
                             <div className="space-y-2">
                                 {question.responseDistribution.map((response: ResponseDistribution, idx: number) => (
-                                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                                        <span className="font-medium">{response.value}</span>
-                                        <span className="text-sm text-gray-600">
-                                            {response.percentage}% ({response.count} responses)
-                                        </span>
+                                    <div key={idx} className="flex justify-between items-center">
+                                        <div className="text-lg font-semibold text-gray-800">
+                                            {response.value}
+                                        </div>
+                                        <div className="text-lg font-semibold text-gray-600">
+                                            {response.percentage.toFixed(0)}% ({response.count} responses)
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -164,25 +395,52 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                     )}
 
                     {question.questionType === 'mcq_multiple_choice' && (
-                        <div className="space-y-4">
+                        <div className="space-y-6">
+                            {/* Bar Chart Section */}
                             <div className="h-64">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={question.responseDistribution}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="value" />
-                                        <YAxis />
-                                        <Tooltip formatter={(value: number) => [`${value} responses`, 'Count']} />
-                                        <Bar dataKey="count" fill="#00C49F" />
+                                    <BarChart data={question.responseDistribution} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                        <XAxis
+                                            dataKey="value"
+                                            tick={{ fontSize: 12 }}
+                                            angle={-45}
+                                            textAnchor="end"
+                                            height={80}
+                                        />
+                                        <YAxis tick={{ fontSize: 12 }} />
+                                        <Tooltip
+                                            formatter={(value: number, name: string, props: any) => [
+                                                `${value} responses (${props.payload.percentage}%)`,
+                                                'Count'
+                                            ]}
+                                            labelStyle={{ color: '#374151' }}
+                                            contentStyle={{
+                                                backgroundColor: '#f9fafb',
+                                                border: '1px solid #e5e7eb',
+                                                borderRadius: '8px',
+                                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                            }}
+                                        />
+                                        <Bar
+                                            dataKey="count"
+                                            fill="#00C49F"
+                                            radius={[4, 4, 0, 0]}
+                                        />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
+
+                            {/* Legend Section Below Bar Chart */}
                             <div className="space-y-2">
                                 {question.responseDistribution.map((response: ResponseDistribution, idx: number) => (
-                                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                                        <span className="font-medium">{response.value}</span>
-                                        <span className="text-sm text-gray-600">
-                                            {response.percentage}% ({response.count} responses)
-                                        </span>
+                                    <div key={idx} className="flex justify-between items-center">
+                                        <div className="text-lg font-semibold text-gray-800">
+                                            {response.value}
+                                        </div>
+                                        <div className="text-lg font-semibold text-gray-600">
+                                            {response.percentage.toFixed(0)}% ({response.count} responses)
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -190,64 +448,103 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                     )}
 
                     {question.questionType === 'true_false' && (
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-center gap-8">
-                                <div className="flex-1 max-w-xs">
-                                    <div className="h-48">
+                        <div className="space-y-6">
+                            {/* Enhanced True/False Pie Chart */}
+                            <div className="flex flex-col lg:flex-row items-center justify-center gap-8">
+                                {/* Pie Chart Section */}
+                                <div className="flex-1 max-w-sm">
+                                    <div className="relative h-64 w-64 mx-auto group">
                                         <ResponsiveContainer width="100%" height="100%">
-                                            <RadialBarChart
+                                            <PieChart>
+                                                <Pie
+                                                    data={[
+                                                        {
+                                                            name: 'True',
+                                                            value: question.responseDistribution[0]?.percentage || 0,
+                                                            fill: '#10B981',
+                                                            count: question.responseDistribution[0]?.count || 0
+                                                        },
+                                                        {
+                                                            name: 'False',
+                                                            value: question.responseDistribution[1]?.percentage || 0,
+                                                            fill: '#EF4444',
+                                                            count: question.responseDistribution[1]?.count || 0
+                                                        }
+                                                    ]}
                                                 cx="50%"
                                                 cy="50%"
-                                                innerRadius="60%"
-                                                outerRadius="90%"
-                                                data={[
-                                                    { name: 'True', value: question.responseDistribution[0]?.percentage || 0, fill: '#10B981' },
-                                                    { name: 'False', value: question.responseDistribution[1]?.percentage || 0, fill: '#EF4444' }
-                                                ]}
-                                                startAngle={90}
-                                                endAngle={-270}
-                                            >
-                                                <RadialBar
+                                                    innerRadius={60}
+                                                    outerRadius={100}
+                                                    paddingAngle={2}
                                                     dataKey="value"
-                                                    cornerRadius={10}
-                                                    fill="#8884d8"
-                                                />
-                                                <text
-                                                    x="50%"
-                                                    y="50%"
-                                                    textAnchor="middle"
-                                                    dominantBaseline="middle"
-                                                    className="text-2xl font-bold fill-gray-700"
+                                                    startAngle={90}
+                                                    endAngle={450}
                                                 >
-                                                    {question.responseDistribution[0]?.percentage || 0}%
-                                                </text>
-                                            </RadialBarChart>
+                                                    {[
+                                                        { name: 'True', value: question.responseDistribution[0]?.percentage || 0, fill: '#10B981' },
+                                                        { name: 'False', value: question.responseDistribution[1]?.percentage || 0, fill: '#EF4444' }
+                                                    ].map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip
+                                                    formatter={(value: any, name: string) => [
+                                                        `${value}% (${name === 'True' ? question.responseDistribution[0]?.count || 0 : question.responseDistribution[1]?.count || 0} responses)`,
+                                                        name
+                                                    ]}
+                                                    labelStyle={{ color: '#374151' }}
+                                                    contentStyle={{
+                                                        backgroundColor: '#f9fafb',
+                                                        border: '1px solid #e5e7eb',
+                                                        borderRadius: '8px',
+                                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                                    }}
+                                                />
+                                            </PieChart>
                                         </ResponsiveContainer>
+
+                                        {/* Center Text - Only on Hover */}
+                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                            <div className="text-center">
+                                                <div className="text-lg font-semibold text-gray-700">
+                                                    {(question.responseDistribution[0]?.percentage || 0).toFixed(2)}%
+                                                </div>
+                                                <div className="text-xs text-gray-600">
+                                                    True
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
+
+                                {/* Simple Legend Section */}
                                 <div className="flex-1 space-y-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-                                        <div>
-                                            <div className="text-lg font-semibold text-green-600">
-                                                True: {question.responseDistribution[0]?.percentage || 0}%
+                                    {/* True Response */}
+                                    <div className="text-center">
+                                        <div className="text-lg font-semibold text-green-600 mb-1">
+                                            True
+                                        </div>
+                                        <div className="text-2xl font-bold text-green-700 mb-1">
+                                            {(question.responseDistribution[0]?.percentage || 0).toFixed(2)}%
                                             </div>
                                             <div className="text-sm text-gray-600">
-                                                {question.responseDistribution[0]?.count || 0} responses
-                                            </div>
+                                            {question.responseDistribution[0]?.count || 0} responses
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-                                        <div>
-                                            <div className="text-lg font-semibold text-red-600">
-                                                False: {question.responseDistribution[1]?.percentage || 0}%
+
+                                    {/* False Response */}
+                                    <div className="text-center">
+                                        <div className="text-lg font-semibold text-red-600 mb-1">
+                                            False
+                                        </div>
+                                        <div className="text-2xl font-bold text-red-700 mb-1">
+                                            {(question.responseDistribution[1]?.percentage || 0).toFixed(2)}%
                                             </div>
                                             <div className="text-sm text-gray-600">
-                                                {question.responseDistribution[1]?.count || 0} responses
-                                            </div>
+                                            {question.responseDistribution[1]?.count || 0} responses
                                         </div>
                                     </div>
+
                                 </div>
                             </div>
                         </div>
@@ -301,7 +598,10 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg font-semibold text-primary-600">Total Participants</CardTitle>
+                        <CardTitle className="text-lg font-semibold text-primary-600 flex items-center gap-2">
+                            <Users className="h-5 w-5" />
+                            Total Participants
+                        </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-3">
@@ -311,11 +611,7 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                             </div>
                             <div className="flex items-center justify-between">
                                 <div className="text-sm text-gray-500">
-                                    out of <span className="font-semibold text-gray-700">{analytics.totalParticipants}</span> sent
-                                </div>
-                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                    <span>Active responses</span>
+                                    out of <span className="font-semibold text-gray-700">{analytics.totalParticipants}</span>
                                 </div>
                             </div>
                         </div>
@@ -324,7 +620,10 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
 
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg font-semibold text-primary-600">Completion Rate</CardTitle>
+                        <CardTitle className="text-lg font-semibold text-primary-600 flex items-center gap-2">
+                            <CheckCircle className="h-5 w-5" />
+                            Completion Rate
+                        </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="text-3xl font-bold">{analytics.completionRate}%</div>
@@ -356,55 +655,135 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
 
             {/* Individual Responses Dialog */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto scrollbar-hide">
+                <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto scrollbar-hide">
                     <DialogHeader>
                         <DialogTitle className="text-lg font-semibold">
-                            {selectedQuestion && `Q${selectedQuestion.index + 1}. ${selectedQuestion.questionText} - Individual Responses`}
+                            Individual Responses
                         </DialogTitle>
                     </DialogHeader>
 
                     {selectedQuestion && (
                         <div className="mt-4">
-                            {respondentLoading ? (
-                                <div className="flex items-center justify-center h-32">
-                                    <div className="flex items-center gap-2">
-                                        <Loader2 className="h-5 w-5 animate-spin" />
-                                        <span>Loading responses...</span>
-                                    </div>
-                                </div>
-                            ) : (
+                            {(() => {
+                                if (respondentLoading) {
+                                    return (
+                                        <div className="flex items-center justify-center h-32">
+                                            <div className="flex items-center gap-2">
+                                                <Loader2 className="h-5 w-5 animate-spin" />
+                                                <span>Loading responses...</span>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+
+                                if (questionsLoading) {
+                                    return (
+                                        <div className="flex items-center justify-center h-32">
+                                            <div className="flex items-center gap-2">
+                                                <Loader2 className="h-5 w-5 animate-spin" />
+                                                <span>Loading questions data...</span>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+
+                                if (batchLoading) {
+                                    return (
+                                        <div className="flex items-center justify-center h-32">
+                                            <div className="flex items-center gap-2">
+                                                <Loader2 className="h-5 w-5 animate-spin" />
+                                                <span>Loading batch data...</span>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+
+                                return (
+                                <div>
+                                    {/* Filter responses for the selected question */}
+                                    {(() => {
+                                        // Get all responses from all respondents
+                                        const allResponses: any[] = [];
+                                        respondentData?.respondents?.forEach((respondent, respondentIndex) => {
+                                            respondent.responses.forEach((response, responseIndex) => {
+                                                allResponses.push({
+                                                    name: respondent.name,
+                                                    email: respondent.email,
+                                                    response: response.answer
+                                                });
+                                            });
+                                        });
+
+                                        const filteredResponses = allResponses.filter((respondent, index) => {
+                                            try {
+                                                const response = JSON.parse(respondent.response);
+                                                return response.questionId === selectedQuestion.questionId;
+                                            } catch (error) {
+                                                return false;
+                                            }
+                                        });
+
+                                        if (filteredResponses.length === 0) {
+                                            return (
+                                                <div className="text-center py-8">
+                                                    <p className="text-gray-500">No responses found for this question.</p>
+                                                    <p className="text-xs text-gray-400 mt-2">
+                                                        Question ID: {selectedQuestion.questionId}
+                                                    </p>
+                                                </div>
+                                            );
+                                        }
+
+                                        return (
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead className="font-semibold w-32">Name</TableHead>
+                                                        {!isPublicSurvey && <TableHead className="font-semibold w-32">Name</TableHead>}
                                         <TableHead className="font-semibold w-48">Email</TableHead>
-                                        <TableHead className="font-semibold">Response</TableHead>
+                                                        {!isPublicSurvey && <TableHead className="font-semibold w-32">Batch</TableHead>}
+                                                        <TableHead className="font-semibold w-96">Response</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                        {respondentData?.content?.map((respondent, idx) => (
+                                                    {filteredResponses.map((respondent, idx) => {
+                                                        const parsedResponse = parseResponseData(respondent.response, questionsData);
+                                                        // For now, we'll show the first available batch name since we don't have per-respondent batch data
+                                                        const batchName = batchData.size > 0 ? Array.from(batchData.values())[0] : 'N/A';
+
+                                                        // Log batch data for debugging
+                                                        if (idx === 0) { // Only log for first respondent to avoid spam
+                                                            console.log('🔍 [Batch Debug] Rendering table row with batch data:', {
+                                                                batchDataSize: batchData.size,
+                                                                batchDataEntries: Array.from(batchData.entries()),
+                                                                batchName,
+                                                                isPublicSurvey,
+                                                                assessmentVisibility: assessmentDetails?.assessment_visibility,
+                                                                liveAssessmentAccess: assessmentDetails?.live_assessment_access
+                                                            });
+                                                        }
+
+                                                        return (
                                         <TableRow key={idx}>
-                                            <TableCell className="font-medium w-32">{respondent.name}</TableCell>
+                                                                {!isPublicSurvey && <TableCell className="font-medium w-32">{respondent.name}</TableCell>}
                                             <TableCell className="w-48">{respondent.email}</TableCell>
-                                            <TableCell className="max-w-md">
-                                                <div
-                                                    className="text-sm leading-relaxed overflow-hidden"
-                                                    style={{
-                                                        display: '-webkit-box',
-                                                        WebkitLineClamp: 2,
-                                                        WebkitBoxOrient: 'vertical',
-                                                        lineHeight: '1.5',
-                                                        maxHeight: '3rem'
-                                                    }}
-                                                >
-                                                    {respondent.response}
+                                                                {!isPublicSurvey && <TableCell className="w-32">{batchName}</TableCell>}
+                                                                <TableCell className="w-96">
+                                                                    <div className="text-sm max-h-32 overflow-y-auto">
+                                                                        <div className="font-medium text-gray-900 whitespace-pre-wrap break-words">
+                                                                            {parsedResponse.formattedAnswer}
+                                                                        </div>
                                                 </div>
                                             </TableCell>
                                         </TableRow>
-                                    ))}
+                                                        );
+                                                    })}
                                 </TableBody>
                             </Table>
-                            )}
+                                        );
+                                    })()}
+                                </div>
+                                );
+                            })()}
                         </div>
                     )}
                 </DialogContent>

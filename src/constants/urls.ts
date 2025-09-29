@@ -355,3 +355,15 @@ export const SEND_EMAIL_TO_USERS_PUBLIC = `${NOTIFICATION_SERVICE_BASE}/send-ema
 
 // Student Data Enrichment Service
 export const STUDENT_DATA_ENRICHMENT_BASE = `${BASE_URL}/admin-core-service`;
+
+// Survey Service URLs
+export const SURVEY_SERVICE_BASE = `${BASE_URL}/assessment-service/assessment/survey`;
+export const SURVEY_RESPONDENT_RESPONSE = `${SURVEY_SERVICE_BASE}/respondent-response`;
+export const SURVEY_SETUP = `${SURVEY_SERVICE_BASE}/setup`;
+export const SURVEY_INDIVIDUAL_RESPONSE = `${SURVEY_SERVICE_BASE}/individual-response`;
+export const SURVEY_OVERVIEW = `${SURVEY_SERVICE_BASE}/get-overview`;
+export const SURVEY_QUESTIONS_WITH_SECTIONS = `${BASE_URL}/assessment-service/assessment/add-questions/create/v1/questions-of-sections`;
+
+// Batch Service URLs
+export const BATCH_SERVICE_BASE = `${BASE_URL}/institute-service/batch`;
+export const BATCH_DETAILS = `${BATCH_SERVICE_BASE}/get-batch-details`;

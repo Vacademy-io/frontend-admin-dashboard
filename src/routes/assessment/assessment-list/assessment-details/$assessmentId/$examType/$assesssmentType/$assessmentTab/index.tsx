@@ -328,6 +328,7 @@ const AssessmentDetailsComponent = () => {
                                         ?.map((section) => section.id)
                                         .join(',')}
                                     assessmentName={assessmentDetails[0]?.assessment_name || ''}
+                                    assessmentDetails={assessmentDetails[1]?.saved_data}
                                 />
                             ) : (
                                 <AssessmentOverviewTab />
@@ -341,6 +342,7 @@ const AssessmentDetailsComponent = () => {
                                         ?.map((section) => section.id)
                                         .join(',')}
                                     assessmentName={assessmentDetails[0]?.assessment_name || ''}
+                                    assessmentDetails={assessmentDetails[1]?.saved_data}
                                 />
                             ) : (
                                 <AssessmentSubmissionsTab type={assesssmentType} />

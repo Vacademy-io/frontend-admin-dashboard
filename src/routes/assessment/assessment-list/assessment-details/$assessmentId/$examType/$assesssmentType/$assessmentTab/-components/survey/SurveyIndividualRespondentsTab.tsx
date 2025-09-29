@@ -11,28 +11,167 @@ import {
     Users,
 } from 'lucide-react';
 import { useSurveyRespondents } from './hooks/useSurveyData';
+import { surveyApiService } from '@/services/survey-api';
+
+// Helper function to parse response data with question context
+const parseResponseData = (responseString: string, questionsData: Map<string, any>) => {
+  try {
+    const response = JSON.parse(responseString);
+    const responseData = response.responseData || {};
+
+    // Get question data if available
+    const questionData = questionsData.get(response.questionId);
+
+    // Format the answer based on question type
+    let formattedAnswer = 'No response provided';
+
+    switch (responseData.type) {
+      case 'MCQS':
+      case 'MCQM':
+      case 'TRUE_FALSE':
+        if (responseData.optionIds && responseData.optionIds.length > 0) {
+          if (questionData && questionData.optionsMap) {
+            // Map option IDs to their content
+            const selectedOptions = responseData.optionIds.map((optionId: string) => {
+              const optionText = questionData.optionsMap.get(optionId);
+              return optionText || optionId;
+            });
+            formattedAnswer = `Selected: ${selectedOptions.join(', ')}`;
+          } else {
+            formattedAnswer = `Selected options: ${responseData.optionIds.join(', ')}`;
+          }
+        } else {
+          formattedAnswer = 'No options selected';
+        }
+        break;
+
+      case 'NUMERIC':
+        if (responseData.validAnswer !== null && responseData.validAnswer !== undefined) {
+          formattedAnswer = `Answer: ${responseData.validAnswer}`;
+        } else {
+          formattedAnswer = 'No numeric answer provided';
+        }
+        break;
+
+      case 'ONE_WORD':
+      case 'LONG_ANSWER':
+        if (responseData.answer && responseData.answer.trim() !== '') {
+          formattedAnswer = responseData.answer;
+        } else {
+          formattedAnswer = 'No text answer provided';
+        }
+        break;
+
+      default:
+        formattedAnswer = 'Unknown response type';
+    }
+
+    return {
+      questionId: response.questionId || 'Unknown',
+      questionType: responseData.type || 'Unknown',
+      questionContent: questionData?.questionContent || 'Survey Question',
+      questionOrder: questionData?.questionOrder || 0,
+      formattedAnswer,
+      timeTaken: response.timeTakenInSeconds || 0,
+      durationLeft: response.questionDurationLeftInSeconds || 0,
+      isVisited: response.isVisited || false,
+      isMarkedForReview: response.isMarkedForReview || false,
+      rawResponse: response,
+      questionData: questionData,
+    };
+  } catch (error) {
+    console.error('Error parsing response data:', error);
+    return {
+      questionId: 'Unknown',
+      questionType: 'Unknown',
+      questionContent: 'Survey Question',
+      questionOrder: 0,
+      formattedAnswer: 'Error parsing response data',
+      timeTaken: 0,
+      durationLeft: 0,
+      isVisited: false,
+      isMarkedForReview: false,
+      rawResponse: responseString,
+      questionData: null,
+    };
+  }
+};
 
 interface SurveyIndividualRespondentsTabProps {
     assessmentId: string;
     sectionIds?: string;
     assessmentName?: string;
+    assessmentDetails?: any;
 }
 
-export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondentsTabProps> = ({ assessmentId, sectionIds, assessmentName }) => {
+export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondentsTabProps> = ({ assessmentId, sectionIds, assessmentName, assessmentDetails }) => {
     const [currentRespondentIndex, setCurrentRespondentIndex] = useState(0);
     const [pageInput, setPageInput] = useState('');
     const [pageNo, setPageNo] = useState(1);
+    const [questionsData, setQuestionsData] = useState<Map<string, any>>(new Map());
+    const [questionsLoading, setQuestionsLoading] = useState(false);
+
+    // Determine survey type from assessment details
+    const isPublicSurvey = assessmentDetails?.assessment_visibility === 'PUBLIC';
+
     const pageSize = 10;
 
     const { data, loading, error } = useSurveyRespondents(assessmentId, pageNo, pageSize, assessmentName, sectionIds);
 
+    // Fetch questions data when component mounts or sectionIds change
+    React.useEffect(() => {
+        const fetchQuestionsData = async () => {
+            if (!sectionIds || !assessmentId) return;
+
+            try {
+                setQuestionsLoading(true);
+                const sectionIdsArray = sectionIds.split(',').filter(id => id.trim());
+                if (sectionIdsArray.length > 0) {
+                    const questionsResponse = await surveyApiService.getQuestionsWithSections(assessmentId, sectionIdsArray);
+
+                    // Process questions data into a map for easy lookup
+                    const questionMap = new Map();
+                    Object.entries(questionsResponse).forEach(([sectionId, questions]) => {
+                        questions.forEach((question: any) => {
+                            // Create options map for this question
+                            const optionsMap = new Map();
+                            if (question.options_with_explanation) {
+                                question.options_with_explanation.forEach((option: any) => {
+                                    optionsMap.set(option.id, option.text.content);
+                                });
+                            }
+
+                            questionMap.set(question.question_id, {
+                                questionContent: question.question.content,
+                                questionOrder: question.question_order,
+                                questionType: question.question_type,
+                                optionsMap: optionsMap
+                            });
+                        });
+                    });
+
+                        setQuestionsData(questionMap);
+                }
+            } catch (error) {
+                console.warn('Failed to fetch questions data:', error);
+            } finally {
+                setQuestionsLoading(false);
+            }
+        };
+
+        fetchQuestionsData();
+    }, [assessmentId, sectionIds]);
+
     const currentRespondent = data?.respondents[currentRespondentIndex];
     const totalRespondents = data?.respondents.length || 0;
+    const totalElements = data?.pagination?.totalElements || 0;
+
+    // Calculate the global respondent number across all pages
+    const globalRespondentNumber = ((pageNo - 1) * pageSize) + currentRespondentIndex + 1;
 
     const handlePrevious = () => {
         if (currentRespondentIndex > 0) {
             setCurrentRespondentIndex(currentRespondentIndex - 1);
-            setPageInput((currentRespondentIndex).toString());
         } else if (pageNo > 1) {
             // Load previous page
             setPageNo(pageNo - 1);
@@ -43,7 +182,6 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
     const handleNext = () => {
         if (currentRespondentIndex < totalRespondents - 1) {
             setCurrentRespondentIndex(currentRespondentIndex + 1);
-            setPageInput((currentRespondentIndex + 2).toString());
         } else if (data?.pagination && !data.pagination.last) {
             // Load next page
             setPageNo(pageNo + 1);
@@ -58,29 +196,31 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
     const handlePageInputSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             const pageNumber = parseInt(pageInput);
-            if (pageNumber >= 1 && pageNumber <= totalRespondents) {
-                setCurrentRespondentIndex(pageNumber - 1);
+            if (pageNumber >= 1 && pageNumber <= (data?.pagination?.totalPages || 1)) {
+                setPageNo(pageNumber);
+                setCurrentRespondentIndex(0); // Reset to first respondent on new page
             } else {
                 // Reset to current page if invalid input
-                setPageInput((currentRespondentIndex + 1).toString());
+                setPageInput(pageNo.toString());
             }
         }
     };
 
     const handlePageInputBlur = () => {
         const pageNumber = parseInt(pageInput);
-        if (pageNumber >= 1 && pageNumber <= totalRespondents) {
-            setCurrentRespondentIndex(pageNumber - 1);
+        if (pageNumber >= 1 && pageNumber <= (data?.pagination?.totalPages || 1)) {
+            setPageNo(pageNumber);
+            setCurrentRespondentIndex(0); // Reset to first respondent on new page
         } else {
             // Reset to current page if invalid input
-            setPageInput((currentRespondentIndex + 1).toString());
+            setPageInput(pageNo.toString());
         }
     };
 
-    // Update page input when currentRespondentIndex changes
+    // Update page input when pageNo changes
     React.useEffect(() => {
-        setPageInput((currentRespondentIndex + 1).toString());
-    }, [currentRespondentIndex]);
+        setPageInput(pageNo.toString());
+    }, [pageNo]);
 
     // Reset to first respondent when data changes
     React.useEffect(() => {
@@ -90,12 +230,14 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
     }, [data?.respondents]);
 
     // Show loading state
-    if (loading) {
+    if (loading || questionsLoading) {
         return (
             <div className="flex items-center justify-center h-64">
                 <div className="flex items-center gap-2">
                     <Loader2 className="h-6 w-6 animate-spin" />
-                    <span>Loading survey respondents...</span>
+                    <span>
+                        {loading ? 'Loading survey respondents...' : 'Loading questions data...'}
+                    </span>
                 </div>
             </div>
         );
@@ -132,6 +274,7 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
 
     return (
         <div className="space-y-6">
+
             {/* Navigation Controls */}
             <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
                 <Button
@@ -162,14 +305,9 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
                             className="w-12 h-6 text-xs text-center p-1"
                         />
                         <span className="text-xs text-gray-500">
-                            of {totalRespondents}
+                            of {data?.pagination?.totalPages || 1}
                         </span>
                     </div>
-                    {data?.pagination && (
-                        <div className="text-xs text-gray-400 mt-1">
-                            Page {data.pagination.pageNo} of {data.pagination.totalPages}
-                        </div>
-                    )}
                 </div>
 
                 <Button
@@ -185,32 +323,52 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
 
             {/* Individual Responses */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {currentRespondent?.responses?.map((response, index) => (
+                {currentRespondent?.responses?.map((response, index) => {
+                    // Parse the response data with question context
+                    const parsedResponse = parseResponseData(response.answer, questionsData);
+
+                    return (
                     <Card key={response.id} className="h-fit">
                         <CardHeader>
                             <div className="flex items-start justify-between gap-2">
                                 <CardTitle className="text-lg font-semibold flex-1">
-                                    Q{index + 1}. Survey Question {index + 1}
+                                        Q{parsedResponse.questionOrder || index + 1}. {parsedResponse.questionContent}
                                 </CardTitle>
+                                    <div className="flex items-center gap-2">
                                 <Badge className="bg-primary-100 text-primary-800 border-primary-200 w-fit flex-shrink-0">
-                                    Response
+                                            {parsedResponse.questionType}
+                                        </Badge>
+                                        {parsedResponse.isVisited && (
+                                            <Badge variant="outline" className="text-xs">
+                                                Visited
+                                            </Badge>
+                                        )}
+                                        {parsedResponse.isMarkedForReview && (
+                                            <Badge variant="outline" className="text-xs">
+                                                Marked for Review
                                 </Badge>
+                                        )}
+                                    </div>
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-2">
-                                <div className="text-sm font-medium text-gray-700">Response:</div>
+                                <div className="space-y-4">
+                                    {/* Response Data */}
+                                    <div>
+                                        <div className="text-sm font-medium text-gray-700 mb-2">Response:</div>
                                 <div className="p-4 bg-gray-50 rounded-lg border">
-                                    <p className="text-sm">
-                                        {Array.isArray(response.answer)
-                                            ? response.answer.join(', ')
-                                            : response.answer}
-                                    </p>
-                                </div>
+                                            <p className="text-sm font-medium">
+                                                {parsedResponse.formattedAnswer}
+                                            </p>
+                                        </div>
+                                    </div>
+
+
                             </div>
                         </CardContent>
                     </Card>
-                )) || (
+                    );
+                }) || (
                     <div className="col-span-2 text-center py-8">
                         <p className="text-gray-500">No responses available for this respondent.</p>
                     </div>
