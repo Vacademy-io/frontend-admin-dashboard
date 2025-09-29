@@ -422,12 +422,21 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         enableHiding: true,
     },
     {
-        accessorKey: 'attendance',
+        accessorKey: 'attendance_percent',
         size: 120,
         minSize: 100,
         maxSize: 180,
         header: 'Attendance',
-        cell: ({ row }) => <CreateClickableCell row={row} columnId="attendance" />,
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="attendance_percent" />,
+        enableHiding: true,
+    },
+    {
+        accessorKey: 'referral_count',
+        size: 120,
+        minSize: 100,
+        maxSize: 180,
+        header: 'Referrals Count',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="referral_count" />,
         enableHiding: true,
     },
     {

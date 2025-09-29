@@ -158,6 +158,8 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
             destination_package_session_id: '',
             enroll_invite_id: '',
             payment_status: '',
+            attendance_percent: 0,
+            referral_count: 0,
         }));
     };
 
