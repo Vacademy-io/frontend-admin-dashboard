@@ -65,6 +65,7 @@ export interface IndividualResponseRequest {
     assessment_ids?: string[];
     question_ids?: string[];
     section_ids?: string[];
+    attempt_ids?: string[];
     status?: string[];
     sort_columns?: Record<string, string>;
 }
@@ -156,6 +157,105 @@ export interface SurveyOverviewResponse {
     all_surveys: SurveyQuestionData[];
 }
 
+export interface QuestionsWithSectionsResponse {
+    [sectionId: string]: AssessmentQuestionPreview[];
+}
+
+export interface SurveyFilters {
+    name?: string;
+    assessment_ids?: string[];
+    question_ids?: string[];
+    section_ids?: string[];
+    attempt_ids?: string[];
+    status?: string[];
+    sort_columns?: Record<string, string>;
+}
+
+// Helper functions for logging and request processing
+const logRequestDetails = (url: string, params: any, requestBody: any, assessmentId: string) => {
+    console.log('🔍 [Survey API] getRespondentResponses - Request Details:', {
+        url,
+        method: 'POST',
+        params: {
+            ...params,
+            instituteId: params.instituteId || 'NOT_PROVIDED',
+            assessmentId: assessmentId || 'NOT_PROVIDED',
+        },
+        requestBody: {
+            name: requestBody.name || 'NOT_PROVIDED',
+            assessment_ids: requestBody.assessment_ids || [assessmentId],
+            attempt_ids: requestBody.attempt_ids || [],
+            status: requestBody.status || [],
+            sort_columns: requestBody.sort_columns || {},
+            fullRequestBody: requestBody,
+            dataTypes: {
+                name: typeof (requestBody.name || 'NOT_PROVIDED'),
+                assessment_ids: Array.isArray(requestBody.assessment_ids || [assessmentId])
+                    ? 'array'
+                    : typeof (requestBody.assessment_ids || [assessmentId]),
+                attempt_ids: Array.isArray(requestBody.attempt_ids || [])
+                    ? 'array'
+                    : typeof (requestBody.attempt_ids || []),
+                status: Array.isArray(requestBody.status || [])
+                    ? 'array'
+                    : typeof (requestBody.status || []),
+                sort_columns: typeof (requestBody.sort_columns || {}),
+            },
+        },
+        timestamp: new Date().toISOString(),
+    });
+};
+
+const createFinalRequestBody = (requestBody: any, assessmentId: string) => {
+    return {
+        ...requestBody,
+        assessment_ids: requestBody.assessment_ids || [assessmentId],
+    };
+};
+
+const logFinalRequestBody = (finalRequestBody: any) => {
+    console.log('🔍 [Survey API] getRespondentResponses - Final Request Body:', {
+        finalRequestBody,
+        stringified: JSON.stringify(finalRequestBody),
+        timestamp: new Date().toISOString(),
+    });
+};
+
+const logResponseDetails = (response: any) => {
+    console.log('✅ [Survey API] getRespondentResponses - Response Details:', {
+        status: response.status,
+        data: {
+            contentLength: response.data.content?.length || 0,
+            pageNo: response.data.page_no,
+            pageSize: response.data.page_size,
+            totalPages: response.data.total_pages,
+            totalElements: response.data.total_elements,
+            last: response.data.last,
+        },
+        timestamp: new Date().toISOString(),
+    });
+};
+
+const logErrorDetails = (error: any, url: string, params: any, requestBody: any, assessmentId: string) => {
+    console.error('❌ [Survey API] getRespondentResponses - Error Details:', {
+        error: {
+            message: error.message,
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+        },
+        request: {
+            url,
+            params,
+            requestBody: {
+                ...requestBody,
+                assessment_ids: requestBody.assessment_ids || [assessmentId],
+            },
+        },
+        timestamp: new Date().toISOString(),
+    });
+};
+
 // API Service Functions
 export const surveyApiService = {
     /**
@@ -179,49 +279,11 @@ export const surveyApiService = {
             pageSize,
         };
 
-        console.log('🔍 [Survey API] getRespondentResponses - Request Details:', {
-            url,
-            method: 'POST',
-            params: {
-                ...params,
-                instituteId: params.instituteId || 'NOT_PROVIDED',
-                assessmentId: assessmentId || 'NOT_PROVIDED',
-            },
-            requestBody: {
-                name: requestBody.name || 'NOT_PROVIDED',
-                assessment_ids: requestBody.assessment_ids || [assessmentId],
-                attempt_ids: requestBody.attempt_ids || [],
-                status: requestBody.status || [],
-                sort_columns: requestBody.sort_columns || {},
-                fullRequestBody: requestBody,
-                dataTypes: {
-                    name: typeof (requestBody.name || 'NOT_PROVIDED'),
-                    assessment_ids: Array.isArray(requestBody.assessment_ids || [assessmentId])
-                        ? 'array'
-                        : typeof (requestBody.assessment_ids || [assessmentId]),
-                    attempt_ids: Array.isArray(requestBody.attempt_ids || [])
-                        ? 'array'
-                        : typeof (requestBody.attempt_ids || []),
-                    status: Array.isArray(requestBody.status || [])
-                        ? 'array'
-                        : typeof (requestBody.status || []),
-                    sort_columns: typeof (requestBody.sort_columns || {}),
-                },
-            },
-            timestamp: new Date().toISOString(),
-        });
+        logRequestDetails(url, params, requestBody, assessmentId);
 
         try {
-            const finalRequestBody = {
-                ...requestBody,
-                assessment_ids: requestBody.assessment_ids || [assessmentId],
-            };
-
-            console.log('🔍 [Survey API] getRespondentResponses - Final Request Body:', {
-                finalRequestBody,
-                stringified: JSON.stringify(finalRequestBody),
-                timestamp: new Date().toISOString(),
-            });
+            const finalRequestBody = createFinalRequestBody(requestBody, assessmentId);
+            logFinalRequestBody(finalRequestBody);
 
             const response = await authenticatedAxiosInstance.post<SurveyRespondentResponseData>(
                 url,
@@ -229,38 +291,10 @@ export const surveyApiService = {
                 { params }
             );
 
-            console.log('✅ [Survey API] getRespondentResponses - Response Details:', {
-                status: response.status,
-                data: {
-                    contentLength: response.data.content?.length || 0,
-                    pageNo: response.data.page_no,
-                    pageSize: response.data.page_size,
-                    totalPages: response.data.total_pages,
-                    totalElements: response.data.total_elements,
-                    last: response.data.last,
-                },
-                timestamp: new Date().toISOString(),
-            });
-
+            logResponseDetails(response);
             return response.data;
         } catch (error: any) {
-            console.error('❌ [Survey API] getRespondentResponses - Error Details:', {
-                error: {
-                    message: error.message,
-                    status: error.response?.status,
-                    statusText: error.response?.statusText,
-                    data: error.response?.data,
-                },
-                request: {
-                    url,
-                    params,
-                    requestBody: {
-                        ...requestBody,
-                        assessment_ids: requestBody.assessment_ids || [assessmentId],
-                    },
-                },
-                timestamp: new Date().toISOString(),
-            });
+            logErrorDetails(error, url, params, requestBody, assessmentId);
             throw error;
         }
     },

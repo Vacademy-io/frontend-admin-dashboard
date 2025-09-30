@@ -98,7 +98,9 @@ const AssessmentDetailsComponent = () => {
             setIsPreviewAssessmentDialogOpen(true);
         }
     };
+
     const handleCloseDialog = () => setIsPreviewAssessmentDialogOpen(false);
+
     const handleExportAssessment = () => {
         if (Object.keys(questionsDataSectionWise).length === 0) {
             toast.error('No sections have been added for this assessment.');
@@ -111,6 +113,7 @@ const AssessmentDetailsComponent = () => {
             });
         }
     };
+
     useEffect(() => {
         setNavHeading(heading);
     }, []);
@@ -327,8 +330,13 @@ const AssessmentDetailsComponent = () => {
                                     sectionIds={assessmentDetails[1]?.saved_data.sections
                                         ?.map((section) => section.id)
                                         .join(',')}
-                                    assessmentName={assessmentDetails[0]?.assessment_name || ''}
-                                    assessmentDetails={assessmentDetails[1]?.saved_data}
+                                    assessmentName={assessmentDetails[0]?.saved_data?.name || ''}
+                                    assessmentDetails={{
+                                        assessment_visibility: assessmentDetails[1]?.saved_data?.assessment_visibility,
+                                        live_assessment_access: {
+                                            batch_ids: assessmentDetails[1]?.saved_data?.live_assessment_access?.batch_ids ?? []
+                                        }
+                                    }}
                                 />
                             ) : (
                                 <AssessmentOverviewTab />
@@ -341,8 +349,13 @@ const AssessmentDetailsComponent = () => {
                                     sectionIds={assessmentDetails[1]?.saved_data.sections
                                         ?.map((section) => section.id)
                                         .join(',')}
-                                    assessmentName={assessmentDetails[0]?.assessment_name || ''}
-                                    assessmentDetails={assessmentDetails[1]?.saved_data}
+                                    assessmentName={assessmentDetails[0]?.saved_data?.name || ''}
+                                    assessmentDetails={{
+                                        assessment_visibility: assessmentDetails[1]?.saved_data?.assessment_visibility,
+                                        live_assessment_access: {
+                                            batch_ids: assessmentDetails[1]?.saved_data?.live_assessment_access?.batch_ids ?? []
+                                        }
+                                    }}
                                 />
                             ) : (
                                 <AssessmentSubmissionsTab type={assesssmentType} />

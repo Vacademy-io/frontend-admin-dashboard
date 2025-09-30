@@ -166,28 +166,7 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                 const sectionIdsArray = sectionIds.split(',').filter(id => id.trim());
                 if (sectionIdsArray.length > 0) {
                     const questionsResponse = await surveyApiService.getQuestionsWithSections(assessmentId, sectionIdsArray);
-
-                    // Process questions data into a map for easy lookup
-                    const questionMap = new Map();
-                    Object.entries(questionsResponse).forEach(([sectionId, questions]) => {
-                        questions.forEach((question: AssessmentQuestionPreview) => {
-                            // Create options map for this question
-                            const optionsMap = new Map();
-                            if (question.options_with_explanation) {
-                                question.options_with_explanation.forEach((option: QuestionOptionWithExplanation) => {
-                                    optionsMap.set(option.id, option.text.content);
-                                });
-                            }
-
-                            questionMap.set(question.question_id, {
-                                questionContent: question.question.content,
-                                questionOrder: question.question_order,
-                                questionType: question.question_type,
-                                optionsMap: optionsMap
-                            });
-                        });
-                    });
-
+                    const questionMap = processQuestionsData(questionsResponse);
                     setQuestionsData(questionMap);
                 }
             } catch (error) {
@@ -199,6 +178,32 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
 
         fetchQuestionsData();
     }, [assessmentId, sectionIds]);
+
+    const processQuestionsData = (questionsResponse: any) => {
+        const questionMap = new Map();
+        Object.entries(questionsResponse).forEach(([sectionId, questions]) => {
+            (questions as any[]).forEach((question: AssessmentQuestionPreview) => {
+                const optionsMap = createOptionsMap(question);
+                questionMap.set(question.question_id, {
+                    questionContent: question.question.content,
+                    questionOrder: question.question_order,
+                    questionType: question.question_type,
+                    optionsMap: optionsMap
+                });
+            });
+        });
+        return questionMap;
+    };
+
+    const createOptionsMap = (question: AssessmentQuestionPreview) => {
+        const optionsMap = new Map();
+        if (question.options_with_explanation) {
+            question.options_with_explanation.forEach((option: QuestionOptionWithExplanation) => {
+                optionsMap.set(option.id, option.text.content);
+            });
+        }
+        return optionsMap;
+    };
 
     // Fetch batch data for private surveys
     React.useEffect(() => {
@@ -275,7 +280,7 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
     const { analytics, questions } = overviewData;
 
     const handleViewIndividualResponses = (question: TransformedQuestionAnalytics, index: number) => {
-        setSelectedQuestion({ ...question, index });
+        setSelectedQuestion(question);
         setIsDialogOpen(true);
     };
 
@@ -325,8 +330,8 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                                         />
                                         <YAxis tick={{ fontSize: 12 }} />
                                         <Tooltip
-                                            formatter={(value: number, name: string, props: { payload: { percentage: number } }) => [
-                                                `${value} responses (${props.payload.percentage}%)`,
+                                            formatter={(value: number, name: string, props: any) => [
+                                                `${value} responses (${props.payload?.percentage || 0}%)`,
                                                 'Count'
                                             ]}
                                             labelStyle={{ color: '#374151' }}
@@ -378,8 +383,8 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                                         />
                                         <YAxis tick={{ fontSize: 12 }} />
                                         <Tooltip
-                                            formatter={(value: number, name: string, props: { payload: { percentage: number } }) => [
-                                                `${value} responses (${props.payload.percentage}%)`,
+                                            formatter={(value: number, name: string, props: any) => [
+                                                `${value} responses (${props.payload?.percentage || 0}%)`,
                                                 'Count'
                                             ]}
                                             labelStyle={{ color: '#374151' }}

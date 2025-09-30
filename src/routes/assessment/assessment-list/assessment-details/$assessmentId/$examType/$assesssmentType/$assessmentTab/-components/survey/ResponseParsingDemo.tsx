@@ -2,70 +2,78 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
-// Helper function to parse response data (same as in SurveyIndividualRespondentsTab)
+// Helper functions to parse response data (same as in SurveyIndividualRespondentsTab)
+const formatMcqAnswer = (responseData: any): string => {
+  if (responseData.optionIds && responseData.optionIds.length > 0) {
+    return `Selected options: ${responseData.optionIds.join(', ')}`;
+  }
+  return 'No options selected';
+};
+
+const formatNumericAnswer = (responseData: any): string => {
+  if (responseData.validAnswer !== null && responseData.validAnswer !== undefined) {
+    return `Answer: ${responseData.validAnswer}`;
+  }
+  return 'No numeric answer provided';
+};
+
+const formatTextAnswer = (responseData: any): string => {
+  if (responseData.answer && responseData.answer.trim() !== '') {
+    return responseData.answer;
+  }
+  return 'No text answer provided';
+};
+
+const formatAnswerByType = (responseData: any): string => {
+  switch (responseData.type) {
+    case 'MCQS':
+    case 'MCQM':
+    case 'TRUE_FALSE':
+      return formatMcqAnswer(responseData);
+    case 'NUMERIC':
+      return formatNumericAnswer(responseData);
+    case 'ONE_WORD':
+    case 'LONG_ANSWER':
+      return formatTextAnswer(responseData);
+    default:
+      return 'Unknown response type';
+  }
+};
+
 const parseResponseData = (responseString: string) => {
   try {
     const response = JSON.parse(responseString);
     const responseData = response.responseData || {};
 
-    // Format the answer based on question type
-    let formattedAnswer = 'No response provided';
+    const formattedAnswer = formatAnswerByType(responseData);
 
-    switch (responseData.type) {
-      case 'MCQS':
-      case 'MCQM':
-      case 'TRUE_FALSE':
-        if (responseData.optionIds && responseData.optionIds.length > 0) {
-          formattedAnswer = `Selected options: ${responseData.optionIds.join(', ')}`;
-        } else {
-          formattedAnswer = 'No options selected';
-        }
-        break;
-
-      case 'NUMERIC':
-        if (responseData.validAnswer !== null && responseData.validAnswer !== undefined) {
-          formattedAnswer = `Answer: ${responseData.validAnswer}`;
-        } else {
-          formattedAnswer = 'No numeric answer provided';
-        }
-        break;
-
-      case 'ONE_WORD':
-      case 'LONG_ANSWER':
-        if (responseData.answer && responseData.answer.trim() !== '') {
-          formattedAnswer = responseData.answer;
-        } else {
-          formattedAnswer = 'No text answer provided';
-        }
-        break;
-
-      default:
-        formattedAnswer = 'Unknown response type';
-    }
-
-    return {
-      questionId: response.questionId || 'Unknown',
-      questionType: responseData.type || 'Unknown',
-      formattedAnswer,
-      timeTaken: response.timeTakenInSeconds || 0,
-      durationLeft: response.questionDurationLeftInSeconds || 0,
-      isVisited: response.isVisited || false,
-      isMarkedForReview: response.isMarkedForReview || false,
-      rawResponse: response,
-    };
+    return createParsedResponse(response, responseData, formattedAnswer);
   } catch (error) {
-    return {
-      questionId: 'Unknown',
-      questionType: 'Unknown',
-      formattedAnswer: 'Error parsing response data',
-      timeTaken: 0,
-      durationLeft: 0,
-      isVisited: false,
-      isMarkedForReview: false,
-      rawResponse: responseString,
-    };
+    return createErrorResponse(responseString);
   }
 };
+
+const createParsedResponse = (response: any, responseData: any, formattedAnswer: string) => ({
+  questionId: response.questionId || 'Unknown',
+  questionType: responseData.type || 'Unknown',
+  formattedAnswer,
+  timeTaken: response.timeTakenInSeconds || 0,
+  durationLeft: response.questionDurationLeftInSeconds || 0,
+  isVisited: response.isVisited || false,
+  isMarkedForReview: response.isMarkedForReview || false,
+  rawResponse: response,
+});
+
+const createErrorResponse = (responseString: string) => ({
+  questionId: 'Unknown',
+  questionType: 'Unknown',
+  formattedAnswer: 'Error parsing response data',
+  timeTaken: 0,
+  durationLeft: 0,
+  isVisited: false,
+  isMarkedForReview: false,
+  rawResponse: responseString,
+});
 
 // Example responses from your data
 const exampleResponses = [

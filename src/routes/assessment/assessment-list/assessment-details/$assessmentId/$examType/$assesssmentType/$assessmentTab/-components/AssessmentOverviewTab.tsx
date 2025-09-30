@@ -5,12 +5,19 @@ import { QuestionAnalysisChart } from './QuestionAnalysisChart';
 import { SurveyMainOverviewTab } from './survey/SurveyMainOverviewTab';
 import { Route } from '../index';
 
-const AssessmentOverviewTab = () => {
+interface AssessmentOverviewTabProps {
+    assessmentId?: string;
+    sectionIds?: string;
+    assessmentName?: string;
+    assessmentDetails?: any;
+}
+
+const AssessmentOverviewTab: React.FC<AssessmentOverviewTabProps> = () => {
     const { examType } = Route.useParams();
 
     // Show survey-specific overview for SURVEY type assessments
     if (examType === 'SURVEY') {
-        return <SurveyMainOverviewTab />;
+        return <SurveyMainOverviewTab assessmentId="" sectionIds="" assessmentName="" assessmentDetails={{}} />;
     }
 
     // Default overview for other assessment types

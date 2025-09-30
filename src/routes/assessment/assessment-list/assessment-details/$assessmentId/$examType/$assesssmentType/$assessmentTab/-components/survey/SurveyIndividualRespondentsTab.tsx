@@ -127,29 +127,8 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
                 const sectionIdsArray = sectionIds.split(',').filter(id => id.trim());
                 if (sectionIdsArray.length > 0) {
                     const questionsResponse = await surveyApiService.getQuestionsWithSections(assessmentId, sectionIdsArray);
-
-                    // Process questions data into a map for easy lookup
-                    const questionMap = new Map();
-                    Object.entries(questionsResponse).forEach(([sectionId, questions]) => {
-                        questions.forEach((question: any) => {
-                            // Create options map for this question
-                            const optionsMap = new Map();
-                            if (question.options_with_explanation) {
-                                question.options_with_explanation.forEach((option: any) => {
-                                    optionsMap.set(option.id, option.text.content);
-                                });
-                            }
-
-                            questionMap.set(question.question_id, {
-                                questionContent: question.question.content,
-                                questionOrder: question.question_order,
-                                questionType: question.question_type,
-                                optionsMap: optionsMap
-                            });
-                        });
-                    });
-
-                        setQuestionsData(questionMap);
+                    const questionMap = processQuestionsData(questionsResponse);
+                    setQuestionsData(questionMap);
                 }
             } catch (error) {
                 // Silently handle questions data fetch failure
@@ -160,6 +139,32 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
 
         fetchQuestionsData();
     }, [assessmentId, sectionIds]);
+
+    const processQuestionsData = (questionsResponse: any) => {
+        const questionMap = new Map();
+        Object.entries(questionsResponse).forEach(([sectionId, questions]) => {
+            (questions as any[]).forEach((question: any) => {
+                const optionsMap = createOptionsMap(question);
+                questionMap.set(question.question_id, {
+                    questionContent: question.question.content,
+                    questionOrder: question.question_order,
+                    questionType: question.question_type,
+                    optionsMap: optionsMap
+                });
+            });
+        });
+        return questionMap;
+    };
+
+    const createOptionsMap = (question: any) => {
+        const optionsMap = new Map();
+        if (question.options_with_explanation) {
+            question.options_with_explanation.forEach((option: any) => {
+                optionsMap.set(option.id, option.text.content);
+            });
+        }
+        return optionsMap;
+    };
 
     const currentRespondent = data?.respondents[currentRespondentIndex];
     const totalRespondents = data?.respondents.length || 0;
@@ -296,7 +301,7 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
                         <Input
                             type="number"
                             min="1"
-                            max={totalRespondents}
+                            max={totalRespondents.toString()}
                             value={pageInput}
                             onChange={handlePageInputChange}
                             onKeyDown={handlePageInputSubmit}
@@ -324,7 +329,7 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {currentRespondent?.responses?.map((response, index) => {
                     // Parse the response data with question context
-                    const parsedResponse = parseResponseData(response.answer, questionsData);
+                    const parsedResponse = parseResponseData(String(response.answer), questionsData);
 
                     return (
                     <Card key={response.id} className="h-fit">

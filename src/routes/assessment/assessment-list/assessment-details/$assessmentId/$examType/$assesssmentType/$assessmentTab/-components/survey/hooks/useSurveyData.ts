@@ -153,7 +153,7 @@ const transformQuestionAnalytics = (surveyData: any): TransformedQuestionAnalyti
           count: responseData.count,
           percentage: calculatedPercentage,
         };
-      }).sort((a, b) => b.percentage - a.percentage); // Sort by percentage in descending order
+      }).sort((a: any, b: any) => b.percentage - a.percentage); // Sort by percentage in descending order
 
       // Generate insights for MCQ
       if (responseDistribution.length > 0) {
@@ -248,7 +248,7 @@ const transformQuestionAnalytics = (surveyData: any): TransformedQuestionAnalyti
 
       topInsights = [
         `Total responses: ${totalResponses}`,
-        `Most common answer: ${responseDistribution[0]?.value || 'N/A'}`,
+        `Most common answer: ${responseDistribution[0]?.value ?? 'N/A'}`,
       ];
     } else {
       topInsights = [
@@ -390,7 +390,7 @@ export const useSurveyRespondents = (
       setError(null);
 
       const requestFilters = {
-        name: assessmentName,
+        name: '',
         assessment_ids: [assessmentId],
         question_ids: [],
         section_ids: sectionIds ? sectionIds.split(',') : [],
@@ -460,7 +460,7 @@ export const useSurveyRespondentResponses = (
       setError(null);
 
       const requestFilters = {
-        name: assessmentName,
+        name: '',
         assessment_ids: [assessmentId],
         attempt_ids: [],
         status: [],

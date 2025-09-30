@@ -468,6 +468,36 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         };
     };
 
+    // Helper function to get open test settings
+    const getOpenTestSettings = (savedData: any) => ({
+        checked: assessmentDetails[0]?.saved_data?.assessment_visibility === 'PUBLIC',
+        start_date: savedData?.registration_open_date
+            ? convertDateFormat(savedData.registration_open_date)
+            : '',
+        end_date: savedData?.registration_close_date
+            ? convertDateFormat(savedData.registration_close_date)
+            : '',
+        instructions: '',
+        custom_fields: getCustomFieldsWhileEditStep3(assessmentDetails),
+    });
+
+    // Helper function to get batch selection settings
+    const getBatchSelectionSettings = () => ({
+        checked: true,
+        batch_details: Object.fromEntries(
+            Object.entries(transformedBatches).map(([key, value]) => [
+                key,
+                value.map((item) => item.id),
+            ])
+        ),
+    });
+
+    // Helper function to get individual selection settings
+    const getIndividualSelectionSettings = () => ({
+        checked: false,
+        student_details: getCheckedStudentList(),
+    });
+
     // Helper function to get initial form values
     const getInitialFormValues = () => {
         const checkedStudentList = getCheckedStudentList();
@@ -475,36 +505,23 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         const savedData = assessmentDetails[currentStep]?.saved_data;
 
         return {
-                status: completedSteps[currentStep] ? 'COMPLETE' : 'INCOMPLETE',
+            status: completedSteps[currentStep] ? 'COMPLETE' : 'INCOMPLETE',
             closed_test: assessmentDetails[0]?.saved_data?.assessment_visibility === 'PRIVATE',
-                open_test: {
-                checked: assessmentDetails[0]?.saved_data?.assessment_visibility === 'PUBLIC',
-                start_date: savedData?.registration_open_date
-                    ? convertDateFormat(savedData.registration_open_date)
-                    : '',
-                end_date: savedData?.registration_close_date
-                    ? convertDateFormat(savedData.registration_close_date)
-                        : '',
-                    instructions: '',
-                    custom_fields: getCustomFieldsWhileEditStep3(assessmentDetails),
-                },
-                select_batch: {
-                    checked: true,
-                    batch_details: Object.fromEntries(
-                        Object.entries(transformedBatches).map(([key, value]) => [
-                            key,
-                            value.map((item) => item.id),
-                        ])
-                    ),
-                },
-                select_individually: {
-                    checked: false,
-                    student_details: checkedStudentList,
-                },
-            join_link: `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}` || '',
-            show_leaderboard: savedData?.notifications?.participant_show_leaderboard || false,
+            open_test: getOpenTestSettings(savedData),
+            select_batch: getBatchSelectionSettings(),
+            select_individually: getIndividualSelectionSettings(),
+            join_link: getJoinLink(),
+            show_leaderboard: getShowLeaderboardSetting(savedData),
             ...notificationSettings,
         };
+    };
+
+    const getJoinLink = () => {
+        return `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}` || '';
+    };
+
+    const getShowLeaderboardSetting = (savedData: any) => {
+        return savedData?.notifications?.participant_show_leaderboard || false;
     };
 
     useEffect(() => {

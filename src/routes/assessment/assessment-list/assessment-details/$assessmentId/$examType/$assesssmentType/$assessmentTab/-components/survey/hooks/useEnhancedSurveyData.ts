@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { surveyApiService, QuestionsWithSectionsResponse } from '@/services/survey-api';
-import { SurveyFilters } from '../types';
+import { SurveyFilters } from '@/services/survey-api';
 import { processQuestionsData, processIndividualResponse, groupResponsesByRespondent, ProcessedResponse } from '../utils/questionResponseProcessor';
 
 /**
@@ -89,7 +89,7 @@ export const useEnhancedSurveyRespondents = (
       // Group responses by respondent
       const respondents = Array.from(processedResponses.entries()).map(([key, responses]) => {
         const [name, email] = key.split('-', 2);
-        return groupResponsesByRespondent(responses, name, email);
+        return groupResponsesByRespondent(responses, name || '', email || '');
       });
 
       setData({
