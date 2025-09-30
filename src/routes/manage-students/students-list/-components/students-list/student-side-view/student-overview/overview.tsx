@@ -12,49 +12,37 @@ export const OverViewData = ({
     selectedStudent,
     packageSessionDetails,
     password,
-    isShow = true,
 }: {
     selectedStudent: StudentTable | null;
     packageSessionDetails: BatchForSessionType | null;
     password: string;
-    isShow?: boolean;
 }) => {
     if (selectedStudent == null) return [];
 
     const na = (value: any) => (value ? value : 'N/A');
 
-    const generalDetailsContent = isShow
-        ? [
-              `${getTerminology(ContentTerms.Session, SystemTerms.Session)}: ${na(
-                  packageSessionDetails?.session.session_name
-              )}`,
-              `Preferred Batch: N/A`,
-              `Enrollment No: ${na(selectedStudent.institute_enrollment_id)}`,
-              `Gender: ${na(selectedStudent.gender)}`,
-          ]
-        : [
-              `${getTerminology(ContentTerms.Course, SystemTerms.Course)}: ${na(
-                  packageSessionDetails?.package_dto.package_name
-              )}`,
-              `${getTerminology(ContentTerms.Level, SystemTerms.Level)}: ${na(
-                  packageSessionDetails?.level.level_name
-              )}`,
-              `${getTerminology(ContentTerms.Session, SystemTerms.Session)}: ${na(
-                  packageSessionDetails?.session.session_name
-              )}`,
-              `Enrollment No: ${na(selectedStudent.institute_enrollment_id)}`,
-              `Gender: ${na(selectedStudent.gender)}`,
-              `School: ${na(selectedStudent.linked_institute_name)}`,
-          ];
+    const generalDetailsContent = [
+        `${getTerminology(ContentTerms.Course, SystemTerms.Course)}: ${na(
+            packageSessionDetails?.package_dto.package_name
+        )}`,
+        `${getTerminology(ContentTerms.Level, SystemTerms.Level)}: ${na(
+            packageSessionDetails?.level.level_name
+        )}`,
+        `${getTerminology(ContentTerms.Session, SystemTerms.Session)}: ${na(
+            packageSessionDetails?.session.session_name
+        )}`,
+        `Enrollment No: ${na(selectedStudent.institute_enrollment_id)}`,
+        `Gender: ${na(selectedStudent.gender)}`,
+        `School: ${na(selectedStudent.linked_institute_name)}`,
+    ];
 
-    const locationDetailsContent = isShow
-        ? [`Country: ${na(selectedStudent.country)}`]
-        : [
-              `State: ${na(selectedStudent.region)}`,
-              `City: ${na(selectedStudent.city)}`,
-              `Pincode: ${na(selectedStudent.pin_code)}`,
-              `Address: ${na(selectedStudent.address_line)}`,
-          ];
+    const locationDetailsContent = [
+        `Country: ${na(selectedStudent.country)}`,
+        `State: ${na(selectedStudent.region)}`,
+        `City: ${na(selectedStudent.city)}`,
+        `Pincode: ${na(selectedStudent.pin_code)}`,
+        `Address: ${na(selectedStudent.address_line)}`,
+    ];
 
     const overviewSections: OverviewDetailsType[] = [
         {
@@ -64,6 +52,14 @@ export const OverViewData = ({
         {
             heading: `General Details`,
             content: generalDetailsContent,
+        },
+        {
+            heading: `${getTerminology(ContentTerms.LiveSession, SystemTerms.LiveSession)}`,
+            content: [`Attendance: ${na(selectedStudent.attendance_percent)}`],
+        },
+        {
+            heading: `Referral Details`,
+            content: [`Count: ${na(selectedStudent.referral_count)}`],
         },
         {
             heading: `Contact Information`,
@@ -76,11 +72,7 @@ export const OverViewData = ({
             heading: `Location Details`,
             content: locationDetailsContent,
         },
-    ];
-
-    // Only show guardian info if not holistic
-    if (!isShow) {
-        overviewSections.push({
+        {
             heading: "Parent/Guardian's Details",
             content: [
                 `Father/Male Guardian's Name: ${na(selectedStudent.father_name)}`,
@@ -90,8 +82,8 @@ export const OverViewData = ({
                 `Mother/Female Guardian's Mobile No: ${na(selectedStudent.parents_to_mother_mobile_number)}`,
                 `Mother/Female Guardian's Email Id: ${na(selectedStudent.parents_to_mother_email)}`,
             ],
-        });
-    }
+        },
+    ];
 
     return overviewSections;
 };

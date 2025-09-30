@@ -38,9 +38,7 @@ export interface EnrollRequestsInterface {
     payment_statuses: MyFilterOption[];
     approval_statuses: MyFilterOption[];
     payment_option: MyFilterOption[];
-    custom_fields: {
-        [key: string]: string[];
-    };
+    custom_fields: MyFilterOption[];
     sort_columns: {
         [key: string]: string;
     };
@@ -65,7 +63,7 @@ export const EnrollRequests = () => {
         payment_statuses: [],
         approval_statuses: [],
         payment_option: [],
-        custom_fields: {},
+        custom_fields: [],
         sort_columns: {},
     });
     const [searchText, setSearchText] = useState('');
@@ -185,7 +183,7 @@ export const EnrollRequests = () => {
             payment_statuses: [],
             approval_statuses: [],
             payment_option: [],
-            custom_fields: {},
+            custom_fields: [],
             sort_columns: {},
         }));
         setSearchText('');
@@ -205,7 +203,7 @@ export const EnrollRequests = () => {
                 payment_statuses: [],
                 approval_statuses: [],
                 payment_option: [],
-                custom_fields: {},
+                custom_fields: [],
                 sort_columns: {},
             },
         });

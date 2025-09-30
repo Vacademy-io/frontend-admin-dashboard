@@ -332,6 +332,11 @@ export const StudentsListSection = () => {
                                             rowSelection={currentPageSelection}
                                             onRowSelectionChange={handleRowSelectionChange}
                                             currentPage={page}
+                                            tableState={{
+                                                columnVisibility: {
+                                                    referral_count: false,
+                                                },
+                                            }}
                                         />
                                         <div>
                                             <StudentSidebar

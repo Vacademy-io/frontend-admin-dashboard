@@ -14,6 +14,7 @@ import {
     WhatsappLogo,
     Copy,
     Check,
+    HandCoinsIcon,
 } from '@phosphor-icons/react';
 import { useStudentSidebar } from '@/routes/manage-students/students-list/-context/selected-student-sidebar-context';
 import { useEffect, useState } from 'react';
@@ -38,6 +39,7 @@ import {
     deactivateUserTags,
     type TagItem,
 } from '@/services/tag-management';
+import { MonitorPlay } from 'phosphor-react';
 
 export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean }) => {
     const { selectedStudent } = useStudentSidebar();
@@ -437,16 +439,26 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                                 bg: 'from-blue-50 to-blue-100',
                             },
                             2: {
+                                icon: MonitorPlay,
+                                color: 'blue',
+                                bg: 'from-blue-50 to-blue-100',
+                            },
+                            3: {
+                                icon: HandCoinsIcon,
+                                color: 'blue',
+                                bg: 'from-blue-50 to-blue-100',
+                            },
+                            4: {
                                 icon: Phone,
                                 color: 'emerald',
                                 bg: 'from-emerald-50 to-emerald-100',
                             },
-                            3: {
+                            5: {
                                 icon: MapPin,
                                 color: 'orange',
                                 bg: 'from-orange-50 to-orange-100',
                             },
-                            4: { icon: Users, color: 'purple', bg: 'from-purple-50 to-purple-100' },
+                            6: { icon: Users, color: 'purple', bg: 'from-purple-50 to-purple-100' },
                         }[key] || {
                             icon: User,
                             color: 'neutral',
