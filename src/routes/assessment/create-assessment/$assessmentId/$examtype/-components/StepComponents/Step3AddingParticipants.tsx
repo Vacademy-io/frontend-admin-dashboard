@@ -1367,14 +1367,14 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                 />
                             </div>
                         )}
-                        {/* will be added later
-                        {getStepKey({
+                        {/* Notify Participants via Email */}
+                        {(examType === 'SURVEY' || getStepKey({
                             assessmentDetails,
                             currentStep,
                             key: "notify_parents",
-                        }) === "REQUIRED" && (
+                        }) === "REQUIRED") && (
                             <div className="flex flex-col gap-4">
-                                <h1>Notify Parents via Email:</h1>
+                                <h1>{examType === 'SURVEY' ? 'Notify Participants via Email:' : 'Notify Parents via Email:'}</h1>
                                 <FormField
                                     control={control}
                                     name={`notify_parent.when_assessment_created`}
@@ -1523,7 +1523,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                     )}
                                 />
                             </div>
-                        )} */}
+                        )}
                     </div>
                 </div>
             </form>
