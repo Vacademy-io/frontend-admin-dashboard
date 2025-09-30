@@ -32,7 +32,7 @@ export const LeadsManagementSimple = () => {
                             <h1 className="text-2xl font-semibold text-neutral-800">Leads Management</h1>
                         </div>
                         <div className="text-sm text-neutral-600">
-                            Total Leads: 3
+                            Total Leads: 0
                         </div>
                     </div>
                 </div>
