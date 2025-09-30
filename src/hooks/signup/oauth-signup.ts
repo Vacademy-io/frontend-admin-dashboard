@@ -16,7 +16,8 @@ export const handleOAuthSignUp = (provider: OAuthProvider, options: OAuthLoginOp
 
         const stateObj = {
             from: `${window.location.origin}/signup/oauth/callback?assess=${assess}&lms=${lms}`,
-            account_type: isSignup ? (assess ? 'assess' : lms ? 'lms' : '') : '',
+            account_type: isSignup ? 'signup' : 'login',
+            user_type: 'admin',
         };
 
         const base64State = btoa(JSON.stringify(stateObj));

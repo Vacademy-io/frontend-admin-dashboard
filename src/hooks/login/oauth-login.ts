@@ -1,6 +1,4 @@
 import { toast } from 'sonner';
-import { setAuthorizationCookie } from '@/lib/auth/sessionUtility';
-import { TokenKey } from '@/constants/auth/tokens';
 
 export type OAuthProvider = 'google' | 'github';
 
@@ -14,11 +12,10 @@ export const handleOAuthLogin = (provider: OAuthProvider, options: OAuthLoginOpt
     try {
         const { isSignup = false, assess = false, lms = false } = options;
 
-        const redirectPath = isSignup ? '/signup/oauth/callback' : '/login/oauth/redirect';
-
         const stateObj = {
             from: `${window.location.origin}/login/oauth/redirect?assess=${assess}&lms=${lms}`,
-            account_type: isSignup ? (assess ? 'assess' : lms ? 'lms' : '') : '',
+            account_type: isSignup ? 'signup' : 'login',
+            user_type: 'admin',
         };
 
         const base64State = btoa(JSON.stringify(stateObj));
@@ -32,7 +29,7 @@ export const handleOAuthLogin = (provider: OAuthProvider, options: OAuthLoginOpt
         toast.error('Failed to initiate login. Please try again.');
     }
 };
-import { handleLoginFlow, navigateFromLoginFlow } from '@/lib/auth/loginFlowHandler';
+import { handleLoginFlow } from '@/lib/auth/loginFlowHandler';
 
 export const handleLoginOAuthCallback = async () => {
     try {
