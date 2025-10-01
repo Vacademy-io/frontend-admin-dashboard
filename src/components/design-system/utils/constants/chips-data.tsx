@@ -32,6 +32,13 @@ export const ActivityStatusData: Record<
             icon: 'text-success-600',
         },
     },
+    success: {
+        icon: CheckCircle,
+        color: {
+            bg: 'bg-success-50',
+            icon: 'text-success-600',
+        },
+    },
     inactive: {
         icon: XCircle,
         color: {
@@ -54,6 +61,13 @@ export const ActivityStatusData: Record<
         },
     },
     LIVE: {
+        icon: CheckCircle,
+        color: {
+            bg: 'bg-success-50',
+            icon: 'text-success-600',
+        },
+    },
+    ongoing: {
         icon: CheckCircle,
         color: {
             bg: 'bg-success-50',

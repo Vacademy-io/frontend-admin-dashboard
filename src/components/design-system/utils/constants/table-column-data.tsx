@@ -837,26 +837,29 @@ export const activityResponseAssignmentColumns: ColumnDef<ActivityResponseAssign
 ];
 
 // Simple cell components for leads
+// eslint-disable-next-line
 const LeadDetailsCell = ({ row }: { row: Row<any> }) => {
     return (
         <div className="flex items-center justify-center">
-            <button className="rounded bg-primary-500 px-2 py-1 text-xs text-white hover:bg-primary-600">
+            <button className="rounded bg-primary-400 px-2 py-1 text-xs text-white hover:bg-primary-500">
                 View
             </button>
         </div>
     );
 };
 
+// eslint-disable-next-line
 const LeadClickableCell = ({ row, columnId }: { row: Row<any>; columnId: string }) => {
     const value = row.getValue(columnId) as string;
     return (
-        <div className="cursor-pointer text-sm text-neutral-700 hover:text-primary-600">
+        <div className="cursor-pointer text-sm text-neutral-700 hover:text-primary-500">
             {value || '-'}
         </div>
     );
 };
 
 // Leads Management Columns
+// eslint-disable-next-line
 export const leadsColumns: ColumnDef<any>[] = [
     {
         id: 'checkbox',
@@ -948,7 +951,7 @@ export const leadsColumns: ColumnDef<any>[] = [
                 CONVERTED: 'success',
                 LOST: 'error',
             };
-            return <StatusChips status={statusMap[status] || 'pending'} text={status} />;
+            return <StatusChips status={statusMap[status] || 'pending'} />;
         },
     },
     {
@@ -967,7 +970,11 @@ export const leadsColumns: ColumnDef<any>[] = [
         header: 'Created Date',
         cell: ({ row }) => {
             const date = row.getValue('created_at') as string;
-            return <span className="text-sm text-neutral-600">{date ? new Date(date).toLocaleDateString() : '-'}</span>;
+            return (
+                <span className="text-sm text-neutral-600">
+                    {date ? new Date(date).toLocaleDateString() : '-'}
+                </span>
+            );
         },
     },
     {
@@ -978,7 +985,11 @@ export const leadsColumns: ColumnDef<any>[] = [
         header: 'Last Contacted',
         cell: ({ row }) => {
             const date = row.getValue('last_contacted') as string;
-            return <span className="text-sm text-neutral-600">{date ? new Date(date).toLocaleDateString() : 'Never'}</span>;
+            return (
+                <span className="text-sm text-neutral-600">
+                    {date ? new Date(date).toLocaleDateString() : 'Never'}
+                </span>
+            );
         },
     },
     {
@@ -994,7 +1005,7 @@ export const leadsColumns: ColumnDef<any>[] = [
                 MEDIUM: 'ongoing',
                 LOW: 'pending',
             };
-            return <StatusChips status={priorityMap[priority] || 'pending'} text={priority} />;
+            return <StatusChips status={priorityMap[priority] || 'pending'} />;
         },
     },
     {
@@ -1005,6 +1016,7 @@ export const leadsColumns: ColumnDef<any>[] = [
         enableResizing: false,
         enablePinning: true,
         header: 'Actions',
+        // eslint-disable-next-line
         cell: ({ row }) => (
             <div className="flex items-center justify-center">
                 <button className="rounded bg-neutral-100 px-2 py-1 text-xs text-neutral-600 hover:bg-neutral-200">
