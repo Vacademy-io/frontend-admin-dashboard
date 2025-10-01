@@ -13,86 +13,88 @@ import {
 import { useSurveyRespondents } from './hooks/useSurveyData';
 import { surveyApiService } from '@/services/survey-api';
 
+// Helper functions for response parsing
+const formatMcqResponse = (responseData: any, questionData: any): string => {
+  if (responseData.optionIds && responseData.optionIds.length > 0) {
+    if (questionData && questionData.optionsMap) {
+      const selectedOptions = responseData.optionIds.map((optionId: string) => {
+        const optionText = questionData.optionsMap.get(optionId);
+        return optionText || optionId;
+      });
+      return `Selected: ${selectedOptions.join(', ')}`;
+    } else {
+      return `Selected options: ${responseData.optionIds.join(', ')}`;
+    }
+  }
+  return 'No options selected';
+};
+
+const formatNumericResponse = (responseData: any): string => {
+  if (responseData.validAnswer !== null && responseData.validAnswer !== undefined) {
+    return `Answer: ${responseData.validAnswer}`;
+  }
+  return 'No numeric answer provided';
+};
+
+const formatTextResponse = (responseData: any): string => {
+  if (responseData.answer && responseData.answer.trim() !== '') {
+    return responseData.answer;
+  }
+  return 'No text answer provided';
+};
+
+const RESPONSE_TYPE_FORMATTERS = {
+  'MCQS': formatMcqResponse,
+  'MCQM': formatMcqResponse,
+  'TRUE_FALSE': formatMcqResponse,
+  'NUMERIC': formatNumericResponse,
+  'ONE_WORD': formatTextResponse,
+  'LONG_ANSWER': formatTextResponse,
+} as const;
+
+const formatAnswerByType = (responseData: any, questionData: any): string => {
+  const formatter = RESPONSE_TYPE_FORMATTERS[responseData.type as keyof typeof RESPONSE_TYPE_FORMATTERS];
+  return formatter ? formatter(responseData, questionData) : 'Unknown response type';
+};
+
+const createParsedResponse = (response: any, responseData: any, questionData: any, formattedAnswer: string) => ({
+  questionId: response.questionId || 'Unknown',
+  questionType: responseData.type || 'Unknown',
+  questionContent: questionData?.questionContent || 'Survey Question',
+  questionOrder: questionData?.questionOrder || 0,
+  formattedAnswer,
+  timeTaken: response.timeTakenInSeconds || 0,
+  durationLeft: response.questionDurationLeftInSeconds || 0,
+  isVisited: response.isVisited || false,
+  isMarkedForReview: response.isMarkedForReview || false,
+  rawResponse: response,
+  questionData: questionData,
+});
+
+const createErrorResponse = (responseString: string) => ({
+  questionId: 'Unknown',
+  questionType: 'Unknown',
+  questionContent: 'Survey Question',
+  questionOrder: 0,
+  formattedAnswer: 'Error parsing response data',
+  timeTaken: 0,
+  durationLeft: 0,
+  isVisited: false,
+  isMarkedForReview: false,
+  rawResponse: responseString,
+  questionData: null,
+});
+
 // Helper function to parse response data with question context
 const parseResponseData = (responseString: string, questionsData: Map<string, any>) => {
   try {
     const response = JSON.parse(responseString);
     const responseData = response.responseData || {};
-
-    // Get question data if available
     const questionData = questionsData.get(response.questionId);
-
-    // Format the answer based on question type
-    let formattedAnswer = 'No response provided';
-
-    switch (responseData.type) {
-      case 'MCQS':
-      case 'MCQM':
-      case 'TRUE_FALSE':
-        if (responseData.optionIds && responseData.optionIds.length > 0) {
-          if (questionData && questionData.optionsMap) {
-            // Map option IDs to their content
-            const selectedOptions = responseData.optionIds.map((optionId: string) => {
-              const optionText = questionData.optionsMap.get(optionId);
-              return optionText || optionId;
-            });
-            formattedAnswer = `Selected: ${selectedOptions.join(', ')}`;
-          } else {
-            formattedAnswer = `Selected options: ${responseData.optionIds.join(', ')}`;
-          }
-        } else {
-          formattedAnswer = 'No options selected';
-        }
-        break;
-
-      case 'NUMERIC':
-        if (responseData.validAnswer !== null && responseData.validAnswer !== undefined) {
-          formattedAnswer = `Answer: ${responseData.validAnswer}`;
-        } else {
-          formattedAnswer = 'No numeric answer provided';
-        }
-        break;
-
-      case 'ONE_WORD':
-      case 'LONG_ANSWER':
-        if (responseData.answer && responseData.answer.trim() !== '') {
-          formattedAnswer = responseData.answer;
-        } else {
-          formattedAnswer = 'No text answer provided';
-        }
-        break;
-
-      default:
-        formattedAnswer = 'Unknown response type';
-    }
-
-    return {
-      questionId: response.questionId || 'Unknown',
-      questionType: responseData.type || 'Unknown',
-      questionContent: questionData?.questionContent || 'Survey Question',
-      questionOrder: questionData?.questionOrder || 0,
-      formattedAnswer,
-      timeTaken: response.timeTakenInSeconds || 0,
-      durationLeft: response.questionDurationLeftInSeconds || 0,
-      isVisited: response.isVisited || false,
-      isMarkedForReview: response.isMarkedForReview || false,
-      rawResponse: response,
-      questionData: questionData,
-    };
+    const formattedAnswer = formatAnswerByType(responseData, questionData);
+    return createParsedResponse(response, responseData, questionData, formattedAnswer);
   } catch (error) {
-    return {
-      questionId: 'Unknown',
-      questionType: 'Unknown',
-      questionContent: 'Survey Question',
-      questionOrder: 0,
-      formattedAnswer: 'Error parsing response data',
-      timeTaken: 0,
-      durationLeft: 0,
-      isVisited: false,
-      isMarkedForReview: false,
-      rawResponse: responseString,
-      questionData: null,
-    };
+    return createErrorResponse(responseString);
   }
 };
 
@@ -127,29 +129,8 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
                 const sectionIdsArray = sectionIds.split(',').filter(id => id.trim());
                 if (sectionIdsArray.length > 0) {
                     const questionsResponse = await surveyApiService.getQuestionsWithSections(assessmentId, sectionIdsArray);
-
-                    // Process questions data into a map for easy lookup
-                    const questionMap = new Map();
-                    Object.entries(questionsResponse).forEach(([sectionId, questions]) => {
-                        questions.forEach((question: any) => {
-                            // Create options map for this question
-                            const optionsMap = new Map();
-                            if (question.options_with_explanation) {
-                                question.options_with_explanation.forEach((option: any) => {
-                                    optionsMap.set(option.id, option.text.content);
-                                });
-                            }
-
-                            questionMap.set(question.question_id, {
-                                questionContent: question.question.content,
-                                questionOrder: question.question_order,
-                                questionType: question.question_type,
-                                optionsMap: optionsMap
-                            });
-                        });
-                    });
-
-                        setQuestionsData(questionMap);
+                    const questionMap = processQuestionsData(questionsResponse);
+                    setQuestionsData(questionMap);
                 }
             } catch (error) {
                 // Silently handle questions data fetch failure
@@ -160,6 +141,32 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
 
         fetchQuestionsData();
     }, [assessmentId, sectionIds]);
+
+    const processQuestionsData = (questionsResponse: any) => {
+        const questionMap = new Map();
+        Object.entries(questionsResponse).forEach(([sectionId, questions]) => {
+            (questions as any[]).forEach((question: any) => {
+                const optionsMap = createOptionsMap(question);
+                questionMap.set(question.question_id, {
+                    questionContent: question.question.content,
+                    questionOrder: question.question_order,
+                    questionType: question.question_type,
+                    optionsMap: optionsMap
+                });
+            });
+        });
+        return questionMap;
+    };
+
+    const createOptionsMap = (question: any) => {
+        const optionsMap = new Map();
+        if (question.options_with_explanation) {
+            question.options_with_explanation.forEach((option: any) => {
+                optionsMap.set(option.id, option.text.content);
+            });
+        }
+        return optionsMap;
+    };
 
     const currentRespondent = data?.respondents[currentRespondentIndex];
     const totalRespondents = data?.respondents.length || 0;
@@ -296,7 +303,7 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
                         <Input
                             type="number"
                             min="1"
-                            max={totalRespondents}
+                            max={totalRespondents.toString()}
                             value={pageInput}
                             onChange={handlePageInputChange}
                             onKeyDown={handlePageInputSubmit}
@@ -324,7 +331,7 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {currentRespondent?.responses?.map((response, index) => {
                     // Parse the response data with question context
-                    const parsedResponse = parseResponseData(response.answer, questionsData);
+                    const parsedResponse = parseResponseData(String(response.answer), questionsData);
 
                     return (
                     <Card key={response.id} className="h-fit">

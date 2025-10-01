@@ -448,7 +448,7 @@ const AIQuestionsPreview = ({
                                                                                             ) as QuestionType
                                                                                         }
                                                                                         props={{
-                                                                                            form: form,
+                                                                                            form: form as any,
                                                                                             currentQuestionIndex:
                                                                                                 index,
                                                                                             setCurrentQuestionIndex:
@@ -495,7 +495,7 @@ const AIQuestionsPreview = ({
                                                 ) as QuestionType
                                             }
                                             props={{
-                                                form: form,
+                                                form: form as any,
                                                 currentQuestionIndex: currentQuestionIndex,
                                                 setCurrentQuestionIndex: setCurrentQuestionIndex,
                                                 className:

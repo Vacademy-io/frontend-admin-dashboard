@@ -45,60 +45,290 @@ interface QuestionData {
     optionsMap: Map<string, string>;
 }
 
-// Helper function to parse response data with question context
-const parseResponseData = (responseString: string, questionsData: Map<string, QuestionData>) => {
-  try {
-    const response = JSON.parse(responseString);
-    const responseData = response.responseData || {};
+// Helper components for question rendering
+const BarChartComponent = ({ data, fillColor }: { data: ResponseDistribution[], fillColor: string }) => (
+    <div className="h-64">
+        <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis
+                    dataKey="value"
+                    tick={{ fontSize: 12 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip
+                    formatter={(value: number, name: string, props: any) => [
+                        `${value} responses (${props.payload?.percentage || 0}%)`,
+                        'Count'
+                    ]}
+                    labelStyle={{ color: '#374151' }}
+                    contentStyle={{
+                        backgroundColor: '#f9fafb',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
+                />
+                <Bar
+                    dataKey="count"
+                    fill={fillColor}
+                    radius={[4, 4, 0, 0]}
+                />
+            </BarChart>
+        </ResponsiveContainer>
+    </div>
+);
 
-    // Get question data if available
-    const questionData = questionsData.get(response.questionId);
+const ResponseLegend = ({ responses }: { responses: ResponseDistribution[] }) => (
+    <div className="space-y-2">
+        {responses.map((response: ResponseDistribution, idx: number) => (
+            <div key={idx} className="flex justify-between items-center">
+                <div className="text-lg font-semibold text-gray-800">
+                    {response.value}
+                </div>
+                <div className="text-lg font-semibold text-gray-600">
+                    {response.percentage.toFixed(0)}% ({response.count} responses)
+                </div>
+            </div>
+        ))}
+    </div>
+);
 
-    // Format the answer based on question type
-    let formattedAnswer = 'No response provided';
+const McqQuestionContent = ({ question }: { question: TransformedQuestionAnalytics }) => (
+    <div className="space-y-6">
+        <BarChartComponent data={question.responseDistribution} fillColor="#8884d8" />
+        <ResponseLegend responses={question.responseDistribution} />
+    </div>
+);
 
-    switch (responseData.type) {
-      case 'MCQS':
-      case 'MCQM':
-      case 'TRUE_FALSE':
+const McqMultipleChoiceContent = ({ question }: { question: TransformedQuestionAnalytics }) => (
+    <div className="space-y-6">
+        <BarChartComponent data={question.responseDistribution} fillColor="#00C49F" />
+        <ResponseLegend responses={question.responseDistribution} />
+    </div>
+);
+
+const TrueFalseContent = ({ question }: { question: TransformedQuestionAnalytics }) => (
+    <div className="space-y-6">
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-8">
+            <div className="flex-1 max-w-sm">
+                <div className="relative h-64 w-64 mx-auto group">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                            <Pie
+                                data={[
+                                    {
+                                        name: 'True',
+                                        value: question.responseDistribution[0]?.percentage || 0,
+                                        fill: '#10B981',
+                                        count: question.responseDistribution[0]?.count || 0
+                                    },
+                                    {
+                                        name: 'False',
+                                        value: question.responseDistribution[1]?.percentage || 0,
+                                        fill: '#EF4444',
+                                        count: question.responseDistribution[1]?.count || 0
+                                    }
+                                ]}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={60}
+                                outerRadius={100}
+                                paddingAngle={2}
+                                dataKey="value"
+                                startAngle={90}
+                                endAngle={450}
+                            >
+                                {[
+                                    { name: 'True', value: question.responseDistribution[0]?.percentage || 0, fill: '#10B981' },
+                                    { name: 'False', value: question.responseDistribution[1]?.percentage || 0, fill: '#EF4444' }
+                                ].map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                                ))}
+                            </Pie>
+                            <Tooltip
+                                formatter={(value: any, name: string) => [
+                                    `${value}% (${name === 'True' ? question.responseDistribution[0]?.count || 0 : question.responseDistribution[1]?.count || 0} responses)`,
+                                    name
+                                ]}
+                                labelStyle={{ color: '#374151' }}
+                                contentStyle={{
+                                    backgroundColor: '#f9fafb',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                }}
+                            />
+                        </PieChart>
+                    </ResponsiveContainer>
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <div className="text-center">
+                            <div className="text-lg font-semibold text-gray-700">
+                                {(question.responseDistribution[0]?.percentage || 0).toFixed(2)}%
+                            </div>
+                            <div className="text-xs text-gray-600">True</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div className="flex-1 space-y-4">
+                <div className="text-center">
+                    <div className="text-lg font-semibold text-green-600 mb-1">True</div>
+                    <div className="text-2xl font-bold text-green-700 mb-1">
+                        {(question.responseDistribution[0]?.percentage || 0).toFixed(2)}%
+                    </div>
+                    <div className="text-sm text-gray-600">
+                        {question.responseDistribution[0]?.count || 0} responses
+                    </div>
+                </div>
+                <div className="text-center">
+                    <div className="text-lg font-semibold text-red-600 mb-1">False</div>
+                    <div className="text-2xl font-bold text-red-700 mb-1">
+                        {(question.responseDistribution[1]?.percentage || 0).toFixed(2)}%
+                    </div>
+                    <div className="text-sm text-gray-600">
+                        {question.responseDistribution[1]?.count || 0} responses
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
+const TextQuestionContent = ({ question }: { question: TransformedQuestionAnalytics }) => (
+    <div className="space-y-4">
+        <div className="text-lg font-semibold mb-4">
+            Recent Responses ({question.totalResponses} total responses):
+        </div>
+        <div className="space-y-4">
+            {question.responseDistribution.slice(0, 5).map((response: any, idx: number) => (
+                <div key={idx} className="p-4 border rounded-lg">
+                    <div className="text-sm text-gray-700 italic">"{response.value}"</div>
+                    <div className="text-xs text-gray-500 mt-1">{response.count} similar responses</div>
+                </div>
+            ))}
+        </div>
+    </div>
+);
+
+const NumericalQuestionContent = ({ question }: { question: TransformedQuestionAnalytics }) => (
+    <div className="space-y-4">
+        <div className="text-lg font-semibold mb-4">Response Distribution:</div>
+        <div className="space-y-3">
+            {question.responseDistribution.slice(0, 5).map((response: any, idx: number) => (
+                <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                    <span className="font-medium">{idx + 1}. {response.value}</span>
+                    <Badge variant="secondary">
+                        {response.count} responses ({response.percentage}%)
+                    </Badge>
+                </div>
+            ))}
+        </div>
+    </div>
+);
+
+const QuestionTypeRenderer = ({ question }: { question: TransformedQuestionAnalytics }) => {
+    switch (question.questionType) {
+        case 'mcq_single_choice':
+            return <McqQuestionContent question={question} />;
+        case 'mcq_multiple_choice':
+            return <McqMultipleChoiceContent question={question} />;
+        case 'true_false':
+            return <TrueFalseContent question={question} />;
+        case 'short_answer':
+        case 'long_answer':
+            return <TextQuestionContent question={question} />;
+        case 'numerical':
+            return <NumericalQuestionContent question={question} />;
+        default:
+            return <div>Unsupported question type</div>;
+    }
+};
+
+const renderQuestionContent = (question: TransformedQuestionAnalytics, index: number, onViewResponses: (question: TransformedQuestionAnalytics, index: number) => void) => {
+    const questionNumber = `Q${index + 1}`;
+
+    return (
+        <Card className="h-fit">
+            <CardHeader>
+                <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                        <CardTitle className="text-lg font-semibold mb-2">
+                            {questionNumber}. {question.questionText}
+                        </CardTitle>
+                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                            <span>{question.totalResponses} responses</span>
+                        </div>
+                        <Badge className="bg-primary-100 text-primary-800 border-primary-200 mb-4">
+                            {question.questionType.replace('_', ' ').toUpperCase()}
+                        </Badge>
+                    </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2"
+                        onClick={() => onViewResponses(question, index)}
+                    >
+                        <Eye className="h-4 w-4" />
+                        View Individual Responses
+                    </Button>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <QuestionTypeRenderer question={question} />
+            </CardContent>
+        </Card>
+    );
+};
+
+// Helper functions for response parsing
+const formatMcqResponse = (responseData: any, questionData: any): string => {
         if (responseData.optionIds && responseData.optionIds.length > 0) {
           if (questionData && questionData.optionsMap) {
-            // Map option IDs to their content
             const selectedOptions = responseData.optionIds.map((optionId: string) => {
               const optionText = questionData.optionsMap.get(optionId);
               return optionText || optionId;
             });
-            formattedAnswer = selectedOptions.join(', ');
+      return selectedOptions.join(', ');
           } else {
-            formattedAnswer = responseData.optionIds.join(', ');
+      return responseData.optionIds.join(', ');
           }
-        } else {
-          formattedAnswer = 'No options selected';
         }
-        break;
+  return 'No options selected';
+};
 
-      case 'NUMERIC':
+const formatNumericResponse = (responseData: any): string => {
         if (responseData.validAnswer !== null && responseData.validAnswer !== undefined) {
-          formattedAnswer = responseData.validAnswer.toString();
-        } else {
-          formattedAnswer = 'No numeric answer provided';
+    return responseData.validAnswer.toString();
         }
-        break;
+  return 'No numeric answer provided';
+};
 
-      case 'ONE_WORD':
-      case 'LONG_ANSWER':
+const formatTextResponse = (responseData: any): string => {
         if (responseData.answer && responseData.answer.trim() !== '') {
-          formattedAnswer = responseData.answer;
-        } else {
-          formattedAnswer = 'No text answer provided';
-        }
-        break;
+    return responseData.answer;
+  }
+  return 'No text answer provided';
+};
 
-      default:
-        formattedAnswer = 'Unknown response type';
-    }
+const RESPONSE_TYPE_FORMATTERS = {
+  'MCQS': formatMcqResponse,
+  'MCQM': formatMcqResponse,
+  'TRUE_FALSE': formatMcqResponse,
+  'NUMERIC': formatNumericResponse,
+  'ONE_WORD': formatTextResponse,
+  'LONG_ANSWER': formatTextResponse,
+} as const;
 
-    return {
+const formatAnswerByType = (responseData: any, questionData: any): string => {
+  const formatter = RESPONSE_TYPE_FORMATTERS[responseData.type as keyof typeof RESPONSE_TYPE_FORMATTERS];
+  return formatter ? formatter(responseData, questionData) : 'Unknown response type';
+};
+
+const createParsedResponse = (response: any, responseData: any, questionData: any, formattedAnswer: string) => ({
       questionId: response.questionId || 'Unknown',
       questionType: responseData.type || 'Unknown',
       questionContent: questionData?.questionContent || 'Survey Question',
@@ -110,9 +340,9 @@ const parseResponseData = (responseString: string, questionsData: Map<string, Qu
       isMarkedForReview: response.isMarkedForReview || false,
       rawResponse: response,
       questionData: questionData,
-    };
-    } catch (error) {
-        return {
+});
+
+const createErrorResponse = (responseString: string) => ({
       questionId: 'Unknown',
       questionType: 'Unknown',
       questionContent: 'Survey Question',
@@ -124,7 +354,18 @@ const parseResponseData = (responseString: string, questionsData: Map<string, Qu
       isMarkedForReview: false,
       rawResponse: responseString,
       questionData: null,
-    };
+});
+
+// Helper function to parse response data with question context
+const parseResponseData = (responseString: string, questionsData: Map<string, QuestionData>) => {
+  try {
+    const response = JSON.parse(responseString);
+    const responseData = response.responseData || {};
+    const questionData = questionsData.get(response.questionId);
+    const formattedAnswer = formatAnswerByType(responseData, questionData);
+    return createParsedResponse(response, responseData, questionData, formattedAnswer);
+  } catch (error) {
+    return createErrorResponse(responseString);
   }
 };
 
@@ -166,28 +407,7 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                 const sectionIdsArray = sectionIds.split(',').filter(id => id.trim());
                 if (sectionIdsArray.length > 0) {
                     const questionsResponse = await surveyApiService.getQuestionsWithSections(assessmentId, sectionIdsArray);
-
-                    // Process questions data into a map for easy lookup
-                    const questionMap = new Map();
-                    Object.entries(questionsResponse).forEach(([sectionId, questions]) => {
-                        questions.forEach((question: AssessmentQuestionPreview) => {
-                            // Create options map for this question
-                            const optionsMap = new Map();
-                            if (question.options_with_explanation) {
-                                question.options_with_explanation.forEach((option: QuestionOptionWithExplanation) => {
-                                    optionsMap.set(option.id, option.text.content);
-                                });
-                            }
-
-                            questionMap.set(question.question_id, {
-                                questionContent: question.question.content,
-                                questionOrder: question.question_order,
-                                questionType: question.question_type,
-                                optionsMap: optionsMap
-                            });
-                        });
-                    });
-
+                    const questionMap = processQuestionsData(questionsResponse);
                     setQuestionsData(questionMap);
                 }
             } catch (error) {
@@ -199,6 +419,32 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
 
         fetchQuestionsData();
     }, [assessmentId, sectionIds]);
+
+    const processQuestionsData = (questionsResponse: any) => {
+        const questionMap = new Map();
+        Object.entries(questionsResponse).forEach(([sectionId, questions]) => {
+            (questions as any[]).forEach((question: AssessmentQuestionPreview) => {
+                const optionsMap = createOptionsMap(question);
+                questionMap.set(question.question_id, {
+                    questionContent: question.question.content,
+                    questionOrder: question.question_order,
+                    questionType: question.question_type,
+                    optionsMap: optionsMap
+                });
+            });
+        });
+        return questionMap;
+    };
+
+    const createOptionsMap = (question: AssessmentQuestionPreview) => {
+        const optionsMap = new Map();
+        if (question.options_with_explanation) {
+            question.options_with_explanation.forEach((option: QuestionOptionWithExplanation) => {
+                optionsMap.set(option.id, option.text.content);
+            });
+        }
+        return optionsMap;
+    };
 
     // Fetch batch data for private surveys
     React.useEffect(() => {
@@ -275,46 +521,13 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
     const { analytics, questions } = overviewData;
 
     const handleViewIndividualResponses = (question: TransformedQuestionAnalytics, index: number) => {
-        setSelectedQuestion({ ...question, index });
+        setSelectedQuestion(question);
         setIsDialogOpen(true);
     };
-
-    const renderQuestionContent = (question: TransformedQuestionAnalytics, index: number) => {
-        const questionNumber = `Q${index + 1}`;
-
-        return (
-            <Card className="h-fit">
-                <CardHeader>
-                    <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                            <CardTitle className="text-lg font-semibold mb-2">
-                                {questionNumber}. {question.questionText}
-                            </CardTitle>
-                            <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-                                <span>{question.totalResponses} responses</span>
-                            </div>
-                            <Badge className="bg-primary-100 text-primary-800 border-primary-200 mb-4">
-                                {question.questionType.replace('_', ' ').toUpperCase()}
-                            </Badge>
-                        </div>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex items-center gap-2"
-                            onClick={() => handleViewIndividualResponses(question, index)}
-                        >
-                            <Eye className="h-4 w-4" />
-                            View Individual Responses
-                        </Button>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    {question.questionType === 'mcq_single_choice' && (
-                        <div className="space-y-6">
-                            {/* Bar Chart Section */}
+const BarChartComponent = ({ data, fillColor }: { data: ResponseDistribution[], fillColor: string }) => (
                             <div className="h-64">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={question.responseDistribution} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                                         <XAxis
                                             dataKey="value"
@@ -325,8 +538,8 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                                         />
                                         <YAxis tick={{ fontSize: 12 }} />
                                         <Tooltip
-                                            formatter={(value: number, name: string, props: { payload: { percentage: number } }) => [
-                                                `${value} responses (${props.payload.percentage}%)`,
+                                            formatter={(value: number, name: string, props: any) => [
+                                                `${value} responses (${props.payload?.percentage || 0}%)`,
                                                 'Count'
                                             ]}
                                             labelStyle={{ color: '#374151' }}
@@ -339,16 +552,17 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                                         />
                                         <Bar
                                             dataKey="count"
-                                            fill="#8884d8"
+                    fill={fillColor}
                                             radius={[4, 4, 0, 0]}
                                         />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
+);
 
-                            {/* Legend Section Below Bar Chart */}
+const ResponseLegend = ({ responses }: { responses: ResponseDistribution[] }) => (
                             <div className="space-y-2">
-                                {question.responseDistribution.map((response: ResponseDistribution, idx: number) => (
+        {responses.map((response: ResponseDistribution, idx: number) => (
                                     <div key={idx} className="flex justify-between items-center">
                                         <div className="text-lg font-semibold text-gray-800">
                                             {response.value}
@@ -359,67 +573,25 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                                     </div>
                                 ))}
                             </div>
-                        </div>
-                    )}
+);
 
-                    {question.questionType === 'mcq_multiple_choice' && (
+const McqQuestionContent = ({ question }: { question: TransformedQuestionAnalytics }) => (
                         <div className="space-y-6">
-                            {/* Bar Chart Section */}
-                            <div className="h-64">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={question.responseDistribution} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                        <XAxis
-                                            dataKey="value"
-                                            tick={{ fontSize: 12 }}
-                                            angle={-45}
-                                            textAnchor="end"
-                                            height={80}
-                                        />
-                                        <YAxis tick={{ fontSize: 12 }} />
-                                        <Tooltip
-                                            formatter={(value: number, name: string, props: { payload: { percentage: number } }) => [
-                                                `${value} responses (${props.payload.percentage}%)`,
-                                                'Count'
-                                            ]}
-                                            labelStyle={{ color: '#374151' }}
-                                            contentStyle={{
-                                                backgroundColor: '#f9fafb',
-                                                border: '1px solid #e5e7eb',
-                                                borderRadius: '8px',
-                                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                                            }}
-                                        />
-                                        <Bar
-                                            dataKey="count"
-                                            fill="#00C49F"
-                                            radius={[4, 4, 0, 0]}
-                                        />
-                                    </BarChart>
-                                </ResponsiveContainer>
+        <BarChartComponent data={question.responseDistribution} fillColor="#8884d8" />
+        <ResponseLegend responses={question.responseDistribution} />
                             </div>
+);
 
-                            {/* Legend Section Below Bar Chart */}
-                            <div className="space-y-2">
-                                {question.responseDistribution.map((response: ResponseDistribution, idx: number) => (
-                                    <div key={idx} className="flex justify-between items-center">
-                                        <div className="text-lg font-semibold text-gray-800">
-                                            {response.value}
+const McqMultipleChoiceContent = ({ question }: { question: TransformedQuestionAnalytics }) => (
+    <div className="space-y-6">
+        <BarChartComponent data={question.responseDistribution} fillColor="#00C49F" />
+        <ResponseLegend responses={question.responseDistribution} />
                                         </div>
-                                        <div className="text-lg font-semibold text-gray-600">
-                                            {response.percentage.toFixed(0)}% ({response.count} responses)
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+);
 
-                    {question.questionType === 'true_false' && (
+const TrueFalseContent = ({ question }: { question: TransformedQuestionAnalytics }) => (
                         <div className="space-y-6">
-                            {/* Enhanced True/False Pie Chart */}
                             <div className="flex flex-col lg:flex-row items-center justify-center gap-8">
-                                {/* Pie Chart Section */}
                                 <div className="flex-1 max-w-sm">
                                     <div className="relative h-64 w-64 mx-auto group">
                                         <ResponsiveContainer width="100%" height="100%">
@@ -470,28 +642,19 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                                                 />
                                             </PieChart>
                                         </ResponsiveContainer>
-
-                                        {/* Center Text - Only on Hover */}
                                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                             <div className="text-center">
                                                 <div className="text-lg font-semibold text-gray-700">
                                                     {(question.responseDistribution[0]?.percentage || 0).toFixed(2)}%
                                                 </div>
-                                                <div className="text-xs text-gray-600">
-                                                    True
+                            <div className="text-xs text-gray-600">True</div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-
-                                {/* Simple Legend Section */}
                                 <div className="flex-1 space-y-4">
-                                    {/* True Response */}
                                     <div className="text-center">
-                                        <div className="text-lg font-semibold text-green-600 mb-1">
-                                            True
-                                        </div>
+                    <div className="text-lg font-semibold text-green-600 mb-1">True</div>
                                         <div className="text-2xl font-bold text-green-700 mb-1">
                                             {(question.responseDistribution[0]?.percentage || 0).toFixed(2)}%
                                             </div>
@@ -499,12 +662,8 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                                             {question.responseDistribution[0]?.count || 0} responses
                                         </div>
                                     </div>
-
-                                    {/* False Response */}
                                     <div className="text-center">
-                                        <div className="text-lg font-semibold text-red-600 mb-1">
-                                            False
-                                        </div>
+                    <div className="text-lg font-semibold text-red-600 mb-1">False</div>
                                         <div className="text-2xl font-bold text-red-700 mb-1">
                                             {(question.responseDistribution[1]?.percentage || 0).toFixed(2)}%
                                             </div>
@@ -512,13 +671,12 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                                             {question.responseDistribution[1]?.count || 0} responses
                                         </div>
                                     </div>
-
                                 </div>
                             </div>
                         </div>
-                    )}
+);
 
-                    {(question.questionType === 'short_answer' || question.questionType === 'long_answer') && (
+const TextQuestionContent = ({ question }: { question: TransformedQuestionAnalytics }) => (
                         <div className="space-y-4">
                             <div className="text-lg font-semibold mb-4">
                                 Recent Responses ({question.totalResponses} total responses):
@@ -526,27 +684,21 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                             <div className="space-y-4">
                                 {question.responseDistribution.slice(0, 5).map((response: any, idx: number) => (
                                     <div key={idx} className="p-4 border rounded-lg">
-                                        <div className="text-sm text-gray-700 italic">
-                                            "{response.value}"
-                                        </div>
-                                        <div className="text-xs text-gray-500 mt-1">
-                                            {response.count} similar responses
-                                        </div>
+                    <div className="text-sm text-gray-700 italic">"{response.value}"</div>
+                    <div className="text-xs text-gray-500 mt-1">{response.count} similar responses</div>
                                     </div>
                                 ))}
                             </div>
                         </div>
-                    )}
+);
 
-                    {question.questionType === 'numerical' && (
+const NumericalQuestionContent = ({ question }: { question: TransformedQuestionAnalytics }) => (
                         <div className="space-y-4">
                             <div className="text-lg font-semibold mb-4">Response Distribution:</div>
                             <div className="space-y-3">
                                 {question.responseDistribution.slice(0, 5).map((response: any, idx: number) => (
                                     <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                                        <span className="font-medium">
-                                            {idx + 1}. {response.value}
-                                        </span>
+                    <span className="font-medium">{idx + 1}. {response.value}</span>
                                         <Badge variant="secondary">
                                             {response.count} responses ({response.percentage}%)
                                         </Badge>
@@ -554,7 +706,57 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                                 ))}
                             </div>
                         </div>
-                    )}
+);
+
+const QuestionTypeRenderer = ({ question }: { question: TransformedQuestionAnalytics }) => {
+    switch (question.questionType) {
+        case 'mcq_single_choice':
+            return <McqQuestionContent question={question} />;
+        case 'mcq_multiple_choice':
+            return <McqMultipleChoiceContent question={question} />;
+        case 'true_false':
+            return <TrueFalseContent question={question} />;
+        case 'short_answer':
+        case 'long_answer':
+            return <TextQuestionContent question={question} />;
+        case 'numerical':
+            return <NumericalQuestionContent question={question} />;
+        default:
+            return <div>Unsupported question type</div>;
+    }
+};
+
+const renderQuestionContent = (question: TransformedQuestionAnalytics, index: number, onViewResponses: (question: TransformedQuestionAnalytics, index: number) => void) => {
+    const questionNumber = `Q${index + 1}`;
+
+    return (
+        <Card className="h-fit">
+            <CardHeader>
+                <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                        <CardTitle className="text-lg font-semibold mb-2">
+                            {questionNumber}. {question.questionText}
+                        </CardTitle>
+                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                            <span>{question.totalResponses} responses</span>
+                        </div>
+                        <Badge className="bg-primary-100 text-primary-800 border-primary-200 mb-4">
+                            {question.questionType.replace('_', ' ').toUpperCase()}
+                        </Badge>
+                    </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2"
+                        onClick={() => onViewResponses(question, index)}
+                    >
+                        <Eye className="h-4 w-4" />
+                        View Individual Responses
+                    </Button>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <QuestionTypeRenderer question={question} />
                 </CardContent>
             </Card>
         );
@@ -616,7 +818,7 @@ export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ as
                                 : ''
                         }
                     >
-                        {renderQuestionContent(question, index)}
+                        {renderQuestionContent(question, index, handleViewIndividualResponses)}
                     </div>
                 ))}
             </div>

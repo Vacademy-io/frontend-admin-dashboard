@@ -45,6 +45,131 @@ const heading = (
     </div>
 );
 
+// Helper components for better organization
+const AssessmentHeader = ({ assessmentDetails }: { assessmentDetails: any }) => {
+    const getVisibilityBadgeClass = (visibility: string) => {
+        return visibility === 'PRIVATE' ? 'bg-primary-50' : 'bg-info-50';
+    };
+
+    const getModeBadgeClass = (mode: string) => {
+        return mode !== 'EXAM' ? 'bg-neutral-50' : 'bg-success-50';
+    };
+
+    const getStatusBadgeClass = (status: string) => {
+        return status === 'COMPLETED' ? 'bg-success-50' : 'bg-neutral-100';
+    };
+
+    const getStatusIcon = (status: string) => {
+        return status === 'COMPLETED' ? (
+            <CheckCircle size={16} weight="fill" className="mr-2 text-success-600" />
+        ) : (
+            <PauseCircle size={16} weight="fill" className="mr-2 text-neutral-400" />
+        );
+    };
+
+    const getModeIcon = (mode: string) => {
+        return mode === 'EXAM' ? (
+            <DotIcon className="mr-2" />
+        ) : (
+            <DotIconOffline className="mr-2" />
+        );
+    };
+
+    return (
+        <div className="flex items-center gap-4">
+            <h1 className="font-semibold">{assessmentDetails[0]?.saved_data.name}</h1>
+            <Badge
+                className={`rounded-md border border-neutral-300 ${getVisibilityBadgeClass(
+                    assessmentDetails[0]?.saved_data.assessment_visibility
+                )} py-1.5 shadow-none`}
+            >
+                <LockSimple size={16} className="mr-2" />
+                {assessmentDetails[0]?.saved_data.assessment_visibility}
+            </Badge>
+            <Badge
+                className={`rounded-md border border-neutral-300 ${getModeBadgeClass(
+                    assessmentDetails[0]?.saved_data.assessment_mode
+                )} py-1.5 shadow-none`}
+            >
+                {getModeIcon(assessmentDetails[0]?.saved_data.assessment_mode)}
+                {assessmentDetails[0]?.saved_data.assessment_mode}
+            </Badge>
+            <Separator orientation="vertical" className="h-8 w-px bg-neutral-300" />
+            <Badge
+                className={`rounded-md border ${getStatusBadgeClass(
+                    assessmentDetails?.[0]?.status
+                )} border-neutral-300 py-1.5 shadow-none`}
+            >
+                {getStatusIcon(assessmentDetails?.[0]?.status)}
+                {assessmentDetails?.[0]?.status}
+            </Badge>
+        </div>
+    );
+};
+
+const AssessmentActions = ({
+    isPreviewAssessmentDialogOpen,
+    setIsPreviewAssessmentDialogOpen,
+    questionsDataSectionWise,
+    assessmentId
+}: {
+    isPreviewAssessmentDialogOpen: boolean;
+    setIsPreviewAssessmentDialogOpen: (open: boolean) => void;
+    questionsDataSectionWise: any;
+    assessmentId: string;
+}) => {
+    const navigate = useNavigate();
+
+    const handleOpenDialog = () => {
+        if (Object.keys(questionsDataSectionWise).length === 0) {
+            toast.error('No sections have been added for this assessment.');
+        } else {
+            setIsPreviewAssessmentDialogOpen(true);
+        }
+    };
+
+    const handleExportAssessment = () => {
+        if (Object.keys(questionsDataSectionWise).length === 0) {
+            toast.error('No sections have been added for this assessment.');
+        } else {
+            navigate({
+                to: '/assessment/export/$assessmentId',
+                params: {
+                    assessmentId: assessmentId,
+                },
+            });
+        }
+    };
+
+    return (
+        <div className="flex flex-col items-center gap-y-2">
+            <Dialog
+                open={isPreviewAssessmentDialogOpen}
+                onOpenChange={setIsPreviewAssessmentDialogOpen}
+            >
+                <DialogTrigger>
+                    <MyButton
+                        type="button"
+                        scale="large"
+                        buttonType="secondary"
+                        onClick={handleOpenDialog}
+                    >
+                        Preview Assessment
+                    </MyButton>
+                </DialogTrigger>
+                {Object.keys(questionsDataSectionWise).length > 0 && (
+                    <DialogContent className="no-scrollbar !m-0 h-[90vh] !w-[90vw] !max-w-full !gap-0 overflow-y-auto !p-0 [&>button]:hidden">
+                        <AssessmentPreview handleCloseDialog={() => setIsPreviewAssessmentDialogOpen(false)} />
+                    </DialogContent>
+                )}
+            </Dialog>
+            <MyButton scale="large" onClick={handleExportAssessment} className="py-4">
+                Offline Paper
+            </MyButton>
+        </div>
+    );
+};
+
 const AssessmentDetailsComponent = () => {
     const { assessmentId, examType, assesssmentType, assessmentTab } = Route.useParams();
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
@@ -91,26 +216,6 @@ const AssessmentDetailsComponent = () => {
 
     const [isPreviewAssessmentDialogOpen, setIsPreviewAssessmentDialogOpen] = useState(false);
 
-    const handleOpenDialog = () => {
-        if (Object.keys(questionsDataSectionWise).length === 0) {
-            toast.error('No sections have been added for this assessment.');
-        } else {
-            setIsPreviewAssessmentDialogOpen(true);
-        }
-    };
-    const handleCloseDialog = () => setIsPreviewAssessmentDialogOpen(false);
-    const handleExportAssessment = () => {
-        if (Object.keys(questionsDataSectionWise).length === 0) {
-            toast.error('No sections have been added for this assessment.');
-        } else {
-            navigate({
-                to: '/assessment/export/$assessmentId',
-                params: {
-                    assessmentId: assessmentId,
-                },
-            });
-        }
-    };
     useEffect(() => {
         setNavHeading(heading);
     }, []);
@@ -128,81 +233,13 @@ const AssessmentDetailsComponent = () => {
             </Helmet>
             <div>
                 <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                        <h1 className="font-semibold">{assessmentDetails[0]?.saved_data.name}</h1>
-                        <Badge
-                            className={`rounded-md border border-neutral-300 ${
-                                assessmentDetails[0]?.saved_data.assessment_visibility === 'PRIVATE'
-                                    ? 'bg-primary-50'
-                                    : 'bg-info-50'
-                            } py-1.5 shadow-none`}
-                        >
-                            <LockSimple size={16} className="mr-2" />
-                            {assessmentDetails[0]?.saved_data.assessment_visibility}
-                        </Badge>
-                        <Badge
-                            className={`rounded-md border border-neutral-300 ${
-                                assessmentDetails[0]?.saved_data.assessment_mode !== 'EXAM'
-                                    ? 'bg-neutral-50'
-                                    : 'bg-success-50'
-                            } py-1.5 shadow-none`}
-                        >
-                            {assessmentDetails[0]?.saved_data.assessment_mode === 'EXAM' ? (
-                                <DotIcon className="mr-2" />
-                            ) : (
-                                <DotIconOffline className="mr-2" />
-                            )}
-                            {assessmentDetails[0]?.saved_data.assessment_mode}
-                        </Badge>
-                        <Separator orientation="vertical" className="h-8 w-px bg-neutral-300" />
-                        <Badge
-                            className={`rounded-md border ${
-                                assessmentDetails?.[0]?.status === 'COMPLETED'
-                                    ? 'bg-success-50'
-                                    : 'bg-neutral-100'
-                            } border-neutral-300 py-1.5 shadow-none`}
-                        >
-                            {assessmentDetails?.[0]?.status === 'COMPLETED' ? (
-                                <CheckCircle
-                                    size={16}
-                                    weight="fill"
-                                    className="mr-2 text-success-600"
-                                />
-                            ) : (
-                                <PauseCircle
-                                    size={16}
-                                    weight="fill"
-                                    className="mr-2 text-neutral-400"
-                                />
-                            )}
-                            {assessmentDetails?.[0]?.status}
-                        </Badge>
-                    </div>
-                    <div className="flex flex-col items-center gap-y-2">
-                        <Dialog
-                            open={isPreviewAssessmentDialogOpen}
-                            onOpenChange={setIsPreviewAssessmentDialogOpen}
-                        >
-                            <DialogTrigger>
-                                <MyButton
-                                    type="button"
-                                    scale="large"
-                                    buttonType="secondary"
-                                    onClick={handleOpenDialog}
-                                >
-                                    Preview Assessment
-                                </MyButton>
-                            </DialogTrigger>
-                            {Object.keys(questionsDataSectionWise).length > 0 && (
-                                <DialogContent className="no-scrollbar !m-0 h-[90vh] !w-[90vw] !max-w-full !gap-0 overflow-y-auto !p-0 [&>button]:hidden">
-                                    <AssessmentPreview handleCloseDialog={handleCloseDialog} />
-                                </DialogContent>
-                            )}
-                        </Dialog>
-                        <MyButton scale="large" onClick={handleExportAssessment} className="py-4">
-                            Offline Paper
-                        </MyButton>
-                    </div>
+                    <AssessmentHeader assessmentDetails={assessmentDetails} />
+                    <AssessmentActions
+                        isPreviewAssessmentDialogOpen={isPreviewAssessmentDialogOpen}
+                        setIsPreviewAssessmentDialogOpen={setIsPreviewAssessmentDialogOpen}
+                        questionsDataSectionWise={questionsDataSectionWise}
+                        assessmentId={assessmentId}
+                    />
                 </div>
                 <Separator className="mt-4" />
                 <Tabs value={selectedTab} onValueChange={setSelectedTab}>
@@ -327,8 +364,13 @@ const AssessmentDetailsComponent = () => {
                                     sectionIds={assessmentDetails[1]?.saved_data.sections
                                         ?.map((section) => section.id)
                                         .join(',')}
-                                    assessmentName={assessmentDetails[0]?.assessment_name || ''}
-                                    assessmentDetails={assessmentDetails[1]?.saved_data}
+                                    assessmentName={assessmentDetails[0]?.saved_data?.name || ''}
+                                    assessmentDetails={{
+                                        assessment_visibility: assessmentDetails[1]?.saved_data?.assessment_visibility,
+                                        live_assessment_access: {
+                                            batch_ids: assessmentDetails[1]?.saved_data?.live_assessment_access?.batch_ids ?? []
+                                        }
+                                    }}
                                 />
                             ) : (
                                 <AssessmentOverviewTab />
@@ -341,8 +383,13 @@ const AssessmentDetailsComponent = () => {
                                     sectionIds={assessmentDetails[1]?.saved_data.sections
                                         ?.map((section) => section.id)
                                         .join(',')}
-                                    assessmentName={assessmentDetails[0]?.assessment_name || ''}
-                                    assessmentDetails={assessmentDetails[1]?.saved_data}
+                                    assessmentName={assessmentDetails[0]?.saved_data?.name || ''}
+                                    assessmentDetails={{
+                                        assessment_visibility: assessmentDetails[1]?.saved_data?.assessment_visibility,
+                                        live_assessment_access: {
+                                            batch_ids: assessmentDetails[1]?.saved_data?.live_assessment_access?.batch_ids ?? []
+                                        }
+                                    }}
                                 />
                             ) : (
                                 <AssessmentSubmissionsTab type={assesssmentType} />

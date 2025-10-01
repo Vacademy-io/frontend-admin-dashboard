@@ -10,7 +10,7 @@ export const useNamingSettings = () => {
 
     const getTerminology = (key: string, defaultValue: string): string => {
         const settings = getValue();
-        const setting = settings.find(s => s.key === key);
+        const setting = settings.find((s: NamingSettingsType) => s.key === key);
         return setting?.customValue || defaultValue;
     };
 

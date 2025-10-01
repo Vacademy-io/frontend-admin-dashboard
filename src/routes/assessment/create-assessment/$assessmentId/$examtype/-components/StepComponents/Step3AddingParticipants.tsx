@@ -416,57 +416,100 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         handleGetIndividualStudentList({ instituteId, assessmentId })
     );
 
+    // Helper functions for student list processing
+    const isAdminPreRegistered = (user: Step3ParticipantsListIndiviudalStudentInterface): boolean => {
+        return user.source === 'ADMIN_PRE_REGISTRATION';
+    };
+
+    const transformUserToStudentDetails = (user: Step3ParticipantsListIndiviudalStudentInterface) => ({
+        username: user.username,
+        user_id: user.userId,
+        email: user.userEmail,
+        full_name: user.participantName,
+        mobile_number: user.phoneNumber,
+        guardian_email: '',
+        guardian_mobile_number: '',
+        file_id: user.faceFileId,
+        reattempt_count: user.reattemptCount,
+    });
+
     // Helper function to get checked student list
     const getCheckedStudentList = () => {
         return studentList
-                .filter(
-                    (user: Step3ParticipantsListIndiviudalStudentInterface) =>
-                        user.source === 'ADMIN_PRE_REGISTRATION'
-                )
-            .map((user: Step3ParticipantsListIndiviudalStudentInterface) => ({
-                        username: user.username,
-                        user_id: user.userId,
-                        email: user.userEmail,
-                        full_name: user.participantName,
-                        mobile_number: user.phoneNumber,
-                        guardian_email: '',
-                        guardian_mobile_number: '',
-                        file_id: user.faceFileId,
-                        reattempt_count: user.reattemptCount,
-            }));
+            .filter(isAdminPreRegistered)
+            .map(transformUserToStudentDetails);
     };
+
+    // Helper functions for notification settings
+    const getNotificationTimeValue = (timeInMinutes: number | undefined): string => {
+        return timeInMinutes ? `${timeInMinutes} min` : '1 min';
+    };
+
+    const getNotificationChecked = (timeInMinutes: number | undefined): boolean => {
+        return timeInMinutes !== 0;
+    };
+
+    const getStudentNotificationSettings = (notifications: any) => ({
+        when_assessment_created: notifications?.participant_when_assessment_created || false,
+        before_assessment_goes_live: {
+            checked: getNotificationChecked(notifications?.participant_before_assessment_goes_live),
+            value: getNotificationTimeValue(notifications?.participant_before_assessment_goes_live),
+        },
+        when_assessment_live: notifications?.participant_when_assessment_live || false,
+        when_assessment_report_generated: notifications?.participant_when_assessment_report_generated || false,
+    });
+
+    const getParentNotificationSettings = (notifications: any) => ({
+        when_assessment_created: notifications?.parent_when_assessment_created || false,
+        before_assessment_goes_live: {
+            checked: getNotificationChecked(notifications?.parent_before_assessment_goes_live),
+            value: getNotificationTimeValue(notifications?.parent_before_assessment_goes_live),
+        },
+        when_assessment_live: notifications?.parent_when_assessment_live || false,
+        when_student_appears: true,
+        when_student_finishes_test: true,
+        when_assessment_report_generated: notifications?.parent_when_assessment_report_generated || false,
+    });
 
     // Helper function to get notification settings
     const getNotificationSettings = () => {
         const notifications = assessmentDetails[currentStep]?.saved_data?.notifications;
 
         return {
-            notify_student: {
-                when_assessment_created: notifications?.participant_when_assessment_created || false,
-                before_assessment_goes_live: {
-                    checked: notifications?.participant_before_assessment_goes_live === 0 ? false : true,
-                    value: notifications?.participant_before_assessment_goes_live
-                        ? String(notifications.participant_before_assessment_goes_live) + ' min'
-                        : '1 min',
-                },
-                when_assessment_live: notifications?.participant_when_assessment_live || false,
-                when_assessment_report_generated: notifications?.participant_when_assessment_report_generated || false,
-            },
-            notify_parent: {
-                when_assessment_created: notifications?.parent_when_assessment_created || false,
-                before_assessment_goes_live: {
-                    checked: notifications?.parent_before_assessment_goes_live === 0 ? false : true,
-                    value: notifications?.parent_before_assessment_goes_live
-                        ? String(notifications.parent_before_assessment_goes_live) + ' min'
-                        : '1 min',
-                },
-                when_assessment_live: notifications?.parent_when_assessment_live || false,
-                when_student_appears: true,
-                when_student_finishes_test: true,
-                when_assessment_report_generated: notifications?.parent_when_assessment_report_generated || false,
-            },
+            notify_student: getStudentNotificationSettings(notifications),
+            notify_parent: getParentNotificationSettings(notifications),
         };
     };
+
+    // Helper function to get open test settings
+    const getOpenTestSettings = (savedData: any) => ({
+        checked: assessmentDetails[0]?.saved_data?.assessment_visibility === 'PUBLIC',
+        start_date: savedData?.registration_open_date
+            ? convertDateFormat(savedData.registration_open_date)
+            : '',
+        end_date: savedData?.registration_close_date
+            ? convertDateFormat(savedData.registration_close_date)
+            : '',
+        instructions: '',
+        custom_fields: getCustomFieldsWhileEditStep3(assessmentDetails),
+    });
+
+    // Helper function to get batch selection settings
+    const getBatchSelectionSettings = () => ({
+        checked: true,
+        batch_details: Object.fromEntries(
+            Object.entries(transformedBatches).map(([key, value]) => [
+                key,
+                value.map((item) => item.id),
+            ])
+        ),
+    });
+
+    // Helper function to get individual selection settings
+    const getIndividualSelectionSettings = () => ({
+        checked: false,
+        student_details: getCheckedStudentList(),
+    });
 
     // Helper function to get initial form values
     const getInitialFormValues = () => {
@@ -475,36 +518,23 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         const savedData = assessmentDetails[currentStep]?.saved_data;
 
         return {
-                status: completedSteps[currentStep] ? 'COMPLETE' : 'INCOMPLETE',
+            status: completedSteps[currentStep] ? 'COMPLETE' : 'INCOMPLETE',
             closed_test: assessmentDetails[0]?.saved_data?.assessment_visibility === 'PRIVATE',
-                open_test: {
-                checked: assessmentDetails[0]?.saved_data?.assessment_visibility === 'PUBLIC',
-                start_date: savedData?.registration_open_date
-                    ? convertDateFormat(savedData.registration_open_date)
-                    : '',
-                end_date: savedData?.registration_close_date
-                    ? convertDateFormat(savedData.registration_close_date)
-                        : '',
-                    instructions: '',
-                    custom_fields: getCustomFieldsWhileEditStep3(assessmentDetails),
-                },
-                select_batch: {
-                    checked: true,
-                    batch_details: Object.fromEntries(
-                        Object.entries(transformedBatches).map(([key, value]) => [
-                            key,
-                            value.map((item) => item.id),
-                        ])
-                    ),
-                },
-                select_individually: {
-                    checked: false,
-                    student_details: checkedStudentList,
-                },
-            join_link: `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}` || '',
-            show_leaderboard: savedData?.notifications?.participant_show_leaderboard || false,
+            open_test: getOpenTestSettings(savedData),
+            select_batch: getBatchSelectionSettings(),
+            select_individually: getIndividualSelectionSettings(),
+            join_link: getJoinLink(),
+            show_leaderboard: getShowLeaderboardSetting(savedData),
             ...notificationSettings,
         };
+    };
+
+    const getJoinLink = () => {
+        return `${BASE_URL_LEARNER_DASHBOARD}/register?code=${assessmentDetails[0]?.saved_data.assessment_url}` || '';
+    };
+
+    const getShowLeaderboardSetting = (savedData: any) => {
+        return savedData?.notifications?.participant_show_leaderboard || false;
     };
 
     useEffect(() => {

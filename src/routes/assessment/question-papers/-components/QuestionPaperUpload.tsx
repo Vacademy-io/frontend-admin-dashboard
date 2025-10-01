@@ -568,10 +568,22 @@ export const QuestionPaperUpload = ({
                            currentSection.sectionName !== '' &&
                            !currentSection.sectionName.startsWith('Section ')
                     ? currentSection.sectionName
-                    : (values.subject && values.subject !== 'N/A') || currentSection?.sectionName || `Section ${index + 1}`;
+                    : ((values.subject && values.subject !== 'N/A') ? values.subject : currentSection?.sectionName) || `Section ${index + 1}`;
 
             sectionsForm?.setValue(`section.${index}`, {
                 ...currentSection,
+                sectionId: currentSection?.sectionId || '',
+                uploaded_question_paper: currentSection?.uploaded_question_paper || null,
+                question_duration: currentSection?.question_duration || { min: '0', hrs: '0' },
+                section_description: currentSection?.section_description || '',
+                section_duration: currentSection?.section_duration || { min: '0', hrs: '0' },
+                marks_per_question: currentSection?.marks_per_question || '',
+                negative_marking: currentSection?.negative_marking || { value: '', checked: false },
+                total_marks: currentSection?.total_marks || '',
+                partial_marking: currentSection?.partial_marking || false,
+                cutoff_marks: currentSection?.cutoff_marks || { value: '', checked: false },
+                problem_randomization: currentSection?.problem_randomization || false,
+                adaptive_marking_for_each_question: currentSection?.adaptive_marking_for_each_question || [],
                 questionPaperTitle: values.title,
                 subject: values.subject || '',
                 yearClass: values.yearClass || '',
