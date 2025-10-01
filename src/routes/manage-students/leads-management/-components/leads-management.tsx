@@ -8,11 +8,8 @@ import { STUDENT_LIST_COLUMN_WIDTHS } from '@/components/design-system/utils/con
 import { OnChangeFn, RowSelectionState } from '@tanstack/react-table';
 import { MyPagination } from '@/components/design-system/pagination';
 import { AssessmentDetailsSearchComponent } from '@/routes/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/-components/SearchComponent';
-import { ScheduleTestFilters } from '@/routes/assessment/assessment-list/-components/ScheduleTestFilters';
 import { MyFilterOption } from '@/types/assessments/my-filter';
-import { Step3ParticipantsFilterButtons } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/AssessmentParticipantsList';
 import { Users } from 'phosphor-react';
-import { cn } from '@/lib/utils';
 import { getLeadsData } from '../-services/get-leads';
 import { useMutation } from '@tanstack/react-query';
 import { usePaginationState } from '@/hooks/pagination';
@@ -31,6 +28,13 @@ export interface LeadsManagementInterface {
     sort_columns: {
         [key: string]: string;
     };
+    destination_package_session_ids: string[];
+    payment_statuses: string[];
+    approval_statuses: string[];
+    payment_option: string[];
+    sources: string[];
+    types: string[];
+    type_ids: string[];
 }
 
 export const LeadsManagement = () => {
@@ -51,7 +55,15 @@ export const LeadsManagement = () => {
         preferred_batch: [],
         custom_fields: [],
         sort_columns: {},
+        destination_package_session_ids: [],
+        payment_statuses: [],
+        approval_statuses: [],
+        payment_option: [],
+        sources: [],
+        types: [],
+        type_ids: [],
     });
+
     const [searchText, setSearchText] = useState('');
     const [allPagesData, setAllPagesData] = useState({
         content: [],
@@ -62,7 +74,14 @@ export const LeadsManagement = () => {
         last: false,
     });
 
-    const [leadsTableData, setLeadsTableData] = useState({
+    const [leadsTableData, setLeadsTableData] = useState<{
+        content: LeadTable[];
+        total_pages: number;
+        page_no: number;
+        page_size: number;
+        total_elements: number;
+        last: boolean;
+    }>({
         content: [],
         total_pages: 0,
         page_no: 0,
@@ -72,7 +91,6 @@ export const LeadsManagement = () => {
     });
     const [rowSelections, setRowSelections] = useState<Record<number, Record<string, boolean>>>({});
     const currentPageSelection = rowSelections[page] || {};
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const tableRef = useRef<HTMLDivElement>(null);
     const totalSelectedCount = Object.values(rowSelections).reduce(
         (count, pageSelection) => count + Object.keys(pageSelection).length,
@@ -103,7 +121,7 @@ export const LeadsManagement = () => {
                 page_no: 0,
                 page_size: 10,
                 total_elements: 0,
-                last: true
+                last: true,
             });
         },
     });
@@ -179,11 +197,11 @@ export const LeadsManagement = () => {
         return (
             <div className="flex h-full flex-col items-center justify-center">
                 <div className="text-center">
-                    <h2 className="text-xl font-semibold text-red-600 mb-2">Error Loading Leads</h2>
+                    <h2 className="mb-2 text-xl font-semibold text-red-600">Error Loading Leads</h2>
                     <p className="text-neutral-600">There was an error loading the leads data.</p>
-                    <button 
-                        onClick={() => window.location.reload()} 
-                        className="mt-4 rounded bg-primary-500 px-4 py-2 text-white hover:bg-primary-600"
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="mt-4 rounded bg-primary-400 px-4 py-2 text-white hover:bg-primary-500"
                     >
                         Retry
                     </button>
@@ -199,8 +217,10 @@ export const LeadsManagement = () => {
                 <div className="flex flex-col gap-4 rounded-lg border border-neutral-200/50 bg-gradient-to-r from-neutral-50/50 to-white p-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Users className="h-6 w-6 text-primary-500" />
-                            <h1 className="text-2xl font-semibold text-neutral-800">Leads Management</h1>
+                            <Users className="size-6 text-primary-500" />
+                            <h1 className="text-2xl font-semibold text-neutral-800">
+                                Leads Management
+                            </h1>
                         </div>
                         <div className="text-sm text-neutral-600">
                             Total Leads: {leadsTableData.total_elements}
@@ -213,7 +233,9 @@ export const LeadsManagement = () => {
                             <AssessmentDetailsSearchComponent
                                 onSearch={handleSearch}
                                 searchText={searchText}
-                                placeholder="Search leads by name, email, or phone..."
+                                clearSearch={() => handleSearch('')}
+                                setSearchText={setSearchText}
+                                placeholderText="Search leads by name, email, or phone..."
                             />
                         </div>
                         <div className="flex items-center gap-2">
@@ -223,9 +245,20 @@ export const LeadsManagement = () => {
                                 onChange={(e) => {
                                     const value = e.target.value;
                                     if (value === 'ALL') {
-                                        setSelectedFilter(prev => ({ ...prev, statuses: ['NEW', 'CONTACTED', 'QUALIFIED', 'CONVERTED'] }));
+                                        setSelectedFilter((prev) => ({
+                                            ...prev,
+                                            statuses: [
+                                                'NEW',
+                                                'CONTACTED',
+                                                'QUALIFIED',
+                                                'CONVERTED',
+                                            ],
+                                        }));
                                     } else {
-                                        setSelectedFilter(prev => ({ ...prev, statuses: [value] }));
+                                        setSelectedFilter((prev) => ({
+                                            ...prev,
+                                            statuses: [value],
+                                        }));
                                     }
                                 }}
                             >
@@ -247,57 +280,93 @@ export const LeadsManagement = () => {
                             <div className="flex gap-2">
                                 <button
                                     className={`rounded px-3 py-1 text-sm ${
-                                        selectedFilter.statuses.includes('ALL') || selectedFilter.statuses.length === 4
+                                        selectedFilter.statuses.includes('ALL') ||
+                                        selectedFilter.statuses.length === 4
                                             ? 'bg-primary-500 text-white'
                                             : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
                                     }`}
-                                    onClick={() => setSelectedFilter(prev => ({ ...prev, statuses: ['NEW', 'CONTACTED', 'QUALIFIED', 'CONVERTED'] }))}
+                                    onClick={() =>
+                                        setSelectedFilter((prev) => ({
+                                            ...prev,
+                                            statuses: [
+                                                'NEW',
+                                                'CONTACTED',
+                                                'QUALIFIED',
+                                                'CONVERTED',
+                                            ],
+                                        }))
+                                    }
                                 >
                                     All
                                 </button>
                                 <button
                                     className={`rounded px-3 py-1 text-sm ${
-                                        selectedFilter.statuses.includes('NEW') && selectedFilter.statuses.length === 1
+                                        selectedFilter.statuses.includes('NEW') &&
+                                        selectedFilter.statuses.length === 1
                                             ? 'bg-primary-500 text-white'
                                             : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
                                     }`}
-                                    onClick={() => setSelectedFilter(prev => ({ ...prev, statuses: ['NEW'] }))}
+                                    onClick={() =>
+                                        setSelectedFilter((prev) => ({
+                                            ...prev,
+                                            statuses: ['NEW'],
+                                        }))
+                                    }
                                 >
                                     New
                                 </button>
                                 <button
                                     className={`rounded px-3 py-1 text-sm ${
-                                        selectedFilter.statuses.includes('CONTACTED') && selectedFilter.statuses.length === 1
+                                        selectedFilter.statuses.includes('CONTACTED') &&
+                                        selectedFilter.statuses.length === 1
                                             ? 'bg-primary-500 text-white'
                                             : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
                                     }`}
-                                    onClick={() => setSelectedFilter(prev => ({ ...prev, statuses: ['CONTACTED'] }))}
+                                    onClick={() =>
+                                        setSelectedFilter((prev) => ({
+                                            ...prev,
+                                            statuses: ['CONTACTED'],
+                                        }))
+                                    }
                                 >
                                     Contacted
                                 </button>
                                 <button
                                     className={`rounded px-3 py-1 text-sm ${
-                                        selectedFilter.statuses.includes('QUALIFIED') && selectedFilter.statuses.length === 1
+                                        selectedFilter.statuses.includes('QUALIFIED') &&
+                                        selectedFilter.statuses.length === 1
                                             ? 'bg-primary-500 text-white'
                                             : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
                                     }`}
-                                    onClick={() => setSelectedFilter(prev => ({ ...prev, statuses: ['QUALIFIED'] }))}
+                                    onClick={() =>
+                                        setSelectedFilter((prev) => ({
+                                            ...prev,
+                                            statuses: ['QUALIFIED'],
+                                        }))
+                                    }
                                 >
                                     Qualified
                                 </button>
                                 <button
                                     className={`rounded px-3 py-1 text-sm ${
-                                        selectedFilter.statuses.includes('CONVERTED') && selectedFilter.statuses.length === 1
+                                        selectedFilter.statuses.includes('CONVERTED') &&
+                                        selectedFilter.statuses.length === 1
                                             ? 'bg-primary-500 text-white'
                                             : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
                                     }`}
-                                    onClick={() => setSelectedFilter(prev => ({ ...prev, statuses: ['CONVERTED'] }))}
+                                    onClick={() =>
+                                        setSelectedFilter((prev) => ({
+                                            ...prev,
+                                            statuses: ['CONVERTED'],
+                                        }))
+                                    }
                                 >
                                     Converted
                                 </button>
                             </div>
                             <div className="text-sm text-neutral-600">
-                                {leadsTableData.content.length} of {leadsTableData.total_elements} leads
+                                {leadsTableData.content.length} of {leadsTableData.total_elements}{' '}
+                                leads
                             </div>
                         </div>
 
@@ -306,13 +375,14 @@ export const LeadsManagement = () => {
                                 <div className="flex gap-4">
                                     <div className="flex-1">
                                         <MyTable
-                                            data={leadsTableData.content}
+                                            data={leadsTableData}
                                             columns={leadsColumns}
                                             columnWidths={STUDENT_LIST_COLUMN_WIDTHS}
                                             onRowSelectionChange={handleRowSelectionChange}
                                             rowSelection={currentPageSelection}
                                             isLoading={getLeadsDataMutation.isPending}
-                                            emptyMessage="No leads found"
+                                            error={getLeadsDataMutation.isError}
+                                            currentPage={page}
                                             className="min-h-[400px]"
                                         />
                                     </div>

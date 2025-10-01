@@ -44,8 +44,8 @@ function LeadsManagementPage() {
 
     // API request body with hardcoded values as per requirements
     const requestBody: LeadsManagementInterface = {
-        name: "",
-        statuses: ["INVITED"],
+        name: '',
+        statuses: ['INVITED'],
         institute_ids: [instituteId!],
         package_session_ids: [],
         destination_package_session_ids: [],
@@ -57,14 +57,18 @@ function LeadsManagementPage() {
         payment_option: [],
         custom_fields: [],
         sort_columns: {},
-        sources: ["LEAD"],
-        types: ["PUBLIC_LIVE_SESSION"],
-        type_ids: []
+        sources: ['LEAD'],
+        types: ['PUBLIC_LIVE_SESSION'],
+        type_ids: [],
     };
 
     // API mutation
     const getLeadsDataMutation = useMutation({
-        mutationFn: ({ pageNo, pageSize, requestBody }: {
+        mutationFn: ({
+            pageNo,
+            pageSize,
+            requestBody,
+        }: {
             pageNo: number;
             pageSize: number;
             requestBody: LeadsManagementInterface;
@@ -106,7 +110,7 @@ function LeadsManagementPage() {
 
     // Handle individual checkbox selection
     const handleLeadSelection = (leadId: string, isSelected: boolean) => {
-        setSelectedLeads(prev => {
+        setSelectedLeads((prev) => {
             const newSelection = new Set(prev);
             if (isSelected) {
                 newSelection.add(leadId);
@@ -120,7 +124,7 @@ function LeadsManagementPage() {
     // Handle select all checkbox
     const handleSelectAll = (isSelected: boolean) => {
         if (isSelected) {
-            const allLeadIds = new Set(leadsData.map(lead => lead.id));
+            const allLeadIds = new Set(leadsData.map((lead) => lead.id));
             setSelectedLeads(allLeadIds);
         } else {
             setSelectedLeads(new Set());
@@ -135,7 +139,7 @@ function LeadsManagementPage() {
     const exportData = (format: 'csv' | 'xlsx' | 'pdf') => {
         setIsExporting(true);
         setShowExportMenu(false);
-        
+
         // Prepare data
         const headers = [
             'Full Name',
@@ -149,10 +153,10 @@ function LeadsManagementPage() {
             'Created Date',
             'Updated Date',
             'Institute ID',
-            'User ID'
+            'User ID',
         ];
 
-        const data = leadsData.map(lead => [
+        const data = leadsData.map((lead) => [
             lead.full_name || '-',
             lead.username || '-',
             lead.email || '-',
@@ -164,7 +168,7 @@ function LeadsManagementPage() {
             new Date(lead.created_at).toLocaleDateString(),
             new Date(lead.updated_at).toLocaleDateString(),
             lead.institute_id || '-',
-            lead.user_id || '-'
+            lead.user_id || '-',
         ]);
 
         const timestamp = new Date().toISOString().split('T')[0];
@@ -177,17 +181,14 @@ function LeadsManagementPage() {
                 filename = `leads-management-${timestamp}.csv`;
                 content = [
                     headers.join(','),
-                    ...data.map(row => row.map(field => `"${field}"`).join(','))
+                    ...data.map((row) => row.map((field) => `"${field}"`).join(',')),
                 ].join('\n');
                 mimeType = 'text/csv;charset=utf-8;';
                 break;
             case 'xlsx':
                 // For XLSX, we'll create a simple CSV that can be opened in Excel
                 filename = `leads-management-${timestamp}.xlsx`;
-                content = [
-                    headers.join('\t'),
-                    ...data.map(row => row.join('\t'))
-                ].join('\n');
+                content = [headers.join('\t'), ...data.map((row) => row.join('\t'))].join('\n');
                 mimeType = 'application/vnd.ms-excel;charset=utf-8;';
                 break;
             case 'pdf':
@@ -214,11 +215,11 @@ function LeadsManagementPage() {
     <table>
         <thead>
             <tr>
-                ${headers.map(header => `<th>${header}</th>`).join('')}
+                ${headers.map((header) => `<th>${header}</th>`).join('')}
             </tr>
         </thead>
         <tbody>
-            ${data.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}
+            ${data.map((row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join('')}</tr>`).join('')}
         </tbody>
     </table>
 </body>
@@ -251,7 +252,9 @@ function LeadsManagementPage() {
                 <div className="flex flex-col gap-4 rounded-lg border border-neutral-200/50 bg-gradient-to-r from-neutral-50/50 to-white p-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <h1 className="text-2xl font-semibold text-neutral-800">Leads Management</h1>
+                            <h1 className="text-2xl font-semibold text-neutral-800">
+                                Leads Management
+                            </h1>
                         </div>
                         <div className="flex items-center gap-4">
                             <div className="text-sm text-neutral-600">
@@ -261,22 +264,22 @@ function LeadsManagementPage() {
                                 <button
                                     onClick={() => setShowExportMenu(!showExportMenu)}
                                     disabled={isExporting}
-                                    className="flex items-center gap-2 rounded-lg border border-primary-500 bg-primary-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="hover:bg-primary-600 flex items-center gap-2 rounded-lg border border-primary-500 bg-primary-500 px-4 py-2 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     {isExporting ? (
                                         <>
-                                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                            <div className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                                             Exporting...
                                         </>
                                     ) : (
                                         <>
-                                            <DownloadSimple className="h-4 w-4" />
+                                            <DownloadSimple className="size-4" />
                                             Export Data
-                                            <CaretDown className="h-3 w-3" />
+                                            <CaretDown className="size-3" />
                                         </>
                                     )}
                                 </button>
-                                
+
                                 {showExportMenu && !isExporting && (
                                     <div className="absolute right-0 top-full z-10 mt-1 w-48 rounded-lg border border-neutral-200 bg-white shadow-lg">
                                         <div className="py-1">
@@ -284,21 +287,21 @@ function LeadsManagementPage() {
                                                 onClick={() => exportData('csv')}
                                                 className="flex w-full items-center gap-3 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50"
                                             >
-                                                <FileCsv className="h-4 w-4 text-green-600" />
+                                                <FileCsv className="size-4 text-green-600" />
                                                 Export as CSV
                                             </button>
                                             <button
                                                 onClick={() => exportData('xlsx')}
                                                 className="flex w-full items-center gap-3 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50"
                                             >
-                                                <FileXls className="h-4 w-4 text-green-600" />
+                                                <FileXls className="size-4 text-green-600" />
                                                 Export as Excel
                                             </button>
                                             <button
                                                 onClick={() => exportData('pdf')}
                                                 className="flex w-full items-center gap-3 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50"
                                             >
-                                                <FilePdf className="h-4 w-4 text-red-600" />
+                                                <FilePdf className="size-4 text-red-600" />
                                                 Export as PDF
                                             </button>
                                         </div>
@@ -308,16 +311,16 @@ function LeadsManagementPage() {
                         </div>
                     </div>
 
-                        {/* Search */}
-                        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                            <div className="flex flex-1 items-center gap-4">
-                                <input
-                                    type="text"
-                                    placeholder="Search leads by name, email, or phone..."
-                                    className="flex h-10 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                />
-                            </div>
+                    {/* Search */}
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="flex flex-1 items-center gap-4">
+                            <input
+                                type="text"
+                                placeholder="Search leads by name, email, or phone..."
+                                className="flex h-10 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm placeholder:text-neutral-500 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            />
                         </div>
+                    </div>
                 </div>
 
                 {/* Table Section */}
@@ -334,22 +337,41 @@ function LeadsManagementPage() {
                             <table className="w-full border-collapse">
                                 <thead>
                                     <tr className="border-b border-neutral-200 bg-primary-200">
-                                        <th className="p-3 text-left text-sm font-medium text-neutral-600 bg-primary-100 border-r border-neutral-200">
-                                            <input 
-                                                type="checkbox" 
+                                        <th className="border-r border-neutral-200 bg-primary-100 p-3 text-left text-sm font-medium text-neutral-600">
+                                            <input
+                                                type="checkbox"
                                                 className="rounded border-neutral-400"
-                                                checked={leadsData.length > 0 && selectedLeads.size === leadsData.length}
+                                                checked={
+                                                    leadsData.length > 0 &&
+                                                    selectedLeads.size === leadsData.length
+                                                }
                                                 onChange={(e) => handleSelectAll(e.target.checked)}
                                             />
                                         </th>
-                                        <th className="p-3 text-left text-sm font-medium text-neutral-600 bg-primary-100 border-r border-neutral-200">Full Name</th>
-                                        <th className="p-3 text-left text-sm font-medium text-neutral-600 bg-primary-100 border-r border-neutral-200">Username</th>
-                                        <th className="p-3 text-left text-sm font-medium text-neutral-600 bg-primary-100 border-r border-neutral-200">Email</th>
-                                        <th className="p-3 text-left text-sm font-medium text-neutral-600 bg-primary-100 border-r border-neutral-200">Mobile</th>
-                                        <th className="p-3 text-left text-sm font-medium text-neutral-600 bg-primary-100 border-r border-neutral-200">Source</th>
-                                        <th className="p-3 text-left text-sm font-medium text-neutral-600 bg-primary-100 border-r border-neutral-200">Type</th>
-                                        <th className="p-3 text-left text-sm font-medium text-neutral-600 bg-primary-100 border-r border-neutral-200">Type ID</th>
-                                        <th className="p-3 text-left text-sm font-medium text-neutral-600 bg-primary-100">Created Date</th>
+                                        <th className="border-r border-neutral-200 bg-primary-100 p-3 text-left text-sm font-medium text-neutral-600">
+                                            Full Name
+                                        </th>
+                                        <th className="border-r border-neutral-200 bg-primary-100 p-3 text-left text-sm font-medium text-neutral-600">
+                                            Username
+                                        </th>
+                                        <th className="border-r border-neutral-200 bg-primary-100 p-3 text-left text-sm font-medium text-neutral-600">
+                                            Email
+                                        </th>
+                                        <th className="border-r border-neutral-200 bg-primary-100 p-3 text-left text-sm font-medium text-neutral-600">
+                                            Mobile
+                                        </th>
+                                        <th className="border-r border-neutral-200 bg-primary-100 p-3 text-left text-sm font-medium text-neutral-600">
+                                            Source
+                                        </th>
+                                        <th className="border-r border-neutral-200 bg-primary-100 p-3 text-left text-sm font-medium text-neutral-600">
+                                            Type
+                                        </th>
+                                        <th className="border-r border-neutral-200 bg-primary-100 p-3 text-left text-sm font-medium text-neutral-600">
+                                            Type ID
+                                        </th>
+                                        <th className="bg-primary-100 p-3 text-left text-sm font-medium text-neutral-600">
+                                            Created Date
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -357,49 +379,62 @@ function LeadsManagementPage() {
                                         <tr>
                                             <td colSpan={9} className="p-8 text-center">
                                                 <div className="flex items-center justify-center">
-                                                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"></div>
-                                                    <span className="ml-2 text-sm text-neutral-600">Loading leads...</span>
+                                                    <div className="size-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"></div>
+                                                    <span className="ml-2 text-sm text-neutral-600">
+                                                        Loading leads...
+                                                    </span>
                                                 </div>
                                             </td>
                                         </tr>
                                     ) : leadsData.length === 0 ? (
                                         <tr>
-                                            <td colSpan={9} className="p-8 text-center text-neutral-500">
+                                            <td
+                                                colSpan={9}
+                                                className="p-8 text-center text-neutral-500"
+                                            >
                                                 No leads found
                                             </td>
                                         </tr>
                                     ) : (
                                         leadsData.map((lead) => (
-                                            <tr key={lead.id} className="border-b border-neutral-100 hover:bg-neutral-50">
-                                                <td className="p-3 border-r border-neutral-200">
-                                                    <input 
-                                                        type="checkbox" 
+                                            <tr
+                                                key={lead.id}
+                                                className="border-b border-neutral-100 hover:bg-neutral-50"
+                                            >
+                                                <td className="border-r border-neutral-200 p-3">
+                                                    <input
+                                                        type="checkbox"
                                                         className="rounded border-neutral-400"
                                                         checked={selectedLeads.has(lead.id)}
-                                                        onChange={(e) => handleLeadSelection(lead.id, e.target.checked)}
+                                                        onChange={(e) =>
+                                                            handleLeadSelection(
+                                                                lead.id,
+                                                                e.target.checked
+                                                            )
+                                                        }
                                                     />
                                                 </td>
-                                                <td className="p-3 text-sm text-neutral-700 border-r border-neutral-200">
+                                                <td className="border-r border-neutral-200 p-3 text-sm text-neutral-700">
                                                     {lead.full_name || '-'}
                                                 </td>
-                                                <td className="p-3 text-sm text-neutral-700 border-r border-neutral-200">
+                                                <td className="border-r border-neutral-200 p-3 text-sm text-neutral-700">
                                                     {lead.username || '-'}
                                                 </td>
-                                                <td className="p-3 text-sm text-neutral-700 border-r border-neutral-200">
+                                                <td className="border-r border-neutral-200 p-3 text-sm text-neutral-700">
                                                     {lead.email || '-'}
                                                 </td>
-                                                <td className="p-3 text-sm text-neutral-700 border-r border-neutral-200">
+                                                <td className="border-r border-neutral-200 p-3 text-sm text-neutral-700">
                                                     {lead.mobile_number || '-'}
                                                 </td>
-                                                <td className="p-3 border-r border-neutral-200">
+                                                <td className="border-r border-neutral-200 p-3">
                                                     <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800">
                                                         {lead.source || '-'}
                                                     </span>
                                                 </td>
-                                                <td className="p-3 text-sm text-neutral-700 border-r border-neutral-200">
+                                                <td className="border-r border-neutral-200 p-3 text-sm text-neutral-700">
                                                     {lead.type || '-'}
                                                 </td>
-                                                <td className="p-3 text-sm text-neutral-700 border-r border-neutral-200">
+                                                <td className="border-r border-neutral-200 p-3 text-sm text-neutral-700">
                                                     {lead.type_id || '-'}
                                                 </td>
                                                 <td className="p-3 text-sm text-neutral-600">
@@ -417,8 +452,10 @@ function LeadsManagementPage() {
                 {/* Footer with bulk actions and pagination */}
                 <div className="flex flex-col justify-between gap-4 rounded-lg border border-neutral-200/50 bg-gradient-to-r from-neutral-50/50 to-white p-4 lg:flex-row lg:items-center">
                     <div className="flex items-center gap-4">
-                        <span className="text-sm font-medium text-neutral-700">{selectedLeads.size} leads selected</span>
-                        <button 
+                        <span className="text-sm font-medium text-neutral-700">
+                            {selectedLeads.size} leads selected
+                        </span>
+                        <button
                             onClick={handleClearSelection}
                             className="h-8 px-2 text-xs text-neutral-500 hover:text-neutral-700"
                         >
@@ -428,28 +465,28 @@ function LeadsManagementPage() {
                         <button
                             onClick={() => exportData('csv')}
                             disabled={isExporting}
-                            className="flex items-center gap-1 rounded border border-neutral-300 bg-white px-3 py-1 text-xs text-neutral-600 transition-colors hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex items-center gap-1 rounded border border-neutral-300 bg-white px-3 py-1 text-xs text-neutral-600 transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            <DownloadSimple className="h-3 w-3" />
+                            <DownloadSimple className="size-3" />
                             Export All
                         </button>
                     </div>
                     <div className="flex justify-center lg:justify-end">
                         <div className="flex items-center gap-2">
-                            <button 
+                            <button
                                 onClick={() => handlePageChange(page - 1)}
                                 disabled={page === 0}
-                                className="rounded border border-neutral-300 px-3 py-1 text-sm hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="rounded border border-neutral-300 px-3 py-1 text-sm hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 Previous
                             </button>
                             <span className="px-3 py-1 text-sm text-neutral-600">
                                 {page + 1} of {Math.ceil(totalElements / 10)}
                             </span>
-                            <button 
+                            <button
                                 onClick={() => handlePageChange(page + 1)}
                                 disabled={leadsData.length < 10}
-                                className="rounded border border-neutral-300 px-3 py-1 text-sm hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="rounded border border-neutral-300 px-3 py-1 text-sm hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 Next
                             </button>
