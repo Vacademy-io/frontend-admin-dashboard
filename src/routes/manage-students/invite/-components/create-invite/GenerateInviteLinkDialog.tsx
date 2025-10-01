@@ -32,9 +32,7 @@ import { PlanReferralConfigDialog } from './PlanReferralConfigDialog';
 import RestrictSameBatch from './-components/RestrictSameBatch';
 import CustomInviteFormCard from './-components/CustomInviteFormCard';
 import LearnerAccessDurationCard from './-components/LearnerAccessDurationCard';
-import InviteViaEmailCard from './-components/InviteViaEmailCard';
 import CustomHTMLCard from './-components/CustomHTMLCard';
-import ShowRelatedCoursesCard from './-components/ShowRelatedCoursesCard';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { handleEnrollInvite, handleGetEnrollSingleInviteDetails } from './-services/enroll-invite';
@@ -76,8 +74,12 @@ const GenerateInviteLinkDialog = ({
     const { data: paymentsData } = useSuspenseQuery(handleGetPaymentDetails());
     const { studyLibraryData } = useStudyLibraryStore();
 
+    // Find parent batch (first batch if none explicitly marked as parent)
+    const parentBatch = selectedBatches.find((batch) => batch.isParent) || selectedBatches[0];
+    const isBundle = selectedBatches.length > 1;
+
     const courseDetailsData = studyLibraryData?.find(
-        (item) => item.course.id === selectedCourse?.id
+        (item) => item.course.id === (parentBatch?.courseId || selectedCourse?.id)
     );
 
     const queryClient = useQueryClient();
@@ -516,25 +518,6 @@ const GenerateInviteLinkDialog = ({
         form.setValue('textFieldValue', '');
         form.setValue('dropdownOptions', []);
     };
-
-    const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-    const handleAddInviteeEmail = () => {
-        const inviteeEmail = form.getValues('inviteeEmail');
-        const inviteeEmails = form.getValues('inviteeEmails');
-        if (isValidEmail(inviteeEmail) && !inviteeEmails.includes(inviteeEmail)) {
-            const updatedEmails = [...inviteeEmails, inviteeEmail];
-            form.setValue('inviteeEmails', updatedEmails);
-            form.setValue('inviteeEmail', '');
-        }
-    };
-
-    const handleRemoveInviteeEmail = (email: string) => {
-        const inviteeEmails = form.getValues('inviteeEmails');
-        const updatedEmails = inviteeEmails.filter((e: string) => e !== email);
-        form.setValue('inviteeEmails', updatedEmails);
-    };
-
     // Hide menu when clicking outside
     useEffect(() => {
         if (!form.watch('showMediaMenu')) return;
@@ -608,9 +591,9 @@ const GenerateInviteLinkDialog = ({
             const paymentOptionDetailsForSelectedSession = getPaymentOptionBySessionId(
                 inviteLinkDetails,
                 getPackageSessionId({
-                    courseId: selectedCourse?.id || '',
-                    levelId: selectedBatches[0]?.levelId || '',
-                    sessionId: selectedBatches[0]?.sessionId || '',
+                    courseId: parentBatch?.courseId || selectedCourse?.id || '',
+                    levelId: parentBatch?.levelId || '',
+                    sessionId: parentBatch?.sessionId || '',
                 })
             );
             form.reset({
@@ -675,7 +658,17 @@ const GenerateInviteLinkDialog = ({
                         ?.showRelatedCourses || false,
             });
         }
-    }, [inviteLinkDetails]);
+    }, [
+        inviteLinkDetails,
+        singlePackageSessionId,
+        form,
+        getPackageSessionId,
+        parentBatch?.courseId,
+        parentBatch?.levelId,
+        parentBatch?.sessionId,
+        selectedCourse?.id,
+        paymentsData,
+    ]);
 
     return (
         <Dialog open={showSummaryDialog} onOpenChange={setShowSummaryDialog}>
@@ -686,7 +679,7 @@ const GenerateInviteLinkDialog = ({
                         {/* Preview Invite Link Dialog */}
                         <PreviewInviteLink
                             form={form}
-                            levelName={selectedBatches[0]?.levelName || ''}
+                            levelName={parentBatch?.levelName || ''}
                             instituteLogo={instituteLogo}
                         />
                     </div>
@@ -712,6 +705,8 @@ const GenerateInviteLinkDialog = ({
                                 courseMediaRef={courseMediaRef}
                                 handleFileUpload={handleFileUpload}
                                 extractYouTubeVideoId={extractYouTubeVideoId}
+                                isBundle={isBundle}
+                                totalBatches={selectedBatches.length}
                             />
                             <PaymentPlanCard form={form} />
 
@@ -737,17 +732,9 @@ const GenerateInviteLinkDialog = ({
                             {form.watch('selectedPlan')?.type === 'subscription' && (
                                 <LearnerAccessDurationCard form={form} />
                             )}
-                            {/* Invite via email Card */}
-                            <InviteViaEmailCard
-                                form={form}
-                                isValidEmail={isValidEmail}
-                                handleAddInviteeEmail={handleAddInviteeEmail}
-                                handleRemoveInviteeEmail={handleRemoveInviteeEmail}
-                            />
+
                             {/* Custom HTML Card */}
                             <CustomHTMLCard form={form} />
-                            {/* Include Related Courses Card */}
-                            <ShowRelatedCoursesCard form={form} />
                         </form>
                     </Form>
                 </div>

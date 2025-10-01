@@ -8,6 +8,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import GenerateInviteLinkDialog from './GenerateInviteLinkDialog';
 import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useStudyLibraryQuery } from '@/routes/study-library/courses/-services/getStudyLibraryDetails';
@@ -64,7 +65,7 @@ const CreateInvite = () => {
         setValue('selectedCourse', course);
         setValue('selectedSession', null);
         setValue('selectedLevel', null);
-        setValue('selectedBatches', []);
+        // Don't clear existing batches - allow cross-course bundles
         setValue('showCourseDropdown', false);
     };
 
@@ -80,12 +81,15 @@ const CreateInvite = () => {
     };
 
     const handleAddBatch = (): void => {
-        if (selectedSession && selectedLevel) {
+        if (selectedSession && selectedLevel && selectedCourse) {
             const newBatch: Batch = {
                 sessionId: selectedSession.sessionId,
                 levelId: selectedLevel.levelId,
                 sessionName: selectedSession.sessionName,
                 levelName: selectedLevel.levelName,
+                courseId: selectedCourse.id,
+                courseName: selectedCourse.name,
+                isParent: selectedBatches.length === 0, // First batch is parent by default
             };
             setValue('selectedBatches', [...selectedBatches, newBatch]);
             setValue('selectedSession', null);
@@ -94,10 +98,20 @@ const CreateInvite = () => {
     };
 
     const handleRemoveBatch = (idx: number): void => {
-        setValue(
-            'selectedBatches',
-            selectedBatches.filter((_, i) => i !== idx)
-        );
+        const updatedBatches = selectedBatches.filter((_, i) => i !== idx);
+        // If removing parent batch and there are other batches, make first one parent
+        if (selectedBatches[idx]?.isParent && updatedBatches.length > 0) {
+            updatedBatches[0]!.isParent = true;
+        }
+        setValue('selectedBatches', updatedBatches);
+    };
+
+    const handleSetParentBatch = (idx: number): void => {
+        const updatedBatches = selectedBatches.map((batch, i) => ({
+            ...batch,
+            isParent: i === idx,
+        }));
+        setValue('selectedBatches', updatedBatches);
     };
 
     const sessions: Session[] = selectedCourse ? dummyBatchesTyped[selectedCourse.id] || [] : [];
@@ -222,16 +236,14 @@ const CreateInvite = () => {
                                     {/* Session Dropdown */}
                                     <div className="relative flex-1" ref={sessionDropdownRef}>
                                         <button
-                                            className={`flex w-full items-center justify-between rounded-lg border bg-white px-3 py-2 shadow-sm transition-all duration-150 ${selectedBatches.length > 0 ? 'cursor-not-allowed opacity-50' : 'hover:shadow-md'}`}
+                                            className="flex w-full items-center justify-between rounded-lg border bg-white px-3 py-2 shadow-sm transition-all duration-150 hover:shadow-md"
                                             onClick={() =>
-                                                selectedBatches.length === 0 &&
                                                 setValue(
                                                     'showSessionDropdown',
                                                     !showSessionDropdown
                                                 )
                                             }
                                             type="button"
-                                            disabled={selectedBatches.length > 0}
                                         >
                                             <span
                                                 className={
@@ -246,7 +258,7 @@ const CreateInvite = () => {
                                             </span>
                                             <CaretDown size={18} />
                                         </button>
-                                        {showSessionDropdown && selectedBatches.length === 0 && (
+                                        {showSessionDropdown && (
                                             <div className="absolute z-10 mt-1 w-full rounded border bg-white shadow">
                                                 {sessions.map((session) => (
                                                     <div
@@ -279,16 +291,13 @@ const CreateInvite = () => {
                                     {/* Level Dropdown */}
                                     <div className="relative flex-1" ref={levelDropdownRef}>
                                         <button
-                                            className={`flex w-full items-center justify-between rounded-lg border bg-white px-3 py-2 shadow-sm transition-all duration-150 ${!selectedSession || selectedBatches.length > 0 ? 'cursor-not-allowed opacity-50' : 'hover:shadow-md'}`}
+                                            className={`flex w-full items-center justify-between rounded-lg border bg-white px-3 py-2 shadow-sm transition-all duration-150 ${!selectedSession ? 'cursor-not-allowed opacity-50' : 'hover:shadow-md'}`}
                                             onClick={() =>
                                                 selectedSession &&
-                                                selectedBatches.length === 0 &&
                                                 setValue('showLevelDropdown', !showLevelDropdown)
                                             }
                                             type="button"
-                                            disabled={
-                                                !selectedSession || selectedBatches.length > 0
-                                            }
+                                            disabled={!selectedSession}
                                         >
                                             <span
                                                 className={
@@ -303,37 +312,35 @@ const CreateInvite = () => {
                                             </span>
                                             <CaretDown size={18} />
                                         </button>
-                                        {showLevelDropdown &&
-                                            selectedSession &&
-                                            selectedBatches.length === 0 && (
-                                                <div className="absolute z-10 mt-1 w-full rounded border bg-white shadow">
-                                                    {levels.map((level) => (
-                                                        <div
-                                                            key={level.levelId}
-                                                            className="flex cursor-pointer items-center gap-2 px-3 py-2 transition-colors hover:bg-gray-100"
-                                                            onClick={() => handleSelectLevel(level)}
-                                                        >
-                                                            {selectedLevel ? (
-                                                                <span
-                                                                    style={{
-                                                                        width: 20,
-                                                                        display: 'inline-block',
-                                                                    }}
-                                                                >
-                                                                    {selectedLevel.levelId ===
-                                                                        level.levelId && (
-                                                                        <Check
-                                                                            size={18}
-                                                                            className="text-black"
-                                                                        />
-                                                                    )}
-                                                                </span>
-                                                            ) : null}
-                                                            <span>{level.levelName}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
+                                        {showLevelDropdown && selectedSession && (
+                                            <div className="absolute z-10 mt-1 w-full rounded border bg-white shadow">
+                                                {levels.map((level) => (
+                                                    <div
+                                                        key={level.levelId}
+                                                        className="flex cursor-pointer items-center gap-2 px-3 py-2 transition-colors hover:bg-gray-100"
+                                                        onClick={() => handleSelectLevel(level)}
+                                                    >
+                                                        {selectedLevel ? (
+                                                            <span
+                                                                style={{
+                                                                    width: 20,
+                                                                    display: 'inline-block',
+                                                                }}
+                                                            >
+                                                                {selectedLevel.levelId ===
+                                                                    level.levelId && (
+                                                                    <Check
+                                                                        size={18}
+                                                                        className="text-black"
+                                                                    />
+                                                                )}
+                                                            </span>
+                                                        ) : null}
+                                                        <span>{level.levelName}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 <MyButton
@@ -341,10 +348,7 @@ const CreateInvite = () => {
                                     scale="small"
                                     buttonType="secondary"
                                     className="mt-2 w-full border-none bg-neutral-200 p-5 transition-transform duration-150 hover:border-none hover:bg-neutral-200 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:opacity-50"
-                                    disable={
-                                        !(selectedSession && selectedLevel) ||
-                                        selectedBatches.length > 0
-                                    }
+                                    disable={!(selectedSession && selectedLevel)}
                                     onClick={handleAddBatch}
                                 >
                                     <Plus size={16} className="mr-1" /> Add Batch
@@ -354,25 +358,89 @@ const CreateInvite = () => {
                                     <div className="animate-fadeIn mt-4">
                                         <div className="mb-1 text-sm font-semibold">
                                             Selected Batches
+                                            {selectedBatches.length > 1 && (
+                                                <span className="block text-xs text-gray-500">
+                                                    (Select parent batch - parent batch&apos;s
+                                                    details will be used as invite link details)
+                                                </span>
+                                            )}
                                         </div>
                                         <ul className="mt-2 space-y-1">
-                                            {selectedBatches.map((batch, idx) => (
-                                                <li
-                                                    key={batch.sessionId + batch.levelId}
-                                                    className="flex items-center justify-between rounded-lg bg-gray-50 px-5 py-3"
+                                            {selectedBatches.length > 1 && (
+                                                <RadioGroup
+                                                    value={selectedBatches
+                                                        .findIndex((batch) => batch.isParent)
+                                                        .toString()}
+                                                    onValueChange={(value) =>
+                                                        handleSetParentBatch(parseInt(value))
+                                                    }
                                                 >
-                                                    <span className="text-xs font-bold">
-                                                        {batch.sessionName} - {batch.levelName}
-                                                    </span>
+                                                    {selectedBatches.map((batch, idx) => (
+                                                        <li
+                                                            key={batch.sessionId + batch.levelId}
+                                                            className={`flex items-center justify-between rounded-lg px-5 py-3 ${
+                                                                batch.isParent
+                                                                    ? 'border border-primary-200 bg-primary-50'
+                                                                    : 'bg-gray-50'
+                                                            }`}
+                                                        >
+                                                            <div className="flex items-center gap-3">
+                                                                <RadioGroupItem
+                                                                    value={idx.toString()}
+                                                                    id={`batch-${idx}`}
+                                                                />
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-xs font-bold">
+                                                                        {batch.courseName} -{' '}
+                                                                        {batch.sessionName} -{' '}
+                                                                        {batch.levelName}
+                                                                    </span>
+                                                                    {batch.isParent && (
+                                                                        <span className="text-xs font-medium text-blue-600">
+                                                                            Parent batch
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            <button
+                                                                className="ml-2 text-gray-400 transition-colors hover:text-red-500"
+                                                                onClick={() =>
+                                                                    handleRemoveBatch(idx)
+                                                                }
+                                                                type="button"
+                                                            >
+                                                                <X size={16} />
+                                                            </button>
+                                                        </li>
+                                                    ))}
+                                                </RadioGroup>
+                                            )}
+                                            {selectedBatches.length === 1 && (
+                                                <li
+                                                    key={
+                                                        (selectedBatches[0]?.sessionId || '') +
+                                                        (selectedBatches[0]?.levelId || '')
+                                                    }
+                                                    className="flex items-center justify-between rounded-lg border border-primary-200 bg-primary-50 px-5 py-3"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-xs font-bold">
+                                                                {selectedBatches[0]?.courseName} -{' '}
+                                                                {selectedBatches[0]?.sessionName} -{' '}
+                                                                {selectedBatches[0]?.levelName}
+                                                            </span>
+                                                        </div>
+                                                    </div>
                                                     <button
                                                         className="ml-2 text-gray-400 transition-colors hover:text-red-500"
-                                                        onClick={() => handleRemoveBatch(idx)}
+                                                        onClick={() => handleRemoveBatch(0)}
                                                         type="button"
                                                     >
                                                         <X size={16} />
                                                     </button>
                                                 </li>
-                                            ))}
+                                            )}
                                         </ul>
                                     </div>
                                 )}
