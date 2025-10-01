@@ -584,7 +584,7 @@ export function transformQuestionPaperEditData(
 
 export const getLevelNameById = (levels: Level[], id: string | null): string => {
     const level = levels.find((item) => item.id === id);
-    return level?.level_name || 'N/A';
+    return level?.level_name ?? 'N/A';
 };
 
 export const getSubjectNameById = (subjects: Subject[], id: string | null): string => {

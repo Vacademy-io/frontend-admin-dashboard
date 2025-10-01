@@ -416,55 +416,68 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
         handleGetIndividualStudentList({ instituteId, assessmentId })
     );
 
+    // Helper functions for student list processing
+    const isAdminPreRegistered = (user: Step3ParticipantsListIndiviudalStudentInterface): boolean => {
+        return user.source === 'ADMIN_PRE_REGISTRATION';
+    };
+
+    const transformUserToStudentDetails = (user: Step3ParticipantsListIndiviudalStudentInterface) => ({
+        username: user.username,
+        user_id: user.userId,
+        email: user.userEmail,
+        full_name: user.participantName,
+        mobile_number: user.phoneNumber,
+        guardian_email: '',
+        guardian_mobile_number: '',
+        file_id: user.faceFileId,
+        reattempt_count: user.reattemptCount,
+    });
+
     // Helper function to get checked student list
     const getCheckedStudentList = () => {
         return studentList
-                .filter(
-                    (user: Step3ParticipantsListIndiviudalStudentInterface) =>
-                        user.source === 'ADMIN_PRE_REGISTRATION'
-                )
-            .map((user: Step3ParticipantsListIndiviudalStudentInterface) => ({
-                        username: user.username,
-                        user_id: user.userId,
-                        email: user.userEmail,
-                        full_name: user.participantName,
-                        mobile_number: user.phoneNumber,
-                        guardian_email: '',
-                        guardian_mobile_number: '',
-                        file_id: user.faceFileId,
-                        reattempt_count: user.reattemptCount,
-            }));
+            .filter(isAdminPreRegistered)
+            .map(transformUserToStudentDetails);
     };
+
+    // Helper functions for notification settings
+    const getNotificationTimeValue = (timeInMinutes: number | undefined): string => {
+        return timeInMinutes ? `${timeInMinutes} min` : '1 min';
+    };
+
+    const getNotificationChecked = (timeInMinutes: number | undefined): boolean => {
+        return timeInMinutes !== 0;
+    };
+
+    const getStudentNotificationSettings = (notifications: any) => ({
+        when_assessment_created: notifications?.participant_when_assessment_created || false,
+        before_assessment_goes_live: {
+            checked: getNotificationChecked(notifications?.participant_before_assessment_goes_live),
+            value: getNotificationTimeValue(notifications?.participant_before_assessment_goes_live),
+        },
+        when_assessment_live: notifications?.participant_when_assessment_live || false,
+        when_assessment_report_generated: notifications?.participant_when_assessment_report_generated || false,
+    });
+
+    const getParentNotificationSettings = (notifications: any) => ({
+        when_assessment_created: notifications?.parent_when_assessment_created || false,
+        before_assessment_goes_live: {
+            checked: getNotificationChecked(notifications?.parent_before_assessment_goes_live),
+            value: getNotificationTimeValue(notifications?.parent_before_assessment_goes_live),
+        },
+        when_assessment_live: notifications?.parent_when_assessment_live || false,
+        when_student_appears: true,
+        when_student_finishes_test: true,
+        when_assessment_report_generated: notifications?.parent_when_assessment_report_generated || false,
+    });
 
     // Helper function to get notification settings
     const getNotificationSettings = () => {
         const notifications = assessmentDetails[currentStep]?.saved_data?.notifications;
 
         return {
-            notify_student: {
-                when_assessment_created: notifications?.participant_when_assessment_created || false,
-                before_assessment_goes_live: {
-                    checked: notifications?.participant_before_assessment_goes_live === 0 ? false : true,
-                    value: notifications?.participant_before_assessment_goes_live
-                        ? String(notifications.participant_before_assessment_goes_live) + ' min'
-                        : '1 min',
-                },
-                when_assessment_live: notifications?.participant_when_assessment_live || false,
-                when_assessment_report_generated: notifications?.participant_when_assessment_report_generated || false,
-            },
-            notify_parent: {
-                when_assessment_created: notifications?.parent_when_assessment_created || false,
-                before_assessment_goes_live: {
-                    checked: notifications?.parent_before_assessment_goes_live === 0 ? false : true,
-                    value: notifications?.parent_before_assessment_goes_live
-                        ? String(notifications.parent_before_assessment_goes_live) + ' min'
-                        : '1 min',
-                },
-                when_assessment_live: notifications?.parent_when_assessment_live || false,
-                when_student_appears: true,
-                when_student_finishes_test: true,
-                when_assessment_report_generated: notifications?.parent_when_assessment_report_generated || false,
-            },
+            notify_student: getStudentNotificationSettings(notifications),
+            notify_parent: getParentNotificationSettings(notifications),
         };
     };
 

@@ -215,7 +215,7 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
                                                                             ) as QuestionType
                                                                         }
                                                                         props={{
-                                                                            form: form,
+                                                                                        form: form as any,
                                                                             currentQuestionIndex:
                                                                                 index,
                                                                             setCurrentQuestionIndex:
@@ -247,7 +247,7 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
                                             ) as QuestionType
                                         }
                                         props={{
-                                            form: form,
+                                                                                        form: form as any,
                                             currentQuestionIndex: currentQuestionIndex,
                                             setCurrentQuestionIndex: setCurrentQuestionIndex,
                                             className:

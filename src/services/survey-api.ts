@@ -172,36 +172,38 @@ export interface SurveyFilters {
 }
 
 // Helper functions for logging and request processing
+const getDataTypeInfo = (value: any): string => {
+    return Array.isArray(value) ? 'array' : typeof value;
+};
+
+const createRequestParams = (params: any, assessmentId: string) => ({
+    ...params,
+    instituteId: params.instituteId || 'NOT_PROVIDED',
+    assessmentId: assessmentId || 'NOT_PROVIDED',
+});
+
+const createRequestBodyInfo = (requestBody: any, assessmentId: string) => ({
+    name: requestBody.name || 'NOT_PROVIDED',
+    assessment_ids: requestBody.assessment_ids || [assessmentId],
+    attempt_ids: requestBody.attempt_ids || [],
+    status: requestBody.status || [],
+    sort_columns: requestBody.sort_columns || {},
+    fullRequestBody: requestBody,
+    dataTypes: {
+        name: typeof (requestBody.name || 'NOT_PROVIDED'),
+        assessment_ids: getDataTypeInfo(requestBody.assessment_ids || [assessmentId]),
+        attempt_ids: getDataTypeInfo(requestBody.attempt_ids || []),
+        status: getDataTypeInfo(requestBody.status || []),
+        sort_columns: typeof (requestBody.sort_columns || {}),
+    },
+});
+
 const logRequestDetails = (url: string, params: any, requestBody: any, assessmentId: string) => {
     console.log('🔍 [Survey API] getRespondentResponses - Request Details:', {
         url,
         method: 'POST',
-        params: {
-            ...params,
-            instituteId: params.instituteId || 'NOT_PROVIDED',
-            assessmentId: assessmentId || 'NOT_PROVIDED',
-        },
-        requestBody: {
-            name: requestBody.name || 'NOT_PROVIDED',
-            assessment_ids: requestBody.assessment_ids || [assessmentId],
-            attempt_ids: requestBody.attempt_ids || [],
-            status: requestBody.status || [],
-            sort_columns: requestBody.sort_columns || {},
-            fullRequestBody: requestBody,
-            dataTypes: {
-                name: typeof (requestBody.name || 'NOT_PROVIDED'),
-                assessment_ids: Array.isArray(requestBody.assessment_ids || [assessmentId])
-                    ? 'array'
-                    : typeof (requestBody.assessment_ids || [assessmentId]),
-                attempt_ids: Array.isArray(requestBody.attempt_ids || [])
-                    ? 'array'
-                    : typeof (requestBody.attempt_ids || []),
-                status: Array.isArray(requestBody.status || [])
-                    ? 'array'
-                    : typeof (requestBody.status || []),
-                sort_columns: typeof (requestBody.sort_columns || {}),
-            },
-        },
+        params: createRequestParams(params, assessmentId),
+        requestBody: createRequestBodyInfo(requestBody, assessmentId),
         timestamp: new Date().toISOString(),
     });
 };
@@ -236,22 +238,26 @@ const logResponseDetails = (response: any) => {
     });
 };
 
+const createErrorInfo = (error: any) => ({
+    message: error.message,
+    status: error.response?.status,
+    statusText: error.response?.statusText,
+    data: error.response?.data,
+});
+
+const createErrorRequestInfo = (url: string, params: any, requestBody: any, assessmentId: string) => ({
+    url,
+    params,
+    requestBody: {
+        ...requestBody,
+        assessment_ids: requestBody.assessment_ids || [assessmentId],
+    },
+});
+
 const logErrorDetails = (error: any, url: string, params: any, requestBody: any, assessmentId: string) => {
     console.error('❌ [Survey API] getRespondentResponses - Error Details:', {
-        error: {
-            message: error.message,
-            status: error.response?.status,
-            statusText: error.response?.statusText,
-            data: error.response?.data,
-        },
-        request: {
-            url,
-            params,
-            requestBody: {
-                ...requestBody,
-                assessment_ids: requestBody.assessment_ids || [assessmentId],
-            },
-        },
+        error: createErrorInfo(error),
+        request: createErrorRequestInfo(url, params, requestBody, assessmentId),
         timestamp: new Date().toISOString(),
     });
 };

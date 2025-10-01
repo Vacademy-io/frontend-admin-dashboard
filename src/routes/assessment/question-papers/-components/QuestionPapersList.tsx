@@ -162,7 +162,7 @@ export const QuestionPapersList = ({
                            currentSection.sectionName !== '' &&
                            !currentSection.sectionName.startsWith('Section ')
                     ? currentSection.sectionName
-                    : (subjectName && subjectName !== 'N/A') || currentSection.sectionName || `Section ${index + 1}`;
+                    : ((subjectName && subjectName !== 'N/A') ? subjectName : currentSection.sectionName) || `Section ${index + 1}`;
 
             sectionsForm.setValue(`section.${index}`, {
                 ...currentSection,

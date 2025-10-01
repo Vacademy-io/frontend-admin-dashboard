@@ -101,6 +101,143 @@ const transformSurveyAnalytics = (data: SurveyOverviewResponse): TransformedSurv
   };
 };
 
+// Helper functions for MCQ question processing
+const processMcqQuestion = (surveyData: any, questionType: SurveyQuestionType) => {
+  const mcqData = surveyData.mcq_survey_dtos[0];
+  const totalResponses = mcqData.total_respondent || 0;
+  const questionOptions = surveyData.assessment_question_preview_dto.options_with_explanation || [];
+
+  const optionMap = new Map();
+  questionOptions.forEach((option: any) => {
+    optionMap.set(option.id, extractTextFromRichContent(option.text) || 'Unknown Option');
+  });
+
+  const responseCounts = new Map();
+  if (mcqData.mcq_survey_info_list?.length > 0) {
+    mcqData.mcq_survey_info_list.forEach((item: any) => {
+      if (item.option !== 'NO_ANSWER') {
+        responseCounts.set(item.option, {
+          count: item.respondent_count || 0,
+          percentage: item.percentage || 0,
+        });
+      }
+    });
+  }
+
+  const responseDistribution = questionOptions.map((option: any) => {
+    const optionId = option.id;
+    const optionText = extractTextFromRichContent(option.text) || 'Unknown Option';
+    const responseData = responseCounts.get(optionId) || { count: 0, percentage: 0 };
+    const calculatedPercentage = totalResponses > 0 ? (responseData.count / totalResponses) * 100 : 0;
+
+    return {
+      value: optionText,
+      count: responseData.count,
+      percentage: calculatedPercentage,
+    };
+  }).sort((a: any, b: any) => b.percentage - a.percentage);
+
+  const topInsights = responseDistribution.length > 0 ? [
+    `${Math.round(responseDistribution.reduce((max: any, current: any) =>
+      current.percentage > max.percentage ? current : max
+    ).percentage)}% of respondents chose "${responseDistribution.reduce((max: any, current: any) =>
+      current.percentage > max.percentage ? current : max
+    ).value}"`,
+    `Total responses: ${totalResponses}`,
+  ] : [
+    `No responses yet`,
+    `Question has ${questionOptions.length} options`,
+  ];
+
+  return { responseDistribution, totalResponses, topInsights };
+};
+
+// Helper functions for text question processing
+const processTextQuestion = (surveyData: any, questionType: SurveyQuestionType) => {
+  const textData = surveyData.one_word_long_survey_dtos[0];
+  const totalResponses = textData.total_respondent || 0;
+
+  let responseDistribution: ResponseDistribution[] = [];
+  let topInsights: string[] = [];
+
+  if (textData.latest_response?.length > 0) {
+    const responseCounts: Record<string, number> = {};
+
+    textData.latest_response.forEach((response: any) => {
+      try {
+        const parsedResponse = JSON.parse(response.answer);
+        const answer = parsedResponse.responseData?.answer || '';
+        if (answer && answer.trim().length > 0) {
+          responseCounts[answer] = (responseCounts[answer] ?? 0) + 1;
+        }
+      } catch (error) {
+        const answer = response.answer || '';
+        if (answer && answer.trim().length > 0) {
+          responseCounts[answer] = (responseCounts[answer] ?? 0) + 1;
+        }
+      }
+    });
+
+    responseDistribution = Object.entries(responseCounts)
+      .map(([value, count]) => ({
+        value,
+        count,
+        percentage: totalResponses > 0 ? Math.round((count / totalResponses) * 100) : 0,
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    topInsights = [
+      `Total responses: ${totalResponses}`,
+      `Recent responses: ${textData.latest_response.length}`,
+    ];
+  } else {
+    topInsights = [
+      `No responses yet`,
+      `Question type: ${questionType}`,
+    ];
+  }
+
+  return { responseDistribution, totalResponses, topInsights };
+};
+
+// Helper functions for numerical question processing
+const processNumericalQuestion = (surveyData: any, questionType: SurveyQuestionType) => {
+  const numberData = surveyData.number_survey_dtos[0];
+  const totalResponses = numberData.total_respondent || 0;
+
+  let responseDistribution: ResponseDistribution[] = [];
+  let topInsights: string[] = [];
+
+  if (numberData.number_survey_info_list?.length > 0) {
+    const responseCounts: Record<string, number> = {};
+    numberData.number_survey_info_list.forEach((item: any) => {
+      const value = item.answer?.toString() || '0';
+      responseCounts[value] = item.total_responses || 0;
+    });
+
+    responseDistribution = Object.entries(responseCounts)
+      .map(([value, count]) => ({
+        value,
+        count,
+        percentage: totalResponses > 0 ? Math.round((count / totalResponses) * 100) : 0,
+      }))
+      .sort((a, b) => b.count - a.count);
+
+    topInsights = [
+      `Total responses: ${totalResponses}`,
+      `Most common answer: ${responseDistribution[0]?.value ?? 'N/A'}`,
+    ];
+  } else {
+    topInsights = [
+      `No responses yet`,
+      `Question type: ${questionType}`,
+    ];
+  }
+
+  return { responseDistribution, totalResponses, topInsights };
+};
+
 const transformQuestionAnalytics = (surveyData: any): TransformedQuestionAnalytics => {
   const question = surveyData.assessment_question_preview_dto;
   const questionText = extractTextFromRichContent(question.question);
@@ -110,152 +247,26 @@ const transformQuestionAnalytics = (surveyData: any): TransformedQuestionAnalyti
   let totalResponses = 0;
   let topInsights: string[] = [];
 
-
   // Handle MCQ questions (MCQS, MCQM, TRUE_FALSE)
   if (surveyData.mcq_survey_dtos?.length > 0) {
-    const mcqData = surveyData.mcq_survey_dtos[0];
-    totalResponses = mcqData.total_respondent || 0;
-
-    // Create a map of option IDs to option text
-    const optionMap = new Map();
-    const questionOptions = surveyData.assessment_question_preview_dto.options_with_explanation || [];
-    questionOptions.forEach((option: any) => {
-      optionMap.set(option.id, extractTextFromRichContent(option.text) || 'Unknown Option');
-    });
-
-    // Always show all question options, even if some have no responses
-    if (questionOptions.length > 0) {
-      // Create a map of response counts by option ID
-      const responseCounts = new Map();
-      if (mcqData.mcq_survey_info_list?.length > 0) {
-        mcqData.mcq_survey_info_list.forEach((item: any) => {
-          if (item.option !== 'NO_ANSWER') {
-            responseCounts.set(item.option, {
-              count: item.respondent_count || 0,
-              percentage: item.percentage || 0,
-            });
-          }
-        });
-      }
-
-      // Map all question options to response distribution
-      responseDistribution = questionOptions.map((option: any) => {
-        const optionId = option.id;
-        const optionText = extractTextFromRichContent(option.text) || 'Unknown Option';
-        const responseData = responseCounts.get(optionId) || { count: 0, percentage: 0 };
-
-        // Recalculate percentage based on total responses to ensure accuracy
-        const calculatedPercentage = totalResponses > 0 ? (responseData.count / totalResponses) * 100 : 0;
-
-
-        return {
-          value: optionText,
-          count: responseData.count,
-          percentage: calculatedPercentage,
-        };
-      }).sort((a: any, b: any) => b.percentage - a.percentage); // Sort by percentage in descending order
-
-      // Generate insights for MCQ
-      if (responseDistribution.length > 0) {
-        const topResponse = responseDistribution.reduce((max, current) =>
-          current.percentage > max.percentage ? current : max
-        );
-        topInsights = [
-          `${Math.round(topResponse.percentage)}% of respondents chose "${topResponse.value}"`,
-          `Total responses: ${totalResponses}`,
-        ];
-      } else {
-        topInsights = [
-          `No responses yet`,
-          `Question has ${questionOptions.length} options`,
-        ];
-      }
-    } else {
-      topInsights = [
-        `No responses yet`,
-        `Question type: ${questionType}`,
-      ];
-    }
+    const result = processMcqQuestion(surveyData, questionType);
+    responseDistribution = result.responseDistribution;
+    totalResponses = result.totalResponses;
+    topInsights = result.topInsights;
   }
-
   // Handle text-based questions (ONE_WORD, LONG_ANSWER)
   else if (surveyData.one_word_long_survey_dtos?.length > 0) {
-    const textData = surveyData.one_word_long_survey_dtos[0];
-    totalResponses = textData.total_respondent || 0;
-
-    // Check if we have response data
-    if (textData.latest_response?.length > 0) {
-      const responseCounts: Record<string, number> = {};
-
-      textData.latest_response.forEach((response: any) => {
-        try {
-          // Parse the JSON response to extract the actual answer
-          const parsedResponse = JSON.parse(response.answer);
-          const answer = parsedResponse.responseData?.answer || '';
-          if (answer && answer.trim().length > 0) {
-            responseCounts[answer] = (responseCounts[answer] || 0) + 1;
-          }
-        } catch (error) {
-          // If parsing fails, try to use the answer field directly
-          const answer = response.answer || '';
-          if (answer && answer.trim().length > 0) {
-            responseCounts[answer] = (responseCounts[answer] || 0) + 1;
-          }
-        }
-      });
-
-      responseDistribution = Object.entries(responseCounts)
-        .map(([value, count]) => ({
-          value,
-          count,
-          percentage: totalResponses > 0 ? Math.round((count / totalResponses) * 100) : 0,
-        }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 5); // Top 5 responses
-
-      topInsights = [
-        `Total responses: ${totalResponses}`,
-        `Recent responses: ${textData.latest_response.length}`,
-      ];
-    } else {
-      topInsights = [
-        `No responses yet`,
-        `Question type: ${questionType}`,
-      ];
-    }
+    const result = processTextQuestion(surveyData, questionType);
+    responseDistribution = result.responseDistribution;
+    totalResponses = result.totalResponses;
+    topInsights = result.topInsights;
   }
-
   // Handle numerical questions (NUMERIC)
   else if (surveyData.number_survey_dtos?.length > 0) {
-    const numberData = surveyData.number_survey_dtos[0];
-    totalResponses = numberData.total_respondent || 0;
-
-    // Check if we have response data
-    if (numberData.number_survey_info_list?.length > 0) {
-      const responseCounts: Record<string, number> = {};
-      numberData.number_survey_info_list.forEach((item: any) => {
-        const value = item.answer?.toString() || '0';
-        responseCounts[value] = item.total_responses || 0;
-      });
-
-      responseDistribution = Object.entries(responseCounts)
-        .map(([value, count]) => ({
-          value,
-          count,
-          percentage: totalResponses > 0 ? Math.round((count / totalResponses) * 100) : 0,
-        }))
-        .sort((a, b) => b.count - a.count);
-
-      topInsights = [
-        `Total responses: ${totalResponses}`,
-        `Most common answer: ${responseDistribution[0]?.value ?? 'N/A'}`,
-      ];
-    } else {
-      topInsights = [
-        `No responses yet`,
-        `Question type: ${questionType}`,
-      ];
-    }
+    const result = processNumericalQuestion(surveyData, questionType);
+    responseDistribution = result.responseDistribution;
+    totalResponses = result.totalResponses;
+    topInsights = result.topInsights;
   }
 
   // If no specific response data is available, show basic info
@@ -265,7 +276,6 @@ const transformQuestionAnalytics = (surveyData: any): TransformedQuestionAnalyti
       `Question type: ${questionType}`,
     ];
   }
-
 
   return {
     questionId: question.question_id,
