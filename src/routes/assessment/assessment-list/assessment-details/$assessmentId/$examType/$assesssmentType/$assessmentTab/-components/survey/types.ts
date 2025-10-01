@@ -94,6 +94,9 @@ export interface IndividualResponseData {
   name: string;
   email: string;
   response: string;
+  attempt_id?: string;
+  source_id?: string;
+  source?: string;
 }
 
 export interface IndividualResponseApiData {
@@ -215,6 +218,7 @@ export interface TransformedSurveyRespondent {
   id: string;
   name: string;
   email: string;
+  source_id?: string;
   completedAt?: string;
   responses: SurveyResponse[];
 }

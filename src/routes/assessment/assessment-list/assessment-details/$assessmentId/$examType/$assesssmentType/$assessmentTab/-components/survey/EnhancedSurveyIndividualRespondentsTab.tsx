@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, ChevronLeft, ChevronRight, CheckCircle, XCircle, Clock, Eye, EyeOff } from 'lucide-react';
 import { useEnhancedSurveyRespondents } from './hooks/useEnhancedSurveyData';
+import { useBatchNames } from './hooks/useBatchNames';
 
 interface EnhancedSurveyIndividualRespondentsTabProps {
   assessmentId: string;
@@ -21,6 +22,7 @@ export const EnhancedSurveyIndividualRespondentsTab: React.FC<EnhancedSurveyIndi
   const [pageInput, setPageInput] = useState('');
   const [pageNo, setPageNo] = useState(1);
   const pageSize = 10;
+  const { getBatchName } = useBatchNames();
 
   const { data, loading, error } = useEnhancedSurveyRespondents(
     assessmentId,
@@ -175,6 +177,11 @@ export const EnhancedSurveyIndividualRespondentsTab: React.FC<EnhancedSurveyIndi
               {currentRespondent.name}
             </h2>
             <p className="text-sm text-gray-600">{currentRespondent.email}</p>
+            {currentRespondent.source_id && (
+              <p className="text-xs text-gray-500 mt-1">
+                Batch: {getBatchName(currentRespondent.source_id)}
+              </p>
+            )}
           </div>
           <div className="flex items-center space-x-2">
             <Badge className="bg-green-100 text-green-800 border-green-200">

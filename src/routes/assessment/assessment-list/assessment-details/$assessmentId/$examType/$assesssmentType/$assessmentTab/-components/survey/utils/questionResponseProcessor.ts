@@ -33,6 +33,7 @@ export interface ProcessedResponse {
   timeTaken: number;
   isVisited: boolean;
   isMarkedForReview: boolean;
+  source_id?: string;
 }
 
 /**
@@ -149,6 +150,7 @@ export const processIndividualResponse = (
       timeTaken: response.timeTakenInSeconds || 0,
       isVisited: response.isVisited || false,
       isMarkedForReview: response.isMarkedForReview || false,
+      source_id: responseData.source_id,
     };
   } catch (error) {
     return null;
@@ -227,12 +229,14 @@ const checkAnswerCorrectness = (question: ProcessedQuestion, userAnswer: any, co
 export const groupResponsesByRespondent = (
   responses: ProcessedResponse[],
   respondentName: string,
-  respondentEmail: string
+  respondentEmail: string,
+  source_id?: string
 ) => {
   return {
     id: `${respondentName}-${respondentEmail}`,
     name: respondentName,
     email: respondentEmail,
+    source_id,
     responses: responses.sort((a, b) => a.questionOrder - b.questionOrder),
     totalQuestions: responses.length,
     correctAnswers: responses.filter(r => r.isCorrect).length,

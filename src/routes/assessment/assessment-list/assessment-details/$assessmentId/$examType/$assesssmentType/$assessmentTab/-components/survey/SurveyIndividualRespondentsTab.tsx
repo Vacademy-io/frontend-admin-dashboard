@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useSurveyRespondents } from './hooks/useSurveyData';
 import { surveyApiService } from '@/services/survey-api';
+import { useBatchNames } from './hooks/useBatchNames';
 
 // Helper functions for response parsing
 const formatMcqResponse = (responseData: any, questionData: any): string => {
@@ -111,6 +112,7 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
     const [pageNo, setPageNo] = useState(1);
     const [questionsData, setQuestionsData] = useState<Map<string, any>>(new Map());
     const [questionsLoading, setQuestionsLoading] = useState(false);
+    const { getBatchName } = useBatchNames();
 
     // Determine survey type from assessment details
     const isPublicSurvey = assessmentDetails?.assessment_visibility === 'PUBLIC';
@@ -296,6 +298,11 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
                 <div className="text-center">
                     <div className="font-semibold text-lg">{currentRespondent?.name || 'Unknown'}</div>
                     <div className="text-sm text-gray-600">{currentRespondent?.email || 'No email'}</div>
+                    {currentRespondent?.source_id && (
+                        <div className="text-xs text-gray-500 mt-1">
+                            Batch: {getBatchName(currentRespondent.source_id)}
+                        </div>
+                    )}
                     <div className="flex items-center justify-center gap-2 mt-1">
                         <span className="text-xs text-gray-500">
                             Respondent

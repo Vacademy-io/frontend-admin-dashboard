@@ -152,6 +152,123 @@ const processMcqQuestion = (surveyData: any, questionType: SurveyQuestionType) =
   return { responseDistribution, totalResponses, topInsights };
 };
 
+// Helper function for True/False question processing
+const processTrueFalseQuestion = (surveyData: any, questionType: SurveyQuestionType) => {
+  const mcqData = surveyData.mcq_survey_dtos[0];
+  const totalResponses = mcqData.total_respondent || 0;
+  const questionOptions = surveyData.assessment_question_preview_dto.options_with_explanation || [];
+
+  // For True/False questions, we need to ensure we have exactly 2 options: True and False
+  const responseDistribution: ResponseDistribution[] = [];
+
+  // Initialize with default True/False structure
+  const trueOption = questionOptions.find((option: any) =>
+    extractTextFromRichContent(option.text).toLowerCase().includes('true')
+  );
+  const falseOption = questionOptions.find((option: any) =>
+    extractTextFromRichContent(option.text).toLowerCase().includes('false')
+  );
+
+  // Create response counts map
+  const responseCounts = new Map();
+  if (mcqData.mcq_survey_info_list?.length > 0) {
+    mcqData.mcq_survey_info_list.forEach((item: any) => {
+      if (item.option !== 'NO_ANSWER') {
+        responseCounts.set(item.option, {
+          count: item.respondent_count || 0,
+          percentage: item.percentage || 0,
+        });
+      }
+    });
+  }
+
+  // Get actual counts for True and False
+  let trueCount = 0;
+  let falseCount = 0;
+
+  // For True/False questions, we need to handle the case where only one option has responses
+  // The API might only return data for the option that has responses
+
+  if (trueOption) {
+    const trueData = responseCounts.get(trueOption.id) || { count: 0, percentage: 0 };
+    trueCount = trueData.count;
+  }
+
+  if (falseOption) {
+    const falseData = responseCounts.get(falseOption.id) || { count: 0, percentage: 0 };
+    falseCount = falseData.count;
+  }
+
+  // If we have total responses but missing counts, calculate the missing count
+  if (totalResponses > 0 && (trueCount + falseCount) !== totalResponses) {
+    if (trueCount > 0 && falseCount === 0) {
+      // Only True has responses, calculate False count
+      falseCount = totalResponses - trueCount;
+    } else if (falseCount > 0 && trueCount === 0) {
+      // Only False has responses, calculate True count
+      trueCount = totalResponses - falseCount;
+    }
+  }
+
+  // Calculate percentages based on actual counts
+  const truePercentage = totalResponses > 0 ? (trueCount / totalResponses) * 100 : 0;
+  const falsePercentage = totalResponses > 0 ? (falseCount / totalResponses) * 100 : 0;
+
+  // Debug logging for True/False data
+  console.log('🔍 [TrueFalse] Data Processing:', {
+    totalResponses,
+    trueCount,
+    falseCount,
+    truePercentage: truePercentage.toFixed(2),
+    falsePercentage: falsePercentage.toFixed(2),
+    sumPercentage: (truePercentage + falsePercentage).toFixed(2),
+    calculationLogic: {
+      totalResponses,
+      initialTrueCount: trueOption ? (responseCounts.get(trueOption.id) || { count: 0 }).count : 0,
+      initialFalseCount: falseOption ? (responseCounts.get(falseOption.id) || { count: 0 }).count : 0,
+      calculatedTrueCount: trueCount,
+      calculatedFalseCount: falseCount,
+      sumMatchesTotal: (trueCount + falseCount) === totalResponses
+    },
+    mcqData: mcqData,
+    responseCounts: Array.from(responseCounts.entries()),
+    questionOptions: questionOptions.map((opt: any) => ({
+      id: opt.id,
+      text: extractTextFromRichContent(opt.text)
+    })),
+    mcqSurveyInfoList: mcqData.mcq_survey_info_list,
+    timestamp: new Date().toISOString()
+  });
+
+  // Process True option
+  responseDistribution.push({
+    value: 'True',
+    count: trueCount,
+    percentage: truePercentage,
+  });
+
+  // Process False option
+  responseDistribution.push({
+    value: 'False',
+    count: falseCount,
+    percentage: falsePercentage,
+  });
+
+  const topInsights = responseDistribution.length > 0 ? [
+    `${Math.round(responseDistribution.reduce((max: any, current: any) =>
+      current.percentage > max.percentage ? current : max
+    ).percentage)}% of respondents chose "${responseDistribution.reduce((max: any, current: any) =>
+      current.percentage > max.percentage ? current : max
+    ).value}"`,
+    `Total responses: ${totalResponses}`,
+  ] : [
+    `No responses yet`,
+    `Question type: ${questionType}`,
+  ];
+
+  return { responseDistribution, totalResponses, topInsights };
+};
+
 // Helper functions for text question processing
 const processTextQuestion = (surveyData: any, questionType: SurveyQuestionType) => {
   const textData = surveyData.one_word_long_survey_dtos[0];
@@ -249,10 +366,17 @@ const transformQuestionAnalytics = (surveyData: any): TransformedQuestionAnalyti
 
   // Handle MCQ questions (MCQS, MCQM, TRUE_FALSE)
   if (surveyData.mcq_survey_dtos?.length > 0) {
-    const result = processMcqQuestion(surveyData, questionType);
-    responseDistribution = result.responseDistribution;
-    totalResponses = result.totalResponses;
-    topInsights = result.topInsights;
+    if (questionType === 'true_false') {
+      const result = processTrueFalseQuestion(surveyData, questionType);
+      responseDistribution = result.responseDistribution;
+      totalResponses = result.totalResponses;
+      topInsights = result.topInsights;
+    } else {
+      const result = processMcqQuestion(surveyData, questionType);
+      responseDistribution = result.responseDistribution;
+      totalResponses = result.totalResponses;
+      topInsights = result.topInsights;
+    }
   }
   // Handle text-based questions (ONE_WORD, LONG_ANSWER)
   else if (surveyData.one_word_long_survey_dtos?.length > 0) {
@@ -299,6 +423,7 @@ const transformSurveyRespondents = (data: IndividualResponseApiData): Transforme
         id: respondentId,
         name: item.name,
         email: item.email,
+        source_id: item.source_id,
         responses: [],
       });
     }
