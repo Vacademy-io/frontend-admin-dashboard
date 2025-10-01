@@ -235,10 +235,11 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
     // Helper function to create section from saved data
     const createSectionFromSavedData = (sectionDetails: any) => {
         const duration = sectionDetails.duration || 0;
+        const sectionName = sectionDetails.name || '';
 
         return {
                               sectionId: sectionDetails.id || '',
-                              sectionName: sectionDetails.name || '',
+                              sectionName: sectionName,
                               questionPaperTitle: '',
                               uploaded_question_paper: '',
                               subject: getSubjectNameById(
@@ -272,7 +273,8 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
     };
 
     // Helper function to create default section
-    const createDefaultSection = () => ({
+    const createDefaultSection = () => {
+        return {
                                   sectionId: '',
         sectionName: 'Section 1',
                                   questionPaperTitle: '',
@@ -301,17 +303,20 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                   },
                                   problem_randomization: false,
                                   adaptive_marking_for_each_question: [],
-    });
+        };
+    };
 
     // Helper function to get sections data
     const getSectionsData = () => {
         const sections = assessmentDetails[currentStep]?.saved_data?.sections;
 
         if (Array.isArray(sections) && sections.length > 0) {
-            return sections.map(createSectionFromSavedData);
+            const mappedSections = sections.map(createSectionFromSavedData);
+            return mappedSections;
         }
 
-        return [createDefaultSection()];
+        const defaultSection = createDefaultSection();
+        return [defaultSection];
     };
 
     // Helper function to get initial form values

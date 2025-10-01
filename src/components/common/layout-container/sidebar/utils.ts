@@ -88,6 +88,11 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemLink: '/manage-students/invite',
                 subItemId: 'invite',
             },
+            {
+                subItem: 'Leads Management',
+                subItemLink: '/manage-students/leads-management/',
+                subItemId: 'leads-management',
+            },
         ],
     },
     {

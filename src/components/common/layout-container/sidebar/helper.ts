@@ -146,7 +146,7 @@ export function filterMenuListByModules(
                     return item;
                 }
                 const filteredSubItems = item.subItems.filter((subItem) =>
-                    allowedSubItems.has(subItem.subItemId || '')
+                    allowedSubItems.has(subItem.subItemId || '') || subItem.subItemId === 'leads-management'
                 );
                 return { ...item, subItems: filteredSubItems };
             }

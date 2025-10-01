@@ -38,6 +38,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import ConvertToHTML from '../-images/convertToHTML.png';
 import { AssignmentFormType } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-form-schemas/assignmentFormSchema';
 import { convertCapitalToTitleCase } from '@/lib/utils';
+import { useNamingSettings } from '@/hooks/useNamingSettings';
 
 export type SectionFormType = z.infer<typeof sectionDetailsSchema>;
 export type UploadQuestionPaperFormType = z.infer<ReturnType<typeof uploadQuestionPaperFormSchema>>;
@@ -83,8 +84,8 @@ const useFormValidation = (form: any) => {
     const questions = form.getValues('questions');
 
     return {
-        isFormValidWhenManuallyCreated: !!title && !!yearClass && !!subject,
-        isFormValidWhenUploaded: !!title && !!yearClass && !!subject && !!fileUpload,
+        isFormValidWhenManuallyCreated: !!title,
+        isFormValidWhenUploaded: !!title && !!fileUpload,
         hasQuestions: questions.length > 0,
     };
 };
@@ -242,8 +243,11 @@ const BasicFormFields = ({ form, YearClassFilterData, SubjectFilterData }: {
     form: any;
     YearClassFilterData: any[];
     SubjectFilterData: any[];
-}) => (
-    <>
+}) => {
+    const { getTerminology } = useNamingSettings();
+
+    return (
+        <>
                             <CustomInput
                                 control={form.control}
                                 name="title"
@@ -253,7 +257,7 @@ const BasicFormFields = ({ form, YearClassFilterData, SubjectFilterData }: {
                             />
                             <div className="flex items-center gap-4">
                                 <SelectField
-                                    label="Year/class"
+                                    label={getTerminology('Level', 'Year/Class')}
                                     name="yearClass"
                                     options={YearClassFilterData.map((option, index) => ({
                                         value: option.name,
@@ -261,11 +265,10 @@ const BasicFormFields = ({ form, YearClassFilterData, SubjectFilterData }: {
                                         _id: index,
                                     }))}
                                     control={form.control}
-                                    required
                                     className="!w-full"
                                 />
                                 <SelectField
-                                    label="Subject"
+                                    label={getTerminology('Subject', 'Subject')}
                                     name="subject"
                                     options={SubjectFilterData.map((option, index) => ({
                                         value: option.name,
@@ -273,12 +276,12 @@ const BasicFormFields = ({ form, YearClassFilterData, SubjectFilterData }: {
                                         _id: index,
                                     }))}
                                     control={form.control}
-                                    required
                                     className="!w-full"
                                 />
                             </div>
-    </>
-);
+        </>
+    );
+};
 
 // Helper component for action buttons
 const ActionButtons = ({
@@ -408,10 +411,6 @@ export const QuestionPaperUpload = ({
     const { YearClassFilterData, SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-    console.log('📝 Creating QuestionPaperUpload form with examType:', {
-        examType,
-        isSurvey: examType === 'SURVEY'
-    });
 
     const form = useQuestionPaperForm(examType);
     const { getValues, setValue, watch } = form;
@@ -562,12 +561,33 @@ export const QuestionPaperUpload = ({
         const getIdSubject = getIdBySubjectName(instituteDetails?.subjects || [], values.subject);
 
         if (index !== undefined) {
+            const currentSection = sectionsForm?.getValues(`section.${index}`);
+
+            const newSectionName = currentSection?.sectionName &&
+                           currentSection.sectionName !== 'N/A' &&
+                           currentSection.sectionName !== '' &&
+                           !currentSection.sectionName.startsWith('Section ')
+                    ? currentSection.sectionName
+                    : ((values.subject && values.subject !== 'N/A') ? values.subject : currentSection?.sectionName) || `Section ${index + 1}`;
+
             sectionsForm?.setValue(`section.${index}`, {
-                ...sectionsForm?.getValues(`section.${index}`),
+                ...currentSection,
+                sectionId: currentSection?.sectionId || '',
+                uploaded_question_paper: currentSection?.uploaded_question_paper || null,
+                question_duration: currentSection?.question_duration || { min: '0', hrs: '0' },
+                section_description: currentSection?.section_description || '',
+                section_duration: currentSection?.section_duration || { min: '0', hrs: '0' },
+                marks_per_question: currentSection?.marks_per_question || '',
+                negative_marking: currentSection?.negative_marking || { value: '', checked: false },
+                total_marks: currentSection?.total_marks || '',
+                partial_marking: currentSection?.partial_marking || false,
+                cutoff_marks: currentSection?.cutoff_marks || { value: '', checked: false },
+                problem_randomization: currentSection?.problem_randomization || false,
+                adaptive_marking_for_each_question: currentSection?.adaptive_marking_for_each_question || [],
                 questionPaperTitle: values.title,
                 subject: values.subject || '',
                 yearClass: values.yearClass || '',
-                sectionName: values.subject,
+                sectionName: newSectionName,
             });
         }
 
