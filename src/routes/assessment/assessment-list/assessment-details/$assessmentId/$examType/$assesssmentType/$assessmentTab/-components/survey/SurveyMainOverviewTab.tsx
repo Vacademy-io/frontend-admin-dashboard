@@ -35,6 +35,7 @@ import { Users, CheckCircle, Clock, TrendingUp, MessageSquare, Eye, Loader2, Ale
 import { useSurveyOverview, useSurveyRespondents } from './hooks/useSurveyData';
 import { TransformedQuestionAnalytics, ResponseDistribution } from './types';
 import { surveyApiService, AssessmentQuestionPreview, QuestionOptionWithExplanation } from '@/services/survey-api';
+import { useBatchNames } from './hooks/useBatchNames';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -46,7 +47,12 @@ interface QuestionData {
 }
 
 // Helper components for question rendering
-const BarChartComponent = ({ data, fillColor }: { data: ResponseDistribution[], fillColor: string }) => (
+interface BarChartComponentProps {
+  data: ResponseDistribution[];
+  fillColor: string;
+}
+
+const BarChartComponent: React.FC<BarChartComponentProps> = ({ data, fillColor }) => (
     <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -82,7 +88,11 @@ const BarChartComponent = ({ data, fillColor }: { data: ResponseDistribution[], 
     </div>
 );
 
-const ResponseLegend = ({ responses }: { responses: ResponseDistribution[] }) => (
+interface ResponseLegendProps {
+  responses: ResponseDistribution[];
+}
+
+const ResponseLegend: React.FC<ResponseLegendProps> = ({ responses }) => (
     <div className="space-y-2">
         {responses.map((response: ResponseDistribution, idx: number) => (
             <div key={idx} className="flex justify-between items-center">
@@ -97,21 +107,25 @@ const ResponseLegend = ({ responses }: { responses: ResponseDistribution[] }) =>
     </div>
 );
 
-const McqQuestionContent = ({ question }: { question: TransformedQuestionAnalytics }) => (
+interface QuestionContentProps {
+  question: TransformedQuestionAnalytics;
+}
+
+const McqQuestionContent: React.FC<QuestionContentProps> = ({ question }) => (
     <div className="space-y-6">
         <BarChartComponent data={question.responseDistribution} fillColor="#8884d8" />
         <ResponseLegend responses={question.responseDistribution} />
     </div>
 );
 
-const McqMultipleChoiceContent = ({ question }: { question: TransformedQuestionAnalytics }) => (
+const McqMultipleChoiceContent: React.FC<QuestionContentProps> = ({ question }) => (
     <div className="space-y-6">
         <BarChartComponent data={question.responseDistribution} fillColor="#00C49F" />
         <ResponseLegend responses={question.responseDistribution} />
     </div>
 );
 
-const TrueFalseContent = ({ question }: { question: TransformedQuestionAnalytics }) => (
+const TrueFalseContent: React.FC<QuestionContentProps> = ({ question }) => (
     <div className="space-y-6">
         <div className="flex flex-col lg:flex-row items-center justify-center gap-8">
             <div className="flex-1 max-w-sm">
@@ -198,13 +212,13 @@ const TrueFalseContent = ({ question }: { question: TransformedQuestionAnalytics
     </div>
 );
 
-const TextQuestionContent = ({ question }: { question: TransformedQuestionAnalytics }) => (
+const TextQuestionContent: React.FC<QuestionContentProps> = ({ question }) => (
     <div className="space-y-4">
         <div className="text-lg font-semibold mb-4">
             Recent Responses ({question.totalResponses} total responses):
         </div>
         <div className="space-y-4">
-            {question.responseDistribution.slice(0, 5).map((response: any, idx: number) => (
+            {question.responseDistribution.slice(0, 5).map((response: ResponseDistribution, idx: number) => (
                 <div key={idx} className="p-4 border rounded-lg">
                     <div className="text-sm text-gray-700 italic">"{response.value}"</div>
                     <div className="text-xs text-gray-500 mt-1">{response.count} similar responses</div>
@@ -214,11 +228,11 @@ const TextQuestionContent = ({ question }: { question: TransformedQuestionAnalyt
     </div>
 );
 
-const NumericalQuestionContent = ({ question }: { question: TransformedQuestionAnalytics }) => (
+const NumericalQuestionContent: React.FC<QuestionContentProps> = ({ question }) => (
     <div className="space-y-4">
         <div className="text-lg font-semibold mb-4">Response Distribution:</div>
         <div className="space-y-3">
-            {question.responseDistribution.slice(0, 5).map((response: any, idx: number) => (
+            {question.responseDistribution.slice(0, 5).map((response: ResponseDistribution, idx: number) => (
                 <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded">
                     <span className="font-medium">{idx + 1}. {response.value}</span>
                     <Badge variant="secondary">
@@ -384,6 +398,7 @@ interface SurveyMainOverviewTabProps {
 export const SurveyMainOverviewTab: React.FC<SurveyMainOverviewTabProps> = ({ assessmentId, sectionIds, assessmentName, assessmentDetails }) => {
     const { data: overviewData, loading: overviewLoading, error: overviewError } = useSurveyOverview(assessmentId, sectionIds);
     const { data: respondentData, loading: respondentLoading } = useSurveyRespondents(assessmentId, 1, 100, assessmentName, sectionIds);
+    const { getBatchName } = useBatchNames();
 
     // Determine survey type from assessment details
     const isPublicSurvey = assessmentDetails?.assessment_visibility === 'PUBLIC';
@@ -582,149 +597,7 @@ const McqQuestionContent = ({ question }: { question: TransformedQuestionAnalyti
                             </div>
 );
 
-const McqMultipleChoiceContent = ({ question }: { question: TransformedQuestionAnalytics }) => (
-    <div className="space-y-6">
-        <BarChartComponent data={question.responseDistribution} fillColor="#00C49F" />
-        <ResponseLegend responses={question.responseDistribution} />
-                                        </div>
-);
 
-const TrueFalseContent = ({ question }: { question: TransformedQuestionAnalytics }) => (
-                        <div className="space-y-6">
-                            <div className="flex flex-col lg:flex-row items-center justify-center gap-8">
-                                <div className="flex-1 max-w-sm">
-                                    <div className="relative h-64 w-64 mx-auto group">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <PieChart>
-                                                <Pie
-                                                    data={[
-                                                        {
-                                                            name: 'True',
-                                                            value: question.responseDistribution[0]?.percentage || 0,
-                                                            fill: '#10B981',
-                                                            count: question.responseDistribution[0]?.count || 0
-                                                        },
-                                                        {
-                                                            name: 'False',
-                                                            value: question.responseDistribution[1]?.percentage || 0,
-                                                            fill: '#EF4444',
-                                                            count: question.responseDistribution[1]?.count || 0
-                                                        }
-                                                    ]}
-                                                cx="50%"
-                                                cy="50%"
-                                                    innerRadius={60}
-                                                    outerRadius={100}
-                                                    paddingAngle={2}
-                                                    dataKey="value"
-                                                    startAngle={90}
-                                                    endAngle={450}
-                                                >
-                                                    {[
-                                                        { name: 'True', value: question.responseDistribution[0]?.percentage || 0, fill: '#10B981' },
-                                                        { name: 'False', value: question.responseDistribution[1]?.percentage || 0, fill: '#EF4444' }
-                                                    ].map((entry, index) => (
-                                                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                                                    ))}
-                                                </Pie>
-                                                <Tooltip
-                                                    formatter={(value: any, name: string) => [
-                                                        `${value}% (${name === 'True' ? question.responseDistribution[0]?.count || 0 : question.responseDistribution[1]?.count || 0} responses)`,
-                                                        name
-                                                    ]}
-                                                    labelStyle={{ color: '#374151' }}
-                                                    contentStyle={{
-                                                        backgroundColor: '#f9fafb',
-                                                        border: '1px solid #e5e7eb',
-                                                        borderRadius: '8px',
-                                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                                                    }}
-                                                />
-                                            </PieChart>
-                                        </ResponsiveContainer>
-                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                            <div className="text-center">
-                                                <div className="text-lg font-semibold text-gray-700">
-                                                    {(question.responseDistribution[0]?.percentage || 0).toFixed(2)}%
-                                                </div>
-                            <div className="text-xs text-gray-600">True</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                <div className="flex-1 space-y-4">
-                                    <div className="text-center">
-                    <div className="text-lg font-semibold text-green-600 mb-1">True</div>
-                                        <div className="text-2xl font-bold text-green-700 mb-1">
-                                            {(question.responseDistribution[0]?.percentage || 0).toFixed(2)}%
-                                            </div>
-                                            <div className="text-sm text-gray-600">
-                                            {question.responseDistribution[0]?.count || 0} responses
-                                        </div>
-                                    </div>
-                                    <div className="text-center">
-                    <div className="text-lg font-semibold text-red-600 mb-1">False</div>
-                                        <div className="text-2xl font-bold text-red-700 mb-1">
-                                            {(question.responseDistribution[1]?.percentage || 0).toFixed(2)}%
-                                            </div>
-                                            <div className="text-sm text-gray-600">
-                                            {question.responseDistribution[1]?.count || 0} responses
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-);
-
-const TextQuestionContent = ({ question }: { question: TransformedQuestionAnalytics }) => (
-                        <div className="space-y-4">
-                            <div className="text-lg font-semibold mb-4">
-                                Recent Responses ({question.totalResponses} total responses):
-                            </div>
-                            <div className="space-y-4">
-                                {question.responseDistribution.slice(0, 5).map((response: any, idx: number) => (
-                                    <div key={idx} className="p-4 border rounded-lg">
-                    <div className="text-sm text-gray-700 italic">"{response.value}"</div>
-                    <div className="text-xs text-gray-500 mt-1">{response.count} similar responses</div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-);
-
-const NumericalQuestionContent = ({ question }: { question: TransformedQuestionAnalytics }) => (
-                        <div className="space-y-4">
-                            <div className="text-lg font-semibold mb-4">Response Distribution:</div>
-                            <div className="space-y-3">
-                                {question.responseDistribution.slice(0, 5).map((response: any, idx: number) => (
-                                    <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                    <span className="font-medium">{idx + 1}. {response.value}</span>
-                                        <Badge variant="secondary">
-                                            {response.count} responses ({response.percentage}%)
-                                        </Badge>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-);
-
-const QuestionTypeRenderer = ({ question }: { question: TransformedQuestionAnalytics }) => {
-    switch (question.questionType) {
-        case 'mcq_single_choice':
-            return <McqQuestionContent question={question} />;
-        case 'mcq_multiple_choice':
-            return <McqMultipleChoiceContent question={question} />;
-        case 'true_false':
-            return <TrueFalseContent question={question} />;
-        case 'short_answer':
-        case 'long_answer':
-            return <TextQuestionContent question={question} />;
-        case 'numerical':
-            return <NumericalQuestionContent question={question} />;
-        default:
-            return <div>Unsupported question type</div>;
-    }
-};
 
 const renderQuestionContent = (question: TransformedQuestionAnalytics, index: number, onViewResponses: (question: TransformedQuestionAnalytics, index: number) => void) => {
     const questionNumber = `Q${index + 1}`;
@@ -879,6 +752,7 @@ const renderQuestionContent = (question: TransformedQuestionAnalytics, index: nu
                                                 allResponses.push({
                                                     name: respondent.name,
                                                     email: respondent.email,
+                                                    source_id: respondent.source_id,
                                                     response: response.answer
                                                 });
                                             });
@@ -917,8 +791,8 @@ const renderQuestionContent = (question: TransformedQuestionAnalytics, index: nu
                                 <TableBody>
                                                     {filteredResponses.map((respondent, idx) => {
                                                         const parsedResponse = parseResponseData(respondent.response, questionsData);
-                                                        // For now, we'll show the first available batch name since we don't have per-respondent batch data
-                                                        const batchName = batchData.size > 0 ? Array.from(batchData.values())[0] : 'N/A';
+                                                        // Get batch name from source_id (batch ID)
+                                                        const batchName = respondent.source_id ? getBatchName(respondent.source_id) : 'N/A';
 
 
                                                         return (

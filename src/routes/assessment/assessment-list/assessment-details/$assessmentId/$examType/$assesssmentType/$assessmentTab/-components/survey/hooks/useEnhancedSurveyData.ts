@@ -89,7 +89,9 @@ export const useEnhancedSurveyRespondents = (
       // Group responses by respondent
       const respondents = Array.from(processedResponses.entries()).map(([key, responses]) => {
         const [name, email] = key.split('-', 2);
-        return groupResponsesByRespondent(responses, name || '', email || '');
+        // Get source_id from the first response (all responses from same respondent should have same source_id)
+        const source_id = responses.length > 0 ? responses[0]?.source_id : undefined;
+        return groupResponsesByRespondent(responses, name || '', email || '', source_id);
       });
 
       setData({
