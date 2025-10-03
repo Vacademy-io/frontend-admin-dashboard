@@ -21,6 +21,9 @@ export interface Batch {
     levelId: string;
     sessionName: string;
     levelName: string;
+    courseId: string;
+    courseName: string;
+    isParent?: boolean;
 }
 
 // Schema for the CreateInvite form
@@ -55,6 +58,9 @@ export const createInviteSchema = z.object({
             levelId: z.string(),
             sessionName: z.string(),
             levelName: z.string(),
+            courseId: z.string(),
+            courseName: z.string(),
+            isParent: z.boolean().optional(),
         })
     ),
     showCourseDropdown: z.boolean().default(false),

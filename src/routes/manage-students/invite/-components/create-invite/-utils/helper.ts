@@ -91,6 +91,9 @@ export interface Batch {
     levelId: string;
     sessionName: string;
     levelName: string;
+    courseId: string;
+    courseName: string;
+    isParent?: boolean;
 }
 
 export interface PaymentOption {
@@ -240,6 +243,7 @@ export function convertInviteData(
     instituteLogoFileId: string
 ) {
     const instituteId = getInstituteId();
+    const isBundle = selectedBatches.length > 1;
     const jsonMetaData = {
         course: data.course,
         description: data.description,
@@ -260,6 +264,22 @@ export function convertInviteData(
         includePaymentPlans: data.includePaymentPlans,
         customHtml: data.customHtml,
     };
+
+    // Create package_session_to_payment_options for all batches
+    const packageSessionToPaymentOptions = selectedBatches.map((batch) => ({
+        package_session_id: getPackageSessionId({
+            courseId: batch.courseId,
+            levelId: batch.levelId,
+            sessionId: batch.sessionId,
+        }),
+        payment_option: getMatchingPaymentAndReferralPlanForAPIs(
+            paymentPlans,
+            data.selectedPlan?.id || '',
+            referralProgramDetails,
+            data.planReferralMappings
+        ),
+    }));
+
     const convertedData = {
         id: '',
         name: data.name,
@@ -272,6 +292,7 @@ export function convertInviteData(
         vendor_id: 'STRIPE',
         currency: '',
         tag: '',
+        is_bundled: isBundle,
         learner_access_days:
             data.selectedPlan?.type?.toLowerCase() === 'subscription'
                 ? data.accessDurationDays
@@ -280,21 +301,7 @@ export function convertInviteData(
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         institute_custom_fields: transformCustomFields(data.custom_fields, instituteId || ''),
-        package_session_to_payment_options: [
-            {
-                package_session_id: getPackageSessionId({
-                    courseId: selectedCourse ? selectedCourse.id : '',
-                    levelId: selectedBatches[0]?.levelId || '',
-                    sessionId: selectedBatches[0]?.sessionId || '',
-                }),
-                payment_option: getMatchingPaymentAndReferralPlanForAPIs(
-                    paymentPlans,
-                    data.selectedPlan?.id || '',
-                    referralProgramDetails,
-                    data.planReferralMappings
-                ),
-            },
-        ],
+        package_session_to_payment_options: packageSessionToPaymentOptions,
     };
     return convertedData;
 }

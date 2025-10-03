@@ -38,6 +38,9 @@ export interface Batch {
     levelId: string;
     sessionName: string;
     levelName: string;
+    courseId: string;
+    courseName: string;
+    isParent?: boolean;
 }
 
 export interface GenerateInviteLinkDialogProps {
