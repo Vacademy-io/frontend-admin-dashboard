@@ -79,7 +79,7 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
 
     useEffect(() => {
         if (template) {
-            const templateTypeValue = getTemplateTypeOptions();
+            const templateTypeValue = template.templateType || 'utility';
             setFormData({
                 name: template.name,
                 type: template.type,
@@ -106,14 +106,14 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
         }
     }, [template]);
 
-    // Auto-update template type when name changes (only if not manually changed)
+    // Auto-update template type when name changes (only if not manually changed and not editing existing template)
     useEffect(() => {
-        if (formData.name && !isManualTypeChange) {
+        if (formData.name && !isManualTypeChange && !template) {
             const autoType = getTemplateTypeOptions(formData.name);
             setTemplateType(autoType);
             setFormData(prev => ({ ...prev, templateType: autoType }));
         }
-    }, [formData.name, isManualTypeChange]);
+    }, [formData.name, isManualTypeChange, template]);
 
     const handleInputChange = (field: keyof CreateTemplateRequest, value: string | boolean) => {
         setFormData((prev) => ({ ...prev, [field]: value }));

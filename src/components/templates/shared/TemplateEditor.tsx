@@ -62,7 +62,12 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
 
     useEffect(() => {
         if (template) {
-            const templateTypeValue = getTemplateTypeOptions();
+            const templateTypeValue = template.templateType || 'utility';
+            console.log('Loading template for editing:', {
+                templateName: template.name,
+                templateType: template.templateType,
+                templateTypeValue: templateTypeValue
+            });
             setFormData({
                 name: template.name,
                 type: template.type,
@@ -74,6 +79,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
             });
             setTemplateType(templateTypeValue);
         } else {
+            console.log('Creating new template - setting default utility type');
             setFormData({
                 name: '',
                 type: 'EMAIL',
@@ -87,14 +93,18 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
         }
     }, [template]);
 
-    // Auto-update template type when name changes
+    // Auto-update template type when name changes (only for new templates)
     useEffect(() => {
-        if (formData.name) {
+        if (formData.name && !template) {
             const autoType = getTemplateTypeOptions(formData.name);
+            console.log('Auto-detecting template type for new template:', {
+                name: formData.name,
+                autoType: autoType
+            });
             setTemplateType(autoType);
             setFormData((prev) => ({ ...prev, templateType: autoType }));
         }
-    }, [formData.name]);
+    }, [formData.name, template]);
 
     const handleInputChange = (field: keyof CreateTemplateRequest, value: string | boolean) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
@@ -107,18 +117,6 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
             isInSourceView,
             formData: { name: formData.name, content: formData.content },
         });
-
-        // Don't submit if we're in source view (use ref for immediate check)
-        if (isInSourceViewRef.current) {
-            console.log('Prevented submit: in source view (ref)');
-            return;
-        }
-
-        // Don't submit if we're in source view (state check as backup)
-        if (isInSourceView) {
-            console.log('Prevented submit: in source view (state)');
-            return;
-        }
 
         // Only prevent submission if the event came from a textarea AND we're in source view
         const target = e.target as HTMLElement;
@@ -412,17 +410,6 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                                             !formData.name.trim() ||
                                             !formData.content.trim()
                                         }
-                                        onClick={() => {
-                                            console.log('Submit button clicked', {
-                                                isSaving,
-                                                name: formData.name.trim(),
-                                                content: formData.content.trim(),
-                                                disabled:
-                                                    isSaving ||
-                                                    !formData.name.trim() ||
-                                                    !formData.content.trim(),
-                                            });
-                                        }}
                                         className="hover:bg-primary-600 h-10 bg-primary-500 px-6 text-white disabled:bg-gray-300 disabled:text-gray-500"
                                     >
                                         {isSaving
