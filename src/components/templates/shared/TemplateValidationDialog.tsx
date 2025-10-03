@@ -76,41 +76,43 @@ export const TemplateValidationDialog: React.FC<TemplateValidationDialogProps> =
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden">
-                <DialogHeader className="pb-6">
-                    <DialogTitle className="flex items-center gap-3 text-xl">
-                        {getStatusIcon()}
-                        {status.title}
+            <DialogContent className="w-[95vw] max-w-7xl max-h-[95vh] overflow-hidden sm:w-[90vw] md:w-[85vw] lg:w-[80vw] xl:w-[75vw] 2xl:max-w-7xl">
+                <DialogHeader className="pb-4 sm:pb-6 px-4 sm:px-6">
+                    <DialogTitle className="flex items-center gap-2 sm:gap-3 text-lg sm:text-xl">
+                        <div className="scale-75 sm:scale-100">
+                            {getStatusIcon()}
+                        </div>
+                        <span className="break-words">{status.title}</span>
                     </DialogTitle>
-                    <DialogDescription className="text-base mt-3">
+                    <DialogDescription className="text-sm sm:text-base mt-2 sm:mt-3 break-words">
                         {status.description}
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="space-y-8 overflow-y-auto max-h-[calc(95vh-200px)] pr-2 [&::-webkit-scrollbar]:hidden" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+                <div className="space-y-4 sm:space-y-6 md:space-y-8 overflow-y-auto max-h-[calc(95vh-200px)] px-4 sm:px-6 pr-2 [&::-webkit-scrollbar]:hidden" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
                     {/* Error Message */}
                     {errorMessage && (
-                        <Alert variant="destructive">
+                        <Alert variant="destructive" className="p-3 sm:p-4">
                             <AlertTriangle className="h-4 w-4" />
-                            <AlertDescription>{errorMessage}</AlertDescription>
+                            <AlertDescription className="text-xs sm:text-sm break-words">{errorMessage}</AlertDescription>
                         </Alert>
                     )}
 
                     {/* Missing Variables */}
                     {missingVariables.length > 0 && (
                         <div className="space-y-2">
-                            <h4 className="text-sm font-medium text-red-600 flex items-center gap-2">
-                                <XCircle className="h-4 w-4" />
+                            <h4 className="text-xs sm:text-sm font-medium text-red-600 flex items-center gap-2">
+                                <XCircle className="h-3 w-3 sm:h-4 sm:w-4" />
                                 Missing Variables ({missingVariables.length})
                             </h4>
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex flex-wrap gap-1 sm:gap-2">
                                 {missingVariables.map((variable) => (
-                                    <Badge key={variable} variant="destructive" className="text-xs">
+                                    <Badge key={variable} variant="destructive" className="text-xs break-all">
                                         {variable}
                                     </Badge>
                                 ))}
                             </div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
                                 These variables are not available in the current context. Please either:
                                 <br />
                                 • Remove them from the template, or
@@ -123,13 +125,13 @@ export const TemplateValidationDialog: React.FC<TemplateValidationDialogProps> =
                     {/* Warnings */}
                     {warnings.length > 0 && (
                         <div className="space-y-2">
-                            <h4 className="text-sm font-medium text-yellow-600 flex items-center gap-2">
-                                <AlertTriangle className="h-4 w-4" />
+                            <h4 className="text-xs sm:text-sm font-medium text-yellow-600 flex items-center gap-2">
+                                <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4" />
                                 Warnings ({warnings.length})
                             </h4>
                             <div className="space-y-1">
                                 {warnings.map((warning, index) => (
-                                    <p key={index} className="text-sm text-muted-foreground">
+                                    <p key={index} className="text-xs sm:text-sm text-muted-foreground break-words">
                                         • {warning}
                                     </p>
                                 ))}
@@ -145,30 +147,32 @@ export const TemplateValidationDialog: React.FC<TemplateValidationDialogProps> =
 
                         if (notAvailableVariables.length > 0) {
                             return (
-                                <div className="space-y-6">
-                                    <div className="flex items-center gap-3">
-                                        <XCircle className="h-5 w-5 text-red-500" />
-                                        <h4 className="text-lg font-semibold text-red-700">
-                                            Not Available Variables
-                            </h4>
-                                        <span className="px-3 py-1 bg-red-100 text-red-700 text-sm font-medium rounded-full">
+                                <div className="space-y-4 sm:space-y-6">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                                        <div className="flex items-center gap-2 sm:gap-3">
+                                            <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
+                                            <h4 className="text-sm sm:text-base md:text-lg font-semibold text-red-700">
+                                                Not Available Variables
+                                            </h4>
+                                        </div>
+                                        <span className="px-2 sm:px-3 py-1 bg-red-100 text-red-700 text-xs sm:text-sm font-medium rounded-full w-fit">
                                             {notAvailableVariables.length}
                                         </span>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
                                         {notAvailableVariables.map(([variable, value]) => (
-                                            <div key={variable} className="group p-4 rounded-xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-red-100 hover:from-red-100 hover:to-red-150 transition-all duration-200 hover:border-red-300 hover:shadow-md">
-                                                <div className="font-mono font-semibold text-sm text-red-800 mb-2 break-all">
+                                            <div key={variable} className="group p-2 sm:p-3 md:p-4 rounded-lg sm:rounded-xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-red-100 hover:from-red-100 hover:to-red-150 transition-all duration-200 hover:border-red-300 hover:shadow-md">
+                                                <div className="font-mono font-semibold text-xs sm:text-sm text-red-800 mb-1 sm:mb-2 break-all">
                                                     {variable}
                                                 </div>
-                                                <div className="flex items-center gap-2 text-red-600 text-sm">
-                                                    <span className="text-lg">❌</span>
+                                                <div className="flex items-center gap-1 sm:gap-2 text-red-600 text-xs sm:text-sm">
+                                                    <span className="text-sm sm:text-lg">❌</span>
                                                     <span className="font-medium">Not Available</span>
                                                 </div>
                                             </div>
-                                ))}
-                            </div>
-                        </div>
+                                        ))}
+                                    </div>
+                                </div>
                             );
                         }
                         return null;
@@ -177,22 +181,30 @@ export const TemplateValidationDialog: React.FC<TemplateValidationDialogProps> =
 
                     {/* Success Message */}
                     {isValid && canSend && (
-                        <Alert>
+                        <Alert className="p-3 sm:p-4">
                             <CheckCircle2 className="h-4 w-4" />
-                            <AlertDescription>
+                            <AlertDescription className="text-xs sm:text-sm break-words">
                                 All template variables are resolved successfully. The email can be sent to all recipients.
                             </AlertDescription>
                         </Alert>
                     )}
                 </div>
 
-                <DialogFooter className="flex gap-3 pt-6 border-t border-gray-200">
-                    <Button variant="outline" onClick={onClose}>
+                <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4 sm:pt-6 border-t border-gray-200 px-4 sm:px-6 pb-4 sm:pb-6">
+                    <Button
+                        variant="outline"
+                        onClick={onClose}
+                        className="w-full sm:w-auto text-xs sm:text-sm px-4 py-2 order-2 sm:order-1"
+                    >
                         {isValid && canSend ? 'Close' : 'Cancel'}
                     </Button>
 
                     {onRetry && !isValid && (
-                        <Button variant="outline" onClick={onRetry}>
+                        <Button
+                            variant="outline"
+                            onClick={onRetry}
+                            className="w-full sm:w-auto text-xs sm:text-sm px-4 py-2 order-1 sm:order-2"
+                        >
                             Retry Validation
                         </Button>
                     )}
@@ -202,13 +214,17 @@ export const TemplateValidationDialog: React.FC<TemplateValidationDialogProps> =
                             variant="destructive"
                             onClick={onProceedAnyway}
                             disabled={missingVariables.length > 0}
+                            className="w-full sm:w-auto text-xs sm:text-sm px-4 py-2 order-1 sm:order-3"
                         >
                             Send Anyway
                         </Button>
                     )}
 
                     {isValid && canSend && (
-                        <Button onClick={onClose}>
+                        <Button
+                            onClick={onClose}
+                            className="w-full sm:w-auto text-xs sm:text-sm px-4 py-2 order-1 sm:order-2"
+                        >
                             Continue Sending
                         </Button>
                     )}

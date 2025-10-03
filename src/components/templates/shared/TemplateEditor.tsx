@@ -92,7 +92,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
         if (formData.name) {
             const autoType = getTemplateTypeOptions(formData.name);
             setTemplateType(autoType);
-            setFormData(prev => ({ ...prev, templateType: autoType }));
+            setFormData((prev) => ({ ...prev, templateType: autoType }));
         }
     }, [formData.name]);
 
@@ -105,7 +105,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
         console.log('Form submit triggered', {
             isInSourceViewRef: isInSourceViewRef.current,
             isInSourceView,
-            formData: { name: formData.name, content: formData.content }
+            formData: { name: formData.name, content: formData.content },
         });
 
         // Don't submit if we're in source view (use ref for immediate check)
@@ -137,7 +137,6 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
     };
 
     const handleContentChange = (content: string) => {
-
         setFormData((prev) => ({ ...prev, content }));
         const extractedVariables = extractVariablesFromContent(content);
         const subjectVariables = formData.subject
@@ -266,20 +265,23 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
 
     return (
         <>
-            <Dialog open={true} onOpenChange={(open) => {
-                if (!open) handleClose();
-            }}>
-                <DialogContent className="max-h-[95vh] w-[95vw] max-w-7xl overflow-hidden p-0 sm:max-w-7xl">
-                    <DialogHeader className="border-b border-gray-200 px-6 py-4">
-                        <DialogTitle className="flex items-center gap-2">
+            <Dialog
+                open={true}
+                onOpenChange={(open) => {
+                    if (!open) handleClose();
+                }}
+            >
+                <DialogContent className="max-h-[95vh] w-[95vw] max-w-7xl overflow-hidden p-0 sm:w-[90vw] md:w-[85vw] lg:w-[80vw] xl:w-[75vw] 2xl:max-w-7xl">
+                    <DialogHeader className="border-b border-gray-200 p-4 sm:px-6">
+                        <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
                             {template ? (
                                 <>
-                                    <Edit className="size-5" />
+                                    <Edit className="size-4 sm:size-5" />
                                     Edit Template
                                 </>
                             ) : (
                                 <>
-                                    <Plus className="size-5" />
+                                    <Plus className="size-4 sm:size-5" />
                                     Create Template
                                 </>
                             )}
@@ -347,7 +349,13 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                                             onValueChange={(value) => {
                                                 console.log('Template type changed to:', value);
                                                 setTemplateType(value);
-                                                setFormData(prev => ({ ...prev, templateType: value as 'marketing' | 'utility' | 'transactional' }));
+                                                setFormData((prev) => ({
+                                                    ...prev,
+                                                    templateType: value as
+                                                        | 'marketing'
+                                                        | 'utility'
+                                                        | 'transactional',
+                                                }));
                                             }}
                                         >
                                             <SelectTrigger className="w-full">
@@ -409,7 +417,10 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                                                 isSaving,
                                                 name: formData.name.trim(),
                                                 content: formData.content.trim(),
-                                                disabled: isSaving || !formData.name.trim() || !formData.content.trim()
+                                                disabled:
+                                                    isSaving ||
+                                                    !formData.name.trim() ||
+                                                    !formData.content.trim(),
                                             });
                                         }}
                                         className="hover:bg-primary-600 h-10 bg-primary-500 px-6 text-white disabled:bg-gray-300 disabled:text-gray-500"

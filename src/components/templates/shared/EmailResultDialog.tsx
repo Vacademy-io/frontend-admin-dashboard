@@ -55,25 +55,27 @@ export const EmailResultDialog: React.FC<EmailResultDialogProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle className="text-center">
+            <DialogContent className="w-[95vw] max-w-md sm:w-[90vw] md:w-[85vw] lg:w-[80vw] xl:w-[75vw] 2xl:max-w-md">
+                <DialogHeader className="px-4 sm:px-6">
+                    <DialogTitle className="text-center text-lg sm:text-xl">
                         {content.title}
                     </DialogTitle>
                 </DialogHeader>
 
-                <div className="flex flex-col items-center space-y-4 py-4">
-                    {content.icon}
-                    <p className="text-center text-sm text-gray-600">
+                <div className="flex flex-col items-center space-y-3 sm:space-y-4 py-3 sm:py-4 px-4 sm:px-6">
+                    <div className="scale-75 sm:scale-100">
+                        {content.icon}
+                    </div>
+                    <p className="text-center text-xs sm:text-sm text-gray-600 break-words">
                         {content.message}
                     </p>
 
                     {errors && errors.length > 0 && (
                         <div className="w-full">
-                            <h4 className="text-sm font-medium text-gray-700 mb-2">Error Details:</h4>
-                            <div className="max-h-32 overflow-y-auto space-y-1">
+                            <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Error Details:</h4>
+                            <div className="max-h-24 sm:max-h-32 overflow-y-auto space-y-1">
                                 {errors.map((error, index) => (
-                                    <div key={index} className="text-xs text-red-600 bg-red-50 p-2 rounded">
+                                    <div key={index} className="text-xs text-red-600 bg-red-50 p-2 rounded break-words">
                                         Student {error.studentId}: {error.error}
                                     </div>
                                 ))}
@@ -82,11 +84,11 @@ export const EmailResultDialog: React.FC<EmailResultDialogProps> = ({
                     )}
                 </div>
 
-                <div className="flex justify-center">
+                <div className="flex justify-center px-4 sm:px-6 pb-4 sm:pb-6">
                     <Button
                         onClick={onClose}
                         variant={content.buttonVariant}
-                        className="w-full"
+                        className="w-full text-xs sm:text-sm px-4 py-2"
                     >
                         {content.buttonText}
                     </Button>

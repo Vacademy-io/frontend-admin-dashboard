@@ -60,32 +60,32 @@ export const ComprehensiveSendEmailDialog: React.FC<ComprehensiveSendEmailDialog
             {({ sendEmail, isSending, validationResult: serviceValidationResult, showValidationDialog: serviceShowValidationDialog, onCloseValidationDialog, onRetryValidation }) => (
                 <>
                     <Dialog open={isOpen} onOpenChange={handleClose}>
-                        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                            <DialogHeader>
-                                <DialogTitle className="flex items-center gap-2">
-                                    <Mail className="h-5 w-5" />
+                        <DialogContent className="w-[95vw] max-w-2xl max-h-[80vh] overflow-y-auto sm:w-[90vw] md:w-[85vw] lg:w-[80vw] xl:w-[75vw] 2xl:max-w-2xl">
+                            <DialogHeader className="px-4 sm:px-6">
+                                <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                                    <Mail className="h-4 w-4 sm:h-5 sm:w-5" />
                                     Send Email
                                 </DialogTitle>
-                                <DialogDescription>
+                                <DialogDescription className="text-sm sm:text-base">
                                     Send personalized emails to selected students using the template.
                                 </DialogDescription>
                             </DialogHeader>
 
-                            <div className="space-y-6">
+                            <div className="space-y-4 sm:space-y-6 px-4 sm:px-6">
                                 {/* Template Information */}
                                 <div className="space-y-2">
                                     <h4 className="text-sm font-medium">Template Details</h4>
                                     <div className="p-3 bg-muted rounded-lg space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <span className="font-medium">{selectedTemplate.name}</span>
-                                            <Badge variant="outline">{selectedTemplate.type}</Badge>
+                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                            <span className="font-medium text-sm sm:text-base break-words">{selectedTemplate.name}</span>
+                                            <Badge variant="outline" className="w-fit">{selectedTemplate.type}</Badge>
                                         </div>
                                         {selectedTemplate.subject && (
-                                            <p className="text-sm text-muted-foreground">
+                                            <p className="text-xs sm:text-sm text-muted-foreground break-words">
                                                 Subject: {selectedTemplate.subject}
                                             </p>
                                         )}
-                                        <p className="text-sm text-muted-foreground line-clamp-3">
+                                        <p className="text-xs sm:text-sm text-muted-foreground line-clamp-3 break-words">
                                             {selectedTemplate.content}
                                         </p>
                                     </div>
@@ -94,17 +94,17 @@ export const ComprehensiveSendEmailDialog: React.FC<ComprehensiveSendEmailDialog
                                 {/* Recipients Information */}
                                 <div className="space-y-2">
                                     <h4 className="text-sm font-medium">Recipients</h4>
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                                         <div className="flex items-center gap-2">
                                             <Users className="h-4 w-4" />
-                                            <span className="text-sm">
+                                            <span className="text-xs sm:text-sm">
                                                 {validStudents.length} student{validStudents.length > 1 ? 's' : ''}
                                             </span>
                                         </div>
-                                        <Badge variant="outline">
+                                        <Badge variant="outline" className="text-xs">
                                             {notificationType}
                                         </Badge>
-                                        <Badge variant="outline">
+                                        <Badge variant="outline" className="text-xs">
                                             {context.replace('-', ' ')}
                                         </Badge>
                                     </div>
@@ -163,12 +163,17 @@ export const ComprehensiveSendEmailDialog: React.FC<ComprehensiveSendEmailDialog
                                 )}
 
                                 {/* Action Buttons */}
-                                <div className="flex items-center justify-between pt-4 border-t">
-                                    <Button variant="outline" onClick={handleClose} disabled={isSending}>
+                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-4 border-t gap-3 sm:gap-0">
+                                    <Button
+                                        variant="outline"
+                                        onClick={handleClose}
+                                        disabled={isSending}
+                                        className="w-full sm:w-auto text-xs sm:text-sm px-4 py-2"
+                                    >
                                         Cancel
                                     </Button>
 
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 w-full sm:w-auto">
                                         <EmailSendButton
                                             onClick={() => sendEmail({
                                                 template: selectedTemplate.content,
