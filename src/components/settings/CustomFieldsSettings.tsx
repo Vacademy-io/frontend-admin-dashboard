@@ -68,14 +68,12 @@ import {
     createTempCustomField,
     createNewFieldGroup,
     isTempField,
-    tempFieldToNewField,
     type CustomFieldSettingsData,
     type CustomField as ServiceCustomField,
     type FixedField as ServiceFixedField,
     type FieldGroup as ServiceFieldGroup,
     type GroupField as ServiceGroupField,
     type FieldVisibility as ServiceFieldVisibility,
-    type NewCustomField,
 } from '@/services/custom-field-settings';
 import { getInstituteId } from '@/constants/helper';
 
@@ -651,22 +649,12 @@ const CustomFieldsSettings: React.FC = () => {
             setError(null);
             setSaveMessage(null);
 
-            // Separate temporary fields from existing fields
-            const existingCustomFields = customFields.filter((field) => !isTempField(field));
-            const tempCustomFields = customFields.filter((field) => isTempField(field));
-
-            // Convert temporary fields to new fields (these will get IDs from backend)
-            const newCustomFields: NewCustomField[] = tempCustomFields.map(tempFieldToNewField);
-
-            // For now, we'll still include temp fields in the save
-            // In a real implementation, you'd handle new vs existing fields differently
-            // The backend would need to distinguish between updates and creates
-
-            // Create the settings data object
+            // Create the settings data object with all fields
+            // The service will handle distinguishing between new and existing fields
             const settingsData: CustomFieldSettingsData = {
                 fixedFields,
                 instituteFields,
-                customFields: existingCustomFields, // Only send existing fields
+                customFields, // Send all custom fields (including temp ones)
                 fieldGroups,
                 lastUpdated: new Date().toISOString(),
                 version: 1,
@@ -679,11 +667,9 @@ const CustomFieldsSettings: React.FC = () => {
                     id: f.id,
                     name: f.name,
                 })),
+                tempFields: settingsData.customFields.filter((f) => isTempField(f)).length,
+                existingFields: settingsData.customFields.filter((f) => !isTempField(f)).length,
             });
-
-            // TODO: Handle newCustomFields separately or enhance the API
-            // to accept both existing and new fields
-            console.log('New fields to be created:', newCustomFields);
 
             const result = await saveCustomFieldSettings(settingsData);
 
@@ -1013,31 +999,6 @@ const CustomFieldsSettings: React.FC = () => {
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <MyButton
-                            onClick={() => {
-                                console.log('🔍 [DEBUG] localStorage inspection:', {
-                                    keys: Object.keys(localStorage),
-                                    cache: localStorage.getItem('custom-field-settings-cache'),
-                                    instituteId: getInstituteId(),
-                                    selectedInstituteId:
-                                        localStorage.getItem('selectedInstituteId'),
-                                });
-                            }}
-                            buttonType="secondary"
-                            className="bg-purple-500 text-white hover:bg-purple-600"
-                        >
-                            🔍 Debug Storage
-                        </MyButton>
-                        <MyButton
-                            onClick={() => {
-                                localStorage.removeItem('custom-field-settings-cache');
-                                loadSettings();
-                            }}
-                            buttonType="secondary"
-                            className="bg-orange-500 text-white hover:bg-orange-600"
-                        >
-                            🔄 Force Refresh
-                        </MyButton>
                         <MyButton
                             onClick={handleCreateGroup}
                             disabled={selectedFields.size === 0}

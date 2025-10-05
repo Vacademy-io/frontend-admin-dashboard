@@ -103,15 +103,16 @@ export interface ApiCustomFieldResponse {
 }
 
 // API Request Types (what we send to UPDATE_CUSTOM_FIELD_SETTINGS)
+// Note: The API expects snake_case field names
 export interface ApiCustomFieldRequest {
-    currentCustomFieldsAndGroups: ApiCustomField[];
-    customGroup: Record<string, ApiGroupField>;
-    customFieldsNames: string[];
-    compulsoryCustomFields: string[];
-    fixedCustomFields: string[];
-    allCustomFields: string[];
-    customFieldLocations: string[];
-    groupNames?: string[];
+    current_custom_fields_and_groups: ApiCustomField[];
+    custom_group: Record<string, ApiGroupField>;
+    custom_fields_names: string[];
+    compulsory_custom_fields: string[];
+    fixed_custom_fields: string[];
+    all_custom_fields: string[];
+    custom_field_locations: string[];
+    group_names?: string[];
 }
 
 // UI Types (for our components)
@@ -322,77 +323,6 @@ const mapApiGroupFieldToGroupField = (apiGroupField: ApiGroupField): GroupField 
 };
 
 /**
- * Convert UI fixed field to API field
- */
-const mapFixedFieldToApiField = (fixedField: FixedField, instituteId: string): ApiCustomField => {
-    return {
-        id: '', // Will be set by API
-        customFieldId: fixedField.id,
-        instituteId,
-        groupName: null,
-        fieldName: fixedField.name,
-        fieldType: 'text', // Fixed fields are typically text
-        individualOrder: fixedField.order,
-        groupInternalOrder: null,
-        canBeDeleted: fixedField.canBeDeleted,
-        canBeEdited: fixedField.canBeEdited,
-        canBeRenamed: fixedField.canBeRenamed,
-        locations: mapVisibilityToLocations(fixedField.visibility),
-        status: 'ACTIVE',
-    };
-};
-
-/**
- * Convert UI custom field to API field
- */
-const mapCustomFieldToApiField = (
-    customField: CustomField,
-    instituteId: string
-): ApiCustomField => {
-    return {
-        id: '', // Will be set by API
-        customFieldId: customField.id,
-        instituteId,
-        groupName: null,
-        fieldName: customField.name,
-        fieldType: customField.type,
-        individualOrder: customField.order,
-        groupInternalOrder: null,
-        canBeDeleted: customField.canBeDeleted,
-        canBeEdited: customField.canBeEdited,
-        canBeRenamed: customField.canBeRenamed,
-        locations: mapVisibilityToLocations(customField.visibility),
-        status: 'ACTIVE',
-        options: customField.options,
-    };
-};
-
-/**
- * Convert UI group field to API group field
- */
-const mapGroupFieldToApiGroupField = (
-    groupField: GroupField,
-    instituteId: string,
-    groupName: string
-): ApiGroupField => {
-    return {
-        id: '', // Will be set by API
-        customFieldId: groupField.id,
-        instituteId,
-        groupName,
-        fieldName: groupField.name,
-        fieldType: groupField.type,
-        individualOrder: groupField.order,
-        groupInternalOrder: groupField.groupInternalOrder,
-        canBeDeleted: groupField.canBeDeleted,
-        canBeEdited: groupField.canBeEdited,
-        canBeRenamed: groupField.canBeRenamed,
-        locations: mapVisibilityToLocations(groupField.visibility),
-        status: 'ACTIVE',
-    };
-};
-
-/**
  * Convert API response to UI format
  */
 const mapApiResponseToUI = (apiResponse: ApiCustomFieldResponse): CustomFieldSettingsData => {
@@ -510,13 +440,107 @@ const mapApiResponseToUI = (apiResponse: ApiCustomFieldResponse): CustomFieldSet
 };
 
 /**
- * Convert UI format to API request
+ * Store original API data for preserving during save operations
  */
-const mapUIToApiRequest = (uiData: CustomFieldSettingsData): ApiCustomFieldRequest => {
-    const instituteId = getInstituteId();
-    if (!instituteId) {
-        throw new Error('Institute ID not found');
-    }
+let originalApiData: ApiCustomFieldResponse['data']['data'] | null = null;
+
+/**
+ * Set the original API data (called after successful GET request)
+ */
+export const setOriginalApiData = (apiData: ApiCustomFieldResponse['data']['data']): void => {
+    originalApiData = apiData;
+    console.log('🔍 [DEBUG] Stored original API data for preservation during save');
+};
+
+/**
+ * Convert UI field back to API field, preserving original API structure
+ */
+const preserveApiField = (
+    uiField: CustomField | FixedField,
+    originalApiField: ApiCustomField
+): ApiCustomField => {
+    return {
+        ...originalApiField, // Preserve all original API data
+        fieldName: uiField.name, // Update name if changed
+        individualOrder: uiField.order, // Update order if changed
+        locations: mapVisibilityToLocations(uiField.visibility), // Update visibility
+        options: 'options' in uiField ? uiField.options : originalApiField.options, // Update options if it's a custom field
+    };
+};
+
+/**
+ * Convert UI group field back to API group field, preserving original structure
+ */
+const preserveApiGroupField = (
+    uiField: GroupField,
+    originalApiField: ApiGroupField
+): ApiGroupField => {
+    return {
+        ...originalApiField, // Preserve all original API data
+        fieldName: uiField.name, // Update name if changed
+        individualOrder: uiField.order, // Update order if changed
+        groupInternalOrder: uiField.groupInternalOrder, // Update group order if changed
+        locations: mapVisibilityToLocations(uiField.visibility), // Update visibility
+    };
+};
+
+/**
+ * Create API field for new custom field (without backend ID)
+ */
+const createNewApiField = (
+    customField: CustomField,
+    instituteId: string
+): Omit<ApiCustomField, 'id'> => {
+    return {
+        customFieldId: '', // Backend will assign this
+        instituteId,
+        groupName: null,
+        fieldName: customField.name,
+        fieldType: customField.type,
+        individualOrder: customField.order,
+        groupInternalOrder: null,
+        canBeDeleted: true,
+        canBeEdited: true,
+        canBeRenamed: true,
+        locations: mapVisibilityToLocations(customField.visibility),
+        status: 'ACTIVE',
+        options: customField.options,
+    };
+};
+
+/**
+ * Create API group field for new group field (without backend ID)
+ */
+const createNewApiGroupField = (
+    groupField: GroupField,
+    instituteId: string,
+    groupName: string
+): Omit<ApiGroupField, 'id'> => {
+    return {
+        customFieldId: '', // Backend will assign this
+        instituteId,
+        groupName,
+        fieldName: groupField.name,
+        fieldType: groupField.type,
+        individualOrder: groupField.order,
+        groupInternalOrder: groupField.groupInternalOrder,
+        canBeDeleted: true,
+        canBeEdited: true,
+        canBeRenamed: true,
+        locations: mapVisibilityToLocations(groupField.visibility),
+        status: 'ACTIVE',
+    };
+};
+
+/**
+ * Create a fresh API request structure when no original data is available
+ * This is used for first-time saves or when the original API data is missing
+ */
+const mapUIToApiRequestFresh = (
+    uiData: CustomFieldSettingsData,
+    instituteId: string
+): ApiCustomFieldRequest => {
+    console.log('🔍 [DEBUG] Creating fresh API request structure');
 
     const currentCustomFieldsAndGroups: ApiCustomField[] = [];
     const customGroup: Record<string, ApiGroupField> = {};
@@ -524,19 +548,26 @@ const mapUIToApiRequest = (uiData: CustomFieldSettingsData): ApiCustomFieldReque
     const compulsoryCustomFields: string[] = [];
     const fixedCustomFields: string[] = [];
     const allCustomFields: string[] = [];
-
-    console.log('🔍 [DEBUG] UI Data being transformed:', {
-        fixedFieldsCount: uiData.fixedFields.length,
-        customFieldsCount: uiData.customFields.length,
-        instituteFieldsCount: uiData.instituteFields.length,
-        firstFixedField: uiData.fixedFields[0]
-            ? { id: uiData.fixedFields[0].id, name: uiData.fixedFields[0].name }
-            : null,
-    });
+    const groupNames: string[] = [];
 
     // Process fixed fields
     uiData.fixedFields.forEach((fixedField) => {
-        const apiField = mapFixedFieldToApiField(fixedField, instituteId);
+        // For fresh saves, we create new API field structures
+        const apiField: ApiCustomField = {
+            id: '', // Backend will assign
+            customFieldId: fixedField.id,
+            instituteId,
+            groupName: null,
+            fieldName: fixedField.name,
+            fieldType: 'text', // Fixed fields are typically text
+            individualOrder: fixedField.order,
+            groupInternalOrder: null,
+            canBeDeleted: fixedField.canBeDeleted,
+            canBeEdited: fixedField.canBeEdited,
+            canBeRenamed: fixedField.canBeRenamed,
+            locations: mapVisibilityToLocations(fixedField.visibility),
+            status: 'ACTIVE',
+        };
         currentCustomFieldsAndGroups.push(apiField);
 
         customFieldsNames.push(fixedField.name);
@@ -550,9 +581,25 @@ const mapUIToApiRequest = (uiData: CustomFieldSettingsData): ApiCustomFieldReque
 
     // Process institute fields
     uiData.instituteFields.forEach((instituteField) => {
-        const apiField = mapCustomFieldToApiField(instituteField, instituteId);
+        const apiField: ApiCustomField = {
+            id: '', // Backend will assign
+            customFieldId: instituteField.id,
+            instituteId,
+            groupName: null,
+            fieldName: instituteField.name,
+            fieldType: instituteField.type,
+            individualOrder: instituteField.order,
+            groupInternalOrder: null,
+            canBeDeleted: instituteField.canBeDeleted,
+            canBeEdited: instituteField.canBeEdited,
+            canBeRenamed: instituteField.canBeRenamed,
+            locations: mapVisibilityToLocations(instituteField.visibility),
+            status: 'ACTIVE',
+            options: instituteField.options,
+        };
         currentCustomFieldsAndGroups.push(apiField);
 
+        customFieldsNames.push(instituteField.name);
         allCustomFields.push(instituteField.id);
 
         if (instituteField.required) {
@@ -562,53 +609,303 @@ const mapUIToApiRequest = (uiData: CustomFieldSettingsData): ApiCustomFieldReque
 
     // Process custom fields
     uiData.customFields.forEach((customField) => {
-        const apiField = mapCustomFieldToApiField(customField, instituteId);
+        const apiField: ApiCustomField = {
+            id: '', // Backend will assign
+            customFieldId: isTempField(customField) ? '' : customField.id, // Empty for new fields
+            instituteId,
+            groupName: null,
+            fieldName: customField.name,
+            fieldType: customField.type,
+            individualOrder: customField.order,
+            groupInternalOrder: null,
+            canBeDeleted: customField.canBeDeleted,
+            canBeEdited: customField.canBeEdited,
+            canBeRenamed: customField.canBeRenamed,
+            locations: mapVisibilityToLocations(customField.visibility),
+            status: 'ACTIVE',
+            options: customField.options,
+        };
         currentCustomFieldsAndGroups.push(apiField);
 
-        allCustomFields.push(customField.id);
+        customFieldsNames.push(customField.name);
+
+        // Only add to allCustomFields if it's not a temp field
+        if (!isTempField(customField)) {
+            allCustomFields.push(customField.id);
+        }
 
         if (customField.required) {
-            compulsoryCustomFields.push(customField.id);
+            const fieldId = isTempField(customField) ? customField.name : customField.id;
+            compulsoryCustomFields.push(fieldId);
         }
     });
 
     // Process field groups
-    const groupNames: string[] = [];
     uiData.fieldGroups.forEach((fieldGroup) => {
         groupNames.push(fieldGroup.name);
 
         fieldGroup.fields.forEach((groupField) => {
-            const apiGroupField = mapGroupFieldToApiGroupField(
-                groupField,
-                instituteId,
-                fieldGroup.name
-            );
-            customGroup[`${fieldGroup.name}_${groupField.id}`] = apiGroupField;
+            const groupKey = `${fieldGroup.name}_${groupField.id}`;
 
-            allCustomFields.push(groupField.id);
+            const apiGroupField: ApiGroupField = {
+                id: '', // Backend will assign
+                customFieldId: isTempField(groupField) ? '' : groupField.id, // Empty for new fields
+                instituteId,
+                groupName: fieldGroup.name,
+                fieldName: groupField.name,
+                fieldType: groupField.type,
+                individualOrder: groupField.order,
+                groupInternalOrder: groupField.groupInternalOrder,
+                canBeDeleted: groupField.canBeDeleted,
+                canBeEdited: groupField.canBeEdited,
+                canBeRenamed: groupField.canBeRenamed,
+                locations: mapVisibilityToLocations(groupField.visibility),
+                status: 'ACTIVE',
+            };
+            customGroup[groupKey] = apiGroupField;
+
+            customFieldsNames.push(groupField.name);
+
+            // Only add to allCustomFields if it's not a temp field
+            if (!isTempField(groupField)) {
+                allCustomFields.push(groupField.id);
+            }
 
             if (groupField.required) {
-                compulsoryCustomFields.push(groupField.id);
+                const fieldId = isTempField(groupField) ? groupField.name : groupField.id;
+                compulsoryCustomFields.push(fieldId);
             }
         });
     });
 
-    const result = {
-        currentCustomFieldsAndGroups,
-        customGroup,
-        customFieldsNames,
-        compulsoryCustomFields,
-        fixedCustomFields,
-        allCustomFields,
-        customFieldLocations: Object.values(VISIBILITY_TO_LOCATION_MAP),
-        groupNames: groupNames.length > 0 ? groupNames : undefined,
+    const result: ApiCustomFieldRequest = {
+        current_custom_fields_and_groups: currentCustomFieldsAndGroups,
+        custom_group: customGroup,
+        custom_fields_names: customFieldsNames,
+        compulsory_custom_fields: compulsoryCustomFields,
+        fixed_custom_fields: fixedCustomFields,
+        all_custom_fields: allCustomFields,
+        custom_field_locations: Object.values(VISIBILITY_TO_LOCATION_MAP),
+        group_names: groupNames.length > 0 ? groupNames : undefined,
     };
 
-    console.log('🔍 [DEBUG] Final API request payload:', {
-        allCustomFields: result.allCustomFields,
-        customFieldsNames: result.customFieldsNames,
-        fixedCustomFields: result.fixedCustomFields,
-        compulsoryCustomFields: result.compulsoryCustomFields,
+    console.log('🔍 [DEBUG] Fresh API request payload:', {
+        totalFields: result.current_custom_fields_and_groups.length,
+        totalGroups: Object.keys(result.custom_group).length,
+        allCustomFields: result.all_custom_fields.length,
+        customFieldsNames: result.custom_fields_names.length,
+        fixedCustomFields: result.fixed_custom_fields.length,
+        compulsoryCustomFields: result.compulsory_custom_fields.length,
+        newFields: result.current_custom_fields_and_groups.filter(
+            (f: ApiCustomField) => f.customFieldId === ''
+        ).length,
+        newGroupFields: Object.values(result.custom_group).filter(
+            (f: ApiGroupField) => f.customFieldId === ''
+        ).length,
+    });
+
+    return result;
+};
+
+/**
+ * Convert UI format to API request, preserving original API structure when available
+ */
+const mapUIToApiRequest = (uiData: CustomFieldSettingsData): ApiCustomFieldRequest => {
+    const instituteId = getInstituteId();
+    if (!instituteId) {
+        throw new Error('Institute ID not found');
+    }
+
+    console.log('🔍 [DEBUG] Converting UI data to API request:', {
+        hasOriginalData: !!originalApiData,
+        fixedFieldsCount: uiData.fixedFields.length,
+        customFieldsCount: uiData.customFields.length,
+        instituteFieldsCount: uiData.instituteFields.length,
+        groupsCount: uiData.fieldGroups.length,
+    });
+
+    // If we don't have original API data, we'll create a fresh structure
+    // This can happen on first save or if the data wasn't properly loaded
+    if (!originalApiData) {
+        console.warn('🚨 [DEBUG] No original API data available - creating fresh structure');
+        return mapUIToApiRequestFresh(uiData, instituteId);
+    }
+
+    // We have original data, so we can preserve the structure
+
+    // Start with the original data structure and modify only what's changed
+    const currentCustomFieldsAndGroups: ApiCustomField[] = [];
+    const customGroup: Record<string, ApiGroupField> = { ...(originalApiData.customGroup || {}) };
+    const customFieldsNames: string[] = [];
+    const compulsoryCustomFields: string[] = [];
+    const fixedCustomFields: string[] = [...(originalApiData.fixedCustomFields || [])];
+    const allCustomFields: string[] = [];
+    const groupNames: string[] = [...(originalApiData.groupNames || [])];
+
+    // Create a map of original fields for easy lookup
+    const originalFieldsMap = new Map<string, ApiCustomField>();
+    const originalFields = originalApiData.currentCustomFieldsAndGroups || [];
+    originalFields.forEach((field) => {
+        originalFieldsMap.set(field.customFieldId, field);
+    });
+
+    const originalGroupFieldsMap = new Map<string, ApiGroupField>();
+    const originalGroupEntries = originalApiData.customGroup || {};
+    Object.entries(originalGroupEntries).forEach(([, field]) => {
+        originalGroupFieldsMap.set(field.customFieldId, field);
+    });
+
+    // Process fixed fields
+    uiData.fixedFields.forEach((fixedField) => {
+        const originalField = originalFieldsMap.get(fixedField.id);
+        if (originalField) {
+            // Existing field - preserve original structure, update only changed data
+            const apiField = preserveApiField(fixedField, originalField);
+            currentCustomFieldsAndGroups.push(apiField);
+        } else {
+            console.warn(`Fixed field ${fixedField.id} not found in original data`);
+        }
+
+        // Add all field names to customFieldsNames for backend compatibility
+        customFieldsNames.push(fixedField.name);
+        allCustomFields.push(fixedField.id);
+
+        if (fixedField.required) {
+            compulsoryCustomFields.push(fixedField.id);
+        }
+    });
+
+    // Process institute fields
+    uiData.instituteFields.forEach((instituteField) => {
+        const originalField = originalFieldsMap.get(instituteField.id);
+        if (originalField) {
+            // Existing field - preserve original structure
+            const apiField = preserveApiField(instituteField, originalField);
+            currentCustomFieldsAndGroups.push(apiField);
+        } else {
+            console.warn(`Institute field ${instituteField.id} not found in original data`);
+        }
+
+        // Add all field names to customFieldsNames for backend compatibility
+        customFieldsNames.push(instituteField.name);
+        allCustomFields.push(instituteField.id);
+
+        if (instituteField.required) {
+            compulsoryCustomFields.push(instituteField.id);
+        }
+    });
+
+    // Process custom fields
+    uiData.customFields.forEach((customField) => {
+        if (isTempField(customField)) {
+            // New field - create new API structure without ID
+            const newApiField = createNewApiField(customField, instituteId) as ApiCustomField;
+            // For new fields, leave customFieldId empty so backend can assign proper ID
+            newApiField.customFieldId = '';
+            newApiField.id = ''; // Also ensure id is empty
+            currentCustomFieldsAndGroups.push(newApiField);
+        } else {
+            // Existing field - preserve original structure
+            const originalField = originalFieldsMap.get(customField.id);
+            if (originalField) {
+                const apiField = preserveApiField(customField, originalField);
+                currentCustomFieldsAndGroups.push(apiField);
+            } else {
+                console.warn(`Custom field ${customField.id} not found in original data`);
+            }
+        }
+
+        customFieldsNames.push(customField.name);
+        // For new fields, don't add the temp ID to allCustomFields
+        if (!isTempField(customField)) {
+            allCustomFields.push(customField.id);
+        }
+
+        if (customField.required) {
+            // For new fields, use the field name instead of temp ID
+            const fieldId = isTempField(customField) ? customField.name : customField.id;
+            compulsoryCustomFields.push(fieldId);
+        }
+    });
+
+    // Process field groups
+    const updatedCustomGroup: Record<string, ApiGroupField> = {};
+
+    uiData.fieldGroups.forEach((fieldGroup) => {
+        // Add group name to list if it's new
+        if (!groupNames.includes(fieldGroup.name)) {
+            groupNames.push(fieldGroup.name);
+        }
+
+        fieldGroup.fields.forEach((groupField) => {
+            const groupKey = `${fieldGroup.name}_${groupField.id}`;
+
+            if (isTempField(groupField)) {
+                // New group field
+                const newApiGroupField = createNewApiGroupField(
+                    groupField,
+                    instituteId,
+                    fieldGroup.name
+                ) as ApiGroupField;
+                // For new fields, leave customFieldId empty so backend can assign proper ID
+                newApiGroupField.customFieldId = '';
+                newApiGroupField.id = '';
+                updatedCustomGroup[groupKey] = newApiGroupField;
+            } else {
+                // Existing group field - preserve original structure
+                const originalGroupField = originalGroupFieldsMap.get(groupField.id);
+                if (originalGroupField) {
+                    const apiGroupField = preserveApiGroupField(groupField, originalGroupField);
+                    updatedCustomGroup[groupKey] = apiGroupField;
+                } else {
+                    console.warn(`Group field ${groupField.id} not found in original data`);
+                }
+            }
+
+            // For new fields, don't add the temp ID to allCustomFields
+            if (!isTempField(groupField)) {
+                allCustomFields.push(groupField.id);
+            }
+
+            // Add group field names to customFieldsNames for backend compatibility
+            customFieldsNames.push(groupField.name);
+
+            if (groupField.required) {
+                // For new fields, use the field name instead of temp ID
+                const fieldId = isTempField(groupField) ? groupField.name : groupField.id;
+                compulsoryCustomFields.push(fieldId);
+            }
+        });
+    });
+
+    // Merge with preserved group data (for groups that weren't modified)
+    Object.assign(customGroup, updatedCustomGroup);
+
+    const result: ApiCustomFieldRequest = {
+        current_custom_fields_and_groups: currentCustomFieldsAndGroups,
+        custom_group: customGroup,
+        custom_fields_names: customFieldsNames,
+        compulsory_custom_fields: compulsoryCustomFields,
+        fixed_custom_fields: fixedCustomFields,
+        all_custom_fields: allCustomFields,
+        custom_field_locations:
+            originalApiData.customFieldLocations || Object.values(VISIBILITY_TO_LOCATION_MAP),
+        group_names: groupNames.length > 0 ? groupNames : undefined,
+    };
+
+    console.log('🔍 [DEBUG] Final API request payload (with preservation):', {
+        totalFields: result.current_custom_fields_and_groups.length,
+        totalGroups: Object.keys(result.custom_group).length,
+        allCustomFields: result.all_custom_fields.length,
+        customFieldsNames: result.custom_fields_names.length,
+        fixedCustomFields: result.fixed_custom_fields.length,
+        compulsoryCustomFields: result.compulsory_custom_fields.length,
+        newFields: result.current_custom_fields_and_groups.filter(
+            (f: ApiCustomField) => f.customFieldId === ''
+        ).length,
+        newGroupFields: Object.values(result.custom_group).filter(
+            (f: ApiGroupField) => f.customFieldId === ''
+        ).length,
     });
 
     return result;
@@ -772,6 +1069,9 @@ const fetchCustomFieldSettingsFromAPI = async (): Promise<CustomFieldSettingsDat
         if (response.data && response.data.data) {
             console.log('🔍 [DEBUG] Mapping API response to UI format...');
 
+            // Store original API data for preservation during save operations
+            setOriginalApiData(response.data.data.data);
+
             // Check if the data has the expected structure
             if (!response.data.data.data?.allCustomFields) {
                 console.warn('🚨 [DEBUG] API response missing allCustomFields - using empty array');
@@ -855,6 +1155,50 @@ export const getCustomFieldSettings = async (
 };
 
 /**
+ * Debug function to validate API request data structure
+ */
+const validateApiRequest = (apiRequest: ApiCustomFieldRequest): void => {
+    console.log('🔍 [DEBUG] Validating API request structure:', {
+        hasCurrentCustomFieldsAndGroups: !!apiRequest.current_custom_fields_and_groups,
+        hasCustomGroup: !!apiRequest.custom_group,
+        hasAllCustomFields: !!apiRequest.all_custom_fields,
+        hasFixedCustomFields: !!apiRequest.fixed_custom_fields,
+        hasCompulsoryCustomFields: !!apiRequest.compulsory_custom_fields,
+        hasCustomFieldsNames: !!apiRequest.custom_fields_names,
+        hasCustomFieldLocations: !!apiRequest.custom_field_locations,
+    });
+
+    // Check for missing IDs in existing fields
+    const fieldsWithoutIds = apiRequest.current_custom_fields_and_groups.filter(
+        (field: ApiCustomField) => !field.id && field.customFieldId !== ''
+    );
+    if (fieldsWithoutIds.length > 0) {
+        console.warn('🚨 [DEBUG] Found existing fields without API IDs:', fieldsWithoutIds);
+    }
+
+    // Check for new fields (should have empty customFieldId)
+    const newFields = apiRequest.current_custom_fields_and_groups.filter(
+        (field: ApiCustomField) => field.customFieldId === ''
+    );
+    console.log('🔍 [DEBUG] New fields to be created:', {
+        count: newFields.length,
+        fields: newFields.map((f: ApiCustomField) => ({ name: f.fieldName, type: f.fieldType })),
+    });
+
+    // Check for group fields integrity
+    const newGroupFields = Object.values(apiRequest.custom_group).filter(
+        (field: ApiGroupField) => field.customFieldId === ''
+    );
+    console.log('🔍 [DEBUG] New group fields to be created:', {
+        count: newGroupFields.length,
+        fields: newGroupFields.map((f: ApiGroupField) => ({
+            name: f.fieldName,
+            group: f.groupName,
+        })),
+    });
+};
+
+/**
  * Save custom field settings to API and update cache
  */
 export const saveCustomFieldSettings = async (
@@ -870,9 +1214,18 @@ export const saveCustomFieldSettings = async (
         // Convert UI data to API format
         const apiRequest = mapUIToApiRequest(settings);
 
+        // Validate the API request structure
+        validateApiRequest(apiRequest);
+
         // Determine if this is a create or update operation
         const cachedSettings = getCachedSettings();
         const isPresent = cachedSettings !== null;
+
+        console.log('🔍 [DEBUG] About to save to API:', {
+            isPresent,
+            instituteId,
+            requestSize: JSON.stringify(apiRequest).length,
+        });
 
         const requestParams: Record<string, string | boolean> = {
             instituteId,
@@ -889,6 +1242,8 @@ export const saveCustomFieldSettings = async (
                 'Content-Type': 'application/json',
             },
         });
+
+        console.log('✅ [DEBUG] API save successful');
 
         // Update cache with the saved settings
         const updatedSettings = {
