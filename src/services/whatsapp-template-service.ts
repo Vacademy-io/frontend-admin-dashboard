@@ -166,26 +166,62 @@ export class WhatsAppTemplateService {
             }
 
             const instituteId = getInstituteId();
-            const url = `${API_BASE_URL}/whatsapp/mappings/${templateId}`;
+            const url = `${API_BASE_URL}/whatsapp/mappings/${templateId}?instituteId=${instituteId}`;
+
+            console.log('🔍 Fetching template mappings:', {
+                templateId,
+                instituteId,
+                url
+            });
 
             const response = await fetch(url, {
+                method: 'GET',
                 headers: {
+                    'Accept': '*/*',
                     'Authorization': `Bearer ${accessToken}`,
+                    'Origin': window.location.origin,
+                    'Referer': window.location.origin + '/',
                 },
             });
 
+            console.log('📡 API Response:', {
+                status: response.status,
+                statusText: response.statusText,
+                ok: response.ok
+            });
+
             if (response.status === 404) {
+                console.log('ℹ️ No mapping found for template:', templateId);
                 return null; // No mapping exists yet
             }
 
             if (!response.ok) {
                 const errorText = await response.text();
+                console.error('❌ API Error:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    errorText
+                });
                 throw new Error(`Failed to get mappings: ${response.status} ${errorText}`);
             }
 
             const result = await response.json();
-            return result.mapping;
+            console.log('✅ Mapping data received:', result);
+
+            // Handle different response structures
+            if (result.mapping) {
+                return result.mapping;
+            } else if (result.data) {
+                return result.data;
+            } else if (result.templateId) {
+                // If the result itself is the mapping
+                return result;
+            } else {
+                console.warn('⚠️ Unexpected response structure:', result);
+                return null;
+            }
         } catch (error) {
+            console.error('❌ Error fetching template mappings:', error);
             return null;
         }
     }
@@ -201,34 +237,71 @@ export class WhatsAppTemplateService {
             const instituteId = getInstituteId();
             const url = `${API_BASE_URL}/whatsapp/mappings`;
 
+            const payload = {
+                ...mappingData,
+                instituteId,
+            };
+
+            console.log('💾 Saving template mapping:', {
+                templateId: mappingData.templateId,
+                templateName: mappingData.templateName,
+                instituteId,
+                url,
+                payload
+            });
+
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': '*/*',
                     'Authorization': `Bearer ${accessToken}`,
+                    'Origin': window.location.origin,
+                    'Referer': window.location.origin + '/',
                 },
-                body: JSON.stringify({
-                    ...mappingData,
-                    instituteId,
-                }),
+                body: JSON.stringify(payload),
+            });
+
+            console.log('📡 Save mapping response:', {
+                status: response.status,
+                statusText: response.statusText,
+                ok: response.ok
             });
 
             if (!response.ok) {
                 const errorText = await response.text();
+                console.error('❌ Save mapping error:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    errorText
+                });
                 throw new Error(`Failed to save mapping: ${response.status} ${errorText}`);
             }
 
             const result = await response.json();
+            console.log('✅ Mapping saved successfully:', result);
+
+            // Handle different response structures
+            let savedMapping: WhatsAppTemplateMapping;
+            if (result.mapping) {
+                savedMapping = result.mapping;
+            } else if (result.data) {
+                savedMapping = result.data;
+            } else if (result.templateId) {
+                savedMapping = result;
+            } else {
+                throw new Error('Unexpected response structure from save mapping API');
+            }
 
             // Update cache
             const existingIndex = this.mappingsCache.findIndex(m => m.templateId === mappingData.templateId);
             if (existingIndex >= 0) {
-                this.mappingsCache[existingIndex] = result.mapping;
+                this.mappingsCache[existingIndex] = savedMapping;
             } else {
-                this.mappingsCache.push(result.mapping);
+                this.mappingsCache.push(savedMapping);
             }
 
-            return result.mapping;
+            return savedMapping;
         } catch (error) {
             const mockMapping: WhatsAppTemplateMapping = {
                 id: `mock-${Date.now()}`,
@@ -279,7 +352,10 @@ export class WhatsAppTemplateService {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': '*/*',
                     'Authorization': `Bearer ${accessToken}`,
+                    'Origin': window.location.origin,
+                    'Referer': window.location.origin + '/',
                 },
                 body: JSON.stringify({
                     ...mappingData,
@@ -370,8 +446,12 @@ export class WhatsAppTemplateService {
             const url = `${API_BASE_URL}/whatsapp/mappings?instituteId=${instituteId}`;
 
             const response = await fetch(url, {
+                method: 'GET',
                 headers: {
+                    'Accept': '*/*',
                     'Authorization': `Bearer ${accessToken}`,
+                    'Origin': window.location.origin,
+                    'Referer': window.location.origin + '/',
                 },
             });
 

@@ -10,7 +10,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, AlertTriangle, CheckCircle, X, FileText, Settings } from 'lucide-react';
+import { RefreshCw, AlertTriangle, CheckCircle, X, FileText, Settings, Menu } from 'lucide-react';
 import { WhatsAppIcon } from '@/components/ui/whatsapp-icon';
 import {
     MetaWhatsAppTemplate,
@@ -40,6 +40,7 @@ export const WhatsAppTemplateMappingModal: React.FC<WhatsAppTemplateMappingModal
     const [error, setError] = useState<string | null>(null);
     const [existingMapping, setExistingMapping] = useState<WhatsAppTemplateMapping | null>(null);
     const [selectedCategories, setSelectedCategories] = useState<Record<string, string>>({});
+    const [showPreviewSidebar, setShowPreviewSidebar] = useState(false);
 
     const loadVacademyFields = useCallback(async () => {
         try {
@@ -260,7 +261,7 @@ export const WhatsAppTemplateMappingModal: React.FC<WhatsAppTemplateMappingModal
                     </div>
                 </DialogHeader>
 
-                <div className="flex min-h-0 flex-1">
+                <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
                     {/* Main Content Area */}
                     <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-8">
                         <div className="space-y-4 sm:space-y-6 lg:space-y-8">
@@ -434,16 +435,29 @@ export const WhatsAppTemplateMappingModal: React.FC<WhatsAppTemplateMappingModal
                     </div>
 
                     {/* Preview Sidebar */}
-                    <div className="w-96 overflow-y-auto border-l border-gray-200/60 bg-gradient-to-b from-white/90 to-gray-50/90 p-8 backdrop-blur-sm">
-                        <div className="space-y-8">
-                            {/* WhatsApp Message Preview */}
-                            <div className="space-y-4">
+                    <div className={`w-full overflow-y-auto border-t border-gray-200/60 bg-gradient-to-b from-white/90 to-gray-50/90 p-4 sm:p-6 lg:w-96 lg:border-l lg:border-t-0 lg:p-8 backdrop-blur-sm ${showPreviewSidebar ? 'block' : 'hidden lg:block'}`}>
+                        <div className="space-y-6 sm:space-y-8">
+                            {/* Sidebar Header */}
+                            <div className="flex items-center justify-between">
                                 <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                                     <div className="flex size-6 items-center justify-center rounded-full bg-green-500">
                                         <WhatsAppIcon className="size-3 text-white" />
                                     </div>
                                     WhatsApp Message Preview
                                 </h4>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setShowPreviewSidebar(false)}
+                                    className="lg:hidden p-2"
+                                >
+                                    <X className="size-4" />
+                                </Button>
+                            </div>
+
+                            {/* WhatsApp Message Preview */}
+                            <div className="space-y-4">
                                 <div className="rounded-2xl border border-green-200/60 bg-gradient-to-br from-green-50 to-emerald-50 p-6 shadow-lg">
                                     <div className="whitespace-pre-wrap text-sm font-medium leading-relaxed text-green-800">
                                         {isMappingComplete()
@@ -467,16 +481,16 @@ export const WhatsAppTemplateMappingModal: React.FC<WhatsAppTemplateMappingModal
                                             className="flex items-center gap-2 sm:gap-3 rounded-lg sm:rounded-xl border border-gray-200/60 bg-white/60 p-2 sm:p-3"
                                         >
                                             <div
-                                                className={`flex size-5 sm:size-6 items-center justify-center rounded-full ${
+                                                className={`flex size-4 sm:size-5 lg:size-6 items-center justify-center rounded-full ${
                                                     mapping.vacademyField
                                                         ? 'bg-green-500'
                                                         : 'bg-gray-300'
                                                 }`}
                                             >
                                                 {mapping.vacademyField ? (
-                                                    <CheckCircle className="size-3 text-white" />
+                                                    <CheckCircle className="size-2 sm:size-3 text-white" />
                                                 ) : (
-                                                    <X className="size-3 text-white" />
+                                                    <X className="size-2 sm:size-3 text-white" />
                                                 )}
                                             </div>
                                             <span
@@ -509,6 +523,18 @@ export const WhatsAppTemplateMappingModal: React.FC<WhatsAppTemplateMappingModal
                         </div>
                     </div>
                 </div>
+
+                {/* Mobile Preview Toggle Button */}
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowPreviewSidebar(true)}
+                    className="fixed bottom-4 right-4 z-50 lg:hidden shadow-lg"
+                >
+                    <Menu className="size-4 mr-2" />
+                    Preview
+                </Button>
 
                 {/* Footer Actions */}
                 <div className="flex shrink-0 flex-col justify-end gap-3 sm:gap-4 border-t border-gray-200/60 bg-white/80 px-4 py-4 sm:px-6 sm:py-6 backdrop-blur-sm sm:flex-row">
