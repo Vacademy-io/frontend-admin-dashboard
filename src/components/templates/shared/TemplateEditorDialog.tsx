@@ -31,6 +31,8 @@ import {
     Database,
     Video,
     Gift,
+    Menu,
+    X,
 } from 'lucide-react';
 import { extractVariablesFromContent } from './TemplateEditorUtils';
 import { createMessageTemplate, updateMessageTemplate } from '@/services/message-template-service';
@@ -73,10 +75,11 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
     const [showPreview, setShowPreview] = useState(false);
     const [isInSourceView, setIsInSourceView] = useState(false);
     const [isManualTypeChange, setIsManualTypeChange] = useState(false);
+    const [showSidebar, setShowSidebar] = useState(false);
 
     useEffect(() => {
         if (template) {
-            const templateTypeValue = getTemplateTypeOptions();
+            const templateTypeValue = template.templateType || 'utility';
             setFormData({
                 name: template.name,
                 type: template.type,
@@ -103,14 +106,14 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
         }
     }, [template]);
 
-    // Auto-update template type when name changes (only if not manually changed)
+    // Auto-update template type when name changes (only if not manually changed and not editing existing template)
     useEffect(() => {
-        if (formData.name && !isManualTypeChange) {
+        if (formData.name && !isManualTypeChange && !template) {
             const autoType = getTemplateTypeOptions(formData.name);
             setTemplateType(autoType);
             setFormData(prev => ({ ...prev, templateType: autoType }));
         }
-    }, [formData.name, isManualTypeChange]);
+    }, [formData.name, isManualTypeChange, template]);
 
     const handleInputChange = (field: keyof CreateTemplateRequest, value: string | boolean) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
@@ -324,29 +327,29 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
     return (
         <>
             <Dialog open={isOpen} onOpenChange={handleClose}>
-                <DialogContent className="max-h-[95vh] w-[95vw] max-w-7xl overflow-hidden p-0 sm:max-w-7xl">
-                    <DialogHeader className="border-b border-gray-200 px-6 py-4">
-                        <DialogTitle className="flex items-center gap-2">
+                <DialogContent className="max-h-[95vh] w-[95vw] max-w-7xl overflow-hidden p-0 sm:w-[90vw] md:w-[85vw] lg:w-[80vw] xl:w-[75vw] 2xl:max-w-7xl">
+                    <DialogHeader className="border-b border-gray-200 px-4 py-4 sm:px-6">
+                        <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
                             {template ? (
                                 <>
-                                    <Edit className="size-5" />
+                                    <Edit className="size-4 sm:size-5" />
                                     Edit Template
                                 </>
                             ) : (
                                 <>
-                                    <Plus className="size-5" />
+                                    <Plus className="size-4 sm:size-5" />
                                     Create Template
                                 </>
                             )}
                         </DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription className="text-sm sm:text-base">
                             {template ? 'Modify your email template content and settings' : 'Create a new email template with dynamic variables'}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="flex h-[calc(95vh-120px)] flex-col lg:flex-row">
                         {/* Main Content Area */}
-                        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+                        <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
                             <form onSubmit={handleSubmit} className="space-y-6">
                                 {/* Template Name */}
                                 <div className="space-y-2">
@@ -397,7 +400,7 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
                                 </div>
 
                                 {/* Template Type and Status */}
-                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                                     <div className="space-y-2">
                                         <Label className="text-sm font-medium">Email Type</Label>
                                         <Select
@@ -442,12 +445,12 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
                                 </Alert>
 
                                 {/* Actions */}
-                                <div className="flex flex-col justify-end gap-3 border-t pt-6 sm:flex-row">
+                                <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-end sm:pt-6">
                                     <Button
                                         type="button"
                                         variant="outline"
                                         onClick={handleClose}
-                                        className="h-10 px-6"
+                                        className="h-10 px-4 sm:px-6 order-2 sm:order-1"
                                     >
                                         Cancel
                                     </Button>
@@ -459,7 +462,7 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
                                             !formData.name.trim() ||
                                             !formData.content.trim()
                                         }
-                                        className="hover:bg-primary-600 h-10 bg-primary-500 px-6 text-white disabled:bg-gray-300 disabled:text-gray-500"
+                                        className="hover:bg-primary-600 h-10 bg-primary-500 px-4 sm:px-6 text-white disabled:bg-gray-300 disabled:text-gray-500 order-1 sm:order-2"
                                     >
                                         {isSaving
                                             ? 'Saving...'
@@ -472,15 +475,26 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
                         </div>
 
                         {/* Sidebar - Dynamic Values */}
-                        <div className="w-full overflow-y-auto border-t border-gray-200 bg-gray-50/50 p-4 sm:p-6 lg:w-80 lg:border-l lg:border-t-0">
-                            <div className="space-y-6">
-                                <div>
-                                    <h3 className="mb-2 text-lg font-semibold text-gray-900">
-                                        Insert Dynamic Values
-                                    </h3>
-                                    <p className="text-sm text-gray-600">
-                                        Click on any variable to insert it into your template
-                                    </p>
+                        <div className={`w-full overflow-y-auto border-t border-gray-200 bg-gray-50/50 p-3 sm:p-4 md:p-6 lg:w-80 lg:border-l lg:border-t-0 ${showSidebar ? 'block' : 'hidden lg:block'}`}>
+                            <div className="space-y-4 sm:space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="mb-1 text-base sm:text-lg font-semibold text-gray-900">
+                                            Insert Dynamic Values
+                                        </h3>
+                                        <p className="text-xs sm:text-sm text-gray-600">
+                                            Click on any variable to insert it into your template
+                                        </p>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setShowSidebar(false)}
+                                        className="lg:hidden p-2"
+                                    >
+                                        <X className="size-4" />
+                                    </Button>
                                 </div>
 
                                 {/* Variable Categories */}
@@ -494,18 +508,18 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
                                             {variables.map((variable) => (
                                                 <div
                                                     key={variable}
-                                                    className="group cursor-pointer rounded-lg border border-gray-200 bg-white p-3 transition-colors hover:border-primary-300 hover:bg-primary-50/50"
+                                                    className="group cursor-pointer rounded-lg border border-gray-200 bg-white p-2 sm:p-3 transition-colors hover:border-primary-300 hover:bg-primary-50/50"
                                                     onClick={() => handleInsertVariable(variable)}
                                                 >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="shrink-0">
-                                                            <Plus className="size-4 text-gray-400 transition-all group-hover:scale-110 group-hover:text-primary-500" />
+                                                    <div className="flex items-start gap-2 sm:gap-3">
+                                                        <div className="shrink-0 mt-0.5">
+                                                            <Plus className="size-3 sm:size-4 text-gray-400 transition-all group-hover:scale-110 group-hover:text-primary-500" />
                                                         </div>
-                                                        <div className="flex-1">
-                                                            <div className="text-primary-600 group-hover:text-primary-700 font-mono text-sm">
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="text-primary-600 group-hover:text-primary-700 font-mono text-xs sm:text-sm break-all">
                                                                 {variable}
                                                             </div>
-                                                            <div className="mt-1 text-xs text-gray-500">
+                                                            <div className="mt-1 text-xs text-gray-500 line-clamp-2">
                                                                 {getVariableDescription(variable)}
                                                             </div>
                                                         </div>
@@ -518,6 +532,18 @@ export const TemplateEditorDialog: React.FC<TemplateEditorDialogProps> = ({
                             </div>
                         </div>
                     </div>
+
+                    {/* Mobile Sidebar Toggle Button */}
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowSidebar(true)}
+                        className="fixed bottom-4 right-4 z-50 lg:hidden shadow-lg"
+                    >
+                        <Menu className="size-4 mr-2" />
+                        Variables
+                    </Button>
                 </DialogContent>
             </Dialog>
 

@@ -37,15 +37,11 @@ export class StudentVariableResolver implements VariableResolver {
             return null;
         }
 
-        if (!context?.studentId) {
-            return null;
-        }
-
         // Clean the variable name (remove brackets if present)
         const cleanName = variableName.replace(/[{}]/g, '');
 
         // Check cache first
-        const cacheKey = `student:${cleanName}:${context.studentId}`;
+        const cacheKey = `student:${cleanName}:${context?.studentId || 'default'}`;
         const cached = variableCache.get(cacheKey);
         if (cached) {
             return cached.variable;
@@ -53,7 +49,7 @@ export class StudentVariableResolver implements VariableResolver {
 
         try {
             // Get student data from context or localStorage
-            const studentData = await this.getStudentData(context.studentId, context);
+            const studentData = await this.getStudentData(context?.studentId, context);
 
             if (!studentData) {
                 return null;
@@ -129,7 +125,7 @@ export class StudentVariableResolver implements VariableResolver {
         return 70; // Medium-high priority
     }
 
-    private async getStudentData(studentId: string, context?: VariableContext): Promise<any> {
+    private async getStudentData(studentId?: string, context?: VariableContext): Promise<any> {
         console.log('🔍 Getting student data for:', studentId, 'Context:', context);
         console.log('🔍 Context has studentData:', !!context?.studentData);
         console.log('🔍 StudentData content:', context?.studentData);
@@ -161,14 +157,28 @@ export class StudentVariableResolver implements VariableResolver {
             console.log('❌ No student data found in context');
         }
 
-        // Try localStorage as fallback
-        const cachedData = localStorage.getItem(`student_${studentId}`);
-        if (cachedData) {
-            try {
-                return JSON.parse(cachedData);
-            } catch (error) {
-                console.warn('Error parsing cached student data:', error);
+        // Try localStorage as fallback - first try specific student, then general user data
+        if (studentId) {
+            const cachedData = localStorage.getItem(`student_${studentId}`);
+            if (cachedData) {
+                try {
+                    return JSON.parse(cachedData);
+                } catch (error) {
+                    console.warn('Error parsing cached student data:', error);
+                }
             }
+        }
+
+        // Try general user data from localStorage (fallback for template creation/editing)
+        try {
+            const userData = localStorage.getItem('userDetails');
+            if (userData) {
+                const parsed = JSON.parse(userData);
+                console.log('✅ Found user data in localStorage:', parsed);
+                return parsed;
+            }
+        } catch (error) {
+            console.warn('Error parsing user data from localStorage:', error);
         }
 
         return null;

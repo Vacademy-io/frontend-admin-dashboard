@@ -11,6 +11,7 @@ import Highlight from '@tiptap/extension-highlight';
 import TextStyle from '@tiptap/extension-text-style';
 import Color from '@tiptap/extension-color';
 import Typography from '@tiptap/extension-typography';
+
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -301,8 +302,14 @@ export function EmailRichTextEditor({
     ],
     content: value || '',
     onUpdate: ({ editor }) => {
-      const html = editor.getHTML();
-      onChange(html);
+      try {
+        const html = editor.getHTML();
+        onChange(html);
+      } catch (error) {
+        console.warn('Error getting HTML from editor:', error);
+        // Fallback to the raw content if there's an error
+        onChange(value || '');
+      }
     },
     editorProps: {
       attributes: {
@@ -317,7 +324,19 @@ export function EmailRichTextEditor({
     if (!editor) return;
     const current = editor.getHTML();
     if ((value || '') !== current) {
-      editor.commands.setContent(value || '', false);
+      try {
+        // Simply set the content as-is, TipTap should handle template variables fine
+        editor.commands.setContent(value || '', false);
+      } catch (error) {
+        console.warn('Error setting content in TipTap editor:', error);
+        // If there's an error setting content, try to set it as plain text
+        try {
+          const escapedContent = (value || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          editor.commands.setContent(`<p>${escapedContent}</p>`, false);
+        } catch (fallbackError) {
+          console.warn('Fallback content setting also failed:', fallbackError);
+        }
+      }
     }
   }, [value, editor]);
 
