@@ -182,8 +182,8 @@ export const EmailTemplatesTab: React.FC = () => {
             </div>
 
             {/* Search */}
-            <div className="flex items-center space-x-2">
-                <div className="relative flex-1 max-w-sm">
+            <div className="flex items-center justify-start">
+                <div className="relative w-full max-w-sm">
                     <Search className="absolute left-2 top-2.5 size-3 sm:size-4 text-muted-foreground" />
                     <Input
                         placeholder="Search templates..."
@@ -228,7 +228,7 @@ export const EmailTemplatesTab: React.FC = () => {
                 </div>
             ) : (
                 <div className="border rounded-lg overflow-x-auto">
-                    <Table>
+                    <Table className="w-full min-w-[600px]">
                         <TableHeader>
                             <TableRow>
                                 <TableHead className="text-xs sm:text-sm">Template Name</TableHead>

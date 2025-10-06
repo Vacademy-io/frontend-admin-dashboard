@@ -30,6 +30,8 @@ import {
     Award,
     Database,
     Eye,
+    Menu,
+    X,
 } from 'lucide-react';
 import { extractVariablesFromContent } from './TemplateEditorUtils';
 
@@ -59,6 +61,7 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
     const [isInSourceView, setIsInSourceView] = useState(false);
     const isInSourceViewRef = useRef(false);
     const [showPreview, setShowPreview] = useState(false);
+    const [showSidebar, setShowSidebar] = useState(false);
 
     useEffect(() => {
         if (template) {
@@ -192,11 +195,11 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
 
     const getVariableDescription = (variable: string): string => {
         const descriptions: Record<string, string> = {
-            '{{name}}': "Student's name",
-            '{{student_name}}': "Student's name",
+            '{{name}}': "Student's full name",
+            '{{first_name}}': "Student's first name",
+            '{{last_name}}': "Student's last name",
             '{{email}}': "Student's email address",
-            '{{student_email}}': "Student's email address",
-            '{{mobile_number}}': "Student's phone number",
+            '{{phone}}': "Student's phone number",
             '{{student_phone}}': "Student's phone number",
             '{{student_id}}': "Student's unique ID",
             '{{enrollment_number}}': 'Enrollment number',
@@ -220,6 +223,33 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
             '{{attendance_status}}': 'Attendance status',
             '{{attendance_date}}': 'Attendance date',
             '{{attendance_percentage}}': 'Attendance percentage',
+            '{{live_class_title}}': 'Live class session title',
+            '{{live_class_date}}': 'Live class date',
+            '{{live_class_time}}': 'Live class time',
+            '{{live_class_duration}}': 'Live class duration',
+            '{{live_class_instructor}}': 'Live class instructor name',
+            '{{live_class_meeting_link}}': 'Live class meeting link',
+            '{{live_class_meeting_id}}': 'Live class meeting ID',
+            '{{live_class_password}}': 'Live class password',
+            '{{live_class_platform}}': 'Live class platform (Zoom, Google Meet, etc.)',
+            '{{live_class_room}}': 'Live class room/venue',
+            '{{live_class_notes}}': 'Live class notes/agenda',
+            '{{live_class_recording_link}}': 'Live class recording link',
+            '{{live_class_status}}': 'Live class status (upcoming, live, completed)',
+            '{{next_live_class_date}}': 'Next live class date',
+            '{{next_live_class_time}}': 'Next live class time',
+            '{{referral_code}}': "Student's referral code",
+            '{{referral_link}}': "Student's referral link",
+            '{{referral_count}}': 'Number of successful referrals',
+            '{{referral_rewards}}': 'Referral rewards earned',
+            '{{referral_bonus}}': 'Referral bonus amount',
+            '{{referral_status}}': 'Referral status (active, inactive)',
+            '{{referred_by}}': 'Who referred this student',
+            '{{referred_by_name}}': 'Name of the person who referred',
+            '{{referral_program_start}}': 'When referral program started',
+            '{{referral_program_end}}': 'When referral program ends',
+            '{{referral_terms}}': 'Referral terms and conditions',
+            '{{referral_benefits}}': 'Referral benefits description',
             '{{custom_message_text}}': 'Custom message placeholder',
             '{{custom_field_1}}': 'Custom field 1',
             '{{custom_field_2}}': 'Custom field 2',
@@ -423,15 +453,26 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                         </div>
 
                         {/* Sidebar - Dynamic Values */}
-                        <div className="w-full overflow-y-auto border-t border-gray-200 bg-gray-50/50 p-4 sm:p-6 lg:w-80 lg:border-l lg:border-t-0">
-                            <div className="space-y-6">
-                                <div>
-                                    <h3 className="mb-2 text-lg font-semibold text-gray-900">
-                                        Insert Dynamic Values
-                                    </h3>
-                                    <p className="text-sm text-gray-600">
-                                        Click on any variable to insert it into your template
-                                    </p>
+                        <div className={`w-full overflow-y-auto border-t border-gray-200 bg-gray-50/50 p-3 sm:p-4 md:p-6 lg:w-80 lg:border-l lg:border-t-0 ${showSidebar ? 'block' : 'hidden lg:block'}`}>
+                            <div className="space-y-4 sm:space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="mb-1 text-base sm:text-lg font-semibold text-gray-900">
+                                            Insert Dynamic Values
+                                        </h3>
+                                        <p className="text-xs sm:text-sm text-gray-600">
+                                            Click on any variable to insert it into your template
+                                        </p>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setShowSidebar(false)}
+                                        className="lg:hidden p-2"
+                                    >
+                                        <X className="size-4" />
+                                    </Button>
                                 </div>
 
                                 {/* Variable Categories */}
@@ -445,18 +486,18 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                                             {variables.map((variable) => (
                                                 <div
                                                     key={variable}
-                                                    className="group cursor-pointer rounded-lg border border-gray-200 bg-white p-3 transition-colors hover:border-primary-300 hover:bg-primary-50/50"
+                                                    className="group cursor-pointer rounded-lg border border-gray-200 bg-white p-2 sm:p-3 transition-colors hover:border-primary-300 hover:bg-primary-50/50"
                                                     onClick={() => handleInsertVariable(variable)}
                                                 >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="shrink-0">
-                                                            <Plus className="size-4 text-gray-400 transition-all group-hover:scale-110 group-hover:text-primary-500" />
+                                                    <div className="flex items-start gap-2 sm:gap-3">
+                                                        <div className="shrink-0 mt-0.5">
+                                                            <Plus className="size-3 sm:size-4 text-gray-400 transition-all group-hover:scale-110 group-hover:text-primary-500" />
                                                         </div>
-                                                        <div className="flex-1">
-                                                            <div className="text-primary-600 group-hover:text-primary-700 font-mono text-sm">
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="text-primary-600 group-hover:text-primary-700 font-mono text-xs sm:text-sm break-all">
                                                                 {variable}
                                                             </div>
-                                                            <div className="mt-1 text-xs text-gray-500">
+                                                            <div className="mt-1 text-xs text-gray-500 line-clamp-2">
                                                                 {getVariableDescription(variable)}
                                                             </div>
                                                         </div>
@@ -469,6 +510,18 @@ export const TemplateEditor: React.FC<TemplateEditorProps> = ({
                             </div>
                         </div>
                     </div>
+
+                    {/* Mobile Sidebar Toggle Button */}
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowSidebar(true)}
+                        className="fixed bottom-4 right-4 z-50 lg:hidden shadow-lg"
+                    >
+                        <Menu className="size-4 mr-2" />
+                        Variables
+                    </Button>
                 </DialogContent>
             </Dialog>
 
