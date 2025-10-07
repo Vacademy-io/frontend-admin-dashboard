@@ -34,6 +34,10 @@ export const EnhancedSurveyIndividualRespondentsTab: React.FC<EnhancedSurveyIndi
 
   const currentRespondent = data?.respondents[currentRespondentIndex];
   const totalRespondents = data?.respondents.length || 0;
+  const totalElements = data?.respondents.length || 0; // Use unique respondents count instead of API totalElements
+
+  // Calculate global respondent number across all pages
+  const globalRespondentNumber = ((pageNo - 1) * pageSize) + currentRespondentIndex + 1;
 
   const handlePrevious = () => {
     if (currentRespondentIndex > 0) {
@@ -64,18 +68,43 @@ export const EnhancedSurveyIndividualRespondentsTab: React.FC<EnhancedSurveyIndi
   const handlePageInputSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       const pageNumber = parseInt(pageInput);
-      if (pageNumber >= 1 && pageNumber <= totalRespondents) {
-        setCurrentRespondentIndex(pageNumber - 1);
+      if (pageNumber >= 1 && pageNumber <= totalElements) {
+        // Calculate which page and index this respondent is on
+        const targetPage = Math.ceil(pageNumber / pageSize);
+        const targetIndex = (pageNumber - 1) % pageSize;
+
+        if (targetPage !== pageNo) {
+          setPageNo(targetPage);
+        }
+        setCurrentRespondentIndex(targetIndex);
       } else {
-        // Reset to current page if invalid input
-        setPageInput((currentRespondentIndex + 1).toString());
+        // Reset to current respondent if invalid input
+        setPageInput(globalRespondentNumber.toString());
       }
     }
   };
 
   const handlePageInputBlur = () => {
-    setPageInput((currentRespondentIndex + 1).toString());
+    const pageNumber = parseInt(pageInput);
+    if (pageNumber >= 1 && pageNumber <= totalElements) {
+      // Calculate which page and index this respondent is on
+      const targetPage = Math.ceil(pageNumber / pageSize);
+      const targetIndex = (pageNumber - 1) % pageSize;
+
+      if (targetPage !== pageNo) {
+        setPageNo(targetPage);
+      }
+      setCurrentRespondentIndex(targetIndex);
+    } else {
+      // Reset to current respondent if invalid input
+      setPageInput(globalRespondentNumber.toString());
+    }
   };
+
+  // Update page input when respondent changes
+  React.useEffect(() => {
+    setPageInput(globalRespondentNumber.toString());
+  }, [globalRespondentNumber]);
 
   const getQuestionTypeBadge = (questionType: string) => {
     const typeMap: Record<string, { label: string; className: string }> = {
@@ -90,7 +119,7 @@ export const EnhancedSurveyIndividualRespondentsTab: React.FC<EnhancedSurveyIndi
   };
 
   const formatUserAnswer = (response: any) => {
-    if (!response.userAnswer) return 'No answer provided';
+    if (!response.userAnswer) return 'No response';
 
     switch (response.questionType) {
       case 'MCQS':
@@ -102,15 +131,15 @@ export const EnhancedSurveyIndividualRespondentsTab: React.FC<EnhancedSurveyIndi
           );
           return selectedOptions.map((opt: any) => opt.content).join(', ');
         }
-        return 'No option selected';
+        return 'No response';
 
       case 'NUMERIC':
         return response.userAnswer.validAnswer !== null ?
-          response.userAnswer.validAnswer.toString() : 'No answer provided';
+          response.userAnswer.validAnswer.toString() : 'No response';
 
       case 'ONE_WORD':
       case 'LONG_ANSWER':
-        return response.userAnswer.answer || 'No answer provided';
+        return response.userAnswer.answer || 'No response';
 
       default:
         return 'Unknown answer format';
@@ -214,9 +243,9 @@ export const EnhancedSurveyIndividualRespondentsTab: React.FC<EnhancedSurveyIndi
               onBlur={handlePageInputBlur}
               className="w-16 text-center"
               min="1"
-              max={totalRespondents}
+              max={totalElements}
             />
-            <span className="text-sm text-gray-500">of {totalRespondents}</span>
+            <span className="text-sm text-gray-500">of {totalElements}</span>
           </div>
 
           <Button
