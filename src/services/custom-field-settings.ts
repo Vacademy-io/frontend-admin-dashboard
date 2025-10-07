@@ -105,7 +105,7 @@ export interface ApiCustomFieldResponse {
 // API Request Types (what we send to UPDATE_CUSTOM_FIELD_SETTINGS)
 // Note: The API expects snake_case field names
 export interface ApiCustomFieldRequest {
-    current_custom_fields_and_groups: ApiCustomField[];
+    custom_fields_and_groups: ApiCustomField[];
     custom_group: Record<string, ApiGroupField>;
     custom_fields_names: string[];
     compulsory_custom_fields: string[];
@@ -326,15 +326,6 @@ const mapApiGroupFieldToGroupField = (apiGroupField: ApiGroupField): GroupField 
  * Convert API response to UI format
  */
 const mapApiResponseToUI = (apiResponse: ApiCustomFieldResponse): CustomFieldSettingsData => {
-    console.log('🔍 [DEBUG] API Response structure:', {
-        hasData: !!apiResponse.data,
-        hasNestedData: !!apiResponse.data?.data,
-        topLevelKeys: apiResponse.data ? Object.keys(apiResponse.data) : [],
-        nestedDataKeys: apiResponse.data?.data ? Object.keys(apiResponse.data.data) : [],
-        currentCustomFieldsAndGroups: apiResponse.data?.data?.currentCustomFieldsAndGroups,
-        allCustomFields: apiResponse.data?.data?.allCustomFields,
-    });
-
     const fixedFields: FixedField[] = [];
     const instituteFields: CustomField[] = [];
     const customFields: CustomField[] = [];
@@ -360,12 +351,6 @@ const mapApiResponseToUI = (apiResponse: ApiCustomFieldResponse): CustomFieldSet
     const fixedCustomFields = actualData.fixedCustomFields || [];
     const compulsoryCustomFields = actualData.compulsoryCustomFields || [];
     const customGroupData = actualData.customGroup || {};
-
-    console.log('🔍 [DEBUG] Processing fields:', {
-        fieldsCount: fields.length,
-        fixedFieldsCount: fixedCustomFields.length,
-        compulsoryFieldsCount: compulsoryCustomFields.length,
-    });
 
     // Process individual fields
     fields.forEach((apiField: ApiCustomField) => {
@@ -449,7 +434,6 @@ let originalApiData: ApiCustomFieldResponse['data']['data'] | null = null;
  */
 export const setOriginalApiData = (apiData: ApiCustomFieldResponse['data']['data']): void => {
     originalApiData = apiData;
-    console.log('🔍 [DEBUG] Stored original API data for preservation during save');
 };
 
 /**
@@ -540,8 +524,6 @@ const mapUIToApiRequestFresh = (
     uiData: CustomFieldSettingsData,
     instituteId: string
 ): ApiCustomFieldRequest => {
-    console.log('🔍 [DEBUG] Creating fresh API request structure');
-
     const currentCustomFieldsAndGroups: ApiCustomField[] = [];
     const customGroup: Record<string, ApiGroupField> = {};
     const customFieldsNames: string[] = [];
@@ -679,7 +661,7 @@ const mapUIToApiRequestFresh = (
     });
 
     const result: ApiCustomFieldRequest = {
-        current_custom_fields_and_groups: currentCustomFieldsAndGroups,
+        custom_fields_and_groups: currentCustomFieldsAndGroups,
         custom_group: customGroup,
         custom_fields_names: customFieldsNames,
         compulsory_custom_fields: compulsoryCustomFields,
@@ -688,21 +670,6 @@ const mapUIToApiRequestFresh = (
         custom_field_locations: Object.values(VISIBILITY_TO_LOCATION_MAP),
         group_names: groupNames.length > 0 ? groupNames : undefined,
     };
-
-    console.log('🔍 [DEBUG] Fresh API request payload:', {
-        totalFields: result.current_custom_fields_and_groups.length,
-        totalGroups: Object.keys(result.custom_group).length,
-        allCustomFields: result.all_custom_fields.length,
-        customFieldsNames: result.custom_fields_names.length,
-        fixedCustomFields: result.fixed_custom_fields.length,
-        compulsoryCustomFields: result.compulsory_custom_fields.length,
-        newFields: result.current_custom_fields_and_groups.filter(
-            (f: ApiCustomField) => f.customFieldId === ''
-        ).length,
-        newGroupFields: Object.values(result.custom_group).filter(
-            (f: ApiGroupField) => f.customFieldId === ''
-        ).length,
-    });
 
     return result;
 };
@@ -715,14 +682,6 @@ const mapUIToApiRequest = (uiData: CustomFieldSettingsData): ApiCustomFieldReque
     if (!instituteId) {
         throw new Error('Institute ID not found');
     }
-
-    console.log('🔍 [DEBUG] Converting UI data to API request:', {
-        hasOriginalData: !!originalApiData,
-        fixedFieldsCount: uiData.fixedFields.length,
-        customFieldsCount: uiData.customFields.length,
-        instituteFieldsCount: uiData.instituteFields.length,
-        groupsCount: uiData.fieldGroups.length,
-    });
 
     // If we don't have original API data, we'll create a fresh structure
     // This can happen on first save or if the data wasn't properly loaded
@@ -882,7 +841,7 @@ const mapUIToApiRequest = (uiData: CustomFieldSettingsData): ApiCustomFieldReque
     Object.assign(customGroup, updatedCustomGroup);
 
     const result: ApiCustomFieldRequest = {
-        current_custom_fields_and_groups: currentCustomFieldsAndGroups,
+        custom_fields_and_groups: currentCustomFieldsAndGroups,
         custom_group: customGroup,
         custom_fields_names: customFieldsNames,
         compulsory_custom_fields: compulsoryCustomFields,
@@ -892,21 +851,6 @@ const mapUIToApiRequest = (uiData: CustomFieldSettingsData): ApiCustomFieldReque
             originalApiData.customFieldLocations || Object.values(VISIBILITY_TO_LOCATION_MAP),
         group_names: groupNames.length > 0 ? groupNames : undefined,
     };
-
-    console.log('🔍 [DEBUG] Final API request payload (with preservation):', {
-        totalFields: result.current_custom_fields_and_groups.length,
-        totalGroups: Object.keys(result.custom_group).length,
-        allCustomFields: result.all_custom_fields.length,
-        customFieldsNames: result.custom_fields_names.length,
-        fixedCustomFields: result.fixed_custom_fields.length,
-        compulsoryCustomFields: result.compulsory_custom_fields.length,
-        newFields: result.current_custom_fields_and_groups.filter(
-            (f: ApiCustomField) => f.customFieldId === ''
-        ).length,
-        newGroupFields: Object.values(result.custom_group).filter(
-            (f: ApiGroupField) => f.customFieldId === ''
-        ).length,
-    });
 
     return result;
 };
@@ -924,11 +868,8 @@ const getCachedSettings = (): CustomFieldSettingsData | null => {
 
         const cached = localStorage.getItem(LOCALSTORAGE_KEY);
         if (!cached) {
-            console.log('🔍 [DEBUG] No cached settings found in localStorage');
             return null;
         }
-
-        console.log('🔍 [DEBUG] Found cached settings in localStorage');
 
         const cachedData: CachedCustomFieldSettings = JSON.parse(cached);
 
@@ -946,25 +887,11 @@ const getCachedSettings = (): CustomFieldSettingsData | null => {
         const cacheAge = now - cachedData.timestamp;
         const expiryTime = CACHE_EXPIRY_HOURS * 60 * 60 * 1000; // Convert to milliseconds
 
-        console.log('🔍 [DEBUG] Cache age check:', {
-            cacheAge: `${Math.round(cacheAge / 1000 / 60)} minutes`,
-            expiryTime: `${CACHE_EXPIRY_HOURS} hours`,
-            isExpired: cacheAge > expiryTime,
-        });
-
         if (cacheAge > expiryTime) {
             console.warn('🚨 [DEBUG] Cache expired, removing from localStorage');
             localStorage.removeItem(LOCALSTORAGE_KEY);
             return null;
         }
-
-        console.log('✅ [DEBUG] Using valid cached settings:', {
-            fieldsCount: {
-                fixedFields: cachedData.data.fixedFields.length,
-                customFields: cachedData.data.customFields.length,
-                instituteFields: cachedData.data.instituteFields.length,
-            },
-        });
 
         return cachedData.data;
     } catch (error) {
@@ -991,25 +918,7 @@ const setCachedSettings = (settings: CustomFieldSettingsData): void => {
             instituteId,
         };
 
-        console.log('🔍 [DEBUG] Caching settings to localStorage:', {
-            key: LOCALSTORAGE_KEY,
-            instituteId,
-            fieldsCount: {
-                fixedFields: settings.fixedFields.length,
-                customFields: settings.customFields.length,
-                instituteFields: settings.instituteFields.length,
-            },
-        });
-
         localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(cacheData));
-
-        // Verify the cache was written
-        const verification = localStorage.getItem(LOCALSTORAGE_KEY);
-        if (verification) {
-            console.log('✅ [DEBUG] Settings successfully cached to localStorage');
-        } else {
-            console.error('❌ [DEBUG] Failed to write to localStorage - verification failed');
-        }
     } catch (error) {
         console.error('❌ [DEBUG] Error caching custom field settings:', error);
     }
@@ -1042,8 +951,6 @@ const fetchCustomFieldSettingsFromAPI = async (): Promise<CustomFieldSettingsDat
             throw new Error('Institute ID not found. Please log in again.');
         }
 
-        console.log('🔍 [DEBUG] Fetching from API with instituteId:', instituteId);
-
         const response = await authenticatedAxiosInstance.get<ApiCustomFieldResponse>(
             GET_INSITITUTE_SETTINGS,
             {
@@ -1054,21 +961,10 @@ const fetchCustomFieldSettingsFromAPI = async (): Promise<CustomFieldSettingsDat
             }
         );
 
-        console.log('🔍 [DEBUG] API Response:', {
-            hasData: !!response.data,
-            hasSettingsData: !!response.data?.data,
-            allCustomFields: response.data?.data?.data?.allCustomFields,
-            responseStructure: response.data
-                ? JSON.stringify(response.data, null, 2)
-                : 'No response data',
-        });
-
         let settings: CustomFieldSettingsData;
 
         // If we get a successful response with data, map it to UI format
         if (response.data && response.data.data) {
-            console.log('🔍 [DEBUG] Mapping API response to UI format...');
-
             // Store original API data for preservation during save operations
             setOriginalApiData(response.data.data.data);
 
@@ -1078,14 +974,6 @@ const fetchCustomFieldSettingsFromAPI = async (): Promise<CustomFieldSettingsDat
             }
 
             settings = mapApiResponseToUI(response.data);
-            console.log('🔍 [DEBUG] Mapped settings field IDs:', {
-                fixedFields: settings.fixedFields.map((f) => ({ id: f.id, name: f.name })),
-                customFields: settings.customFields.map((f) => ({ id: f.id, name: f.name })),
-                totalFields:
-                    settings.fixedFields.length +
-                    settings.customFields.length +
-                    settings.instituteFields.length,
-            });
 
             // Validate that we actually got some fields
             const totalFields =
@@ -1096,19 +984,16 @@ const fetchCustomFieldSettingsFromAPI = async (): Promise<CustomFieldSettingsDat
                 console.warn(
                     '🚨 [DEBUG] No fields found in API response - this may indicate an issue'
                 );
-            } else {
-                console.log('✅ [DEBUG] Successfully mapped fields, proceeding to cache...');
             }
         } else {
             // If no data found, throw error - we must have backend data
-            console.log('🔍 [DEBUG] No API data found - cannot proceed without backend data');
+
             throw new Error('No custom field settings found in backend. Please contact support.');
         }
 
         // Cache the settings - this is critical for the UI to work
-        console.log('🔍 [DEBUG] About to cache settings with setCachedSettings...');
+
         setCachedSettings(settings);
-        console.log('✅ [DEBUG] Settings caching attempted');
 
         return settings;
     } catch (error: unknown) {
@@ -1117,7 +1002,6 @@ const fetchCustomFieldSettingsFromAPI = async (): Promise<CustomFieldSettingsDat
         // Check if it's a 510 error (Setting not found) or other error
         const err = error as { response?: { status?: number; data?: { ex?: string } } };
         if (err.response?.status === 510 || err.response?.data?.ex?.includes('Setting not found')) {
-            console.log('🔍 [DEBUG] Settings not found (510) - backend has no data yet');
             throw new Error(
                 'Custom field settings not configured yet. Please contact your administrator to set up field configurations.'
             );
@@ -1158,18 +1042,8 @@ export const getCustomFieldSettings = async (
  * Debug function to validate API request data structure
  */
 const validateApiRequest = (apiRequest: ApiCustomFieldRequest): void => {
-    console.log('🔍 [DEBUG] Validating API request structure:', {
-        hasCurrentCustomFieldsAndGroups: !!apiRequest.current_custom_fields_and_groups,
-        hasCustomGroup: !!apiRequest.custom_group,
-        hasAllCustomFields: !!apiRequest.all_custom_fields,
-        hasFixedCustomFields: !!apiRequest.fixed_custom_fields,
-        hasCompulsoryCustomFields: !!apiRequest.compulsory_custom_fields,
-        hasCustomFieldsNames: !!apiRequest.custom_fields_names,
-        hasCustomFieldLocations: !!apiRequest.custom_field_locations,
-    });
-
     // Check for missing IDs in existing fields
-    const fieldsWithoutIds = apiRequest.current_custom_fields_and_groups.filter(
+    const fieldsWithoutIds = apiRequest.custom_fields_and_groups.filter(
         (field: ApiCustomField) => !field.id && field.customFieldId !== ''
     );
     if (fieldsWithoutIds.length > 0) {
@@ -1177,25 +1051,6 @@ const validateApiRequest = (apiRequest: ApiCustomFieldRequest): void => {
     }
 
     // Check for new fields (should have empty customFieldId)
-    const newFields = apiRequest.current_custom_fields_and_groups.filter(
-        (field: ApiCustomField) => field.customFieldId === ''
-    );
-    console.log('🔍 [DEBUG] New fields to be created:', {
-        count: newFields.length,
-        fields: newFields.map((f: ApiCustomField) => ({ name: f.fieldName, type: f.fieldType })),
-    });
-
-    // Check for group fields integrity
-    const newGroupFields = Object.values(apiRequest.custom_group).filter(
-        (field: ApiGroupField) => field.customFieldId === ''
-    );
-    console.log('🔍 [DEBUG] New group fields to be created:', {
-        count: newGroupFields.length,
-        fields: newGroupFields.map((f: ApiGroupField) => ({
-            name: f.fieldName,
-            group: f.groupName,
-        })),
-    });
 };
 
 /**
@@ -1221,12 +1076,6 @@ export const saveCustomFieldSettings = async (
         const cachedSettings = getCachedSettings();
         const isPresent = cachedSettings !== null;
 
-        console.log('🔍 [DEBUG] About to save to API:', {
-            isPresent,
-            instituteId,
-            requestSize: JSON.stringify(apiRequest).length,
-        });
-
         const requestParams: Record<string, string | boolean> = {
             instituteId,
         };
@@ -1242,8 +1091,6 @@ export const saveCustomFieldSettings = async (
                 'Content-Type': 'application/json',
             },
         });
-
-        console.log('✅ [DEBUG] API save successful');
 
         // Update cache with the saved settings
         const updatedSettings = {

@@ -10,7 +10,10 @@ import { StudentFilters } from './student-filters';
 import { useStudentFilters } from '@/routes/manage-students/students-list/-hooks/useStudentFilters';
 import { useStudentTable } from '@/routes/manage-students/students-list/-hooks/useStudentTable';
 import { StudentTable } from '@/types/student-table-types';
-import { myColumns } from '@/components/design-system/utils/constants/table-column-data';
+import {
+    getColumnsWithDynamicVisibility,
+    getDefaultColumnVisibility,
+} from '@/components/design-system/utils/constants/table-column-data';
 import { STUDENT_LIST_COLUMN_WIDTHS } from '@/components/design-system/utils/constants/table-layout';
 import { BulkActions } from './bulk-actions/bulk-actions';
 import { OnChangeFn, RowSelectionState } from '@tanstack/react-table';
@@ -38,6 +41,7 @@ import { Users, FileMagnifyingGlass } from '@phosphor-icons/react';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { convertCapitalToTitleCase } from '@/lib/utils';
+import { getFieldsForLocation } from '@/lib/custom-fields/utils';
 
 export const StudentsListSection = () => {
     const { setNavHeading } = useNavHeadingStore();
@@ -47,6 +51,8 @@ export const StudentsListSection = () => {
     const { getCourseFromPackage, instituteDetails, getDetailsFromPackageSessionId } =
         useInstituteDetailsStore();
     const tableRef = useRef<HTMLDivElement>(null);
+    const customFields = getFieldsForLocation("Learner's List");
+    console.log("Custom Fields for Learner's List:", customFields);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -332,10 +338,13 @@ export const StudentsListSection = () => {
                                                 total_elements: studentTableData.total_elements,
                                                 last: studentTableData.last,
                                             }}
-                                            columns={myColumns}
+                                            columns={getColumnsWithDynamicVisibility()}
                                             isLoading={loadingData}
                                             error={loadingError}
                                             onSort={handleSort}
+                                            tableState={{
+                                                columnVisibility: getDefaultColumnVisibility(),
+                                            }}
                                             columnWidths={STUDENT_LIST_COLUMN_WIDTHS}
                                             rowSelection={currentPageSelection}
                                             onRowSelectionChange={handleRowSelectionChange}

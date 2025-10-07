@@ -16,6 +16,7 @@ import { useStudentSidebar } from '@/routes/manage-students/students-list/-conte
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { EnrollRequestsStudentMenuOptions } from '@/routes/manage-students/enroll-requests/-components/bulk-actions/enroll-request-individual-options';
+import { getColumnVisibilityForLearnersList } from './dynamic-column-visibility';
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -220,7 +221,6 @@ const PaymentStatusCell = ({ row }: { row: Row<StudentTable> }) => {
         </div>
     );
 };
-
 export const myColumns: ColumnDef<StudentTable>[] = [
     {
         id: 'checkbox',
@@ -492,6 +492,31 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         cell: ({ row }) => <StudentMenuOptions student={row.original} />,
     },
 ];
+
+/**
+ * Get columns with dynamic visibility based on custom field settings
+ * This function applies custom field visibility logic to the table columns
+ */
+export const getColumnsWithDynamicVisibility = (): ColumnDef<StudentTable>[] => {
+    try {
+        console.log('🎯 Getting columns with dynamic visibility...');
+
+        // Just return the columns as-is
+        // The visibility will be controlled by tableState.columnVisibility
+        return myColumns;
+    } catch (error) {
+        console.error('❌ Error in getColumnsWithDynamicVisibility:', error);
+        return myColumns;
+    }
+};
+
+/**
+ * Get default column visibility state for the table
+ * This returns which columns should be visible by default
+ */
+export const getDefaultColumnVisibility = (): Record<string, boolean> => {
+    return getColumnVisibilityForLearnersList();
+};
 
 export const enrollRequestColumns: ColumnDef<StudentTable>[] = [
     {
