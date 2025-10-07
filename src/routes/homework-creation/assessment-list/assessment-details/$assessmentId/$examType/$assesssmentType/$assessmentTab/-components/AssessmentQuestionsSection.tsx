@@ -23,6 +23,7 @@ import {
 } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper';
 import { calculateAverageMarks, calculateAveragePenalty } from '../-utils/helper';
 import { QuestionData } from '@/types/assessments/assessment-steps';
+import { useMemo } from 'react';
 
 interface QuestionDuration {
     hrs: string;
@@ -32,11 +33,37 @@ interface QuestionDuration {
 interface Question {
     questionId: string;
     questionName: string;
-    questionType: string; // You can use a union type like `"MCQM" | "SCQ" | "TF"` if needed
+    questionType: string;
     questionMark: string;
     questionPenalty: string;
     questionDuration: QuestionDuration;
 }
+
+// Custom hook for data transformation
+const useAdaptiveMarking = (questionsForSection: QuestionData[]) => {
+    return useMemo(() => {
+        return questionsForSection.map((questionData: QuestionData) => {
+            const markingJson = questionData.marking_json ? JSON.parse(questionData.marking_json) : {};
+            return {
+                questionId: questionData.question_id || '',
+                questionName: questionData.question?.content || '',
+                questionType: questionData.question_type || '',
+                questionMark: markingJson.data?.totalMark || '0',
+                questionPenalty: markingJson.data?.negativeMark || '0',
+                questionDuration: {
+                    hrs:
+                        typeof questionData.question_duration === 'number'
+                            ? String(Math.floor(questionData.question_duration / 60))
+                            : '0',
+                    min:
+                        typeof questionData.question_duration === 'number'
+                            ? String(questionData.question_duration % 60)
+                            : '0',
+                },
+            };
+        });
+    }, [questionsForSection]);
+};
 
 const AssessmentQuestionsSection = ({ section, index }: { section: Section; index: number }) => {
     const { assessmentId, examType } = Route.useParams();
@@ -53,28 +80,7 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
     );
 
     const questionsForSection = questionsData[section.id] || [];
-
-    // Map questions to adaptive_marking_for_each_question format
-    const adaptiveMarking = questionsForSection.map((questionData: QuestionData) => {
-        const markingJson = questionData.marking_json ? JSON.parse(questionData.marking_json) : {};
-        return {
-            questionId: questionData.question_id || '',
-            questionName: questionData.question?.content || '',
-            questionType: questionData.question_type || '',
-            questionMark: markingJson.data?.totalMark || '0',
-            questionPenalty: markingJson.data?.negativeMark || '0',
-            questionDuration: {
-                hrs:
-                    typeof questionData.question_duration === 'number'
-                        ? String(Math.floor(questionData.question_duration / 60))
-                        : '0',
-                min:
-                    typeof questionData.question_duration === 'number'
-                        ? String(questionData.question_duration % 60)
-                        : '0',
-            },
-        };
-    });
+    const adaptiveMarking = useAdaptiveMarking(questionsForSection);
 
     if (isLoading || isAssessmentDetailsLoading) return <DashboardLoader />;
     return (
@@ -167,8 +173,8 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                                     <TableHead>Q.No.</TableHead>
                                     <TableHead>Question</TableHead>
                                     <TableHead>Question Type</TableHead>
-                                    <TableHead>Marks</TableHead>
-                                    <TableHead>Penalty</TableHead>
+                                    {examType !== 'SURVEY' && <TableHead>Marks</TableHead>}
+                                    {examType !== 'SURVEY' && <TableHead>Penalty</TableHead>}
                                     {assessmentDetails[1]?.saved_data?.duration_distribution ===
                                         'QUESTION' && <TableHead>Time</TableHead>}
                                 </TableRow>
@@ -184,8 +190,12 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                                                 }}
                                             />
                                             <TableCell>{question.questionType}</TableCell>
-                                            <TableCell>{question.questionMark}</TableCell>
-                                            <TableCell>{question.questionPenalty}</TableCell>
+                                            {examType !== 'SURVEY' && (
+                                                <TableCell>{question.questionMark}</TableCell>
+                                            )}
+                                            {examType !== 'SURVEY' && (
+                                                <TableCell>{question.questionPenalty}</TableCell>
+                                            )}
                                             {assessmentDetails[1]?.saved_data
                                                 ?.duration_distribution === 'QUESTION' && (
                                                 <TableCell>

@@ -227,6 +227,7 @@ export const Step2SectionInfo = ({
                         e.stopPropagation();
                         return false;
                     }
+                    return true;
                 }}
                 onKeyUp={(e) => {
                     // Prevent accordion toggle when section name editing is enabled or input is focused
@@ -235,6 +236,7 @@ export const Step2SectionInfo = ({
                         e.stopPropagation();
                         return false;
                     }
+                    return true;
                 }}
                 onClick={(e) => {
                     // Prevent accordion toggle when section name editing is enabled or input is focused
@@ -243,6 +245,7 @@ export const Step2SectionInfo = ({
                         e.stopPropagation();
                         return false;
                     }
+                    return true;
                 }}
             >
                 <div className="flex w-full items-center justify-between">
@@ -255,13 +258,13 @@ export const Step2SectionInfo = ({
                                     <FormItem>
                                         <FormControl>
                                             <MyInput
-                                                ref={sectionNameInputRef}
                                                 inputType="text"
                                                 inputPlaceholder="00"
                                                 input={field.value}
                                                 onChangeFunction={field.onChange}
                                                 size="large"
                                                 {...field}
+                                                ref={sectionNameInputRef}
                                                 className="!ml-0 w-20 border-none !pl-0 text-primary-500"
                                                 disabled={!enableSectionName}
                                                 onClick={(e) => {
