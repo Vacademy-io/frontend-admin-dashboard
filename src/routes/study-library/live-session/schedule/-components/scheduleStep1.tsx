@@ -712,7 +712,7 @@ export default function ScheduleStep1() {
 
     const removeSessionFromDay = (dayIndex: number, sessionIndex: number) => {
         const sessions = form.getValues(`recurringSchedule.${dayIndex}.sessions`);
-        const updatedSessions = [...sessions];
+        const updatedSessions = [...(Array.isArray(sessions) ? sessions : [])];
         updatedSessions.splice(sessionIndex, 1);
 
         form.setValue(`recurringSchedule.${dayIndex}.sessions`, updatedSessions);
