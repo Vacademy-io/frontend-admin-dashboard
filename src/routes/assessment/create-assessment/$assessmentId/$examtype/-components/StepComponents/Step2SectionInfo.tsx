@@ -57,13 +57,14 @@ export const Step2SectionInfo = ({
     const [isInputFocused, setIsInputFocused] = useState(false);
     const sectionNameInputRef = React.useRef<HTMLInputElement>(null);
 
+
     // Auto-focus input when edit mode is enabled
     useEffect(() => {
         if (enableSectionName && sectionNameInputRef.current) {
             sectionNameInputRef.current.focus();
             sectionNameInputRef.current.select();
         }
-    }, [enableSectionName]);
+    }, [enableSectionName, index]);
     const { instituteDetails } = useInstituteDetailsStore();
     const { savedAssessmentId } = useSavedAssessmentStore();
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -204,21 +205,41 @@ export const Step2SectionInfo = ({
                 className="flex items-center justify-between"
                 id="section-details"
                 onKeyDown={(e) => {
+                    // Handle Enter key to save and exit edit mode
+                    if (e.key === 'Enter' && enableSectionName) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+
+                    // Handle Escape key to cancel editing
+                    if (e.key === 'Escape' && enableSectionName) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+
                     // Prevent accordion toggle when section name editing is enabled or input is focused
                     if (enableSectionName || isInputFocused) {
+                        e.preventDefault();
                         e.stopPropagation();
+                        return false;
                     }
                 }}
                 onKeyUp={(e) => {
                     // Prevent accordion toggle when section name editing is enabled or input is focused
                     if (enableSectionName || isInputFocused) {
+                        e.preventDefault();
                         e.stopPropagation();
+                        return false;
                     }
                 }}
                 onClick={(e) => {
                     // Prevent accordion toggle when section name editing is enabled or input is focused
                     if (enableSectionName || isInputFocused) {
+                        e.preventDefault();
                         e.stopPropagation();
+                        return false;
                     }
                 }}
             >
@@ -232,6 +253,7 @@ export const Step2SectionInfo = ({
                                     <FormItem>
                                         <FormControl>
                                             <MyInput
+                                                ref={sectionNameInputRef}
                                                 inputType="text"
                                                 inputPlaceholder="00"
                                                 input={field.value}
@@ -245,21 +267,50 @@ export const Step2SectionInfo = ({
                                                     e.stopPropagation();
                                                 }}
                                                 onKeyDown={(e) => {
+                                                    // Handle Enter key to save and exit edit mode
+                                                    if (e.key === 'Enter' && enableSectionName) {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        e.stopImmediatePropagation();
+
+                                                        // Save the changes and exit edit mode
+                                                        setEnableSectionName(false);
+                                                        form.trigger(`section.${index}.sectionName`);
+                                                        return;
+                                                    }
+
+                                                    // Handle Escape key to cancel editing
+                                                    if (e.key === 'Escape' && enableSectionName) {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        e.stopImmediatePropagation();
+
+                                                        // Cancel editing and restore original value
+                                                        setEnableSectionName(false);
+                                                        // Reset to original value if needed
+                                                        const originalValue = oldData.current?.section?.[index]?.sectionName || '';
+                                                        form.setValue(`section.${index}.sectionName`, originalValue);
+                                                        return;
+                                                    }
+
                                                     // Prevent accordion toggle when typing in the input field
                                                     if (enableSectionName) {
                                                         e.stopPropagation();
+                                                        e.stopImmediatePropagation();
                                                     }
                                                 }}
                                                 onKeyUp={(e) => {
                                                     // Prevent accordion toggle when typing in the input field
                                                     if (enableSectionName) {
                                                         e.stopPropagation();
+                                                        e.stopImmediatePropagation();
                                                     }
                                                 }}
                                                 onKeyPress={(e) => {
                                                     // Prevent accordion toggle when typing in the input field
                                                     if (enableSectionName) {
                                                         e.stopPropagation();
+                                                        e.stopImmediatePropagation();
                                                     }
                                                 }}
                                                 onFocus={(e) => {
