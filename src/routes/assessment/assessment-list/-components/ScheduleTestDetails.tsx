@@ -5,7 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { DotIcon, DotIconOffline } from '@/svgs';
 import { CheckCircle, Copy, DownloadSimple, LockSimple, PauseCircle } from 'phosphor-react';
 import QRCode from 'react-qr-code';
-import { convertToLocalDateTime } from '@/constants/helper';
+import { convertToLocalDateTime, convertToUTCDateTime } from '@/constants/helper';
 import { getSubjectNameById } from '../../question-papers/-utils/helper';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
@@ -158,7 +158,7 @@ const ScheduleTestDetails = ({
                         scheduleTestContent.play_mode === 'SURVEY') && (
                         <p>
                             Start Date and Time:{' '}
-                            {convertToLocalDateTime(scheduleTestContent.bound_start_time)}
+                            {convertToUTCDateTime(scheduleTestContent.bound_start_time)}
                         </p>
                     )}
                     {(scheduleTestContent.play_mode === 'EXAM' ||
@@ -183,7 +183,7 @@ const ScheduleTestDetails = ({
                         scheduleTestContent.play_mode === 'SURVEY') && (
                         <p>
                             End Date and Time:{' '}
-                            {convertToLocalDateTime(scheduleTestContent.bound_end_time)}
+                            {convertToUTCDateTime(scheduleTestContent.bound_end_time)}
                         </p>
                     )}
                     <p>Total Participants: {scheduleTestContent.user_registrations}</p>
