@@ -117,7 +117,7 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
     // Determine survey type from assessment details
     const isPublicSurvey = assessmentDetails?.assessment_visibility === 'PUBLIC';
 
-    const pageSize = 10;
+    const pageSize = 100; // Increased to get more respondents per page
 
     const { data, loading, error } = useSurveyRespondents(assessmentId, pageNo, pageSize, assessmentName, sectionIds);
 

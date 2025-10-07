@@ -506,7 +506,7 @@ export const useSurveyOverview = (assessmentId: string, sectionIds?: string) => 
 export const useSurveyRespondents = (
   assessmentId: string,
   pageNo: number = 1,
-  pageSize: number = 10,
+  pageSize: number = 100, // Increased to get more respondents per page
   assessmentName: string = '',
   sectionIds: string = '',
   filters: SurveyFilters = {}

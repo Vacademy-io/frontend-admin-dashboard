@@ -21,7 +21,7 @@ export const EnhancedSurveyIndividualRespondentsTab: React.FC<EnhancedSurveyIndi
   const [currentRespondentIndex, setCurrentRespondentIndex] = useState(0);
   const [pageInput, setPageInput] = useState('');
   const [pageNo, setPageNo] = useState(1);
-  const pageSize = 10;
+  const pageSize = 100; // Increased to get more respondents per page
   const { getBatchName } = useBatchNames();
 
   const { data, loading, error } = useEnhancedSurveyRespondents(
