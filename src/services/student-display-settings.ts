@@ -110,6 +110,9 @@ function mergeWithDefaults(
                 link: w.link ?? d.dashboard.widgets.find((x) => x.id === w.id)?.link,
             })),
         },
+        ui: {
+            type: incoming?.ui?.type ?? d.ui.type,
+        },
         signup: {
             providers: {
                 google: incoming?.signup?.providers?.google ?? d.signup.providers.google,
@@ -171,6 +174,16 @@ function mergeWithDefaults(
                     d.courseDetails.slidesView.canAskDoubt,
             },
         },
+        courseSettings: {
+            quiz: {
+                moveOnlyOnCorrectAnswer:
+                    incoming?.courseSettings?.quiz?.moveOnlyOnCorrectAnswer ??
+                    d.courseSettings.quiz.moveOnlyOnCorrectAnswer,
+                celebrateOnQuizComplete:
+                    incoming?.courseSettings?.quiz?.celebrateOnQuizComplete ??
+                    d.courseSettings.quiz.celebrateOnQuizComplete,
+            },
+        },
         allCourses: {
             tabs: mergeArrayById(incoming?.allCourses?.tabs, d.allCourses.tabs).map((t) => ({
                 id: t.id,
@@ -189,6 +202,7 @@ function mergeWithDefaults(
                 incoming?.notifications?.allowBatchStream ?? d.notifications.allowBatchStream,
         },
         certificates: {
+            enabled: incoming?.certificates?.enabled ?? d.certificates.enabled,
             generationThresholdPercent:
                 incoming?.certificates?.generationThresholdPercent ??
                 d.certificates.generationThresholdPercent,

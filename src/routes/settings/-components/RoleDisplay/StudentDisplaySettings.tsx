@@ -20,6 +20,7 @@ import type {
     UsernameStrategy,
     PasswordStrategy,
     PasswordDelivery,
+    StudentUiType,
 } from '@/types/student-display-settings';
 import {
     getStudentDisplaySettings,
@@ -390,6 +391,34 @@ export default function StudentDisplaySettings(): JSX.Element {
 
             <Card>
                 <CardHeader>
+                    <CardTitle>UI</CardTitle>
+                    <CardDescription>Select the visual theme for learner portal</CardDescription>
+                </CardHeader>
+                <div className="space-y-2 p-4 pt-0">
+                    <div className="flex items-center gap-2">
+                        <Label className="text-xs">Theme Skin</Label>
+                        <Select
+                            value={settings.ui.type}
+                            onValueChange={(v) =>
+                                update('ui', {
+                                    type: v as StudentUiType,
+                                })
+                            }
+                        >
+                            <SelectTrigger className="h-8 w-48 text-xs">
+                                <SelectValue placeholder="Select UI type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="default">default</SelectItem>
+                                <SelectItem value="vibrant">vibrant</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+            </Card>
+
+            <Card>
+                <CardHeader>
                     <CardTitle>Dashboard Widgets</CardTitle>
                     <CardDescription>Hide/Unhide, order and add custom widgets</CardDescription>
                 </CardHeader>
@@ -612,6 +641,43 @@ export default function StudentDisplaySettings(): JSX.Element {
                                 <SelectItem value="none">none</SelectItem>
                             </SelectContent>
                         </Select>
+                    </div>
+                </div>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Course Settings</CardTitle>
+                    <CardDescription>Global course interactions</CardDescription>
+                </CardHeader>
+                <div className="space-y-3 p-4 pt-0">
+                    <div className="flex items-center gap-2">
+                        <Switch
+                            checked={settings.courseSettings.quiz.moveOnlyOnCorrectAnswer}
+                            onCheckedChange={(v) =>
+                                update('courseSettings', {
+                                    quiz: {
+                                        ...settings.courseSettings.quiz,
+                                        moveOnlyOnCorrectAnswer: v,
+                                    },
+                                })
+                            }
+                        />
+                        <Label className="text-xs">Move only on correct answer</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Switch
+                            checked={settings.courseSettings.quiz.celebrateOnQuizComplete}
+                            onCheckedChange={(v) =>
+                                update('courseSettings', {
+                                    quiz: {
+                                        ...settings.courseSettings.quiz,
+                                        celebrateOnQuizComplete: v,
+                                    },
+                                })
+                            }
+                        />
+                        <Label className="text-xs">Celebrate on quiz complete</Label>
                     </div>
                 </div>
             </Card>
@@ -931,6 +997,18 @@ export default function StudentDisplaySettings(): JSX.Element {
                 </CardHeader>
                 <div className="space-y-2 p-4 pt-0">
                     <div className="flex items-center gap-2">
+                        <Switch
+                            checked={settings.certificates.enabled}
+                            onCheckedChange={(v) =>
+                                update('certificates', {
+                                    ...settings.certificates,
+                                    enabled: v,
+                                })
+                            }
+                        />
+                        <Label className="text-xs">Certificates Enabled</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
                         <Label className="text-xs">Generation Threshold (%)</Label>
                         <Input
                             className="h-8 w-24"
@@ -944,6 +1022,7 @@ export default function StudentDisplaySettings(): JSX.Element {
                                     Math.min(100, Number(e.target.value) || 0)
                                 );
                                 update('certificates', {
+                                    ...settings.certificates,
                                     generationThresholdPercent: value,
                                 });
                             }}
