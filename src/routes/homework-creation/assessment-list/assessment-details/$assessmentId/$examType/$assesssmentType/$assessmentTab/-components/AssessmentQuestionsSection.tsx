@@ -118,10 +118,12 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                             </div>
                         </div>
                     )}
-                <div className="flex items-start gap-8 text-sm font-thin">
-                    <h1 className="font-normal">Marks Per Question (Default):</h1>
-                    <span>{calculateAverageMarks(adaptiveMarking)}</span>
-                </div>
+                {examType !== 'SURVEY' && (
+                    <div className="flex items-start gap-8 text-sm font-thin">
+                        <h1 className="font-normal">Marks Per Question (Default):</h1>
+                        <span>{calculateAverageMarks(adaptiveMarking)}</span>
+                    </div>
+                )}
                 {calculateAveragePenalty(adaptiveMarking) > 0 && (
                     <div className="flex w-1/2 items-center justify-between">
                         <div className="flex w-52 items-center justify-start gap-8">
@@ -156,7 +158,9 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                 )}
                 {adaptiveMarking.length > 0 && (
                     <div>
-                        <h1 className="mb-4 text-primary-500">Adaptive Marking Rules</h1>
+                        <h1 className="mb-4 text-primary-500">
+                            {examType === 'SURVEY' ? 'Survey Questions' : 'Adaptive Marking Rules'}
+                        </h1>
                         <Table>
                             <TableHeader className="bg-primary-200">
                                 <TableRow>
