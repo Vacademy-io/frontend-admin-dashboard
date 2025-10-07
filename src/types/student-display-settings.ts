@@ -66,6 +66,12 @@ export interface StudentSignupSettings {
     passwordDelivery: PasswordDelivery;
 }
 
+// UI
+export type StudentUiType = 'default' | 'vibrant';
+export interface StudentUiSettings {
+    type: StudentUiType;
+}
+
 // Course details settings
 export type StudentCourseDetailsTabId =
     | 'OUTLINE'
@@ -94,6 +100,14 @@ export interface StudentCourseDetailsSettings {
     slidesView: { showLearningPath: boolean; feedbackVisible: boolean; canAskDoubt: boolean };
 }
 
+// Course Settings
+export interface StudentCourseSettings {
+    quiz: {
+        moveOnlyOnCorrectAnswer: boolean;
+        celebrateOnQuizComplete: boolean;
+    };
+}
+
 // All Courses page settings
 export type StudentAllCoursesTabId = 'InProgress' | 'Completed' | 'AllCourses';
 
@@ -118,6 +132,8 @@ export interface StudentPermissions {
 
 // Certificates
 export interface StudentCertificateSettings {
+    // Whether certificates feature is enabled
+    enabled: boolean;
     // Percentage threshold after which certificate can be generated
     generationThresholdPercent: number;
 }
@@ -131,9 +147,11 @@ export interface StudentDisplaySettingsData {
     dashboard: {
         widgets: StudentDashboardWidgetConfig[];
     };
+    ui: StudentUiSettings;
     signup: StudentSignupSettings;
     permissions: StudentPermissions;
     courseDetails: StudentCourseDetailsSettings;
+    courseSettings: StudentCourseSettings;
     allCourses: StudentAllCoursesSettings;
     notifications: {
         allowSystemAlerts: boolean;
