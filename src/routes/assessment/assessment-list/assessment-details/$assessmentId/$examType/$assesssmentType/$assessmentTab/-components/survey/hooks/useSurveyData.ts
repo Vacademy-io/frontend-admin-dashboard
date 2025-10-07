@@ -104,7 +104,6 @@ const transformSurveyAnalytics = (data: SurveyOverviewResponse): TransformedSurv
 // Helper functions for MCQ question processing
 const processMcqQuestion = (surveyData: any, questionType: SurveyQuestionType) => {
   const mcqData = surveyData.mcq_survey_dtos[0];
-  const totalResponses = mcqData.total_respondent || 0;
   const questionOptions = surveyData.assessment_question_preview_dto.options_with_explanation || [];
 
   const optionMap = new Map();
@@ -128,14 +127,16 @@ const processMcqQuestion = (surveyData: any, questionType: SurveyQuestionType) =
     const optionId = option.id;
     const optionText = extractTextFromRichContent(option.text) || 'Unknown Option';
     const responseData = responseCounts.get(optionId) || { count: 0, percentage: 0 };
-    const calculatedPercentage = totalResponses > 0 ? (responseData.count / totalResponses) * 100 : 0;
 
     return {
       value: optionText,
       count: responseData.count,
-      percentage: calculatedPercentage,
+      percentage: responseData.percentage, // Use the percentage from API directly
     };
   }).sort((a: any, b: any) => b.percentage - a.percentage);
+
+  // Calculate actual total responses by summing all option counts
+  const actualTotalResponses = responseDistribution.reduce((sum, option) => sum + option.count, 0);
 
   const topInsights = responseDistribution.length > 0 ? [
     `${Math.round(responseDistribution.reduce((max: any, current: any) =>
@@ -143,19 +144,18 @@ const processMcqQuestion = (surveyData: any, questionType: SurveyQuestionType) =
     ).percentage)}% of respondents chose "${responseDistribution.reduce((max: any, current: any) =>
       current.percentage > max.percentage ? current : max
     ).value}"`,
-    `Total responses: ${totalResponses}`,
+    `Total responses: ${actualTotalResponses}`,
   ] : [
     `No responses yet`,
     `Question has ${questionOptions.length} options`,
   ];
 
-  return { responseDistribution, totalResponses, topInsights };
+  return { responseDistribution, totalResponses: actualTotalResponses, topInsights };
 };
 
 // Helper function for True/False question processing
 const processTrueFalseQuestion = (surveyData: any, questionType: SurveyQuestionType) => {
   const mcqData = surveyData.mcq_survey_dtos[0];
-  const totalResponses = mcqData.total_respondent || 0;
   const questionOptions = surveyData.assessment_question_preview_dto.options_with_explanation || [];
 
   // For True/False questions, we need to ensure we have exactly 2 options: True and False
@@ -199,36 +199,28 @@ const processTrueFalseQuestion = (surveyData: any, questionType: SurveyQuestionT
     falseCount = falseData.count;
   }
 
-  // If we have total responses but missing counts, calculate the missing count
-  if (totalResponses > 0 && (trueCount + falseCount) !== totalResponses) {
-    if (trueCount > 0 && falseCount === 0) {
-      // Only True has responses, calculate False count
-      falseCount = totalResponses - trueCount;
-    } else if (falseCount > 0 && trueCount === 0) {
-      // Only False has responses, calculate True count
-      trueCount = totalResponses - falseCount;
-    }
-  }
+  // Calculate actual total responses
+  const actualTotalResponses = trueCount + falseCount;
 
   // Calculate percentages based on actual counts
-  const truePercentage = totalResponses > 0 ? (trueCount / totalResponses) * 100 : 0;
-  const falsePercentage = totalResponses > 0 ? (falseCount / totalResponses) * 100 : 0;
+  const truePercentage = actualTotalResponses > 0 ? (trueCount / actualTotalResponses) * 100 : 0;
+  const falsePercentage = actualTotalResponses > 0 ? (falseCount / actualTotalResponses) * 100 : 0;
 
   // Debug logging for True/False data
   console.log('🔍 [TrueFalse] Data Processing:', {
-    totalResponses,
+    actualTotalResponses,
     trueCount,
     falseCount,
     truePercentage: truePercentage.toFixed(2),
     falsePercentage: falsePercentage.toFixed(2),
     sumPercentage: (truePercentage + falsePercentage).toFixed(2),
     calculationLogic: {
-      totalResponses,
+      actualTotalResponses,
       initialTrueCount: trueOption ? (responseCounts.get(trueOption.id) || { count: 0 }).count : 0,
       initialFalseCount: falseOption ? (responseCounts.get(falseOption.id) || { count: 0 }).count : 0,
       calculatedTrueCount: trueCount,
       calculatedFalseCount: falseCount,
-      sumMatchesTotal: (trueCount + falseCount) === totalResponses
+      sumMatchesTotal: (trueCount + falseCount) === actualTotalResponses
     },
     mcqData: mcqData,
     responseCounts: Array.from(responseCounts.entries()),
@@ -260,19 +252,18 @@ const processTrueFalseQuestion = (surveyData: any, questionType: SurveyQuestionT
     ).percentage)}% of respondents chose "${responseDistribution.reduce((max: any, current: any) =>
       current.percentage > max.percentage ? current : max
     ).value}"`,
-    `Total responses: ${totalResponses}`,
+    `Total responses: ${actualTotalResponses}`,
   ] : [
     `No responses yet`,
     `Question type: ${questionType}`,
   ];
 
-  return { responseDistribution, totalResponses, topInsights };
+  return { responseDistribution, totalResponses: actualTotalResponses, topInsights };
 };
 
 // Helper functions for text question processing
 const processTextQuestion = (surveyData: any, questionType: SurveyQuestionType) => {
   const textData = surveyData.one_word_long_survey_dtos[0];
-  const totalResponses = textData.total_respondent || 0;
 
   let responseDistribution: ResponseDistribution[] = [];
   let topInsights: string[] = [];
@@ -299,13 +290,22 @@ const processTextQuestion = (surveyData: any, questionType: SurveyQuestionType) 
       .map(([value, count]) => ({
         value,
         count,
-        percentage: totalResponses > 0 ? Math.round((count / totalResponses) * 100) : 0,
+        percentage: 0, // Will be calculated below
       }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
 
+    // Calculate actual total responses and percentages
+    const actualTotalResponses = responseDistribution.reduce((sum, item) => sum + item.count, 0);
+
+    // Update percentages based on actual total
+    responseDistribution = responseDistribution.map(item => ({
+      ...item,
+      percentage: actualTotalResponses > 0 ? Math.round((item.count / actualTotalResponses) * 100) : 0,
+    }));
+
     topInsights = [
-      `Total responses: ${totalResponses}`,
+      `Total responses: ${actualTotalResponses}`,
       `Recent responses: ${textData.latest_response.length}`,
     ];
   } else {
@@ -315,13 +315,15 @@ const processTextQuestion = (surveyData: any, questionType: SurveyQuestionType) 
     ];
   }
 
-  return { responseDistribution, totalResponses, topInsights };
+  // Calculate actual total responses for return value
+  const actualTotalResponses = responseDistribution.reduce((sum, item) => sum + item.count, 0);
+
+  return { responseDistribution, totalResponses: actualTotalResponses, topInsights };
 };
 
 // Helper functions for numerical question processing
 const processNumericalQuestion = (surveyData: any, questionType: SurveyQuestionType) => {
   const numberData = surveyData.number_survey_dtos[0];
-  const totalResponses = numberData.total_respondent || 0;
 
   let responseDistribution: ResponseDistribution[] = [];
   let topInsights: string[] = [];
@@ -337,12 +339,21 @@ const processNumericalQuestion = (surveyData: any, questionType: SurveyQuestionT
       .map(([value, count]) => ({
         value,
         count,
-        percentage: totalResponses > 0 ? Math.round((count / totalResponses) * 100) : 0,
+        percentage: 0, // Will be calculated below
       }))
       .sort((a, b) => b.count - a.count);
 
+    // Calculate actual total responses and percentages
+    const actualTotalResponses = responseDistribution.reduce((sum, item) => sum + item.count, 0);
+
+    // Update percentages based on actual total
+    responseDistribution = responseDistribution.map(item => ({
+      ...item,
+      percentage: actualTotalResponses > 0 ? Math.round((item.count / actualTotalResponses) * 100) : 0,
+    }));
+
     topInsights = [
-      `Total responses: ${totalResponses}`,
+      `Total responses: ${actualTotalResponses}`,
       `Most common answer: ${responseDistribution[0]?.value ?? 'N/A'}`,
     ];
   } else {
@@ -352,7 +363,10 @@ const processNumericalQuestion = (surveyData: any, questionType: SurveyQuestionT
     ];
   }
 
-  return { responseDistribution, totalResponses, topInsights };
+  // Calculate actual total responses for return value
+  const actualTotalResponses = responseDistribution.reduce((sum, item) => sum + item.count, 0);
+
+  return { responseDistribution, totalResponses: actualTotalResponses, topInsights };
 };
 
 const transformQuestionAnalytics = (surveyData: any): TransformedQuestionAnalytics => {
@@ -492,7 +506,7 @@ export const useSurveyOverview = (assessmentId: string, sectionIds?: string) => 
 export const useSurveyRespondents = (
   assessmentId: string,
   pageNo: number = 1,
-  pageSize: number = 10,
+  pageSize: number = 100, // Increased to get more respondents per page
   assessmentName: string = '',
   sectionIds: string = '',
   filters: SurveyFilters = {}

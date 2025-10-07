@@ -92,7 +92,7 @@ const SectionInfo = ({
             )}
             {assessmentDetails[1]?.saved_data?.duration_distribution === 'SECTION' &&
                 section.duration && (
-                    <div className="flex w-96 items-center justify-start gap-8 text-sm font-thin">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-start gap-2 sm:gap-8 text-sm font-thin">
                         <h1 className="font-normal">Section Duration:</h1>
                         <div className="flex items-center gap-1">
                             <span>{section.duration}</span>
@@ -101,7 +101,7 @@ const SectionInfo = ({
                     </div>
                 )}
             {examType !== 'SURVEY' && (
-                <div className="flex items-start gap-8 text-sm font-thin">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-8 text-sm font-thin">
                     <h1 className="font-normal">Marks Per Question (Default):</h1>
                     <span>{calculateAverageMarks(adaptiveMarking)}</span>
                 </div>
@@ -159,7 +159,8 @@ const QuestionsTable = ({
             <h1 className="mb-4 text-primary-500">
                 {examType === 'SURVEY' ? 'Survey Questions' : 'Adaptive Marking Rules'}
             </h1>
-            <Table>
+            <div className="overflow-x-auto scrollbar-hide">
+                <Table>
                 <TableHeader className="bg-primary-200">
                     <TableRow>
                         <TableHead>Q.No.</TableHead>
@@ -202,7 +203,8 @@ const QuestionsTable = ({
                         );
                     })}
                 </TableBody>
-            </Table>
+                </Table>
+            </div>
         </div>
     );
 };
@@ -230,11 +232,11 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
         <AccordionItem value={`section-${index}`} key={index}>
             <AccordionTrigger className="flex items-center justify-between">
                 <div className="flex w-full items-center justify-between">
-                    <div className="flex items-center justify-start text-primary-500">
-                        <h1 className="!ml-0 w-20 border-none !pl-0 text-primary-500">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-start text-primary-500 gap-1 sm:gap-2">
+                        <h1 className="!ml-0 min-w-0 flex-shrink-0 border-none !pl-0 text-primary-500">
                             {section.name}
                         </h1>
-                        <span className="font-thin !text-neutral-600">
+                        <span className="font-thin !text-neutral-600 text-sm">
                             (MCQ(Single Correct):&nbsp;
                             {getQuestionTypeCounts(adaptiveMarking).MCQS}
                             ,&nbsp; MCQ(Multiple Correct):&nbsp;

@@ -10,7 +10,7 @@ export const useEnhancedSurveyRespondents = (
   assessmentId: string,
   sectionIds: string[] = [],
   pageNo: number = 1,
-  pageSize: number = 10,
+  pageSize: number = 100, // Increased to get more respondents per page
   assessmentName: string = '',
   filters: SurveyFilters = {}
 ) => {
