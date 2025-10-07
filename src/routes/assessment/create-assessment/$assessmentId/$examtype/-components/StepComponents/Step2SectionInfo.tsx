@@ -54,6 +54,7 @@ export const Step2SectionInfo = ({
 }) => {
     const { assessmentId, examtype } = Route.useParams();
     const [enableSectionName, setEnableSectionName] = useState(false);
+    const [isInputFocused, setIsInputFocused] = useState(false);
     const sectionNameInputRef = React.useRef<HTMLInputElement>(null);
 
     // Auto-focus input when edit mode is enabled
@@ -199,7 +200,28 @@ export const Step2SectionInfo = ({
 
     return (
         <AccordionItem value={`section-${index}`} key={index}>
-            <AccordionTrigger className="flex items-center justify-between" id="section-details">
+            <AccordionTrigger
+                className="flex items-center justify-between"
+                id="section-details"
+                onKeyDown={(e) => {
+                    // Prevent accordion toggle when section name editing is enabled or input is focused
+                    if (enableSectionName || isInputFocused) {
+                        e.stopPropagation();
+                    }
+                }}
+                onKeyUp={(e) => {
+                    // Prevent accordion toggle when section name editing is enabled or input is focused
+                    if (enableSectionName || isInputFocused) {
+                        e.stopPropagation();
+                    }
+                }}
+                onClick={(e) => {
+                    // Prevent accordion toggle when section name editing is enabled or input is focused
+                    if (enableSectionName || isInputFocused) {
+                        e.stopPropagation();
+                    }
+                }}
+            >
                 <div className="flex w-full items-center justify-between">
                     {allSections?.[index] ? (
                         <div className="flex items-center justify-start gap-2 text-primary-500">
@@ -221,6 +243,30 @@ export const Step2SectionInfo = ({
                                                 onClick={(e) => {
                                                     // Prevent accordion toggle when clicking on input
                                                     e.stopPropagation();
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    // Prevent accordion toggle when typing in the input field
+                                                    if (enableSectionName) {
+                                                        e.stopPropagation();
+                                                    }
+                                                }}
+                                                onKeyUp={(e) => {
+                                                    // Prevent accordion toggle when typing in the input field
+                                                    if (enableSectionName) {
+                                                        e.stopPropagation();
+                                                    }
+                                                }}
+                                                onKeyPress={(e) => {
+                                                    // Prevent accordion toggle when typing in the input field
+                                                    if (enableSectionName) {
+                                                        e.stopPropagation();
+                                                    }
+                                                }}
+                                                onFocus={(e) => {
+                                                    setIsInputFocused(true);
+                                                }}
+                                                onBlur={(e) => {
+                                                    setIsInputFocused(false);
                                                 }}
                                             />
                                         </FormControl>
@@ -293,6 +339,30 @@ export const Step2SectionInfo = ({
                                                 onClick={(e) => {
                                                     // Prevent accordion toggle when clicking on input
                                                     e.stopPropagation();
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    // Prevent accordion toggle when typing in the input field
+                                                    if (enableSectionName) {
+                                                        e.stopPropagation();
+                                                    }
+                                                }}
+                                                onKeyUp={(e) => {
+                                                    // Prevent accordion toggle when typing in the input field
+                                                    if (enableSectionName) {
+                                                        e.stopPropagation();
+                                                    }
+                                                }}
+                                                onKeyPress={(e) => {
+                                                    // Prevent accordion toggle when typing in the input field
+                                                    if (enableSectionName) {
+                                                        e.stopPropagation();
+                                                    }
+                                                }}
+                                                onFocus={(e) => {
+                                                    setIsInputFocused(true);
+                                                }}
+                                                onBlur={(e) => {
+                                                    setIsInputFocused(false);
                                                 }}
                                             />
                                         </FormControl>
