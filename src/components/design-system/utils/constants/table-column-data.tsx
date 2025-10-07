@@ -129,6 +129,40 @@ const useClickHandlers = () => {
 
 const CreateClickableCell = ({ row, columnId }: { row: Row<StudentTable>; columnId: string }) => {
     const { handleClick, handleDoubleClick } = useClickHandlers();
+    const value = row.getValue(columnId);
+
+    // Handle complex objects by extracting meaningful display values
+    const getDisplayValue = (value: any) => {
+        if (value === null || value === undefined) {
+            return '-';
+        }
+        
+        if (typeof value === 'string' || typeof value === 'number') {
+            return value;
+        }
+        
+        if (typeof value === 'object') {
+            // For objects, try to extract a meaningful display value
+            if (value.name) return value.name;
+            if (value.title) return value.title;
+            if (value.label) return value.label;
+            if (value.id) return value.id;
+            if (value.status) return value.status;
+            if (value.type) return value.type;
+            
+            // If it's an array, join the values
+            if (Array.isArray(value)) {
+                return value.map(item => 
+                    typeof item === 'object' ? (item.name || item.title || item.label || item.id || JSON.stringify(item)) : item
+                ).join(', ');
+            }
+            
+            // Fallback to JSON string for complex objects
+            return JSON.stringify(value);
+        }
+        
+        return String(value);
+    };
 
     return (
         <div
@@ -136,7 +170,7 @@ const CreateClickableCell = ({ row, columnId }: { row: Row<StudentTable>; column
             onDoubleClick={(e) => handleDoubleClick(e, columnId, row)}
             className="cursor-pointer"
         >
-            {row.getValue(columnId)}
+            {getDisplayValue(value)}
         </div>
     );
 };
@@ -641,6 +675,38 @@ export const enrollRequestColumns: ColumnDef<StudentTable>[] = [
         maxSize: 250,
         header: 'Other Custom Fields',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="other_custom_fields" />,
+    },
+    {
+        accessorKey: 'source',
+        size: 150,
+        minSize: 100,
+        maxSize: 250,
+        header: 'Source',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="source" />,
+    },
+    {
+        accessorKey: 'type',
+        size: 150,
+        minSize: 100,
+        maxSize: 250,
+        header: 'Type',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="type" />,
+    },
+    {
+        accessorKey: 'type_id',
+        size: 150,
+        minSize: 100,
+        maxSize: 250,
+        header: 'Type ID',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="type_id" />,
+    },
+    {
+        accessorKey: 'level_id',
+        size: 150,
+        minSize: 100,
+        maxSize: 250,
+        header: 'Level ID',
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="level_id" />,
     },
     {
         id: 'options',

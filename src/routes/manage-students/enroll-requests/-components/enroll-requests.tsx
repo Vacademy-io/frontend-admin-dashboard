@@ -35,13 +35,17 @@ export interface EnrollRequestsInterface {
     group_ids: string[];
     gender: MyFilterOption[];
     preferred_batch: MyFilterOption[];
-    payment_statuses: MyFilterOption[];
-    approval_statuses: MyFilterOption[];
-    payment_option: MyFilterOption[];
+    payment_statuses: string[];
+    approval_statuses: string[];
+    payment_option: string[];
     custom_fields: MyFilterOption[];
     sort_columns: {
         [key: string]: string;
     };
+    sources: string[];
+    types: string[];
+    type_ids: string[];
+    level_ids: string[];
 }
 
 export const EnrollRequests = () => {
@@ -65,6 +69,10 @@ export const EnrollRequests = () => {
         payment_option: [],
         custom_fields: [],
         sort_columns: {},
+        sources: [],
+        types: [],
+        type_ids: [],
+        level_ids: [],
     });
     const [searchText, setSearchText] = useState('');
     const [allPagesData, setAllPagesData] = useState({
@@ -185,6 +193,10 @@ export const EnrollRequests = () => {
             payment_option: [],
             custom_fields: [],
             sort_columns: {},
+            sources: [],
+            types: [],
+            type_ids: [],
+            level_ids: [],
         }));
         setSearchText('');
         getEnrollmentRequestsDataMutation.mutate({
@@ -205,15 +217,36 @@ export const EnrollRequests = () => {
                 payment_option: [],
                 custom_fields: [],
                 sort_columns: {},
+                sources: [],
+                types: [],
+                type_ids: [],
+                level_ids: [],
             },
         });
     };
 
     const handleFilterChange = (filterKey: string, selectedItems: MyFilterOption[]) => {
         setSelectedFilter((prev) => {
-            const updatedFilters = { ...prev, [filterKey]: selectedItems };
-            return updatedFilters;
+            // For fields that expect MyFilterOption[], keep as is
+            // For fields that expect string[], convert to string array
+            const fieldsThatExpectStringArray = ['payment_statuses', 'approval_statuses', 'payment_option', 'sources', 'types', 'type_ids', 'level_ids'];
+            
+            if (fieldsThatExpectStringArray.includes(filterKey)) {
+                const stringValues = selectedItems.map(item => item.name);
+                return { ...prev, [filterKey]: stringValues };
+            } else {
+                // Keep as MyFilterOption[] for fields like gender, custom_fields, preferred_batch
+                return { ...prev, [filterKey]: selectedItems };
+            }
         });
+    };
+
+    // Helper function to convert string[] to MyFilterOption[] for display
+    const convertToStringArray = (items: string[]): MyFilterOption[] => {
+        return items.map((item, index) => ({
+            id: `${item}-${index}`,
+            name: item,
+        }));
     };
 
     useEffect(() => {
@@ -263,6 +296,14 @@ export const EnrollRequests = () => {
                     />
                     <div className="flex flex-wrap items-center gap-4">
                         <ScheduleTestFilters
+                            label="Gender"
+                            data={[]}
+                            selectedItems={selectedFilter['gender'] || []}
+                            onSelectionChange={(items) =>
+                                handleFilterChange('gender', items)
+                            }
+                        />
+                        <ScheduleTestFilters
                             label="Preferred Batch"
                             data={[]}
                             selectedItems={selectedFilter['preferred_batch'] || []}
@@ -273,7 +314,7 @@ export const EnrollRequests = () => {
                         <ScheduleTestFilters
                             label="Payment Status"
                             data={[]}
-                            selectedItems={selectedFilter['payment_statuses'] || []}
+                            selectedItems={convertToStringArray(selectedFilter['payment_statuses'] || [])}
                             onSelectionChange={(items) =>
                                 handleFilterChange('payment_statuses', items)
                             }
@@ -281,7 +322,7 @@ export const EnrollRequests = () => {
                         <ScheduleTestFilters
                             label="Approval Status"
                             data={[]}
-                            selectedItems={selectedFilter['approval_statuses'] || []}
+                            selectedItems={convertToStringArray(selectedFilter['approval_statuses'] || [])}
                             onSelectionChange={(items) =>
                                 handleFilterChange('approval_statuses', items)
                             }
@@ -289,14 +330,22 @@ export const EnrollRequests = () => {
                         <ScheduleTestFilters
                             label="Payment Option"
                             data={[]}
-                            selectedItems={selectedFilter['payment_option'] || []}
+                            selectedItems={convertToStringArray(selectedFilter['payment_option'] || [])}
                             onSelectionChange={(items) =>
                                 handleFilterChange('payment_option', items)
                             }
                         />
                     </div>
                     <Step3ParticipantsFilterButtons
-                        selectedQuestionPaperFilters={selectedFilter}
+                        selectedQuestionPaperFilters={{
+                            name: selectedFilter.name,
+                            statuses: selectedFilter.statuses,
+                            institute_ids: selectedFilter.institute_ids,
+                            package_session_ids: selectedFilter.package_session_ids,
+                            group_ids: selectedFilter.group_ids,
+                            gender: selectedFilter.gender,
+                            sort_columns: selectedFilter.sort_columns,
+                        } as any}
                         handleSubmitFilters={() => {}}
                         handleResetFilters={handleResetFilters}
                     />
