@@ -76,33 +76,35 @@ const AssessmentHeader = ({ assessmentDetails }: { assessmentDetails: any }) => 
     };
 
     return (
-        <div className="flex items-center gap-4">
-            <h1 className="font-semibold">{assessmentDetails[0]?.saved_data.name}</h1>
-            <Badge
-                className={`rounded-md border border-neutral-300 ${getVisibilityBadgeClass(
-                    assessmentDetails[0]?.saved_data.assessment_visibility
-                )} py-1.5 shadow-none`}
-            >
-                <LockSimple size={16} className="mr-2" />
-                {assessmentDetails[0]?.saved_data.assessment_visibility}
-            </Badge>
-            <Badge
-                className={`rounded-md border border-neutral-300 ${getModeBadgeClass(
-                    assessmentDetails[0]?.saved_data.assessment_mode
-                )} py-1.5 shadow-none`}
-            >
-                {getModeIcon(assessmentDetails[0]?.saved_data.assessment_mode)}
-                {assessmentDetails[0]?.saved_data.assessment_mode}
-            </Badge>
-            <Separator orientation="vertical" className="h-8 w-px bg-neutral-300" />
-            <Badge
-                className={`rounded-md border ${getStatusBadgeClass(
-                    assessmentDetails?.[0]?.status
-                )} border-neutral-300 py-1.5 shadow-none`}
-            >
-                {getStatusIcon(assessmentDetails?.[0]?.status)}
-                {assessmentDetails?.[0]?.status}
-            </Badge>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+            <h1 className="font-semibold text-lg sm:text-xl">{assessmentDetails[0]?.saved_data.name}</h1>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+                <Badge
+                    className={`rounded-md border border-neutral-300 ${getVisibilityBadgeClass(
+                        assessmentDetails[0]?.saved_data.assessment_visibility
+                    )} py-1.5 shadow-none`}
+                >
+                    <LockSimple size={16} className="mr-2" />
+                    {assessmentDetails[0]?.saved_data.assessment_visibility}
+                </Badge>
+                <Badge
+                    className={`rounded-md border border-neutral-300 ${getModeBadgeClass(
+                        assessmentDetails[0]?.saved_data.assessment_mode
+                    )} py-1.5 shadow-none`}
+                >
+                    {getModeIcon(assessmentDetails[0]?.saved_data.assessment_mode)}
+                    {assessmentDetails[0]?.saved_data.assessment_mode}
+                </Badge>
+                <Separator orientation="vertical" className="h-8 w-px bg-neutral-300 hidden sm:block" />
+                <Badge
+                    className={`rounded-md border ${getStatusBadgeClass(
+                        assessmentDetails?.[0]?.status
+                    )} border-neutral-300 py-1.5 shadow-none`}
+                >
+                    {getStatusIcon(assessmentDetails?.[0]?.status)}
+                    {assessmentDetails?.[0]?.status}
+                </Badge>
+            </div>
         </div>
     );
 };
@@ -158,7 +160,7 @@ const AssessmentActions = ({
                     </MyButton>
                 </DialogTrigger>
                 {Object.keys(questionsDataSectionWise).length > 0 && (
-                    <DialogContent className="no-scrollbar !m-0 h-[90vh] !w-[90vw] !max-w-full !gap-0 overflow-y-auto !p-0 [&>button]:hidden">
+                    <DialogContent className="no-scrollbar !m-0 h-[90vh] !w-[95vw] sm:!w-[90vw] !max-w-full !gap-0 overflow-y-auto !p-0 [&>button]:hidden">
                         <AssessmentPreview handleCloseDialog={() => setIsPreviewAssessmentDialogOpen(false)} />
                     </DialogContent>
                 )}
@@ -232,7 +234,7 @@ const AssessmentDetailsComponent = () => {
                 />
             </Helmet>
             <div>
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <AssessmentHeader assessmentDetails={assessmentDetails} />
                     <AssessmentActions
                         isPreviewAssessmentDialogOpen={isPreviewAssessmentDialogOpen}
@@ -243,11 +245,11 @@ const AssessmentDetailsComponent = () => {
                 </div>
                 <Separator className="mt-4" />
                 <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-                    <div className="flex items-center justify-between gap-2">
-                        <TabsList className="mb-2 mt-6 inline-flex h-auto justify-start gap-0 rounded-none border-b !bg-transparent p-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <TabsList className="mb-2 mt-6 inline-flex h-auto justify-start gap-0 rounded-none border-b !bg-transparent p-0 overflow-x-auto scrollbar-hide">
                             <TabsTrigger
                                 value="overview"
-                                className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                className={`flex gap-1.5 rounded-none px-4 sm:px-12 py-2 !shadow-none whitespace-nowrap ${
                                     selectedTab === 'overview'
                                         ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
                                         : 'border-none bg-transparent'
@@ -264,7 +266,7 @@ const AssessmentDetailsComponent = () => {
                             {assessmentTab !== 'upcomingTests' && (
                                 <TabsTrigger
                                     value="submissions"
-                                    className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                    className={`flex gap-1.5 rounded-none px-4 sm:px-12 py-2 !shadow-none whitespace-nowrap ${
                                         selectedTab === 'submissions'
                                             ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
                                             : 'border-none bg-transparent'
@@ -281,7 +283,7 @@ const AssessmentDetailsComponent = () => {
                             )}
                             <TabsTrigger
                                 value="basicInfo"
-                                className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                className={`flex gap-1.5 rounded-none px-4 sm:px-12 py-2 !shadow-none whitespace-nowrap ${
                                     selectedTab === 'basicInfo'
                                         ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
                                         : 'border-none bg-transparent'
@@ -297,7 +299,7 @@ const AssessmentDetailsComponent = () => {
                             </TabsTrigger>
                             <TabsTrigger
                                 value="questions"
-                                className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                className={`flex gap-1.5 rounded-none px-4 sm:px-12 py-2 !shadow-none whitespace-nowrap ${
                                     selectedTab === 'questions'
                                         ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
                                         : 'border-none bg-transparent'
@@ -313,7 +315,7 @@ const AssessmentDetailsComponent = () => {
                             </TabsTrigger>
                             <TabsTrigger
                                 value="participants"
-                                className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                className={`flex gap-1.5 rounded-none px-4 sm:px-12 py-2 !shadow-none whitespace-nowrap ${
                                     selectedTab === 'participants'
                                         ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
                                         : 'border-none bg-transparent'
@@ -329,7 +331,7 @@ const AssessmentDetailsComponent = () => {
                             </TabsTrigger>
                             <TabsTrigger
                                 value="accessControl"
-                                className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
+                                className={`flex gap-1.5 rounded-none px-4 sm:px-12 py-2 !shadow-none whitespace-nowrap ${
                                     selectedTab === 'accessControl'
                                         ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
                                         : 'border-none bg-transparent'
@@ -356,7 +358,7 @@ const AssessmentDetailsComponent = () => {
                             </MyButton>
                         )}
                     </div>
-                    <div className="max-h-[72vh] overflow-y-auto pr-8">
+                    <div className="max-h-[72vh] overflow-y-auto pr-8 scrollbar-hide">
                         <TabsContent value="overview">
                             {examType === 'SURVEY' ? (
                                 <SurveyMainOverviewTab

@@ -261,7 +261,7 @@ export const EnhancedSurveyIndividualRespondentsTab: React.FC<EnhancedSurveyIndi
       </div>
 
       {/* Individual Responses */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {currentRespondent?.responses?.map((response: any, index: number) => {
           const typeBadge = getQuestionTypeBadge(response.questionType);
 
