@@ -38,7 +38,8 @@ import DeleteSessionDialog from './delete-session-dialog';
 import { getSessionJoinLink } from '../-utils/live-sesstions';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
-import { fromZonedTime, format, formatInTimeZone } from 'date-fns-tz';
+import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
+import { useServerTime } from '@/hooks/use-server-time';
 
 interface LiveSessionCardProps {
     session: LiveSession;
@@ -55,82 +56,50 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
 
     const [scheduledSessionDetails, setScheduleSessionDetails] =
         useState<SessionDetailsResponse | null>(null);
-    const queryClient = useQueryClient();
     const { instituteDetails } = useInstituteDetailsStore();
 
-    // Helper function to get user's local timezone
-    const getUserTimezone = (): string => {
-        try {
-            return Intl.DateTimeFormat().resolvedOptions().timeZone;
-        } catch (error) {
-            console.error('Error detecting user timezone:', error);
-            return 'Asia/Kolkata'; // fallback
-        }
-    };
+    // Use server time hook for accurate time reference
+    const { getUserTimezone } = useServerTime();
 
-    // Helper function to convert session datetime to user's local timezone
-    const convertSessionToLocalTime = useCallback(() => {
-        try {
-            // Get session timezone (fallback to Asia/Kolkata if not provided)
-            const sessionTimezone = session.timezone || 'Asia/Kolkata';
-            const userTimezone = getUserTimezone();
+    // Simple helper to get session time info using server time utilities
+    const getSessionTimeInfo = useCallback(() => {
+        const sessionTimezone = session.timezone || 'Asia/Kolkata';
+        const userTimezone = getUserTimezone();
 
-            // Create date strings
-            const sessionStartString = `${session.meeting_date}T${session.start_time}`;
-            const sessionEndString = `${session.meeting_date}T${session.last_entry_time}`;
+        // Create session date-time strings
+        const sessionStartString = `${session.meeting_date}T${session.start_time}`;
+        const sessionEndString = `${session.meeting_date}T${session.last_entry_time}`;
 
-            // Parse the dates and treat them as if they're in the session's timezone
-            const sessionStartInSessionTZ = fromZonedTime(sessionStartString, sessionTimezone);
-            const sessionEndInSessionTZ = fromZonedTime(sessionEndString, sessionTimezone);
+        // Parse session times
+        const sessionStartTime = fromZonedTime(sessionStartString, sessionTimezone);
+        const sessionEndTime = fromZonedTime(sessionEndString, sessionTimezone);
 
-            // Format times in both session timezone and user's local timezone
-            const sessionTimeFormatted = formatInTimeZone(
-                sessionStartInSessionTZ,
-                sessionTimezone,
-                'yyyy-dd-MM h:mm a'
-            );
-            const localTimeFormatted = formatInTimeZone(
-                sessionStartInSessionTZ,
-                userTimezone,
-                'yyyy-dd-MM h:mm a'
-            );
+        // Format times for display
+        const sessionTimeFormatted = formatInTimeZone(
+            sessionStartTime,
+            sessionTimezone,
+            'yyyy-dd-MM h:mm a'
+        );
+        const localTimeFormatted = formatInTimeZone(
+            sessionStartTime,
+            userTimezone,
+            'yyyy-dd-MM h:mm a'
+        );
+        const sessionEndTimeFormatted = formatInTimeZone(sessionEndTime, sessionTimezone, 'h:mm a');
+        const localEndTimeFormatted = formatInTimeZone(sessionEndTime, userTimezone, 'h:mm a');
 
-            const sessionEndTimeFormatted = formatInTimeZone(
-                sessionEndInSessionTZ,
-                sessionTimezone,
-                'h:mm a'
-            );
-            const localEndTimeFormatted = formatInTimeZone(
-                sessionEndInSessionTZ,
-                userTimezone,
-                'h:mm a'
-            );
+        return {
+            sessionTimezone,
+            userTimezone,
+            sessionTimeFormatted,
+            localTimeFormatted,
+            sessionEndTimeFormatted,
+            localEndTimeFormatted,
+            isLocalTime: sessionTimezone === userTimezone,
+        };
+    }, [session, getUserTimezone]);
 
-            return {
-                sessionTimezone,
-                userTimezone,
-                sessionTimeFormatted,
-                localTimeFormatted,
-                sessionEndTimeFormatted,
-                localEndTimeFormatted,
-                isLocalTime: sessionTimezone === userTimezone,
-            };
-        } catch (error) {
-            console.error('Error converting session time to local timezone:', error);
-            // Fallback: show original format
-            return {
-                sessionTimezone: session.timezone || 'UTC',
-                userTimezone: getUserTimezone(),
-                sessionTimeFormatted: `${session.meeting_date} ${session.start_time}`,
-                localTimeFormatted: `${session.meeting_date} ${session.start_time}`,
-                sessionEndTimeFormatted: session.last_entry_time,
-                localEndTimeFormatted: session.last_entry_time,
-                isLocalTime: false,
-            };
-        }
-    }, [session]);
-
-    const timeInfo = convertSessionToLocalTime();
+    const timeInfo = getSessionTimeInfo();
     // Use mutateAsync to ensure data is fetched before opening dialog
     const {
         mutateAsync: fetchReportAsync,
