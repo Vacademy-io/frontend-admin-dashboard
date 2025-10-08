@@ -368,3 +368,6 @@ export const SURVEY_QUESTIONS_WITH_SECTIONS = `${BASE_URL}/assessment-service/as
 // Batch Service URLs
 export const BATCH_SERVICE_BASE = `${BASE_URL}/institute-service/batch`;
 export const BATCH_DETAILS = `${BATCH_SERVICE_BASE}/get-batch-details`;
+
+// Server Time
+export const GET_SERVER_TIME = `${BASE_URL}/auth-service/v1/server-time/utc`;

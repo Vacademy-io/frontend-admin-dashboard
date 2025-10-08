@@ -89,6 +89,7 @@ export interface Schedule {
     session_streaming_service_type: string | null;
     schedule_id: string | null;
     meeting_date: string | null;
+    timezone?: string;
     package_session_ids: string[];
     added_schedules: Array<{
         day: string;

@@ -265,12 +265,12 @@ export default function ScheduleStep1() {
     // Update start time when timezone changes (only for new sessions)
     const selectedTimezone = form.watch('timeZone');
     useEffect(() => {
-        // Only update time if not in edit mode or if form doesn't have an existing time
-        if (!sessionDetails && selectedTimezone) {
+        // Only update time if NOT in edit mode and timezone changes
+        if (!sessionDetails && selectedTimezone && isFormInitialized) {
             const currentTime = getCurrentTimeInTimezone(selectedTimezone);
             form.setValue('startTime', currentTime);
         }
-    }, [selectedTimezone, sessionDetails, form]);
+    }, [selectedTimezone, sessionDetails, form, isFormInitialized]);
 
     // Populate form when sessionDetails is available (edit mode)
     useEffect(() => {
@@ -283,19 +283,32 @@ export default function ScheduleStep1() {
 
         const schedule = sessionDetails.schedule;
 
-        // Update form values
+        // Update form values with session data
         form.setValue('id', schedule.session_id);
         form.setValue('title', schedule.title || '');
         form.setValue('subject', schedule.subject || 'none');
         form.setValue('description', schedule.description_html || '');
 
-        // Set timezone and current time for editing mode
-        const savedTimezone = (schedule as any).time_zone || 'Asia/Kolkata';
-        form.setValue('timeZone', savedTimezone);
+        // Set timezone from the session - THIS IS THE CRITICAL PART
+        const savedTimezone = schedule.timezone || 'Asia/Kolkata';
 
-        // Set current time in the saved timezone for new sessions
-        const currentTime = getCurrentTimeInTimezone(savedTimezone);
-        form.setValue('startTime', currentTime);
+        // Force a complete form reset with the new timezone to ensure it sticks
+        const currentFormValues = form.getValues();
+        form.reset({
+            ...currentFormValues,
+            timeZone: savedTimezone,
+        });
+
+        // Set the original session start time instead of current time
+        if (schedule.meeting_date && schedule.start_time) {
+            // Combine meeting_date and start_time to create the proper datetime format
+            const originalDateTime = `${schedule.meeting_date}T${schedule.start_time}`;
+            form.setValue('startTime', originalDateTime);
+        } else {
+            // Fallback to current time if session data is incomplete
+            const currentTime = getCurrentTimeInTimezone(savedTimezone);
+            form.setValue('startTime', currentTime);
+        }
 
         form.setValue('defaultLink', schedule.default_meet_link || '');
         form.setValue('sessionPlatform', schedule.link_type || StreamingPlatform.OTHER);
@@ -372,8 +385,9 @@ export default function ScheduleStep1() {
         setIsFormInitialized(true);
     }, [sessionDetails, form]);
 
-    // Initialize form with step1Data when available
+    // Initialize form with step1Data when available (for non-edit flows)
     useEffect(() => {
+        // Only run this for non-edit flows
         if (step1Data && !sessionDetails) {
             form.reset(step1Data);
             setIsFormInitialized(true);
