@@ -278,9 +278,9 @@ export const convertToUTC = (dateString: string) => {
 
     // Handle datetime-local input format (YYYY-MM-DDTHH:mm)
     if (dateString.includes('T') && !dateString.includes('Z') && !dateString.includes('+')) {
-        // This is a datetime-local input, treat it as local time and convert to UTC
-        const date = new Date(dateString);
-        return date.toISOString();
+        // This is a datetime-local input, treat it as the intended time without timezone conversion
+        // Append 'Z' to indicate UTC time, preserving the user's selected time
+        return dateString + 'Z';
     }
 
     // Handle other date formats

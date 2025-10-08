@@ -13,7 +13,29 @@ export const convertToLocalDateTime = (dateString: string): string => {
         minute: '2-digit',
         second: '2-digit',
         hour12: true,
-        timeZone: 'UTC', // ← Force UTC output
+        // Remove timeZone: 'UTC' to use browser's local timezone
+    };
+
+    // Use en-GB for day-month-year ordering
+    const formatted = new Intl.DateTimeFormat('en-GB', options).format(date);
+
+    return formatted.replace(',', '').replace(/\s(am|pm)/i, (match) => match.toUpperCase());
+};
+
+export const convertToUTCDateTime = (dateString: string): string => {
+    if (!dateString) return '';
+
+    const date = new Date(dateString);
+
+    const options: Intl.DateTimeFormatOptions = {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+        timeZone: 'UTC', // Force UTC output for assessment schedule times
     };
 
     // Use en-GB for day-month-year ordering

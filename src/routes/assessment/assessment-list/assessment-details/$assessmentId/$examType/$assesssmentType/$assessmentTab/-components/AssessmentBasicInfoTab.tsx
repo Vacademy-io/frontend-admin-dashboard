@@ -5,7 +5,7 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { CheckCircle } from 'phosphor-react';
 import { Route } from '..';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
-import { convertToLocalDateTime } from '@/constants/helper';
+import { convertToLocalDateTime, convertToUTCDateTime } from '@/constants/helper';
 import { getSubjectNameById } from '@/routes/assessment/question-papers/-utils/helper';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
@@ -57,7 +57,7 @@ export const AssessmentBasicInfoTab = () => {
                                 Start Date and Time:{' '}
                                 <span className="font-thin">
                                     {' '}
-                                    {convertToLocalDateTime(
+                                    {convertToUTCDateTime(
                                         assessmentDetails[0]?.saved_data?.boundation_start_date ??
                                             ''
                                     )}
@@ -67,7 +67,7 @@ export const AssessmentBasicInfoTab = () => {
                                 End Date and Time:{' '}
                                 <span className="font-thin">
                                     {' '}
-                                    {convertToLocalDateTime(
+                                    {convertToUTCDateTime(
                                         assessmentDetails[0]?.saved_data?.boundation_end_date ?? ''
                                     )}
                                 </span>{' '}
