@@ -136,7 +136,7 @@ const processMcqQuestion = (surveyData: any, questionType: SurveyQuestionType) =
   }).sort((a: any, b: any) => b.percentage - a.percentage);
 
   // Calculate actual total responses by summing all option counts
-  const actualTotalResponses = responseDistribution.reduce((sum, option) => sum + option.count, 0);
+  const actualTotalResponses = responseDistribution.reduce((sum: number, option: ResponseDistribution) => sum + option.count, 0);
 
   const topInsights = responseDistribution.length > 0 ? [
     `${Math.round(responseDistribution.reduce((max: any, current: any) =>
