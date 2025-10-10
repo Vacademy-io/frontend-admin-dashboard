@@ -1,5 +1,5 @@
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { useEffect, useState } from 'react';
 import { AICenterProvider } from './-contexts/useAICenterContext';
@@ -17,6 +17,11 @@ export const Route = createFileRoute('/ai-center/')({
             </AICenterProvider>
         </LayoutContainer>
     ),
+    validateSearch: (search: Record<string, unknown>) => {
+        return {
+            tab: (search.tab as string) || undefined,
+        };
+    },
 });
 
 const slugify = (text: string): string => {
@@ -27,10 +32,18 @@ const slugify = (text: string): string => {
 };
 
 function RouteComponent() {
-    const [selectedTab, setSelectedTab] = useState('myResources');
+    const navigate = useNavigate();
+    const search = useSearch({ from: '/ai-center/' });
+    const [selectedTab, setSelectedTab] = useState(search.tab || 'myResources');
     const { setNavHeading } = useNavHeadingStore();
 
     const handleTabChange = (value: string) => {
+        setSelectedTab(value);
+        // Update URL with the selected tab
+        navigate({
+            to: '/ai-center',
+            search: { tab: value },
+        });
         const element = document.getElementById(value);
         if (element) {
             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
