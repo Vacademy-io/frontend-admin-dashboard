@@ -423,6 +423,21 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
 
         router.navigate({
             to: '/ai-center',
+            search: { tab: 'aiTaskList' },
+        });
+    };
+
+    const handleAIToolNavigation = (toolRoute: string) => {
+        // Track AI Tool access
+        amplitudeEvents.useFeature('ai_tool', { source: 'dashboard', tool: toolRoute });
+        trackEvent('AI Tool Accessed', {
+            source: 'dashboard_navigation',
+            tool: toolRoute,
+            timestamp: new Date().toISOString(),
+        });
+
+        router.navigate({
+            to: toolRoute,
         });
     };
 
@@ -702,42 +717,48 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                 })()}
                 {/* AI Features Card - Moved to Bottom for All Users */}
                 {isWidgetVisible('aiFeaturesCard') && (
-                    <Card
-                        className="grow cursor-pointer bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg transition-all hover:scale-[1.01] hover:shadow-md"
-                        onClick={handleAICenterNavigation}
-                    >
+                    <Card className="grow bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg transition-all hover:scale-[1.01] hover:shadow-md">
                         <CardHeader className="p-4 sm:p-5">
                             <div className="flex items-center justify-between">
                                 <CardTitle className="mb-0.5 flex items-center gap-1.5 text-base font-semibold">
                                     <Sparkle size={22} weight="fill" />
                                     Try New AI Features!
                                 </CardTitle>
-                                <ArrowSquareOut size={18} className="text-purple-200" />
+                                <div
+                                    className="cursor-pointer"
+                                    onClick={handleAICenterNavigation}
+                                >
+                                    <ArrowSquareOut size={18} className="text-purple-200" />
+                                </div>
                             </div>
                             <CardDescription className="text-xs text-purple-100">
                                 Explore cutting-edge AI tools to enhance your teaching
                             </CardDescription>
                             <div className="mt-3 flex flex-wrap justify-start gap-2 sm:gap-2.5">
                                 {[
-                                    { icon: FilePdf, text: 'Questions from PDF' },
+                                    { icon: FilePdf, text: 'Questions from PDF', route: '/ai-center/ai-tools/vsmart-upload' },
                                     {
                                         icon: LightbulbFilament,
                                         text: 'Questions From Lecture Audio',
+                                        route: '/ai-center/ai-tools/vsmart-audio',
                                     },
                                     {
                                         icon: LightbulbFilament,
                                         text: 'Sort Questions Topic wise',
+                                        route: '/ai-center/ai-tools/vsmart-sorter',
                                     },
-                                    { icon: LightbulbFilament, text: 'Questions From Image' },
+                                    { icon: LightbulbFilament, text: 'Questions From Image', route: '/ai-center/ai-tools/vsmart-image' },
                                     {
                                         icon: LightbulbFilament,
                                         text: 'Get Feedback of Lecture',
+                                        route: '/ai-center/ai-tools/vsmart-feedback',
                                     },
-                                    { icon: LightbulbFilament, text: 'Plan Your Lecture' },
+                                    { icon: LightbulbFilament, text: 'Plan Your Lecture', route: '/ai-center/ai-tools/vsmart-prompt' },
                                 ].map((item, index) => (
                                     <div
                                         key={index}
-                                        className="flex h-auto min-h-10 w-32 flex-col items-center justify-center rounded-md border border-purple-300/70 bg-white/10 p-1.5 text-center shadow-sm backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-32"
+                                        className="flex h-auto min-h-10 w-32 flex-col items-center justify-center rounded-md border border-purple-300/70 bg-white/10 p-1.5 text-center shadow-sm backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-32 cursor-pointer"
+                                        onClick={() => handleAIToolNavigation(item.route)}
                                     >
                                         <item.icon size={18} className="mb-0.5 text-purple-200" />
                                         <span className="text-[11px] font-normal leading-tight text-white">
@@ -745,7 +766,10 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                                         </span>
                                     </div>
                                 ))}
-                                <div className="flex h-auto min-h-10 w-32 flex-col items-center justify-center rounded-md border border-purple-300/70 bg-white/10 p-1.5 text-center shadow-sm backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-32">
+                                <div
+                                    className="flex h-auto min-h-10 w-32 flex-col items-center justify-center rounded-md border border-purple-300/70 bg-white/10 p-1.5 text-center shadow-sm backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-32 cursor-pointer"
+                                    onClick={handleAICenterNavigation}
+                                >
                                     <span className="text-[11px] font-normal leading-tight text-white">
                                         Many More
                                     </span>
