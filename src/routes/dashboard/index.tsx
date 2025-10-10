@@ -20,6 +20,7 @@ import { useInstituteQuery } from '@/services/student-list-section/getInstituteD
 import {
     getAssessmentsCountsData,
     getInstituteDashboardData,
+    getUnresolvedDoubtsCount,
 } from './-services/dashboard-services';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { HOLISTIC_INSTITUTE_ID, SSDC_INSTITUTE_ID } from '@/constants/urls';
@@ -48,7 +49,7 @@ import {
 } from '@/components/ui/dialog';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { getUserId } from '@/utils/userDetails';
-import { fetchSystemAlerts } from '@/services/notifications/system-alerts';
+import { fetchSystemAlerts, getSystemAlertsQuery } from '@/services/notifications/system-alerts';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -356,6 +357,24 @@ function MyCoursesWidget() {
     );
 }
 
+// Conditional wrapper components for widgets that should only render when they have data
+function UnresolvedDoubtsWidgetConditional({ instituteId }: { instituteId: string }) {
+    const { instituteDetails } = useInstituteDetailsStore();
+    const batchIds = instituteDetails?.batches_for_sessions.map((batch) => batch.id) || [];
+    const { data: doubtsData } = useSuspenseQuery(getUnresolvedDoubtsCount(instituteId, batchIds));
+
+    // Only render if there are unresolved doubts
+    return doubtsData.hasUnresolvedDoubts ? <UnresolvedDoubtsWidget instituteId={instituteId} /> : null;
+}
+
+function RecentNotificationsWidgetConditional({ onSeeAll }: { onSeeAll?: () => void }) {
+    const userId = getUserId();
+    const { data } = useSuspenseQuery(getSystemAlertsQuery(userId, 5));
+
+    // Only render if there are notifications
+    return data?.content?.length ? <RecentNotificationsWidget onSeeAll={onSeeAll} /> : null;
+}
+
 export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () => void }) {
     const location = useLocation();
     const { getValue, setValue } = useLocalStorage<boolean>(IntroKey.dashboardWelcomeVideo, true);
@@ -497,11 +516,11 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
             <div className="mt-5 flex w-full flex-col gap-4">
                 {/* My Courses Widget - Only for Non-Admin Users */}
                 {!isAdmin && isWidgetVisible('myCourses') && <MyCoursesWidget />}
-                {/* Unresolved Doubts Widget */}
+                {/* Unresolved Doubts Widget - Only render if there are doubts */}
                 {(subModules.lms || subModules.assess) &&
                     !showForInstitutes([HOLISTIC_INSTITUTE_ID]) &&
                     isWidgetVisible('unresolvedDoubts') && (
-                        <UnresolvedDoubtsWidget instituteId={instituteDetails?.id || ''} />
+                        <UnresolvedDoubtsWidgetConditional instituteId={instituteDetails?.id || ''} />
                     )}
                 {/* Admin Only Widgets */}
                 {isAdmin && (
@@ -567,7 +586,7 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                                     {
                                         id: 'recentNotifications' as const,
                                         node: (
-                                            <RecentNotificationsWidget onSeeAll={onOpenAllAlerts} />
+                                            <RecentNotificationsWidgetConditional onSeeAll={onOpenAllAlerts} />
                                         ),
                                     },
                                     {
