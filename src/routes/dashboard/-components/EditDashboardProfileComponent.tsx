@@ -41,7 +41,7 @@ const presetThemes = [
 
 type FormValues = z.infer<typeof editDashboardProfileSchema>;
 
-const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
+const EditDashboardProfileComponent = ({ isEdit, buttonText = "Edit Institute" }: { isEdit: boolean; buttonText?: string }) => {
     const queryClient = useQueryClient();
     const [open, setOpen] = useState(false);
     const [openThemeDialog, setThemeDialog] = useState(false);
@@ -178,12 +178,12 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                         <>
                             <MyButton
                                 type="submit"
-                                scale="large"
+                                scale="small"
                                 buttonType="secondary"
                                 layoutVariant="default"
-                                className="text-sm"
+                                className="text-xs"
                             >
-                                Edit Institute
+                                {buttonText}
                             </MyButton>
                         </>
                     ) : (

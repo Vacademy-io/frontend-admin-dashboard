@@ -375,6 +375,85 @@ function RecentNotificationsWidgetConditional({ onSeeAll }: { onSeeAll?: () => v
     return data?.content?.length ? <RecentNotificationsWidget onSeeAll={onSeeAll} /> : null;
 }
 
+// Combined Widgets Section with responsive grid layout
+function CombinedWidgetsSection({
+    instituteId,
+    onOpenAllAlerts,
+    subModules,
+    isWidgetVisible
+}: {
+    instituteId: string;
+    onOpenAllAlerts?: () => void;
+    subModules: any;
+    isWidgetVisible: (id: DashboardWidgetId) => boolean;
+}) {
+    const { instituteDetails } = useInstituteDetailsStore();
+    const batchIds = instituteDetails?.batches_for_sessions.map((batch) => batch.id) || [];
+
+    // Get data for conditional widgets
+    const { data: doubtsData } = useSuspenseQuery(getUnresolvedDoubtsCount(instituteId, batchIds));
+    const userId = getUserId();
+    const { data: notificationsData } = useSuspenseQuery(getSystemAlertsQuery(userId, 5));
+
+    // Build array of widgets to show
+    const widgets = [];
+
+    // Add Unresolved Doubts widget if there are doubts and conditions are met
+    if ((subModules.lms || subModules.assess) &&
+        isWidgetVisible('unresolvedDoubts') &&
+        doubtsData.hasUnresolvedDoubts) {
+        widgets.push({
+            id: 'unresolvedDoubts',
+            component: <UnresolvedDoubtsWidget instituteId={instituteId} />
+        });
+    }
+
+    // Add Recent Notifications widget if there are notifications
+    if (isWidgetVisible('recentNotifications') && notificationsData?.content?.length) {
+        widgets.push({
+            id: 'recentNotifications',
+            component: <RecentNotificationsWidget onSeeAll={onOpenAllAlerts} />
+        });
+    }
+
+    // Add Currently Active Users widget
+    if (isWidgetVisible('currentlyActiveUsers')) {
+        widgets.push({
+            id: 'currentlyActiveUsers',
+            component: <CurrentlyActiveUsersWidget instituteId={instituteId} />
+        });
+    }
+
+    // Don't render if no widgets
+    if (widgets.length === 0) {
+        return null;
+    }
+
+    // Determine grid classes based on number of widgets
+    const getGridClasses = (count: number) => {
+        switch (count) {
+            case 1:
+                return 'grid-cols-1';
+            case 2:
+                return 'grid-cols-1 sm:grid-cols-2';
+            case 3:
+                return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
+            default:
+                return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
+        }
+    };
+
+    return (
+        <div className={`grid gap-4 ${getGridClasses(widgets.length)}`}>
+            {widgets.map((widget) => (
+                <div key={widget.id} className="w-full">
+                    {widget.component}
+                </div>
+            ))}
+        </div>
+    );
+}
+
 export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () => void }) {
     const location = useLocation();
     const { getValue, setValue } = useLocalStorage<boolean>(IntroKey.dashboardWelcomeVideo, true);
@@ -512,100 +591,26 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                     )}
                 </>
             )}
+
+            {/* Combined Widgets Section - Responsive Grid */}
+            {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
+                <div className="mt-5 w-full">
+                    <CombinedWidgetsSection
+                        instituteId={instituteDetails?.id || ''}
+                        onOpenAllAlerts={onOpenAllAlerts}
+                        subModules={subModules}
+                        isWidgetVisible={isWidgetVisible}
+                    />
+                </div>
+            )}
+
             {/* Main content */}
             <div className="mt-5 flex w-full flex-col gap-4">
                 {/* My Courses Widget - Only for Non-Admin Users */}
                 {!isAdmin && isWidgetVisible('myCourses') && <MyCoursesWidget />}
-                {/* Unresolved Doubts Widget - Only render if there are doubts */}
-                {(subModules.lms || subModules.assess) &&
-                    !showForInstitutes([HOLISTIC_INSTITUTE_ID]) &&
-                    isWidgetVisible('unresolvedDoubts') && (
-                        <UnresolvedDoubtsWidgetConditional instituteId={instituteDetails?.id || ''} />
-                    )}
                 {/* Admin Only Widgets */}
                 {isAdmin && (
                     <>
-                        <Card className="grow bg-neutral-50 shadow-none">
-                            <CardHeader className="p-4">
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="text-sm font-semibold">
-                                        Complete your institute profile
-                                    </CardTitle>
-
-                                    <EditDashboardProfileComponent isEdit={false} />
-                                </div>
-
-                                <CardDescription className="mt-1 flex items-center gap-1.5 text-xs">
-                                    <CompletionStatusComponent
-                                        profileCompletionPercentage={
-                                            data?.profile_completion_percentage || 0
-                                        }
-                                    />
-                                    <span>
-                                        {data?.profile_completion_percentage || 0}% complete
-                                    </span>
-                                </CardDescription>
-                            </CardHeader>
-
-                            {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
-                                <CardHeader className="p-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex flex-col">
-                                            <CardTitle className="text-sm font-semibold">
-                                                Naming Settings
-                                            </CardTitle>
-                                            <CardDescription className="text-xs">
-                                                Customize the naming conventions used throughout
-                                                your institute
-                                            </CardDescription>
-                                        </div>
-                                        <MyButton
-                                            type="button"
-                                            scale="medium"
-                                            buttonType="secondary"
-                                            layoutVariant="default"
-                                            className="text-sm"
-                                            onClick={() =>
-                                                navigate({
-                                                    to: '/settings',
-                                                    search: { selectedTab: SettingsTabs.Naming },
-                                                })
-                                            }
-                                        >
-                                            Naming Settings
-                                        </MyButton>
-                                    </div>
-                                </CardHeader>
-                            )}
-                        </Card>
-
-                        {/* Analytics Widgets - Admin Only */}
-                        {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
-                                {[
-                                    {
-                                        id: 'recentNotifications' as const,
-                                        node: (
-                                            <RecentNotificationsWidgetConditional onSeeAll={onOpenAllAlerts} />
-                                        ),
-                                    },
-                                    {
-                                        id: 'currentlyActiveUsers' as const,
-                                        node: (
-                                            <CurrentlyActiveUsersWidget
-                                                instituteId={instituteDetails?.id || ''}
-                                            />
-                                        ),
-                                    },
-                                ]
-                                    .filter((w) => isWidgetVisible(w.id))
-                                    .sort((a, b) => orderOf(a.id) - orderOf(b.id))
-                                    .map((w, i) => (
-                                        <div key={i}>{w.node}</div>
-                                    ))}
-                            </div>
-                        )}
-
                         {/* Institute Overview Widget - Admin Only */}
 
                         {subModules.lms &&
@@ -613,12 +618,17 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                             isWidgetVisible('instituteOverview') && (
                                 <Card className="grow bg-neutral-50 shadow-none">
                                     <CardHeader className="p-4">
-                                        <CardTitle className="text-sm font-semibold">
-                                            Institute Overview
-                                        </CardTitle>
-                                        <CardDescription className="mt-1 text-xs text-neutral-600">
-                                            Key metrics and statistics for your institute
-                                        </CardDescription>
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <CardTitle className="text-sm font-semibold">
+                                                    Institute Overview
+                                                </CardTitle>
+                                                <CardDescription className="mt-1 text-xs text-neutral-600">
+                                                    Key metrics and statistics for your institute
+                                                </CardDescription>
+                                            </div>
+                                            <EditDashboardProfileComponent isEdit={true} buttonText="Edit" />
+                                        </div>
                                     </CardHeader>
                                     <div className="px-4 pb-4">
                                         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
