@@ -28,7 +28,7 @@ export default function LearningCenterWidget({
     };
 
     const handleManageSessions = () => {
-        navigate({ to: '/manage-institute/sessions' });
+        navigate({ to: '/study-library/live-session' });
     };
 
     const learningFeatures = [

@@ -60,11 +60,6 @@ import {
 } from '@/types/display-settings';
 import { getDisplaySettings, getDisplaySettingsFromCache } from '@/services/display-settings';
 
-// Analytics Widgets
-import RealTimeActiveUsersWidget from './-components/analytics-widgets/RealTimeActiveUsersWidget';
-import CurrentlyActiveUsersWidget from './-components/analytics-widgets/CurrentlyActiveUsersWidget';
-import UserActivitySummaryWidget from './-components/analytics-widgets/UserActivitySummaryWidget';
-
 // Dashboard Widgets
 import EnrollLearnersWidget from './-components/EnrollLearnersWidget';
 import LearningCenterWidget from './-components/LearningCenterWidget';
@@ -72,6 +67,7 @@ import AssessmentCenterWidget from './-components/AssessmentCenterWidget';
 import RoleTypeComponent from './-components/RoleTypeComponent';
 import { LearnerTab } from './-components/LearnerTab';
 import { SettingsTabs } from '../settings/-constants/terms';
+import CurrentlyActiveUsersWidget from './-components/analytics-widgets/CurrentlyActiveUsersWidget';
 
 // Route is provided via index.lazy.tsx to enable code-splitting
 
@@ -560,25 +556,9 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                                         ),
                                     },
                                     {
-                                        id: 'realTimeActiveUsers' as const,
-                                        node: (
-                                            <RealTimeActiveUsersWidget
-                                                instituteId={instituteDetails?.id || ''}
-                                            />
-                                        ),
-                                    },
-                                    {
                                         id: 'currentlyActiveUsers' as const,
                                         node: (
                                             <CurrentlyActiveUsersWidget
-                                                instituteId={instituteDetails?.id || ''}
-                                            />
-                                        ),
-                                    },
-                                    {
-                                        id: 'userActivitySummary' as const,
-                                        node: (
-                                            <UserActivitySummaryWidget
                                                 instituteId={instituteDetails?.id || ''}
                                             />
                                         ),
