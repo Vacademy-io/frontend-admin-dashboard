@@ -1,39 +1,80 @@
 import { MyDropdown } from '@/components/design-system/dropdown';
 import { MyButton } from '@/components/design-system/button';
 import { DotsThree } from 'phosphor-react';
-import { useRef, useState } from 'react';
+import { useState, Suspense } from 'react';
 import { MyDialog } from '@/components/design-system/dialog';
-import { InviteForm } from '../-schema/InviteFormSchema';
-import { CreateInviteDialog } from './create-invite/CreateInviteDialog';
 import { useUpdateInviteLinkStatus } from '../-services/update-invite-link-status';
 import { toast } from 'sonner';
-import { useGetInviteDetails } from '../-services/get-invite-details';
-import responseDataToFormData from '../-utils/responseDataToFormData';
-import { useInviteFormContext } from '../-context/useInviteFormContext';
-import { useUpdateInvite } from '../-services/update-invite';
-import formDataToRequestData from '../-utils/formDataToRequestData';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { InviteLinkDataInterface } from '@/schemas/study-library/invite-links-schema';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { handleGetEnrollSingleInviteDetails } from './create-invite/-services/enroll-invite';
+import { extractBatchesFromInviteDetails } from '../-utils/enrollInviteTransformers';
+import GenerateInviteLinkDialog from './create-invite/GenerateInviteLinkDialog';
+import { LoadingSpinner } from '@/components/ai-course-builder/LoadingSpinner';
+import { handleGetPaymentDetails } from './create-invite/-services/get-payments';
 
 interface InviteCardMenuOptionsProps {
     invite: InviteLinkDataInterface;
-    onEdit: (updatedInvite: InviteForm) => void;
 }
+
+const EditInviteDialogContent = ({ invite }: { invite: InviteLinkDataInterface }) => {
+    const [openEditDialog, setOpenEditDialog] = useState(true);
+    const { getDetailsFromPackageSessionId } = useInstituteDetailsStore();
+
+    // Fetch invite details
+    const { data: inviteLinkDetails } = useSuspenseQuery(
+        handleGetEnrollSingleInviteDetails({ inviteId: invite.id })
+    );
+
+    // Fetch payment data (needed by GenerateInviteLinkDialog internally)
+    useSuspenseQuery(handleGetPaymentDetails());
+
+    // Extract batches from invite details
+    const selectedBatches = extractBatchesFromInviteDetails(
+        inviteLinkDetails,
+        getDetailsFromPackageSessionId
+    );
+
+    // Find the parent course
+    const parentBatch = selectedBatches[0];
+    const selectedCourse = parentBatch
+        ? {
+              id: parentBatch.package_dto.package_name,
+              name: parentBatch.package_dto.package_name,
+          }
+        : null;
+
+    return (
+        <GenerateInviteLinkDialog
+            showSummaryDialog={openEditDialog}
+            setShowSummaryDialog={setOpenEditDialog}
+            selectedCourse={selectedCourse}
+            selectedBatches={selectedBatches
+                .filter((batch) => batch !== null)
+                .map((batch) => ({
+                    sessionId: batch.session.id,
+                    levelId: batch.level.id,
+                    sessionName: batch.session.session_name,
+                    levelName: batch.level.level_name,
+                    courseId: batch.package_dto.id,
+                    courseName: batch.package_dto.package_name,
+                    isParent: false,
+                }))}
+            inviteLinkId={invite.id}
+            singlePackageSessionId={true}
+            isEditInviteLink={true}
+            setDialogOpen={setOpenEditDialog}
+        />
+    );
+};
 
 export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) => {
     const queryClient = useQueryClient();
     const dropdownList = ['edit', 'delete'];
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-    const { form: contextForm } = useInviteFormContext();
-    const [initialValues, setInitialValues] = useState<InviteForm | undefined>(undefined);
-    const { reset: resetContext } = contextForm;
     const updateInviteStatusMutation = useUpdateInviteLinkStatus();
-    const updateInviteMutation = useUpdateInvite();
-    const getInviteDetailsMutation = useGetInviteDetails();
-    const formSubmitRef = useRef<() => void>(() => {});
-    const { getDetailsFromPackageSessionId, getPackageSessionId } = useInstituteDetailsStore();
 
     const onDeleteInvite = async (invite: InviteLinkDataInterface) => {
         try {
@@ -44,6 +85,7 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
                 },
             });
             queryClient.invalidateQueries({ queryKey: ['inviteList'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_INVITE_LINKS'] });
             toast.success('Invite deleted!');
             setOpenDeleteDialog(false);
         } catch {
@@ -51,52 +93,11 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
         }
     };
 
-    const submitButton = (
-        <div
-            className="flex-end flex w-full items-center"
-            onClick={() => {
-                formSubmitRef.current();
-            }}
-        >
-            <MyButton>Save Changes</MyButton>
-        </div>
-    );
-
-    function handleOpenEditDialog() {
-        if (openEditDialog == true) {
-            resetContext();
-        }
-        setOpenEditDialog(!openEditDialog);
-    }
-
     const handleSelect = async (value: string) => {
         if (value == 'delete') {
             setOpenDeleteDialog(true);
         } else {
-            try {
-                const data = await getInviteDetailsMutation.mutateAsync({
-                    learnerInvitationId: invite.id,
-                });
-                const formData = responseDataToFormData(data, getDetailsFromPackageSessionId);
-                setInitialValues(formData);
-                resetContext(formData);
-                setOpenEditDialog(true);
-            } catch (error) {
-                toast.error('Error fetching invite details');
-            }
-        }
-    };
-
-    const onUpdateInvite = async (inviteData: InviteForm) => {
-        try {
-            const requestFormat = formDataToRequestData(inviteData, getPackageSessionId, invite.id);
-            await updateInviteMutation.mutateAsync({
-                requestBody: requestFormat.learner_invitation,
-            });
-            toast.success('Invite edited successfully!');
-            handleOpenEditDialog();
-        } catch {
-            toast.error('Failed to edit the invite');
+            setOpenEditDialog(true);
         }
     };
 
@@ -107,17 +108,13 @@ export const InviteCardMenuOptions = ({ invite }: InviteCardMenuOptionsProps) =>
                     <DotsThree />
                 </MyButton>
             </MyDropdown>
-            <CreateInviteDialog
-                initialValues={initialValues}
-                open={openEditDialog}
-                onOpenChange={handleOpenEditDialog}
-                submitButton={submitButton}
-                submitForm={(fn: () => void) => {
-                    formSubmitRef.current = fn;
-                }}
-                onCreateInvite={onUpdateInvite}
-                isEditing={true}
-            />
+
+            {openEditDialog && (
+                <Suspense fallback={<LoadingSpinner />}>
+                    <EditInviteDialogContent invite={invite} />
+                </Suspense>
+            )}
+
             <MyDialog
                 open={openDeleteDialog}
                 onOpenChange={() => setOpenDeleteDialog(!openDeleteDialog)}
