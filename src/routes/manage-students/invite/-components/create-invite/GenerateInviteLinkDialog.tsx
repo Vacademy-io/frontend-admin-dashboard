@@ -38,10 +38,12 @@ import { AxiosError } from 'axios';
 import { handleEnrollInvite, handleGetEnrollSingleInviteDetails } from './-services/enroll-invite';
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { handleGetPaymentDetails } from './-services/get-payments';
+import { useUpdateInvite } from '../../-services/update-invite';
 import InviteNameCard from './-components/InviteNameCard';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 import { transformApiDataToCourseDataForInvite } from '@/routes/study-library/courses/course-details/-utils/helper';
 import {
+    convertInviteData,
     getMatchingPaymentPlan,
     getPaymentOptionBySessionId,
     ReTransformCustomFields,
@@ -206,18 +208,36 @@ const GenerateInviteLinkDialog = ({
     const mediaMenuRef = useRef<HTMLDivElement>(null);
     const youtubeInputRef = useRef<HTMLDivElement>(null);
 
+    const updateInviteMutation = useUpdateInvite();
+
     const handleSubmitInviteLinkMutation = useMutation({
         mutationFn: async ({ data }: { data: InviteLinkFormValues }) => {
-            return handleEnrollInvite({
+            const convertedData = convertInviteData(
                 data,
                 selectedCourse,
                 selectedBatches,
                 getPackageSessionId,
                 paymentsData,
                 referralProgramDetails,
-                instituteLogoFileId: instituteDetails?.institute_logo_file_id || '',
-                inviteId: inviteLinkId,
-            });
+                instituteDetails?.institute_logo_file_id || '',
+                inviteLinkId
+            );
+
+            if (isEditInviteLink && inviteLinkId) {
+                // Use useUpdateInvite for editing
+                return updateInviteMutation.mutateAsync({ requestBody: convertedData });
+            } else {
+                // Use handleEnrollInvite for creating
+                return handleEnrollInvite({
+                    data,
+                    selectedCourse,
+                    selectedBatches,
+                    getPackageSessionId,
+                    paymentsData,
+                    referralProgramDetails,
+                    instituteLogoFileId: instituteDetails?.institute_logo_file_id || '',
+                });
+            }
         },
         onSuccess: () => {
             form.setValue('showAddPlanDialog', false);
