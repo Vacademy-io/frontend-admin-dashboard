@@ -240,7 +240,8 @@ export function convertInviteData(
     }) => void,
     paymentPlans: PaymentOption[],
     referralProgramDetails: ReferralData[],
-    instituteLogoFileId: string
+    instituteLogoFileId: string,
+    inviteId?: string
 ) {
     const instituteId = getInstituteId();
     const isBundle = selectedBatches.length > 1;
@@ -266,22 +267,27 @@ export function convertInviteData(
     };
 
     // Create package_session_to_payment_options for all batches
-    const packageSessionToPaymentOptions = selectedBatches.map((batch) => ({
-        package_session_id: getPackageSessionId({
+
+    const packageSessionToPaymentOptions = selectedBatches.map((batch) => {
+        const packageSessionId = getPackageSessionId({
             courseId: batch.courseId,
             levelId: batch.levelId,
             sessionId: batch.sessionId,
-        }),
-        payment_option: getMatchingPaymentAndReferralPlanForAPIs(
-            paymentPlans,
-            data.selectedPlan?.id || '',
-            referralProgramDetails,
-            data.planReferralMappings
-        ),
-    }));
+        });
+
+        return {
+            package_session_id: packageSessionId,
+            payment_option: getMatchingPaymentAndReferralPlanForAPIs(
+                paymentPlans,
+                data.selectedPlan?.id || '',
+                referralProgramDetails,
+                data.planReferralMappings
+            ),
+        };
+    });
 
     const convertedData = {
-        id: '',
+        id: inviteId || '',
         name: data.name,
         start_date: '',
         end_date: '',

@@ -38,13 +38,16 @@ import { AxiosError } from 'axios';
 import { handleEnrollInvite, handleGetEnrollSingleInviteDetails } from './-services/enroll-invite';
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { handleGetPaymentDetails } from './-services/get-payments';
+import { useUpdateInvite } from '../../-services/update-invite';
 import InviteNameCard from './-components/InviteNameCard';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 import { transformApiDataToCourseDataForInvite } from '@/routes/study-library/courses/course-details/-utils/helper';
 import {
+    convertInviteData,
     getMatchingPaymentPlan,
     getPaymentOptionBySessionId,
     ReTransformCustomFields,
+    splitPlansByType,
 } from './-utils/helper';
 import { handleGetReferralProgramDetails } from './-services/referral-services';
 import PreviewInviteLink from './PreviewInviteLink';
@@ -205,25 +208,50 @@ const GenerateInviteLinkDialog = ({
     const mediaMenuRef = useRef<HTMLDivElement>(null);
     const youtubeInputRef = useRef<HTMLDivElement>(null);
 
+    const updateInviteMutation = useUpdateInvite();
+
     const handleSubmitInviteLinkMutation = useMutation({
         mutationFn: async ({ data }: { data: InviteLinkFormValues }) => {
-            return handleEnrollInvite({
+            const convertedData = convertInviteData(
                 data,
                 selectedCourse,
                 selectedBatches,
                 getPackageSessionId,
                 paymentsData,
                 referralProgramDetails,
-                instituteLogoFileId: instituteDetails?.institute_logo_file_id || '',
-            });
+                instituteDetails?.institute_logo_file_id || '',
+                inviteLinkId
+            );
+
+            if (isEditInviteLink && inviteLinkId) {
+                // Use useUpdateInvite for editing
+                return updateInviteMutation.mutateAsync({ requestBody: convertedData });
+            } else {
+                // Use handleEnrollInvite for creating
+                return handleEnrollInvite({
+                    data,
+                    selectedCourse,
+                    selectedBatches,
+                    getPackageSessionId,
+                    paymentsData,
+                    referralProgramDetails,
+                    instituteLogoFileId: instituteDetails?.institute_logo_file_id || '',
+                });
+            }
         },
         onSuccess: () => {
             form.setValue('showAddPlanDialog', false);
             queryClient.invalidateQueries({ queryKey: ['GET_INVITE_LINKS'] });
-            toast.success('Your invite link has been created successfully!', {
-                className: 'success-toast',
-                duration: 2000,
-            });
+            queryClient.invalidateQueries({ queryKey: ['inviteList'] });
+            toast.success(
+                isEditInviteLink
+                    ? 'Your invite link has been updated successfully!'
+                    : 'Your invite link has been created successfully!',
+                {
+                    className: 'success-toast',
+                    duration: 2000,
+                }
+            );
             form.reset();
             selectCourseForm?.reset();
             setShowSummaryDialog(false);
@@ -231,10 +259,25 @@ const GenerateInviteLinkDialog = ({
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
-                toast.error(error?.response?.data?.ex, {
-                    className: 'error-toast',
-                    duration: 2000,
+                console.error('API Error Response:', {
+                    status: error.response?.status,
+                    data: error.response?.data,
+                    message: error.message,
+                    config: {
+                        method: error.config?.method,
+                        url: error.config?.url,
+                        data: error.config?.data,
+                    },
                 });
+                toast.error(
+                    error?.response?.data?.ex ||
+                        error?.response?.data?.message ||
+                        'Failed to save invite link',
+                    {
+                        className: 'error-toast',
+                        duration: 3000,
+                    }
+                );
             } else {
                 toast.error('An unexpected error occurred', {
                     className: 'error-toast',
@@ -558,24 +601,42 @@ const GenerateInviteLinkDialog = ({
                     ...form.getValues(),
                     course: parsedJsonData?.course ?? transformedData?.packageName,
                     description: parsedJsonData?.description ?? transformedData?.description,
-                    learningOutcome: parsedJsonData?.whyLearn ?? transformedData?.whyLearn,
-                    aboutCourse: parsedJsonData?.aboutTheCourse ?? transformedData?.aboutTheCourse,
+                    learningOutcome:
+                        parsedJsonData?.learningOutcome ??
+                        parsedJsonData?.whyLearn ??
+                        transformedData?.whyLearn,
+                    aboutCourse:
+                        parsedJsonData?.aboutCourse ??
+                        parsedJsonData?.aboutTheCourse ??
+                        transformedData?.aboutTheCourse,
                     targetAudience:
-                        parsedJsonData?.whoShouldLearn ?? transformedData?.whoShouldLearn,
+                        parsedJsonData?.targetAudience ??
+                        parsedJsonData?.whoShouldLearn ??
+                        transformedData?.whoShouldLearn,
                     coursePreview:
+                        parsedJsonData?.coursePreview ??
                         parsedJsonData?.coursePreviewImageMediaId ??
                         transformedData?.coursePreviewImageMediaId,
                     courseBanner:
-                        parsedJsonData?.courseBannerMediaId ?? transformedData?.courseBannerMediaId,
-                    courseMedia: parsedJsonData?.courseMediaId ?? transformedData?.courseMediaId,
+                        parsedJsonData?.courseBanner ??
+                        parsedJsonData?.courseBannerMediaId ??
+                        transformedData?.courseBannerMediaId,
+                    courseMedia:
+                        parsedJsonData?.courseMedia ??
+                        parsedJsonData?.courseMediaId ??
+                        transformedData?.courseMediaId,
                     coursePreviewBlob:
+                        parsedJsonData?.coursePreviewBlob ??
                         parsedJsonData?.coursePreviewImageMediaPreview ??
                         transformedData?.coursePreviewImageMediaPreview,
                     courseBannerBlob:
+                        parsedJsonData?.courseBannerBlob ??
                         parsedJsonData?.courseBannerMediaPreview ??
                         transformedData?.courseBannerMediaPreview,
                     courseMediaBlob:
-                        parsedJsonData?.courseMediaPreview ?? transformedData?.courseMediaPreview,
+                        parsedJsonData?.courseMediaBlob ??
+                        parsedJsonData?.courseMediaPreview ??
+                        transformedData?.courseMediaPreview,
                     tags: parsedJsonData?.tags ?? transformedData?.tags,
                 });
             } catch (error) {
@@ -584,10 +645,11 @@ const GenerateInviteLinkDialog = ({
         };
 
         loadCourseData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [courseDetailsData, inviteLinkDetails]);
 
     useEffect(() => {
-        if (singlePackageSessionId) {
+        if (singlePackageSessionId && inviteLinkDetails) {
             const paymentOptionDetailsForSelectedSession = getPaymentOptionBySessionId(
                 inviteLinkDetails,
                 getPackageSessionId({
@@ -596,14 +658,58 @@ const GenerateInviteLinkDialog = ({
                     sessionId: parentBatch?.sessionId || '',
                 })
             );
+
+            // Extract plan referral mappings from the payment option
+            const planReferralMappings: Record<string, string> = {};
+            const paymentOption = paymentOptionDetailsForSelectedSession?.payment_option;
+
+            if (paymentOption) {
+                if (paymentOption.type?.toLowerCase() === 'subscription') {
+                    try {
+                        const parsedMetadata = JSON.parse(
+                            paymentOption.payment_option_metadata_json || '{}'
+                        );
+                        const customIntervals =
+                            parsedMetadata?.subscriptionData?.customIntervals || [];
+                        customIntervals.forEach(
+                            (interval: { referral_option?: { id: string } }, index: number) => {
+                                if (interval.referral_option?.id) {
+                                    planReferralMappings[`${paymentOption.id}_option_${index}`] =
+                                        interval.referral_option.id;
+                                }
+                            }
+                        );
+                    } catch (error) {
+                        console.error('Failed to parse subscription metadata:', error);
+                    }
+                } else {
+                    // For other plan types
+                    const firstPlan = paymentOption.payment_plans?.[0];
+                    if (firstPlan?.referral_option?.id) {
+                        planReferralMappings[paymentOption.id] = firstPlan.referral_option.id;
+                    }
+                }
+            }
+
+            // Split payment plans by type
+            const { freePlans: splitFreePlans, paidPlans: splitPaidPlans } = paymentsData
+                ? splitPlansByType(paymentsData)
+                : { freePlans: [], paidPlans: [] };
+
+            const selectedPaymentPlan = getMatchingPaymentPlan(
+                paymentsData,
+                paymentOptionDetailsForSelectedSession?.payment_option?.id || ''
+            );
+
             form.reset({
                 ...form.getValues(),
                 name: inviteLinkDetails?.name,
                 includeInstituteLogo:
                     safeJsonParse(inviteLinkDetails?.web_page_meta_data_json, {})
                         ?.includeInstituteLogo || false,
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
+                includePaymentPlans:
+                    safeJsonParse(inviteLinkDetails?.web_page_meta_data_json, {})
+                        ?.includePaymentPlans ?? true,
                 custom_fields:
                     inviteLinkDetails?.institute_custom_fields.length === 0
                         ? [
@@ -635,11 +741,31 @@ const GenerateInviteLinkDialog = ({
                                   order: 2,
                               },
                           ]
-                        : ReTransformCustomFields(inviteLinkDetails),
-                selectedPlan: getMatchingPaymentPlan(
-                    paymentsData,
-                    paymentOptionDetailsForSelectedSession?.payment_option?.id || ''
-                ),
+                        : ReTransformCustomFields(inviteLinkDetails)?.map((field, index) => ({
+                              id: field.id,
+                              type: field.type,
+                              name: field.name,
+                              oldKey: field.oldKey,
+                              isRequired: field.isRequired,
+                              key: field.name.toLowerCase().replace(/\s+/g, '_'),
+                              order: index,
+                              options: field.options?.map((opt, idx) => ({
+                                  id: String(idx),
+                                  value: opt,
+                              })),
+                          })) || [],
+                freePlans: splitFreePlans,
+                paidPlans: splitPaidPlans.map((plan) => ({
+                    ...plan,
+                    price: plan.price || '',
+                })),
+                selectedPlan: selectedPaymentPlan
+                    ? {
+                          ...selectedPaymentPlan,
+                          price: selectedPaymentPlan.price || '',
+                      }
+                    : undefined,
+                planReferralMappings: planReferralMappings,
                 discounts: [],
                 selectedDiscountId: 'none',
                 selectedReferral: {},
@@ -648,8 +774,8 @@ const GenerateInviteLinkDialog = ({
                     safeJsonParse(inviteLinkDetails?.web_page_meta_data_json, {})
                         ?.restrictToSameBatch || false,
                 accessDurationType:
-                    form.watch('selectedPlan')?.type === 'subscription' ? 'define' : '',
-                accessDurationDays: inviteLinkDetails?.learner_access_days,
+                    selectedPaymentPlan?.type?.toLowerCase() === 'subscription' ? 'define' : '',
+                accessDurationDays: inviteLinkDetails?.learner_access_days?.toString() || '',
                 inviteeEmails: [],
                 customHtml:
                     safeJsonParse(inviteLinkDetails?.web_page_meta_data_json, {})?.customHtml || '',
@@ -658,10 +784,10 @@ const GenerateInviteLinkDialog = ({
                         ?.showRelatedCourses || false,
             });
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         inviteLinkDetails,
         singlePackageSessionId,
-        form,
         getPackageSessionId,
         parentBatch?.courseId,
         parentBatch?.levelId,
