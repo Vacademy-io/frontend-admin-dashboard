@@ -23,6 +23,7 @@ import {
 } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper';
 import { calculateAverageMarks, calculateAveragePenalty } from '../-utils/helper';
 import { QuestionData } from '@/types/assessments/assessment-steps';
+import { useMemo } from 'react';
 
 interface QuestionDuration {
     hrs: string;
@@ -32,11 +33,181 @@ interface QuestionDuration {
 interface Question {
     questionId: string;
     questionName: string;
-    questionType: string; // You can use a union type like `"MCQM" | "SCQ" | "TF"` if needed
+    questionType: string;
     questionMark: string;
     questionPenalty: string;
     questionDuration: QuestionDuration;
 }
+
+// Custom hook for data transformation
+const useAdaptiveMarking = (questionsForSection: QuestionData[]) => {
+    return useMemo(() => {
+        return questionsForSection.map((questionData: QuestionData) => {
+            const markingJson = questionData.marking_json ? JSON.parse(questionData.marking_json) : {};
+            return {
+                questionId: questionData.question_id || '',
+                questionName: questionData.question?.content || '',
+                questionType: questionData.question_type || '',
+                questionMark: markingJson.data?.totalMark || '0',
+                questionPenalty: markingJson.data?.negativeMark || '0',
+                questionDuration: {
+                    hrs:
+                        typeof questionData.question_duration === 'number'
+                            ? String(Math.floor(questionData.question_duration / 60))
+                            : '0',
+                    min:
+                        typeof questionData.question_duration === 'number'
+                            ? String(questionData.question_duration % 60)
+                            : '0',
+                },
+            };
+        });
+    }, [questionsForSection]);
+};
+
+// Component for section info display
+const SectionInfo = ({
+    section,
+    adaptiveMarking,
+    examType,
+    assessmentDetails
+}: {
+    section: Section;
+    adaptiveMarking: Question[];
+    examType: string;
+    assessmentDetails: any;
+}) => {
+    return (
+        <>
+            {section?.description?.content && (
+                <div className="flex flex-col gap-2">
+                    <h1>Section Description</h1>
+                    <p
+                        className="font-thin"
+                        dangerouslySetInnerHTML={{
+                            __html: section.description.content || '',
+                        }}
+                    />
+                </div>
+            )}
+            {assessmentDetails[1]?.saved_data?.duration_distribution === 'SECTION' &&
+                section.duration && (
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-start gap-2 sm:gap-8 text-sm font-thin">
+                        <h1 className="font-normal">Section Duration:</h1>
+                        <div className="flex items-center gap-1">
+                            <span>{section.duration}</span>
+                            <span>minutes</span>
+                        </div>
+                    </div>
+                )}
+            {examType !== 'SURVEY' && (
+                <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-8 text-sm font-thin">
+                    <h1 className="font-normal">Marks Per Question (Default):</h1>
+                    <span>{calculateAverageMarks(adaptiveMarking)}</span>
+                </div>
+            )}
+            {calculateAveragePenalty(adaptiveMarking) > 0 && (
+                <div className="flex w-1/2 items-center justify-between">
+                    <div className="flex w-52 items-center justify-start gap-8">
+                        <h1>Negative Marking:</h1>
+                        <span className="font-thin">
+                            {calculateAveragePenalty(adaptiveMarking)}
+                        </span>
+                    </div>
+                    <CheckCircle size={22} weight="fill" className="text-success-600" />
+                </div>
+            )}
+            {section.partial_marking && (
+                <div className="flex w-1/2 items-center justify-between">
+                    <h1>Partial Marking:</h1>
+                    <CheckCircle size={22} weight="fill" className="text-success-600" />
+                </div>
+            )}
+            {section.cutoff_marks > 0 && (
+                <div className="flex w-1/2 items-center justify-between">
+                    <div className="flex w-52 items-center justify-start gap-8">
+                        <h1>Cutoff Marking:</h1>
+                        <span className="font-thin">{section.cutoff_marks}</span>
+                    </div>
+                    <CheckCircle size={22} weight="fill" className="text-success-600" />
+                </div>
+            )}
+            {section.problem_randomization && (
+                <div className="flex w-1/2 items-center justify-between">
+                    <h1>Problem Randomization:</h1>
+                    <CheckCircle size={22} weight="fill" className="text-success-600" />
+                </div>
+            )}
+        </>
+    );
+};
+
+// Component for questions table
+const QuestionsTable = ({
+    adaptiveMarking,
+    examType,
+    assessmentDetails
+}: {
+    adaptiveMarking: Question[];
+    examType: string;
+    assessmentDetails: any;
+}) => {
+    if (adaptiveMarking.length === 0) return null;
+
+    return (
+        <div>
+            <h1 className="mb-4 text-primary-500">
+                {examType === 'SURVEY' ? 'Survey Questions' : 'Adaptive Marking Rules'}
+            </h1>
+            <div className="overflow-x-auto scrollbar-hide">
+                <Table>
+                <TableHeader className="bg-primary-200">
+                    <TableRow>
+                        <TableHead>Q.No.</TableHead>
+                        <TableHead>Question</TableHead>
+                        <TableHead>Question Type</TableHead>
+                        {examType !== 'SURVEY' && <TableHead>Marks</TableHead>}
+                        {examType !== 'SURVEY' && <TableHead>Penalty</TableHead>}
+                        {assessmentDetails[1]?.saved_data?.duration_distribution ===
+                            'QUESTION' && <TableHead>Time</TableHead>}
+                    </TableRow>
+                </TableHeader>
+                <TableBody className="bg-neutral-50">
+                    {adaptiveMarking.map((question: Question, index: number) => {
+                        return (
+                            <TableRow key={index}>
+                                <TableCell>{index + 1}</TableCell>
+                                <TableCell
+                                    dangerouslySetInnerHTML={{
+                                        __html: question.questionName || '',
+                                    }}
+                                />
+                                <TableCell>{question.questionType}</TableCell>
+                                {examType !== 'SURVEY' && (
+                                    <TableCell>{question.questionMark}</TableCell>
+                                )}
+                                {examType !== 'SURVEY' && (
+                                    <TableCell>{question.questionPenalty}</TableCell>
+                                )}
+                                {assessmentDetails[1]?.saved_data
+                                    ?.duration_distribution === 'QUESTION' && (
+                                    <TableCell>
+                                        <div className="flex items-center gap-2">
+                                            {question.questionDuration.hrs}
+                                            <span>:</span>
+                                            {question.questionDuration.min}
+                                        </div>
+                                    </TableCell>
+                                )}
+                            </TableRow>
+                        );
+                    })}
+                </TableBody>
+                </Table>
+            </div>
+        </div>
+    );
+};
 
 const AssessmentQuestionsSection = ({ section, index }: { section: Section; index: number }) => {
     const { assessmentId, examType } = Route.useParams();
@@ -53,39 +224,19 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
     );
 
     const questionsForSection = questionsData[section.id] || [];
-
-    // Map questions to adaptive_marking_for_each_question format
-    const adaptiveMarking = questionsForSection.map((questionData: QuestionData) => {
-        const markingJson = questionData.marking_json ? JSON.parse(questionData.marking_json) : {};
-        return {
-            questionId: questionData.question_id || '',
-            questionName: questionData.question?.content || '',
-            questionType: questionData.question_type || '',
-            questionMark: markingJson.data?.totalMark || '0',
-            questionPenalty: markingJson.data?.negativeMark || '0',
-            questionDuration: {
-                hrs:
-                    typeof questionData.question_duration === 'number'
-                        ? String(Math.floor(questionData.question_duration / 60))
-                        : '0',
-                min:
-                    typeof questionData.question_duration === 'number'
-                        ? String(questionData.question_duration % 60)
-                        : '0',
-            },
-        };
-    });
+    const adaptiveMarking = useAdaptiveMarking(questionsForSection);
 
     if (isLoading || isAssessmentDetailsLoading) return <DashboardLoader />;
+
     return (
         <AccordionItem value={`section-${index}`} key={index}>
             <AccordionTrigger className="flex items-center justify-between">
                 <div className="flex w-full items-center justify-between">
-                    <div className="flex items-center justify-start text-primary-500">
-                        <h1 className="!ml-0 w-20 border-none !pl-0 text-primary-500">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-start text-primary-500 gap-1 sm:gap-2">
+                        <h1 className="!ml-0 min-w-0 flex-shrink-0 border-none !pl-0 text-primary-500">
                             {section.name}
                         </h1>
-                        <span className="font-thin !text-neutral-600">
+                        <span className="font-thin !text-neutral-600 text-sm">
                             (MCQ(Single Correct):&nbsp;
                             {getQuestionTypeCounts(adaptiveMarking).MCQS}
                             ,&nbsp; MCQ(Multiple Correct):&nbsp;
@@ -97,112 +248,17 @@ const AssessmentQuestionsSection = ({ section, index }: { section: Section; inde
                 </div>
             </AccordionTrigger>
             <AccordionContent className="flex flex-col gap-8">
-                {section?.description?.content && (
-                    <div className="flex flex-col gap-2">
-                        <h1>Section Description</h1>
-                        <p
-                            className="font-thin"
-                            dangerouslySetInnerHTML={{
-                                __html: section.description.content || '',
-                            }}
-                        />
-                    </div>
-                )}
-                {assessmentDetails[1]?.saved_data?.duration_distribution === 'SECTION' &&
-                    section.duration && (
-                        <div className="flex w-96 items-center justify-start gap-8 text-sm font-thin">
-                            <h1 className="font-normal">Section Duration:</h1>
-                            <div className="flex items-center gap-1">
-                                <span>{section.duration}</span>
-                                <span>minutes</span>
-                            </div>
-                        </div>
-                    )}
-                <div className="flex items-start gap-8 text-sm font-thin">
-                    <h1 className="font-normal">Marks Per Question (Default):</h1>
-                    <span>{calculateAverageMarks(adaptiveMarking)}</span>
-                </div>
-                {calculateAveragePenalty(adaptiveMarking) > 0 && (
-                    <div className="flex w-1/2 items-center justify-between">
-                        <div className="flex w-52 items-center justify-start gap-8">
-                            <h1>Negative Marking:</h1>
-                            <span className="font-thin">
-                                {calculateAveragePenalty(adaptiveMarking)}
-                            </span>
-                        </div>
-                        <CheckCircle size={22} weight="fill" className="text-success-600" />
-                    </div>
-                )}
-                {section.partial_marking && (
-                    <div className="flex w-1/2 items-center justify-between">
-                        <h1>Partial Marking:</h1>
-                        <CheckCircle size={22} weight="fill" className="text-success-600" />
-                    </div>
-                )}
-                {section.cutoff_marks > 0 && (
-                    <div className="flex w-1/2 items-center justify-between">
-                        <div className="flex w-52 items-center justify-start gap-8">
-                            <h1>Cutoff Marking:</h1>
-                            <span className="font-thin">{section.cutoff_marks}</span>
-                        </div>
-                        <CheckCircle size={22} weight="fill" className="text-success-600" />
-                    </div>
-                )}
-                {section.problem_randomization && (
-                    <div className="flex w-1/2 items-center justify-between">
-                        <h1>Problem Randomization:</h1>
-                        <CheckCircle size={22} weight="fill" className="text-success-600" />
-                    </div>
-                )}
-                {adaptiveMarking.length > 0 && (
-                    <div>
-                        <h1 className="mb-4 text-primary-500">Adaptive Marking Rules</h1>
-                        <Table>
-                            <TableHeader className="bg-primary-200">
-                                <TableRow>
-                                    <TableHead>Q.No.</TableHead>
-                                    <TableHead>Question</TableHead>
-                                    <TableHead>Question Type</TableHead>
-                                    {examType !== 'SURVEY' && <TableHead>Marks</TableHead>}
-                                    {examType !== 'SURVEY' && <TableHead>Penalty</TableHead>}
-                                    {assessmentDetails[1]?.saved_data?.duration_distribution ===
-                                        'QUESTION' && <TableHead>Time</TableHead>}
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody className="bg-neutral-50">
-                                {adaptiveMarking.map((question: Question, index: number) => {
-                                    return (
-                                        <TableRow key={index}>
-                                            <TableCell>{index + 1}</TableCell>
-                                            <TableCell
-                                                dangerouslySetInnerHTML={{
-                                                    __html: question.questionName || '',
-                                                }}
-                                            />
-                                            <TableCell>{question.questionType}</TableCell>
-                                            {examType !== 'SURVEY' && (
-                                                <TableCell>{question.questionMark}</TableCell>
-                                            )}
-                                            {examType !== 'SURVEY' && (
-                                                <TableCell>{question.questionPenalty}</TableCell>
-                                            )}
-                                            {assessmentDetails[1]?.saved_data
-                                                ?.duration_distribution === 'QUESTION' && (
-                                                <TableCell>
-                                                    <div className="flex items-center gap-2">
-                                                        {question.questionDuration.hrs}
-                                                        <span>:</span>
-                                                        {question.questionDuration.min}
-                                                    </div>
-                                                </TableCell>
-                                            )}
-                                        </TableRow>
-                                    );
-                                })}
-                            </TableBody>
-                        </Table>
-                    </div>
-                )}
+                <SectionInfo
+                    section={section}
+                    adaptiveMarking={adaptiveMarking}
+                    examType={examType}
+                    assessmentDetails={assessmentDetails}
+                />
+                <QuestionsTable
+                    adaptiveMarking={adaptiveMarking}
+                    examType={examType}
+                    assessmentDetails={assessmentDetails}
+                />
                 {adaptiveMarking.length > 0 && (
                     <div className="flex items-center justify-end gap-1">
                         <span>Total Marks</span>

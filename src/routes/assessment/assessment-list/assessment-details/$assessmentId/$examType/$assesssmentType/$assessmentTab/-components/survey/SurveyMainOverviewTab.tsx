@@ -268,9 +268,9 @@ const renderQuestionContent = (question: TransformedQuestionAnalytics, index: nu
     return (
         <Card className="h-fit">
             <CardHeader>
-                <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                        <CardTitle className="text-lg font-semibold mb-2">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                    <div className="flex-1 min-w-0">
+                        <CardTitle className="text-lg font-semibold mb-2 break-words">
                             {questionNumber}. {question.questionText}
                         </CardTitle>
                         <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
@@ -283,7 +283,7 @@ const renderQuestionContent = (question: TransformedQuestionAnalytics, index: nu
                     <Button
                         variant="outline"
                         size="sm"
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 w-full sm:w-auto shrink-0"
                         onClick={() => onViewResponses(question, index)}
                     >
                         <Eye className="h-4 w-4" />
@@ -599,41 +599,6 @@ const McqQuestionContent = ({ question }: { question: TransformedQuestionAnalyti
 
 
 
-const renderQuestionContent = (question: TransformedQuestionAnalytics, index: number, onViewResponses: (question: TransformedQuestionAnalytics, index: number) => void) => {
-    const questionNumber = `Q${index + 1}`;
-
-    return (
-        <Card className="h-fit">
-            <CardHeader>
-                <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                        <CardTitle className="text-lg font-semibold mb-2">
-                            {questionNumber}. {question.questionText}
-                        </CardTitle>
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-                            <span>{question.totalResponses} responses</span>
-                        </div>
-                        <Badge className="bg-primary-100 text-primary-800 border-primary-200 mb-4">
-                            {question.questionType.replace('_', ' ').toUpperCase()}
-                        </Badge>
-                    </div>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center gap-2"
-                        onClick={() => onViewResponses(question, index)}
-                    >
-                        <Eye className="h-4 w-4" />
-                        View Individual Responses
-                    </Button>
-                </div>
-            </CardHeader>
-            <CardContent>
-                <QuestionTypeRenderer question={question} />
-                </CardContent>
-            </Card>
-        );
-    };
 
     return (
         <div className="space-y-6">
@@ -681,13 +646,13 @@ const renderQuestionContent = (question: TransformedQuestionAnalytics, index: nu
             </div>
 
             {/* Questions */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {questions.map((question, index) => (
                     <div
                         key={question.questionId}
                         className={
                             question.questionType === 'short_answer' || question.questionType === 'long_answer' || question.questionType === 'numerical'
-                                ? 'lg:col-span-2'
+                                ? 'md:col-span-2'
                                 : ''
                         }
                     >
@@ -801,7 +766,7 @@ const renderQuestionContent = (question: TransformedQuestionAnalytics, index: nu
                                             <TableCell className="w-48">{respondent.email}</TableCell>
                                                                 {!isPublicSurvey && <TableCell className="w-32">{batchName}</TableCell>}
                                                                 <TableCell className="w-96">
-                                                                    <div className="text-sm max-h-32 overflow-y-auto">
+                                                                    <div className="text-sm max-h-32 overflow-y-auto scrollbar-hide">
                                                                         <div className="font-medium text-gray-900 whitespace-pre-wrap break-words">
                                                                             {parsedResponse.formattedAnswer}
                                                                         </div>

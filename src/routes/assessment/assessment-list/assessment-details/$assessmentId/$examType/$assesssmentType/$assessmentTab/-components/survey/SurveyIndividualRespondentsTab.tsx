@@ -22,26 +22,26 @@ const formatMcqResponse = (responseData: any, questionData: any): string => {
         const optionText = questionData.optionsMap.get(optionId);
         return optionText || optionId;
       });
-      return `Selected: ${selectedOptions.join(', ')}`;
+      return selectedOptions.join(', ');
     } else {
-      return `Selected options: ${responseData.optionIds.join(', ')}`;
+      return responseData.optionIds.join(', ');
     }
   }
-  return 'No options selected';
+  return 'No response';
 };
 
 const formatNumericResponse = (responseData: any): string => {
   if (responseData.validAnswer !== null && responseData.validAnswer !== undefined) {
-    return `Answer: ${responseData.validAnswer}`;
+    return responseData.validAnswer.toString();
   }
-  return 'No numeric answer provided';
+  return 'No response';
 };
 
 const formatTextResponse = (responseData: any): string => {
   if (responseData.answer && responseData.answer.trim() !== '') {
     return responseData.answer;
   }
-  return 'No text answer provided';
+  return 'No response';
 };
 
 const RESPONSE_TYPE_FORMATTERS = {
@@ -117,7 +117,7 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
     // Determine survey type from assessment details
     const isPublicSurvey = assessmentDetails?.assessment_visibility === 'PUBLIC';
 
-    const pageSize = 10;
+    const pageSize = 100; // Increased to get more respondents per page
 
     const { data, loading, error } = useSurveyRespondents(assessmentId, pageNo, pageSize, assessmentName, sectionIds);
 
@@ -172,7 +172,7 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
 
     const currentRespondent = data?.respondents[currentRespondentIndex];
     const totalRespondents = data?.respondents.length || 0;
-    const totalElements = data?.pagination?.totalElements || 0;
+    const totalElements = data?.respondents.length || 0; // Use unique respondents count instead of API totalElements
 
     // Calculate the global respondent number across all pages
     const globalRespondentNumber = ((pageNo - 1) * pageSize) + currentRespondentIndex + 1;
@@ -204,31 +204,43 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
     const handlePageInputSubmit = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             const pageNumber = parseInt(pageInput);
-            if (pageNumber >= 1 && pageNumber <= (data?.pagination?.totalPages || 1)) {
-                setPageNo(pageNumber);
-                setCurrentRespondentIndex(0); // Reset to first respondent on new page
+            if (pageNumber >= 1 && pageNumber <= totalElements) {
+                // Calculate which page and index this respondent is on
+                const targetPage = Math.ceil(pageNumber / pageSize);
+                const targetIndex = (pageNumber - 1) % pageSize;
+
+                if (targetPage !== pageNo) {
+                    setPageNo(targetPage);
+                }
+                setCurrentRespondentIndex(targetIndex);
             } else {
-                // Reset to current page if invalid input
-                setPageInput(pageNo.toString());
+                // Reset to current respondent if invalid input
+                setPageInput(globalRespondentNumber.toString());
             }
         }
     };
 
     const handlePageInputBlur = () => {
         const pageNumber = parseInt(pageInput);
-        if (pageNumber >= 1 && pageNumber <= (data?.pagination?.totalPages || 1)) {
-            setPageNo(pageNumber);
-            setCurrentRespondentIndex(0); // Reset to first respondent on new page
+        if (pageNumber >= 1 && pageNumber <= totalElements) {
+            // Calculate which page and index this respondent is on
+            const targetPage = Math.ceil(pageNumber / pageSize);
+            const targetIndex = (pageNumber - 1) % pageSize;
+
+            if (targetPage !== pageNo) {
+                setPageNo(targetPage);
+            }
+            setCurrentRespondentIndex(targetIndex);
         } else {
-            // Reset to current page if invalid input
-            setPageInput(pageNo.toString());
+            // Reset to current respondent if invalid input
+            setPageInput(globalRespondentNumber.toString());
         }
     };
 
-    // Update page input when pageNo changes
+    // Update page input when respondent changes
     React.useEffect(() => {
-        setPageInput(pageNo.toString());
-    }, [pageNo]);
+        setPageInput(globalRespondentNumber.toString());
+    }, [globalRespondentNumber]);
 
     // Reset to first respondent when data changes
     React.useEffect(() => {
@@ -310,7 +322,7 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
                         <Input
                             type="number"
                             min="1"
-                            max={totalRespondents.toString()}
+                            max={totalElements.toString()}
                             value={pageInput}
                             onChange={handlePageInputChange}
                             onKeyDown={handlePageInputSubmit}
@@ -318,7 +330,7 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
                             className="w-12 h-6 text-xs text-center p-1"
                         />
                         <span className="text-xs text-gray-500">
-                            of {data?.pagination?.totalPages || 1}
+                            of {totalElements}
                         </span>
                     </div>
                 </div>
@@ -335,7 +347,7 @@ export const SurveyIndividualRespondentsTab: React.FC<SurveyIndividualRespondent
             </div>
 
             {/* Individual Responses */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {currentRespondent?.responses?.map((response, index) => {
                     // Parse the response data with question context
                     const parsedResponse = parseResponseData(String(response.answer), questionsData);

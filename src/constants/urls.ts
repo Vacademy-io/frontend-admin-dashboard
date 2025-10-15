@@ -62,6 +62,7 @@ export const DELETE_DISABLE_USER_URL = `${BASE_URL}/auth-service/v1/user-roles/u
 export const ADD_USER_ROLES_URL = `${BASE_URL}/auth-service/v1/user-roles/add-user-roles`;
 export const UPDATE_USER_INVITATION_URL = `${BASE_URL}/auth-service/v1/user-invitation/update`;
 export const RESEND_INVITATION_URL = `${BASE_URL}/auth-service/v1/user-invitation/resend-invitation`;
+export const UPDATE_INVITE_URL = `${BASE_URL}/admin-core-service/v1/enroll-invite/enroll-invite`;
 
 export const GET_QUESTION_PAPER_FILTERED_DATA = `${BASE_URL}/assessment-service/question-paper/view/v1/get-with-filters`;
 export const MARK_QUESTION_PAPER_STATUS = `${BASE_URL}/assessment-service/question-paper/manage/v1/mark-status`;
@@ -368,3 +369,6 @@ export const SURVEY_QUESTIONS_WITH_SECTIONS = `${BASE_URL}/assessment-service/as
 // Batch Service URLs
 export const BATCH_SERVICE_BASE = `${BASE_URL}/institute-service/batch`;
 export const BATCH_DETAILS = `${BATCH_SERVICE_BASE}/get-batch-details`;
+
+// Server Time
+export const GET_SERVER_TIME = `${BASE_URL}/auth-service/v1/server-time/utc`;

@@ -27,6 +27,7 @@ export const handleEnrollInvite = async ({
     paymentsData,
     referralProgramDetails,
     instituteLogoFileId,
+    inviteId,
 }: {
     data: InviteLinkFormValues;
     selectedCourse: Course | null;
@@ -43,6 +44,7 @@ export const handleEnrollInvite = async ({
     paymentsData: PaymentOption[];
     referralProgramDetails: ReferralData[];
     instituteLogoFileId: string;
+    inviteId?: string;
 }) => {
     const convertedData = convertInviteData(
         data,
@@ -51,10 +53,13 @@ export const handleEnrollInvite = async ({
         getPackageSessionId,
         paymentsData,
         referralProgramDetails,
-        instituteLogoFileId
+        instituteLogoFileId,
+        inviteId
     );
+
+    // For update, use PUT method; for create, use POST
     const response = await authenticatedAxiosInstance({
-        method: 'POST',
+        method: inviteId ? 'PUT' : 'POST',
         url: ENROLL_INVITE_URL,
         data: convertedData,
     });

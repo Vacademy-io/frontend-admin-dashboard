@@ -1,16 +1,16 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { LearnerInvitationType } from '../-types/create-invitation-types';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
-import { UPDATE_INVITATION } from '@/constants/urls';
+import { UPDATE_INVITE_URL } from '@/constants/urls';
 
 export const useUpdateInvite = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async ({ requestBody }: { requestBody: LearnerInvitationType }) => {
-            return authenticatedAxiosInstance.put(`${UPDATE_INVITATION}`, requestBody);
+        mutationFn: async ({ requestBody }: { requestBody: unknown }) => {
+            return authenticatedAxiosInstance.put(`${UPDATE_INVITE_URL}`, requestBody);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['inviteList'] });
+            queryClient.invalidateQueries({ queryKey: ['GET_INVITE_LINKS'] });
         },
     });
 };

@@ -34,7 +34,6 @@ import { Route as StudyLibraryAttendanceTrackerIndexRouteImport } from "./routes
 import { Route as StudyLibraryAiCourseBuilderIndexRouteImport } from "./routes/study-library/ai-course-builder/index"
 import { Route as SignupOnboardingIndexRouteImport } from "./routes/signup/onboarding/index"
 import { Route as ManageStudentsStudentsListIndexRouteImport } from "./routes/manage-students/students-list/index"
-import { Route as ManageStudentsLeadsManagementIndexRouteImport } from "./routes/manage-students/leads-management/index"
 import { Route as ManageStudentsInviteIndexRouteImport } from "./routes/manage-students/invite/index"
 import { Route as ManageStudentsEnrollRequestsIndexRouteImport } from "./routes/manage-students/enroll-requests/index"
 import { Route as ManageInstituteTeamsIndexRouteImport } from "./routes/manage-institute/teams/index"
@@ -246,12 +245,6 @@ const ManageStudentsStudentsListIndexRoute =
   ManageStudentsStudentsListIndexRouteImport.update({
     id: "/manage-students/students-list/",
     path: "/manage-students/students-list/",
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ManageStudentsLeadsManagementIndexRoute =
-  ManageStudentsLeadsManagementIndexRouteImport.update({
-    id: "/manage-students/leads-management/",
-    path: "/manage-students/leads-management/",
     getParentRoute: () => rootRouteImport,
   } as any)
 const ManageStudentsInviteIndexRoute =
@@ -621,7 +614,6 @@ export interface FileRoutesByFullPath {
   "/manage-institute/teams": typeof ManageInstituteTeamsIndexRoute
   "/manage-students/enroll-requests": typeof ManageStudentsEnrollRequestsIndexRoute
   "/manage-students/invite": typeof ManageStudentsInviteIndexRoute
-  "/manage-students/leads-management": typeof ManageStudentsLeadsManagementIndexRoute
   "/manage-students/students-list": typeof ManageStudentsStudentsListIndexRoute
   "/signup/onboarding": typeof SignupOnboardingIndexRoute
   "/study-library/ai-course-builder": typeof StudyLibraryAiCourseBuilderIndexRoute
@@ -704,7 +696,6 @@ export interface FileRoutesByTo {
   "/manage-institute/teams": typeof ManageInstituteTeamsIndexRoute
   "/manage-students/enroll-requests": typeof ManageStudentsEnrollRequestsIndexRoute
   "/manage-students/invite": typeof ManageStudentsInviteIndexRoute
-  "/manage-students/leads-management": typeof ManageStudentsLeadsManagementIndexRoute
   "/manage-students/students-list": typeof ManageStudentsStudentsListIndexRoute
   "/signup/onboarding": typeof SignupOnboardingIndexRoute
   "/study-library/ai-course-builder": typeof StudyLibraryAiCourseBuilderIndexRoute
@@ -789,7 +780,6 @@ export interface FileRoutesById {
   "/manage-institute/teams/": typeof ManageInstituteTeamsIndexRoute
   "/manage-students/enroll-requests/": typeof ManageStudentsEnrollRequestsIndexRoute
   "/manage-students/invite/": typeof ManageStudentsInviteIndexRoute
-  "/manage-students/leads-management/": typeof ManageStudentsLeadsManagementIndexRoute
   "/manage-students/students-list/": typeof ManageStudentsStudentsListIndexRoute
   "/signup/onboarding/": typeof SignupOnboardingIndexRoute
   "/study-library/ai-course-builder/": typeof StudyLibraryAiCourseBuilderIndexRoute
@@ -875,7 +865,6 @@ export interface FileRouteTypes {
     | "/manage-institute/teams"
     | "/manage-students/enroll-requests"
     | "/manage-students/invite"
-    | "/manage-students/leads-management"
     | "/manage-students/students-list"
     | "/signup/onboarding"
     | "/study-library/ai-course-builder"
@@ -958,7 +947,6 @@ export interface FileRouteTypes {
     | "/manage-institute/teams"
     | "/manage-students/enroll-requests"
     | "/manage-students/invite"
-    | "/manage-students/leads-management"
     | "/manage-students/students-list"
     | "/signup/onboarding"
     | "/study-library/ai-course-builder"
@@ -1042,7 +1030,6 @@ export interface FileRouteTypes {
     | "/manage-institute/teams/"
     | "/manage-students/enroll-requests/"
     | "/manage-students/invite/"
-    | "/manage-students/leads-management/"
     | "/manage-students/students-list/"
     | "/signup/onboarding/"
     | "/study-library/ai-course-builder/"
@@ -1126,7 +1113,6 @@ export interface RootRouteChildren {
   ManageInstituteTeamsIndexRoute: typeof ManageInstituteTeamsIndexRoute
   ManageStudentsEnrollRequestsIndexRoute: typeof ManageStudentsEnrollRequestsIndexRoute
   ManageStudentsInviteIndexRoute: typeof ManageStudentsInviteIndexRoute
-  ManageStudentsLeadsManagementIndexRoute: typeof ManageStudentsLeadsManagementIndexRoute
   ManageStudentsStudentsListIndexRoute: typeof ManageStudentsStudentsListIndexRoute
   SignupOnboardingIndexRoute: typeof SignupOnboardingIndexRoute
   StudyLibraryAiCourseBuilderIndexRoute: typeof StudyLibraryAiCourseBuilderIndexRoute
@@ -1364,13 +1350,6 @@ declare module "@tanstack/react-router" {
       path: "/manage-students/students-list"
       fullPath: "/manage-students/students-list"
       preLoaderRoute: typeof ManageStudentsStudentsListIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/manage-students/leads-management/": {
-      id: "/manage-students/leads-management/"
-      path: "/manage-students/leads-management"
-      fullPath: "/manage-students/leads-management"
-      preLoaderRoute: typeof ManageStudentsLeadsManagementIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/manage-students/invite/": {
@@ -1803,8 +1782,6 @@ const rootRouteChildren: RootRouteChildren = {
   ManageStudentsEnrollRequestsIndexRoute:
     ManageStudentsEnrollRequestsIndexRoute,
   ManageStudentsInviteIndexRoute: ManageStudentsInviteIndexRoute,
-  ManageStudentsLeadsManagementIndexRoute:
-    ManageStudentsLeadsManagementIndexRoute,
   ManageStudentsStudentsListIndexRoute: ManageStudentsStudentsListIndexRoute,
   SignupOnboardingIndexRoute: SignupOnboardingIndexRoute,
   StudyLibraryAiCourseBuilderIndexRoute: StudyLibraryAiCourseBuilderIndexRoute,
