@@ -10,7 +10,7 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { handleGetOverviewData } from '../-services/assessment-details-services';
 import { Route } from '..';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
-import { convertToLocalDateTime, getInstituteId } from '@/constants/helper';
+import { convertToLocalDateTime, convertToUTCDateTime, getInstituteId } from '@/constants/helper';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { getSubjectNameById } from '@/routes/assessment/question-papers/-utils/helper';
 import { AssessmentOverviewDataInterface } from '@/types/assessment-overview';
@@ -95,7 +95,7 @@ export function QuestionsPieChart() {
                                         Start Date and Time:{' '}
                                     </span>
                                     <span>
-                                        {convertToLocalDateTime(
+                                        {convertToUTCDateTime(
                                             data.assessment_overview_dto.start_date_and_time
                                         )}
                                     </span>
@@ -105,7 +105,7 @@ export function QuestionsPieChart() {
                                         End Date and Time:{' '}
                                     </span>
                                     <span>
-                                        {convertToLocalDateTime(
+                                        {convertToUTCDateTime(
                                             data.assessment_overview_dto.end_date_and_time
                                         )}
                                     </span>
