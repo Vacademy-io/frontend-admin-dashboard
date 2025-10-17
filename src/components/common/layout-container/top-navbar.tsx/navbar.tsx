@@ -405,7 +405,7 @@ export function Navbar() {
                                 <img
                                     src={adminLogo}
                                     alt="logo"
-                                    className="size-10 object-contain"
+                                    className="size-10 rounded-full object-cover"
                                 />
                             )}
                             {isOpen ? <CaretDown /> : <CaretUp />}
@@ -426,7 +426,7 @@ export function Navbar() {
                                                     <img
                                                         src={adminLogo}
                                                         alt="logo"
-                                                        className="size-48 object-contain"
+                                                        className="size-48 object-cover rounded-full"
                                                     />
                                                 )}
                                                 <h1>{adminDetails?.full_name}</h1>
@@ -502,7 +502,7 @@ export function Navbar() {
                                                     <img
                                                         src={instituteLogo}
                                                         alt="logo"
-                                                        className="size-48 object-contain"
+                                                        className="size-48 object-cover rounded-full"
                                                     />
                                                 )}
                                                 <h1>{instituteDetails?.institute_name}</h1>

@@ -180,14 +180,14 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
             >
                 <SidebarHeader className="px-3 py-1">
                     <div
-                        className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded p-1 transition-colors hover:bg-white/30"
+                        className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded p-1 transition-colors"
                         onClick={() => navigate({ to: '/dashboard' })}
                     >
                         {instituteLogo !== '' && (
                             <img
                                 src={instituteLogo}
                                 alt="logo"
-                                className="h-12 w-auto max-w-[100px] object-contain"
+                                className="h-12 w-auto max-w-[100px] object-cover rounded-full"
                             />
                         )}
                         <SidebarGroup
