@@ -79,6 +79,21 @@ type AnnouncementStats = {
     failedCount: number;
     deliveryRate: number;
     readRate: number;
+    emailsSent: number;
+    emailsSend: number;
+    emailsDelivered: number;
+    emailsOpened: number;
+    emailsClicked: number;
+    emailsBounced: number;
+    emailsRejected: number;
+    emailsComplained: number;
+    emailsPending: number;
+    emailDeliveryRate: number;
+    emailOpenRate: number;
+    emailClickRate: number;
+    emailBounceRate: number;
+    emailRejectRate: number;
+    emailComplaintRate: number;
 };
 
 export const Route = createFileRoute('/announcement/history/')({
@@ -508,24 +523,139 @@ function AnnouncementHistoryPage() {
             </Dialog>
 
             <Dialog open={!!statsFor} onOpenChange={(open) => !open && setStatsFor(null)}>
-                <DialogContent>
-                    <DialogHeader>
+                <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+                    <DialogHeader className="flex-shrink-0">
                         <DialogTitle>Delivery Stats</DialogTitle>
                     </DialogHeader>
+                    <div className="flex-1 overflow-y-auto pr-2">
                     {stats ? (
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                            <div>Total recipients: {stats.totalRecipients}</div>
-                            <div>
-                                Delivered: {stats.deliveredCount} ({percent(stats.deliveryRate)})
+                            <div className="space-y-4 pb-4">
+                            {/* General Stats */}
+                            <div className="rounded-xl border border-neutral-200 bg-gradient-to-br from-white to-neutral-50/30 p-4 sm:p-6 shadow-sm">
+                                <div className="mb-3 sm:mb-4 flex items-center gap-2">
+                                    <div className="h-1 w-6 sm:w-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-400"></div>
+                                    <h4 className="text-base sm:text-lg font-semibold text-neutral-800">General Statistics</h4>
+                                </div>
+                                <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2">
+                                    <div className="group rounded-lg border border-neutral-100 bg-white p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
+                                        <div>
+                                            <p className="text-xs sm:text-sm font-medium text-neutral-600">Total Recipients</p>
+                                            <p className="text-xl sm:text-2xl font-bold text-neutral-900">{stats.totalRecipients}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="group rounded-lg border border-neutral-100 bg-white p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
+                                        <div>
+                                            <p className="text-xs sm:text-sm font-medium text-neutral-600">Delivered</p>
+                                            <p className="text-xl sm:text-2xl font-bold text-green-600">{stats.deliveredCount}</p>
+                                            <p className="text-xs text-green-500 font-medium">{percent(stats.deliveryRate)}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="group rounded-lg border border-neutral-100 bg-white p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
+                                        <div>
+                                            <p className="text-xs sm:text-sm font-medium text-neutral-600">Read</p>
+                                            <p className="text-xl sm:text-2xl font-bold text-blue-600">{stats.readCount}</p>
+                                            <p className="text-xs text-blue-500 font-medium">{percent(stats.readRate)}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="group rounded-lg border border-neutral-100 bg-white p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
+                                        <div>
+                                            <p className="text-xs sm:text-sm font-medium text-neutral-600">Failed</p>
+                                            <p className="text-xl sm:text-2xl font-bold text-red-600">{stats.failedCount}</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                Read: {stats.readCount} ({percent(stats.readRate)})
+
+                            {/* Email Stats */}
+                            <div className="rounded-xl border border-neutral-200 bg-gradient-to-br from-white to-neutral-50/30 p-4 sm:p-6 shadow-sm">
+                                <div className="mb-3 sm:mb-4 flex items-center gap-2">
+                                    <div className="h-1 w-6 sm:w-8 rounded-full bg-gradient-to-r from-purple-500 to-purple-400"></div>
+                                    <h4 className="text-base sm:text-lg font-semibold text-neutral-800">Email Statistics</h4>
+                                </div>
+                                <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                    <div className="group rounded-lg border border-neutral-100 bg-white p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
+                                        <div>
+                                            <p className="text-xs sm:text-sm font-medium text-neutral-600">Emails Sent</p>
+                                            <p className="text-xl sm:text-2xl font-bold text-neutral-900">{stats.emailsSent}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="group rounded-lg border border-neutral-100 bg-white p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
+                                        <div>
+                                            <p className="text-xs sm:text-sm font-medium text-neutral-600">Emails Delivered</p>
+                                            <p className="text-xl sm:text-2xl font-bold text-green-600">{stats.emailsDelivered}</p>
+                                            <p className="text-xs text-green-500 font-medium">{percent(stats.emailDeliveryRate)}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="group rounded-lg border border-neutral-100 bg-white p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
+                                        <div>
+                                            <p className="text-xs sm:text-sm font-medium text-neutral-600">Emails Opened</p>
+                                            <p className="text-xl sm:text-2xl font-bold text-blue-600">{stats.emailsOpened}</p>
+                                            <p className="text-xs text-blue-500 font-medium">{percent(stats.emailOpenRate)}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="group rounded-lg border border-neutral-100 bg-white p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
+                                        <div>
+                                            <p className="text-xs sm:text-sm font-medium text-neutral-600">Emails Clicked</p>
+                                            <p className="text-xl sm:text-2xl font-bold text-purple-600">{stats.emailsClicked}</p>
+                                            <p className="text-xs text-purple-500 font-medium">{percent(stats.emailClickRate)}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="group rounded-lg border border-neutral-100 bg-white p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
+                                        <div>
+                                            <p className="text-xs sm:text-sm font-medium text-neutral-600">Emails Bounced</p>
+                                            <p className="text-xl sm:text-2xl font-bold text-orange-600">{stats.emailsBounced}</p>
+                                            <p className="text-xs text-orange-500 font-medium">{percent(stats.emailBounceRate)}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="group rounded-lg border border-neutral-100 bg-white p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
+                                        <div>
+                                            <p className="text-xs sm:text-sm font-medium text-neutral-600">Emails Rejected</p>
+                                            <p className="text-xl sm:text-2xl font-bold text-red-600">{stats.emailsRejected}</p>
+                                            <p className="text-xs text-red-500 font-medium">{percent(stats.emailRejectRate)}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="group rounded-lg border border-neutral-100 bg-white p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
+                                        <div>
+                                            <p className="text-xs sm:text-sm font-medium text-neutral-600">Emails Complained</p>
+                                            <p className="text-xl sm:text-2xl font-bold text-red-600">{stats.emailsComplained}</p>
+                                            <p className="text-xs text-red-500 font-medium">{percent(stats.emailComplaintRate)}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="group rounded-lg border border-neutral-100 bg-white p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
+                                        <div>
+                                            <p className="text-xs sm:text-sm font-medium text-neutral-600">Emails Pending</p>
+                                            <p className="text-xl sm:text-2xl font-bold text-yellow-600">{stats.emailsPending}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="group rounded-lg border border-neutral-100 bg-white p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
+                                        <div>
+                                            <p className="text-xs sm:text-sm font-medium text-neutral-600">Emails Send</p>
+                                            <p className="text-xl sm:text-2xl font-bold text-neutral-900">{stats.emailsSend}</p>
+                                        </div>
+                                    </div>
                             </div>
-                            <div>Failed: {stats.failedCount}</div>
+                            </div>
                         </div>
                     ) : (
-                        <div className="text-sm">Loading…</div>
+                        <div className="flex items-center justify-center py-8">
+                            <div className="flex items-center gap-2 text-sm text-neutral-500">
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-600"></div>
+                                Loading statistics...
+                            </div>
+                        </div>
                     )}
+                    </div>
                 </DialogContent>
             </Dialog>
 
@@ -653,5 +783,5 @@ function formatDateTime(v?: string) {
 
 function percent(n?: number) {
     if (typeof n !== 'number') return '-';
-    return `${Math.round(n * 100)}%`;
+    return `${n.toFixed(2)}%`;
 }

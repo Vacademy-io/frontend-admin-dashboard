@@ -4,6 +4,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { MyButton } from '@/components/design-system/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, Bell, Settings } from 'lucide-react';
@@ -17,6 +18,14 @@ import {
     getNotificationSettings,
     upsertNotificationSettings,
 } from '@/services/notification-settings';
+import {
+    getEmailConfigurations,
+    createEmailConfiguration,
+    updateEmailConfiguration,
+    deleteEmailConfiguration,
+    type EmailConfiguration,
+    type CreateEmailConfigurationRequest,
+} from '@/services/email-configuration-service';
 import { toast } from 'sonner';
 import { getInstituteId } from '@/constants/helper';
 import { Textarea } from '@/components/ui/textarea';
@@ -40,6 +49,11 @@ export default function NotificationSettings({ isTab = false }: Props) {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [hasChanges, setHasChanges] = useState(false);
+    
+    // Email configurations state
+    const [emailConfigurations, setEmailConfigurations] = useState<EmailConfiguration[]>([]);
+    const [emailLoading, setEmailLoading] = useState(false);
+    const [emailError, setEmailError] = useState<string | null>(null);
 
     getInstituteId();
 
@@ -50,9 +64,15 @@ export default function NotificationSettings({ isTab = false }: Props) {
                 const data: NotificationSettingsResponse = await getNotificationSettings();
                 if (!data?.id) {
                     const template = await getNotificationDefaultTemplate();
-                    setSettings(template.settings);
+                    setSettings({
+                        ...template.settings,
+                        emails: template.settings.emails || []
+                    });
                 } else {
-                    setSettings(data.settings);
+                    setSettings({
+                        ...data.settings,
+                        emails: data.settings.emails || []
+                    });
                 }
             } catch (e) {
                 console.error(e);
@@ -62,6 +82,24 @@ export default function NotificationSettings({ isTab = false }: Props) {
             }
         };
         init();
+    }, []);
+
+    // Load email configurations
+    useEffect(() => {
+        const loadEmailConfigurations = async () => {
+            setEmailLoading(true);
+            setEmailError(null);
+            try {
+                const configs = await getEmailConfigurations();
+                setEmailConfigurations(configs);
+            } catch (e) {
+                console.error('Error loading email configurations:', e);
+                setEmailError('Failed to load email configurations');
+            } finally {
+                setEmailLoading(false);
+            }
+        };
+        loadEmailConfigurations();
     }, []);
 
     const update = <K extends keyof NotificationSettings>(
@@ -79,7 +117,9 @@ export default function NotificationSettings({ isTab = false }: Props) {
         if (!settings) return;
         setSaving(true);
         try {
-            const req = createUpsertRequest(settings);
+            // Create a copy of settings without the emails field for API compatibility
+            const { emails, ...settingsForApi } = settings;
+            const req = createUpsertRequest(settingsForApi);
             await upsertNotificationSettings(req);
             toast.success('Notification settings saved');
             setHasChanges(false);
@@ -602,6 +642,40 @@ export default function NotificationSettings({ isTab = false }: Props) {
                 </CardContent>
             </Card>
 
+            {/* Email Settings */}
+            <Card className="rounded-lg border-gray-200">
+                <CardHeader className="py-3">
+                    <CardTitle className="text-base">Email Settings</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <EmailListEditor
+                        emailConfigurations={emailConfigurations}
+                        loading={emailLoading}
+                        error={emailError}
+                        onAdd={async (config) => {
+                            try {
+                                const newConfig = await createEmailConfiguration(config);
+                                setEmailConfigurations(prev => [...prev, newConfig]);
+                                toast.success('Email configuration added successfully');
+                            } catch (error) {
+                                toast.error('Failed to add email configuration');
+                            }
+                        }}
+                        onUpdate={async (id, config) => {
+                            try {
+                                const updatedConfig = await updateEmailConfiguration(id, config);
+                                setEmailConfigurations(prev => 
+                                    prev.map(c => c.id === id ? updatedConfig : c)
+                                );
+                                toast.success('Email configuration updated successfully');
+                            } catch (error) {
+                                toast.error('Failed to update email configuration');
+                            }
+                        }}
+                    />
+                </CardContent>
+            </Card>
+
             {!isTab && (
                 <div className="flex items-center justify-end gap-2">
                     <MyButton
@@ -669,6 +743,183 @@ function TagEditor({ value, onChange }: { value: string[]; onChange: (tags: stri
                 }}
                 placeholder="Add tag and press Enter"
             />
+        </div>
+    );
+}
+
+function EmailListEditor({ 
+    emailConfigurations,
+    loading,
+    error,
+    onAdd,
+    onUpdate
+}: { 
+    emailConfigurations: EmailConfiguration[];
+    loading: boolean;
+    error: string | null;
+    onAdd: (config: CreateEmailConfigurationRequest) => Promise<void>;
+    onUpdate: (id: string, config: Partial<CreateEmailConfigurationRequest>) => Promise<void>;
+}) {
+    const [newEmail, setNewEmail] = useState('');
+    const [newName, setNewName] = useState('');
+    const [newType, setNewType] = useState('');
+    const [newDescription, setNewDescription] = useState('');
+
+    const addEmail = async () => {
+        if (!newEmail.trim() || !newName.trim() || !newType.trim()) return;
+        
+        const emailExists = emailConfigurations.some(e => e.email === newEmail.trim());
+        if (emailExists) {
+            toast.error('Email already exists');
+            return;
+        }
+
+        try {
+            await onAdd({
+                email: newEmail.trim(),
+                name: newName.trim(),
+                type: newType.trim(),
+                description: newDescription.trim() || undefined
+            });
+            
+            // Show verification popup after successful addition
+            toast.success('Email configuration added successfully', {
+                description: 'If the domain or email is not verified with our system, kindly contact admin for verification.',
+                duration: 8000, // Show for 8 seconds to give time to read
+            });
+            
+            setNewEmail('');
+            setNewName('');
+            setNewType('');
+            setNewDescription('');
+        } catch (error) {
+            // Error handling is done in the parent component
+        }
+    };
+
+    const updateEmail = async (id: string, field: 'email' | 'name' | 'type' | 'description', value: string) => {
+        try {
+            await onUpdate(id, { [field]: value });
+        } catch (error) {
+            // Error handling is done in the parent component
+        }
+    };
+
+
+    if (loading) {
+        return (
+            <div className="text-sm text-muted-foreground text-center py-4">
+                Loading email configurations...
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="text-sm text-red-600 text-center py-4">
+                {error}
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-4">
+            <div className="text-sm text-muted-foreground">
+                Manage email addresses with their types for notifications
+            </div>
+            
+            {/* Add new email form */}
+            <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
+                <div>
+                    <Label htmlFor="new-email">Email Address</Label>
+                    <Input
+                        id="new-email"
+                        type="email"
+                        placeholder="Enter email address"
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <Label htmlFor="new-name">Name</Label>
+                    <Input
+                        id="new-name"
+                        placeholder="Enter name"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <Label htmlFor="new-type">Type</Label>
+                    <Input
+                        id="new-type"
+                        placeholder="Enter email type (e.g., admin, support, info)"
+                        value={newType}
+                        onChange={(e) => setNewType(e.target.value)}
+                    />
+                </div>
+                <div>
+                    <Label htmlFor="new-description">Description</Label>
+                    <Input
+                        id="new-description"
+                        placeholder="Enter description (optional)"
+                        value={newDescription}
+                        onChange={(e) => setNewDescription(e.target.value)}
+                    />
+                </div>
+            </div>
+            <div className="flex justify-end">
+                <Button 
+                    type="button" 
+                    onClick={addEmail}
+                    disabled={!newEmail.trim() || !newName.trim() || !newType.trim()}
+                >
+                    Add Email Configuration
+                </Button>
+            </div>
+
+            {/* Email list */}
+            <div className="space-y-2">
+                {emailConfigurations.length === 0 ? (
+                    <div className="text-sm text-muted-foreground text-center py-4">
+                        No email configurations added yet
+                    </div>
+                ) : (
+                    emailConfigurations.map((config) => (
+                        <div key={config.id} className="grid grid-cols-1 md:grid-cols-4 gap-2 p-3 border rounded-md">
+                            <div>
+                                <Label className="text-xs">Email</Label>
+                                <Input
+                                    value={config.email}
+                                    onChange={(e) => updateEmail(config.id, 'email', e.target.value)}
+                                    className="font-mono text-sm"
+                                />
+                            </div>
+                            <div>
+                                <Label className="text-xs">Name</Label>
+                                <Input
+                                    value={config.name}
+                                    onChange={(e) => updateEmail(config.id, 'name', e.target.value)}
+                                />
+                            </div>
+                            <div>
+                                <Label className="text-xs">Type</Label>
+                                <Input
+                                    value={config.type}
+                                    onChange={(e) => updateEmail(config.id, 'type', e.target.value)}
+                                />
+                            </div>
+                            <div>
+                                <Label className="text-xs">Description</Label>
+                                <Input
+                                    value={config.description || ''}
+                                    onChange={(e) => updateEmail(config.id, 'description', e.target.value)}
+                                />
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
         </div>
     );
 }

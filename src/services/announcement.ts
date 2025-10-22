@@ -30,6 +30,11 @@ export interface CreateAnnouncementRequest {
         recipientId: string;
         recipientName?: string;
     }>;
+    exclusions?: Array<{
+        recipientType: RecipientType;
+        recipientId: string;
+        recipientName?: string;
+    }>;
     modes: Array<{
         modeType: ModeType;
         settings: Record<string, unknown>;

@@ -7,6 +7,7 @@ import { StatusChips } from '@/components/design-system/chips';
 import { StudentOverview } from './student-overview/student-overview';
 import { StudentLearningProgress } from './student-learning-progress/student-learning-progress';
 import { StudentTestRecord } from './student-test-records/student-test-record';
+import { StudentEmailNotifications } from './student-email-notifications/student-email-notifications';
 import { getPublicUrl } from '@/services/upload_file';
 import { ErrorBoundary } from '@/components/core/dashboard-loader';
 import { useStudentSidebar } from '../../../-context/selected-student-sidebar-context';
@@ -99,10 +100,12 @@ export const StudentSidebar = ({
                                 <div
                                     className={`absolute inset-y-1.5 rounded-lg bg-white shadow-lg transition-all duration-300 ease-out ${
                                         category === 'overview'
-                                            ? 'left-1.5 w-[calc(33.333%-0.5rem)]'
+                                            ? 'left-1.5 w-[calc(25%-0.375rem)]'
                                             : category === 'learningProgress'
-                                              ? 'left-[calc(33.333%+0.167rem)] w-[calc(33.333%-0.333rem)]'
-                                              : 'left-[calc(66.666%+0.833rem)] w-[calc(33.333%-0.5rem)]'
+                                              ? 'left-[calc(25%+0.125rem)] w-[calc(25%-0.25rem)]'
+                                              : category === 'testRecord'
+                                                ? 'left-[calc(50%+0.5rem)] w-[calc(25%-0.25rem)]'
+                                                : 'left-[calc(75%+0.875rem)] w-[calc(25%-0.375rem)]'
                                     }`}
                                 ></div>
 
@@ -148,6 +151,21 @@ export const StudentSidebar = ({
                                     <span className="relative">
                                         Tests
                                         {category === 'testRecord' && (
+                                            <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
+                                        )}
+                                    </span>
+                                </button>
+                                <button
+                                    className={`group relative z-10 flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                        category === 'notifications'
+                                            ? 'scale-105 text-primary-500'
+                                            : 'text-neutral-600 hover:scale-100 hover:text-neutral-800'
+                                    }`}
+                                    onClick={() => setCategory('notifications')}
+                                >
+                                    <span className="relative">
+                                        Notifications
+                                        {category === 'notifications' && (
                                             <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
                                         )}
                                     </span>
@@ -227,6 +245,9 @@ export const StudentSidebar = ({
                                 examType={examType || ''}
                                 isStudentList={isStudentList || false}
                             />
+                        )}
+                        {category === 'notifications' && !isEnrollRequestStudentList && (
+                            <StudentEmailNotifications />
                         )}
                     </ErrorBoundary>
                 </div>
