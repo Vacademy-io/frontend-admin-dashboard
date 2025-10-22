@@ -69,6 +69,11 @@ export type NotificationSettings = {
         retention_days: number;
         disabled_modes?: string[] | null;
     };
+    emails?: Array<{
+        id: string;
+        email: string;
+        type: string;
+    }>;
     firebase?: FirebaseSettings;
 };
 
@@ -209,7 +214,7 @@ export function buildFirebaseSettingsUpdate(params: {
 
 export type NotificationSettingsUpsertRequest = {
     instituteId: string;
-    settings: NotificationSettings;
+    settings: Omit<NotificationSettings, 'emails'>;
 };
 
 export async function getNotificationSettings(): Promise<NotificationSettingsResponse> {
@@ -234,7 +239,7 @@ export async function upsertNotificationSettings(
 }
 
 export function createUpsertRequest(
-    settings: NotificationSettings
+    settings: Omit<NotificationSettings, 'emails'>
 ): NotificationSettingsUpsertRequest {
     return {
         instituteId: getInstituteId() ?? '',

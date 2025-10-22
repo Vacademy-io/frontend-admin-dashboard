@@ -1,7 +1,7 @@
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { createFileRoute } from '@tanstack/react-router';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import {
     AnnouncementService,
     InstituteAnnouncementSettingsService,
@@ -54,6 +54,11 @@ import { MultiSelect, type OptionType } from '@/components/design-system/multi-s
 import { TIMEZONE_OPTIONS } from '@/routes/study-library/live-session/schedule/-constants/options';
 import { getInstituteTags, getUserCountsByTags, type TagItem } from '@/services/tag-management';
 import { getInstituteId } from '@/constants/helper';
+import { getMessageTemplates } from '@/services/message-template-service';
+import type { MessageTemplate } from '@/types/message-template-types';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
+import { getEmailConfigurations, type EmailConfiguration } from '@/services/email-configuration-service';
 
 export const Route = createFileRoute('/announcement/create/')({
     component: () => (
@@ -66,6 +71,10 @@ export const Route = createFileRoute('/announcement/create/')({
 function CreateAnnouncementPage() {
     const { setNavHeading } = useNavHeadingStore();
     const { toast } = useToast();
+    
+    // Institute details for package sessions
+    const instituteQuery = useInstituteQuery();
+    const { instituteDetails, getPackageWiseLevels, getDetailsFromPackageSessionId } = useInstituteDetailsStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [loadingPermissions, setLoadingPermissions] = useState(true);
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -133,6 +142,37 @@ function CreateAnnouncementPage() {
     const [isBatchDialogOpen, setIsBatchDialogOpen] = useState(false);
     // placeholder for future autocomplete; keep local dialog input state instead
 
+    // Template-related state
+    const [useTemplate, setUseTemplate] = useState(false);
+    const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+    const [emailTemplates, setEmailTemplates] = useState<MessageTemplate[]>([]);
+    const [templatesLoading, setTemplatesLoading] = useState(false);
+    const [templatesError, setTemplatesError] = useState<string | null>(null);
+
+    // Email configuration state
+    const [emailConfigurations, setEmailConfigurations] = useState<EmailConfiguration[]>([]);
+    const [selectedFromEmail, setSelectedFromEmail] = useState<string>('');
+    const [emailConfigsLoading, setEmailConfigsLoading] = useState(false);
+
+    // Package session selection state
+    const [selectedPackageSessionId, setSelectedPackageSessionId] = useState<string>('');
+    const [packageSessionOptions, setPackageSessionOptions] = useState<Array<{
+        id: string;
+        label: string;
+        packageName: string;
+        levelName: string;
+        sessionName: string;
+    }>>([]);
+
+    // Exclusion state
+    const [exclusions, setExclusions] = useState<Array<{
+        id: string;
+        recipientType: 'ROLE' | 'USER' | 'PACKAGE_SESSION' | 'TAG';
+        recipientId: string;
+        recipientName: string;
+    }>>([]);
+    const [showExclusionSection, setShowExclusionSection] = useState(false);
+
     // Permissions
     const [allowedModes, setAllowedModes] = useState<Record<ModeType, boolean>>(
         {} as Record<ModeType, boolean>
@@ -163,6 +203,75 @@ function CreateAnnouncementPage() {
             }
         })();
     }, []);
+
+    // Load email templates only when needed
+    const loadEmailTemplates = async () => {
+        if (emailTemplates.length > 0 || templatesLoading) return; // Already loaded or loading
+        
+        setTemplatesLoading(true);
+        setTemplatesError(null);
+        try {
+            const response = await getMessageTemplates('EMAIL');
+            setEmailTemplates(response.templates);
+        } catch (error) {
+            console.error('Error loading email templates:', error);
+            setTemplatesError('Failed to load email templates. Please try again.');
+            // Set empty array on error to prevent further issues
+            setEmailTemplates([]);
+        } finally {
+            setTemplatesLoading(false);
+        }
+    };
+
+    // Load email configurations
+    useEffect(() => {
+        const loadEmailConfigurations = async () => {
+            setEmailConfigsLoading(true);
+            try {
+                const configs = await getEmailConfigurations();
+                setEmailConfigurations(configs);
+                
+                // Always set a default email when configurations are loaded
+                if (configs.length > 0) {
+                    // Check if the persisted email is still valid
+                    const persistedEmail = typeof window !== 'undefined' ? localStorage.getItem('selectedFromEmail') : null;
+                    
+                    if (persistedEmail && configs.find(c => `${c.email}-${c.name}` === persistedEmail)) {
+                        setSelectedFromEmail(persistedEmail);
+                    } else {
+                        const defaultValue = `${configs[0]?.email}-${configs[0]?.name}`;
+                        setSelectedFromEmail(defaultValue || '');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading email configurations:', error);
+            } finally {
+                setEmailConfigsLoading(false);
+            }
+        };
+        loadEmailConfigurations();
+    }, []); // Only run once on mount
+
+    // Persist selectedFromEmail to localStorage
+    useEffect(() => {
+        if (selectedFromEmail && typeof window !== 'undefined') {
+            localStorage.setItem('selectedFromEmail', selectedFromEmail);
+        }
+    }, [selectedFromEmail]);
+
+    // Load package session options when institute details are available
+    useEffect(() => {
+        if (instituteDetails?.batches_for_sessions) {
+            const options = instituteDetails.batches_for_sessions.map((batch) => ({
+                id: batch.id,
+                label: `${batch.package_dto.package_name} - ${batch.level.level_name} - ${batch.session.session_name}`,
+                packageName: batch.package_dto.package_name,
+                levelName: batch.level.level_name,
+                sessionName: batch.session.session_name,
+            }));
+            setPackageSessionOptions(options);
+        }
+    }, [instituteDetails]);
 
     // Optional UX: estimate users for selected tags (ANY-of semantics)
     useEffect(() => {
@@ -406,7 +515,21 @@ function CreateAnnouncementPage() {
         setScheduleType('RECURRING');
     };
 
-    const addRecipientPreset = (preset: 'ALL_STUDENTS' | 'ALL_TEACHERS' | 'SPECIFIC_BATCH') => {
+    const handleTemplateSelection = (templateId: string) => {
+        const template = emailTemplates.find(t => t.id === templateId);
+        if (template) {
+            setSelectedTemplateId(templateId);
+            // Apply template content to title and content
+            if (template.subject) {
+                setTitle(template.subject);
+            }
+            if (template.content) {
+                setHtmlContent(template.content);
+            }
+        }
+    };
+
+    const addRecipientPreset = (preset: 'ALL_STUDENTS' | 'ALL_TEACHERS') => {
         if (preset === 'ALL_STUDENTS') {
             setRecipients((prev) => [
                 ...prev,
@@ -421,7 +544,54 @@ function CreateAnnouncementPage() {
             ]);
             return;
         }
-        setIsBatchDialogOpen(true);
+    };
+
+    const addBatchRecipient = () => {
+        // Get the first available package session as default
+        const firstBatch = packageSessionOptions[0];
+        if (firstBatch) {
+            setRecipients((prev) => [
+                ...prev,
+                { 
+                    recipientType: 'PACKAGE_SESSION', 
+                    recipientId: firstBatch.id, 
+                    recipientName: firstBatch.label 
+                },
+            ]);
+        } else {
+            // If no batches available, add empty package session row
+            setRecipients((prev) => [
+                ...prev,
+                { 
+                    recipientType: 'PACKAGE_SESSION', 
+                    recipientId: '', 
+                    recipientName: '' 
+                },
+            ]);
+        }
+    };
+
+    // Exclusion functions
+    const addExclusion = () => {
+        setExclusions((prev) => [
+            ...prev,
+            {
+                id: `exclusion-${Date.now()}`,
+                recipientType: 'ROLE',
+                recipientId: '',
+                recipientName: ''
+            }
+        ]);
+    };
+
+    const removeExclusion = (id: string) => {
+        setExclusions((prev) => prev.filter(e => e.id !== id));
+    };
+
+    const updateExclusion = (id: string, field: 'recipientType' | 'recipientId' | 'recipientName', value: string) => {
+        setExclusions((prev) => prev.map(e => 
+            e.id === id ? { ...e, [field]: value } : e
+        ));
     };
 
     const removeRecipientAtIndex = (idx: number) => {
@@ -662,9 +832,10 @@ function CreateAnnouncementPage() {
                             </Button>
                             <Button
                                 variant="secondary"
-                                onClick={() => addRecipientPreset('SPECIFIC_BATCH')}
+                                onClick={addBatchRecipient}
+                                disabled={packageSessionOptions.length === 0}
                             >
-                                + Specific Batch
+                                + Add Batch
                             </Button>
                             <Button
                                 variant="secondary"
@@ -726,7 +897,7 @@ function CreateAnnouncementPage() {
                                     <SelectContent>
                                         <SelectItem value="ROLE">ROLE</SelectItem>
                                         <SelectItem value="PACKAGE_SESSION">
-                                            PACKAGE_SESSION
+                                            Batch
                                         </SelectItem>
                                         <SelectItem value="USER">USER</SelectItem>
                                         <SelectItem value="TAG">TAG</SelectItem>
@@ -751,15 +922,25 @@ function CreateAnnouncementPage() {
                                         </SelectContent>
                                     </Select>
                                 ) : r.recipientType === 'PACKAGE_SESSION' ? (
-                                    <Input
-                                        placeholder={'Package Session ID'}
+                                    <Select
                                         value={r.recipientId}
-                                        onChange={(e) => {
+                                        onValueChange={(val) => {
                                             const updated = [...recipients];
-                                            updated[idx] = { ...r, recipientId: e.target.value };
+                                            updated[idx] = { ...r, recipientId: val };
                                             setRecipients(updated);
                                         }}
-                                    />
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Package Session" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {packageSessionOptions.map((option) => (
+                                                <SelectItem key={option.id} value={option.id}>
+                                                    {option.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 ) : r.recipientType === 'USER' ? (
                                     <Input
                                         placeholder={'User ID'}
@@ -888,9 +1069,14 @@ function CreateAnnouncementPage() {
                                         key={idx}
                                         className="inline-flex items-center gap-2 rounded-full border px-2 py-0.5"
                                     >
-                                        <span className="font-medium">{r.recipientType}</span>
+                                        <span className="font-medium">
+                                            {r.recipientType === 'PACKAGE_SESSION' ? 'Batch' : r.recipientType}
+                                        </span>
                                         <span className="text-neutral-600">
-                                            {r.recipientId || r.recipientName || '—'}
+                                            {r.recipientType === 'PACKAGE_SESSION' 
+                                                ? packageSessionOptions.find(opt => opt.id === r.recipientId)?.label || r.recipientId || '—'
+                                                : r.recipientId || r.recipientName || '—'
+                                            }
                                         </span>
                                         <button
                                             type="button"
@@ -911,6 +1097,137 @@ function CreateAnnouncementPage() {
                             {estimatingUsers
                                 ? 'Estimating users…'
                                 : `Estimated users (any of selected tags): ${estimatedUsers ?? '—'}`}
+                        </div>
+                    )}
+                </section>
+
+                {/* Exclusions */}
+                <section className="grid gap-3">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-medium">Exclusions</h3>
+                        <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                onClick={() => setShowExclusionSection(!showExclusionSection)}
+                            >
+                                {showExclusionSection ? 'Hide' : 'Show'} Exclusions
+                            </Button>
+                            {showExclusionSection && (
+                                <Button
+                                    variant="secondary"
+                                    onClick={addExclusion}
+                                >
+                                    + Add Exclusion
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                        Exclude specific users, roles, batches, or tags from receiving this announcement.
+                        For example: exclude students from batch1 who belong to tag1.
+                    </div>
+                    
+                    {showExclusionSection && (
+                        <div className="grid gap-3">
+                            {exclusions.length === 0 ? (
+                                <div className="text-sm text-muted-foreground text-center py-4 border rounded-md">
+                                    No exclusions added yet
+                                </div>
+                            ) : (
+                                exclusions.map((exclusion, idx) => (
+                                    <div key={exclusion.id} className="flex items-center gap-2 p-3 border rounded-md">
+                                        <Select
+                                            value={exclusion.recipientType}
+                                            onValueChange={(value) => 
+                                                updateExclusion(exclusion.id, 'recipientType', value)
+                                            }
+                                        >
+                                            <SelectTrigger className="w-32">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="ROLE">Role</SelectItem>
+                                                <SelectItem value="USER">User</SelectItem>
+                                                <SelectItem value="PACKAGE_SESSION">Batch</SelectItem>
+                                                <SelectItem value="TAG">Tag</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+
+                                        {exclusion.recipientType === 'ROLE' ? (
+                                            <Select
+                                                value={exclusion.recipientId}
+                                                onValueChange={(value) => 
+                                                    updateExclusion(exclusion.id, 'recipientId', value)
+                                                }
+                                            >
+                                                <SelectTrigger className="w-32">
+                                                    <SelectValue placeholder="Select role" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="STUDENT">Student</SelectItem>
+                                                    <SelectItem value="TEACHER">Teacher</SelectItem>
+                                                    <SelectItem value="ADMIN">Admin</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        ) : exclusion.recipientType === 'PACKAGE_SESSION' ? (
+                                            <Select
+                                                value={exclusion.recipientId}
+                                                onValueChange={(value) => 
+                                                    updateExclusion(exclusion.id, 'recipientId', value)
+                                                }
+                                            >
+                                                <SelectTrigger className="w-48">
+                                                    <SelectValue placeholder="Select batch" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {packageSessionOptions.map((option) => (
+                                                        <SelectItem key={option.id} value={option.id}>
+                                                            {option.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        ) : exclusion.recipientType === 'TAG' ? (
+                                            <Select
+                                                value={exclusion.recipientId}
+                                                onValueChange={(value) => 
+                                                    updateExclusion(exclusion.id, 'recipientId', value)
+                                                }
+                                            >
+                                                <SelectTrigger className="w-48">
+                                                    <SelectValue placeholder="Select tag" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {tagOptions.map((option) => (
+                                                        <SelectItem key={option.value} value={option.value}>
+                                                            {option.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        ) : (
+                                            <Input
+                                                placeholder="User ID or email"
+                                                value={exclusion.recipientId}
+                                                onChange={(e) => 
+                                                    updateExclusion(exclusion.id, 'recipientId', e.target.value)
+                                                }
+                                                className="w-48"
+                                            />
+                                        )}
+
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => removeExclusion(exclusion.id)}
+                                            className="text-red-600 hover:text-red-700"
+                                        >
+                                            Remove
+                                        </Button>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     )}
                 </section>
@@ -997,8 +1314,6 @@ function CreateAnnouncementPage() {
                         ))}
                     </div>
                 </section>
-
-                <Separator />
 
                 {/* Mediums */}
                 <section className="grid gap-3">
@@ -1100,8 +1415,122 @@ function CreateAnnouncementPage() {
                         {selectedMediums.includes('EMAIL') && (
                             <div className="rounded-md border p-4">
                                 <div className="mb-2 font-medium">Email</div>
+                                
+                                {/* Template checkbox */}
+                                <div className="mb-4 flex items-center gap-2">
+                                    <Checkbox
+                                        id="use-template"
+                                        checked={useTemplate}
+                                        onCheckedChange={async (checked) => {
+                                            setUseTemplate(Boolean(checked));
+                                            if (checked) {
+                                                // Load templates when checkbox is checked
+                                                await loadEmailTemplates();
+                                            } else {
+                                                setSelectedTemplateId('');
+                                            }
+                                        }}
+                                    />
+                                    <Label htmlFor="use-template" className="text-sm font-medium">
+                                        Use Email Template
+                                    </Label>
+                                </div>
+
+                                {/* Template dropdown */}
+                                {useTemplate && (
+                                    <div className="mb-4">
+                                        <Label className="mb-2 block text-sm font-medium">
+                                            Select Template
+                                        </Label>
+                                        <Select
+                                            value={selectedTemplateId}
+                                            onValueChange={handleTemplateSelection}
+                                            disabled={templatesLoading}
+                                        >
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder={
+                                                    templatesLoading 
+                                                        ? "Loading templates..." 
+                                                        : "Select a template"
+                                                } />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {emailTemplates.length > 0 ? (
+                                                    emailTemplates.map((template) => (
+                                                        <SelectItem key={template.id} value={template.id}>
+                                                            {template.name}
+                                                        </SelectItem>
+                                                    ))
+                                                ) : (
+                                                    <SelectItem value="no-templates" disabled>
+                                                        No templates available
+                                                    </SelectItem>
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                        {selectedTemplateId && (
+                                            <div className="mt-2 text-xs text-neutral-600">
+                                                Template selected: {emailTemplates.find(t => t.id === selectedTemplateId)?.name}
+                                            </div>
+                                        )}
+                                        {templatesError && (
+                                            <div className="mt-2 text-xs text-red-600">
+                                                {templatesError}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* From Email selection */}
+                                <div className="mb-4">
+                                    <Label className="mb-2 block text-sm font-medium">
+                                        From Email
+                                    </Label>
+                                    <Select
+                                        value={selectedFromEmail || ''}
+                                        onValueChange={(value) => {
+                                            if (value && value !== 'undefined') {
+                                                setSelectedFromEmail(value);
+                                            }
+                                        }}
+                                        disabled={emailConfigsLoading}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder={
+                                                emailConfigsLoading 
+                                                    ? "Loading email configurations..." 
+                                                    : "Select from email"
+                                            } />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {emailConfigurations.length > 0 ? (
+                                                emailConfigurations.map((config, index) => {
+                                                    const uniqueValue = `${config.email}-${config.name}`;
+                                                    return (
+                                                        <SelectItem key={`${config.email}-${index}`} value={uniqueValue}>
+                                                            {config.name} ({config.email})
+                                                        </SelectItem>
+                                                    );
+                                                })
+                                            ) : (
+                                                <SelectItem value="no-configs" disabled>
+                                                    No email configurations available
+                                                </SelectItem>
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                    {selectedFromEmail && (
+                                        <div className="mt-2 text-xs text-neutral-600">
+                                            From: {emailConfigurations.find(c => `${c.email}-${c.name}` === selectedFromEmail)?.email}
+                                        </div>
+                                    )}
+                                </div>
+
                                 <p className="text-sm text-neutral-600">
-                                    Subject and body will use the Title and Content provided above.
+                                    {useTemplate 
+                                        ? "Template content will be applied to Title and Content above."
+                                        : "Subject and body will use the Title and Content provided above."
+                                    }
                                 </p>
                             </div>
                         )}
@@ -1466,28 +1895,40 @@ function CreateAnnouncementPage() {
                                 });
 
                                 setIsSubmitting(true);
-                                const payload: Omit<CreateAnnouncementRequest, 'instituteId'> = {
+                                const payload: any = {
                                     title,
                                     content: { type: 'html', content: htmlContent },
                                     createdBy: getUserId(),
                                     createdByName: getUserName(),
                                     createdByRole: primaryRole,
                                     recipients: expandedRecipients,
+                                    exclusions: exclusions.map(exclusion => ({
+                                        recipientType: exclusion.recipientType,
+                                        recipientId: exclusion.recipientId,
+                                        recipientName: exclusion.recipientName
+                                    })),
                                     modes: selectedModes.map((m) => ({
                                         modeType: m,
                                         settings: modeSettings[m] ?? {},
                                     })),
-                                    mediums: selectedMediums.map((med) => ({
-                                        mediumType: med,
-                                        config:
-                                            med === 'EMAIL'
-                                                ? {
-                                                      ...(mediumConfigs[med] ?? {}),
-                                                      subject: title,
-                                                      body: htmlContent,
-                                                  }
-                                                : mediumConfigs[med] ?? {},
-                                    })),
+                                    mediums: selectedMediums.map((med) => {
+                                        if (med === 'EMAIL') {
+                                            const selectedConfig = emailConfigurations.find(c => `${c.email}-${c.name}` === selectedFromEmail);
+                                            const emailType = selectedConfig?.type || 'UTILITY_EMAIL';
+                                            
+                                            return {
+                                                mediumType: med,
+                                                config: {
+                                                    subject: title,
+                                                    emailType: emailType,
+                                                }
+                                            };
+                                        }
+                                        return {
+                                            mediumType: med,
+                                            config: mediumConfigs[med] ?? {},
+                                        };
+                                    }),
                                     scheduling:
                                         scheduleType === 'IMMEDIATE'
                                             ? { scheduleType, timezone }
