@@ -530,45 +530,6 @@ function AnnouncementHistoryPage() {
                     <div className="flex-1 overflow-y-auto pr-2">
                     {stats ? (
                             <div className="space-y-4 pb-4">
-                            {/* General Stats */}
-                            <div className="rounded-xl border border-neutral-200 bg-gradient-to-br from-white to-neutral-50/30 p-4 sm:p-6 shadow-sm">
-                                <div className="mb-3 sm:mb-4 flex items-center gap-2">
-                                    <div className="h-1 w-6 sm:w-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-400"></div>
-                                    <h4 className="text-base sm:text-lg font-semibold text-neutral-800">General Statistics</h4>
-                                </div>
-                                <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2">
-                                    <div className="group rounded-lg border border-neutral-100 bg-white p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
-                                        <div>
-                                            <p className="text-xs sm:text-sm font-medium text-neutral-600">Total Recipients</p>
-                                            <p className="text-xl sm:text-2xl font-bold text-neutral-900">{stats.totalRecipients}</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="group rounded-lg border border-neutral-100 bg-white p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
-                                        <div>
-                                            <p className="text-xs sm:text-sm font-medium text-neutral-600">Delivered</p>
-                                            <p className="text-xl sm:text-2xl font-bold text-green-600">{stats.deliveredCount}</p>
-                                            <p className="text-xs text-green-500 font-medium">{percent(stats.deliveryRate)}</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="group rounded-lg border border-neutral-100 bg-white p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
-                                        <div>
-                                            <p className="text-xs sm:text-sm font-medium text-neutral-600">Read</p>
-                                            <p className="text-xl sm:text-2xl font-bold text-blue-600">{stats.readCount}</p>
-                                            <p className="text-xs text-blue-500 font-medium">{percent(stats.readRate)}</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="group rounded-lg border border-neutral-100 bg-white p-3 sm:p-4 transition-all duration-200 hover:shadow-md">
-                                        <div>
-                                            <p className="text-xs sm:text-sm font-medium text-neutral-600">Failed</p>
-                                            <p className="text-xl sm:text-2xl font-bold text-red-600">{stats.failedCount}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
                             {/* Email Stats */}
                             <div className="rounded-xl border border-neutral-200 bg-gradient-to-br from-white to-neutral-50/30 p-4 sm:p-6 shadow-sm">
                                 <div className="mb-3 sm:mb-4 flex items-center gap-2">

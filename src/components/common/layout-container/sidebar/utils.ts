@@ -198,6 +198,11 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemId: 'announcement-create',
             },
             {
+                subItem: 'Email Campaigning',
+                subItemLink: '/announcement/email-campaigning',
+                subItemId: 'announcement-email-campaigning',
+            },
+            {
                 subItem: 'Announcement History',
                 subItemLink: '/announcement/history',
                 subItemId: 'announcement-history',

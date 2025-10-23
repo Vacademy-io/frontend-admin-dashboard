@@ -53,6 +53,7 @@ import { Route as AssessmentQuestionPapersIndexRouteImport } from "./routes/asse
 import { Route as AssessmentAssessmentListIndexRouteImport } from "./routes/assessment/assessment-list/index"
 import { Route as AnnouncementScheduleIndexRouteImport } from "./routes/announcement/schedule/index"
 import { Route as AnnouncementHistoryIndexRouteImport } from "./routes/announcement/history/index"
+import { Route as AnnouncementEmailCampaigningIndexRouteImport } from "./routes/announcement/email-campaigning/index"
 import { Route as AnnouncementCreateIndexRouteImport } from "./routes/announcement/create/index"
 import { Route as AnnouncementApprovalIndexRouteImport } from "./routes/announcement/approval/index"
 import { Route as AiCenterMyResourcesIndexRouteImport } from "./routes/ai-center/my-resources/index"
@@ -360,6 +361,12 @@ const AnnouncementHistoryIndexRoute =
     path: "/announcement/history/",
     getParentRoute: () => rootRouteImport,
   } as any)
+const AnnouncementEmailCampaigningIndexRoute =
+  AnnouncementEmailCampaigningIndexRouteImport.update({
+    id: "/announcement/email-campaigning/",
+    path: "/announcement/email-campaigning/",
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AnnouncementCreateIndexRoute = AnnouncementCreateIndexRouteImport.update({
   id: "/announcement/create/",
   path: "/announcement/create/",
@@ -595,6 +602,7 @@ export interface FileRoutesByFullPath {
   "/ai-center/my-resources": typeof AiCenterMyResourcesIndexRoute
   "/announcement/approval": typeof AnnouncementApprovalIndexRoute
   "/announcement/create": typeof AnnouncementCreateIndexRoute
+  "/announcement/email-campaigning": typeof AnnouncementEmailCampaigningIndexRoute
   "/announcement/history": typeof AnnouncementHistoryIndexRoute
   "/announcement/schedule": typeof AnnouncementScheduleIndexRoute
   "/assessment/assessment-list": typeof AssessmentAssessmentListIndexRoute
@@ -677,6 +685,7 @@ export interface FileRoutesByTo {
   "/ai-center/my-resources": typeof AiCenterMyResourcesIndexRoute
   "/announcement/approval": typeof AnnouncementApprovalIndexRoute
   "/announcement/create": typeof AnnouncementCreateIndexRoute
+  "/announcement/email-campaigning": typeof AnnouncementEmailCampaigningIndexRoute
   "/announcement/history": typeof AnnouncementHistoryIndexRoute
   "/announcement/schedule": typeof AnnouncementScheduleIndexRoute
   "/assessment/assessment-list": typeof AssessmentAssessmentListIndexRoute
@@ -761,6 +770,7 @@ export interface FileRoutesById {
   "/ai-center/my-resources/": typeof AiCenterMyResourcesIndexRoute
   "/announcement/approval/": typeof AnnouncementApprovalIndexRoute
   "/announcement/create/": typeof AnnouncementCreateIndexRoute
+  "/announcement/email-campaigning/": typeof AnnouncementEmailCampaigningIndexRoute
   "/announcement/history/": typeof AnnouncementHistoryIndexRoute
   "/announcement/schedule/": typeof AnnouncementScheduleIndexRoute
   "/assessment/assessment-list/": typeof AssessmentAssessmentListIndexRoute
@@ -846,6 +856,7 @@ export interface FileRouteTypes {
     | "/ai-center/my-resources"
     | "/announcement/approval"
     | "/announcement/create"
+    | "/announcement/email-campaigning"
     | "/announcement/history"
     | "/announcement/schedule"
     | "/assessment/assessment-list"
@@ -928,6 +939,7 @@ export interface FileRouteTypes {
     | "/ai-center/my-resources"
     | "/announcement/approval"
     | "/announcement/create"
+    | "/announcement/email-campaigning"
     | "/announcement/history"
     | "/announcement/schedule"
     | "/assessment/assessment-list"
@@ -1011,6 +1023,7 @@ export interface FileRouteTypes {
     | "/ai-center/my-resources/"
     | "/announcement/approval/"
     | "/announcement/create/"
+    | "/announcement/email-campaigning/"
     | "/announcement/history/"
     | "/announcement/schedule/"
     | "/assessment/assessment-list/"
@@ -1094,6 +1107,7 @@ export interface RootRouteChildren {
   AiCenterMyResourcesIndexRoute: typeof AiCenterMyResourcesIndexRoute
   AnnouncementApprovalIndexRoute: typeof AnnouncementApprovalIndexRoute
   AnnouncementCreateIndexRoute: typeof AnnouncementCreateIndexRoute
+  AnnouncementEmailCampaigningIndexRoute: typeof AnnouncementEmailCampaigningIndexRoute
   AnnouncementHistoryIndexRoute: typeof AnnouncementHistoryIndexRoute
   AnnouncementScheduleIndexRoute: typeof AnnouncementScheduleIndexRoute
   AssessmentAssessmentListIndexRoute: typeof AssessmentAssessmentListIndexRoute
@@ -1485,6 +1499,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AnnouncementHistoryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/announcement/email-campaigning/": {
+      id: "/announcement/email-campaigning/"
+      path: "/announcement/email-campaigning"
+      fullPath: "/announcement/email-campaigning"
+      preLoaderRoute: typeof AnnouncementEmailCampaigningIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/announcement/create/": {
       id: "/announcement/create/"
       path: "/announcement/create"
@@ -1760,6 +1781,8 @@ const rootRouteChildren: RootRouteChildren = {
   AiCenterMyResourcesIndexRoute: AiCenterMyResourcesIndexRoute,
   AnnouncementApprovalIndexRoute: AnnouncementApprovalIndexRoute,
   AnnouncementCreateIndexRoute: AnnouncementCreateIndexRoute,
+  AnnouncementEmailCampaigningIndexRoute:
+    AnnouncementEmailCampaigningIndexRoute,
   AnnouncementHistoryIndexRoute: AnnouncementHistoryIndexRoute,
   AnnouncementScheduleIndexRoute: AnnouncementScheduleIndexRoute,
   AssessmentAssessmentListIndexRoute: AssessmentAssessmentListIndexRoute,
