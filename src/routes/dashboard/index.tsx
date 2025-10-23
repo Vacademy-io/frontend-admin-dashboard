@@ -20,6 +20,7 @@ import { useInstituteQuery } from '@/services/student-list-section/getInstituteD
 import {
     getAssessmentsCountsData,
     getInstituteDashboardData,
+    getUnresolvedDoubtsCount,
 } from './-services/dashboard-services';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { HOLISTIC_INSTITUTE_ID, SSDC_INSTITUTE_ID } from '@/constants/urls';
@@ -48,7 +49,7 @@ import {
 } from '@/components/ui/dialog';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { getUserId } from '@/utils/userDetails';
-import { fetchSystemAlerts } from '@/services/notifications/system-alerts';
+import { fetchSystemAlerts, getSystemAlertsQuery } from '@/services/notifications/system-alerts';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -60,11 +61,6 @@ import {
 } from '@/types/display-settings';
 import { getDisplaySettings, getDisplaySettingsFromCache } from '@/services/display-settings';
 
-// Analytics Widgets
-import RealTimeActiveUsersWidget from './-components/analytics-widgets/RealTimeActiveUsersWidget';
-import CurrentlyActiveUsersWidget from './-components/analytics-widgets/CurrentlyActiveUsersWidget';
-import UserActivitySummaryWidget from './-components/analytics-widgets/UserActivitySummaryWidget';
-
 // Dashboard Widgets
 import EnrollLearnersWidget from './-components/EnrollLearnersWidget';
 import LearningCenterWidget from './-components/LearningCenterWidget';
@@ -72,6 +68,7 @@ import AssessmentCenterWidget from './-components/AssessmentCenterWidget';
 import RoleTypeComponent from './-components/RoleTypeComponent';
 import { LearnerTab } from './-components/LearnerTab';
 import { SettingsTabs } from '../settings/-constants/terms';
+import CurrentlyActiveUsersWidget from './-components/analytics-widgets/CurrentlyActiveUsersWidget';
 
 // Route is provided via index.lazy.tsx to enable code-splitting
 
@@ -360,6 +357,103 @@ function MyCoursesWidget() {
     );
 }
 
+// Conditional wrapper components for widgets that should only render when they have data
+function UnresolvedDoubtsWidgetConditional({ instituteId }: { instituteId: string }) {
+    const { instituteDetails } = useInstituteDetailsStore();
+    const batchIds = instituteDetails?.batches_for_sessions.map((batch) => batch.id) || [];
+    const { data: doubtsData } = useSuspenseQuery(getUnresolvedDoubtsCount(instituteId, batchIds));
+
+    // Only render if there are unresolved doubts
+    return doubtsData.hasUnresolvedDoubts ? <UnresolvedDoubtsWidget instituteId={instituteId} /> : null;
+}
+
+function RecentNotificationsWidgetConditional({ onSeeAll }: { onSeeAll?: () => void }) {
+    const userId = getUserId();
+    const { data } = useSuspenseQuery(getSystemAlertsQuery(userId, 5));
+
+    // Only render if there are notifications
+    return data?.content?.length ? <RecentNotificationsWidget onSeeAll={onSeeAll} /> : null;
+}
+
+// Combined Widgets Section with responsive grid layout
+function CombinedWidgetsSection({
+    instituteId,
+    onOpenAllAlerts,
+    subModules,
+    isWidgetVisible
+}: {
+    instituteId: string;
+    onOpenAllAlerts?: () => void;
+    subModules: any;
+    isWidgetVisible: (id: DashboardWidgetId) => boolean;
+}) {
+    const { instituteDetails } = useInstituteDetailsStore();
+    const batchIds = instituteDetails?.batches_for_sessions.map((batch) => batch.id) || [];
+
+    // Get data for conditional widgets
+    const { data: doubtsData } = useSuspenseQuery(getUnresolvedDoubtsCount(instituteId, batchIds));
+    const userId = getUserId();
+    const { data: notificationsData } = useSuspenseQuery(getSystemAlertsQuery(userId, 5));
+
+    // Build array of widgets to show
+    const widgets = [];
+
+    // Add Unresolved Doubts widget if there are doubts and conditions are met
+    if ((subModules.lms || subModules.assess) &&
+        isWidgetVisible('unresolvedDoubts') &&
+        doubtsData.hasUnresolvedDoubts) {
+        widgets.push({
+            id: 'unresolvedDoubts',
+            component: <UnresolvedDoubtsWidget instituteId={instituteId} />
+        });
+    }
+
+    // Add Recent Notifications widget if there are notifications
+    if (isWidgetVisible('recentNotifications') && notificationsData?.content?.length) {
+        widgets.push({
+            id: 'recentNotifications',
+            component: <RecentNotificationsWidget onSeeAll={onOpenAllAlerts} />
+        });
+    }
+
+    // Add Currently Active Users widget
+    if (isWidgetVisible('currentlyActiveUsers')) {
+        widgets.push({
+            id: 'currentlyActiveUsers',
+            component: <CurrentlyActiveUsersWidget instituteId={instituteId} />
+        });
+    }
+
+    // Don't render if no widgets
+    if (widgets.length === 0) {
+        return null;
+    }
+
+    // Determine grid classes based on number of widgets
+    const getGridClasses = (count: number) => {
+        switch (count) {
+            case 1:
+                return 'grid-cols-1';
+            case 2:
+                return 'grid-cols-1 sm:grid-cols-2';
+            case 3:
+                return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
+            default:
+                return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
+        }
+    };
+
+    return (
+        <div className={`grid gap-4 ${getGridClasses(widgets.length)}`}>
+            {widgets.map((widget) => (
+                <div key={widget.id} className="w-full">
+                    {widget.component}
+                </div>
+            ))}
+        </div>
+    );
+}
+
 export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () => void }) {
     const location = useLocation();
     const { getValue, setValue } = useLocalStorage<boolean>(IntroKey.dashboardWelcomeVideo, true);
@@ -427,6 +521,21 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
 
         router.navigate({
             to: '/ai-center',
+            search: { tab: 'aiTaskList' },
+        });
+    };
+
+    const handleAIToolNavigation = (toolRoute: string) => {
+        // Track AI Tool access
+        amplitudeEvents.useFeature('ai_tool', { source: 'dashboard', tool: toolRoute });
+        trackEvent('AI Tool Accessed', {
+            source: 'dashboard_navigation',
+            tool: toolRoute,
+            timestamp: new Date().toISOString(),
+        });
+
+        router.navigate({
+            to: toolRoute,
         });
     };
 
@@ -482,116 +591,26 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                     )}
                 </>
             )}
+
+            {/* Combined Widgets Section - Responsive Grid */}
+            {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
+                <div className="mt-5 w-full">
+                    <CombinedWidgetsSection
+                        instituteId={instituteDetails?.id || ''}
+                        onOpenAllAlerts={onOpenAllAlerts}
+                        subModules={subModules}
+                        isWidgetVisible={isWidgetVisible}
+                    />
+                </div>
+            )}
+
             {/* Main content */}
             <div className="mt-5 flex w-full flex-col gap-4">
                 {/* My Courses Widget - Only for Non-Admin Users */}
                 {!isAdmin && isWidgetVisible('myCourses') && <MyCoursesWidget />}
-                {/* Unresolved Doubts Widget */}
-                {(subModules.lms || subModules.assess) &&
-                    !showForInstitutes([HOLISTIC_INSTITUTE_ID]) &&
-                    isWidgetVisible('unresolvedDoubts') && (
-                        <UnresolvedDoubtsWidget instituteId={instituteDetails?.id || ''} />
-                    )}
                 {/* Admin Only Widgets */}
                 {isAdmin && (
                     <>
-                        <Card className="grow bg-neutral-50 shadow-none">
-                            <CardHeader className="p-4">
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="text-sm font-semibold">
-                                        Complete your institute profile
-                                    </CardTitle>
-
-                                    <EditDashboardProfileComponent isEdit={false} />
-                                </div>
-
-                                <CardDescription className="mt-1 flex items-center gap-1.5 text-xs">
-                                    <CompletionStatusComponent
-                                        profileCompletionPercentage={
-                                            data?.profile_completion_percentage || 0
-                                        }
-                                    />
-                                    <span>
-                                        {data?.profile_completion_percentage || 0}% complete
-                                    </span>
-                                </CardDescription>
-                            </CardHeader>
-
-                            {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
-                                <CardHeader className="p-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex flex-col">
-                                            <CardTitle className="text-sm font-semibold">
-                                                Naming Settings
-                                            </CardTitle>
-                                            <CardDescription className="text-xs">
-                                                Customize the naming conventions used throughout
-                                                your institute
-                                            </CardDescription>
-                                        </div>
-                                        <MyButton
-                                            type="button"
-                                            scale="medium"
-                                            buttonType="secondary"
-                                            layoutVariant="default"
-                                            className="text-sm"
-                                            onClick={() =>
-                                                navigate({
-                                                    to: '/settings',
-                                                    search: { selectedTab: SettingsTabs.Naming },
-                                                })
-                                            }
-                                        >
-                                            Naming Settings
-                                        </MyButton>
-                                    </div>
-                                </CardHeader>
-                            )}
-                        </Card>
-
-                        {/* Analytics Widgets - Admin Only */}
-                        {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
-                                {[
-                                    {
-                                        id: 'recentNotifications' as const,
-                                        node: (
-                                            <RecentNotificationsWidget onSeeAll={onOpenAllAlerts} />
-                                        ),
-                                    },
-                                    {
-                                        id: 'realTimeActiveUsers' as const,
-                                        node: (
-                                            <RealTimeActiveUsersWidget
-                                                instituteId={instituteDetails?.id || ''}
-                                            />
-                                        ),
-                                    },
-                                    {
-                                        id: 'currentlyActiveUsers' as const,
-                                        node: (
-                                            <CurrentlyActiveUsersWidget
-                                                instituteId={instituteDetails?.id || ''}
-                                            />
-                                        ),
-                                    },
-                                    {
-                                        id: 'userActivitySummary' as const,
-                                        node: (
-                                            <UserActivitySummaryWidget
-                                                instituteId={instituteDetails?.id || ''}
-                                            />
-                                        ),
-                                    },
-                                ]
-                                    .filter((w) => isWidgetVisible(w.id))
-                                    .sort((a, b) => orderOf(a.id) - orderOf(b.id))
-                                    .map((w, i) => (
-                                        <div key={i}>{w.node}</div>
-                                    ))}
-                            </div>
-                        )}
-
                         {/* Institute Overview Widget - Admin Only */}
 
                         {subModules.lms &&
@@ -599,12 +618,17 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                             isWidgetVisible('instituteOverview') && (
                                 <Card className="grow bg-neutral-50 shadow-none">
                                     <CardHeader className="p-4">
-                                        <CardTitle className="text-sm font-semibold">
-                                            Institute Overview
-                                        </CardTitle>
-                                        <CardDescription className="mt-1 text-xs text-neutral-600">
-                                            Key metrics and statistics for your institute
-                                        </CardDescription>
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <CardTitle className="text-sm font-semibold">
+                                                    Institute Overview
+                                                </CardTitle>
+                                                <CardDescription className="mt-1 text-xs text-neutral-600">
+                                                    Key metrics and statistics for your institute
+                                                </CardDescription>
+                                            </div>
+                                            <EditDashboardProfileComponent isEdit={true} buttonText="Edit" />
+                                        </div>
                                     </CardHeader>
                                     <div className="px-4 pb-4">
                                         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -722,42 +746,48 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                 })()}
                 {/* AI Features Card - Moved to Bottom for All Users */}
                 {isWidgetVisible('aiFeaturesCard') && (
-                    <Card
-                        className="grow cursor-pointer bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg transition-all hover:scale-[1.01] hover:shadow-md"
-                        onClick={handleAICenterNavigation}
-                    >
+                    <Card className="grow bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg transition-all hover:scale-[1.01] hover:shadow-md">
                         <CardHeader className="p-4 sm:p-5">
                             <div className="flex items-center justify-between">
                                 <CardTitle className="mb-0.5 flex items-center gap-1.5 text-base font-semibold">
                                     <Sparkle size={22} weight="fill" />
                                     Try New AI Features!
                                 </CardTitle>
-                                <ArrowSquareOut size={18} className="text-purple-200" />
+                                <div
+                                    className="cursor-pointer"
+                                    onClick={handleAICenterNavigation}
+                                >
+                                    <ArrowSquareOut size={18} className="text-purple-200" />
+                                </div>
                             </div>
                             <CardDescription className="text-xs text-purple-100">
                                 Explore cutting-edge AI tools to enhance your teaching
                             </CardDescription>
                             <div className="mt-3 flex flex-wrap justify-start gap-2 sm:gap-2.5">
                                 {[
-                                    { icon: FilePdf, text: 'Questions from PDF' },
+                                    { icon: FilePdf, text: 'Questions from PDF', route: '/ai-center/ai-tools/vsmart-upload' },
                                     {
                                         icon: LightbulbFilament,
                                         text: 'Questions From Lecture Audio',
+                                        route: '/ai-center/ai-tools/vsmart-audio',
                                     },
                                     {
                                         icon: LightbulbFilament,
                                         text: 'Sort Questions Topic wise',
+                                        route: '/ai-center/ai-tools/vsmart-sorter',
                                     },
-                                    { icon: LightbulbFilament, text: 'Questions From Image' },
+                                    { icon: LightbulbFilament, text: 'Questions From Image', route: '/ai-center/ai-tools/vsmart-image' },
                                     {
                                         icon: LightbulbFilament,
                                         text: 'Get Feedback of Lecture',
+                                        route: '/ai-center/ai-tools/vsmart-feedback',
                                     },
-                                    { icon: LightbulbFilament, text: 'Plan Your Lecture' },
+                                    { icon: LightbulbFilament, text: 'Plan Your Lecture', route: '/ai-center/ai-tools/vsmart-prompt' },
                                 ].map((item, index) => (
                                     <div
                                         key={index}
-                                        className="flex h-auto min-h-10 w-32 flex-col items-center justify-center rounded-md border border-purple-300/70 bg-white/10 p-1.5 text-center shadow-sm backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-32"
+                                        className="flex h-auto min-h-10 w-32 flex-col items-center justify-center rounded-md border border-purple-300/70 bg-white/10 p-1.5 text-center shadow-sm backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-32 cursor-pointer"
+                                        onClick={() => handleAIToolNavigation(item.route)}
                                     >
                                         <item.icon size={18} className="mb-0.5 text-purple-200" />
                                         <span className="text-[11px] font-normal leading-tight text-white">
@@ -765,7 +795,10 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                                         </span>
                                     </div>
                                 ))}
-                                <div className="flex h-auto min-h-10 w-32 flex-col items-center justify-center rounded-md border border-purple-300/70 bg-white/10 p-1.5 text-center shadow-sm backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-32">
+                                <div
+                                    className="flex h-auto min-h-10 w-32 flex-col items-center justify-center rounded-md border border-purple-300/70 bg-white/10 p-1.5 text-center shadow-sm backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-32 cursor-pointer"
+                                    onClick={handleAICenterNavigation}
+                                >
                                     <span className="text-[11px] font-normal leading-tight text-white">
                                         Many More
                                     </span>
