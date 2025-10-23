@@ -1,5 +1,5 @@
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { useEffect, useMemo, useState, useRef } from 'react';
 import {
@@ -48,6 +48,7 @@ import {
     Folder,
     Users,
     ClipboardList,
+    Plus,
     type LucideIcon,
 } from 'lucide-react';
 import { MultiSelect, type OptionType } from '@/components/design-system/multi-select';
@@ -71,6 +72,7 @@ export const Route = createFileRoute('/announcement/create/')({
 function CreateAnnouncementPage() {
     const { setNavHeading } = useNavHeadingStore();
     const { toast } = useToast();
+    const navigate = useNavigate();
     
     // Institute details for package sessions
     const instituteQuery = useInstituteQuery();
@@ -1444,7 +1446,13 @@ function CreateAnnouncementPage() {
                                         </Label>
                                         <Select
                                             value={selectedTemplateId}
-                                            onValueChange={handleTemplateSelection}
+                                            onValueChange={(value) => {
+                                                if (value === 'add-new-template') {
+                                                    navigate({ to: '/settings', search: { selectedTab: 'templates' } });
+                                                } else {
+                                                    handleTemplateSelection(value);
+                                                }
+                                            }}
                                             disabled={templatesLoading}
                                         >
                                             <SelectTrigger className="w-full">
@@ -1456,19 +1464,37 @@ function CreateAnnouncementPage() {
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {emailTemplates.length > 0 ? (
-                                                    emailTemplates.map((template) => (
-                                                        <SelectItem key={template.id} value={template.id}>
-                                                            {template.name}
+                                                    <>
+                                                        {emailTemplates.map((template) => (
+                                                            <SelectItem key={template.id} value={template.id}>
+                                                                {template.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                        <Separator className="my-1" />
+                                                        <SelectItem value="add-new-template" className="text-primary-600 font-medium">
+                                                            <div className="flex items-center gap-2">
+                                                                <Plus className="h-4 w-4" />
+                                                                <span>Add New Template</span>
+                                                            </div>
                                                         </SelectItem>
-                                                    ))
+                                                    </>
                                                 ) : (
-                                                    <SelectItem value="no-templates" disabled>
-                                                        No templates available
-                                                    </SelectItem>
+                                                    <>
+                                                        <SelectItem value="no-templates" disabled>
+                                                            No templates available
+                                                        </SelectItem>
+                                                        <Separator className="my-1" />
+                                                        <SelectItem value="add-new-template" className="text-primary-600 font-medium">
+                                                            <div className="flex items-center gap-2">
+                                                                <Plus className="h-4 w-4" />
+                                                                <span>Add New Template</span>
+                                                            </div>
+                                                        </SelectItem>
+                                                    </>
                                                 )}
                                             </SelectContent>
                                         </Select>
-                                        {selectedTemplateId && (
+                                        {selectedTemplateId && selectedTemplateId !== 'add-new-template' && (
                                             <div className="mt-2 text-xs text-neutral-600">
                                                 Template selected: {emailTemplates.find(t => t.id === selectedTemplateId)?.name}
                                             </div>
