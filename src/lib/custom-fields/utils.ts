@@ -143,7 +143,6 @@ export const getFieldsForLocation = (location: string): FieldForLocation[] => {
             return 0;
         });
 
-        console.log(`Found ${fieldsForLocation.length} fields for location "${location}"`);
         return fieldsForLocation;
     } catch (error) {
         console.error(`Error getting fields for location "${location}":`, error);

@@ -16,7 +16,8 @@ import { useStudentSidebar } from '@/routes/manage-students/students-list/-conte
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { EnrollRequestsStudentMenuOptions } from '@/routes/manage-students/enroll-requests/-components/bulk-actions/enroll-request-individual-options';
-import { getColumnVisibilityForLearnersList } from './dynamic-column-visibility';
+import { generateCustomFieldColumns } from './custom-field-columns';
+import { processColumnsWithSystemFields } from './system-field-columns';
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -95,17 +96,16 @@ const InfoCell = ({ row }: { row: Row<ActivityLogType> }) => {
     );
 };
 
-const useClickHandlers = () => {
+export const useClickHandlers = () => {
     const clickTimeout = useRef<NodeJS.Timeout | null>(null);
     const { setSelectedStudent, selectedStudent } = useStudentSidebar();
     const { setOpen, open } = useSidebar();
 
     const handleClick = (columnId: string, row: Row<StudentTable>) => {
         if (clickTimeout.current) clearTimeout(clickTimeout.current);
-        console.log('clicked on column:', columnId, 'row:', row.original);
+
         clickTimeout.current = setTimeout(() => {
             if (selectedStudent?.id != row.original.id) {
-                console.log('single clicked');
                 setSelectedStudent(row.original);
                 setOpen(true);
             } else {
@@ -280,6 +280,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
             );
         },
         cell: ({ row }) => <CreateClickableCell row={row} columnId="full_name" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'username',
@@ -288,6 +289,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         maxSize: 250,
         header: 'Username',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="username" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'package_session_id',
@@ -296,6 +298,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         maxSize: 280,
         header: 'Batch',
         cell: ({ row }) => <BatchCellComponent row={row} />,
+        enableHiding: true,
     },
     {
         accessorKey: 'institute_enrollment_id',
@@ -304,6 +307,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         maxSize: 220,
         header: 'Enrollment Number',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="institute_enrollment_id" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'linked_institute_name',
@@ -321,6 +325,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         maxSize: 150,
         header: 'Gender',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="gender" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'mobile_number',
@@ -329,6 +334,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         maxSize: 180,
         header: 'Mobile Number',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="mobile_number" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'email',
@@ -337,6 +343,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         maxSize: 300,
         header: 'Email ID',
         cell: ({ row }) => <CreateClickableCell row={row} columnId="email" />,
+        enableHiding: true,
     },
     {
         accessorKey: 'father_name',
@@ -495,27 +502,44 @@ export const myColumns: ColumnDef<StudentTable>[] = [
 
 /**
  * Get columns with dynamic visibility based on custom field settings
- * This function applies custom field visibility logic to the table columns
+ * This function:
+ * 1. Processes system fields (reorders, applies custom names)
+ * 2. Adds dynamic custom field columns for learnersList location
+ * 3. Returns final ordered columns
  */
-export const getColumnsWithDynamicVisibility = (): ColumnDef<StudentTable>[] => {
+export const getCustomColumns = (): ColumnDef<StudentTable>[] => {
     try {
-        console.log('🎯 Getting columns with dynamic visibility...');
+        // Step 1: Process system fields (apply custom names and reorder)
+        const { columns: processedColumns } = processColumnsWithSystemFields(myColumns);
 
-        // Just return the columns as-is
-        // The visibility will be controlled by tableState.columnVisibility
-        return myColumns;
+        // Step 2: Generate custom field columns for learnersList location
+        const customFieldColumns = generateCustomFieldColumns();
+
+        // Step 3: Find the options column (should be last after reordering)
+        const optionsColumnIndex = processedColumns.findIndex((col) => col.id === 'options');
+
+        if (optionsColumnIndex === -1) {
+            // If options column not found, append custom fields at the end
+
+            return [...processedColumns, ...customFieldColumns];
+        }
+
+        // Step 4: Insert custom field columns before the options column
+        const columnsBeforeOptions = processedColumns.slice(0, optionsColumnIndex);
+        const optionsColumn = processedColumns[optionsColumnIndex];
+
+        if (!optionsColumn) {
+            return [...columnsBeforeOptions, ...customFieldColumns];
+        }
+
+        const finalColumns = [...columnsBeforeOptions, ...customFieldColumns, optionsColumn];
+
+        return finalColumns;
     } catch (error) {
-        console.error('❌ Error in getColumnsWithDynamicVisibility:', error);
+        console.error('❌ Error in getCustomColumns:', error);
+        console.error('Falling back to original columns');
         return myColumns;
     }
-};
-
-/**
- * Get default column visibility state for the table
- * This returns which columns should be visible by default
- */
-export const getDefaultColumnVisibility = (): Record<string, boolean> => {
-    return getColumnVisibilityForLearnersList();
 };
 
 export const enrollRequestColumns: ColumnDef<StudentTable>[] = [

@@ -18,6 +18,7 @@ import {
     Loader2,
     AlertCircle,
     CheckCircle,
+    Database,
 } from 'lucide-react';
 import {
     DndContext,
@@ -66,7 +67,6 @@ import {
     getCustomFieldSettings,
     saveCustomFieldSettings,
     createTempCustomField,
-    createNewFieldGroup,
     isTempField,
     type CustomFieldSettingsData,
     type CustomField as ServiceCustomField,
@@ -74,8 +74,8 @@ import {
     type FieldGroup as ServiceFieldGroup,
     type GroupField as ServiceGroupField,
     type FieldVisibility as ServiceFieldVisibility,
+    type SystemField as ServiceSystemField,
 } from '@/services/custom-field-settings';
-import { getInstituteId } from '@/constants/helper';
 
 // Use service types for the component
 type FieldVisibility = ServiceFieldVisibility;
@@ -83,9 +83,11 @@ type CustomField = ServiceCustomField;
 type FixedField = ServiceFixedField;
 type FieldGroup = ServiceFieldGroup;
 type GroupField = ServiceGroupField;
+type SystemField = ServiceSystemField;
 
 const visibilityLabels = [
     { key: 'learnersList', label: "Learner's List", icon: Users },
+    { key: 'learnerEnrollment', label: "Learner's Enrollment", icon: Users },
     { key: 'enrollRequestList', label: 'Enroll Request List', icon: ClipboardList },
     { key: 'inviteList', label: 'Invite List', icon: Users },
     { key: 'assessmentRegistration', label: 'Assessment Registration', icon: FileText },
@@ -181,6 +183,7 @@ const SortableTableRow: React.FC<SortableTableRowProps> = ({ id, children, disab
 
 const CustomFieldsSettings: React.FC = () => {
     // State for settings data
+    const [systemFields, setSystemFields] = useState<SystemField[]>([]);
     const [fixedFields, setFixedFields] = useState<FixedField[]>([]);
     const [instituteFields, setInstituteFields] = useState<CustomField[]>([]);
     const [customFields, setCustomFields] = useState<CustomField[]>([]);
@@ -207,6 +210,7 @@ const CustomFieldsSettings: React.FC = () => {
         required: false,
         visibility: {
             learnersList: false,
+            learnerEnrollment: false,
             enrollRequestList: false,
             inviteList: false,
             assessmentRegistration: false,
@@ -225,38 +229,12 @@ const CustomFieldsSettings: React.FC = () => {
             setIsLoading(true);
             setError(null);
 
-            // CRITICAL FIX: Clear cache to ensure we get fresh UUID data from backend
-            console.log('🔍 [DEBUG] Clearing cache to force fresh API call...');
             localStorage.removeItem('custom-field-settings-cache');
-
-            // Debug localStorage and institute ID
-            const instituteId = getInstituteId();
-            console.log('🔍 [DEBUG] Institute ID check:', {
-                instituteId,
-                localStorageKeys: Object.keys(localStorage),
-                selectedInstituteId: localStorage.getItem('selectedInstituteId'),
-            });
 
             // IMPORTANT: Always force refresh to get latest UUIDs from backend
             const settings = await getCustomFieldSettings(true); // Force API call
 
-            console.log('🔍 [DEBUG] Loaded settings - Field IDs check:', {
-                fixedFields: settings.fixedFields.map((f) => ({ id: f.id, name: f.name })),
-                customFields: settings.customFields.map((f) => ({ id: f.id, name: f.name })),
-                instituteFields: settings.instituteFields.map((f) => ({ id: f.id, name: f.name })),
-                totalFields:
-                    settings.fixedFields.length +
-                    settings.customFields.length +
-                    settings.instituteFields.length,
-            });
-
-            // Check if settings were cached after the API call
-            const cachedAfterLoad = localStorage.getItem('custom-field-settings-cache');
-            console.log('🔍 [DEBUG] Cache status after load:', {
-                hasCachedData: !!cachedAfterLoad,
-                cacheLength: cachedAfterLoad ? cachedAfterLoad.length : 0,
-            });
-
+            setSystemFields(settings.systemFields || []);
             setFixedFields(settings.fixedFields);
             setInstituteFields(settings.instituteFields);
             setCustomFields(settings.customFields);
@@ -290,6 +268,24 @@ const CustomFieldsSettings: React.FC = () => {
         // Determine which list contains the dragged item
         const activeId = active.id as string;
         const overId = over.id as string;
+
+        // Handle system fields reordering
+        const systemFieldKeys = systemFields.map((field) => field.key);
+        if (systemFieldKeys.includes(activeId)) {
+            const oldIndex = systemFields.findIndex((field) => field.key === activeId);
+            const newIndex = systemFields.findIndex((field) => field.key === overId);
+
+            if (oldIndex !== -1 && newIndex !== -1) {
+                const reorderedFields = arrayMove(systemFields, oldIndex, newIndex);
+                // Update order property after reordering
+                const updatedFields = reorderedFields.map((field, index) => ({
+                    ...field,
+                    order: index + 1,
+                }));
+                setSystemFields(updatedFields);
+            }
+            return;
+        }
 
         // Handle fixed/system fields reordering
         const fixedFieldIds = fixedFields.map((field) => field.id);
@@ -378,6 +374,24 @@ const CustomFieldsSettings: React.FC = () => {
 
         return allItems;
     };
+
+    // System Field Handlers
+    const handleSystemFieldNameChange = (fieldKey: string, newCustomValue: string) => {
+        setSystemFields((prev) =>
+            prev.map((field) =>
+                field.key === fieldKey ? { ...field, customValue: newCustomValue } : field
+            )
+        );
+    };
+
+    const handleSystemFieldVisibilityToggle = (fieldKey: string) => {
+        setSystemFields((prev) =>
+            prev.map((field) =>
+                field.key === fieldKey ? { ...field, visibility: !field.visibility } : field
+            )
+        );
+    };
+
     const handleFixedFieldVisibilityChange = (
         fieldId: string,
         visibilityKey: keyof FieldVisibility
@@ -632,6 +646,7 @@ const CustomFieldsSettings: React.FC = () => {
                 required: false,
                 visibility: {
                     learnersList: false,
+                    learnerEnrollment: false,
                     enrollRequestList: false,
                     inviteList: false,
                     assessmentRegistration: false,
@@ -652,6 +667,7 @@ const CustomFieldsSettings: React.FC = () => {
             // Create the settings data object with all fields
             // The service will handle distinguishing between new and existing fields
             const settingsData: CustomFieldSettingsData = {
+                systemFields,
                 fixedFields,
                 instituteFields,
                 customFields, // Send all custom fields (including temp ones)
@@ -703,26 +719,162 @@ const CustomFieldsSettings: React.FC = () => {
     const handleCreateGroup = () => {
         if (selectedFields.size === 0) return;
 
-        // For now, just create an empty group since the type handling is complex
-        // In a real implementation, you would convert selected fields to group fields
+        // Collect all selected fields and convert them to group fields
+        const selectedGroupFields: GroupField[] = [];
+
+        // Check institute fields
+        instituteFields.forEach((field) => {
+            if (selectedFields.has(field.id)) {
+                selectedGroupFields.push({
+                    ...field,
+                    groupInternalOrder: selectedGroupFields.length,
+                });
+            }
+        });
+
+        // Check custom fields
+        customFields.forEach((field) => {
+            if (selectedFields.has(field.id)) {
+                selectedGroupFields.push({
+                    ...field,
+                    groupInternalOrder: selectedGroupFields.length,
+                });
+            }
+        });
+
+        // Check fixed fields
+        fixedFields.forEach((field) => {
+            if (selectedFields.has(field.id)) {
+                // Convert FixedField to GroupField format
+                selectedGroupFields.push({
+                    id: field.id,
+                    name: field.name,
+                    type: 'text', // Fixed fields are typically text fields
+                    required: field.required,
+                    visibility: field.visibility,
+                    order: field.order,
+                    groupInternalOrder: selectedGroupFields.length,
+                    canBeDeleted: field.canBeDeleted,
+                    canBeEdited: field.canBeEdited,
+                    canBeRenamed: field.canBeRenamed,
+                    groupName: field.groupName || null,
+                });
+            }
+        });
+
+        // Check if any selected items are groups (nested groups)
+        fieldGroups.forEach((group) => {
+            if (selectedFields.has(group.id)) {
+                // Add all fields from the selected group
+                group.fields.forEach((field) => {
+                    selectedGroupFields.push({
+                        ...field,
+                        groupInternalOrder: selectedGroupFields.length,
+                    });
+                });
+            }
+        });
+
         setNewGroup({
             name: '',
-            fields: [],
+            fields: selectedGroupFields,
         });
         setShowGroupModal(true);
     };
 
     const handleAddGroup = () => {
         if (newGroup.name && newGroup.fields && newGroup.fields.length > 0) {
-            const group = createNewFieldGroup(newGroup.name);
-            // Note: The service createNewFieldGroup creates an empty group template
-            // We would need to add the selected fields to the group separately
-            // For now, we'll create a basic group structure with a temporary ID
-            const groupWithId = {
-                ...group,
+            // Create a new group with proper structure and add groupName to each field
+            const groupWithId: FieldGroup = {
                 id: `temp_group_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                name: newGroup.name,
+                fields: newGroup.fields.map((field, index) => {
+                    // Add or append group name to the field
+                    const existingGroupName = field.groupName;
+                    const updatedGroupName = existingGroupName
+                        ? `${existingGroupName},${newGroup.name}`
+                        : newGroup.name;
+
+                    return {
+                        ...field,
+                        groupInternalOrder: index,
+                        groupName: updatedGroupName,
+                    };
+                }),
+                order: fieldGroups.length, // Position at the end
             };
+
+            // Update groupName for selected fields in their original locations (keep them as individuals)
+            // Update institute fields
+            setInstituteFields((prev) =>
+                prev.map((field) => {
+                    if (selectedFields.has(field.id)) {
+                        const existingGroupName = field.groupName;
+                        const updatedGroupName = existingGroupName
+                            ? `${existingGroupName},${newGroup.name}`
+                            : newGroup.name;
+                        return { ...field, groupName: updatedGroupName };
+                    }
+                    return field;
+                })
+            );
+
+            // Update custom fields
+            setCustomFields((prev) =>
+                prev.map((field) => {
+                    if (selectedFields.has(field.id)) {
+                        const existingGroupName = field.groupName;
+                        const updatedGroupName = existingGroupName
+                            ? `${existingGroupName},${newGroup.name}`
+                            : newGroup.name;
+                        return { ...field, groupName: updatedGroupName };
+                    }
+                    return field;
+                })
+            );
+
+            // Update fixed fields
+            setFixedFields((prev) =>
+                prev.map((field) => {
+                    if (selectedFields.has(field.id)) {
+                        const existingGroupName = field.groupName;
+                        const updatedGroupName = existingGroupName
+                            ? `${existingGroupName},${newGroup.name}`
+                            : newGroup.name;
+                        return { ...field, groupName: updatedGroupName };
+                    }
+                    return field;
+                })
+            );
+
+            // Handle nested groups: if a group is selected, add all its fields to the new group
+            fieldGroups.forEach((group) => {
+                if (selectedFields.has(group.id)) {
+                    // Update groupName for fields in the selected group
+                    setFieldGroups((prev) =>
+                        prev.map((g) => {
+                            if (g.id === group.id) {
+                                return {
+                                    ...g,
+                                    fields: g.fields.map((field) => {
+                                        const existingGroupName = field.groupName;
+                                        const updatedGroupName = existingGroupName
+                                            ? `${existingGroupName},${newGroup.name}`
+                                            : newGroup.name;
+                                        return { ...field, groupName: updatedGroupName };
+                                    }),
+                                };
+                            }
+                            return g;
+                        })
+                    );
+                }
+            });
+
+            // Add the new group to field groups (keep existing groups)
             setFieldGroups((prev) => [...prev, groupWithId]);
+
+            // Reset state
             setNewGroup({ name: '', fields: [] });
             setShowGroupModal(false);
             setSelectedFields(new Set());
@@ -741,28 +893,42 @@ const CustomFieldsSettings: React.FC = () => {
             field.visibility = newField.visibility!;
             field.required = newField.required || false;
 
-            // Convert to GroupField by adding groupInternalOrder
-            const groupField: GroupField = {
-                ...field,
-                groupInternalOrder: 0, // Will be updated based on current group length
-            };
+            // Find the group to get its name
+            const targetGroup = fieldGroups.find((g) => g.id === groupId);
+            if (!targetGroup) return;
 
+            // Add the field to the group
             setFieldGroups((prev) =>
-                prev.map((group) =>
-                    group.id === groupId
-                        ? {
-                              ...group,
-                              fields: [
-                                  ...group.fields,
-                                  {
-                                      ...groupField,
-                                      groupInternalOrder: group.fields.length,
-                                  },
-                              ],
-                          }
-                        : group
-                )
+                prev.map((group) => {
+                    if (group.id === groupId) {
+                        // Add or append group name to the field
+                        const existingGroupName = field.groupName;
+                        const updatedGroupName = existingGroupName
+                            ? `${existingGroupName},${group.name}`
+                            : group.name;
+
+                        // Convert to GroupField by adding groupInternalOrder and groupName
+                        const groupField: GroupField = {
+                            ...field,
+                            groupInternalOrder: group.fields.length,
+                            groupName: updatedGroupName,
+                        };
+
+                        return {
+                            ...group,
+                            fields: [...group.fields, groupField],
+                        };
+                    }
+                    return group;
+                })
             );
+
+            // Also add the field to custom fields list (as individual) with groupName
+            const individualField: CustomField = {
+                ...field,
+                groupName: targetGroup.name,
+            };
+            setCustomFields((prev) => [...prev, individualField]);
 
             setNewField({
                 name: '',
@@ -771,6 +937,7 @@ const CustomFieldsSettings: React.FC = () => {
                 required: false,
                 visibility: {
                     learnersList: false,
+                    learnerEnrollment: false,
                     enrollRequestList: false,
                     inviteList: false,
                     assessmentRegistration: false,
@@ -782,17 +949,120 @@ const CustomFieldsSettings: React.FC = () => {
     };
 
     const handleRemoveGroup = (groupId: string) => {
+        // Find the group being removed
+        const targetGroup = fieldGroups.find((g) => g.id === groupId);
+        if (!targetGroup) return;
+
+        // Remove the group from fieldGroups
         setFieldGroups((prev) => prev.filter((group) => group.id !== groupId));
+
+        // Update groupName for all fields that were in this group (remove this group's name)
+        const updateGroupName = (groupName: string | null | undefined): string | null => {
+            if (groupName) {
+                const groupNames = groupName
+                    .split(',')
+                    .filter((name) => name.trim() !== targetGroup.name.trim());
+                return groupNames.length > 0 ? groupNames.join(',') : null;
+            }
+            return null;
+        };
+
+        // Update institute fields
+        setInstituteFields((prev) =>
+            prev.map((field) => ({
+                ...field,
+                groupName: updateGroupName(field.groupName),
+            }))
+        );
+
+        // Update custom fields
+        setCustomFields((prev) =>
+            prev.map((field) => ({
+                ...field,
+                groupName: updateGroupName(field.groupName),
+            }))
+        );
+
+        // Update fixed fields
+        setFixedFields((prev) =>
+            prev.map((field) => ({
+                ...field,
+                groupName: updateGroupName(field.groupName),
+            }))
+        );
+
+        // Update fields in other groups
+        setFieldGroups((prev) =>
+            prev.map((group) => ({
+                ...group,
+                fields: group.fields.map((field) => ({
+                    ...field,
+                    groupName: updateGroupName(field.groupName),
+                })),
+            }))
+        );
     };
 
     const handleRemoveFieldFromGroup = (groupId: string, fieldId: string) => {
+        // Find the group and field being removed
+        const targetGroup = fieldGroups.find((g) => g.id === groupId);
+        if (!targetGroup) return;
+
+        const removedField = targetGroup.fields.find((field) => field.id === fieldId);
+        if (!removedField) return;
+
+        // Remove field from the group
         setFieldGroups((prev) =>
-            prev.map((group) =>
-                group.id === groupId
-                    ? { ...group, fields: group.fields.filter((field) => field.id !== fieldId) }
-                    : group
-            )
+            prev.map((group) => {
+                if (group.id === groupId) {
+                    return {
+                        ...group,
+                        fields: group.fields.filter((field) => field.id !== fieldId),
+                    };
+                }
+                return group;
+            })
         );
+
+        // Update the field's groupName in all individual field lists
+        if (removedField.groupName) {
+            // Remove this group's name from the field's groupName
+            const groupNames = removedField.groupName
+                .split(',')
+                .filter((name) => name.trim() !== targetGroup.name.trim());
+            const updatedGroupName = groupNames.length > 0 ? groupNames.join(',') : null;
+
+            // Update in institute fields
+            setInstituteFields((prev) =>
+                prev.map((field) =>
+                    field.id === fieldId ? { ...field, groupName: updatedGroupName } : field
+                )
+            );
+
+            // Update in custom fields
+            setCustomFields((prev) =>
+                prev.map((field) =>
+                    field.id === fieldId ? { ...field, groupName: updatedGroupName } : field
+                )
+            );
+
+            // Update in fixed fields
+            setFixedFields((prev) =>
+                prev.map((field) =>
+                    field.id === fieldId ? { ...field, groupName: updatedGroupName } : field
+                )
+            );
+
+            // Update in other groups where this field might exist
+            setFieldGroups((prev) =>
+                prev.map((group) => ({
+                    ...group,
+                    fields: group.fields.map((field) =>
+                        field.id === fieldId ? { ...field, groupName: updatedGroupName } : field
+                    ),
+                }))
+            );
+        }
     };
 
     const VisibilityToggle: React.FC<{
@@ -990,12 +1260,10 @@ const CustomFieldsSettings: React.FC = () => {
                         </p>
                         {/* Debug Info */}
                         <div className="mt-2 text-xs text-gray-500">
-                            Institute ID: {getInstituteId() || 'Not found'} | Cache:{' '}
-                            {localStorage.getItem('custom-field-settings-cache')
-                                ? 'Present'
-                                : 'Missing'}{' '}
-                            | Fields:{' '}
-                            {fixedFields.length + customFields.length + instituteFields.length}
+                            Institute Fields:{' '}
+                            {fixedFields.length + customFields.length + instituteFields.length}|
+                            System Fields: {systemFields.length} | Field Groups:{' '}
+                            {fieldGroups.length}
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -1050,6 +1318,106 @@ const CustomFieldsSettings: React.FC = () => {
                         </div>
                     </div>
                 )} */}
+
+                {/* System Fields Section - Only show when not loading */}
+                {!isLoading && (
+                    <Card className="shadow-sm">
+                        <CardHeader className="border-b border-gray-200">
+                            <CardTitle className="flex items-center gap-2 text-xl">
+                                <Settings className="size-5 text-blue-600" />
+                                System Fields
+                            </CardTitle>
+                            <p className="mt-2 text-sm text-gray-600">
+                                Customize the display names, order and visibility of system fields.
+                            </p>
+                        </CardHeader>
+
+                        <CardContent className="space-y-4 p-0">
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="border-b border-gray-200 bg-gray-50">
+                                            <th className="px-4 py-3 text-center font-medium text-gray-700"></th>
+                                            <th className="px-4 py-3 text-left font-medium text-gray-700">
+                                                Default Name
+                                            </th>
+                                            <th className="px-4 py-3 text-left font-medium text-gray-700">
+                                                Display Name
+                                            </th>
+                                            <th className="px-4 py-3 text-center font-medium text-gray-700">
+                                                Order
+                                            </th>
+                                            <th className="px-4 py-3 text-center font-medium text-gray-700">
+                                                Visibility
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <SortableContext
+                                            items={systemFields.map((field) => field.key)}
+                                            strategy={verticalListSortingStrategy}
+                                        >
+                                            {systemFields.map((field, index) => (
+                                                <SortableTableRow
+                                                    key={field.key}
+                                                    id={field.key}
+                                                    disabled={false}
+                                                >
+                                                    <td className="p-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-sm font-medium text-gray-700">
+                                                                {field.defaultValue}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <Input
+                                                            type="text"
+                                                            value={field.customValue}
+                                                            onChange={(e) =>
+                                                                handleSystemFieldNameChange(
+                                                                    field.key,
+                                                                    e.target.value
+                                                                )
+                                                            }
+                                                            placeholder={field.defaultValue}
+                                                            className="max-w-md"
+                                                        />
+                                                    </td>
+                                                    <td className="p-4 text-center text-sm text-gray-600">
+                                                        {index + 1}
+                                                    </td>
+                                                    <td className="p-4 text-center">
+                                                        <Switch
+                                                            checked={field.visibility}
+                                                            onCheckedChange={() =>
+                                                                handleSystemFieldVisibilityToggle(
+                                                                    field.key
+                                                                )
+                                                            }
+                                                        />
+                                                    </td>
+                                                </SortableTableRow>
+                                            ))}
+                                        </SortableContext>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {systemFields.length === 0 && (
+                                <div className="py-8 text-center">
+                                    <Database className="mx-auto size-12 text-gray-400" />
+                                    <p className="mt-2 text-sm font-medium text-gray-600">
+                                        No system fields configured
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                        System fields will be loaded from your settings
+                                    </p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Institute Fields Section - Only show when not loading */}
                 {!isLoading && (
@@ -1459,12 +1827,9 @@ const CustomFieldsSettings: React.FC = () => {
                                                                                 )}
                                                                         </div>
                                                                         <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">
-                                                                            {'isGroup' in field &&
-                                                                            field.isGroup
-                                                                                ? `Group (${field.originalGroup.fields.length} fields)`
-                                                                                : 'type' in field
-                                                                                  ? field.type
-                                                                                  : 'System Field'}
+                                                                            {'type' in field
+                                                                                ? field.type
+                                                                                : 'System Field'}
                                                                         </span>
                                                                         {'type' in field &&
                                                                             field.type ===
@@ -1653,11 +2018,7 @@ const CustomFieldsSettings: React.FC = () => {
                                                     )}
                                                 </div>
                                                 <Badge variant="secondary" className="text-xs">
-                                                    {'isGroup' in field && field.isGroup
-                                                        ? `Group (${field.originalGroup.fields.length} fields)`
-                                                        : 'type' in field
-                                                          ? field.type
-                                                          : 'System Field'}
+                                                    {'type' in field ? field.type : 'System Field'}
                                                 </Badge>
                                             </div>
                                         </Card>
@@ -1755,6 +2116,7 @@ const CustomFieldsSettings: React.FC = () => {
                                                     required: false,
                                                     visibility: {
                                                         learnersList: false,
+                                                        learnerEnrollment: false,
                                                         enrollRequestList: false,
                                                         inviteList: false,
                                                         assessmentRegistration: false,

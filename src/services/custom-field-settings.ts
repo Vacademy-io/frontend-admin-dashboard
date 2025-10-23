@@ -113,11 +113,28 @@ export interface ApiCustomFieldRequest {
     all_custom_fields: string[];
     custom_field_locations: string[];
     group_names?: string[];
+    fixed_field_rename_dtos: Array<{
+        key: string;
+        defaultValue: string;
+        customValue: string;
+        order: number;
+        visibility: boolean;
+    }>;
+}
+
+// System Field (for fixedFieldRenameDtos)
+export interface SystemField {
+    key: string;
+    defaultValue: string;
+    customValue: string;
+    order: number;
+    visibility: boolean;
 }
 
 // UI Types (for our components)
 export interface FieldVisibility {
     learnersList: boolean;
+    learnerEnrollment: boolean;
     enrollRequestList: boolean;
     inviteList: boolean;
     assessmentRegistration: boolean;
@@ -136,6 +153,7 @@ export interface CustomField {
     canBeEdited: boolean;
     canBeRenamed: boolean;
     order: number;
+    groupName?: string | null; // Comma-separated group names if field is in multiple groups
 }
 
 // Type for creating new custom fields (without ID - backend will assign)
@@ -157,6 +175,7 @@ export interface FixedField {
     canBeEdited: boolean;
     canBeRenamed: boolean;
     order: number;
+    groupName?: string | null; // Comma-separated group names if field is in multiple groups
 }
 
 export interface FieldGroup {
@@ -178,6 +197,7 @@ export interface GroupField {
     canBeRenamed: boolean;
     order: number;
     groupInternalOrder: number;
+    groupName?: string | null; // Comma-separated group names if field is in multiple groups
 }
 
 // Type for creating new group fields (without ID - backend will assign)
@@ -191,6 +211,7 @@ export interface NewGroupField {
 }
 
 export interface CustomFieldSettingsData {
+    systemFields: SystemField[]; // System fields from fixedFieldRenameDtos
     fixedFields: FixedField[];
     instituteFields: CustomField[];
     customFields: CustomField[];
@@ -208,6 +229,7 @@ interface CachedCustomFieldSettings {
 // Location mapping dictionary
 const LOCATION_TO_VISIBILITY_MAP: Record<string, keyof FieldVisibility> = {
     "Learner's List": 'learnersList',
+    "Learner's Enrollment": 'learnerEnrollment',
     'Enroll Request List': 'enrollRequestList',
     'Invite List': 'inviteList',
     'Assessment Registration Form': 'assessmentRegistration',
@@ -217,6 +239,7 @@ const LOCATION_TO_VISIBILITY_MAP: Record<string, keyof FieldVisibility> = {
 
 const VISIBILITY_TO_LOCATION_MAP: Record<keyof FieldVisibility, string> = {
     learnersList: "Learner's List",
+    learnerEnrollment: "Learner's Enrollment",
     enrollRequestList: 'Enroll Request List',
     inviteList: 'Invite List',
     assessmentRegistration: 'Assessment Registration Form',
@@ -227,6 +250,144 @@ const VISIBILITY_TO_LOCATION_MAP: Record<keyof FieldVisibility, string> = {
 // System field identifiers (fieldName from API)
 const SYSTEM_FIELD_NAMES = ['name', 'email', 'username', 'password', 'batch', 'phone'];
 
+/**
+ * Default system fields based on table columns
+ * Used when API returns empty fixedFieldRenameDtos (first time setup)
+ */
+export const DEFAULT_SYSTEM_FIELDS: SystemField[] = [
+    {
+        key: 'FULL_NAME',
+        defaultValue: 'Full Name',
+        customValue: 'Full Name',
+        order: 1,
+        visibility: true,
+    },
+    {
+        key: 'USERNAME',
+        defaultValue: 'Username',
+        customValue: 'Username',
+        order: 2,
+        visibility: true,
+    },
+    {
+        key: 'PACKAGE_SESSION_ID',
+        defaultValue: 'Batch',
+        customValue: 'Batch',
+        order: 3,
+        visibility: true,
+    },
+    {
+        key: 'INSTITUTE_ENROLLMENT_ID',
+        defaultValue: 'Enrollment Number',
+        customValue: 'Enrollment Number',
+        order: 4,
+        visibility: true,
+    },
+    {
+        key: 'LINKED_INSTITUTE_NAME',
+        defaultValue: 'College/School',
+        customValue: 'College/School',
+        order: 5,
+        visibility: true,
+    },
+    { key: 'GENDER', defaultValue: 'Gender', customValue: 'Gender', order: 6, visibility: true },
+    {
+        key: 'MOBILE_NUMBER',
+        defaultValue: 'Mobile Number',
+        customValue: 'Mobile Number',
+        order: 7,
+        visibility: true,
+    },
+    { key: 'EMAIL', defaultValue: 'Email ID', customValue: 'Email ID', order: 8, visibility: true },
+    {
+        key: 'FATHER_NAME',
+        defaultValue: "Father/Male Guardian's Name",
+        customValue: "Father/Male Guardian's Name",
+        order: 9,
+        visibility: true,
+    },
+    {
+        key: 'MOTHER_NAME',
+        defaultValue: "Mother/Female Guardian's Name",
+        customValue: "Mother/Female Guardian's Name",
+        order: 10,
+        visibility: true,
+    },
+    {
+        key: 'PARENTS_MOBILE_NUMBER',
+        defaultValue: "Father/Male Guardian's Mobile Number",
+        customValue: "Father/Male Guardian's Mobile Number",
+        order: 11,
+        visibility: true,
+    },
+    {
+        key: 'PARENTS_EMAIL',
+        defaultValue: "Father/Male Guardian's Email ID",
+        customValue: "Father/Male Guardian's Email ID",
+        order: 12,
+        visibility: true,
+    },
+    {
+        key: 'PARENTS_TO_MOTHER_MOBILE_NUMBER',
+        defaultValue: "Mother/Female Guardian's Mobile Number",
+        customValue: "Mother/Female Guardian's Mobile Number",
+        order: 13,
+        visibility: true,
+    },
+    {
+        key: 'PARENTS_TO_MOTHER_EMAIL',
+        defaultValue: "Mother/Female Guardian's Email ID",
+        customValue: "Mother/Female Guardian's Email ID",
+        order: 14,
+        visibility: true,
+    },
+    { key: 'CITY', defaultValue: 'City', customValue: 'City', order: 15, visibility: true },
+    { key: 'REGION', defaultValue: 'State', customValue: 'State', order: 16, visibility: true },
+    {
+        key: 'ATTENDANCE',
+        defaultValue: 'Attendance',
+        customValue: 'Attendance',
+        order: 17,
+        visibility: false,
+    },
+    {
+        key: 'COUNTRY',
+        defaultValue: 'Country',
+        customValue: 'Country',
+        order: 18,
+        visibility: false,
+    },
+    {
+        key: 'PLAN_TYPE',
+        defaultValue: 'Plan Type',
+        customValue: 'Plan Type',
+        order: 19,
+        visibility: false,
+    },
+    {
+        key: 'AMOUNT_PAID',
+        defaultValue: 'Amount Paid',
+        customValue: 'Amount Paid',
+        order: 20,
+        visibility: false,
+    },
+    {
+        key: 'PREFFERED_BATCH',
+        defaultValue: 'Preferred Batch',
+        customValue: 'Preferred Batch',
+        order: 21,
+        visibility: false,
+    },
+    {
+        key: 'EXPIRY_DATE',
+        defaultValue: 'Session Expiry',
+        customValue: 'Session Expiry',
+        order: 22,
+        visibility: true,
+    },
+    { key: 'STATUS', defaultValue: 'Status', customValue: 'Status', order: 23, visibility: true },
+];
+
 // Mapping Functions
 
 /**
@@ -235,6 +396,7 @@ const SYSTEM_FIELD_NAMES = ['name', 'email', 'username', 'password', 'batch', 'p
 const mapLocationsToVisibility = (locations: string[]): FieldVisibility => {
     const visibility: FieldVisibility = {
         learnersList: false,
+        learnerEnrollment: false,
         enrollRequestList: false,
         inviteList: false,
         assessmentRegistration: false,
@@ -283,6 +445,7 @@ const mapApiFieldToFixedField = (apiField: ApiCustomField): FixedField => {
         canBeEdited: apiField.canBeEdited,
         canBeRenamed: apiField.canBeRenamed,
         order: apiField.individualOrder,
+        groupName: apiField.groupName,
     };
 };
 
@@ -301,13 +464,16 @@ const mapApiFieldToCustomField = (apiField: ApiCustomField): CustomField => {
         canBeEdited: apiField.canBeEdited,
         canBeRenamed: apiField.canBeRenamed,
         order: apiField.individualOrder,
+        groupName: apiField.groupName,
     };
 };
 
 /**
  * Convert API group field to UI group field
  */
-const mapApiGroupFieldToGroupField = (apiGroupField: ApiGroupField): GroupField => {
+const mapApiGroupFieldToGroupField = (
+    apiGroupField: ApiGroupField | ApiCustomField
+): GroupField => {
     return {
         id: apiGroupField.customFieldId,
         name: apiGroupField.fieldName,
@@ -318,7 +484,8 @@ const mapApiGroupFieldToGroupField = (apiGroupField: ApiGroupField): GroupField 
         canBeEdited: apiGroupField.canBeEdited,
         canBeRenamed: apiGroupField.canBeRenamed,
         order: apiGroupField.individualOrder,
-        groupInternalOrder: apiGroupField.groupInternalOrder,
+        groupInternalOrder: apiGroupField.groupInternalOrder || 0,
+        groupName: apiGroupField.groupName,
     };
 };
 
@@ -326,6 +493,7 @@ const mapApiGroupFieldToGroupField = (apiGroupField: ApiGroupField): GroupField 
  * Convert API response to UI format
  */
 const mapApiResponseToUI = (apiResponse: ApiCustomFieldResponse): CustomFieldSettingsData => {
+    const systemFields: SystemField[] = [];
     const fixedFields: FixedField[] = [];
     const instituteFields: CustomField[] = [];
     const customFields: CustomField[] = [];
@@ -337,6 +505,7 @@ const mapApiResponseToUI = (apiResponse: ApiCustomFieldResponse): CustomFieldSet
     if (!actualData) {
         console.error('❌ [DEBUG] No nested data found in API response');
         return {
+            systemFields: DEFAULT_SYSTEM_FIELDS,
             fixedFields,
             instituteFields,
             customFields,
@@ -346,23 +515,48 @@ const mapApiResponseToUI = (apiResponse: ApiCustomFieldResponse): CustomFieldSet
         };
     }
 
+    // Process fixedFieldRenameDtos to get system fields
+    const fixedFieldRenameDtos = actualData.fixedFieldRenameDtos || [];
+
+    if (fixedFieldRenameDtos.length > 0) {
+        // Use the fixedFieldRenameDtos from API
+        fixedFieldRenameDtos.forEach((dto) => {
+            systemFields.push({
+                key: dto.key,
+                defaultValue: dto.defaultValue,
+                customValue: dto.customValue,
+                order: dto.order,
+                visibility: dto.visibility,
+            });
+        });
+        console.log(
+            `✅ [DEBUG] Loaded ${systemFields.length} system fields from fixedFieldRenameDtos`
+        );
+    } else {
+        // First time setup - use default system fields
+        systemFields.push(...DEFAULT_SYSTEM_FIELDS);
+        console.log(
+            `📋 [DEBUG] No fixedFieldRenameDtos found, using ${DEFAULT_SYSTEM_FIELDS.length} default system fields`
+        );
+    }
+
     // Safety check: ensure currentCustomFieldsAndGroups exists and is an array
     const fields = actualData.currentCustomFieldsAndGroups || [];
     const fixedCustomFields = actualData.fixedCustomFields || [];
     const compulsoryCustomFields = actualData.compulsoryCustomFields || [];
     const customGroupData = actualData.customGroup || {};
 
-    // Process individual fields
-    fields.forEach((apiField: ApiCustomField) => {
-        if (apiField.groupName) {
-            // Skip grouped fields here, they'll be processed with groups
-            return;
-        }
+    // Process individual fields AND build groups from fields with groupName
+    const groupsMap = new Map<string, FieldGroup>();
 
+    console.log('🔍 [DEBUG] Processing fields from currentCustomFieldsAndGroups:', fields.length);
+
+    fields.forEach((apiField: ApiCustomField) => {
         const isSystemField = SYSTEM_FIELD_NAMES.includes(apiField.fieldName.toLowerCase());
         const isFixedField = fixedCustomFields.includes(apiField.customFieldId);
         const isRequired = compulsoryCustomFields.includes(apiField.customFieldId);
 
+        // Add field to individual lists (fixed or custom)
         if (isSystemField || isFixedField) {
             const fixedField = mapApiFieldToFixedField(apiField);
             fixedField.required = isRequired;
@@ -370,15 +564,43 @@ const mapApiResponseToUI = (apiResponse: ApiCustomFieldResponse): CustomFieldSet
         } else {
             const customField = mapApiFieldToCustomField(apiField);
             customField.required = isRequired;
-
-            // Determine if it's institute field or custom field
-            // For now, we'll treat all non-system fields as custom fields
             customFields.push(customField);
+            console.log(
+                `✅ [DEBUG] Added custom field: ${customField.name}, groupName: ${customField.groupName || 'none'}`
+            );
+        }
+
+        // Also process fields that belong to groups
+        if (apiField.groupName) {
+            const groupName = apiField.groupName;
+
+            if (!groupsMap.has(groupName)) {
+                groupsMap.set(groupName, {
+                    id: groupName,
+                    name: groupName,
+                    fields: [],
+                    order: 0,
+                });
+                console.log(`📁 [DEBUG] Created new group: ${groupName}`);
+            }
+
+            const group = groupsMap.get(groupName)!;
+            const mappedGroupField = mapApiGroupFieldToGroupField(apiField);
+            mappedGroupField.required = isRequired;
+
+            group.fields.push(mappedGroupField);
+            console.log(`  ↳ Added field to group "${groupName}": ${mappedGroupField.name}`);
+
+            // Update group order to minimum field order
+            if (group.order === 0 || apiField.individualOrder < group.order) {
+                group.order = apiField.individualOrder;
+            }
         }
     });
 
-    // Process groups
-    const groupsMap = new Map<string, FieldGroup>();
+    console.log(`📊 [DEBUG] Groups created: ${groupsMap.size}`);
+
+    // Also process customGroup data (if it exists)
     Object.entries(customGroupData).forEach(([, apiGroupField]) => {
         const groupField = apiGroupField as ApiGroupField;
         const groupName = groupField.groupName;
@@ -388,19 +610,23 @@ const mapApiResponseToUI = (apiResponse: ApiCustomFieldResponse): CustomFieldSet
                 id: groupName,
                 name: groupName,
                 fields: [],
-                order: 0, // Will be updated based on fields
+                order: 0,
             });
         }
 
         const group = groupsMap.get(groupName)!;
-        const mappedGroupField = mapApiGroupFieldToGroupField(groupField);
-        mappedGroupField.required = compulsoryCustomFields.includes(groupField.customFieldId);
 
-        group.fields.push(mappedGroupField);
+        // Check if this field is already in the group (to avoid duplicates)
+        const fieldExists = group.fields.some((f) => f.id === groupField.customFieldId);
+        if (!fieldExists) {
+            const mappedGroupField = mapApiGroupFieldToGroupField(groupField);
+            mappedGroupField.required = compulsoryCustomFields.includes(groupField.customFieldId);
+            group.fields.push(mappedGroupField);
 
-        // Update group order to minimum field order
-        if (group.order === 0 || mappedGroupField.order < group.order) {
-            group.order = mappedGroupField.order;
+            // Update group order to minimum field order
+            if (group.order === 0 || mappedGroupField.order < group.order) {
+                group.order = mappedGroupField.order;
+            }
         }
     });
 
@@ -414,7 +640,11 @@ const mapApiResponseToUI = (apiResponse: ApiCustomFieldResponse): CustomFieldSet
         group.fields.sort((a, b) => a.groupInternalOrder - b.groupInternalOrder);
     });
 
+    // Sort system fields by order
+    systemFields.sort((a, b) => a.order - b.order);
+
     return {
+        systemFields,
         fixedFields,
         instituteFields,
         customFields,
@@ -448,6 +678,7 @@ const preserveApiField = (
         fieldName: uiField.name, // Update name if changed
         individualOrder: uiField.order, // Update order if changed
         locations: mapVisibilityToLocations(uiField.visibility), // Update visibility
+        groupName: uiField.groupName || null, // Update groupName
         options: 'options' in uiField ? uiField.options : originalApiField.options, // Update options if it's a custom field
     };
 };
@@ -464,6 +695,7 @@ const preserveApiGroupField = (
         fieldName: uiField.name, // Update name if changed
         individualOrder: uiField.order, // Update order if changed
         groupInternalOrder: uiField.groupInternalOrder, // Update group order if changed
+        groupName: uiField.groupName || originalApiField.groupName, // Update groupName
         locations: mapVisibilityToLocations(uiField.visibility), // Update visibility
     };
 };
@@ -478,7 +710,7 @@ const createNewApiField = (
     return {
         customFieldId: '', // Backend will assign this
         instituteId,
-        groupName: null,
+        groupName: customField.groupName || null,
         fieldName: customField.name,
         fieldType: customField.type,
         individualOrder: customField.order,
@@ -539,7 +771,7 @@ const mapUIToApiRequestFresh = (
             id: '', // Backend will assign
             customFieldId: fixedField.id,
             instituteId,
-            groupName: null,
+            groupName: fixedField.groupName || null,
             fieldName: fixedField.name,
             fieldType: 'text', // Fixed fields are typically text
             individualOrder: fixedField.order,
@@ -567,7 +799,7 @@ const mapUIToApiRequestFresh = (
             id: '', // Backend will assign
             customFieldId: instituteField.id,
             instituteId,
-            groupName: null,
+            groupName: instituteField.groupName || null,
             fieldName: instituteField.name,
             fieldType: instituteField.type,
             individualOrder: instituteField.order,
@@ -595,7 +827,7 @@ const mapUIToApiRequestFresh = (
             id: '', // Backend will assign
             customFieldId: isTempField(customField) ? '' : customField.id, // Empty for new fields
             instituteId,
-            groupName: null,
+            groupName: customField.groupName || null,
             fieldName: customField.name,
             fieldType: customField.type,
             individualOrder: customField.order,
@@ -660,6 +892,16 @@ const mapUIToApiRequestFresh = (
         });
     });
 
+    // Map system fields to fixed_field_rename_dtos
+    // Use DEFAULT_SYSTEM_FIELDS if systemFields is not provided
+    const fixed_field_rename_dtos = (uiData.systemFields || DEFAULT_SYSTEM_FIELDS).map((field) => ({
+        key: field.key,
+        defaultValue: field.defaultValue,
+        customValue: field.customValue,
+        order: field.order,
+        visibility: field.visibility,
+    }));
+
     const result: ApiCustomFieldRequest = {
         custom_fields_and_groups: currentCustomFieldsAndGroups,
         custom_group: customGroup,
@@ -669,7 +911,12 @@ const mapUIToApiRequestFresh = (
         all_custom_fields: allCustomFields,
         custom_field_locations: Object.values(VISIBILITY_TO_LOCATION_MAP),
         group_names: groupNames.length > 0 ? groupNames : undefined,
+        fixed_field_rename_dtos,
     };
+
+    console.log(
+        `📤 [DEBUG] Sending ${fixed_field_rename_dtos.length} system fields in fixed_field_rename_dtos`
+    );
 
     return result;
 };
@@ -840,6 +1087,16 @@ const mapUIToApiRequest = (uiData: CustomFieldSettingsData): ApiCustomFieldReque
     // Merge with preserved group data (for groups that weren't modified)
     Object.assign(customGroup, updatedCustomGroup);
 
+    // Map system fields to fixed_field_rename_dtos
+    // Use DEFAULT_SYSTEM_FIELDS if systemFields is not provided
+    const fixed_field_rename_dtos = (uiData.systemFields || DEFAULT_SYSTEM_FIELDS).map((field) => ({
+        key: field.key,
+        defaultValue: field.defaultValue,
+        customValue: field.customValue,
+        order: field.order,
+        visibility: field.visibility,
+    }));
+
     const result: ApiCustomFieldRequest = {
         custom_fields_and_groups: currentCustomFieldsAndGroups,
         custom_group: customGroup,
@@ -850,7 +1107,12 @@ const mapUIToApiRequest = (uiData: CustomFieldSettingsData): ApiCustomFieldReque
         custom_field_locations:
             originalApiData.customFieldLocations || Object.values(VISIBILITY_TO_LOCATION_MAP),
         group_names: groupNames.length > 0 ? groupNames : undefined,
+        fixed_field_rename_dtos,
     };
+
+    console.log(
+        `📤 [DEBUG] Sending ${fixed_field_rename_dtos.length} system fields in fixed_field_rename_dtos`
+    );
 
     return result;
 };
@@ -1204,6 +1466,7 @@ export const createNewCustomField = (
         options: type === 'dropdown' ? options || [] : undefined,
         visibility: {
             learnersList: false,
+            learnerEnrollment: false,
             enrollRequestList: false,
             inviteList: false,
             assessmentRegistration: false,
@@ -1242,6 +1505,7 @@ export const createTempCustomField = (
         options: type === 'dropdown' ? options || [] : undefined,
         visibility: {
             learnersList: false,
+            learnerEnrollment: false,
             enrollRequestList: false,
             inviteList: false,
             assessmentRegistration: false,
@@ -1253,6 +1517,7 @@ export const createTempCustomField = (
         canBeEdited: true,
         canBeRenamed: true,
         order: 999, // Will be updated when added to settings
+        groupName: null, // Initially not in any group
     };
 };
 
