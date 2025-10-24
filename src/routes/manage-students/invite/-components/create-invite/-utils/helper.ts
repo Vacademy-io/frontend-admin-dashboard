@@ -36,13 +36,6 @@ export interface ReferralData {
     updated_at: string; // Consider `Date` if you parse it
 }
 
-interface ReferrerReward {
-    referral_count: number;
-    reward: {
-        type: string;
-    };
-}
-
 type ApiCourseData = {
     course: {
         id: string;
@@ -98,6 +91,9 @@ export interface Batch {
     levelId: string;
     sessionName: string;
     levelName: string;
+    courseId: string;
+    courseName: string;
+    isParent?: boolean;
 }
 
 export interface PaymentOption {
@@ -175,6 +171,7 @@ function transformCustomFields(customFields: CustomField[], instituteId: string)
         const options = isDropdown ? field.options?.map((opt) => opt.value).join(',') : '';
 
         return {
+            // id: crypto.randomUUID(),
             institute_id: instituteId,
             type: field.type,
             type_id: '',
@@ -256,9 +253,11 @@ export function convertInviteData(
     }) => void,
     paymentPlans: PaymentOption[],
     referralProgramDetails: ReferralData[],
-    instituteLogoFileId: string
+    instituteLogoFileId: string,
+    inviteId?: string
 ) {
     const instituteId = getInstituteId();
+    const isBundle = selectedBatches.length > 1;
     const jsonMetaData = {
         course: data.course,
         description: data.description,
@@ -279,8 +278,29 @@ export function convertInviteData(
         includePaymentPlans: data.includePaymentPlans,
         customHtml: data.customHtml,
     };
+
+    // Create package_session_to_payment_options for all batches
+
+    const packageSessionToPaymentOptions = selectedBatches.map((batch) => {
+        const packageSessionId = getPackageSessionId({
+            courseId: batch.courseId,
+            levelId: batch.levelId,
+            sessionId: batch.sessionId,
+        });
+
+        return {
+            package_session_id: packageSessionId,
+            payment_option: getMatchingPaymentAndReferralPlanForAPIs(
+                paymentPlans,
+                data.selectedPlan?.id || '',
+                referralProgramDetails,
+                data.planReferralMappings
+            ),
+        };
+    });
+
     const convertedData = {
-        id: '',
+        id: inviteId || '',
         name: data.name,
         start_date: '',
         end_date: '',
@@ -291,6 +311,7 @@ export function convertInviteData(
         vendor_id: 'STRIPE',
         currency: '',
         tag: '',
+        is_bundled: isBundle,
         learner_access_days:
             data.selectedPlan?.type?.toLowerCase() === 'subscription'
                 ? data.accessDurationDays
@@ -299,21 +320,7 @@ export function convertInviteData(
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         institute_custom_fields: transformCustomFields(data.custom_fields, instituteId || ''),
-        package_session_to_payment_options: [
-            {
-                package_session_id: getPackageSessionId({
-                    courseId: selectedCourse ? selectedCourse.id : '',
-                    levelId: selectedBatches[0]?.levelId || '',
-                    sessionId: selectedBatches[0]?.sessionId || '',
-                }),
-                payment_option: getMatchingPaymentAndReferralPlanForAPIs(
-                    paymentPlans,
-                    data.selectedPlan?.id || '',
-                    referralProgramDetails,
-                    data.selectedReferralId
-                ),
-            },
-        ],
+        package_session_to_payment_options: packageSessionToPaymentOptions,
     };
     return convertedData;
 }
@@ -531,20 +538,75 @@ export function getMatchingPaymentAndReferralPlanForAPIs(
     data: PaymentOption[],
     id: string,
     referralProgramDetails: ReferralData[],
-    referralId: string
+    planReferralMappings: Record<string, string> // planId -> referralId mapping
 ) {
-    const referralProgram = referralProgramDetails.find((item) => item.id === referralId);
     const item = data.find((item) => item.id === id);
 
-    return {
-        ...item,
-        payment_plans: item?.payment_plans?.map((plan) => {
-            return {
-                ...plan,
-                referral_option: referralProgram,
-            };
-        }),
-    };
+    // If it's a subscription plan, we need to handle multiple payment options
+    if (item?.type?.toLowerCase() === 'subscription') {
+        const parsedData = JSON.parse(item.payment_option_metadata_json || '{}');
+        const customIntervals = parsedData?.subscriptionData?.customIntervals || [];
+
+        // Map each subscription interval to have its own referral
+        const updatedIntervals = customIntervals.map(
+            (interval: PaymentPlansInterface, index: number) => {
+                const planId = `${item.id}_option_${index}`;
+                const referralId = planReferralMappings[planId];
+                const referralProgram = referralId
+                    ? referralProgramDetails.find((ref) => ref.id === referralId)
+                    : null;
+
+                return {
+                    ...interval,
+                    referral_option: referralProgram || null,
+                };
+            }
+        );
+
+        // Update the metadata with referral options
+        const updatedMetadata = {
+            ...parsedData,
+            subscriptionData: {
+                ...parsedData.subscriptionData,
+                customIntervals: updatedIntervals,
+            },
+        };
+
+        return {
+            ...item,
+            payment_option_metadata_json: JSON.stringify(updatedMetadata),
+            payment_plans: item?.payment_plans?.map((plan) => {
+                // For subscription plans, the main payment plan gets the first option's referral
+                const firstPlanId = `${item.id}_option_0`;
+                const referralId = planReferralMappings[firstPlanId];
+                const referralProgram = referralId
+                    ? referralProgramDetails.find((ref) => ref.id === referralId)
+                    : null;
+
+                return {
+                    ...plan,
+                    referral_option: referralProgram || null,
+                };
+            }),
+        };
+    } else {
+        // For other plan types (free, one_time, upfront, donation)
+        return {
+            ...item,
+            payment_plans: item?.payment_plans?.map((plan) => {
+                const planId = item.id;
+                const referralId = planReferralMappings[planId];
+                const referralProgram = referralId
+                    ? referralProgramDetails.find((ref) => ref.id === referralId)
+                    : null;
+
+                return {
+                    ...plan,
+                    referral_option: referralProgram || null,
+                };
+            }),
+        };
+    }
 }
 
 export function getPaymentOptionBySessionId(
@@ -559,48 +621,153 @@ export function getPaymentOptionBySessionId(
 }
 
 export function convertReferralData(data: ReferralData[]) {
-    if (!data)
-        return {
-            id: '',
-            name: '',
-            refereeBenefit: {
-                type: '',
-                value: 0,
-                currency: '',
-            },
-            referrerBenefit: [
-                {
-                    referralCount: 0,
-                    type: '',
+    if (!data) return [];
+
+    // Import the conversion logic from the referral service
+    const convertFromApiFormat = (apiResponse: ReferralData) => {
+        try {
+            const referrerDiscountData = JSON.parse(apiResponse.referrer_discount_json);
+            const refereeDiscountData = JSON.parse(apiResponse.referee_discount_json);
+
+            // Helper function to convert new tier format to referee reward
+            const convertNewTierFormatToRefereeReward = (tierData: Record<string, unknown>) => {
+                const tiers = tierData.tiers as Array<Record<string, unknown>>;
+                if (tiers && tiers[0]) {
+                    const firstTier = tiers[0];
+                    const benefits = firstTier.benefits as Array<Record<string, unknown>>;
+                    if (benefits && benefits[0]) {
+                        return convertBenefitToReward(benefits[0]);
+                    }
+                }
+
+                // Fallback to default
+                return {
+                    type: 'discount_percentage',
+                    value: 10,
+                    currency: 'USD',
+                };
+            };
+
+            // Helper function to convert new tier format to referrer rewards
+            const convertNewTierFormatToReferrerRewards = (tierData: Record<string, unknown>) => {
+                const tiers = tierData.tiers as Array<Record<string, unknown>>;
+                if (tiers && Array.isArray(tiers)) {
+                    return tiers.map((tier) => {
+                        const benefits = tier.benefits as Array<Record<string, unknown>>;
+                        const benefit = benefits && benefits[0] ? benefits[0] : null;
+
+                        const referralRange = tier.referralRange as Record<string, unknown>;
+
+                        // Convert to the simplified format expected by the form
+                        return {
+                            referralCount: (referralRange?.min as number) || 1,
+                            type: benefit ? getBenefitType(benefit) : 'discount_percentage',
+                        };
+                    });
+                }
+                return [];
+            };
+
+            // Helper function to convert benefit to reward (with enhanced fields but fallback to form schema)
+            const convertBenefitToReward = (benefit: Record<string, unknown>) => {
+                const benefitValue = benefit.value as Record<string, unknown>;
+                const type = getBenefitType(benefit);
+
+                const reward = {
+                    type,
+                    value: getRewardValue(benefit, benefitValue, type),
+                    currency: 'INR',
+                    // Enhanced fields for display (will be preserved but form schema only requires the basic structure)
+                    ...(type === 'bonus_content' && {
+                        contentType: (benefitValue?.contentUrl as string) ? 'link' : 'upload',
+                        contentUrl: benefitValue?.contentUrl as string,
+                        fileIds: benefitValue?.fileIds as string[],
+                        template: benefitValue?.templateId as string,
+                        title: (benefit.description as string) || 'Bonus Content',
+                    }),
+                    ...(type === 'points_system' && {
+                        pointsPerReferral: (benefitValue?.points as number) || 0,
+                        pointTriggers:
+                            (benefit.pointTriggers as Array<Record<string, unknown>>) || [],
+                    }),
+                };
+
+                return reward;
+            };
+
+            // Helper function to get benefit type
+            const getBenefitType = (benefit: Record<string, unknown>) => {
+                switch (benefit.type) {
+                    case 'PERCENTAGE_DISCOUNT':
+                        return 'discount_percentage';
+                    case 'FLAT_DISCOUNT':
+                        return 'discount_fixed';
+                    case 'FREE_MEMBERSHIP_DAYS':
+                        return 'free_days';
+                    case 'CONTENT':
+                        return 'bonus_content';
+                    case 'POINTS':
+                        return 'points_system';
+                    default:
+                        return 'discount_percentage';
+                }
+            };
+
+            // Helper function to get reward value
+            const getRewardValue = (
+                benefit: Record<string, unknown>,
+                benefitValue: Record<string, unknown>,
+                type: string
+            ) => {
+                switch (type) {
+                    case 'discount_percentage':
+                        return (benefitValue?.percentage as number) || 0;
+                    case 'discount_fixed':
+                        return (benefitValue?.amount as number) || 0;
+                    case 'free_days':
+                        return (benefitValue?.days as number) || 0;
+                    case 'points_system':
+                        return (benefitValue?.points as number) || 0;
+                    case 'bonus_content':
+                        return 0; // Content benefits don't have a numeric value
+                    default:
+                        return 10;
+                }
+            };
+
+            // Handle referee reward - convert from new tier-based format
+            const refereeReward = convertNewTierFormatToRefereeReward(refereeDiscountData);
+
+            // Handle referrer rewards - convert from new tier-based format
+            const referrerRewards = convertNewTierFormatToReferrerRewards(referrerDiscountData);
+
+            return {
+                id: apiResponse.id,
+                name: apiResponse.name,
+                refereeBenefit: refereeReward,
+                referrerBenefit: referrerRewards,
+                vestingPeriod: apiResponse.referrer_vesting_days,
+                combineOffers: true,
+            };
+        } catch (error) {
+            console.error('Error parsing referral option data:', error);
+            // Return fallback data
+            return {
+                id: apiResponse.id,
+                name: apiResponse.name,
+                refereeBenefit: {
+                    type: 'discount_percentage',
+                    value: 10,
+                    currency: 'USD',
                 },
-            ],
-            vestingPeriod: 0,
-            combineOffers: false,
-        };
-    return data?.map((item) => {
-        const refereeDiscountJson = safeJsonParse(item.referee_discount_json, {
-            reward: { type: '', value: 0, currency: '' },
-        });
-        const referrerDiscountJson = safeJsonParse(item.referrer_discount_json, { rewards: [] });
-        return {
-            id: item?.id,
-            name: item?.name,
-            refereeBenefit: {
-                type: refereeDiscountJson?.reward?.type || '',
-                value: refereeDiscountJson?.reward?.value || 0,
-                currency: refereeDiscountJson?.reward?.currency || '',
-            },
-            referrerBenefit:
-                referrerDiscountJson?.rewards?.map((reward: ReferrerReward) => {
-                    return {
-                        referralCount: reward?.referral_count || 0,
-                        type: reward?.reward?.type || '',
-                    };
-                }) || [],
-            vestingPeriod: item?.referrer_vesting_days || 0,
-            combineOffers: true,
-        };
-    });
+                referrerBenefit: [],
+                vestingPeriod: apiResponse.referrer_vesting_days || 0,
+                combineOffers: true,
+            };
+        }
+    };
+
+    return data.map(convertFromApiFormat);
 }
 
 export function getDefaultMatchingReferralData(data: ReferralData[]) {
@@ -623,28 +790,75 @@ export function getDefaultMatchingReferralData(data: ReferralData[]) {
             vestingPeriod: 0,
             combineOffers: false,
         };
-    const refereeDiscountJson = safeJsonParse(item.referee_discount_json, {
-        reward: { type: '', value: 0, currency: '' },
-    });
-    const referrerDiscountJson = safeJsonParse(item.referrer_discount_json, { rewards: [] });
-    return {
-        id: item.id,
-        name: item.name,
-        refereeBenefit: {
-            type: refereeDiscountJson?.reward?.type || '',
-            value: refereeDiscountJson?.reward?.value || 0,
-            currency: refereeDiscountJson?.reward?.currency || '',
-        },
-        referrerBenefit:
-            referrerDiscountJson?.rewards?.map((reward: ReferrerReward) => {
-                return {
-                    referralCount: reward?.referral_count || 0,
-                    type: reward?.reward?.type || '',
-                };
-            }) || [],
-        vestingPeriod: item.referrer_vesting_days || 0,
-        combineOffers: true,
-    };
+
+    // Use the same conversion logic as convertReferralData
+    const convertedData = convertReferralData([item]);
+    return (
+        convertedData[0] || {
+            id: item.id,
+            name: item.name,
+            refereeBenefit: {
+                type: '',
+                value: 0,
+                currency: '',
+            },
+            referrerBenefit: [],
+            vestingPeriod: item.referrer_vesting_days || 0,
+            combineOffers: true,
+        }
+    );
+}
+
+interface SelectedPlan {
+    id: string;
+    name: string;
+    paymentOption?: {
+        title: string;
+        price: string;
+        value: number;
+        unit: string;
+        features: string[];
+        newFeature: string;
+    }[];
+    type?: string;
+}
+
+// Helper function to extract all plan IDs from a selected plan for referral mapping
+export function getAllPlanIdsFromSelectedPlan(selectedPlan: SelectedPlan | null): string[] {
+    if (!selectedPlan) return [];
+
+    const planIds: string[] = [];
+
+    // For subscription plans with multiple payment options
+    if (selectedPlan.paymentOption && Array.isArray(selectedPlan.paymentOption)) {
+        selectedPlan.paymentOption.forEach((_, index: number) => {
+            // Generate a unique ID for each payment option
+            planIds.push(`${selectedPlan.id}_option_${index}`);
+        });
+    } else {
+        // For other plan types (free, one_time, upfront, donation)
+        planIds.push(selectedPlan.id);
+    }
+
+    return planIds;
+}
+
+// Helper function to get plan display name
+export function getPlanDisplayName(selectedPlan: SelectedPlan | null, planId: string): string {
+    if (!selectedPlan) return '';
+
+    // For subscription plans with multiple payment options
+    if (selectedPlan.paymentOption && Array.isArray(selectedPlan.paymentOption)) {
+        const parts = planId.split('_option_');
+        if (parts.length === 2 && parts[1]) {
+            const optionIndex = parseInt(parts[1]);
+            const option = selectedPlan.paymentOption[optionIndex];
+            return option?.title || `${selectedPlan.name} - Option ${optionIndex + 1}`;
+        }
+    }
+
+    // For other plan types
+    return selectedPlan.name;
 }
 
 export function convertRegistrationFormData(data: CustomFieldForConversion[]) {

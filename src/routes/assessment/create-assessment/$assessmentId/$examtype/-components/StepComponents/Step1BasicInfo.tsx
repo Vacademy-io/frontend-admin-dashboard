@@ -9,6 +9,7 @@ import { useFilterDataForAssesment } from '../../../../../assessment-list/-utils
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { MyInput } from '@/components/design-system/input';
 import SelectField from '@/components/design-system/select-field';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { timeLimit } from '@/constants/dummy-data';
 import { BasicInfoFormSchema } from '../../-utils/basic-info-form-schema';
@@ -29,13 +30,6 @@ import { AxiosError } from 'axios';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { CaretLeft } from 'phosphor-react';
 import { useParams } from '@tanstack/react-router';
-import useIntroJsTour, { Step } from '@/hooks/use-intro';
-import { IntroKey } from '@/constants/storage/introKey';
-import { createAssesmentSteps } from '@/constants/intro/steps';
-import { useSectionDetailsStore } from '../../-utils/zustand-global-states/step2-add-questions';
-import { useTestAccessStore } from '../../-utils/zustand-global-states/step3-adding-participants';
-import { useAccessControlStore } from '../../-utils/zustand-global-states/step4-access-control';
-import { Steps } from '@/types/assessments/assessment-data-type';
 import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { convertCapitalToTitleCase } from '@/lib/utils';
@@ -48,37 +42,429 @@ export function convertDateFormat(dateStr: string) {
     return date.toISOString().slice(0, 16);
 }
 
-const heading = (
-    <div className="flex items-center gap-4">
-        <CaretLeft
-            onClick={() => {
-                useBasicInfoStore.getState().reset();
-                useSectionDetailsStore.getState().reset();
-                useTestAccessStore.getState().reset();
-                useAccessControlStore.getState().reset();
-                window.history.back();
-            }}
-            className="cursor-pointer"
-        />
-        <h1 className="text-lg">Create Assessment</h1>
-    </div>
-);
+// Helper component for navigation header
+const NavigationHeader = ({ examType, isUpdate = false }: { examType: string; isUpdate?: boolean }) => {
+    const handleBack = () => {
+                    useBasicInfoStore.getState().reset();
+                    window.history.back();
+    };
 
-const headingUpdate = (
-    <div className="flex items-center gap-4">
-        <CaretLeft
-            onClick={() => {
-                useBasicInfoStore.getState().reset();
-                useSectionDetailsStore.getState().reset();
-                useTestAccessStore.getState().reset();
-                useAccessControlStore.getState().reset();
-                window.history.back();
-            }}
-            className="cursor-pointer"
-        />
-        <h1 className="text-lg">Update Assessment</h1>
-    </div>
-);
+    return (
+        <div className="flex items-center gap-4">
+            <CaretLeft onClick={handleBack} className="cursor-pointer" />
+            <h1 className="text-lg">
+                {isUpdate
+                    ? (examType === 'SURVEY' ? 'Update Survey' : 'Update Assessment')
+                    : (examType === 'SURVEY' ? 'Create Survey' : 'Create Assessment')
+                }
+            </h1>
+        </div>
+    );
+};
+
+// Helper component for test creation form fields
+const TestCreationFields = ({ control, form, examType, instituteDetails }: any) => {
+    return (
+        <div className="flex w-full items-start justify-start gap-4">
+            <div className="" id={'assessment-details'}>
+                <FormField
+                    control={control}
+                    name="testCreation.assessmentName"
+                    render={({ field: { ...field } }) => (
+                        <FormItem>
+                            <FormControl>
+                                <MyInput
+                                    inputType="text"
+                                    inputPlaceholder="Add Title"
+                                    input={field.value}
+                                    labelStyle="font-thin"
+                                    onChangeFunction={field.onChange}
+                                    error={
+                                        form.formState.errors.testCreation
+                                            ?.assessmentName?.message
+                                    }
+                                    required={true}
+                                    size="large"
+                                    label={examType === 'SURVEY' ? 'Survey Name' : 'Assessment Name'}
+                                    {...field}
+                                />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
+            </div>
+            <div className="" id={'subject-selection'}>
+                <FormField
+                    control={control}
+                    name="testCreation.subject"
+                    render={({ field: { ...field } }) => (
+                        <FormItem>
+                            <FormControl>
+                                <SelectField
+                                    label="Subject"
+                                    name="testCreation.subject"
+                                    options={[]}
+                                    control={control}
+                                    required
+                                />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
+            </div>
+        </div>
+    );
+};
+
+// Helper component for live date range fields
+const LiveDateRangeFields = ({ control, form }: any) => {
+    return (
+        <div className="flex w-full items-start justify-start gap-4">
+            <div className="" id={'live-date-range-start'}>
+                <FormField
+                    control={control}
+                    name="testCreation.liveDateRange.startDate"
+                    render={({ field: { ...field } }) => (
+                        <FormItem>
+                            <FormControl>
+                                <MyInput
+                                    inputType="datetime-local"
+                                    input={field.value}
+                                    labelStyle="font-thin"
+                                    onChangeFunction={field.onChange}
+                                    error={
+                                        form.formState.errors.testCreation?.liveDateRange
+                                            ?.startDate?.message
+                                    }
+                                    required={true}
+                                    size="large"
+                                    label="Start Date & Time"
+                                    {...field}
+                                />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
+            </div>
+            <div className="" id={'live-date-range-end'}>
+                <FormField
+                    control={control}
+                    name="testCreation.liveDateRange.endDate"
+                    render={({ field: { ...field } }) => (
+                        <FormItem>
+                            <FormControl>
+                                <MyInput
+                                    inputType="datetime-local"
+                                    input={field.value}
+                                    labelStyle="font-thin"
+                                    onChangeFunction={field.onChange}
+                                    error={
+                                        form.formState.errors.testCreation?.liveDateRange
+                                            ?.endDate?.message
+                                    }
+                                    required={true}
+                                    size="large"
+                                    label="End Date & Time"
+                                    {...field}
+                                />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
+            </div>
+        </div>
+    );
+};
+
+// Helper component for assessment instructions
+const AssessmentInstructionsField = ({ control, form, examType }: any) => {
+    return (
+        <div className="flex w-full items-start justify-start">
+            <div className="w-full" id={'assessment-instructions'}>
+                <FormField
+                    control={control}
+                    name="testCreation.assessmentInstructions"
+                    render={({ field: { ...field } }) => (
+                        <FormItem>
+                            <FormControl>
+                                <div>
+                                    <FormLabel>
+                                        {examType === 'SURVEY'
+                                            ? 'Survey Instructions'
+                                            : 'Assessment Instructions'}
+                                    </FormLabel>
+                                    <RichTextEditor
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder={
+                                            examType === 'SURVEY'
+                                                ? 'Add Survey Instructions'
+                                                : 'Add Assessment Instructions'
+                                        }
+                                    />
+                                </div>
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
+            </div>
+        </div>
+    );
+};
+
+// Helper component for assessment preview settings
+const AssessmentPreviewSettings = ({ control, form, timeLimit }: any) => {
+    return (
+        <div className="flex w-full items-start justify-start gap-4">
+            <div className="" id={'assessment-preview-checkbox'}>
+                <FormField
+                    control={control}
+                    name="assessmentPreview.checked"
+                    render={({ field: { ...field } }) => (
+                        <FormItem>
+                            <FormControl>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        {...field}
+                                    />
+                                    <FormLabel>Enable Assessment Preview</FormLabel>
+                                </div>
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
+            </div>
+            <div className="" id={'assessment-preview-time-limit'}>
+                <FormField
+                    control={control}
+                    name="assessmentPreview.previewTimeLimit"
+                    render={({ field: { ...field } }) => (
+                        <FormItem>
+                            <FormControl>
+                                <SelectField
+                                    label="Preview Time Limit"
+                                    name="assessmentPreview.previewTimeLimit"
+                                    options={timeLimit}
+                                    control={control}
+                                    required
+                                />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
+            </div>
+        </div>
+    );
+};
+
+// Helper component for reattempt count
+const ReattemptCountField = ({ control, form }: any) => {
+    return (
+        <div className="flex w-full items-start justify-start">
+            <div className="" id={'reattempt-count'}>
+                <FormField
+                    control={control}
+                    name="reattemptCount"
+                    render={({ field: { ...field } }) => (
+                        <FormItem>
+                            <FormControl>
+                                <MyInput
+                                    inputType="number"
+                                    inputPlaceholder="Enter Reattempt Count"
+                                    input={field.value}
+                                    labelStyle="font-thin"
+                                    onChangeFunction={field.onChange}
+                                    error={form.formState.errors.reattemptCount?.message}
+                                    required={true}
+                                    size="large"
+                                    label="Reattempt Count"
+                                    {...field}
+                                />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
+            </div>
+        </div>
+    );
+};
+
+// Helper component for submission type
+const SubmissionTypeField = ({ control, form, examType }: any) => {
+    return (
+        <div className="flex w-full items-start justify-start">
+            <div className="" id={'submission-type'}>
+                <FormField
+                    control={control}
+                    name="submissionType"
+                    render={({ field: { ...field } }) => (
+                        <FormItem>
+                            <FormControl>
+                                <SelectField
+                                    label="Submission Type"
+                                    name="submissionType"
+                                    options={[
+                                        { value: 'AUTO_SUBMIT', label: 'Auto Submit', _id: 1 },
+                                        { value: 'MANUAL_SUBMIT', label: 'Manual Submit', _id: 2 }
+                                    ]}
+                                    control={control}
+                                    required
+                                />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
+            </div>
+        </div>
+    );
+};
+
+// Helper component for duration distribution
+const DurationDistributionField = ({ control, form }: any) => {
+    return (
+        <div className="flex w-full items-start justify-start">
+            <div className="" id={'duration-distribution'}>
+                <FormField
+                    control={control}
+                    name="durationDistribution"
+                    render={({ field: { ...field } }) => (
+                        <FormItem>
+                            <FormControl>
+                                <SelectField
+                                    label="Duration Distribution"
+                                    name="durationDistribution"
+                                    options={[
+                                        { value: 'ASSESSMENT', label: 'Entire Assessment', _id: 1 },
+                                        { value: 'SECTION', label: 'Section Wise', _id: 2 },
+                                        { value: 'QUESTION', label: 'Question Wise', _id: 3 }
+                                    ]}
+                                    control={control}
+                                    required
+                                />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
+            </div>
+        </div>
+    );
+};
+
+// Helper component for evaluation type
+const EvaluationTypeField = ({ control, form }: any) => {
+    return (
+        <div className="flex w-full items-start justify-start">
+            <div className="" id={'evaluation-type'}>
+                <FormField
+                    control={control}
+                    name="evaluationType"
+                    render={({ field: { ...field } }) => (
+                        <FormItem>
+                            <FormControl>
+                                <SelectField
+                                    label="Evaluation Type"
+                                    name="evaluationType"
+                                    options={[
+                                        { value: 'AUTO', label: 'Auto Evaluation', _id: 1 },
+                                        { value: 'MANUAL', label: 'Manual Evaluation', _id: 2 }
+                                    ]}
+                                    control={control}
+                                    required
+                                />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
+            </div>
+        </div>
+    );
+};
+
+// Helper component for switch sections checkbox
+const SwitchSectionsField = ({ control }: any) => {
+    return (
+        <div className="flex w-full items-start justify-start">
+            <div className="" id={'switch-sections'}>
+                <FormField
+                    control={control}
+                    name="switchSections"
+                    render={({ field: { ...field } }) => (
+                        <FormItem>
+                            <FormControl>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        {...field}
+                                    />
+                                    <FormLabel>Allow Switching Between Sections</FormLabel>
+                                </div>
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
+            </div>
+        </div>
+    );
+};
+
+// Helper component for reattempt request checkbox
+const ReattemptRequestField = ({ control }: any) => {
+    return (
+        <div className="flex w-full items-start justify-start">
+            <div className="" id={'raise-reattempt-request'}>
+                <FormField
+                    control={control}
+                    name="raiseReattemptRequest"
+                    render={({ field: { ...field } }) => (
+                        <FormItem>
+                            <FormControl>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        {...field}
+                                    />
+                                    <FormLabel>Allow Students to Raise Reattempt Request</FormLabel>
+                                </div>
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
+            </div>
+        </div>
+    );
+};
+
+// Helper component for time increase request checkbox
+const TimeIncreaseRequestField = ({ control }: any) => {
+    return (
+        <div className="flex w-full items-start justify-start">
+            <div className="" id={'raise-time-increase-request'}>
+                <FormField
+                    control={control}
+                    name="raiseTimeIncreaseRequest"
+                    render={({ field: { ...field } }) => (
+                        <FormItem>
+                            <FormControl>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        {...field}
+                                    />
+                                    <FormLabel>Allow Students to Raise Time Increase Request</FormLabel>
+                                </div>
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
+            </div>
+        </div>
+    );
+};
 
 const Step1BasicInfo: React.FC<StepContentProps> = ({
     currentStep,
@@ -87,7 +473,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
 }) => {
     const queryClient = useQueryClient();
     const params = useParams({ strict: false });
-    const examType = params.examtype;
+    const examType = params.examtype || 'EXAM';
     const assessmentId = params.assessmentId;
     const { setNavHeading } = useNavHeadingStore();
     const storeDataStep1 = useBasicInfoStore((state) => state);
@@ -182,7 +568,6 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 });
             } else {
                 // Handle non-Axios errors if necessary
-                console.error('Unexpected error:', error);
             }
         },
     });
@@ -207,21 +592,11 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
     };
 
     const onInvalid = (err: unknown) => {
-        console.log(err);
+        // Handle validation errors
     };
 
-    useIntroJsTour({
-        key: IntroKey.assessmentStep1BasicInfo,
-        steps: createAssesmentSteps
-            .filter((step) => step.element === '#basic-info')
-            .flatMap((step) => step.subStep || [])
-            .filter((subStep): subStep is Step => subStep !== undefined),
-    });
-
-    const [assessmentDetails, setAssessmentDetails] = useState<Steps>([]);
+    const [assessmentDetails, setAssessmentDetails] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-
-    console.log(assessmentDetails);
 
     useEffect(() => {
         setIsLoading(true);
@@ -234,7 +609,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                 });
                 setAssessmentDetails(response);
             } catch (err) {
-                console.error(err);
+                // Handle error silently
             } finally {
                 setIsLoading(false);
             }
@@ -245,64 +620,64 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
 
     useEffect(() => {
         if (assessmentId !== 'defaultId') {
-            setNavHeading(headingUpdate);
+            setNavHeading(<NavigationHeader examType={examType} isUpdate={true} />);
         } else {
-            setNavHeading(heading);
+            setNavHeading(<NavigationHeader examType={examType} isUpdate={false} />);
         }
-    }, []);
+    }, [assessmentId, examType, setNavHeading]);
+
+    // Helper function to get test creation data
+    const getTestCreationData = () => {
+        const savedData = assessmentDetails[currentStep]?.saved_data;
+
+        return {
+            assessmentName: savedData?.name || '',
+            subject: getSubjectNameById(
+                            instituteDetails?.subjects || [],
+                savedData?.subject_selection || ''
+                        ) || '',
+            assessmentInstructions: savedData?.instructions.content || '',
+                    liveDateRange: {
+                startDate: convertDateFormat(savedData?.boundation_start_date || '') || '',
+                endDate: convertDateFormat(savedData?.boundation_end_date || '') || '',
+            },
+        };
+    };
+
+    // Helper function to get assessment preview data
+    const getAssessmentPreviewData = () => {
+        const assessmentPreview = assessmentDetails[currentStep]?.saved_data?.assessment_preview;
+
+        return {
+            checked: (assessmentPreview ?? 0) > 0,
+            previewTimeLimit: assessmentPreview !== undefined
+                ? getTimeLimitString(assessmentPreview ?? 0, timeLimit)
+                : timeLimit[0],
+        };
+    };
+
+    // Helper function to get form reset data
+    const getFormResetData = () => {
+        const savedData = assessmentDetails[currentStep]?.saved_data;
+
+        return {
+            status: assessmentDetails[currentStep]?.status,
+            testCreation: getTestCreationData(),
+            assessmentPreview: getAssessmentPreviewData(),
+            reattemptCount: String(savedData?.reattempt_count) || '1',
+            submissionType: savedData?.submission_type || '',
+            durationDistribution: savedData?.duration_distribution || '',
+            evaluationType: savedData?.evaluation_type || '',
+            switchSections: savedData?.can_switch_section,
+            raiseReattemptRequest: savedData?.reattempt_consent,
+            raiseTimeIncreaseRequest: savedData?.add_time_consent,
+        };
+    };
 
     useEffect(() => {
         if (assessmentId !== 'defaultId') {
-            form.reset({
-                status: assessmentDetails[currentStep]?.status,
-                testCreation: {
-                    assessmentName: assessmentDetails[currentStep]?.saved_data?.name || '',
-                    subject:
-                        getSubjectNameById(
-                            instituteDetails?.subjects || [],
-                            assessmentDetails[currentStep]?.saved_data?.subject_selection || ''
-                        ) || '',
-                    assessmentInstructions:
-                        assessmentDetails[currentStep]?.saved_data?.instructions.content || '',
-                    liveDateRange: {
-                        startDate:
-                            convertDateFormat(
-                                assessmentDetails[currentStep]?.saved_data?.boundation_start_date ||
-                                    ''
-                            ) || '',
-                        endDate:
-                            convertDateFormat(
-                                assessmentDetails[currentStep]?.saved_data?.boundation_end_date ||
-                                    ''
-                            ) || '',
-                    },
-                },
-                assessmentPreview: {
-                    checked:
-                        (assessmentDetails[currentStep]?.saved_data?.assessment_preview ?? 0) > 0
-                            ? true
-                            : false, // Default to false if undefined or 0
-                    previewTimeLimit:
-                        assessmentDetails[currentStep]?.saved_data?.assessment_preview !== undefined
-                            ? getTimeLimitString(
-                                  assessmentDetails[currentStep]?.saved_data?.assessment_preview ??
-                                      0, // Default to 0 if undefined
-                                  timeLimit
-                              )
-                            : timeLimit[0], // Default preview time
-                },
-                reattemptCount:
-                    String(assessmentDetails[currentStep]?.saved_data?.reattempt_count) || '1',
-                submissionType: assessmentDetails[currentStep]?.saved_data?.submission_type || '',
-                durationDistribution:
-                    assessmentDetails[currentStep]?.saved_data?.duration_distribution || '',
-                evaluationType: assessmentDetails[currentStep]?.saved_data?.evaluation_type || '',
-                switchSections: assessmentDetails[currentStep]?.saved_data?.can_switch_section, // Default to false
-                raiseReattemptRequest:
-                    assessmentDetails[currentStep]?.saved_data?.reattempt_consent, // Default to true
-                raiseTimeIncreaseRequest:
-                    assessmentDetails[currentStep]?.saved_data?.add_time_consent, // Default to false
-            });
+            const formData = getFormResetData();
+            form.reset(formData);
         }
     }, [assessmentDetails, currentStep, instituteDetails?.subjects, assessmentId]);
 
@@ -345,7 +720,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                                 }
                                                 required={true}
                                                 size="large"
-                                                label="Assessment Name"
+                                                label={examType === 'SURVEY' ? 'Survey Name' : 'Assessment Name'}
                                                 {...field}
                                             />
                                         </FormControl>
@@ -381,7 +756,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                         )}
                     </div>
                     <div className="flex flex-col gap-6" id="assessment-instructions">
-                        <h1 className="-mb-5 font-thin">Assessment Instructions</h1>
+                        <h1 className="-mb-5 font-thin">{examType === 'SURVEY' ? 'Survey Instructions' : 'Assessment Instructions'}</h1>
                         <FormField
                             control={control}
                             name="testCreation.assessmentInstructions"
@@ -392,7 +767,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                             onChange={field.onChange}
                                             onBlur={field.onBlur}
                                             value={field.value}
-                                            placeholder="Write the assessment instructions"
+                                            placeholder={examType === 'SURVEY' ? 'Write the survey instructions' : 'Write the assessment instructions'}
                                             minHeight={160}
                                         />
                                     </FormControl>
@@ -532,7 +907,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                     assessmentDetails[
                                         currentStep
                                     ]?.field_options?.evaluation_type?.map(
-                                        (distribution, index) => ({
+                                        (distribution: any, index: number) => ({
                                             value: distribution.value,
                                             label: distribution.value,
                                             _id: index,
@@ -563,7 +938,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                         assessmentDetails[
                                             currentStep
                                         ]?.field_options?.submission_type?.map(
-                                            (distribution, index) => ({
+                                            (distribution: any, index: number) => ({
                                                 value: distribution.value,
                                                 label: distribution.value,
                                                 _id: index,
@@ -595,7 +970,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                 render={({ field }) => (
                                     <FormItem className="flex w-1/2 items-center justify-between">
                                         <FormLabel>
-                                            Allow Assessment Preview
+                                            {examType === 'SURVEY' ? 'Allow Survey Preview' : 'Allow Assessment Preview'}
                                             {getStepKey({
                                                 assessmentDetails,
                                                 currentStep,
@@ -616,7 +991,7 @@ const Step1BasicInfo: React.FC<StepContentProps> = ({
                                 )}
                             />
                         )}
-                        {watch('assessmentPreview.checked') && (
+                        {watch('assessmentPreview.checked') && examType !== 'SURVEY' && (
                             <SelectField
                                 label="Preview Time Limit"
                                 labelStyle="font-thin"

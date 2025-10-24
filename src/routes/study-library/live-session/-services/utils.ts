@@ -23,6 +23,7 @@ export interface LiveSession {
     meeting_link: string;
     registration_form_link_for_public_sessions: string;
     allow_rewind?: boolean | null;
+    timezone?: string;
 }
 
 export interface SessionsByDate {
@@ -39,6 +40,7 @@ export interface SessionsByDate {
         subject: string;
         meeting_link: string;
         registration_form_link_for_public_sessions: string;
+        timezone?: string;
     }>;
 }
 
@@ -58,6 +60,7 @@ export interface DraftSession {
     subject: string | null;
     meeting_link: string;
     registration_form_link_for_public_sessions: string | null;
+    timezone?: string;
 }
 
 export type UpcomingSessionDay = SessionsByDate;
@@ -86,6 +89,7 @@ export interface Schedule {
     session_streaming_service_type: string | null;
     schedule_id: string | null;
     meeting_date: string | null;
+    timezone?: string;
     package_session_ids: string[];
     added_schedules: Array<{
         day: string;

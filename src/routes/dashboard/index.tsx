@@ -12,12 +12,9 @@ import {
     Lightning,
     BookOpen,
     Eye,
-    Plus,
 } from 'phosphor-react';
 import { CompletionStatusComponent } from './-components/CompletionStatusComponent';
 import { IntroKey } from '@/constants/storage/introKey';
-import useIntroJsTour from '@/hooks/use-intro';
-import { dashboardSteps } from '@/constants/intro/steps';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import {
@@ -37,13 +34,12 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import { UnresolvedDoubtsWidget } from './-components/UnresolvedDoubtsWidget';
 import LiveClassesWidget from './-components/LiveClassesWidget';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
-import { ContentTerms, RoleTerms, SystemTerms } from '../settings/-components/NamingSettings';
+import { RoleTerms, SystemTerms } from '../settings/-components/NamingSettings';
 
 import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from '@/svgs';
+// import { CreateAssessmentDashboardLogo, DashboardCreateCourse } from '@/svgs';
 import RecentNotificationsWidget from './-components/RecentNotificationsWidget';
 import {
     Dialog as BaseDialog,
@@ -149,7 +145,6 @@ function DashboardPage() {
     return (
         <LayoutContainer>
             <DashboardComponent onOpenAllAlerts={() => setShowAllAlerts(true)} />
-            {showLearnerTab && <LearnerTab onClose={() => setShowLearnerTab(false)} />}
             <BaseDialog open={showAllAlerts} onOpenChange={setShowAllAlerts}>
                 <BaseDialogContent className="max-w-lg p-0">
                     <BaseDialogTitle className="px-4 py-3 text-base">System Alerts</BaseDialogTitle>
@@ -422,39 +417,6 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
         return roleDisplay?.dashboard.widgets.find((w) => w.id === id)?.order ?? 0;
     };
 
-    useIntroJsTour({
-        key: IntroKey.dashboardFirstTimeVisit,
-        steps: dashboardSteps,
-        onTourExit: () => {
-            // Tour completed
-        },
-    });
-
-    const handleAssessmentTypeRoute = (type: string) => {
-        // Track assessment creation initiation
-        amplitudeEvents.createAssessment();
-        trackEvent('Assessment Creation Started', {
-            assessment_type: type,
-            source: 'dashboard',
-            timestamp: new Date().toISOString(),
-        });
-
-        navigate({
-            to: '/assessment/create-assessment/$assessmentId/$examtype',
-            params: {
-                assessmentId: 'defaultId',
-                examtype: type,
-            },
-            search: {
-                currentStep: 0,
-            },
-        });
-    };
-
-    const handleEnrollButtonClick = () => {
-        navigate({ to: '/manage-students/invite' });
-    };
-
     const handleAICenterNavigation = () => {
         // Track AI Center access
         amplitudeEvents.useFeature('ai_center', { source: 'dashboard' });
@@ -524,14 +486,12 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
             <div className="mt-5 flex w-full flex-col gap-4">
                 {/* My Courses Widget - Only for Non-Admin Users */}
                 {!isAdmin && isWidgetVisible('myCourses') && <MyCoursesWidget />}
-
                 {/* Unresolved Doubts Widget */}
                 {(subModules.lms || subModules.assess) &&
                     !showForInstitutes([HOLISTIC_INSTITUTE_ID]) &&
                     isWidgetVisible('unresolvedDoubts') && (
                         <UnresolvedDoubtsWidget instituteId={instituteDetails?.id || ''} />
                     )}
-
                 {/* Admin Only Widgets */}
                 {isAdmin && (
                     <>
@@ -702,100 +662,118 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                             )}
                     </>
                 )}
-
                 {/* Dashboard Action Widgets */}
-                {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
-                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                        {[
-                            {
-                                id: 'enrollLearners' as const,
-                                show: subModules.lms || subModules.assess,
-                                node: <EnrollLearnersWidget />,
-                            },
-                            {
-                                id: 'learningCenter' as const,
-                                show: subModules.lms,
-                                node: <LearningCenterWidget />,
-                            },
-                            {
-                                id: 'assessmentCenter' as const,
-                                show: subModules.assess,
-                                node: (
-                                    <AssessmentCenterWidget
-                                        assessmentCount={assessmentCount?.assessment_count || 0}
-                                        questionPaperCount={
-                                            assessmentCount?.question_paper_count || 0
-                                        }
-                                    />
-                                ),
-                            },
-                        ]
-                            .filter((w) => w.show && isWidgetVisible(w.id))
-                            .sort((a, b) => orderOf(a.id) - orderOf(b.id))
-                            .map((w, i) => (
-                                <div key={i}>{w.node}</div>
-                            ))}
-                    </div>
-                )}
+                {(() => {
+                    const visibleWidgets = [
+                        {
+                            id: 'enrollLearners' as const,
+                            show:
+                                (subModules.lms || subModules.assess) &&
+                                isWidgetVisible('enrollLearners'),
+                            node: (
+                                <EnrollLearnersWidget
+                                    batchCount={data?.batch_count || 0}
+                                    learnerCount={data?.student_count || 0}
+                                />
+                            ),
+                        },
+                        {
+                            id: 'learningCenter' as const,
+                            show: subModules.lms && isWidgetVisible('learningCenter'),
+                            node: (
+                                <LearningCenterWidget
+                                    courseCount={data?.course_count || 0}
+                                    levelCount={data?.level_count || 0}
+                                    subjectCount={data?.subject_count || 0}
+                                />
+                            ),
+                        },
+                        {
+                            id: 'assessmentCenter' as const,
+                            show: subModules.assess && isWidgetVisible('assessmentCenter'),
+                            node: (
+                                <AssessmentCenterWidget
+                                    assessmentCount={assessmentCount?.assessment_count || 0}
+                                    questionPaperCount={assessmentCount?.question_paper_count || 0}
+                                />
+                            ),
+                        },
+                    ].filter((w) => w.show && isWidgetVisible(w.id));
 
+                    const widgetCount = visibleWidgets.length;
+                    const gridClass =
+                        widgetCount === 1
+                            ? 'grid-cols-1'
+                            : widgetCount === 2
+                              ? 'grid-cols-1 lg:grid-cols-2'
+                              : 'grid-cols-1 lg:grid-cols-3';
+
+                    return (
+                        <div className={`grid gap-6 ${gridClass} items-stretch`}>
+                            {visibleWidgets
+                                .sort((a, b) => orderOf(a.id) - orderOf(b.id))
+                                .map((w, i) => (
+                                    <div key={i} className="flex w-full">
+                                        <div className="w-full">{w.node}</div>
+                                    </div>
+                                ))}
+                        </div>
+                    );
+                })()}
                 {/* AI Features Card - Moved to Bottom for All Users */}
-                {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) &&
-                    isWidgetVisible('aiFeaturesCard') && (
-                        <Card
-                            className="grow cursor-pointer bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg transition-all hover:scale-[1.01] hover:shadow-md"
-                            onClick={handleAICenterNavigation}
-                        >
-                            <CardHeader className="p-4 sm:p-5">
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="mb-0.5 flex items-center gap-1.5 text-base font-semibold">
-                                        <Sparkle size={22} weight="fill" />
-                                        Try New AI Features!
-                                    </CardTitle>
-                                    <ArrowSquareOut size={18} className="text-purple-200" />
-                                </div>
-                                <CardDescription className="text-xs text-purple-100">
-                                    Explore cutting-edge AI tools to enhance your teaching
-                                </CardDescription>
-                                <div className="mt-3 flex flex-wrap justify-start gap-2 sm:gap-2.5">
-                                    {[
-                                        { icon: FilePdf, text: 'Questions from PDF' },
-                                        {
-                                            icon: LightbulbFilament,
-                                            text: 'Questions From Lecture Audio',
-                                        },
-                                        {
-                                            icon: LightbulbFilament,
-                                            text: 'Sort Questions Topic wise',
-                                        },
-                                        { icon: LightbulbFilament, text: 'Questions From Image' },
-                                        {
-                                            icon: LightbulbFilament,
-                                            text: 'Get Feedback of Lecture',
-                                        },
-                                        { icon: LightbulbFilament, text: 'Plan Your Lecture' },
-                                    ].map((item, index) => (
-                                        <div
-                                            key={index}
-                                            className="flex h-auto min-h-10 w-32 flex-col items-center justify-center rounded-md border border-purple-300/70 bg-white/10 p-1.5 text-center shadow-sm backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-32"
-                                        >
-                                            <item.icon
-                                                size={18}
-                                                className="mb-0.5 text-purple-200"
-                                            />
-                                            <span className="text-[11px] font-normal leading-tight text-white">
-                                                {item.text}
-                                            </span>
-                                        </div>
-                                    ))}
-                                    <div className="flex h-auto min-h-10 w-32 flex-col items-center justify-center rounded-md border border-purple-300/70 bg-white/10 p-1.5 text-center shadow-sm backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-32">
+                {isWidgetVisible('aiFeaturesCard') && (
+                    <Card
+                        className="grow cursor-pointer bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg transition-all hover:scale-[1.01] hover:shadow-md"
+                        onClick={handleAICenterNavigation}
+                    >
+                        <CardHeader className="p-4 sm:p-5">
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="mb-0.5 flex items-center gap-1.5 text-base font-semibold">
+                                    <Sparkle size={22} weight="fill" />
+                                    Try New AI Features!
+                                </CardTitle>
+                                <ArrowSquareOut size={18} className="text-purple-200" />
+                            </div>
+                            <CardDescription className="text-xs text-purple-100">
+                                Explore cutting-edge AI tools to enhance your teaching
+                            </CardDescription>
+                            <div className="mt-3 flex flex-wrap justify-start gap-2 sm:gap-2.5">
+                                {[
+                                    { icon: FilePdf, text: 'Questions from PDF' },
+                                    {
+                                        icon: LightbulbFilament,
+                                        text: 'Questions From Lecture Audio',
+                                    },
+                                    {
+                                        icon: LightbulbFilament,
+                                        text: 'Sort Questions Topic wise',
+                                    },
+                                    { icon: LightbulbFilament, text: 'Questions From Image' },
+                                    {
+                                        icon: LightbulbFilament,
+                                        text: 'Get Feedback of Lecture',
+                                    },
+                                    { icon: LightbulbFilament, text: 'Plan Your Lecture' },
+                                ].map((item, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex h-auto min-h-10 w-32 flex-col items-center justify-center rounded-md border border-purple-300/70 bg-white/10 p-1.5 text-center shadow-sm backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-32"
+                                    >
+                                        <item.icon size={18} className="mb-0.5 text-purple-200" />
                                         <span className="text-[11px] font-normal leading-tight text-white">
-                                            Many More
+                                            {item.text}
                                         </span>
                                     </div>
+                                ))}
+                                <div className="flex h-auto min-h-10 w-32 flex-col items-center justify-center rounded-md border border-purple-300/70 bg-white/10 p-1.5 text-center shadow-sm backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-32">
+                                    <span className="text-[11px] font-normal leading-tight text-white">
+                                        Many More
+                                    </span>
                                 </div>
-                            </CardHeader>
-                        </Card>
-                    )}
+                            </div>
+                        </CardHeader>
+                    </Card>
+                )}
                 {/* End of AI Features Card */}
                 <div
                     className={`flex flex-col ${subModules.assess ? 'lg:flex-col' : 'lg:flex-row'} gap-4`} // Reduced gap
@@ -834,34 +812,27 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                                                     textCol: 'text-blue-700',
                                                     borderCol: 'border-blue-200',
                                                 },
-                                                ...(!showForInstitutes([HOLISTIC_INSTITUTE_ID])
-                                                    ? [
-                                                          {
-                                                              label: getTerminology(
-                                                                  RoleTerms.CourseCreator,
-                                                                  SystemTerms.CourseCreator
-                                                              ),
-                                                              count: roleTypeCount[
-                                                                  'COURSE CREATOR'
-                                                              ],
-                                                              bg: 'bg-[#E6FCEF]',
-                                                              textCol: 'text-green-700',
-                                                              borderCol: 'border-green-200',
-                                                          },
-                                                          {
-                                                              label: getTerminology(
-                                                                  RoleTerms.AssessmentCreator,
-                                                                  SystemTerms.AssessmentCreator
-                                                              ),
-                                                              count: roleTypeCount[
-                                                                  'ASSESSMENT CREATOR'
-                                                              ],
-                                                              bg: 'bg-[#FCE6E7]',
-                                                              textCol: 'text-red-700',
-                                                              borderCol: 'border-red-200',
-                                                          },
-                                                      ]
-                                                    : []),
+
+                                                {
+                                                    label: getTerminology(
+                                                        RoleTerms.CourseCreator,
+                                                        SystemTerms.CourseCreator
+                                                    ),
+                                                    count: roleTypeCount['COURSE CREATOR'],
+                                                    bg: 'bg-[#E6FCEF]',
+                                                    textCol: 'text-green-700',
+                                                    borderCol: 'border-green-200',
+                                                },
+                                                {
+                                                    label: getTerminology(
+                                                        RoleTerms.AssessmentCreator,
+                                                        SystemTerms.AssessmentCreator
+                                                    ),
+                                                    count: roleTypeCount['ASSESSMENT CREATOR'],
+                                                    bg: 'bg-[#FCE6E7]',
+                                                    textCol: 'text-red-700',
+                                                    borderCol: 'border-red-200',
+                                                },
                                             ].map((role) => (
                                                 <>
                                                     <Badge
@@ -875,328 +846,51 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                                                 </>
                                             ))}
                                         </div>
-                                        {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
-                                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                                                {' '}
-                                                {/* Reduced gap */}
-                                                {[
-                                                    {
-                                                        label: getTerminology(
-                                                            RoleTerms.Teacher,
-                                                            SystemTerms.Teacher
-                                                        ),
-                                                        count: roleTypeCount['TEACHER'],
-                                                        bg: 'bg-[#FCE6E7]',
-                                                        textCol: 'text-red-700',
-                                                        borderCol: 'border-red-200',
-                                                    }, // Example color, adjust as needed
-                                                    {
-                                                        label: getTerminology(
-                                                            RoleTerms.Evaluator,
-                                                            SystemTerms.Evaluator
-                                                        ),
-                                                        count: roleTypeCount.EVALUATOR,
-                                                        bg: 'bg-[#F0E6FC]',
-                                                        textCol: 'text-purple-700',
-                                                        borderCol: 'border-purple-200',
-                                                    },
-                                                ].map((role) => (
-                                                    <>
-                                                        <Badge
-                                                            className={`whitespace-nowrap rounded border px-1.5 py-0.5 text-[11px] font-normal shadow-none ${role.bg} ${role.textCol} ${role.borderCol}`}
-                                                        >
-                                                            {role.label}
-                                                        </Badge>
-                                                        <span className="text-xs font-medium text-primary-500">
-                                                            {role.count}
-                                                        </span>
-                                                    </>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                </CardHeader>
-                            </Card>
-                        )}
-                        {isWidgetVisible('enrollLearners') && (
-                            <Card className="flex-1 grow bg-neutral-50 shadow-none">
-                                <CardHeader className="p-4">
-                                    {' '}
-                                    {/* Reduced padding */}
-                                    <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                        <CardTitle className="text-sm font-semibold sm:mb-0">
-                                            Enroll{' '}
-                                            {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}
-                                        </CardTitle>{' '}
-                                        {/* Smaller title */}
-                                        <MyButton
-                                            type="submit"
-                                            scale="small" // Adjusted scale
-                                            buttonType="secondary"
-                                            id="quick-enrollment"
-                                            layoutVariant="default"
-                                            className="w-full px-3 py-1.5 text-xs sm:w-auto" // Custom class for finer control
-                                            onClick={handleEnrollButtonClick}
-                                        >
-                                            Enroll
-                                        </MyButton>
-                                    </div>
-                                    <CardDescription className="mt-1.5 flex flex-col gap-1 text-xs text-neutral-600 sm:flex-row sm:items-center sm:gap-3">
-                                        {' '}
-                                        {/* Reduced margin, gap, text size */}
-                                        <div
-                                            className="flex cursor-pointer items-center gap-1"
-                                            onClick={() =>
-                                                navigate({ to: '/manage-institute/batches' })
-                                            }
-                                        >
-                                            <div className="flex items-center gap-0.5">
-                                                {' '}
-                                                {/* Reduced gap */}
-                                                <span>Batches</span>
-                                                <ArrowSquareOut size={14} /> {/* Smaller icon */}
-                                            </div>
-                                            <span className="font-medium text-primary-500">
-                                                {data.batch_count}
-                                            </span>
+                                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                            {' '}
+                                            {/* Reduced gap */}
+                                            {[
+                                                {
+                                                    label: getTerminology(
+                                                        RoleTerms.Teacher,
+                                                        SystemTerms.Teacher
+                                                    ),
+                                                    count: roleTypeCount['TEACHER'],
+                                                    bg: 'bg-[#FCE6E7]',
+                                                    textCol: 'text-red-700',
+                                                    borderCol: 'border-red-200',
+                                                }, // Example color, adjust as needed
+                                                {
+                                                    label: getTerminology(
+                                                        RoleTerms.Evaluator,
+                                                        SystemTerms.Evaluator
+                                                    ),
+                                                    count: roleTypeCount.EVALUATOR,
+                                                    bg: 'bg-[#F0E6FC]',
+                                                    textCol: 'text-purple-700',
+                                                    borderCol: 'border-purple-200',
+                                                },
+                                            ].map((role) => (
+                                                <>
+                                                    <Badge
+                                                        className={`whitespace-nowrap rounded border px-1.5 py-0.5 text-[11px] font-normal shadow-none ${role.bg} ${role.textCol} ${role.borderCol}`}
+                                                    >
+                                                        {role.label}
+                                                    </Badge>
+                                                    <span className="text-xs font-medium text-primary-500">
+                                                        {role.count}
+                                                    </span>
+                                                </>
+                                            ))}
                                         </div>
-                                        <div
-                                            className="flex cursor-pointer items-center gap-1"
-                                            onClick={() =>
-                                                navigate({ to: '/manage-students/students-list' })
-                                            }
-                                        >
-                                            <div className="flex items-center gap-0.5">
-                                                <span>
-                                                    {getTerminology(
-                                                        RoleTerms.Learner,
-                                                        SystemTerms.Learner
-                                                    )}
-                                                </span>
-                                                <ArrowSquareOut size={14} /> {/* Smaller icon */}
-                                            </div>
-                                            <span className="font-medium text-primary-500">
-                                                {data.student_count}
-                                            </span>
-                                        </div>
-                                    </CardDescription>
+                                    </div>
                                 </CardHeader>
                             </Card>
                         )}
                     </div>
                     <div className="flex flex-1 flex-col gap-4 md:flex-row">
-                        {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) &&
-                            isWidgetVisible('learningCenter') && (
-                                <Card className="flex-1 bg-neutral-50 shadow-none">
-                                    <CardHeader className="p-4">
-                                        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                            <CardTitle className="text-sm font-semibold sm:mb-0">
-                                                Learning Center
-                                            </CardTitle>
-                                            {/* Smaller title */}
-                                            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-                                                <MyButton
-                                                    type="submit"
-                                                    scale="small" // Adjusted scale
-                                                    id="first-course"
-                                                    buttonType="secondary"
-                                                    layoutVariant="default"
-                                                    className="w-full px-3 py-1.5 text-xs sm:w-auto" // Custom class
-                                                >
-                                                    <Plus size={16} /> {/* Smaller icon */}
-                                                    Create{' '}
-                                                    {getTerminology(
-                                                        ContentTerms.Course,
-                                                        SystemTerms.Course
-                                                    )}
-                                                </MyButton>
-                                                <MyButton
-                                                    type="submit"
-                                                    scale="small" // Adjusted scale
-                                                    id="add-study-slides"
-                                                    buttonType="secondary"
-                                                    layoutVariant="default"
-                                                    className="w-full px-3 py-1.5 text-xs sm:w-auto" // Custom class
-                                                >
-                                                    <Plus size={16} /> {/* Smaller icon */}
-                                                    Add Study{' '}
-                                                    {getTerminology(
-                                                        ContentTerms.Slides,
-                                                        SystemTerms.Slides
-                                                    )}
-                                                </MyButton>
-                                            </div>
-                                        </div>
-                                        <CardDescription className="flex flex-col gap-1 py-2 text-xs text-neutral-600 sm:flex-row sm:items-center sm:gap-3 sm:py-3">
-                                            {' '}
-                                            {/* Reduced padding, gap, text size */}
-                                            <div
-                                                className="flex cursor-pointer items-center gap-1"
-                                                onClick={() =>
-                                                    navigate({ to: '/study-library/courses' })
-                                                }
-                                            >
-                                                <div className="flex items-center gap-0.5">
-                                                    <span>
-                                                        {getTerminology(
-                                                            ContentTerms.Course,
-                                                            SystemTerms.Course
-                                                        )}
-                                                    </span>
-                                                    <ArrowSquareOut size={14} />{' '}
-                                                    {/* Smaller icon */}
-                                                </div>
-                                                <span className="font-medium text-primary-500">
-                                                    {data.course_count}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <span>
-                                                    {getTerminology(
-                                                        ContentTerms.Level,
-                                                        SystemTerms.Level
-                                                    )}
-                                                </span>
-                                                <span className="font-medium text-primary-500">
-                                                    {instituteDetails?.levels?.length}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <span>
-                                                    {getTerminology(
-                                                        ContentTerms.Subjects,
-                                                        SystemTerms.Subjects
-                                                    )}
-                                                </span>
-                                                <span className="font-medium text-primary-500">
-                                                    {instituteDetails?.subjects?.length}
-                                                </span>
-                                            </div>
-                                        </CardDescription>
-                                        <CardDescription className="mt-1 flex justify-center">
-                                            <DashboardCreateCourse className="h-auto w-full max-w-[180px] sm:max-w-[200px]" />
-                                        </CardDescription>
-                                    </CardHeader>
-                                </Card>
-                            )}
-                        {showForInstitutes([HOLISTIC_INSTITUTE_ID]) &&
-                            isWidgetVisible('liveClasses') && (
-                                <LiveClassesWidget instituteId={instituteDetails?.id || ''} />
-                            )}
-                        {subModules.assess && isWidgetVisible('assessmentCenter') && (
-                            <Card className="flex-1 grow bg-neutral-50 shadow-none">
-                                <CardHeader className="p-4">
-                                    {' '}
-                                    {/* Reduced padding */}
-                                    <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                        <CardTitle className="text-sm font-semibold sm:mb-0">
-                                            Assessment
-                                        </CardTitle>{' '}
-                                        {/* Smaller title */}
-                                        <Dialog>
-                                            <DialogTrigger asChild>
-                                                <MyButton
-                                                    type="button"
-                                                    scale="small" // Adjusted scale
-                                                    id="first-assessment"
-                                                    buttonType="secondary"
-                                                    layoutVariant="default"
-                                                    className="w-full px-3 py-1.5 text-xs sm:w-auto" // Custom class
-                                                >
-                                                    <Plus size={16} /> {/* Smaller icon */}
-                                                    Create
-                                                </MyButton>
-                                            </DialogTrigger>
-                                            <DialogContent className="max-w-xs p-0 sm:max-w-sm">
-                                                {' '}
-                                                {/* Compact dialog */}
-                                                <h1 className="rounded-t-md bg-neutral-50 p-3 text-base font-medium text-primary-500">
-                                                    {' '}
-                                                    {/* Adjusted padding */}
-                                                    Create Assessment
-                                                </h1>
-                                                <div className="flex flex-col items-center justify-center gap-3 p-4 sm:gap-4">
-                                                    {' '}
-                                                    {/* Adjusted padding and gap */}
-                                                    {['EXAM', 'MOCK', 'PRACTICE', 'SURVEY'].map(
-                                                        (type) => (
-                                                            <MyButton
-                                                                key={type}
-                                                                type="button"
-                                                                scale="medium" // Medium is okay for dialog choices
-                                                                buttonType="secondary"
-                                                                className="w-full text-sm font-medium sm:w-auto"
-                                                                onClick={() =>
-                                                                    handleAssessmentTypeRoute(type)
-                                                                }
-                                                            >
-                                                                {type.charAt(0) +
-                                                                    type.slice(1).toLowerCase()}
-                                                            </MyButton>
-                                                        )
-                                                    )}
-                                                </div>
-                                            </DialogContent>
-                                        </Dialog>
-                                    </div>
-                                    <CardDescription className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-xs text-neutral-600 sm:py-3">
-                                        {' '}
-                                        {/* Reduced padding, gap, text size */}
-                                        {[
-                                            {
-                                                label: 'Live',
-                                                count: assessmentCount?.live_count,
-                                                tab: 'liveTests',
-                                            },
-                                            {
-                                                label: 'Upcoming',
-                                                count: assessmentCount?.upcoming_count,
-                                                tab: 'upcomingTests',
-                                            },
-                                            {
-                                                label: 'Previous',
-                                                count: assessmentCount?.previous_count,
-                                                tab: 'previousTests',
-                                            },
-                                            {
-                                                label: 'Drafts',
-                                                count: assessmentCount?.draft_count,
-                                                tab: 'draftTests',
-                                            },
-                                        ].map((item) => (
-                                            <div
-                                                key={item.tab}
-                                                className="flex cursor-pointer items-center gap-1"
-                                                onClick={() =>
-                                                    navigate({
-                                                        to: '/assessment/assessment-list',
-                                                        search: { selectedTab: item.tab },
-                                                    })
-                                                }
-                                            >
-                                                <div className="flex items-center gap-0.5">
-                                                    {' '}
-                                                    {/* Reduced gap */}
-                                                    <span>{item.label}</span>
-                                                    <ArrowSquareOut size={14} />{' '}
-                                                    {/* Smaller icon */}
-                                                </div>
-                                                <span className="font-medium text-primary-500">
-                                                    {item.count}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </CardDescription>
-                                    <CardDescription className="mt-1 flex items-center justify-center">
-                                        {' '}
-                                        {/* Reduced margin */}
-                                        <CreateAssessmentDashboardLogo
-                                            className="mt-2 h-auto w-full max-w-[160px] text-primary-500 sm:max-w-[180px]" // Smaller SVG, applied primary color via text
-                                            fill="currentColor" // Use currentColor to inherit text color
-                                        />
-                                    </CardDescription>
-                                </CardHeader>
-                            </Card>
+                        {isWidgetVisible('liveClasses') && (
+                            <LiveClassesWidget instituteId={instituteDetails?.id || ''} />
                         )}
                     </div>
                 </div>

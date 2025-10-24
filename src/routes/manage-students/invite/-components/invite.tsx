@@ -1,4 +1,3 @@
-import { InviteForm } from '../-schema/InviteFormSchema';
 import { EmptyInvitePage } from '@/assets/svgs';
 import { InviteCardMenuOptions } from './InviteCardMenuOptions';
 import { MyPagination } from '@/components/design-system/pagination';
@@ -22,10 +21,6 @@ export const Invite = () => {
         isLoading,
         isError,
     } = useSuspenseQuery(handleFetchInviteLinks([], page, pageSize));
-
-    const onEditInvite = (updatedInvite: InviteForm) => {
-        console.log(updatedInvite);
-    };
 
     return (
         <div className="flex w-full flex-col gap-10">
@@ -52,7 +47,7 @@ export const Invite = () => {
                             >
                                 <div className="flex items-center justify-between">
                                     <p className="text-title font-semibold">{obj.name}</p>
-                                    <InviteCardMenuOptions invite={obj} onEdit={onEditInvite} />
+                                    <InviteCardMenuOptions invite={obj} />
                                 </div>
                                 <div className="flex items-center gap-12 text-body font-regular">
                                     <p>Created on: {getDateFromUTCString(obj.created_at)}</p>

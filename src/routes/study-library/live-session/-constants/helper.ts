@@ -40,6 +40,7 @@ export interface LiveSessionStep1RequestDTO {
     is_live?: boolean;
     session_streaming_service_type?: string;
     cover_file_id?: string | null;
+    time_zone?: string;
 }
 
 interface ScheduleDTO {
@@ -59,6 +60,7 @@ export interface LiveSessionStep2RequestDTO {
 
     package_session_ids: string[];
     deleted_package_session_ids: string[];
+    individual_user_ids?: string[];
 
     join_link: string;
 
@@ -131,6 +133,7 @@ export function transformFormToDTOStep1(
         sessionPlatform,
         allowRewind,
         allowPause,
+        timeZone,
     } = form;
 
     // Convert hours and minutes to total duration in hours
@@ -225,6 +228,7 @@ export function transformFormToDTOStep1(
         allow_play_pause: allowPause,
         session_streaming_service_type: streamingType,
         cover_file_id: coverFileId,
+        time_zone: timeZone,
     };
 }
 
@@ -235,7 +239,15 @@ export function transformFormToDTOStep2(
     sessionId: string,
     packageSessionIds: string[]
 ): LiveSessionStep2RequestDTO {
-    const { accessType, joinLink, notifyBy, notifySettings, fields } = formData;
+    const {
+        accessType,
+        joinLink,
+        notifyBy,
+        notifySettings,
+        fields,
+        selectedLearners,
+        batchSelectionType,
+    } = formData;
 
     const addedNotificationActions: NotificationActionDTO[] = [];
 
@@ -304,10 +316,10 @@ export function transformFormToDTOStep2(
         }
     );
 
-    return {
+    const result: LiveSessionStep2RequestDTO = {
         session_id: sessionId,
         access_type: accessType,
-        package_session_ids: packageSessionIds,
+        package_session_ids: batchSelectionType === 'batch' ? packageSessionIds : [],
         deleted_package_session_ids: [],
         join_link: joinLink,
         added_notification_actions: addedNotificationActions,
@@ -317,4 +329,11 @@ export function transformFormToDTOStep2(
         updated_fields: update_fields,
         deleted_field_ids: [],
     };
+
+    // Add individual user IDs if individual selection is used
+    if (batchSelectionType === 'individual' && selectedLearners) {
+        result.individual_user_ids = selectedLearners;
+    }
+
+    return result;
 }

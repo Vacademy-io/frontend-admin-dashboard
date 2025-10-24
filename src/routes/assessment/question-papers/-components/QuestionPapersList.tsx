@@ -44,6 +44,7 @@ export const QuestionPapersList = ({
     isStudyLibraryAssignment,
     currentQuestionIndex,
     setCurrentQuestionIndex,
+    examType,
 }: {
     questionPaperList: PaginatedResponse;
     pageNo: number;
@@ -56,6 +57,7 @@ export const QuestionPapersList = ({
     isStudyLibraryAssignment?: boolean;
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
+    examType?: string;
 }) => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
@@ -149,18 +151,25 @@ export const QuestionPapersList = ({
         const id = questionsData.id;
 
         if (sectionsForm && index !== undefined) {
+            const currentSection = sectionsForm.getValues(`section.${index}`);
+            const subjectName = getSubjectNameById(
+                instituteDetails?.subjects || [],
+                questionsData.subject_id
+            );
+
+            const newSectionName = currentSection.sectionName &&
+                           currentSection.sectionName !== 'N/A' &&
+                           currentSection.sectionName !== '' &&
+                           !currentSection.sectionName.startsWith('Section ')
+                    ? currentSection.sectionName
+                    : ((subjectName && subjectName !== 'N/A') ? subjectName : currentSection.sectionName) || `Section ${index + 1}`;
+
             sectionsForm.setValue(`section.${index}`, {
-                ...sectionsForm.getValues(`section.${index}`),
+                ...currentSection,
                 questionPaperTitle: questionsData.title,
-                subject: getSubjectNameById(
-                    instituteDetails?.subjects || [],
-                    questionsData.subject_id
-                ),
+                subject: subjectName,
                 yearClass: getLevelNameById(instituteDetails?.levels || [], questionsData.level_id),
-                sectionName: getSubjectNameById(
-                    instituteDetails?.subjects || [],
-                    questionsData.subject_id
-                ),
+                sectionName: newSectionName,
                 uploaded_question_paper: id,
             });
         }
@@ -222,6 +231,7 @@ export const QuestionPapersList = ({
                                             refetchData={refetchData}
                                             currentQuestionIndex={currentQuestionIndex}
                                             setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                            examType={examType}
                                         />
                                         <DropdownMenuItem
                                             onClick={() =>

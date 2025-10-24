@@ -1,11 +1,20 @@
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { MyButton } from '@/components/design-system/button';
+import { Badge } from '@/components/ui/badge';
 import { Plus, Users, UserPlus } from 'phosphor-react';
 import { useNavigate } from '@tanstack/react-router';
 import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 
-export default function EnrollLearnersWidget() {
+interface EnrollLearnersWidgetProps {
+    batchCount?: number;
+    learnerCount?: number;
+}
+
+export default function EnrollLearnersWidget({
+    batchCount = 0,
+    learnerCount = 0,
+}: EnrollLearnersWidgetProps) {
     const navigate = useNavigate();
 
     const handleInviteStudents = () => {
@@ -21,26 +30,36 @@ export default function EnrollLearnersWidget() {
     };
 
     return (
-        <Card className="grow bg-neutral-50 shadow-none">
+        <Card className="flex h-full grow flex-col bg-neutral-50 shadow-none">
             <CardHeader className="p-4">
-                <div className="flex items-center gap-2">
-                    <UserPlus size={18} className="text-primary-500" weight="duotone" />
-                    <div>
-                        <CardTitle className="text-sm font-semibold">
-                            Enroll {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}s
-                        </CardTitle>
-                        <CardDescription className="mt-1 text-xs text-neutral-600">
-                            Manage{' '}
-                            {getTerminology(
-                                RoleTerms.Learner,
-                                SystemTerms.Learner
-                            ).toLocaleLowerCase()}{' '}
-                            enrollment and invitations
-                        </CardDescription>
+                <div className="flex flex-col items-start justify-between gap-y-2">
+                    <div className="flex items-center gap-2">
+                        <UserPlus size={18} className="text-primary-500" weight="duotone" />
+                        <div>
+                            <CardTitle className="text-sm font-semibold">
+                                Enroll {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}s
+                            </CardTitle>
+                            <CardDescription className="mt-1 text-xs text-neutral-600">
+                                Manage{' '}
+                                {getTerminology(
+                                    RoleTerms.Learner,
+                                    SystemTerms.Learner
+                                ).toLocaleLowerCase()}{' '}
+                                enrollment and invitations
+                            </CardDescription>
+                        </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        <Badge variant="secondary" className="text-xs">
+                            {learnerCount} {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}s
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs">
+                            {batchCount} Batches
+                        </Badge>
                     </div>
                 </div>
             </CardHeader>
-            <div className="space-y-3 px-4 pb-4">
+            <div className="flex-1 space-y-3 px-4 pb-4">
                 <div className="grid grid-cols-1 gap-3">
                     <MyButton
                         type="button"

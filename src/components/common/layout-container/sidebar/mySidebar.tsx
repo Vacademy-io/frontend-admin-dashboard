@@ -174,29 +174,31 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     return (
         <Sidebar collapsible="icon" className="z-20">
             <SidebarContent
-                className={`sidebar-content flex flex-col gap-4 border-r border-r-neutral-300 bg-primary-50 py-10 ${
+                className={`sidebar-content flex flex-col gap-2 border-r border-r-neutral-300 bg-primary-50 py-6 ${
                     state == 'expanded' ? 'w-[307px]' : 'w-28'
                 }`}
             >
-                <SidebarHeader className="">
+                <SidebarHeader className="px-3 py-1">
                     <div
-                        className={`flex cursor-pointer items-center justify-center gap-2 ${
-                            state == 'expanded' ? 'pl-4' : 'pl-0'
-                        }`}
+                        className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded p-1 transition-colors"
                         onClick={() => navigate({ to: '/dashboard' })}
                     >
                         {instituteLogo !== '' && (
-                            <img src={instituteLogo} alt="logo" className="size-12 rounded-full" />
+                            <img
+                                src={instituteLogo}
+                                alt="logo"
+                                className="h-12 w-auto max-w-[100px] object-cover rounded-full"
+                            />
                         )}
                         <SidebarGroup
-                            className={`text-[18px] font-semibold text-primary-500 group-data-[collapsible=icon]:hidden`}
+                            className={`text-center text-lg font-semibold leading-tight text-primary-500 group-data-[collapsible=icon]:hidden`}
                         >
                             {data?.institute_name}
                         </SidebarGroup>
                     </div>
                 </SidebarHeader>
                 <SidebarMenu
-                    className={`flex shrink-0 flex-col justify-center gap-2 py-4 ${
+                    className={`flex shrink-0 flex-col gap-2 px-1 py-4 ${
                         state == 'expanded' ? 'items-stretch' : 'items-center'
                     }`}
                 >
@@ -216,8 +218,8 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                 {roleDisplay?.ui?.showSupportButton !== false && (
                     <div
                         className={cn(
-                            'mt-auto flex items-center justify-center',
-                            state === 'collapsed' ? 'mx-auto px-1' : 'px-1'
+                            'mt-auto flex items-center justify-center px-1 py-2',
+                            state === 'collapsed' ? 'mx-auto' : ''
                         )}
                     >
                         {!currentRoute.includes('slides') && <SupportOptions />}

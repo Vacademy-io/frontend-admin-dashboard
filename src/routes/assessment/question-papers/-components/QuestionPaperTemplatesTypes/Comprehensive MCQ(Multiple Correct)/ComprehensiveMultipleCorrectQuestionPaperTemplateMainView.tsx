@@ -18,20 +18,22 @@ const OptionField = ({
     currentQuestionIndex,
     control,
     optionsType,
-    isSelected
+    isSelected,
+    examType
 }: {
     optionIndex: number;
     currentQuestionIndex: number;
     control: any;
     optionsType: string;
     isSelected: boolean;
+    examType?: string;
 }) => {
     const optionLabel = optionsType ? formatStructure(optionsType, String.fromCharCode(97 + optionIndex)) : `(${String.fromCharCode(97 + optionIndex)}.)`;
 
     return (
         <div
             className={`flex w-1/2 items-center justify-between gap-4 rounded-md bg-neutral-100 p-4 ${
-                isSelected ? 'border border-primary-300 bg-primary-50' : ''
+                isSelected && examType !== 'SURVEY' ? 'border border-primary-300 bg-primary-50' : ''
             }`}
         >
             <div className="flex w-full items-center gap-4">
@@ -56,28 +58,30 @@ const OptionField = ({
                     )}
                 />
             </div>
-            <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
-                <FormField
-                    control={control}
-                    name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${optionIndex}.isSelected`}
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormControl>
-                                <Checkbox
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                    className={`mt-1 size-5 border-2 shadow-none ${
-                                        field.value
-                                            ? 'border-none bg-green-500 text-white'
-                                            : ''
-                                    }`}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-            </div>
+            {examType !== 'SURVEY' && (
+                <div className="flex size-10 items-center justify-center rounded-full bg-white px-4">
+                    <FormField
+                        control={control}
+                        name={`questions.${currentQuestionIndex}.cmultipleChoiceOptions.${optionIndex}.isSelected`}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormControl>
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        className={`mt-1 size-5 border-2 shadow-none ${
+                                            field.value
+                                                ? 'border-none bg-green-500 text-white'
+                                                : ''
+                                        }`}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+            )}
         </div>
     );
 };
@@ -87,7 +91,13 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
     currentQuestionIndex,
     className,
     showQuestionNumber = true,
+    examType,
 }: QuestionPaperTemplateFormProps) => {
+    console.log('🎯 ComprehensiveMultipleCorrectQuestionPaperTemplateMainView rendered', {
+        examType,
+        currentQuestionIndex,
+        isSurvey: examType === 'SURVEY'
+    });
     const { control, getValues } = form;
 
     const answersType = getValues('answersType') || 'Answer:';
@@ -221,6 +231,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                         control={control}
                         optionsType={optionsType}
                         isSelected={option1?.isSelected ?? false}
+                        examType={examType}
                     />
                     <OptionField
                         optionIndex={1}
@@ -228,6 +239,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                         control={control}
                         optionsType={optionsType}
                         isSelected={option2?.isSelected ?? false}
+                        examType={examType}
                     />
                 </div>
                 <div className="flex gap-4">
@@ -237,6 +249,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                         control={control}
                         optionsType={optionsType}
                         isSelected={option3?.isSelected ?? false}
+                        examType={examType}
                     />
                     <OptionField
                         optionIndex={3}
@@ -244,6 +257,7 @@ export const ComprehensiveMultipleCorrectQuestionPaperTemplateMainView = ({
                         control={control}
                         optionsType={optionsType}
                         isSelected={option4?.isSelected ?? false}
+                        examType={examType}
                     />
                 </div>
             </div>

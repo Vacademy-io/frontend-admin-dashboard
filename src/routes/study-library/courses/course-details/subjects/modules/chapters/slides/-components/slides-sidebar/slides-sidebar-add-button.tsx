@@ -1,6 +1,7 @@
 'use client';
 
 import { MyButton } from '@/components/design-system/button';
+import { Lightning } from '@phosphor-icons/react';
 import { MyDropdown } from '@/components/design-system/dropdown';
 import { useSidebar } from '@/components/ui/sidebar';
 import {
@@ -149,6 +150,12 @@ export const ChapterSidebarAddButton = () => {
     const dropdownList = useMemo(
         () => [
             {
+                label: 'Quick Add (Bulk)',
+                value: 'quick-add',
+                icon: <Plus className="size-4 text-primary-500" />,
+                description: 'Bulk upload & add multiple slides',
+            },
+            {
                 label: 'PDF Document',
                 value: 'pdf',
                 icon: <FilePdf className="size-4 text-red-500" />,
@@ -286,6 +293,30 @@ export const ChapterSidebarAddButton = () => {
 
     const handleSelect = async (value: string) => {
         switch (value) {
+            case 'quick-add': {
+                const s = route.state.location.search as Record<string, unknown>;
+                const search = {
+                    courseId: String(s.courseId || ''),
+                    levelId: String(s.levelId || ''),
+                    subjectId: String(s.subjectId || ''),
+                    moduleId: String(s.moduleId || ''),
+                    chapterId: String(s.chapterId || ''),
+                    slideId: String(s.slideId || ''),
+                    sessionId: String(s.sessionId || ''),
+                    ...(typeof s.timestamp === 'number'
+                        ? { timestamp: s.timestamp as number }
+                        : {}),
+                    ...(typeof s.currentPage === 'number'
+                        ? { currentPage: s.currentPage as number }
+                        : {}),
+                    quickAdd: true,
+                };
+                route.navigate({
+                    to: '/study-library/courses/course-details/subjects/modules/chapters/slides',
+                    search,
+                });
+                break;
+            }
             case 'pdf':
                 openPdfDialog();
                 break;
@@ -589,41 +620,79 @@ export const ChapterSidebarAddButton = () => {
 
     return (
         <div className="w-full px-1 duration-500 animate-in fade-in slide-in-from-top-2">
-            <MyDropdown dropdownList={filteredDropdownList} onSelect={handleSelect}>
-                <MyButton
-                    buttonType="primary"
-                    scale="medium"
-                    className={`
-                        group relative h-9 w-full
-                        overflow-hidden border-0 bg-gradient-to-r
-                        from-primary-400 to-primary-400
-                        shadow-md shadow-primary-500/20
-                        transition-all duration-300 ease-in-out
-                        hover:scale-[1.01] hover:from-primary-400
-                        hover:to-primary-400 hover:shadow-lg
-                        hover:shadow-primary-500/25 active:scale-[0.99]
-                        ${open ? 'px-3' : 'px-2.5'}
-                    `}
-                    id="add-slides"
-                >
-                    <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transition-transform duration-700 ease-out group-hover:translate-x-full" />
-
-                    <div className="relative z-10 flex items-center justify-center gap-1.5">
-                        <Plus
+            <div className="flex w-full items-center gap-2">
+                <div className="flex-1">
+                    <MyDropdown dropdownList={filteredDropdownList} onSelect={handleSelect}>
+                        <MyButton
+                            buttonType="primary"
+                            scale="medium"
                             className={`
-                            transition-all duration-300 ease-in-out
-                            group-hover:rotate-90 group-hover:scale-110
-                            ${open ? 'size-4' : 'size-3.5'}
-                        `}
-                        />
-                        {open && (
-                            <span className="text-sm font-medium tracking-wide duration-300 animate-in slide-in-from-left-2">
-                                Add Slide
-                            </span>
-                        )}
-                    </div>
-                </MyButton>
-            </MyDropdown>
+                                group relative h-9 w-full
+                                overflow-hidden border-0 bg-gradient-to-r
+                                from-primary-400 to-primary-400
+                                shadow-md shadow-primary-500/20
+                                transition-all duration-300 ease-in-out
+                                hover:scale-[1.01] hover:from-primary-400
+                                hover:to-primary-400 hover:shadow-lg
+                                hover:shadow-primary-500/25 active:scale-[0.99]
+                                ${open ? 'px-3' : 'px-2.5'}
+                            `}
+                            id="add-slides"
+                        >
+                            <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 transition-transform duration-700 ease-out group-hover:translate-x-full" />
+
+                            <div className="relative z-10 flex items-center justify-center gap-1.5">
+                                <Plus
+                                    className={`
+                                    transition-all duration-300 ease-in-out
+                                    group-hover:rotate-90 group-hover:scale-110
+                                    ${open ? 'size-4' : 'size-3.5'}
+                                `}
+                                />
+                                {open && (
+                                    <span className="text-sm font-medium tracking-wide duration-300 animate-in slide-in-from-left-2">
+                                        Add Slide
+                                    </span>
+                                )}
+                            </div>
+                        </MyButton>
+                    </MyDropdown>
+                </div>
+                <div>
+                    <MyButton
+                        buttonType="primary"
+                        scale="medium"
+                        className={`flex items-center justify-center gap-1.5 ${open ? 'px-3' : 'px-2.5'}`}
+                        onClick={() => {
+                            const s = route.state.location.search as Record<string, unknown>;
+                            const search = {
+                                courseId: String(s.courseId || ''),
+                                levelId: String(s.levelId || ''),
+                                subjectId: String(s.subjectId || ''),
+                                moduleId: String(s.moduleId || ''),
+                                chapterId: String(s.chapterId || ''),
+                                slideId: String(s.slideId || ''),
+                                sessionId: String(s.sessionId || ''),
+                                ...(typeof s.timestamp === 'number'
+                                    ? { timestamp: s.timestamp as number }
+                                    : {}),
+                                ...(typeof s.currentPage === 'number'
+                                    ? { currentPage: s.currentPage as number }
+                                    : {}),
+                                quickAdd: true,
+                            };
+                            route.navigate({
+                                to: '/study-library/courses/course-details/subjects/modules/chapters/slides',
+                                search,
+                            });
+                        }}
+                        id="quick-add-fast"
+                    >
+                        <Lightning className="size-4" />
+                        {open && <span className="text-sm font-medium">Quick Add</span>}
+                    </MyButton>
+                </div>
+            </div>
 
             {/* Enhanced Dialog Components with consistent styling */}
             <MyDialog

@@ -25,6 +25,8 @@ interface CoursePreviewCardProps {
     courseMediaRef: React.RefObject<HTMLInputElement>;
     handleFileUpload: (file: File, field: 'coursePreview' | 'courseBanner' | 'courseMedia') => void;
     extractYouTubeVideoId: (url: string) => string | null;
+    isBundle?: boolean;
+    totalBatches?: number;
 }
 
 const CoursePreviewCard = ({
@@ -39,6 +41,8 @@ const CoursePreviewCard = ({
     courseMediaRef,
     handleFileUpload,
     extractYouTubeVideoId,
+    isBundle = false,
+    totalBatches = 1,
 }: CoursePreviewCardProps) => {
     return (
         <Card className="pb-4">
@@ -46,6 +50,11 @@ const CoursePreviewCard = ({
                 <CardTitle className="flex items-center gap-2 text-2xl font-bold">
                     <PencilSimpleLine size={22} />
                     <span>Course Preview</span>
+                    {isBundle && (
+                        <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-700">
+                            Bundle ({totalBatches} batches)
+                        </Badge>
+                    )}
                 </CardTitle>
             </CardHeader>
             <CardContent>

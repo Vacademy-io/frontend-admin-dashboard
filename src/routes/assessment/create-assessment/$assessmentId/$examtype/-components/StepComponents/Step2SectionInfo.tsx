@@ -1,7 +1,7 @@
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import React, { MutableRefObject, useEffect, useState } from 'react';
 import { useFieldArray, UseFormReturn } from 'react-hook-form';
-import { PencilSimpleLine, TrashSimple, X } from 'phosphor-react';
+import { PencilSimpleLine, TrashSimple, X, Check } from 'phosphor-react';
 import {
     AlertDialog,
     AlertDialogCancel,
@@ -11,7 +11,7 @@ import {
 import useDialogStore from '@/routes/assessment/question-papers/-global-states/question-paper-dialogue-close';
 import { MyButton } from '@/components/design-system/button';
 import { QuestionPaperUpload } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { QuestionPapersTabs } from '@/routes/assessment/question-papers/-components/QuestionPapersTabs';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
@@ -53,7 +53,34 @@ export const Step2SectionInfo = ({
     oldData: MutableRefObject<SectionFormType>;
 }) => {
     const { assessmentId, examtype } = Route.useParams();
-    const [enableSectionName, setEnableSectionName] = useState(true);
+    const [enableSectionName, setEnableSectionName] = useState(false);
+    const [isInputFocused, setIsInputFocused] = useState(false);
+    const [originalSectionName, setOriginalSectionName] = useState<string>('');
+    const sectionNameInputRef = React.useRef<HTMLInputElement>(null);
+
+
+    // Auto-focus input when edit mode is enabled
+    useEffect(() => {
+        if (enableSectionName && sectionNameInputRef.current) {
+            sectionNameInputRef.current.focus();
+            sectionNameInputRef.current.select();
+        }
+    }, [enableSectionName, index]);
+
+    // Store original section name when editing starts
+    useEffect(() => {
+        if (enableSectionName) {
+            const currentValue = form.getValues(`section.${index}.sectionName`);
+            setOriginalSectionName(currentValue || '');
+        }
+    }, [enableSectionName, form, index]);
+
+    // Reset focus state when edit mode is disabled
+    useEffect(() => {
+        if (!enableSectionName) {
+            setIsInputFocused(false);
+        }
+    }, [enableSectionName]);
     const { instituteDetails } = useInstituteDetailsStore();
     const { savedAssessmentId } = useSavedAssessmentStore();
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -91,6 +118,19 @@ export const Step2SectionInfo = ({
         e.stopPropagation();
         remove(index);
     };
+
+    // Safety check to ensure section name is never empty or undefined
+    useEffect(() => {
+        const currentSectionName = getValues(`section.${index}.sectionName`);
+
+        if (
+            !currentSectionName ||
+            currentSectionName === 'N/A' ||
+            currentSectionName.trim() === ''
+        ) {
+            setValue(`section.${index}.sectionName`, `Section ${index + 1}`);
+        }
+    }, [getValues, setValue, index]);
 
     useEffect(() => {
         const marksPerQuestion = getValues(`section.${index}`).marks_per_question;
@@ -177,10 +217,40 @@ export const Step2SectionInfo = ({
 
     return (
         <AccordionItem value={`section-${index}`} key={index}>
-            <AccordionTrigger className="flex items-center justify-between" id="section-details">
+            <AccordionTrigger
+                className="flex items-center justify-between"
+                id="section-details"
+                onKeyDown={(e) => {
+                    // Prevent accordion toggle when section name editing is enabled or input is focused
+                    if (enableSectionName || isInputFocused) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+                    return true;
+                }}
+                onKeyUp={(e) => {
+                    // Prevent accordion toggle when section name editing is enabled or input is focused
+                    if (enableSectionName || isInputFocused) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+                    return true;
+                }}
+                onClick={(e) => {
+                    // Prevent accordion toggle when section name editing is enabled or input is focused
+                    if (enableSectionName || isInputFocused) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+                    return true;
+                }}
+            >
                 <div className="flex w-full items-center justify-between">
                     {allSections?.[index] ? (
-                        <div className="flex items-center justify-start text-primary-500">
+                        <div className="flex items-center justify-start gap-2 text-primary-500">
                             <FormField
                                 control={control}
                                 name={`section.${index}.sectionName`}
@@ -194,13 +264,85 @@ export const Step2SectionInfo = ({
                                                 onChangeFunction={field.onChange}
                                                 size="large"
                                                 {...field}
+                                                ref={sectionNameInputRef}
                                                 className="!ml-0 w-20 border-none !pl-0 text-primary-500"
-                                                disabled={enableSectionName}
+                                                disabled={!enableSectionName}
+                                                onClick={(e) => {
+                                                    // Prevent accordion toggle when clicking on input
+                                                    e.stopPropagation();
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    // Handle Enter key to save and exit edit mode
+                                                    if (e.key === 'Enter' && enableSectionName) {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+
+                                                        // Save the changes and exit edit mode
+                                                        setEnableSectionName(false);
+                                                        form.trigger(`section.${index}.sectionName`);
+                                                        return;
+                                                    }
+
+                                                    // Handle Escape key to cancel editing
+                                                    if (e.key === 'Escape' && enableSectionName) {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+
+                                                        // Cancel editing and restore original value
+                                                        setEnableSectionName(false);
+                                                        form.setValue(`section.${index}.sectionName`, originalSectionName);
+                                                        return;
+                                                    }
+
+                                                    // Prevent accordion toggle when typing in the input field
+                                                    if (enableSectionName) {
+                                                        e.stopPropagation();
+                                                    }
+                                                }}
+                                                onKeyUp={(e) => {
+                                                    // Prevent accordion toggle when typing in the input field
+                                                    if (enableSectionName) {
+                                                        e.stopPropagation();
+                                                    }
+                                                }}
+                                                onKeyPress={(e) => {
+                                                    // Prevent accordion toggle when typing in the input field
+                                                    if (enableSectionName) {
+                                                        e.stopPropagation();
+                                                    }
+                                                }}
+                                                onFocus={(e) => {
+                                                    setIsInputFocused(true);
+                                                }}
+                                                onBlur={(e) => {
+                                                    setIsInputFocused(false);
+                                                }}
                                             />
                                         </FormControl>
                                     </FormItem>
                                 )}
                             />
+                            {enableSectionName ? (
+                                <Check
+                                    size={16}
+                                    className="text-primary-600 hover:text-primary-700 cursor-pointer transition-colors"
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Prevent accordion toggle
+                                        setEnableSectionName(false);
+                                        // Trigger form validation to save the changes
+                                        form.trigger(`section.${index}.sectionName`);
+                                    }}
+                                />
+                            ) : (
+                                <PencilSimpleLine
+                                    size={16}
+                                    className="hover:text-primary-600 cursor-pointer text-neutral-600 transition-colors"
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Prevent accordion toggle
+                                        setEnableSectionName(true);
+                                    }}
+                                />
+                            )}
                             {allSections?.[index]!.adaptive_marking_for_each_question.length >
                                 0 && (
                                 <span className="font-thin !text-neutral-600">
@@ -227,33 +369,79 @@ export const Step2SectionInfo = ({
                             )}
                         </div>
                     ) : (
-                        <FormField
-                            control={control}
-                            name={`section.${index}.sectionName`}
-                            render={({ field: { ...field } }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <MyInput
-                                            inputType="text"
-                                            inputPlaceholder="00"
-                                            input={field.value}
-                                            onChangeFunction={field.onChange}
-                                            size="large"
-                                            {...field}
-                                            className="!ml-0 w-20 border-none !pl-0 text-primary-500"
-                                            disabled={enableSectionName}
-                                        />
-                                    </FormControl>
-                                </FormItem>
+                        <div className="flex items-center justify-start gap-2 text-primary-500">
+                            <FormField
+                                control={control}
+                                name={`section.${index}.sectionName`}
+                                render={({ field: { ...field } }) => (
+                                    <FormItem>
+                                        <FormControl>
+                                            <MyInput
+                                                inputType="text"
+                                                inputPlaceholder="00"
+                                                input={field.value}
+                                                onChangeFunction={field.onChange}
+                                                size="large"
+                                                {...field}
+                                                className="!ml-0 w-20 border-none !pl-0 text-primary-500"
+                                                disabled={!enableSectionName}
+                                                onClick={(e) => {
+                                                    // Prevent accordion toggle when clicking on input
+                                                    e.stopPropagation();
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    // Prevent accordion toggle when typing in the input field
+                                                    if (enableSectionName) {
+                                                        e.stopPropagation();
+                                                    }
+                                                }}
+                                                onKeyUp={(e) => {
+                                                    // Prevent accordion toggle when typing in the input field
+                                                    if (enableSectionName) {
+                                                        e.stopPropagation();
+                                                    }
+                                                }}
+                                                onKeyPress={(e) => {
+                                                    // Prevent accordion toggle when typing in the input field
+                                                    if (enableSectionName) {
+                                                        e.stopPropagation();
+                                                    }
+                                                }}
+                                                onFocus={(e) => {
+                                                    setIsInputFocused(true);
+                                                }}
+                                                onBlur={(e) => {
+                                                    setIsInputFocused(false);
+                                                }}
+                                            />
+                                        </FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            {enableSectionName ? (
+                                <Check
+                                    size={16}
+                                    className="text-primary-600 hover:text-primary-700 cursor-pointer transition-colors"
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Prevent accordion toggle
+                                        setEnableSectionName(false);
+                                        // Trigger form validation to save the changes
+                                        form.trigger(`section.${index}.sectionName`);
+                                    }}
+                                />
+                            ) : (
+                                <PencilSimpleLine
+                                    size={16}
+                                    className="hover:text-primary-600 cursor-pointer text-neutral-600 transition-colors"
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Prevent accordion toggle
+                                        setEnableSectionName(true);
+                                    }}
+                                />
                             )}
-                        />
+                        </div>
                     )}
                     <div className="flex items-center gap-4">
-                        <PencilSimpleLine
-                            size={20}
-                            className="text-neutral-600"
-                            onClick={() => setEnableSectionName(!enableSectionName)}
-                        />
                         <TrashSimple
                             size={20}
                             className="text-danger-400"
@@ -300,6 +488,7 @@ export const Step2SectionInfo = ({
                                 sectionsForm={form}
                                 currentQuestionIndex={currentQuestionIndex}
                                 setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                examType={examtype}
                             />
                         </AlertDialogContent>
                     </AlertDialog>
@@ -335,6 +524,7 @@ export const Step2SectionInfo = ({
                                 sectionsForm={form}
                                 currentQuestionIndex={currentQuestionIndex}
                                 setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                examType={examtype}
                             />
                         </AlertDialogContent>
                     </AlertDialog>
@@ -352,8 +542,12 @@ export const Step2SectionInfo = ({
                                 Choose Saved Paper
                             </MyButton>
                         </DialogTrigger>
-                        <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col items-start !gap-0 overflow-y-auto !p-0 [&>button]:hidden">
-                            <div className="flex h-14 w-full items-center justify-between rounded-md bg-primary-50">
+                          <DialogContent className="no-scrollbar !m-0 flex h-[90vh] !w-full !max-w-[90vw] flex-col items-start !gap-0 overflow-y-auto !p-0 [&>button]:hidden">
+                              <DialogTitle className="sr-only">Choose Saved Question Paper From List</DialogTitle>
+                              <DialogDescription className="sr-only">
+                                  Select a previously saved question paper to add to this section
+                              </DialogDescription>
+                              <div className="flex h-14 w-full items-center justify-between rounded-md bg-primary-50">
                                 <h1 className="rounded-sm p-4 font-bold text-primary-500">
                                     Choose Saved Question Paper From List
                                 </h1>
@@ -371,6 +565,7 @@ export const Step2SectionInfo = ({
                                     sectionsForm={form}
                                     currentQuestionIndex={currentQuestionIndex}
                                     setCurrentQuestionIndex={setCurrentQuestionIndex}
+                                    examType={examtype}
                                 />
                             </div>
                         </DialogContent>
@@ -397,7 +592,7 @@ export const Step2SectionInfo = ({
                         )}
                     />
                 </div>
-                {watch(`testDuration.questionWiseDuration`) && (
+                {watch(`testDuration.questionWiseDuration`) && examtype !== 'SURVEY' && (
                     <div className="flex w-96 items-center justify-between text-sm font-thin">
                         <h1 className="font-normal">
                             Question Duration{' '}
@@ -478,7 +673,7 @@ export const Step2SectionInfo = ({
                         </div>
                     </div>
                 )}
-                {watch(`testDuration.sectionWiseDuration`) && (
+                {watch(`testDuration.sectionWiseDuration`) && examtype !== 'SURVEY' && (
                     <div className="flex w-96 items-center justify-between text-sm font-thin">
                         <h1 className="font-normal">
                             Section Duration{' '}
@@ -805,18 +1000,21 @@ export const Step2SectionInfo = ({
                 )}
                 {Boolean(allSections?.[index]?.adaptive_marking_for_each_question?.length) && (
                     <div>
-                        <h1 className="mb-4 text-primary-500">Adaptive Marking Rules</h1>
+                        <h1 className="mb-4 text-primary-500">
+                            {examtype === 'SURVEY' ? 'Survey Questions' : 'Adaptive Marking Rules'}
+                        </h1>
                         <Table>
                             <TableHeader className="bg-primary-200">
                                 <TableRow>
                                     <TableHead>Q.No.</TableHead>
-                                    <TableHead>Question</TableHead>
+                                    <TableHead>
+                                        {examtype === 'SURVEY' ? 'Survey Question' : 'Question'}
+                                    </TableHead>
                                     <TableHead>Question Type</TableHead>
                                     {examtype !== 'SURVEY' && <TableHead>Marks</TableHead>}
                                     {examtype !== 'SURVEY' && <TableHead>Penalty</TableHead>}
-                                    {watch(`testDuration.questionWiseDuration`) && (
-                                        <TableHead>Time</TableHead>
-                                    )}
+                                    {watch(`testDuration.questionWiseDuration`) &&
+                                        examtype !== 'SURVEY' && <TableHead>Time</TableHead>}
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="bg-neutral-50">
@@ -889,59 +1087,60 @@ export const Step2SectionInfo = ({
                                                             />
                                                         </TableCell>
                                                     )}
-                                                    {watch(`testDuration.questionWiseDuration`) && (
-                                                        <TableCell>
-                                                            <div className="flex items-center gap-2">
-                                                                <FormField
-                                                                    control={control}
-                                                                    name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionDuration.hrs`}
-                                                                    render={({
-                                                                        field: { ...field },
-                                                                    }) => (
-                                                                        <FormItem>
-                                                                            <FormControl>
-                                                                                <Input
-                                                                                    type="text"
-                                                                                    placeholder="00"
-                                                                                    className="w-11"
-                                                                                    value={
-                                                                                        field.value
-                                                                                    }
-                                                                                    onChange={
-                                                                                        field.onChange
-                                                                                    }
-                                                                                />
-                                                                            </FormControl>
-                                                                        </FormItem>
-                                                                    )}
-                                                                />
-                                                                <span>:</span>
-                                                                <FormField
-                                                                    control={control}
-                                                                    name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionDuration.min`}
-                                                                    render={({
-                                                                        field: { ...field },
-                                                                    }) => (
-                                                                        <FormItem>
-                                                                            <FormControl>
-                                                                                <Input
-                                                                                    type="text"
-                                                                                    placeholder="00"
-                                                                                    className="w-11"
-                                                                                    value={
-                                                                                        field.value
-                                                                                    }
-                                                                                    onChange={
-                                                                                        field.onChange
-                                                                                    }
-                                                                                />
-                                                                            </FormControl>
-                                                                        </FormItem>
-                                                                    )}
-                                                                />
-                                                            </div>
-                                                        </TableCell>
-                                                    )}
+                                                    {watch(`testDuration.questionWiseDuration`) &&
+                                                        examtype !== 'SURVEY' && (
+                                                            <TableCell>
+                                                                <div className="flex items-center gap-2">
+                                                                    <FormField
+                                                                        control={control}
+                                                                        name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionDuration.hrs`}
+                                                                        render={({
+                                                                            field: { ...field },
+                                                                        }) => (
+                                                                            <FormItem>
+                                                                                <FormControl>
+                                                                                    <Input
+                                                                                        type="text"
+                                                                                        placeholder="00"
+                                                                                        className="w-11"
+                                                                                        value={
+                                                                                            field.value
+                                                                                        }
+                                                                                        onChange={
+                                                                                            field.onChange
+                                                                                        }
+                                                                                    />
+                                                                                </FormControl>
+                                                                            </FormItem>
+                                                                        )}
+                                                                    />
+                                                                    <span>:</span>
+                                                                    <FormField
+                                                                        control={control}
+                                                                        name={`section.${index}.adaptive_marking_for_each_question.${idx}.questionDuration.min`}
+                                                                        render={({
+                                                                            field: { ...field },
+                                                                        }) => (
+                                                                            <FormItem>
+                                                                                <FormControl>
+                                                                                    <Input
+                                                                                        type="text"
+                                                                                        placeholder="00"
+                                                                                        className="w-11"
+                                                                                        value={
+                                                                                            field.value
+                                                                                        }
+                                                                                        onChange={
+                                                                                            field.onChange
+                                                                                        }
+                                                                                    />
+                                                                                </FormControl>
+                                                                            </FormItem>
+                                                                        )}
+                                                                    />
+                                                                </div>
+                                                            </TableCell>
+                                                        )}
                                                 </TableRow>
                                             );
                                         }

@@ -560,7 +560,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
             {/* Questions List */}
             <div className="mt-4 w-full">
                 {formData.questions?.length === 0 ? (
-                    <p className="text-sm italic text-gray-500">No questions added yet.</p>
+                    <p className="text-sm italic text-gray-500"></p>
                 ) : (
                     <ul className="max-h-60 space-y-1 overflow-y-auto">
                         {formData.questions?.map((question, idx) => (

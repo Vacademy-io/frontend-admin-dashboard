@@ -64,7 +64,7 @@ const AddQuizDialog = ({ openState }: { openState?: (open: boolean) => void }) =
     const { setActiveItem, setItems, items } = useContentStore();
 
     const quizQuestionForm = useForm<UploadQuestionPaperFormType>({
-        resolver: zodResolver(uploadQuestionPaperFormSchema),
+        resolver: zodResolver(uploadQuestionPaperFormSchema()),
         mode: 'onChange',
         defaultValues: {
             questionPaperId: '1',

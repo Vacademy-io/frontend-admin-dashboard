@@ -141,10 +141,10 @@ const CreateAssessmentComponent = () => {
             }
         >
             <Helmet>
-                <title>Create Assessment</title>
+                <title>{examtype === 'SURVEY' ? 'Create Survey' : 'Create Assessment'}</title>
                 <meta
                     name="description"
-                    content="This page is for creating an assessment for students via admin."
+                    content={examtype === 'SURVEY' ? 'This page is for creating a survey for students via admin.' : 'This page is for creating an assessment for students via admin.'}
                 />
             </Helmet>
             <MainStepComponent
@@ -152,7 +152,7 @@ const CreateAssessmentComponent = () => {
                 handleCompleteCurrentStep={completeCurrentStep}
                 completedSteps={completedSteps}
             />
-            <NoCourseDialog isOpen={isOpen} setIsOpen={setIsOpen} type="Create Assessment" />
+            <NoCourseDialog isOpen={isOpen} setIsOpen={setIsOpen} type={examtype === 'SURVEY' ? 'Create Survey' : 'Create Assessment'} />
         </LayoutContainer>
     );
 };

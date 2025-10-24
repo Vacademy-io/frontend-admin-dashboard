@@ -65,6 +65,9 @@ export const DEFAULT_STUDENT_DISPLAY_SETTINGS: StudentDisplaySettingsData = {
     dashboard: {
         widgets: defaultDashboardWidgets(),
     },
+    ui: {
+        type: 'default',
+    },
     signup: {
         providers: {
             google: true,
@@ -97,6 +100,12 @@ export const DEFAULT_STUDENT_DISPLAY_SETTINGS: StudentDisplaySettingsData = {
         courseOverview: { visible: true, showSlidesData: true },
         slidesView: { showLearningPath: true, feedbackVisible: true, canAskDoubt: true },
     },
+    courseSettings: {
+        quiz: {
+            moveOnlyOnCorrectAnswer: false,
+            celebrateOnQuizComplete: true,
+        },
+    },
     allCourses: {
         tabs: [
             { id: 'InProgress', order: 1, visible: true },
@@ -111,6 +120,7 @@ export const DEFAULT_STUDENT_DISPLAY_SETTINGS: StudentDisplaySettingsData = {
         allowBatchStream: true,
     },
     certificates: {
+        enabled: true,
         generationThresholdPercent: 80,
     },
     postLoginRedirectRoute: '/dashboard',

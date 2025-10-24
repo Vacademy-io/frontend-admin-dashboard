@@ -27,12 +27,10 @@ export function ReferralProgramDialog({ form }: ReferralProgramDialogProps) {
     useEffect(() => {
         form.reset({
             ...form.getValues(),
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
             referralPrograms: convertReferralData(referralProgramDetails),
             selectedReferral: getDefaultMatchingReferralData(referralProgramDetails),
         });
-    }, [referralProgramDetails]);
+    }, [referralProgramDetails, form]);
 
     return (
         <ShadDialog
@@ -50,7 +48,7 @@ export function ReferralProgramDialog({ form }: ReferralProgramDialogProps) {
                     {form.watch('referralPrograms')?.map((program) => (
                         <Card
                             key={program.id}
-                            className={`cursor-pointer flex-col gap-1 border-2 p-4 ${form.watch('selectedReferralId') === program.id ? 'border-primary' : 'border-gray-200'} transition-all`}
+                            className={`cursor-pointer flex-col gap-1 border-2 p-4 ${form.watch('selectedReferralId') === program.id ? 'border-blue-500' : 'border-gray-200'} transition-all`}
                             onClick={() => {
                                 form.setValue('selectedReferralId', program.id);
                                 form.setValue('selectedReferral', program);
@@ -74,14 +72,7 @@ export function ReferralProgramDialog({ form }: ReferralProgramDialogProps) {
                                         <Gift size={16} />
                                         <span className="font-semibold">Referee Benefit:</span>
                                     </div>
-                                    {program?.refereeBenefit?.type === 'free_course' ? (
-                                        <span className="ml-6 flex items-center gap-1 font-semibold text-green-700">
-                                            {getReferralTypeIcon(
-                                                program?.refereeBenefit?.type || ''
-                                            )}
-                                            <span>Free course access</span>
-                                        </span>
-                                    ) : program?.refereeBenefit?.type === 'free_days' ? (
+                                    {program?.refereeBenefit?.type === 'free_days' ? (
                                         <span className="ml-6 flex items-center gap-1 font-semibold text-green-700">
                                             {getReferralTypeIcon(
                                                 program?.refereeBenefit?.type || ''

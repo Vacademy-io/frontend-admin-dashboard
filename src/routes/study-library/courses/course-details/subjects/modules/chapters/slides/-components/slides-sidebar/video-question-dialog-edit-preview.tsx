@@ -11,7 +11,7 @@ import { DialogTrigger } from '@radix-ui/react-dialog';
 import { PencilSimpleLine } from 'phosphor-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
+type QuestionPaperForm = z.infer<ReturnType<typeof uploadQuestionPaperFormSchema>>;
 
 import { useRef } from 'react'; // Add useRef import
 import { StudyLibraryQuestion } from '@/types/study-library/study-library-video-questions';
@@ -32,7 +32,7 @@ const VideoQuestionDialogEditPreview = ({
 }) => {
     const { activeItem, setActiveItem } = useContentStore();
     const form = useForm<QuestionPaperForm>({
-        resolver: zodResolver(uploadQuestionPaperFormSchema),
+        resolver: zodResolver(uploadQuestionPaperFormSchema()),
         mode: 'onChange',
         defaultValues: {
             questionPaperId: '',

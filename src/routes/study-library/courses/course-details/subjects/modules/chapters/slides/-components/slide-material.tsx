@@ -20,7 +20,7 @@ import {
     useSlidesMutations,
 } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
 import { toast } from 'sonner';
-import { Check, DownloadSimple, PencilSimpleLine, Trash } from 'phosphor-react';
+import { Check, DownloadSimple, PencilSimpleLine, Trash, FloppyDisk } from 'phosphor-react';
 import { AlertCircle } from 'lucide-react';
 import {
     converDataToAssignmentFormat,
@@ -34,7 +34,7 @@ import VideoSlidePreview from './video-slide-preview';
 import { handlePublishSlide } from './slide-operations/handlePublishSlide';
 import { handleUnpublishSlide } from './slide-operations/handleUnpublishSlide';
 import { updateHeading } from './slide-operations/updateSlideHeading';
-import { formatHTMLString } from './slide-operations/formatHtmlString';
+import { formatHTMLString, stripAwsQueryParamsFromUrls } from './slide-operations/formatHtmlString';
 import { handleConvertAndUpload } from './slide-operations/handleConvertUpload';
 import SlideEditor from './SlideEditor';
 import type { JSX } from 'react/jsx-runtime';
@@ -59,11 +59,8 @@ import {
     TEACHER_DISPLAY_SETTINGS_KEY,
     type DisplaySettingsData,
 } from '@/types/display-settings';
+import { processHtmlImages, containsBase64Images, getBase64ImagesSize } from '@/utils/image-processing';
 
-// Inside your component
-// this toggles the DoubtResolutionSidebar
-// Declare INSTITUTE_ID here or import it from a config file
-const INSTITUTE_ID = 'your-institute-id'; // Replace with your actual institute ID
 
 export const SlideMaterial = ({
     setGetCurrentEditorHTMLContent,
@@ -117,6 +114,16 @@ export const SlideMaterial = ({
     const isExcalidrawBusyRef = useRef(false); // Track if Excalidraw is performing intensive operations
     const pendingStateUpdateRef = useRef<any>(null); // Store pending state updates
     const stableKeyRef = useRef<string>(''); // Stable key during operations
+    // Track previous DOC slide and its initial HTML for change detection
+    const prevDocSlideRef = useRef<Slide | null>(null);
+    const initialDocHtmlRef = useRef<{ slideId: string | null; html: string }>({
+        slideId: null,
+        html: '',
+    });
+    // Always-current editor HTML for DOC (updated on every change, not persisted to store)
+    const currentDocHtmlRef = useRef<string>('');
+    // Dedup guard to prevent double-save on add + switch happening together
+    const lastHandledPrevSlideIdRef = useRef<string | null>(null);
 
     const searchParams = router.state.location.search;
     const { courseId, levelId, chapterId, slideId, moduleId, subjectId, sessionId } = searchParams;
@@ -241,23 +248,8 @@ export const SlideMaterial = ({
 
                         // Update placeholder state
                         setShowPlaceholder(currentIsEmpty);
-                        setActiveItem({
-                            ...activeItem,
-                            document_slide: {
-                                ...activeItem?.document_slide,
-                                id: activeItem?.document_slide?.id || '',
-                                type: activeItem?.document_slide?.type || '',
-                                title: activeItem?.document_slide?.title || '',
-                                cover_file_id: activeItem?.document_slide?.cover_file_id || '',
-                                total_pages: activeItem?.document_slide?.total_pages || 0,
-                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                                // @ts-expect-error
-                                published_data: currentContent || null,
-                                published_document_total_pages:
-                                    activeItem?.document_slide?.published_document_total_pages || 0,
-                                data: currentContent,
-                            },
-                        });
+                        // Track current DOC HTML for unsaved-change detection (no store mutation)
+                        currentDocHtmlRef.current = formatHTMLString(currentContent || '');
                     }}
                     className="size-full"
                     style={{ width: '100%', height: '100%', minHeight: '200px' }}
@@ -272,7 +264,10 @@ export const SlideMaterial = ({
                 ? activeItem.document_slide?.published_data || null
                 : activeItem?.document_slide?.data || null;
 
-        const editorContent = html.deserialize(editor, docData || '');
+        // Sanitize any public S3 URLs that may contain expired signatures
+        const sanitizedDocData = stripAwsQueryParamsFromUrls(docData || '');
+
+        const editorContent = html.deserialize(editor, sanitizedDocData || '');
 
         editor.setEditorValue(editorContent);
 
@@ -301,10 +296,21 @@ export const SlideMaterial = ({
         };
 
         // Check if content is empty - handle HTML structure
-        const isEmpty = checkIsEmpty(docData);
+        const isEmpty = checkIsEmpty(sanitizedDocData);
 
         setContent(<EditorWithPlaceholder initialIsEmpty={isEmpty} />);
         editor.focus();
+
+        // Capture initial HTML for DOC slides to detect unsaved changes later
+        if (
+            activeItem?.source_type === 'DOCUMENT' &&
+            activeItem?.document_slide?.type === 'DOC'
+        ) {
+            const normalized = formatHTMLString(sanitizedDocData || '');
+            initialDocHtmlRef.current = { slideId: activeItem.id, html: normalized };
+            currentDocHtmlRef.current = normalized;
+            prevDocSlideRef.current = activeItem;
+        }
     };
 
     const getCurrentEditorHTMLContent: () => string = () => {
@@ -313,6 +319,132 @@ export const SlideMaterial = ({
         const formattedHtmlString = formatHTMLString(htmlString);
         return formattedHtmlString;
     };
+
+    // Unified handler to check and handle unsaved DOC changes for the previous slide
+    const handleUnsavedDocIfNeeded = useCallback(() => {
+        const previous = prevDocSlideRef.current;
+        if (
+            !previous ||
+            previous.source_type !== 'DOCUMENT' ||
+            previous.document_slide?.type !== 'DOC'
+        ) {
+            return;
+        }
+
+        // Skip if the previous slide is deleted or no longer exists (use fresh store snapshot)
+        const itemsNow = useContentStore.getState().items as unknown as Slide[] | undefined;
+        const stillExists = Array.isArray(itemsNow) && itemsNow.some((s) => s.id === previous.id);
+        const deletedInStore = Array.isArray(itemsNow)
+            ? itemsNow.find((s) => s.id === previous.id)?.status === 'DELETED'
+            : false;
+        if (previous.status === 'DELETED' || deletedInStore || !stillExists) {
+            return;
+        }
+
+        // Deduplicate by slide id; if we already handled this previous slide recently, skip
+        if (lastHandledPrevSlideIdRef.current === previous.id) {
+            return;
+        }
+
+        const initialHtml =
+            initialDocHtmlRef.current.slideId === previous.id
+                ? initialDocHtmlRef.current.html
+                : formatHTMLString(previous.document_slide?.data || '');
+        // Always read latest editor state at the moment of handling to avoid stale saves
+        const currentHtml = getCurrentEditorHTMLContent() || initialHtml;
+        const hasEditorChanged = currentHtml !== initialHtml;
+        const dataVsPublishedDifferent =
+            (previous.document_slide?.data || '') !== (previous.document_slide?.published_data || '');
+
+        if (!hasEditorChanged && !dataVsPublishedDifferent) {
+            return;
+        }
+
+        // Mark as handled to avoid duplicate calls during add+switch cascades
+        lastHandledPrevSlideIdRef.current = previous.id;
+
+        if (!hidePublishButtons && hasEditorChanged) {
+            // Admin: prompt to save draft
+            setUnsavedDocPrompt({ open: true, slide: previous, html: currentHtml });
+        } else if (hidePublishButtons && (hasEditorChanged || dataVsPublishedDifferent)) {
+            // Non-admin: auto publish
+            autoPublishDocSlide(previous, currentHtml);
+        }
+    }, [autoPublishDocSlide, hidePublishButtons]);
+
+    // Snapshot-based handler to avoid stale editor reads during transitions
+    const handleUnsavedDocWithSnapshot = useCallback(
+        (previous: Slide | null, snapshotHtml: string) => {
+            if (
+                !previous ||
+                previous.source_type !== 'DOCUMENT' ||
+                previous.document_slide?.type !== 'DOC'
+            ) {
+                return;
+            }
+
+            if (lastHandledPrevSlideIdRef.current === previous.id) {
+                return;
+            }
+
+            // Skip if the previous slide is deleted or no longer exists (use fresh store snapshot)
+            const itemsNow = useContentStore.getState().items as unknown as Slide[] | undefined;
+            const stillExists = Array.isArray(itemsNow) && itemsNow.some((s) => s.id === previous.id);
+            const deletedInStore = Array.isArray(itemsNow)
+                ? itemsNow.find((s) => s.id === previous.id)?.status === 'DELETED'
+                : false;
+            if (previous.status === 'DELETED' || deletedInStore || !stillExists) {
+                return;
+            }
+
+            const initialHtml =
+                initialDocHtmlRef.current.slideId === previous.id
+                    ? initialDocHtmlRef.current.html
+                    : formatHTMLString(previous.document_slide?.data || '');
+
+            const hasEditorChanged = snapshotHtml !== initialHtml;
+            const dataVsPublishedDifferent =
+                (previous.document_slide?.data || '') !==
+                (previous.document_slide?.published_data || '');
+
+            if (!hasEditorChanged && !dataVsPublishedDifferent) {
+                return;
+            }
+
+            lastHandledPrevSlideIdRef.current = previous.id;
+
+            if (!hidePublishButtons && hasEditorChanged) {
+                setUnsavedDocPrompt({ open: true, slide: previous, html: snapshotHtml });
+            } else if (hidePublishButtons && (hasEditorChanged || dataVsPublishedDifferent)) {
+                void autoPublishDocSlide(previous, snapshotHtml);
+            }
+        },
+        [hidePublishButtons, items]
+    );
+
+    // On slide switch, detect unsaved changes for DOC and act based on role
+    useEffect(() => {
+        // Cleanup runs before switching away from this slide; capture exact editor HTML
+        return () => {
+            const previous = prevDocSlideRef.current;
+            if (!previous) return;
+            const snapshot = getCurrentEditorHTMLContent();
+            handleUnsavedDocWithSnapshot(previous, snapshot);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeItem?.id]);
+
+    useEffect(() => {
+        // Update previous ref for next transitions and reset dedup if new previous context
+        if (
+            activeItem?.source_type === 'DOCUMENT' &&
+            activeItem?.document_slide?.type === 'DOC' &&
+            activeItem?.status !== 'DELETED'
+        ) {
+            prevDocSlideRef.current = activeItem;
+            lastHandledPrevSlideIdRef.current = null;
+        }
+    }, [activeItem]);
 
     // Handle Excalidraw onChange for auto-save - debounced database update only
     const handleExcalidrawChange = useCallback(
@@ -418,6 +550,72 @@ export const SlideMaterial = ({
         },
         [activeItem, addUpdateDocumentSlide]
     );
+
+    // State for Admin unsaved DOC modal
+    const [unsavedDocPrompt, setUnsavedDocPrompt] = useState<{
+        open: boolean;
+        slide: Slide | null;
+        html: string;
+    }>({ open: false, slide: null, html: '' });
+
+    // Helper: Auto publish DOC for non-admins on slide switch/state change (hoisted function)
+    async function autoPublishDocSlide(slide: Slide, htmlString: string) {
+        try {
+            // Final guard: ensure slide still exists and is not deleted before calling API
+            const itemsNow = useContentStore.getState().items as unknown as Slide[] | undefined;
+            const stillExists = Array.isArray(itemsNow) && itemsNow.some((s) => s.id === slide.id);
+            const deletedInStore = Array.isArray(itemsNow)
+                ? itemsNow.find((s) => s.id === slide.id)?.status === 'DELETED'
+                : false;
+            if (!stillExists || deletedInStore || slide.status === 'DELETED') {
+                return;
+            }
+
+            // Process images in HTML content before saving
+            let processedHtmlString = htmlString;
+            if (containsBase64Images(htmlString)) {
+                console.log('Processing base64 images in DOC content...');
+                const imageSize = getBase64ImagesSize(htmlString);
+                console.log(`Base64 images size: ${Math.round(imageSize / 1024)}KB`);
+
+                const { processedHtml, uploadedImages, failedUploads } = await processHtmlImages(htmlString);
+                processedHtmlString = processedHtml;
+
+                if (failedUploads > 0) {
+                    toast.error(`Warning: ${failedUploads} images failed to upload`);
+                }
+                if (uploadedImages > 0) {
+                    console.log(`Successfully processed ${uploadedImages} images`);
+                }
+            }
+
+            const { totalPages } = await convertHtmlToPdf(processedHtmlString);
+            await addUpdateDocumentSlide({
+                id: slide?.id || '',
+                title: slide?.title || '',
+                image_file_id: '',
+                description: slide?.description || '',
+                slide_order: null,
+                document_slide: {
+                    id: slide?.document_slide?.id || '',
+                    type: 'DOC',
+                    data: processedHtmlString,
+                    title: slide?.document_slide?.title || '',
+                    cover_file_id: '',
+                    total_pages: totalPages,
+                    published_data: processedHtmlString,
+                    published_document_total_pages: 1,
+                },
+                status: 'PUBLISHED',
+                new_slide: false,
+                notify: false,
+            });
+            toast.success('Changes saved and published');
+        } catch (error) {
+            console.error('Error auto-publishing DOC slide:', error);
+            toast.error('Failed to auto-save changes');
+        }
+    }
     interface YTPlayer {
         destroy(): void;
         getCurrentTime(): number;
@@ -1482,7 +1680,29 @@ export const SlideMaterial = ({
 
             // Handle regular documents
             const currentHtml = getCurrentEditorHTMLContent();
-            const { totalPages } = await convertHtmlToPdf(currentHtml);
+
+            // Process images in HTML content before saving
+            let processedHtmlString = currentHtml;
+            let uploadedImagesCount = 0;
+            if (containsBase64Images(currentHtml)) {
+                console.log('Processing base64 images in DOC content...');
+                const imageSize = getBase64ImagesSize(currentHtml);
+                console.log(`Base64 images size: ${Math.round(imageSize / 1024)}KB`);
+
+                const { processedHtml, uploadedImages, failedUploads } = await processHtmlImages(currentHtml);
+                processedHtmlString = processedHtml;
+                uploadedImagesCount = uploadedImages;
+
+                if (failedUploads > 0) {
+                    toast.error(`Warning: ${failedUploads} images failed to upload`);
+                }
+                if (uploadedImages > 0) {
+                    console.log(`Successfully processed ${uploadedImages} images`);
+                    toast.success(`Slide saved with ${uploadedImages} images uploaded!`);
+                }
+            }
+
+            const { totalPages } = await convertHtmlToPdf(processedHtmlString);
 
             try {
                 await addUpdateDocumentSlide({
@@ -1494,7 +1714,7 @@ export const SlideMaterial = ({
                     document_slide: {
                         id: slide?.document_slide?.id || '',
                         type: 'DOC',
-                        data: currentHtml,
+                        data: processedHtmlString,
                         title: slide?.document_slide?.title || '',
                         cover_file_id: '',
                         total_pages: totalPages,
@@ -1505,7 +1725,9 @@ export const SlideMaterial = ({
                     new_slide: false,
                     notify: false,
                 });
-                toast.success(`slide saved in draft successfully!`);
+                if (!containsBase64Images(currentHtml) || uploadedImagesCount === 0) {
+                    toast.success(`slide saved in draft successfully!`);
+                }
             } catch {
                 toast.error(`Error in saving the slide`);
             }
@@ -1671,6 +1893,27 @@ export const SlideMaterial = ({
         );
     }, [activeItem]);
 
+    // Detect adding a new slide and handle unsaved DOC changes
+    const prevItemsCountRef = useRef<number>(Array.isArray(items) ? items.length : 0);
+    useEffect(() => {
+        const currentCount = Array.isArray(items) ? items.length : 0;
+        const previousCount = prevItemsCountRef.current;
+
+        if (currentCount > previousCount) {
+            // Defer slightly to let store reflect deletions before checking
+            setTimeout(() => {
+                if (prevDocSlideRef.current) {
+                    const previous = prevDocSlideRef.current;
+                    const snapshot = getCurrentEditorHTMLContent();
+                    handleUnsavedDocWithSnapshot(previous, snapshot);
+                }
+            }, 50);
+        }
+
+        prevItemsCountRef.current = currentCount;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [items?.length]);
+
     useEffect(() => {
         setHeading(activeItem?.title || '');
         if (items && items.length === 0 && slideId === undefined) {
@@ -1731,6 +1974,82 @@ export const SlideMaterial = ({
             className="flex w-full flex-1 flex-col transition-all duration-300 ease-in-out"
             ref={selectionRef}
         >
+            {/* Admin unsaved DOC changes prompt */}
+            {unsavedDocPrompt.open && !hidePublishButtons && unsavedDocPrompt.slide && (
+                <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/30">
+                    <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+                        <h4 className="mb-2 text-lg font-semibold text-neutral-800">Unsaved changes</h4>
+                        <p className="mb-4 text-sm text-neutral-600">
+                            You have unsaved changes on "{unsavedDocPrompt.slide.title}". Save them as draft?
+                        </p>
+                        <div className="flex justify-end gap-3">
+                            <MyButton
+                                buttonType="secondary"
+                                scale="medium"
+                                onClick={() => setUnsavedDocPrompt({ open: false, slide: null, html: '' })}
+                            >
+                                Discard
+                            </MyButton>
+                                <MyButton
+                                    buttonType="primary"
+                                    scale="medium"
+                                    onClick={async () => {
+                                        try {
+                                            const slide = unsavedDocPrompt.slide!;
+                                            const htmlString = unsavedDocPrompt.html;
+
+                                            // Process images in HTML content before saving
+                                            let processedHtmlString = htmlString;
+                                            if (containsBase64Images(htmlString)) {
+                                                console.log('Processing base64 images in unsaved DOC content...');
+                                                const { processedHtml, uploadedImages, failedUploads } = await processHtmlImages(htmlString);
+                                                processedHtmlString = processedHtml;
+
+                                                if (failedUploads > 0) {
+                                                    toast.error(`Warning: ${failedUploads} images failed to upload`);
+                                                }
+                                                if (uploadedImages > 0) {
+                                                    console.log(`Successfully processed ${uploadedImages} images in unsaved draft`);
+                                                }
+                                            }
+
+                                            const { totalPages } = await convertHtmlToPdf(processedHtmlString);
+                                            const nextStatus = slide.status === 'PUBLISHED' ? 'UNSYNC' : 'DRAFT';
+                                            await addUpdateDocumentSlide({
+                                                id: slide.id,
+                                                title: slide.title || '',
+                                                image_file_id: '',
+                                                description: slide.description || '',
+                                                slide_order: null,
+                                                document_slide: {
+                                                    id: slide.document_slide?.id || '',
+                                                    type: 'DOC',
+                                                    data: processedHtmlString,
+                                                    title: slide.document_slide?.title || '',
+                                                    cover_file_id: '',
+                                                    total_pages: totalPages,
+                                                    published_data: slide.document_slide?.published_data || null,
+                                                    published_document_total_pages: 1,
+                                                },
+                                                status: nextStatus,
+                                                new_slide: false,
+                                                notify: false,
+                                            });
+                                            toast.success('Draft saved');
+                                        } catch (error) {
+                                            console.error('Error saving draft:', error);
+                                            toast.error('Failed to save draft');
+                                        } finally {
+                                            setUnsavedDocPrompt({ open: false, slide: null, html: '' });
+                                        }
+                                    }}
+                                >
+                                    Save as Draft
+                                </MyButton>
+                        </div>
+                    </div>
+                </div>
+            )}
             {activeItem && (
                 <div className="sticky top-0 z-50 -m-8 flex items-center justify-between gap-4 border-b border-neutral-200 bg-white/80 px-6 py-3 shadow-sm backdrop-blur-sm">
                     <div className="flex items-center gap-3">
@@ -1832,7 +2151,7 @@ export const SlideMaterial = ({
                                                 Saving...
                                             </>
                                         ) : hidePublishButtons ? (
-                                            'Save Changes'
+                                            <FloppyDisk size={18} />
                                         ) : (
                                             'Save Draft'
                                         )}

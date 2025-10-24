@@ -30,6 +30,8 @@ export interface StudentTable {
     email: string;
     full_name: string;
     address_line: string;
+    attendance_percent: number;
+    referral_count: number;
     region: string | null;
     city: string;
     pin_code: string;

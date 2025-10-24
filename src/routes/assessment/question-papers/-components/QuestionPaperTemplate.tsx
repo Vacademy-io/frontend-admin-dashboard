@@ -49,6 +49,7 @@ export function QuestionPaperTemplate({
     isAssessment,
     currentQuestionIndex,
     setCurrentQuestionIndex,
+    examType,
 }: QuestionPaperTemplateProps) {
     const [isQuestionPaperTemplateDialog, setIsQuestionPaperTemplateDialog] = useState(false);
     const { instituteLogo } = useInstituteLogoStore();
@@ -124,8 +125,64 @@ export function QuestionPaperTemplate({
                     isSelected: false,
                 },
             ],
+            trueFalseOptions: [
+                {
+                    name: 'True',
+                    isSelected: false,
+                },
+                {
+                    name: 'False',
+                    isSelected: false,
+                },
+            ],
+            csingleChoiceOptions: [
+                {
+                    name: '',
+                    isSelected: false,
+                },
+                {
+                    name: '',
+                    isSelected: false,
+                },
+                {
+                    name: '',
+                    isSelected: false,
+                },
+                {
+                    name: '',
+                    isSelected: false,
+                },
+            ],
+            cmultipleChoiceOptions: [
+                {
+                    name: '',
+                    isSelected: false,
+                },
+                {
+                    name: '',
+                    isSelected: false,
+                },
+                {
+                    name: '',
+                    isSelected: false,
+                },
+                {
+                    name: '',
+                    isSelected: false,
+                },
+            ],
+            validAnswers: [0],
+            subjectiveAnswerText: '',
+            numericType: '',
+            parentRichTextContent: null,
+            decimals: 0,
+            questionResponseType: null,
+            questionPoints: '',
+            reattemptCount: '',
+            timestamp: '',
         });
-        setCurrentQuestionIndex(0);
+        // Set current question index to the newly added question (last question)
+        setCurrentQuestionIndex(questions.length);
         setAddQuestionDialogBox(false);
         form.trigger();
     };
@@ -203,15 +260,29 @@ export function QuestionPaperTemplate({
         handleMutationViewQuestionPaper.mutate({ questionPaperId });
     };
 
+    // Re-validate form when examType changes
+    useEffect(() => {
+        if (examType) {
+            // Clear any existing errors first
+            form.clearErrors();
+            // Then trigger validation with the new schema
+            form.trigger();
+        }
+    }, [examType, form]);
+
     const handleTriggerForm = () => {
+
         form.trigger();
-        if (Object.values(form.formState.errors).length > 0) {
+
+        const errors = form.formState.errors;
+        if (Object.values(errors).length > 0) {
             toast.error('some of your questions are incomplete or needs attentions!', {
                 className: 'error-toast',
                 duration: 3000,
             });
             return;
         }
+
         setIsQuestionPaperTemplateDialog(false);
     };
 
@@ -450,6 +521,7 @@ export function QuestionPaperTemplate({
                                         setCurrentQuestionIndex: setCurrentQuestionIndex,
                                         className:
                                             'dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4',
+                                        examType: examType,
                                     }}
                                 />
                             )}

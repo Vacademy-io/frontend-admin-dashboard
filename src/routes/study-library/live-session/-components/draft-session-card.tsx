@@ -1,7 +1,6 @@
 import QRCode from 'react-qr-code';
 import { Copy, DownloadSimple, DotsThree } from 'phosphor-react';
 import { MyButton } from '@/components/design-system/button';
-import { BASE_URL_LEARNER_DASHBOARD } from '@/constants/urls';
 import { copyToClipboard } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper';
 import {
     DropdownMenu,
@@ -20,6 +19,8 @@ import DeleteSessionDialog from './delete-session-dialog';
 import type { SessionBySessionIdResponse } from '../-services/utils';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { getSessionJoinLink } from '../-utils/live-sesstions';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 interface DraftSessionCardProps {
     session: DraftSession;
@@ -30,10 +31,9 @@ export default function DraftSessionCard({ session }: DraftSessionCardProps) {
     const [scheduleInfo, setScheduleInfo] = useState<SessionBySessionIdResponse['schedule'] | null>(
         null
     );
+    const { instituteDetails } = useInstituteDetailsStore();
 
-    const joinLink =
-        session.registration_form_link_for_public_sessions ||
-        `${BASE_URL_LEARNER_DASHBOARD}/register/live-class?sessionId=${session.session_id}`;
+    const joinLink = getSessionJoinLink(session, instituteDetails?.learner_portal_base_url ?? '');
     // Fetch detailed session info for draft to get accurate date/time
     useEffect(() => {
         getSessionBySessionId(session.session_id)

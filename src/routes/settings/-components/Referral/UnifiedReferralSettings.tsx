@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import React, { useState, useEffect, useRef } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,7 +10,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -31,23 +30,43 @@ import {
     Star,
     Link2,
     Music,
-    BookOpen,
     Settings,
     Mail,
     MessageCircle,
 } from 'lucide-react';
 import { MyButton } from '@/components/design-system/button';
+import { useFileUpload } from '@/hooks/use-file-upload';
+import { useForm } from 'react-hook-form';
+import { Form } from '@/components/ui/form';
+import { FileUploadComponent } from '@/components/design-system/file-upload';
+import { getTokenFromCookie, getTokenDecodedData } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { TemplateSelector, TemplatePreview } from '@/components/templates';
+import { MessageTemplate } from '@/types/message-template-types';
 
 // Enhanced interfaces with multiple programs support
 export interface ContentDelivery {
     email: boolean;
     whatsapp: boolean;
+    emailTemplate?: {
+        id: string;
+        name: string;
+        subject?: string;
+        content: string;
+    };
+    whatsappTemplate?: {
+        id: string;
+        name: string;
+        content: string;
+    };
 }
 
 export interface ContentOption {
     type: 'upload' | 'link' | 'existing_course';
     // For upload
     file?: File;
+    fileId?: string; // Store the uploaded file ID
+    template?: string; // Template selection
     // For link
     url?: string;
     // For existing course
@@ -77,7 +96,7 @@ export interface UnifiedReferralSettings {
             | 'discount_fixed'
             | 'bonus_content'
             | 'free_days'
-            | 'free_course';
+            | 'points_system';
         value?: number;
         currency?: string;
         content?: RewardContent;
@@ -85,7 +104,7 @@ export interface UnifiedReferralSettings {
         sessionId?: string;
         levelId?: string;
         delivery?: ContentDelivery;
-        description: string;
+        description?: string;
     };
 
     // Referrer Settings - Tiered rewards
@@ -106,8 +125,7 @@ export interface ReferrerTier {
             | 'discount_fixed'
             | 'bonus_content'
             | 'free_days'
-            | 'points_system'
-            | 'free_course';
+            | 'points_system';
         value?: number;
         currency?: string;
         content?: RewardContent;
@@ -119,51 +137,9 @@ export interface ReferrerTier {
         pointsToReward?: number;
         pointsRewardType?: 'discount_percentage' | 'discount_fixed' | 'membership_days';
         pointsRewardValue?: number;
-        description: string;
+        description?: string;
     };
 }
-
-// Mock data for courses and batches (replace with actual data from your system)
-const mockCourses = [
-    {
-        id: '1',
-        name: 'Advanced JavaScript Course',
-        sessions: [
-            {
-                id: '1',
-                name: 'Session 1: Fundamentals',
-                levels: [
-                    { id: '1', name: 'Beginner' },
-                    { id: '2', name: 'Intermediate' },
-                ],
-            },
-            {
-                id: '2',
-                name: 'Session 2: Advanced Topics',
-                levels: [{ id: '1', name: 'Advanced' }],
-            },
-        ],
-    },
-    {
-        id: '2',
-        name: 'React Development Bootcamp',
-        sessions: [{ id: '1', name: 'Session 1: Basics', levels: [{ id: '1', name: 'Beginner' }] }],
-    },
-    {
-        id: '3',
-        name: 'Python for Data Science',
-        sessions: [
-            {
-                id: '1',
-                name: 'Session 1: Python Basics',
-                levels: [
-                    { id: '1', name: 'Beginner' },
-                    { id: '2', name: 'Intermediate' },
-                ],
-            },
-        ],
-    },
-];
 
 interface UnifiedReferralSettingsProps {
     isOpen: boolean;
@@ -179,36 +155,16 @@ export const UnifiedReferralSettings: React.FC<UnifiedReferralSettingsProps> = (
     editingSettings,
 }) => {
     const [formData, setFormData] = useState<Partial<UnifiedReferralSettings>>({
-        label: 'Referral Program',
+        label: '',
         isDefault: false,
-        allowCombineOffers: true,
+        allowCombineOffers: false,
         payoutVestingDays: 7,
         refereeReward: {
             type: 'discount_percentage',
             value: 10,
             currency: 'INR',
-            description: '10% discount on course enrollment',
-            delivery: { email: true, whatsapp: false },
         },
-        referrerRewards: [
-            {
-                id: '1',
-                tierName: 'First Referral',
-                referralCount: 1,
-                reward: {
-                    type: 'bonus_content',
-                    content: {
-                        contentType: 'pdf',
-                        content: {
-                            type: 'upload',
-                            title: 'Study Guide',
-                            delivery: { email: true, whatsapp: false },
-                        },
-                    },
-                    description: 'Free study guide for your first referral',
-                },
-            },
-        ],
+        referrerRewards: [],
     });
 
     const [editingTier, setEditingTier] = useState<ReferrerTier | null>(null);
@@ -217,38 +173,19 @@ export const UnifiedReferralSettings: React.FC<UnifiedReferralSettingsProps> = (
     useEffect(() => {
         if (editingSettings) {
             setFormData(editingSettings);
-        } else {
+        } else if (isOpen) {
+            // Only reset form data when dialog opens for a new referral program
             setFormData({
-                label: 'Referral Program',
+                label: '',
                 isDefault: false,
-                allowCombineOffers: true,
+                allowCombineOffers: false,
                 payoutVestingDays: 7,
                 refereeReward: {
                     type: 'discount_percentage',
                     value: 10,
                     currency: 'INR',
-                    description: '10% discount on course enrollment',
-                    delivery: { email: true, whatsapp: false },
                 },
-                referrerRewards: [
-                    {
-                        id: '1',
-                        tierName: 'First Referral',
-                        referralCount: 1,
-                        reward: {
-                            type: 'bonus_content',
-                            content: {
-                                contentType: 'pdf',
-                                content: {
-                                    type: 'upload',
-                                    title: 'Study Guide',
-                                    delivery: { email: true, whatsapp: false },
-                                },
-                            },
-                            description: 'Free study guide for your first referral',
-                        },
-                    },
-                ],
+                referrerRewards: [],
             });
         }
     }, [editingSettings, isOpen]);
@@ -265,7 +202,7 @@ export const UnifiedReferralSettings: React.FC<UnifiedReferralSettingsProps> = (
             requireReferrerActiveInBatch: formData.requireReferrerActiveInBatch || false,
             refereeReward: formData.refereeReward,
             referrerRewards: formData.referrerRewards,
-            allowCombineOffers: formData.allowCombineOffers || true,
+            allowCombineOffers: formData.allowCombineOffers || false,
             payoutVestingDays: formData.payoutVestingDays || 7,
         };
 
@@ -316,8 +253,6 @@ export const UnifiedReferralSettings: React.FC<UnifiedReferralSettingsProps> = (
                 return 'Bonus Content';
             case 'free_days':
                 return 'Free Days';
-            case 'free_course':
-                return 'Free Course';
             case 'points_system':
                 return 'Points System';
             default:
@@ -335,8 +270,6 @@ export const UnifiedReferralSettings: React.FC<UnifiedReferralSettingsProps> = (
                 return <Gift className="size-4" />;
             case 'free_days':
                 return <Calendar className="size-4" />;
-            case 'free_course':
-                return <BookOpen className="size-4" />;
             case 'points_system':
                 return <Star className="size-4" />;
             default:
@@ -352,6 +285,11 @@ export const UnifiedReferralSettings: React.FC<UnifiedReferralSettingsProps> = (
                         <TrendingUp className="size-5" />
                         {editingSettings ? 'Edit Referral Program' : 'Create Referral Program'}
                     </DialogTitle>
+                    <DialogDescription>
+                        {editingSettings
+                            ? 'Modify your referral program settings and rewards'
+                            : 'Set up a new referral program to encourage student referrals'}
+                    </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-6">
@@ -378,7 +316,7 @@ export const UnifiedReferralSettings: React.FC<UnifiedReferralSettingsProps> = (
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <RefereeRewardEditor
-                                reward={formData.refereeReward!}
+                                reward={formData.refereeReward}
                                 onChange={(reward) =>
                                     setFormData({ ...formData, refereeReward: reward })
                                 }
@@ -457,10 +395,6 @@ export const UnifiedReferralSettings: React.FC<UnifiedReferralSettingsProps> = (
                                                         {getRewardTypeLabel(tier.reward.type)}
                                                     </span>
                                                 </div>
-
-                                                <p className="text-sm text-gray-700">
-                                                    {tier.reward.description}
-                                                </p>
                                             </div>
                                         ))}
                                 </div>
@@ -567,20 +501,39 @@ export const UnifiedReferralSettings: React.FC<UnifiedReferralSettingsProps> = (
 
 // Enhanced Referee Reward Editor Component
 interface RefereeRewardEditorProps {
-    reward: UnifiedReferralSettings['refereeReward'];
+    reward?: UnifiedReferralSettings['refereeReward'];
     onChange: (reward: UnifiedReferralSettings['refereeReward']) => void;
 }
 
 const RefereeRewardEditor: React.FC<RefereeRewardEditorProps> = ({ reward, onChange }) => {
+    // If no reward is provided, initialize with a default reward
+    const currentReward = reward || {
+        type: 'discount_percentage' as const,
+        value: 10,
+        currency: 'INR',
+    };
+
+    // If the reward was undefined and we're using default, call onChange to update parent
+    React.useEffect(() => {
+        if (!reward) {
+            const defaultReward = {
+                type: 'discount_percentage' as const,
+                value: 10,
+                currency: 'INR',
+            };
+            onChange(defaultReward);
+        }
+    }, [reward, onChange]);
+
     return (
         <div className="space-y-4">
             <div className="space-y-2">
                 <Label>Reward Type</Label>
                 <Select
-                    value={reward.type}
+                    value={currentReward.type || 'discount_percentage'}
                     onValueChange={(value) =>
                         onChange({
-                            ...reward,
+                            ...currentReward,
                             type: value as UnifiedReferralSettings['refereeReward']['type'],
                         })
                     }
@@ -613,10 +566,10 @@ const RefereeRewardEditor: React.FC<RefereeRewardEditorProps> = ({ reward, onCha
                                 Free Membership Days
                             </div>
                         </SelectItem>
-                        <SelectItem value="free_course">
+                        <SelectItem value="points_system">
                             <div className="flex items-center gap-2">
-                                <BookOpen className="size-4" />
-                                Free Course Access
+                                <Star className="size-4" />
+                                Points System
                             </div>
                         </SelectItem>
                     </SelectContent>
@@ -624,47 +577,63 @@ const RefereeRewardEditor: React.FC<RefereeRewardEditorProps> = ({ reward, onCha
             </div>
 
             {/* Conditional Fields based on reward type */}
-            {(reward.type === 'discount_percentage' || reward.type === 'free_days') && (
+            {(currentReward.type === 'discount_percentage' ||
+                currentReward.type === 'free_days' ||
+                currentReward.type === 'points_system') && (
                 <div className="space-y-2">
                     <Label>
-                        {reward.type === 'discount_percentage'
+                        {currentReward.type === 'discount_percentage'
                             ? 'Discount Percentage'
-                            : 'Number of Days'}
+                            : currentReward.type === 'free_days'
+                              ? 'Number of Days'
+                              : 'Points Earned'}
                     </Label>
                     <div className="flex items-center gap-2">
                         <Input
                             type="number"
-                            value={reward.value || ''}
+                            value={currentReward.value || ''}
                             onChange={(e) =>
-                                onChange({ ...reward, value: parseInt(e.target.value) || 0 })
+                                onChange({ ...currentReward, value: parseInt(e.target.value) || 0 })
                             }
                             placeholder="Enter value"
                             min="1"
-                            max={reward.type === 'discount_percentage' ? '100' : '365'}
+                            max={
+                                currentReward.type === 'discount_percentage'
+                                    ? '100'
+                                    : currentReward.type === 'free_days'
+                                      ? '365'
+                                      : undefined
+                            }
                         />
                         <span className="text-sm text-gray-500">
-                            {reward.type === 'discount_percentage' ? '%' : 'days'}
+                            {currentReward.type === 'discount_percentage'
+                                ? '%'
+                                : currentReward.type === 'free_days'
+                                  ? 'days'
+                                  : 'points'}
                         </span>
                     </div>
                 </div>
             )}
 
-            {reward.type === 'discount_fixed' && (
+            {currentReward.type === 'discount_fixed' && (
                 <div className="space-y-2">
                     <Label>Discount Amount</Label>
                     <div className="flex items-center gap-2">
                         <Input
                             type="number"
-                            value={reward.value || ''}
+                            value={currentReward.value || ''}
                             onChange={(e) =>
-                                onChange({ ...reward, value: parseInt(e.target.value) || 0 })
+                                onChange({ ...currentReward, value: parseInt(e.target.value) || 0 })
                             }
                             placeholder="Enter amount"
                             min="1"
                         />
                         <Select
-                            value={reward.currency || 'INR'}
-                            onValueChange={(value) => onChange({ ...reward, currency: value })}
+                            value={currentReward.currency || 'INR'}
+                            onValueChange={(value) =>
+                                onChange({ ...currentReward, currency: value })
+                            }
                         >
                             <SelectTrigger className="w-24">
                                 <SelectValue />
@@ -679,33 +648,19 @@ const RefereeRewardEditor: React.FC<RefereeRewardEditorProps> = ({ reward, onCha
                 </div>
             )}
 
-            {reward.type === 'bonus_content' && (
+            {currentReward.type === 'bonus_content' && (
                 <ContentEditor
-                    content={reward.content}
-                    onChange={(content) => onChange({ ...reward, content })}
+                    content={currentReward.content}
+                    onChange={(content) =>
+                        onChange({
+                            ...currentReward,
+                            content,
+                            // Also sync delivery to reward level for API compatibility
+                            delivery: content.content?.delivery || currentReward.delivery,
+                        })
+                    }
                 />
             )}
-
-            {reward.type === 'free_course' && (
-                <CourseSelector
-                    courseId={reward.courseId}
-                    sessionId={reward.sessionId}
-                    levelId={reward.levelId}
-                    onChange={(selection) => onChange({ ...reward, ...selection })}
-                    delivery={reward.delivery || { email: true, whatsapp: false }}
-                    onDeliveryChange={(delivery) => onChange({ ...reward, delivery })}
-                />
-            )}
-
-            <div className="space-y-2">
-                <Label>Description</Label>
-                <Textarea
-                    value={reward.description}
-                    onChange={(e) => onChange({ ...reward, description: e.target.value })}
-                    placeholder="Describe what the referee will receive"
-                    rows={2}
-                />
-            </div>
         </div>
     );
 };
@@ -727,6 +682,52 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ content, onChange }) => {
             delivery: { email: true, whatsapp: false },
         }
     );
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const { uploadFile } = useFileUpload();
+
+    // Create a simple form for the file upload component
+    const form = useForm({
+        defaultValues: {
+            bonusContentFile: null,
+        },
+    });
+
+    // Get user and institute info for file upload
+    const getUploadData = () => {
+        const accessToken = getTokenFromCookie(TokenKey.accessToken);
+        const data = getTokenDecodedData(accessToken);
+        const instituteId = data && Object.keys(data.authorities)[0];
+        return { instituteId, userId: 'referral-content-upload' };
+    };
+
+    const handleFileSubmit = async (file: File) => {
+        try {
+            setIsUploading(true);
+            const { instituteId } = getUploadData();
+            const fileId = await uploadFile({
+                file,
+                setIsUploading,
+                userId: 'referral-content-upload',
+                source: instituteId || 'REFERRAL_CONTENT',
+                sourceId: 'BONUS_CONTENT',
+                publicUrl: true,
+            });
+
+            if (fileId) {
+                setContentOption((prev) => ({
+                    ...prev,
+                    file,
+                    fileId,
+                }));
+            }
+        } catch (error) {
+            console.error('Upload failed:', error);
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
     useEffect(() => {
         onChange({
@@ -734,6 +735,12 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ content, onChange }) => {
             content: contentOption,
         });
     }, [contentType, contentOption, onChange]);
+
+    const templateOptions = [
+        { value: 'template_1', label: 'Template 1' },
+        { value: 'template_2', label: 'Template 2' },
+        { value: 'template_3', label: 'Template 3' },
+    ];
 
     return (
         <div className="space-y-4 rounded-lg border bg-gray-50 p-4">
@@ -767,12 +774,6 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ content, onChange }) => {
                                 Audio
                             </div>
                         </SelectItem>
-                        <SelectItem value="course">
-                            <div className="flex items-center gap-2">
-                                <BookOpen className="size-4" />
-                                Course Content
-                            </div>
-                        </SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -801,37 +802,92 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ content, onChange }) => {
                                 External Link
                             </div>
                         </SelectItem>
-                        <SelectItem value="existing_course">
-                            <div className="flex items-center gap-2">
-                                <BookOpen className="size-4" />
-                                Existing Course
-                            </div>
-                        </SelectItem>
                     </SelectContent>
                 </Select>
             </div>
 
             {contentOption.type === 'upload' && (
-                <div className="space-y-2">
-                    <Label>Upload File</Label>
-                    <Input
-                        type="file"
-                        accept={
-                            contentType === 'pdf'
-                                ? '.pdf'
-                                : contentType === 'video'
-                                  ? '.mp4,.avi,.mov,.wmv'
-                                  : contentType === 'audio'
-                                    ? '.mp3,.wav,.aac'
-                                    : '*'
-                        }
-                        onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                                setContentOption({ ...contentOption, file });
+                <div className="space-y-4">
+                    <div className="space-y-2">
+                        <Label>Upload File</Label>
+                        {contentOption.fileId ? (
+                            <div className="flex items-center justify-between rounded-lg border bg-white p-3">
+                                <div className="flex items-center gap-2">
+                                    <FileText className="size-4 text-green-600" />
+                                    <span className="text-sm text-green-600">
+                                        File uploaded successfully
+                                    </span>
+                                </div>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={isUploading}
+                                >
+                                    Replace File
+                                </Button>
+                            </div>
+                        ) : (
+                            <div className="">
+                                <MyButton
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={isUploading}
+                                    buttonType="secondary"
+                                    layoutVariant="default"
+                                    scale="large"
+                                    type="button"
+                                >
+                                    Upload Image
+                                </MyButton>
+                            </div>
+                        )}
+
+                        <Form {...form}>
+                            <FileUploadComponent
+                                fileInputRef={fileInputRef}
+                                onFileSubmit={handleFileSubmit}
+                                control={form.control}
+                                name="bonusContentFile"
+                                acceptedFileTypes={
+                                    contentType === 'pdf'
+                                        ? ['application/pdf']
+                                        : contentType === 'video'
+                                          ? [
+                                                'video/mp4',
+                                                'video/quicktime',
+                                                'video/x-msvideo',
+                                                'video/webm',
+                                            ]
+                                          : contentType === 'audio'
+                                            ? ['audio/*']
+                                            : ['application/pdf']
+                                }
+                                isUploading={isUploading}
+                                // className="hidden"
+                            />
+                        </Form>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label>Select Template</Label>
+                        <Select
+                            value={contentOption.template || ''}
+                            onValueChange={(value) =>
+                                setContentOption({ ...contentOption, template: value })
                             }
-                        }}
-                    />
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Choose a template" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {templateOptions.map((template) => (
+                                    <SelectItem key={template.value} value={template.value}>
+                                        {template.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
             )}
 
@@ -849,37 +905,12 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ content, onChange }) => {
                 </div>
             )}
 
-            {contentOption.type === 'existing_course' && (
-                <CourseSelector
-                    courseId={contentOption.courseId}
-                    sessionId={contentOption.sessionId}
-                    levelId={contentOption.levelId}
-                    onChange={(selection) => setContentOption({ ...contentOption, ...selection })}
-                    delivery={contentOption.delivery}
-                    onDeliveryChange={(delivery) =>
-                        setContentOption({ ...contentOption, delivery })
-                    }
-                />
-            )}
-
             <div className="space-y-2">
                 <Label>Content Title</Label>
                 <Input
                     value={contentOption.title}
                     onChange={(e) => setContentOption({ ...contentOption, title: e.target.value })}
                     placeholder="e.g., Welcome Bonus Study Guide"
-                />
-            </div>
-
-            <div className="space-y-2">
-                <Label>Content Description</Label>
-                <Textarea
-                    value={contentOption.description || ''}
-                    onChange={(e) =>
-                        setContentOption({ ...contentOption, description: e.target.value })
-                    }
-                    placeholder="Describe the content"
-                    rows={2}
                 />
             </div>
 
@@ -891,123 +922,6 @@ const ContentEditor: React.FC<ContentEditorProps> = ({ content, onChange }) => {
     );
 };
 
-// Course Selector Component
-interface CourseSelectorProps {
-    courseId?: string;
-    sessionId?: string;
-    levelId?: string;
-    onChange: (selection: { courseId?: string; sessionId?: string; levelId?: string }) => void;
-    delivery: ContentDelivery;
-    onDeliveryChange: (delivery: ContentDelivery) => void;
-}
-
-const CourseSelector: React.FC<CourseSelectorProps> = ({
-    courseId,
-    sessionId,
-    levelId,
-    onChange,
-    delivery,
-    onDeliveryChange,
-}) => {
-    const selectedCourse = mockCourses.find((c) => c.id === courseId);
-    const selectedSession = selectedCourse?.sessions.find((s) => s.id === sessionId);
-
-    return (
-        <div className="space-y-4 rounded-lg border bg-gray-50 p-4">
-            <div className="space-y-3">
-                <div className="space-y-2">
-                    <Label className="flex items-center gap-2 text-sm font-medium">
-                        <BookOpen className="size-4" />
-                        Select Course
-                    </Label>
-                    <Select
-                        value={courseId || ''}
-                        onValueChange={(value) =>
-                            onChange({ courseId: value, sessionId: '', levelId: '' })
-                        }
-                    >
-                        <SelectTrigger className="border-gray-200 bg-white hover:border-gray-300">
-                            <SelectValue placeholder="Choose a course" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {mockCourses.map((course) => (
-                                <SelectItem key={course.id} value={course.id}>
-                                    <div className="flex items-center gap-2">
-                                        <BookOpen className="size-4 text-blue-600" />
-                                        {course.name}
-                                    </div>
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                {selectedCourse && (
-                    <div className="space-y-2">
-                        <Label className="flex items-center gap-2 text-sm font-medium">
-                            <Calendar className="size-4" />
-                            Select Session
-                        </Label>
-                        <Select
-                            value={sessionId || ''}
-                            onValueChange={(value) =>
-                                onChange({ courseId, sessionId: value, levelId: '' })
-                            }
-                        >
-                            <SelectTrigger className="border-gray-200 bg-white hover:border-gray-300">
-                                <SelectValue placeholder="Choose a session" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {selectedCourse.sessions.map((session) => (
-                                    <SelectItem key={session.id} value={session.id}>
-                                        <div className="flex items-center gap-2">
-                                            <Calendar className="size-4 text-green-600" />
-                                            {session.name}
-                                        </div>
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                )}
-
-                {selectedSession && (
-                    <div className="space-y-2">
-                        <Label className="flex items-center gap-2 text-sm font-medium">
-                            <TrendingUp className="size-4" />
-                            Select Level
-                        </Label>
-                        <Select
-                            value={levelId || ''}
-                            onValueChange={(value) =>
-                                onChange({ courseId, sessionId, levelId: value })
-                            }
-                        >
-                            <SelectTrigger className="border-gray-200 bg-white hover:border-gray-300">
-                                <SelectValue placeholder="Choose a level" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {selectedSession.levels.map((level) => (
-                                    <SelectItem key={level.id} value={level.id}>
-                                        <div className="flex items-center gap-2">
-                                            <TrendingUp className="size-4 text-purple-600" />
-                                            {level.name}
-                                        </div>
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                )}
-            </div>
-
-            <div className="border-t border-blue-200 pt-3">
-                <DeliveryOptionsEditor delivery={delivery} onChange={onDeliveryChange} />
-            </div>
-        </div>
-    );
-};
-
 // Delivery Options Editor Component
 interface DeliveryOptionsEditorProps {
     delivery: ContentDelivery;
@@ -1015,37 +929,156 @@ interface DeliveryOptionsEditorProps {
 }
 
 const DeliveryOptionsEditor: React.FC<DeliveryOptionsEditorProps> = ({ delivery, onChange }) => {
+    const [previewTemplate, setPreviewTemplate] = React.useState<MessageTemplate | null>(null);
+    const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
+
+    const handleEmailTemplateSelect = (template: MessageTemplate | null) => {
+        const updatedDelivery = { ...delivery };
+        if (template) {
+            updatedDelivery.emailTemplate = {
+                id: template.id,
+                name: template.name,
+                subject: template.subject,
+                content: template.content,
+            };
+        } else {
+            delete updatedDelivery.emailTemplate;
+        }
+        onChange(updatedDelivery);
+    };
+
+    const handleWhatsAppTemplateSelect = (template: MessageTemplate | null) => {
+        const updatedDelivery = { ...delivery };
+        if (template) {
+            updatedDelivery.whatsappTemplate = {
+                id: template.id,
+                name: template.name,
+                content: template.content,
+            };
+        } else {
+            delete updatedDelivery.whatsappTemplate;
+        }
+        onChange(updatedDelivery);
+    };
+
+    const handleEmailTemplatePreview = (template: MessageTemplate) => {
+        setPreviewTemplate(template);
+        setIsPreviewOpen(true);
+    };
+
+    const handleWhatsAppTemplatePreview = (template: MessageTemplate) => {
+        setPreviewTemplate(template);
+        setIsPreviewOpen(true);
+    };
+
+    const handleEmailTemplateCreate = () => {
+        // TODO: Implement template creation functionality
+        console.log('Create email template');
+    };
+
+    const handleWhatsAppTemplateCreate = () => {
+        // TODO: Implement template creation functionality
+        console.log('Create WhatsApp template');
+    };
+
     return (
-        <div className="space-y-2">
-            <Label>Delivery Methods</Label>
-            <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                    <Checkbox
-                        id="email-delivery"
-                        checked={delivery.email}
-                        onCheckedChange={(checked) =>
-                            onChange({ ...delivery, email: checked as boolean })
-                        }
-                    />
-                    <Label htmlFor="email-delivery" className="flex items-center gap-2 text-sm">
-                        <Mail className="size-4" />
-                        Email
-                    </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                    <Checkbox
-                        id="whatsapp-delivery"
-                        checked={delivery.whatsapp}
-                        onCheckedChange={(checked) =>
-                            onChange({ ...delivery, whatsapp: checked as boolean })
-                        }
-                    />
-                    <Label htmlFor="whatsapp-delivery" className="flex items-center gap-2 text-sm">
-                        <MessageCircle className="size-4" />
-                        WhatsApp
-                    </Label>
+        <div className="space-y-4">
+            <div>
+                <Label>Delivery Methods</Label>
+                <div className="mt-2 flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="email-delivery"
+                            checked={delivery.email}
+                            onCheckedChange={(checked) =>
+                                onChange({ ...delivery, email: checked as boolean })
+                            }
+                        />
+                        <Label htmlFor="email-delivery" className="flex items-center gap-2 text-sm">
+                            <Mail className="size-4" />
+                            Email
+                        </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="whatsapp-delivery"
+                            checked={delivery.whatsapp}
+                            onCheckedChange={(checked) =>
+                                onChange({ ...delivery, whatsapp: checked as boolean })
+                            }
+                        />
+                        <Label
+                            htmlFor="whatsapp-delivery"
+                            className="flex items-center gap-2 text-sm"
+                        >
+                            <MessageCircle className="size-4" />
+                            WhatsApp
+                        </Label>
+                    </div>
                 </div>
             </div>
+
+            {/* Email Template Selection */}
+            {delivery.email && (
+                <TemplateSelector
+                    templateType="EMAIL"
+                    variant="dropdown"
+                    selectedTemplate={
+                        delivery.emailTemplate
+                            ? {
+                                  id: delivery.emailTemplate.id,
+                                  name: delivery.emailTemplate.name,
+                                  subject: delivery.emailTemplate.subject,
+                                  content: delivery.emailTemplate.content,
+                                  type: 'EMAIL',
+                                  variables: [],
+                                  isDefault: false,
+                                  createdAt: '',
+                                  updatedAt: '',
+                                  instituteId: '',
+                              }
+                            : null
+                    }
+                    onTemplateSelect={handleEmailTemplateSelect}
+                    onTemplatePreview={handleEmailTemplatePreview}
+                    onTemplateCreate={handleEmailTemplateCreate}
+                    placeholder="Select email template"
+                />
+            )}
+
+            {/* WhatsApp Template Selection */}
+            {delivery.whatsapp && (
+                <TemplateSelector
+                    templateType="WHATSAPP"
+                    variant="dropdown"
+                    selectedTemplate={
+                        delivery.whatsappTemplate
+                            ? {
+                                  id: delivery.whatsappTemplate.id,
+                                  name: delivery.whatsappTemplate.name,
+                                  content: delivery.whatsappTemplate.content,
+                                  type: 'WHATSAPP',
+                                  variables: [],
+                                  isDefault: false,
+                                  createdAt: '',
+                                  updatedAt: '',
+                                  instituteId: '',
+                              }
+                            : null
+                    }
+                    onTemplateSelect={handleWhatsAppTemplateSelect}
+                    onTemplatePreview={handleWhatsAppTemplatePreview}
+                    onTemplateCreate={handleWhatsAppTemplateCreate}
+                    placeholder="Select WhatsApp template"
+                />
+            )}
+
+            {/* Template Preview Modal */}
+            <TemplatePreview
+                isOpen={isPreviewOpen}
+                onClose={() => setIsPreviewOpen(false)}
+                template={previewTemplate}
+            />
         </div>
     );
 };
@@ -1069,8 +1102,10 @@ const ReferrerTierCreator: React.FC<ReferrerTierCreatorProps> = ({
         tierName: '',
         referralCount: 1,
         reward: {
-            type: 'bonus_content',
-            description: '',
+            type: 'discount_percentage',
+            value: 10,
+            currency: 'INR',
+            pointsRewardType: 'discount_fixed',
         },
     });
 
@@ -1082,7 +1117,9 @@ const ReferrerTierCreator: React.FC<ReferrerTierCreatorProps> = ({
                 tierName: '',
                 referralCount: 1,
                 reward: {
-                    type: 'bonus_content',
+                    type: 'discount_percentage',
+                    value: 10,
+                    currency: 'INR',
                     description: '',
                 },
             });
@@ -1133,41 +1170,10 @@ const ReferrerTierCreator: React.FC<ReferrerTierCreatorProps> = ({
                 pointsToReward: formData.reward.pointsToReward,
                 pointsRewardType: formData.reward.pointsRewardType,
                 pointsRewardValue: formData.reward.pointsRewardValue,
-                description: formData.reward.description || getDefaultDescription(),
             },
         };
 
         onSave(tier);
-    };
-
-    const getDefaultDescription = () => {
-        switch (formData.reward?.type) {
-            case 'discount_percentage':
-                return `${formData.reward.value}% discount on next payment`;
-            case 'discount_fixed':
-                return `Fixed ${formData.reward.currency === 'USD' ? '$' : '₹'}${formData.reward.value} discount`;
-            case 'bonus_content':
-                return `Free content reward`;
-            case 'free_days':
-                return `${formData.reward.value} days added to membership`;
-            case 'free_course':
-                return `Free course access reward`;
-            case 'points_system': {
-                const pointsPerReferral = formData.reward.pointsPerReferral || 0;
-                const pointsToReward = formData.reward.pointsToReward || 0;
-                const rewardValue = formData.reward.pointsRewardValue || 0;
-                const rewardType = formData.reward.pointsRewardType || 'discount_percentage';
-                const rewardSuffix =
-                    rewardType === 'discount_percentage'
-                        ? '% discount'
-                        : rewardType === 'membership_days'
-                          ? ' free days'
-                          : '₹ discount';
-                return `Earn ${pointsPerReferral} points per referral. Get ${rewardValue}${rewardSuffix} for ${pointsToReward} points.`;
-            }
-            default:
-                return 'Referral reward';
-        }
     };
 
     return (
@@ -1177,6 +1183,11 @@ const ReferrerTierCreator: React.FC<ReferrerTierCreatorProps> = ({
                     <DialogTitle>
                         {editingTier ? 'Edit Reward Tier' : 'Create Reward Tier'}
                     </DialogTitle>
+                    <DialogDescription>
+                        {editingTier
+                            ? 'Modify the reward tier settings and benefits'
+                            : 'Create a new reward tier with specific benefits and requirements'}
+                    </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4">
@@ -1243,7 +1254,7 @@ const ReferrerTierCreator: React.FC<ReferrerTierCreatorProps> = ({
                     <div className="space-y-2">
                         <Label>Reward Type</Label>
                         <Select
-                            value={formData.reward?.type || 'bonus_content'}
+                            value={formData.reward?.type || 'discount_percentage'}
                             onValueChange={(value) =>
                                 setFormData({
                                     ...formData,
@@ -1254,7 +1265,6 @@ const ReferrerTierCreator: React.FC<ReferrerTierCreatorProps> = ({
                                             | 'discount_fixed'
                                             | 'bonus_content'
                                             | 'free_days'
-                                            | 'free_course'
                                             | 'points_system',
                                     },
                                 })
@@ -1272,7 +1282,6 @@ const ReferrerTierCreator: React.FC<ReferrerTierCreatorProps> = ({
                                 </SelectItem>
                                 <SelectItem value="bonus_content">Bonus Content</SelectItem>
                                 <SelectItem value="free_days">Free Membership Days</SelectItem>
-                                <SelectItem value="free_course">Free Course Access</SelectItem>
                                 <SelectItem value="points_system">Points System</SelectItem>
                             </SelectContent>
                         </Select>
@@ -1368,33 +1377,9 @@ const ReferrerTierCreator: React.FC<ReferrerTierCreatorProps> = ({
                                     reward: {
                                         ...formData.reward!,
                                         content,
-                                    },
-                                })
-                            }
-                        />
-                    )}
-
-                    {formData.reward?.type === 'free_course' && (
-                        <CourseSelector
-                            courseId={formData.reward.courseId}
-                            sessionId={formData.reward.sessionId}
-                            levelId={formData.reward.levelId}
-                            onChange={(selection) =>
-                                setFormData({
-                                    ...formData,
-                                    reward: {
-                                        ...formData.reward!,
-                                        ...selection,
-                                    },
-                                })
-                            }
-                            delivery={formData.reward.delivery || { email: true, whatsapp: false }}
-                            onDeliveryChange={(delivery) =>
-                                setFormData({
-                                    ...formData,
-                                    reward: {
-                                        ...formData.reward!,
-                                        delivery,
+                                        // Also sync delivery to reward level for API compatibility
+                                        delivery:
+                                            content.content?.delivery || formData.reward!.delivery,
                                     },
                                 })
                             }
@@ -1456,10 +1441,8 @@ const ReferrerTierCreator: React.FC<ReferrerTierCreatorProps> = ({
                             <div className="space-y-2">
                                 <Label>Reward Type</Label>
                                 <Select
-                                    value={
-                                        formData.reward.pointsRewardType || 'discount_percentage'
-                                    }
-                                    onValueChange={(value) =>
+                                    value={formData.reward.pointsRewardType || 'discount_fixed'}
+                                    onValueChange={(value) => {
                                         setFormData({
                                             ...formData,
                                             reward: {
@@ -1469,8 +1452,8 @@ const ReferrerTierCreator: React.FC<ReferrerTierCreatorProps> = ({
                                                     | 'discount_fixed'
                                                     | 'membership_days',
                                             },
-                                        })
-                                    }
+                                        });
+                                    }}
                                 >
                                     <SelectTrigger>
                                         <SelectValue />
@@ -1511,9 +1494,8 @@ const ReferrerTierCreator: React.FC<ReferrerTierCreatorProps> = ({
                                     <span className="text-sm text-gray-500">
                                         {formData.reward.pointsRewardType === 'discount_percentage'
                                             ? '%'
-                                            : formData.reward.pointsRewardType === 'membership_days'
-                                              ? 'days'
-                                              : '₹'}
+                                            : formData.reward.pointsRewardType ===
+                                                  'membership_days' && 'days'}
                                     </span>
                                 </div>
                             </div>
@@ -1557,31 +1539,13 @@ const ReferrerTierCreator: React.FC<ReferrerTierCreatorProps> = ({
                                                 : formData.reward.pointsRewardType ===
                                                     'membership_days'
                                                   ? ' free days'
-                                                  : '₹ discount'}
+                                                  : ' discount'}
                                         </strong>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     )}
-
-                    <div className="space-y-2">
-                        <Label>Description</Label>
-                        <Textarea
-                            value={formData.reward?.description || ''}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    reward: {
-                                        ...formData.reward!,
-                                        description: e.target.value,
-                                    },
-                                })
-                            }
-                            placeholder="Describe what the referrer will receive at this tier"
-                            rows={2}
-                        />
-                    </div>
                 </div>
 
                 <div className="flex justify-end gap-2 pt-4">

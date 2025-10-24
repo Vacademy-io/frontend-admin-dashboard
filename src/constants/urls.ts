@@ -2,11 +2,15 @@ export const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'https://backend-sta
 export const BASE_URL_LEARNER_DASHBOARD =
     import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io';
 
-// These hardcoded institute IDs should be removed in multi-org deployment
-export const SSDC_INSTITUTE_ID = '69ca11c6-54e1-4e99-9498-50c9a4272ce6';
-export const SHUBHAM_INSTITUTE_ID = 'd0de8707-f36c-43a0-953c-019ca507c81d';
-export const CODE_CIRCLE_INSTITUTE_ID = 'dd9b9687-56ee-467a-9fc4-8c5835eae7f9';
-export const HOLISTIC_INSTITUTE_ID = 'bd9f2362-84d1-4e01-9762-a5196f9bac80';
+// Institute IDs from environment variables for multi-org deployment
+export const SSDC_INSTITUTE_ID =
+    import.meta.env.VITE_SSDC_INSTITUTE_ID || '69ca11c6-54e1-4e99-9498-50c9a4272ce6';
+export const SHUBHAM_INSTITUTE_ID =
+    import.meta.env.VITE_SHUBHAM_INSTITUTE_ID || 'd0de8707-f36c-43a0-953c-019ca507c81d';
+export const CODE_CIRCLE_INSTITUTE_ID =
+    import.meta.env.VITE_CODE_CIRCLE_INSTITUTE_ID || 'dd9b9687-56ee-467a-9fc4-8c5835eae7f9';
+export const HOLISTIC_INSTITUTE_ID =
+    import.meta.env.VITE_HOLISTIC_INSTITUTE_ID || 'bd9f2362-84d1-4e01-9762-a5196f9bac80';
 
 export const REQUEST_OTP = `${BASE_URL}/auth-service/v1/request-otp`;
 export const LOGIN_OTP = `${BASE_URL}/auth-service/v1/login-otp`;
@@ -43,6 +47,7 @@ export const ENROLL_STUDENT_MANUALLY = `${BASE_URL}/admin-core-service/institute
 export const RE_ENROLL_STUDENT_MANUALLY = `${BASE_URL}/admin-core-service/institute/institute_learner-operation/v1/re-enroll-learner`;
 export const ENROLL_REQUESTS_LISTS = `${BASE_URL}/admin-core-service/institute/institute_learner/get/v2/all`;
 export const APPROVE_ENROLL_REQUESTS = `${BASE_URL}/admin-core-service/institute/learner-batch/v1/approve-learner-request-bulk`;
+export const LEADS_MANAGEMENT_LISTS = `${BASE_URL}/admin-core-service/institute/institute_learner/get/v2/all-leads`;
 
 export const INIT_CSV_BULK = `${BASE_URL}/admin-core-service/institute/institute_learner-bulk/v1/init-institute_learner-upload`;
 export const STUDENT_UPDATE_OPERATION = `${BASE_URL}/admin-core-service/institute/institute_learner-operation/v1/update`;
@@ -57,6 +62,7 @@ export const DELETE_DISABLE_USER_URL = `${BASE_URL}/auth-service/v1/user-roles/u
 export const ADD_USER_ROLES_URL = `${BASE_URL}/auth-service/v1/user-roles/add-user-roles`;
 export const UPDATE_USER_INVITATION_URL = `${BASE_URL}/auth-service/v1/user-invitation/update`;
 export const RESEND_INVITATION_URL = `${BASE_URL}/auth-service/v1/user-invitation/resend-invitation`;
+export const UPDATE_INVITE_URL = `${BASE_URL}/admin-core-service/v1/enroll-invite/enroll-invite`;
 
 export const GET_QUESTION_PAPER_FILTERED_DATA = `${BASE_URL}/assessment-service/question-paper/view/v1/get-with-filters`;
 export const MARK_QUESTION_PAPER_STATUS = `${BASE_URL}/assessment-service/question-paper/manage/v1/mark-status`;
@@ -99,6 +105,8 @@ export const GET_SIGNED_URL_PUBLIC = `${BASE_URL}/media-service/public/get-signe
 export const ACKNOWLEDGE = `${BASE_URL}/media-service/acknowledge`;
 export const GET_PUBLIC_URL = `${BASE_URL}/media-service/get-public-url`;
 export const GET_PUBLIC_URL_PUBLIC = `${BASE_URL}/media-service/public/get-public-url`;
+// Domain routing - resolve institute by domain/subdomain (public)
+export const DOMAIN_ROUTING_RESOLVE = `${BASE_URL}/admin-core-service/public/domain-routing/v1/resolve`;
 export const GET_DETAILS = `${BASE_URL}/media-service/get-details/ids`;
 export const ACKNOWLEDGE_FOR_PUBLIC_URL = `${BASE_URL}/media-service/acknowledge-get-details`;
 
@@ -337,3 +345,32 @@ export const REFERRAL_DELETE = `${BASE_URL}/admin-core-service/v1/referral-optio
 
 export const GET_INSITITUTE_SETTINGS = `${BASE_URL}/admin-core-service/institute/setting/v1/get`;
 export const UPDATE_CUSTOM_FIELD_SETTINGS = `${BASE_URL}/admin-core-service/institute/v1/custom-field/create-or-update`;
+// Message Templates
+export const MESSAGE_TEMPLATE_BASE = `${BASE_URL}/admin-core-service/institute/template/v1`;
+export const CREATE_MESSAGE_TEMPLATE = `${MESSAGE_TEMPLATE_BASE}/create`;
+export const GET_MESSAGE_TEMPLATES = `${MESSAGE_TEMPLATE_BASE}/institute`;
+export const GET_MESSAGE_TEMPLATE = `${MESSAGE_TEMPLATE_BASE}/get`;
+export const UPDATE_MESSAGE_TEMPLATE = `${MESSAGE_TEMPLATE_BASE}/update`;
+export const DELETE_MESSAGE_TEMPLATE = `${MESSAGE_TEMPLATE_BASE}`;
+export const SEARCH_MESSAGE_TEMPLATES = `${MESSAGE_TEMPLATE_BASE}/search`;
+
+// Notification Service - Email sending
+export const SEND_EMAIL_TO_USERS_PUBLIC = `${NOTIFICATION_SERVICE_BASE}/send-email-to-users-public`;
+
+// Student Data Enrichment Service
+export const STUDENT_DATA_ENRICHMENT_BASE = `${BASE_URL}/admin-core-service`;
+
+// Survey Service URLs
+export const SURVEY_SERVICE_BASE = `${BASE_URL}/assessment-service/assessment/survey`;
+export const SURVEY_RESPONDENT_RESPONSE = `${SURVEY_SERVICE_BASE}/respondent-response`;
+export const SURVEY_SETUP = `${SURVEY_SERVICE_BASE}/setup`;
+export const SURVEY_INDIVIDUAL_RESPONSE = `${SURVEY_SERVICE_BASE}/individual-response`;
+export const SURVEY_OVERVIEW = `${SURVEY_SERVICE_BASE}/get-overview`;
+export const SURVEY_QUESTIONS_WITH_SECTIONS = `${BASE_URL}/assessment-service/assessment/add-questions/create/v1/questions-of-sections`;
+
+// Batch Service URLs
+export const BATCH_SERVICE_BASE = `${BASE_URL}/institute-service/batch`;
+export const BATCH_DETAILS = `${BATCH_SERVICE_BASE}/get-batch-details`;
+
+// Server Time
+export const GET_SERVER_TIME = `${BASE_URL}/auth-service/v1/server-time/utc`;

@@ -5,31 +5,19 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useNavigate } from '@tanstack/react-router';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { MyInput } from '@/components/design-system/input';
 import { MyButton } from '@/components/design-system/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-    Mail,
-    ArrowLeft,
-    RefreshCw,
-    Shield,
-    CheckCircle2,
-    ArrowRight,
-    UserPlus,
-} from 'lucide-react';
+import { Mail, RefreshCw, Shield, ArrowRight } from 'lucide-react';
 
-import { TokenKey } from '@/constants/auth/tokens';
-import {
-    setAuthorizationCookie,
-    getUserRoles,
-    removeCookiesAndLogout,
-} from '@/lib/auth/sessionUtility';
+// Removed unused auth imports
 import { LOGIN_OTP, REQUEST_OTP } from '@/constants/urls';
 import { handleLoginFlow, navigateFromLoginFlow } from '@/lib/auth/loginFlowHandler';
 import { trackEvent } from '@/lib/amplitude';
+import { getCachedInstituteBranding } from '@/services/domain-routing';
 
 const emailSchema = z.object({
     email: z.string().email({ message: 'Invalid email address' }),
@@ -54,6 +42,8 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
     const queryClient = useQueryClient();
     const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [allowSignup, setAllowSignup] = useState(false);
+    const [allowUsernamePasswordAuth, setAllowUsernamePasswordAuth] = useState(false);
 
     const emailForm = useForm<EmailFormValues>({
         resolver: zodResolver(emailSchema),
@@ -78,6 +68,15 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
     };
 
     useEffect(() => {
+        try {
+            const cached = getCachedInstituteBranding();
+            if (cached) {
+                setAllowSignup(cached.allowSignup !== false);
+                setAllowUsernamePasswordAuth(cached.allowUsernamePasswordAuth !== false);
+            }
+        } catch (_e) {
+            // ignore
+        }
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         };
@@ -106,13 +105,13 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
         onMutate: () => {
             setIsLoading(true);
         },
-        onSuccess: (response) => {
+        onSuccess: () => {
             setIsLoading(false);
             setIsOtpSent(true);
             startTimer();
             toast.success('OTP sent successfully');
         },
-        onError: (error: AxiosError) => {
+        onError: () => {
             setIsLoading(false);
             toast.error('This email is not registered', {
                 description: 'Please try again with a registered email',
@@ -152,7 +151,7 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
                 loginMethod: 'email_otp',
                 accessToken: response.data.accessToken,
                 refreshToken: response.data.refreshToken,
-                queryClient
+                queryClient,
             });
 
             if (result.shouldShowInstituteSelection) {
@@ -162,7 +161,7 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
                 navigateFromLoginFlow(result);
             }
         },
-        onError: (error: AxiosError) => {
+        onError: () => {
             toast.error('Invalid OTP', {
                 description: 'Please check your OTP and try again',
                 duration: 3000,
@@ -170,8 +169,6 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
             otpForm.reset();
         },
     });
-
-
 
     const onEmailSubmit = (data: EmailFormValues) => {
         setEmail(data.email);
@@ -466,27 +463,31 @@ export function EmailLogin({ onSwitchToUsername }: { onSwitchToUsername: () => v
                 )}
             </AnimatePresence>
 
-            <div className="mt-6 text-center">
-                <button
-                    type="button"
-                    className="hover:text-primary-600 text-sm text-primary-500 transition-colors"
-                    onClick={onSwitchToUsername}
-                >
-                    Prefer username login?
-                </button>
-            </div>
-
-            <div className="mt-4 text-center">
-                <p className="text-sm">
-                    Don&apos;t have an account?&nbsp;&nbsp;
-                    <span
-                        className="cursor-pointer text-primary-500"
-                        onClick={() => navigate({ to: '/signup' })}
+            {allowUsernamePasswordAuth && (
+                <div className="mt-6 text-center">
+                    <button
+                        type="button"
+                        className="hover:text-primary-600 text-sm text-primary-500 transition-colors"
+                        onClick={onSwitchToUsername}
                     >
-                        Create One
-                    </span>
-                </p>
-            </div>
+                        Prefer username login?
+                    </button>
+                </div>
+            )}
+
+            {allowSignup && (
+                <div className="mt-4 text-center">
+                    <p className="text-sm">
+                        Don&apos;t have an account?&nbsp;&nbsp;
+                        <span
+                            className="cursor-pointer text-primary-500"
+                            onClick={() => navigate({ to: '/signup' })}
+                        >
+                            Create One
+                        </span>
+                    </p>
+                </div>
+            )}
         </div>
     );
 }

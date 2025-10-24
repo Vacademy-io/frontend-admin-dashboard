@@ -38,6 +38,9 @@ export interface Batch {
     levelId: string;
     sessionName: string;
     levelName: string;
+    courseId: string;
+    courseName: string;
+    isParent?: boolean;
 }
 
 export interface GenerateInviteLinkDialogProps {
@@ -221,6 +224,7 @@ export const inviteLinkSchema = z.object({
         .default([]),
     showAddDiscountDialog: z.boolean().default(false),
     selectedDiscountId: z.string().default('none'),
+    // Legacy fields - keeping for backward compatibility
     selectedReferral: z
         .object({
             id: z.string().optional(),
@@ -266,6 +270,13 @@ export const inviteLinkSchema = z.object({
         )
         .default([]),
     selectedReferralId: z.string().default('r1'),
+
+    // New per-plan referral fields
+    planReferralMappings: z.record(z.string(), z.string()).default({}), // planId -> referralId
+    selectedPlanForReferral: z.string().default(''), // Currently selected plan for referral config
+    showPlanReferralDialog: z.boolean().default(false), // New dialog for plan-referral config
+
+    // Existing referral dialogs - kept for creating/editing referrals
     showReferralDialog: z.boolean().default(false),
     showAddReferralDialog: z.boolean().default(false),
     restrictToSameBatch: z.boolean().default(false),

@@ -346,6 +346,8 @@ const InviteDetailsComponent = ({ form }: { form: UseFormReturn<CourseDetailsFor
                             getDetailsFromPackageSessionId({
                                 packageSessionId: addDialogData?.packageSessionId || '',
                             })?.level.level_name || '',
+                        courseId: courseId || '',
+                        courseName: form.getValues('courseData.packageName') || '',
                     },
                 ]}
                 showSummaryDialog={isAddDialogOpen}

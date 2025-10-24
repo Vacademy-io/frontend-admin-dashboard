@@ -557,23 +557,20 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
     }
 
     return (
-        <div className="relative flex w-full flex-col gap-8 text-neutral-600">
+        <div className="relative flex w-full flex-col gap-2 text-neutral-600">
             <div className="flex flex-col items-end gap-4">
                 <AddCourseButton />
             </div>
-            <div className="flex items-center gap-8">
-                <div className="flex flex-col gap-2">
-                    <div className="text-h3 font-semibold">
+            <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-1">
+                    <div className="text-h5 font-semibold">
                         Explore {getTerminology(ContentTerms.Course, SystemTerms.Course)}s
                     </div>
-                    <div className="text-subtitle">
+                    <div className="text-sm">
                         Effortlessly organize, upload, and track educational resources in one place.
                         Provide students with easy access to the materials they need to succeed,
                         ensuring a seamless learning experience.
                     </div>
-                </div>
-                <div className="flex flex-col items-center gap-4">
-                    <CourseCatalog />
                 </div>
             </div>
 
@@ -628,17 +625,70 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
                             // Handle existing All Courses tab
                             const data = tab.key === 'AllCourses' ? allCoursesData : null;
 
+                            // Check if any filters are applied
+                            const hasActiveFilters =
+                                selectedFilters.level_ids.length > 0 ||
+                                selectedFilters.tag.length > 0 ||
+                                selectedFilters.faculty_ids.length > 0 ||
+                                selectedFilters.search_by_name ||
+                                selectedFilters.min_percentage_completed > 0 ||
+                                selectedFilters.max_percentage_completed > 0;
+
+                            // If no data and no filters applied, show "no courses" message
                             if (!data || !data.content || data.content.length === 0) {
-                                return (
-                                    <div className="flex h-40 flex-col items-center justify-center text-gray-500">
-                                        No{' '}
-                                        {getTerminology(
-                                            ContentTerms.Course,
-                                            SystemTerms.Course
-                                        ).toLocaleLowerCase()}
-                                        s found for this tab.
-                                    </div>
-                                );
+                                if (!hasActiveFilters) {
+                                    return (
+                                        <div className="flex h-40 flex-col items-center justify-center text-gray-500">
+                                            No{' '}
+                                            {getTerminology(
+                                                ContentTerms.Course,
+                                                SystemTerms.Course
+                                            ).toLocaleLowerCase()}
+                                            s found for this tab.
+                                        </div>
+                                    );
+                                } else {
+                                    // Filters are applied but no data - show filters with "no results" message
+                                    return (
+                                        <>
+                                            <CourseListPage
+                                                selectedFilters={selectedFilters}
+                                                setSelectedFilters={setSelectedFilters}
+                                                handleClearAll={handleClearAll}
+                                                handleApply={handleApply}
+                                                levels={levels}
+                                                handleLevelChange={handleLevelChange}
+                                                tags={tags}
+                                                accessControlUsers={accessControlUsers}
+                                                handleUserChange={handleUserChange}
+                                                handleTagChange={handleTagChange}
+                                                searchValue={searchValue}
+                                                setSearchValue={setSearchValue}
+                                                handleSearchChange={handleSearchChange}
+                                                handleSearchKeyDown={handleSearchKeyDown}
+                                                sortBy={sortBy}
+                                                setSortBy={setSortBy}
+                                                allCourses={data}
+                                                courseImageUrls={courseImageUrls}
+                                                instructorProfilePicUrls={instructorProfilePicUrls}
+                                                isLoadingImages={isLoadingImages}
+                                                handleCourseDelete={handleCourseDelete}
+                                                page={page}
+                                                handlePageChange={handlePageChange}
+                                                deletingCourseId={deletingCourseId}
+                                                showDeleteButton={!isTeacherNonAdmin}
+                                            />
+                                            <div className="mt-4 flex h-20 flex-col items-center justify-center text-gray-500">
+                                                No{' '}
+                                                {getTerminology(
+                                                    ContentTerms.Course,
+                                                    SystemTerms.Course
+                                                ).toLocaleLowerCase()}
+                                                s found for the applied filters.
+                                            </div>
+                                        </>
+                                    );
+                                }
                             }
                             return (
                                 <CourseListPage

@@ -104,7 +104,6 @@ function getTestBoundation(
     testType: string | undefined,
     liveDateRange: { startDate?: string; endDate?: string }
 ) {
-    console.log(liveDateRange);
     switch (testType) {
         case 'LIVE':
             return {
@@ -259,6 +258,76 @@ export const convertCustomFields = (customFields: CustomFields): ConvertedCustom
     return convertedFields;
 };
 
+// Helper function to get open test details
+const getOpenTestDetails = (openTestData: any) => {
+    if (!openTestData.checked) return {};
+
+    return {
+        registration_start_date: convertToUTC(openTestData.start_date) || '',
+        registration_end_date: convertToUTC(openTestData.end_date) || '',
+        instructions_html: openTestData.instructions || '',
+        registration_form_details: {
+            added_custom_added_fields: convertCustomFields(openTestData.custom_fields),
+            removed_custom_added_fields: [],
+        },
+    };
+};
+
+// Helper function to get batch details
+const getBatchDetails = (selectBatchData: any) => {
+    return selectBatchData.batch_details
+        ? Object.values(selectBatchData.batch_details).flat()
+        : [];
+};
+
+// Helper function to get student details
+const getStudentDetails = (selectIndividuallyData: any) => {
+    return selectIndividuallyData.student_details || [];
+};
+
+// Helper function to get notification settings for students
+const getStudentNotificationSettings = (notifyStudentData: any, showLeaderboard: boolean) => {
+    return {
+        when_assessment_created: notifyStudentData.when_assessment_created || false,
+        show_leaderboard: showLeaderboard || false,
+        before_assessment_goes_live: notifyStudentData.before_assessment_goes_live.checked
+            ? parseInt(notifyStudentData.before_assessment_goes_live.value)
+            : 0,
+        when_assessment_live: notifyStudentData.when_assessment_live || false,
+        when_assessment_report_generated: notifyStudentData.when_assessment_report_generated || false,
+    };
+};
+
+// Helper function to get notification settings for parents
+const getParentNotificationSettings = (notifyParentData: any, showLeaderboard: boolean) => {
+    return {
+        when_assessment_created: notifyParentData.when_assessment_created || false,
+        before_assessment_goes_live: notifyParentData.before_assessment_goes_live.checked
+            ? parseInt(notifyParentData.before_assessment_goes_live.value)
+            : 0,
+        show_leaderboard: showLeaderboard || false,
+        when_assessment_live: notifyParentData.when_assessment_live || false,
+        when_student_appears: notifyParentData.when_student_appears || false,
+        when_student_finishes_test: notifyParentData.when_student_finishes_test || false,
+        when_assessment_report_generated: notifyParentData.when_assessment_report_generated || false,
+    };
+};
+
+// Helper function to build create data payload
+const buildCreateDataPayload = (newData: z.infer<typeof testAccessSchema>) => {
+    return {
+        closed_test: newData.closed_test,
+        open_test_details: getOpenTestDetails(newData.open_test),
+        added_pre_register_batches_details: getBatchDetails(newData.select_batch),
+        deleted_pre_register_batches_details: [],
+        added_pre_register_students_details: getStudentDetails(newData.select_individually),
+        deleted_pre_register_students_details: [],
+        updated_join_link: newData.join_link || '',
+        notify_student: getStudentNotificationSettings(newData.notify_student, newData.show_leaderboard),
+        notify_parent: getParentNotificationSettings(newData.notify_parent, newData.show_leaderboard),
+    };
+};
+
 export const handlePostStep3Data = async (
     oldFormData: TestAccessFormType | null,
     newData: z.infer<typeof testAccessSchema>,
@@ -267,54 +336,9 @@ export const handlePostStep3Data = async (
     type: string | undefined,
     actionType: string
 ) => {
-    const convertedData1 = {
-        closed_test: newData.closed_test,
-        open_test_details: newData.open_test.checked
-            ? {
-                  registration_start_date: convertToUTC(newData.open_test.start_date) || '',
-                  registration_end_date: convertToUTC(newData.open_test.end_date) || '',
-                  instructions_html: newData.open_test.instructions || '',
-                  registration_form_details: {
-                      added_custom_added_fields: convertCustomFields(
-                          newData.open_test.custom_fields
-                      ),
-                      removed_custom_added_fields: [], // Default to an empty array as per example
-                  },
-              }
-            : {},
-        added_pre_register_batches_details: newData.select_batch.batch_details
-            ? Object.values(newData.select_batch.batch_details).flat()
-            : [],
-        deleted_pre_register_batches_details: [],
-        added_pre_register_students_details: newData.select_individually.student_details
-            ? newData.select_individually.student_details
-            : [],
-        deleted_pre_register_students_details: [],
-        updated_join_link: newData.join_link || '',
-        notify_student: {
-            when_assessment_created: newData.notify_student.when_assessment_created || false,
-            show_leaderboard: newData.show_leaderboard || false,
-            before_assessment_goes_live: newData.notify_student.before_assessment_goes_live.checked
-                ? parseInt(newData.notify_student.before_assessment_goes_live.value)
-                : 0,
-            when_assessment_live: newData.notify_student.when_assessment_live || false,
-            when_assessment_report_generated:
-                newData.notify_student.when_assessment_report_generated || false,
-        },
-        notify_parent: {
-            when_assessment_created: newData.notify_parent.when_assessment_created || false,
-            before_assessment_goes_live: newData.notify_parent.before_assessment_goes_live.checked
-                ? parseInt(newData.notify_parent.before_assessment_goes_live.value)
-                : 0,
-            show_leaderboard: newData.show_leaderboard || false,
-            when_assessment_live: newData.notify_parent.when_assessment_live || false,
-            when_student_appears: newData.notify_parent.when_student_appears || false,
-            when_student_finishes_test: newData.notify_parent.when_student_finishes_test || false,
-            when_assessment_report_generated:
-                newData.notify_parent.when_assessment_report_generated || false,
-        },
-    };
+    const convertedData1 = buildCreateDataPayload(newData);
     const convertedData2 = convertDataToStep3(oldFormData, newData);
+
     const response = await authenticatedAxiosInstance({
         method: 'POST',
         url: STEP3_ASSESSMENT_URL,
@@ -325,6 +349,7 @@ export const handlePostStep3Data = async (
             type,
         },
     });
+
     return response?.data;
 };
 

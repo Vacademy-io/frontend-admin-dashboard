@@ -216,8 +216,8 @@ importers:
         specifier: ^8.6.12
         version: 8.6.14(@storybook/test@8.6.14(storybook@8.6.14(prettier@3.2.5)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(rollup@4.21.2)(storybook@8.6.14(prettier@3.2.5))(typescript@5.0.4)(vite@5.4.19(@types/node@22.16.4)(sass@1.51.0)(terser@5.43.1))
       '@tanstack/react-query':
-        specifier: ^5.59.19
-        version: 5.83.0(react@18.3.1)
+        specifier: 5.87.4
+        version: 5.87.4(react@18.3.1)
       '@tanstack/react-router':
         specifier: ^1.78.3
         version: 1.127.8(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -727,8 +727,8 @@ importers:
         specifier: ^5.53.0
         version: 5.81.2(eslint@8.57.1)(typescript@5.0.4)
       '@tanstack/react-query-devtools':
-        specifier: ^5.55.4
-        version: 5.83.0(@tanstack/react-query@5.83.0(react@18.3.1))(react@18.3.1)
+        specifier: 5.87.4
+        version: 5.87.4(@tanstack/react-query@5.87.4(react@18.3.1))(react@18.3.1)
       '@tanstack/router-devtools':
         specifier: ^1.49.1
         version: 1.127.8(@tanstack/react-router@1.127.8(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@tanstack/router-core@1.127.8)(csstype@3.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(solid-js@1.9.7)(tiny-invariant@1.3.3)
@@ -4573,20 +4573,20 @@ packages:
     resolution: {integrity: sha512-YL8dGi5ZU+xvtav2boRlw4zrRghkY6hvdcmHhA0RGSJ/CBgzv+cbADW9eYJLx74XMZvIQ1pp6VMbrpXnnM5gHA==}
     engines: {node: '>=12'}
 
-  '@tanstack/query-core@5.83.0':
-    resolution: {integrity: sha512-0M8dA+amXUkyz5cVUm/B+zSk3xkQAcuXuz5/Q/LveT4ots2rBpPTZOzd7yJa2Utsf8D2Upl5KyjhHRY+9lB/XA==}
+  '@tanstack/query-core@5.87.4':
+    resolution: {integrity: sha512-uNsg6zMxraEPDVO2Bn+F3/ctHi+Zsk+MMpcN8h6P7ozqD088F6mFY5TfGM7zuyIrL7HKpDyu6QHfLWiDxh3cuw==}
 
-  '@tanstack/query-devtools@5.81.2':
-    resolution: {integrity: sha512-jCeJcDCwKfoyyBXjXe9+Lo8aTkavygHHsUHAlxQKKaDeyT0qyQNLKl7+UyqYH2dDF6UN/14873IPBHchcsU+Zg==}
+  '@tanstack/query-devtools@5.87.3':
+    resolution: {integrity: sha512-LkzxzSr2HS1ALHTgDmJH5eGAVsSQiuwz//VhFW5OqNk0OQ+Fsqba0Tsf+NzWRtXYvpgUqwQr4b2zdFZwxHcGvg==}
 
-  '@tanstack/react-query-devtools@5.83.0':
-    resolution: {integrity: sha512-yfp8Uqd3I1jgx8gl0lxbSSESu5y4MO2ThOPBnGNTYs0P+ZFu+E9g5IdOngyUGuo6Uz6Qa7p9TLdZEX3ntik2fQ==}
+  '@tanstack/react-query-devtools@5.87.4':
+    resolution: {integrity: sha512-JYcnVJBBW1DCPyNGM0S2CyrLpe6KFiL2gpYd/k9tAp62Du7+Y27zkzd+dKFyxpFadYaTxsx4kUA7YvnkMLVUoQ==}
     peerDependencies:
-      '@tanstack/react-query': ^5.83.0
+      '@tanstack/react-query': ^5.87.4
       react: ^18 || ^19
 
-  '@tanstack/react-query@5.83.0':
-    resolution: {integrity: sha512-/XGYhZ3foc5H0VM2jLSD/NyBRIOK4q9kfeml4+0x2DlL6xVuAcVEW+hTlTapAmejObg0i3eNqhkr2dT+eciwoQ==}
+  '@tanstack/react-query@5.87.4':
+    resolution: {integrity: sha512-T5GT/1ZaNsUXf5I3RhcYuT17I4CPlbZgyLxc/ZGv7ciS6esytlbjb3DgUFO6c8JWYMDpdjSWInyGZUErgzqhcA==}
     peerDependencies:
       react: ^18 || ^19
 
@@ -17777,19 +17777,19 @@ snapshots:
 
   '@tanstack/history@1.121.34': {}
 
-  '@tanstack/query-core@5.83.0': {}
+  '@tanstack/query-core@5.87.4': {}
 
-  '@tanstack/query-devtools@5.81.2': {}
+  '@tanstack/query-devtools@5.87.3': {}
 
-  '@tanstack/react-query-devtools@5.83.0(@tanstack/react-query@5.83.0(react@18.3.1))(react@18.3.1)':
+  '@tanstack/react-query-devtools@5.87.4(@tanstack/react-query@5.87.4(react@18.3.1))(react@18.3.1)':
     dependencies:
-      '@tanstack/query-devtools': 5.81.2
-      '@tanstack/react-query': 5.83.0(react@18.3.1)
+      '@tanstack/query-devtools': 5.87.3
+      '@tanstack/react-query': 5.87.4(react@18.3.1)
       react: 18.3.1
 
-  '@tanstack/react-query@5.83.0(react@18.3.1)':
+  '@tanstack/react-query@5.87.4(react@18.3.1)':
     dependencies:
-      '@tanstack/query-core': 5.83.0
+      '@tanstack/query-core': 5.87.4
       react: 18.3.1
 
   '@tanstack/react-router-devtools@1.127.8(@tanstack/react-router@1.127.8(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@tanstack/router-core@1.127.8)(csstype@3.1.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(solid-js@1.9.7)(tiny-invariant@1.3.3)':

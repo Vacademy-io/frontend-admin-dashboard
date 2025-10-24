@@ -12,7 +12,7 @@ import { UploadQuestionPaperFormType } from '@/routes/assessment/question-papers
 import { useContentStore } from '../../-stores/chapter-sidebar-store';
 import { Slide } from '../../-hooks/use-slides';
 
-type QuestionPaperForm = z.infer<typeof uploadQuestionPaperFormSchema>;
+type QuestionPaperForm = z.infer<ReturnType<typeof uploadQuestionPaperFormSchema>>;
 
 const QuizQuestionDialogAddPreview = ({
     quizQuestionForm,

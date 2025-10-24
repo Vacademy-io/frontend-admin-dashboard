@@ -31,6 +31,7 @@ interface QuestionPapersTabsProps {
     isStudyLibraryAssignment?: boolean;
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
+    examType?: string; // Add exam type prop
 }
 
 export const QuestionPapersTabs = ({
@@ -41,6 +42,7 @@ export const QuestionPapersTabs = ({
     isStudyLibraryAssignment,
     currentQuestionIndex,
     setCurrentQuestionIndex,
+    examType,
 }: QuestionPapersTabsProps) => {
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const data = getTokenDecodedData(accessToken);
@@ -345,6 +347,7 @@ export const QuestionPapersTabs = ({
                         isStudyLibraryAssignment={isStudyLibraryAssignment}
                         currentQuestionIndex={currentQuestionIndex}
                         setCurrentQuestionIndex={setCurrentQuestionIndex}
+                        examType={examType}
                     />
                 ) : (
                     <div className="flex h-screen flex-col items-center justify-center">
@@ -367,6 +370,7 @@ export const QuestionPapersTabs = ({
                         isStudyLibraryAssignment={isStudyLibraryAssignment}
                         currentQuestionIndex={currentQuestionIndex}
                         setCurrentQuestionIndex={setCurrentQuestionIndex}
+                        examType={examType}
                     />
                 ) : (
                     <div className="flex h-screen flex-col items-center justify-center">

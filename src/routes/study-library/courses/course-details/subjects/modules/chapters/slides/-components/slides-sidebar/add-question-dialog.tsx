@@ -34,7 +34,7 @@ const AddQuestionDialog = ({ openState }: { openState?: (open: boolean) => void 
     const { courseId, levelId, chapterId, moduleId, subjectId, sessionId } = Route.useSearch();
 
     const questionForm = useForm<UploadQuestionPaperFormType>({
-        resolver: zodResolver(uploadQuestionPaperFormSchema),
+        resolver: zodResolver(uploadQuestionPaperFormSchema()),
         mode: 'onChange',
         defaultValues: {
             questionPaperId: '1',

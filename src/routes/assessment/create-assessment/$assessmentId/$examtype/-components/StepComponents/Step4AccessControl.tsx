@@ -40,9 +40,6 @@ import { MyFilterOption } from '@/types/assessments/my-filter';
 import { RoleTypeSelectedFilter } from '@/routes/dashboard/-components/RoleTypeComponent';
 import { UserRolesDataEntry } from '@/types/dashboard/user-roles';
 import Step4InviteUsers from './-components/Step4InviteUsers';
-import useIntroJsTour, { Step } from '@/hooks/use-intro';
-import { IntroKey } from '@/constants/storage/introKey';
-import { createAssesmentSteps } from '@/constants/intro/steps';
 
 interface Role {
     roleId: string;
@@ -147,7 +144,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                 });
             } else {
                 // Handle non-Axios errors if necessary
-                console.error('Unexpected error:', error);
+                // Handle error silently
             }
         },
     });
@@ -207,7 +204,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                 });
             } else {
                 // Handle non-Axios errors if necessary
-                console.error('Unexpected error:', error);
+                // Handle error silently
             }
         },
     });
@@ -230,21 +227,12 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                 type: examType,
             });
         } catch (error) {
-            console.error('Error during form submission or publish mutation', error);
+            // Handle error silently
         }
     };
     const onInvalid = (err: unknown) => {
-        console.log(err);
+        // Handle validation errors
     };
-
-    useIntroJsTour({
-        key: IntroKey.assessmentStep4Access,
-        steps: createAssesmentSteps
-            .filter((step) => step.element === '#access-control')
-            .flatMap((step) => step.subStep || [])
-            .filter((subStep): subStep is Step => subStep !== undefined),
-        className: 'tooltip-postion',
-    });
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
@@ -283,7 +271,6 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                     }));
                     setExistingInstituteUsersData(filteredData);
                     if (assessmentId !== 'defaultId') {
-                        console.log(filteredData);
                         form.reset({
                             status: assessmentDetails[currentStep]?.status,
                             assessment_creation_access: filteredData.filter(
@@ -317,7 +304,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                     }
                 })
                 .catch((error) => {
-                    console.error(error);
+                    // Handle error silently
                 })
                 .finally(() => {
                     setIsAdminLoading(false);
@@ -364,7 +351,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                         key: 'creation_access',
                     }) === 'REQUIRED' && (
                         <AccessControlCards
-                            heading="Assessment Creation Access"
+                            heading={examType === 'SURVEY' ? 'Survey Creation Access' : 'Assessment Creation Access'}
                             keyVal="assessment_creation_access"
                             form={form}
                             existingInstituteUsersData={existingInstituteUsersData}
@@ -377,7 +364,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                         key: 'live_assessment_access',
                     }) === 'REQUIRED' && (
                         <AccessControlCards
-                            heading="Live Assessment Notification"
+                            heading={examType === 'SURVEY' ? 'Live Survey Notification' : 'Live Assessment Notification'}
                             keyVal="live_assessment_notification"
                             form={form}
                             existingInstituteUsersData={existingInstituteUsersData}
@@ -390,7 +377,7 @@ const Step4AccessControl: React.FC<StepContentProps> = ({
                         key: 'report_and_submission_access',
                     }) === 'REQUIRED' && (
                         <AccessControlCards
-                            heading="Assessment Submission & Report Access"
+                            heading={examType === 'SURVEY' ? 'Survey Submission & Report Access' : 'Assessment Submission & Report Access'}
                             keyVal="assessment_submission_and_report_access"
                             form={form}
                             existingInstituteUsersData={existingInstituteUsersData}

@@ -41,6 +41,7 @@ import {
     Trash,
     ArrowsOut,
     ArrowsIn,
+    PencilSimple,
 } from 'phosphor-react';
 import { MyButton } from '@/components/design-system/button';
 import AddTeachers from '@/routes/dashboard/-components/AddTeachers';
@@ -49,6 +50,11 @@ import { useAddSubject } from '../subjects/-services/addSubject';
 import { useUpdateSubject } from '../subjects/-services/updateSubject';
 import { useDeleteSubject } from '../subjects/-services/deleteSubject';
 import { useUpdateSubjectOrder } from '../subjects/-services/updateSubjectOrder';
+import { useUpdateModule } from '../subjects/modules/-services/update-module';
+import { useUpdateChapter } from '../subjects/modules/chapters/-services/update-chapter';
+import { Chapter } from '@/stores/study-library/use-modules-with-chapters-store';
+import { ChapterWithSlides as ChapterWithSlidesStore } from '@/stores/study-library/use-modules-with-chapters-store';
+import { ChapterWithSlides } from '../../-services/getAllSlides';
 import { TabType, tabs } from '../subjects/-constants/constant';
 import { useDeleteModule } from '../subjects/modules/-services/delete-module';
 import { useDeleteChapter } from '../subjects/modules/chapters/-services/delete-chapter';
@@ -56,7 +62,6 @@ import { fetchModulesWithChapters } from '../../-services/getModulesWithChapters
 import {
     UseSlidesFromModulesInput,
     fetchChaptersWithSlides,
-    ChapterWithSlides,
     Slide,
     fetchDirectSlides,
 } from '../../-services/getAllSlides';
@@ -75,6 +80,10 @@ import { convertCapitalToTitleCase } from '@/lib/utils';
 import { getTokenDecodedData, getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
 import { TokenKey, Authority } from '@/constants/auth/tokens';
 import { useCourseSettings } from '@/hooks/useCourseSettings';
+import { AddSubjectForm } from '../subjects/-components/add-subject.tsx/add-subject-form';
+import { AddModulesForm } from '../subjects/modules/-components/add-modules.tsx/add-modules-form';
+import { AddChapterForm } from '../subjects/modules/chapters/-components/chapter-material/add-chapters/add-chapter-form';
+import { MyDialog } from '@/components/design-system/dialog';
 
 // Map between DisplaySettings ids and UI tab values
 const mapDisplayIdToUiValue = (id: CourseDetailsTabId): string => {
@@ -88,15 +97,32 @@ const mapDisplayIdToUiValue = (id: CourseDetailsTabId): string => {
     }
 };
 
+// Chapter Header Actions Component
+const ChapterHeaderActions = ({
+    submitFn,
+    isPending,
+}: {
+    submitFn: (() => void) | null;
+    isPending: boolean;
+}) => {
+    return (
+        <>
+            <MyButton
+                buttonType="primary"
+                scale="medium"
+                layoutVariant="default"
+                onClick={() => submitFn?.()}
+                disabled={isPending || !submitFn}
+                className="min-w-[120px]"
+            >
+                {isPending ? 'Updating...' : 'Save Changes'}
+            </MyButton>
+        </>
+    );
+};
+
 // Interfaces (assuming these are unchanged)
-export interface Chapter {
-    id: string;
-    chapter_name: string;
-    status: string;
-    description: string;
-    file_id: string | null;
-    chapter_order: number;
-}
+// Chapter interface imported from store
 export interface ChapterMetadata {
     chapter: Chapter;
     slides_count: {
@@ -135,26 +161,37 @@ const ThumbnailImage = ({
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        if (thumbnailId) {
-            setIsLoading(true);
-            getPublicUrl(thumbnailId)
-                .then((url) => {
-                    setImageUrl(url || '');
-                })
-                .catch((error) => {
-                    console.error('Failed to get thumbnail URL:', error);
-                    setImageUrl('');
-                })
-                .finally(() => {
-                    setIsLoading(false);
-                });
+        if (!thumbnailId) {
+            setImageUrl('');
+            setIsLoading(false);
+            return;
         }
+
+        // If a full URL is provided, use it directly
+        if (typeof thumbnailId === 'string' && /^(https?:)?\/\//.test(thumbnailId)) {
+            setImageUrl(thumbnailId);
+            setIsLoading(false);
+            return;
+        }
+
+        setIsLoading(true);
+        getPublicUrl(thumbnailId)
+            .then((url) => {
+                setImageUrl(url || '');
+            })
+            .catch((error) => {
+                console.error('Failed to get thumbnail URL:', error);
+                setImageUrl('');
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
     }, [thumbnailId, getPublicUrl]);
 
     if (isLoading) {
         return (
             <div
-                className={`mb-3 flex aspect-square items-center justify-center rounded-lg ${fallbackColor}`}
+                className={`mb-2 flex aspect-[16/9] items-center justify-center rounded-lg ${fallbackColor}`}
             >
                 <div className="size-8 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
             </div>
@@ -163,7 +200,7 @@ const ThumbnailImage = ({
 
     if (imageUrl && thumbnailId) {
         return (
-            <div className="mb-3 flex aspect-square items-center justify-center overflow-hidden rounded-lg">
+            <div className="mb-2 flex aspect-[16/9] items-center justify-center overflow-hidden rounded-lg">
                 <img src={imageUrl} alt="Thumbnail" className="size-full object-cover" />
             </div>
         );
@@ -171,7 +208,7 @@ const ThumbnailImage = ({
 
     return (
         <div
-            className={`mb-3 flex aspect-square items-center justify-center rounded-lg ${fallbackColor}`}
+            className={`mb-2 flex aspect-[16/9] items-center justify-center rounded-lg ${fallbackColor}`}
         >
             {fallbackIcon}
         </div>
@@ -387,6 +424,19 @@ export const CourseStructureDetails = ({
         item: { id: string; name: string; subjectId?: string; moduleId?: string } | null;
     }>({ isOpen: false, type: null, item: null });
 
+    // Edit dialog states
+    const [editDialog, setEditDialog] = useState<{
+        isOpen: boolean;
+        type: 'subject' | 'module' | 'chapter' | null;
+        item: (SubjectType | Module | (Chapter & { subjectId?: string; moduleId?: string })) | null;
+    }>({ isOpen: false, type: null, item: null });
+
+    // Chapter form state for header button
+    const [chapterFormState, setChapterFormState] = useState<{
+        submitFn: (() => void) | null;
+        isPending: boolean;
+    }>({ submitFn: null, isPending: false });
+
     // Navigation state for loose view
     const [currentNavigationLevel, setCurrentNavigationLevel] = useState<
         'subjects' | 'modules' | 'chapters' | 'slides'
@@ -406,6 +456,8 @@ export const CourseStructureDetails = ({
     const updateSubjectMutation = useUpdateSubject();
     const deleteSubjectMutation = useDeleteSubject();
     const updateSubjectOrderMutation = useUpdateSubjectOrder();
+    const updateModuleMutation = useUpdateModule();
+    const updateChapterMutation = useUpdateChapter();
     const deleteModuleMutation = useDeleteModule();
     const deleteChapterMutation = useDeleteChapter();
 
@@ -652,6 +704,89 @@ export const CourseStructureDetails = ({
     ) => {
         setDeleteConfirmation({ isOpen: true, type, item });
     };
+
+    const openEditDialog = (
+        type: 'subject' | 'module' | 'chapter',
+        item: SubjectType | Module | (Chapter & { subjectId?: string; moduleId?: string })
+    ) => {
+        setEditDialog({ isOpen: true, type, item });
+    };
+
+    const closeEditDialog = () => {
+        setEditDialog({ isOpen: false, type: null, item: null });
+        setChapterFormState({ submitFn: null, isPending: false });
+    };
+
+    const handleChapterFormReady = (submitFn: () => void, isPending: boolean) => {
+        setChapterFormState({ submitFn, isPending });
+    };
+
+    const handleEditSubject = (updatedSubject: SubjectType) => {
+        // Check permissions before allowing edit
+        if (!canEditStructure) {
+            console.warn('User does not have permission to edit this course structure');
+            return;
+        }
+
+        updateSubjectMutation.mutate(
+            {
+                subjectId: updatedSubject.id,
+                updatedSubject,
+            },
+            {
+                onSuccess: () => {
+                    closeEditDialog();
+                    // Refresh data
+                    const updatedSubjects = getCourseSubjects(
+                        courseId,
+                        selectedSession || '',
+                        levelId
+                    );
+                    setSubjects(updatedSubjects);
+                },
+            }
+        );
+    };
+
+    const handleEditModule = (updatedModule: Module) => {
+        // Check permissions before allowing edit
+        if (!canEditStructure) {
+            console.warn('User does not have permission to edit this course structure');
+            return;
+        }
+
+        if (!editDialog.item || editDialog.type !== 'module') return;
+        const moduleItem = editDialog.item as Module & { subjectId?: string };
+        if (!moduleItem.subjectId) return;
+
+        updateModuleMutation.mutate(
+            {
+                moduleId: updatedModule.id,
+                module: updatedModule,
+            },
+            {
+                onSuccess: async () => {
+                    closeEditDialog();
+                    // Refresh data - same as add module
+                    const updatedSubjects = getCourseSubjects(
+                        courseId,
+                        selectedSession || '',
+                        levelId
+                    );
+                    if (updatedSubjects.length > 0 && packageSessionIds) {
+                        const updatedModulesMap = await fetchModules({
+                            subjects: updatedSubjects,
+                            packageSessionIds,
+                        });
+                        setSubjectModulesMap(updatedModulesMap);
+                    }
+                    setSubjects(updatedSubjects);
+                },
+            }
+        );
+    };
+
+    // Removed unused handleEditChapter to satisfy linter
 
     const handleConfirmDelete = () => {
         if (!deleteConfirmation.item || !packageSessionIds) {
@@ -988,21 +1123,37 @@ export const CourseStructureDetails = ({
                                                     )}
                                                 </span>
                                             </div>
-                                            <MyButton
-                                                buttonType="secondary"
-                                                layoutVariant="icon"
-                                                scale="small"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    openDeleteConfirmation('subject', {
-                                                        id: subject.id,
-                                                        name: subject.subject_name,
-                                                    });
-                                                }}
-                                                className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/subject-trigger:opacity-100"
-                                            >
-                                                <Trash size={16} />
-                                            </MyButton>
+                                            {canEditStructure && (
+                                                <div className="flex gap-1">
+                                                    <MyButton
+                                                        buttonType="secondary"
+                                                        layoutVariant="icon"
+                                                        scale="small"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openEditDialog('subject', subject);
+                                                        }}
+                                                        className="opacity-0 transition-opacity hover:bg-blue-100 hover:text-blue-600 group-hover/subject-trigger:opacity-100"
+                                                    >
+                                                        <PencilSimple size={16} />
+                                                    </MyButton>
+                                                    <MyButton
+                                                        buttonType="secondary"
+                                                        layoutVariant="icon"
+                                                        scale="small"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openDeleteConfirmation('subject', {
+                                                                id: subject.id,
+                                                                name: subject.subject_name,
+                                                            });
+                                                        }}
+                                                        className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/subject-trigger:opacity-100"
+                                                    >
+                                                        <Trash size={16} />
+                                                    </MyButton>
+                                                </div>
+                                            )}
                                         </CollapsibleTrigger>
                                         <CollapsibleContent className="py-1 pl-11">
                                             <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
@@ -1077,28 +1228,55 @@ export const CourseStructureDetails = ({
                                                                             )}
                                                                         </span>
                                                                     </div>
-                                                                    <MyButton
-                                                                        buttonType="secondary"
-                                                                        layoutVariant="icon"
-                                                                        scale="small"
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            openDeleteConfirmation(
-                                                                                'module',
-                                                                                {
-                                                                                    id: mod.module
-                                                                                        .id,
-                                                                                    name: mod.module
-                                                                                        .module_name,
-                                                                                    subjectId:
-                                                                                        subject.id,
-                                                                                }
-                                                                            );
-                                                                        }}
-                                                                        className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/module-trigger:opacity-100"
-                                                                    >
-                                                                        <Trash size={14} />
-                                                                    </MyButton>
+                                                                    {canEditStructure && (
+                                                                        <div className="flex gap-1">
+                                                                            <MyButton
+                                                                                buttonType="secondary"
+                                                                                layoutVariant="icon"
+                                                                                scale="small"
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    openEditDialog(
+                                                                                        'module',
+                                                                                        {
+                                                                                            ...mod.module,
+                                                                                            subjectId:
+                                                                                                subject.id,
+                                                                                        }
+                                                                                    );
+                                                                                }}
+                                                                                className="opacity-0 transition-opacity hover:bg-blue-100 hover:text-blue-600 group-hover/module-trigger:opacity-100"
+                                                                            >
+                                                                                <PencilSimple
+                                                                                    size={14}
+                                                                                />
+                                                                            </MyButton>
+                                                                            <MyButton
+                                                                                buttonType="secondary"
+                                                                                layoutVariant="icon"
+                                                                                scale="small"
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    openDeleteConfirmation(
+                                                                                        'module',
+                                                                                        {
+                                                                                            id: mod
+                                                                                                .module
+                                                                                                .id,
+                                                                                            name: mod
+                                                                                                .module
+                                                                                                .module_name,
+                                                                                            subjectId:
+                                                                                                subject.id,
+                                                                                        }
+                                                                                    );
+                                                                                }}
+                                                                                className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/module-trigger:opacity-100"
+                                                                            >
+                                                                                <Trash size={14} />
+                                                                            </MyButton>
+                                                                        </div>
+                                                                    )}
                                                                 </CollapsibleTrigger>
                                                                 <CollapsibleContent className="py-1 pl-10">
                                                                     <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
@@ -1423,9 +1601,13 @@ export const CourseStructureDetails = ({
                                                                             weight="duotone"
                                                                             className="shrink-0 text-blue-600"
                                                                         />
-                                                                        <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs font-medium text-gray-500 group-hover/module:bg-white">
-                                                                            M{modIdx + 1}
-                                                                        </span>
+                                                                        {roleDisplay?.coursePage
+                                                                            ?.viewContentNumbering !==
+                                                                            false && (
+                                                                            <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs font-medium text-gray-500 group-hover/module:bg-white">
+                                                                                M{modIdx + 1}
+                                                                            </span>
+                                                                        )}
                                                                         <span
                                                                             className="truncate"
                                                                             title={
@@ -1501,11 +1683,16 @@ export const CourseStructureDetails = ({
                                                                                                     weight="duotone"
                                                                                                     className="shrink-0 text-green-600"
                                                                                                 />
-                                                                                                <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs text-gray-500 group-hover/chapter:bg-white">
-                                                                                                    C
-                                                                                                    {chIdx +
-                                                                                                        1}
-                                                                                                </span>
+                                                                                                {roleDisplay
+                                                                                                    ?.coursePage
+                                                                                                    ?.viewContentNumbering !==
+                                                                                                    false && (
+                                                                                                    <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs text-gray-500 group-hover/chapter:bg-white">
+                                                                                                        C
+                                                                                                        {chIdx +
+                                                                                                            1}
+                                                                                                    </span>
+                                                                                                )}
                                                                                                 <span
                                                                                                     className="truncate"
                                                                                                     title={
@@ -1651,11 +1838,16 @@ export const CourseStructureDetails = ({
                                                                                                                     );
                                                                                                                 }}
                                                                                                             >
-                                                                                                                <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
-                                                                                                                    S
-                                                                                                                    {sIdx +
-                                                                                                                        1}
-                                                                                                                </span>
+                                                                                                                {roleDisplay
+                                                                                                                    ?.coursePage
+                                                                                                                    ?.viewContentNumbering !==
+                                                                                                                    false && (
+                                                                                                                    <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
+                                                                                                                        S
+                                                                                                                        {sIdx +
+                                                                                                                            1}
+                                                                                                                    </span>
+                                                                                                                )}
                                                                                                                 {getIcon(
                                                                                                                     slide.source_type,
                                                                                                                     slide
@@ -1788,11 +1980,16 @@ export const CourseStructureDetails = ({
                                                                                                     weight="duotone"
                                                                                                     className="shrink-0 text-green-600"
                                                                                                 />
-                                                                                                <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs text-gray-500 group-hover/chapter:bg-white">
-                                                                                                    C
-                                                                                                    {chIdx +
-                                                                                                        1}
-                                                                                                </span>
+                                                                                                {roleDisplay
+                                                                                                    ?.coursePage
+                                                                                                    ?.viewContentNumbering !==
+                                                                                                    false && (
+                                                                                                    <span className="w-7 shrink-0 rounded-md bg-gray-100 py-0.5 text-center font-mono text-xs text-gray-500 group-hover/chapter:bg-white">
+                                                                                                        C
+                                                                                                        {chIdx +
+                                                                                                            1}
+                                                                                                    </span>
+                                                                                                )}
                                                                                                 <span
                                                                                                     className="truncate"
                                                                                                     title={
@@ -1808,41 +2005,72 @@ export const CourseStructureDetails = ({
                                                                                                     )}
                                                                                                 </span>
                                                                                             </div>
-                                                                                            {!readOnly && (
-                                                                                                <MyButton
-                                                                                                    buttonType="secondary"
-                                                                                                    layoutVariant="icon"
-                                                                                                    scale="small"
-                                                                                                    onClick={(
-                                                                                                        e
-                                                                                                    ) => {
-                                                                                                        e.stopPropagation();
-                                                                                                        openDeleteConfirmation(
-                                                                                                            'chapter',
-                                                                                                            {
-                                                                                                                id: ch
-                                                                                                                    .chapter
-                                                                                                                    .id,
-                                                                                                                name: ch
-                                                                                                                    .chapter
-                                                                                                                    .chapter_name,
-                                                                                                                subjectId:
-                                                                                                                    subject.id,
-                                                                                                                moduleId:
-                                                                                                                    mod
-                                                                                                                        .module
-                                                                                                                        .id,
+                                                                                            {canEditStructure && (
+                                                                                                <div className="flex gap-1">
+                                                                                                    <MyButton
+                                                                                                        buttonType="secondary"
+                                                                                                        layoutVariant="icon"
+                                                                                                        scale="small"
+                                                                                                        onClick={(
+                                                                                                            e
+                                                                                                        ) => {
+                                                                                                            e.stopPropagation();
+                                                                                                            openEditDialog(
+                                                                                                                'chapter',
+                                                                                                                {
+                                                                                                                    ...ch.chapter,
+                                                                                                                    subjectId:
+                                                                                                                        subject.id,
+                                                                                                                    moduleId:
+                                                                                                                        mod
+                                                                                                                            .module
+                                                                                                                            .id,
+                                                                                                                }
+                                                                                                            );
+                                                                                                        }}
+                                                                                                        className="opacity-0 transition-opacity hover:bg-blue-100 hover:text-blue-600 group-hover/chapter-trigger:opacity-100"
+                                                                                                    >
+                                                                                                        <PencilSimple
+                                                                                                            size={
+                                                                                                                12
                                                                                                             }
-                                                                                                        );
-                                                                                                    }}
-                                                                                                    className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/chapter-trigger:opacity-100"
-                                                                                                >
-                                                                                                    <Trash
-                                                                                                        size={
-                                                                                                            12
-                                                                                                        }
-                                                                                                    />
-                                                                                                </MyButton>
+                                                                                                        />
+                                                                                                    </MyButton>
+                                                                                                    <MyButton
+                                                                                                        buttonType="secondary"
+                                                                                                        layoutVariant="icon"
+                                                                                                        scale="small"
+                                                                                                        onClick={(
+                                                                                                            e
+                                                                                                        ) => {
+                                                                                                            e.stopPropagation();
+                                                                                                            openDeleteConfirmation(
+                                                                                                                'chapter',
+                                                                                                                {
+                                                                                                                    id: ch
+                                                                                                                        .chapter
+                                                                                                                        .id,
+                                                                                                                    name: ch
+                                                                                                                        .chapter
+                                                                                                                        .chapter_name,
+                                                                                                                    subjectId:
+                                                                                                                        subject.id,
+                                                                                                                    moduleId:
+                                                                                                                        mod
+                                                                                                                            .module
+                                                                                                                            .id,
+                                                                                                                }
+                                                                                                            );
+                                                                                                        }}
+                                                                                                        className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/chapter-trigger:opacity-100"
+                                                                                                    >
+                                                                                                        <Trash
+                                                                                                            size={
+                                                                                                                12
+                                                                                                            }
+                                                                                                        />
+                                                                                                    </MyButton>
+                                                                                                </div>
                                                                                             )}
                                                                                         </CollapsibleTrigger>
                                                                                         <CollapsibleContent className="py-1 pl-9">
@@ -1936,11 +2164,16 @@ export const CourseStructureDetails = ({
                                                                                                                     );
                                                                                                                 }}
                                                                                                             >
-                                                                                                                <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
-                                                                                                                    S
-                                                                                                                    {sIdx +
-                                                                                                                        1}
-                                                                                                                </span>
+                                                                                                                {roleDisplay
+                                                                                                                    ?.coursePage
+                                                                                                                    ?.viewContentNumbering !==
+                                                                                                                    false && (
+                                                                                                                    <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
+                                                                                                                        S
+                                                                                                                        {sIdx +
+                                                                                                                            1}
+                                                                                                                    </span>
+                                                                                                                )}
                                                                                                                 {getIcon(
                                                                                                                     slide.source_type,
                                                                                                                     slide
@@ -2029,9 +2262,12 @@ export const CourseStructureDetails = ({
                                                             );
                                                         }}
                                                     >
-                                                        <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
-                                                            S{sIdx + 1}
-                                                        </span>
+                                                        {roleDisplay?.coursePage
+                                                            ?.viewContentNumbering !== false && (
+                                                            <span className="w-7 shrink-0 text-center font-mono text-xs text-gray-400">
+                                                                S{sIdx + 1}
+                                                            </span>
+                                                        )}
                                                         {getIcon(
                                                             slide.source_type,
                                                             slide.document_slide?.type,
@@ -2124,7 +2360,7 @@ export const CourseStructureDetails = ({
                 </div>
 
                 {/* Folder Grid View */}
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2">
                     {/* Show Subjects (Course Structure 5 or when at subjects level) */}
                     {courseStructure === 5 &&
                         currentNavigationLevel === 'subjects' &&
@@ -2134,14 +2370,14 @@ export const CourseStructureDetails = ({
                                     onClick={() =>
                                         handleSubjectClick(subject.id, subject.subject_name)
                                     }
-                                    className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-shadow duration-200 hover:shadow-md"
+                                    className="cursor-pointer rounded-lg border border-gray-200 bg-white p-2 transition-shadow duration-200 hover:shadow-md"
                                 >
                                     {/* Folder Icon/Image */}
                                     <ThumbnailImage
                                         thumbnailId={subject.thumbnail_id}
                                         fallbackIcon={
                                             <Folder
-                                                size={32}
+                                                size={96}
                                                 weight="duotone"
                                                 className="text-blue-600"
                                             />
@@ -2162,19 +2398,32 @@ export const CourseStructureDetails = ({
                                         <p className="text-xs text-gray-500">Subject {idx + 1}</p>
                                     )}
 
-                                    {/* Delete Button */}
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            openDeleteConfirmation('subject', {
-                                                id: subject.id,
-                                                name: subject.subject_name,
-                                            });
-                                        }}
-                                        className="absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
-                                    >
-                                        <Trash size={14} className="text-red-600" />
-                                    </button>
+                                    {/* Edit and Delete Buttons */}
+                                    {canEditStructure && (
+                                        <div className="absolute right-2 top-2 flex gap-1">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openEditDialog('subject', subject);
+                                                }}
+                                                className="rounded-full p-1 opacity-0 transition-opacity hover:bg-blue-100 group-hover:opacity-100"
+                                            >
+                                                <PencilSimple size={14} className="text-blue-600" />
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openDeleteConfirmation('subject', {
+                                                        id: subject.id,
+                                                        name: subject.subject_name,
+                                                    });
+                                                }}
+                                                className="rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
+                                            >
+                                                <Trash size={14} className="text-red-600" />
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -2190,14 +2439,14 @@ export const CourseStructureDetails = ({
                                         onClick={() =>
                                             handleModuleClick(mod.module.id, mod.module.module_name)
                                         }
-                                        className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-shadow duration-200 hover:shadow-md"
+                                        className="cursor-pointer rounded-lg border border-gray-200 bg-white p-2 transition-shadow duration-200 hover:shadow-md"
                                     >
                                         {/* Folder Icon/Image */}
                                         <ThumbnailImage
                                             thumbnailId={mod.module.thumbnail_id}
                                             fallbackIcon={
                                                 <FileText
-                                                    size={32}
+                                                    size={96}
                                                     weight="duotone"
                                                     className="text-green-600"
                                                 />
@@ -2221,20 +2470,39 @@ export const CourseStructureDetails = ({
                                             </p>
                                         )}
 
-                                        {/* Delete Button */}
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                openDeleteConfirmation('module', {
-                                                    id: mod.module.id,
-                                                    name: mod.module.module_name,
-                                                    subjectId: selectedSubjectId,
-                                                });
-                                            }}
-                                            className="absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
-                                        >
-                                            <Trash size={14} className="text-red-600" />
-                                        </button>
+                                        {/* Edit and Delete Buttons */}
+                                        {canEditStructure && (
+                                            <div className="absolute right-2 top-2 flex gap-1">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        openEditDialog('module', {
+                                                            ...mod.module,
+                                                            subjectId: selectedSubjectId,
+                                                        });
+                                                    }}
+                                                    className="rounded-full p-1 opacity-0 transition-opacity hover:bg-blue-100 group-hover:opacity-100"
+                                                >
+                                                    <PencilSimple
+                                                        size={14}
+                                                        className="text-blue-600"
+                                                    />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        openDeleteConfirmation('module', {
+                                                            id: mod.module.id,
+                                                            name: mod.module.module_name,
+                                                            subjectId: selectedSubjectId,
+                                                        });
+                                                    }}
+                                                    className="rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
+                                                >
+                                                    <Trash size={14} className="text-red-600" />
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )
@@ -2255,14 +2523,14 @@ export const CourseStructureDetails = ({
                                                 mod.module.module_name
                                             );
                                         }}
-                                        className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-shadow duration-200 hover:shadow-md"
+                                        className="cursor-pointer rounded-lg border border-gray-200 bg-white p-2 transition-shadow duration-200 hover:shadow-md"
                                     >
                                         {/* Folder Icon/Image */}
                                         <ThumbnailImage
                                             thumbnailId={mod.module.thumbnail_id}
                                             fallbackIcon={
                                                 <FileText
-                                                    size={32}
+                                                    size={96}
                                                     weight="duotone"
                                                     className="text-green-600"
                                                 />
@@ -2279,22 +2547,46 @@ export const CourseStructureDetails = ({
                                         </h4>
 
                                         {/* Module Number */}
-                                        <p className="text-xs text-gray-500">Module {modIdx + 1}</p>
+                                        {roleDisplay?.coursePage?.viewContentNumbering !==
+                                            false && (
+                                            <p className="text-xs text-gray-500">
+                                                Module {modIdx + 1}
+                                            </p>
+                                        )}
 
-                                        {/* Delete Button */}
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                openDeleteConfirmation('module', {
-                                                    id: mod.module.id,
-                                                    name: mod.module.module_name,
-                                                    subjectId: subjects[0]?.id,
-                                                });
-                                            }}
-                                            className="absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
-                                        >
-                                            <Trash size={14} className="text-red-600" />
-                                        </button>
+                                        {/* Edit and Delete Buttons */}
+                                        {canEditStructure && (
+                                            <div className="absolute right-2 top-2 flex gap-1">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        openEditDialog('module', {
+                                                            ...mod.module,
+                                                            subjectId: subjects[0]?.id,
+                                                        });
+                                                    }}
+                                                    className="rounded-full p-1 opacity-0 transition-opacity hover:bg-blue-100 group-hover:opacity-100"
+                                                >
+                                                    <PencilSimple
+                                                        size={14}
+                                                        className="text-blue-600"
+                                                    />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        openDeleteConfirmation('module', {
+                                                            id: mod.module.id,
+                                                            name: mod.module.module_name,
+                                                            subjectId: subjects[0]?.id,
+                                                        });
+                                                    }}
+                                                    className="rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
+                                                >
+                                                    <Trash size={14} className="text-red-600" />
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )
@@ -2321,14 +2613,14 @@ export const CourseStructureDetails = ({
                                             ch.chapter.id
                                         );
                                     }}
-                                    className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-shadow duration-200 hover:shadow-md"
+                                    className="cursor-pointer rounded-lg border border-gray-200 bg-white p-2 transition-shadow duration-200 hover:shadow-md"
                                 >
                                     {/* Folder Icon/Image */}
                                     <ThumbnailImage
                                         thumbnailId={ch.chapter.file_id}
                                         fallbackIcon={
                                             <PresentationChart
-                                                size={32}
+                                                size={96}
                                                 weight="duotone"
                                                 className="text-purple-600"
                                             />
@@ -2349,22 +2641,37 @@ export const CourseStructureDetails = ({
                                         <p className="text-xs text-gray-500">Chapter {chIdx + 1}</p>
                                     )}
 
-                                    {/* Delete Button */}
-                                    {!readOnly && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                openDeleteConfirmation('chapter', {
-                                                    id: ch.chapter.id,
-                                                    name: ch.chapter.chapter_name,
-                                                    subjectId: selectedSubjectId,
-                                                    moduleId: selectedModuleId,
-                                                });
-                                            }}
-                                            className="absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
-                                        >
-                                            <Trash size={14} className="text-red-600" />
-                                        </button>
+                                    {/* Edit and Delete Buttons */}
+                                    {canEditStructure && (
+                                        <div className="absolute right-2 top-2 flex gap-1">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openEditDialog('chapter', {
+                                                        ...ch.chapter,
+                                                        subjectId: selectedSubjectId,
+                                                        moduleId: selectedModuleId,
+                                                    });
+                                                }}
+                                                className="rounded-full p-1 opacity-0 transition-opacity hover:bg-blue-100 group-hover:opacity-100"
+                                            >
+                                                <PencilSimple size={14} className="text-blue-600" />
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openDeleteConfirmation('chapter', {
+                                                        id: ch.chapter.id,
+                                                        name: ch.chapter.chapter_name,
+                                                        subjectId: selectedSubjectId,
+                                                        moduleId: selectedModuleId,
+                                                    });
+                                                }}
+                                                className="rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
+                                            >
+                                                <Trash size={14} className="text-red-600" />
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -2390,14 +2697,14 @@ export const CourseStructureDetails = ({
                                                 ch.chapter.id
                                             );
                                         }}
-                                        className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-shadow duration-200 hover:shadow-md"
+                                        className="cursor-pointer rounded-lg border border-gray-200 bg-white p-2 transition-shadow duration-200 hover:shadow-md"
                                     >
                                         {/* Folder Icon/Image */}
                                         <ThumbnailImage
                                             thumbnailId={ch.chapter.file_id}
                                             fallbackIcon={
                                                 <PresentationChart
-                                                    size={32}
+                                                    size={96}
                                                     weight="duotone"
                                                     className="text-purple-600"
                                                 />
@@ -2421,25 +2728,48 @@ export const CourseStructureDetails = ({
                                             </p>
                                         )}
 
-                                        {/* Delete Button */}
-                                        {!readOnly && (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    openDeleteConfirmation('chapter', {
-                                                        id: ch.chapter.id,
-                                                        name: ch.chapter.chapter_name,
-                                                        subjectId: subjects[0]?.id || '',
-                                                        moduleId: subjects[0]
-                                                            ? subjectModulesMap[subjects[0].id]?.[0]
-                                                                  ?.module.id
-                                                            : undefined,
-                                                    });
-                                                }}
-                                                className="absolute right-2 top-2 rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
-                                            >
-                                                <Trash size={14} className="text-red-600" />
-                                            </button>
+                                        {/* Edit and Delete Buttons */}
+                                        {canEditStructure && (
+                                            <div className="absolute right-2 top-2 flex gap-1">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        openEditDialog('chapter', {
+                                                            ...ch.chapter,
+                                                            subjectId: subjects[0]?.id || '',
+                                                            moduleId: subjects[0]
+                                                                ? subjectModulesMap[
+                                                                      subjects[0].id
+                                                                  ]?.[0]?.module.id
+                                                                : undefined,
+                                                        });
+                                                    }}
+                                                    className="rounded-full p-1 opacity-0 transition-opacity hover:bg-blue-100 group-hover:opacity-100"
+                                                >
+                                                    <PencilSimple
+                                                        size={14}
+                                                        className="text-blue-600"
+                                                    />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        openDeleteConfirmation('chapter', {
+                                                            id: ch.chapter.id,
+                                                            name: ch.chapter.chapter_name,
+                                                            subjectId: subjects[0]?.id || '',
+                                                            moduleId: subjects[0]
+                                                                ? subjectModulesMap[
+                                                                      subjects[0].id
+                                                                  ]?.[0]?.module.id
+                                                                : undefined,
+                                                        });
+                                                    }}
+                                                    className="rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
+                                                >
+                                                    <Trash size={14} className="text-red-600" />
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
@@ -2455,7 +2785,7 @@ export const CourseStructureDetails = ({
                                     onClick={() => {
                                         handleDirectSlideNavigation(slide.id);
                                     }}
-                                    className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-shadow duration-200 hover:shadow-md"
+                                    className="cursor-pointer rounded-lg border border-gray-200 bg-white p-2 transition-shadow duration-200 hover:shadow-md"
                                 >
                                     {/* Slide Icon */}
                                     <div className="mb-3 flex aspect-square items-center justify-center rounded-lg bg-gradient-to-br from-blue-50 to-blue-100">
@@ -2583,7 +2913,9 @@ export const CourseStructureDetails = ({
         addSubjectMutation.isPending ||
         deleteSubjectMutation.isPending ||
         updateSubjectMutation.isPending ||
-        updateSubjectOrderMutation.isPending;
+        updateSubjectOrderMutation.isPending ||
+        updateModuleMutation.isPending ||
+        updateChapterMutation.isPending;
 
     // Compute final visible/reordered tabs once for rendering below
     const finalTabs = (() => {
@@ -2702,6 +3034,103 @@ export const CourseStructureDetails = ({
                     </div>
                 </TabsContent>
             </Tabs>
+
+            {/* Edit Dialogs */}
+            {/* Subject Edit Dialog */}
+            <MyDialog
+                heading="Edit Subject"
+                dialogWidth="w-[400px]"
+                open={editDialog.isOpen && editDialog.type === 'subject'}
+                onOpenChange={(open) => !open && closeEditDialog()}
+            >
+                {editDialog.item && editDialog.type === 'subject' && (
+                    <AddSubjectForm
+                        initialValues={editDialog.item as SubjectType}
+                        onSubmitSuccess={handleEditSubject}
+                    />
+                )}
+            </MyDialog>
+
+            {/* Module Edit Dialog */}
+            <MyDialog
+                heading="Edit Module"
+                dialogWidth="w-[400px]"
+                open={editDialog.isOpen && editDialog.type === 'module'}
+                onOpenChange={(open) => !open && closeEditDialog()}
+            >
+                {editDialog.item && editDialog.type === 'module' && (
+                    <AddModulesForm
+                        initialValues={editDialog.item as Module}
+                        onSubmitSuccess={handleEditModule}
+                    />
+                )}
+            </MyDialog>
+
+            {/* Chapter Edit Dialog */}
+            <MyDialog
+                heading="Edit Chapter"
+                dialogWidth="min-w-[800px]"
+                open={editDialog.isOpen && editDialog.type === 'chapter'}
+                onOpenChange={(open) => !open && closeEditDialog()}
+                headerActions={
+                    editDialog.isOpen && editDialog.type === 'chapter' ? (
+                        <ChapterHeaderActions
+                            submitFn={chapterFormState.submitFn}
+                            isPending={chapterFormState.isPending}
+                        />
+                    ) : undefined
+                }
+            >
+                {editDialog.item &&
+                    editDialog.type === 'chapter' &&
+                    (() => {
+                        const chapterItem = editDialog.item as Chapter & {
+                            subjectId?: string;
+                            moduleId?: string;
+                        };
+                        // Convert Chapter to ChapterWithSlides format expected by AddChapterForm
+                        const chapterWithSlides: ChapterWithSlidesStore = {
+                            chapter: chapterItem,
+                            slides_count: {
+                                video_count: 0,
+                                pdf_count: 0,
+                                doc_count: 0,
+                                unknown_count: 0,
+                            },
+                            chapter_in_package_sessions: [], // Will be populated by the form
+                        };
+                        return (
+                            <AddChapterForm
+                                mode="edit"
+                                initialValues={chapterWithSlides}
+                                onSubmitSuccess={async () => {
+                                    // Close dialog and refresh data after successful edit
+                                    closeEditDialog();
+                                    // Refresh the local state data
+                                    const updatedSubjects = getCourseSubjects(
+                                        courseId,
+                                        selectedSession || '',
+                                        levelId
+                                    );
+                                    if (updatedSubjects.length > 0 && packageSessionIds) {
+                                        const updatedModulesMap = await fetchModules({
+                                            subjects: updatedSubjects,
+                                            packageSessionIds,
+                                        });
+                                        setSubjectModulesMap(updatedModulesMap);
+                                    }
+                                    setSubjects(updatedSubjects);
+                                }}
+                                module_id={chapterItem.moduleId}
+                                session_id={selectedSession}
+                                level_id={selectedLevel}
+                                subject_id={chapterItem.subjectId}
+                                hideSubmitButton={true}
+                                onFormReady={handleChapterFormReady}
+                            />
+                        );
+                    })()}
+            </MyDialog>
 
             {/* Delete Confirmation Dialog */}
             <AlertDialog

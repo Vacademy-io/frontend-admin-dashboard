@@ -17,7 +17,6 @@ import {
     Percent,
     DollarSign,
     Calendar,
-    BookOpen,
 } from 'lucide-react';
 import { UnifiedReferralSettings as UnifiedReferralSettingsType } from './UnifiedReferralSettings';
 import { MyButton } from '@/components/design-system/button';
@@ -52,8 +51,6 @@ export const ReferralManager: React.FC<ReferralManagerProps> = ({
                 return <Gift className="size-4 text-purple-600" />;
             case 'free_days':
                 return <Calendar className="size-4 text-blue-600" />;
-            case 'free_course':
-                return <BookOpen className="size-4 text-indigo-600" />;
             case 'points_system':
                 return <Star className="size-4 text-yellow-600" />;
             default:
@@ -155,10 +152,26 @@ export const ReferralManager: React.FC<ReferralManagerProps> = ({
                                                 `₹${program.refereeReward.value} off`}
                                             {program.refereeReward.type === 'free_days' &&
                                                 `${program.refereeReward.value} free days`}
-                                            {program.refereeReward.type === 'bonus_content' &&
-                                                'Bonus content'}
-                                            {program.refereeReward.type === 'free_course' &&
-                                                'Free course access'}
+                                            {program.refereeReward.type === 'points_system' &&
+                                                `${program.refereeReward.value} points`}
+                                            {program.refereeReward.type === 'bonus_content' && (
+                                                <div className="flex flex-col gap-1">
+                                                    <span>
+                                                        {program.refereeReward.content?.content
+                                                            ?.title || 'Bonus content'}
+                                                    </span>
+                                                    {program.refereeReward.content?.content
+                                                        ?.template && (
+                                                        <span className="text-xs text-gray-500">
+                                                            Template:{' '}
+                                                            {program.refereeReward.content.content.template.replace(
+                                                                'template_',
+                                                                'Template '
+                                                            )}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -191,6 +204,27 @@ export const ReferralManager: React.FC<ReferralManagerProps> = ({
                                                         tier.reward.pointsPerReferral && (
                                                             <span className="text-xs font-medium text-blue-600">
                                                                 +{tier.reward.pointsPerReferral}pts
+                                                            </span>
+                                                        )}
+                                                    {tier.reward.type === 'bonus_content' &&
+                                                        tier.reward.content?.content?.title && (
+                                                            <span className="text-xs font-medium text-purple-600">
+                                                                {tier.reward.content.content.title}
+                                                            </span>
+                                                        )}
+                                                    {(tier.reward.type === 'discount_percentage' ||
+                                                        tier.reward.type === 'discount_fixed' ||
+                                                        tier.reward.type === 'free_days') &&
+                                                        tier.reward.value && (
+                                                            <span className="text-xs font-medium">
+                                                                {tier.reward.value}
+                                                                {tier.reward.type ===
+                                                                'discount_percentage'
+                                                                    ? '%'
+                                                                    : tier.reward.type ===
+                                                                        'free_days'
+                                                                      ? 'd'
+                                                                      : '₹'}
                                                             </span>
                                                         )}
                                                 </div>
@@ -323,8 +357,6 @@ const ProgramDetailsModal: React.FC<ProgramDetailsModalProps> = ({
                 return 'Bonus Content';
             case 'free_days':
                 return 'Free Days';
-            case 'free_course':
-                return 'Free Course';
             case 'points_system':
                 return 'Points System';
             default:
@@ -333,7 +365,7 @@ const ProgramDetailsModal: React.FC<ProgramDetailsModalProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white">
                 <div className="border-b p-6">
                     <div className="flex items-center justify-between">
@@ -381,7 +413,9 @@ const ProgramDetailsModal: React.FC<ProgramDetailsModalProps> = ({
                                                 ? '%'
                                                 : program.refereeReward.type === 'free_days'
                                                   ? ' days'
-                                                  : ''}
+                                                  : program.refereeReward.type === 'points_system'
+                                                    ? ' points'
+                                                    : ''}
                                         </Badge>
                                     )}
                                 </div>
@@ -403,6 +437,61 @@ const ProgramDetailsModal: React.FC<ProgramDetailsModalProps> = ({
                                         )}
                                     </div>
                                 )}
+
+                                {/* Bonus Content Details */}
+                                {program.refereeReward.type === 'bonus_content' &&
+                                    program.refereeReward.content && (
+                                        <div className="mt-3 rounded border bg-white p-3">
+                                            <h6 className="mb-2 text-xs font-medium text-gray-700">
+                                                Content Details
+                                            </h6>
+                                            <div className="space-y-1 text-xs">
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-500">
+                                                        Content Type:
+                                                    </span>
+                                                    <span className="font-medium capitalize">
+                                                        {program.refereeReward.content.contentType}
+                                                    </span>
+                                                </div>
+                                                {program.refereeReward.content.content?.title && (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-500">
+                                                            Title:
+                                                        </span>
+                                                        <span className="font-medium">
+                                                            {
+                                                                program.refereeReward.content
+                                                                    .content.title
+                                                            }
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {program.refereeReward.content.content
+                                                    ?.template && (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-500">
+                                                            Template:
+                                                        </span>
+                                                        <span className="font-medium">
+                                                            {program.refereeReward.content.content.template.replace(
+                                                                'template_',
+                                                                'Template '
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {program.refereeReward.content.content?.fileId && (
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-500">File:</span>
+                                                        <span className="font-medium text-green-600">
+                                                            ✓ Uploaded
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                             </div>
                         </CardContent>
                     </Card>
@@ -521,6 +610,67 @@ const ProgramDetailsModal: React.FC<ProgramDetailsModalProps> = ({
                                                     )}
                                                 </div>
                                             )}
+
+                                            {/* Bonus Content Details for Referrer Tier */}
+                                            {tier.reward.type === 'bonus_content' &&
+                                                tier.reward.content && (
+                                                    <div className="mt-3 rounded border bg-white p-3">
+                                                        <h6 className="mb-2 text-xs font-medium text-gray-700">
+                                                            Content Details
+                                                        </h6>
+                                                        <div className="space-y-1 text-xs">
+                                                            <div className="flex justify-between">
+                                                                <span className="text-gray-500">
+                                                                    Content Type:
+                                                                </span>
+                                                                <span className="font-medium capitalize">
+                                                                    {
+                                                                        tier.reward.content
+                                                                            .contentType
+                                                                    }
+                                                                </span>
+                                                            </div>
+                                                            {tier.reward.content.content?.title && (
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-gray-500">
+                                                                        Title:
+                                                                    </span>
+                                                                    <span className="font-medium">
+                                                                        {
+                                                                            tier.reward.content
+                                                                                .content.title
+                                                                        }
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                            {tier.reward.content.content
+                                                                ?.template && (
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-gray-500">
+                                                                        Template:
+                                                                    </span>
+                                                                    <span className="font-medium">
+                                                                        {tier.reward.content.content.template.replace(
+                                                                            'template_',
+                                                                            'Template '
+                                                                        )}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                            {tier.reward.content.content
+                                                                ?.fileId && (
+                                                                <div className="flex justify-between">
+                                                                    <span className="text-gray-500">
+                                                                        File:
+                                                                    </span>
+                                                                    <span className="font-medium text-green-600">
+                                                                        ✓ Uploaded
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
                                         </div>
                                     ))}
                             </div>

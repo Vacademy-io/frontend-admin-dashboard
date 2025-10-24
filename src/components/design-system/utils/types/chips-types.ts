@@ -48,4 +48,6 @@ export type ActivityStatus =
     | 'evaluated'
     | 'evaluating'
     | 'PAID'
-    | 'PAYMENT_PENDING';
+    | 'PAYMENT_PENDING'
+    | 'ongoing'
+    | 'success';

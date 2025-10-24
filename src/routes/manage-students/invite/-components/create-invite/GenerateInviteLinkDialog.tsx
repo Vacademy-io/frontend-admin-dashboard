@@ -27,27 +27,28 @@ import { ReferralProgramDialog } from './ReferralProgramDialog';
 import InstituteBrandingCard from './-components/InstituteBrandingCard';
 import CoursePreviewCard from './-components/CoursePreviewCard';
 import PaymentPlanCard from './-components/PaymentPlanCard';
-import DiscountSettingsCard from './-components/DiscountSettingsCard';
-import ReferralProgramCard from './-components/ReferralProgramCard';
 import { getInviteListCustomFields } from '../../-utils/getInviteListCustomFields';
+import PlanReferralMappingCard from './-components/PlanReferralMappingCard';
+import { PlanReferralConfigDialog } from './PlanReferralConfigDialog';
 import RestrictSameBatch from './-components/RestrictSameBatch';
 import CustomInviteFormCard from './-components/CustomInviteFormCard';
 import LearnerAccessDurationCard from './-components/LearnerAccessDurationCard';
-import InviteViaEmailCard from './-components/InviteViaEmailCard';
 import CustomHTMLCard from './-components/CustomHTMLCard';
-import ShowRelatedCoursesCard from './-components/ShowRelatedCoursesCard';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { handleEnrollInvite, handleGetEnrollSingleInviteDetails } from './-services/enroll-invite';
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { handleGetPaymentDetails } from './-services/get-payments';
+import { useUpdateInvite } from '../../-services/update-invite';
 import InviteNameCard from './-components/InviteNameCard';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 import { transformApiDataToCourseDataForInvite } from '@/routes/study-library/courses/course-details/-utils/helper';
 import {
+    convertInviteData,
     getMatchingPaymentPlan,
     getPaymentOptionBySessionId,
     ReTransformCustomFields,
+    splitPlansByType,
 } from './-utils/helper';
 import { handleGetReferralProgramDetails } from './-services/referral-services';
 import PreviewInviteLink from './PreviewInviteLink';
@@ -77,8 +78,12 @@ const GenerateInviteLinkDialog = ({
     const { data: paymentsData } = useSuspenseQuery(handleGetPaymentDetails());
     const { studyLibraryData } = useStudyLibraryStore();
 
+    // Find parent batch (first batch if none explicitly marked as parent)
+    const parentBatch = selectedBatches.find((batch) => batch.isParent) || selectedBatches[0];
+    const isBundle = selectedBatches.length > 1;
+
     const courseDetailsData = studyLibraryData?.find(
-        (item) => item.course.id === selectedCourse?.id
+        (item) => item.course.id === (parentBatch?.courseId || selectedCourse?.id)
     );
 
     const queryClient = useQueryClient();
@@ -124,6 +129,10 @@ const GenerateInviteLinkDialog = ({
             selectedReferralId: 'r1',
             showReferralDialog: false,
             showAddReferralDialog: false,
+            // New per-plan referral fields
+            planReferralMappings: {},
+            selectedPlanForReferral: '',
+            showPlanReferralDialog: false,
             restrictToSameBatch: false,
             accessDurationType: 'define',
             accessDurationDays: '',
@@ -172,25 +181,50 @@ const GenerateInviteLinkDialog = ({
     const mediaMenuRef = useRef<HTMLDivElement>(null);
     const youtubeInputRef = useRef<HTMLDivElement>(null);
 
+    const updateInviteMutation = useUpdateInvite();
+
     const handleSubmitInviteLinkMutation = useMutation({
         mutationFn: async ({ data }: { data: InviteLinkFormValues }) => {
-            return handleEnrollInvite({
+            const convertedData = convertInviteData(
                 data,
                 selectedCourse,
                 selectedBatches,
                 getPackageSessionId,
                 paymentsData,
                 referralProgramDetails,
-                instituteLogoFileId: instituteDetails?.institute_logo_file_id || '',
-            });
+                instituteDetails?.institute_logo_file_id || '',
+                inviteLinkId
+            );
+
+            if (isEditInviteLink && inviteLinkId) {
+                // Use useUpdateInvite for editing
+                return updateInviteMutation.mutateAsync({ requestBody: convertedData });
+            } else {
+                // Use handleEnrollInvite for creating
+                return handleEnrollInvite({
+                    data,
+                    selectedCourse,
+                    selectedBatches,
+                    getPackageSessionId,
+                    paymentsData,
+                    referralProgramDetails,
+                    instituteLogoFileId: instituteDetails?.institute_logo_file_id || '',
+                });
+            }
         },
         onSuccess: () => {
             form.setValue('showAddPlanDialog', false);
             queryClient.invalidateQueries({ queryKey: ['GET_INVITE_LINKS'] });
-            toast.success('Your invite link has been created successfully!', {
-                className: 'success-toast',
-                duration: 2000,
-            });
+            queryClient.invalidateQueries({ queryKey: ['inviteList'] });
+            toast.success(
+                isEditInviteLink
+                    ? 'Your invite link has been updated successfully!'
+                    : 'Your invite link has been created successfully!',
+                {
+                    className: 'success-toast',
+                    duration: 2000,
+                }
+            );
             form.reset();
             selectCourseForm?.reset();
             setShowSummaryDialog(false);
@@ -198,10 +232,25 @@ const GenerateInviteLinkDialog = ({
         },
         onError: (error: unknown) => {
             if (error instanceof AxiosError) {
-                toast.error(error?.response?.data?.ex, {
-                    className: 'error-toast',
-                    duration: 2000,
+                console.error('API Error Response:', {
+                    status: error.response?.status,
+                    data: error.response?.data,
+                    message: error.message,
+                    config: {
+                        method: error.config?.method,
+                        url: error.config?.url,
+                        data: error.config?.data,
+                    },
                 });
+                toast.error(
+                    error?.response?.data?.ex ||
+                        error?.response?.data?.message ||
+                        'Failed to save invite link',
+                    {
+                        className: 'error-toast',
+                        duration: 3000,
+                    }
+                );
             } else {
                 toast.error('An unexpected error occurred', {
                     className: 'error-toast',
@@ -485,25 +534,6 @@ const GenerateInviteLinkDialog = ({
         form.setValue('textFieldValue', '');
         form.setValue('dropdownOptions', []);
     };
-
-    const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-    const handleAddInviteeEmail = () => {
-        const inviteeEmail = form.getValues('inviteeEmail');
-        const inviteeEmails = form.getValues('inviteeEmails');
-        if (isValidEmail(inviteeEmail) && !inviteeEmails.includes(inviteeEmail)) {
-            const updatedEmails = [...inviteeEmails, inviteeEmail];
-            form.setValue('inviteeEmails', updatedEmails);
-            form.setValue('inviteeEmail', '');
-        }
-    };
-
-    const handleRemoveInviteeEmail = (email: string) => {
-        const inviteeEmails = form.getValues('inviteeEmails');
-        const updatedEmails = inviteeEmails.filter((e: string) => e !== email);
-        form.setValue('inviteeEmails', updatedEmails);
-    };
-
     // Hide menu when clicking outside
     useEffect(() => {
         if (!form.watch('showMediaMenu')) return;
@@ -544,24 +574,42 @@ const GenerateInviteLinkDialog = ({
                     ...form.getValues(),
                     course: parsedJsonData?.course ?? transformedData?.packageName,
                     description: parsedJsonData?.description ?? transformedData?.description,
-                    learningOutcome: parsedJsonData?.whyLearn ?? transformedData?.whyLearn,
-                    aboutCourse: parsedJsonData?.aboutTheCourse ?? transformedData?.aboutTheCourse,
+                    learningOutcome:
+                        parsedJsonData?.learningOutcome ??
+                        parsedJsonData?.whyLearn ??
+                        transformedData?.whyLearn,
+                    aboutCourse:
+                        parsedJsonData?.aboutCourse ??
+                        parsedJsonData?.aboutTheCourse ??
+                        transformedData?.aboutTheCourse,
                     targetAudience:
-                        parsedJsonData?.whoShouldLearn ?? transformedData?.whoShouldLearn,
+                        parsedJsonData?.targetAudience ??
+                        parsedJsonData?.whoShouldLearn ??
+                        transformedData?.whoShouldLearn,
                     coursePreview:
+                        parsedJsonData?.coursePreview ??
                         parsedJsonData?.coursePreviewImageMediaId ??
                         transformedData?.coursePreviewImageMediaId,
                     courseBanner:
-                        parsedJsonData?.courseBannerMediaId ?? transformedData?.courseBannerMediaId,
-                    courseMedia: parsedJsonData?.courseMediaId ?? transformedData?.courseMediaId,
+                        parsedJsonData?.courseBanner ??
+                        parsedJsonData?.courseBannerMediaId ??
+                        transformedData?.courseBannerMediaId,
+                    courseMedia:
+                        parsedJsonData?.courseMedia ??
+                        parsedJsonData?.courseMediaId ??
+                        transformedData?.courseMediaId,
                     coursePreviewBlob:
+                        parsedJsonData?.coursePreviewBlob ??
                         parsedJsonData?.coursePreviewImageMediaPreview ??
                         transformedData?.coursePreviewImageMediaPreview,
                     courseBannerBlob:
+                        parsedJsonData?.courseBannerBlob ??
                         parsedJsonData?.courseBannerMediaPreview ??
                         transformedData?.courseBannerMediaPreview,
                     courseMediaBlob:
-                        parsedJsonData?.courseMediaPreview ?? transformedData?.courseMediaPreview,
+                        parsedJsonData?.courseMediaBlob ??
+                        parsedJsonData?.courseMediaPreview ??
+                        transformedData?.courseMediaPreview,
                     tags: parsedJsonData?.tags ?? transformedData?.tags,
                 });
             } catch (error) {
@@ -570,32 +618,87 @@ const GenerateInviteLinkDialog = ({
         };
 
         loadCourseData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [courseDetailsData, inviteLinkDetails]);
 
     useEffect(() => {
-        if (singlePackageSessionId) {
+        if (singlePackageSessionId && inviteLinkDetails) {
             const paymentOptionDetailsForSelectedSession = getPaymentOptionBySessionId(
                 inviteLinkDetails,
                 getPackageSessionId({
-                    courseId: selectedCourse?.id || '',
-                    levelId: selectedBatches[0]?.levelId || '',
-                    sessionId: selectedBatches[0]?.sessionId || '',
+                    courseId: parentBatch?.courseId || selectedCourse?.id || '',
+                    levelId: parentBatch?.levelId || '',
+                    sessionId: parentBatch?.sessionId || '',
                 })
             );
+
+            // Extract plan referral mappings from the payment option
+            const planReferralMappings: Record<string, string> = {};
+            const paymentOption = paymentOptionDetailsForSelectedSession?.payment_option;
+
+            if (paymentOption) {
+                if (paymentOption.type?.toLowerCase() === 'subscription') {
+                    try {
+                        const parsedMetadata = JSON.parse(
+                            paymentOption.payment_option_metadata_json || '{}'
+                        );
+                        const customIntervals =
+                            parsedMetadata?.subscriptionData?.customIntervals || [];
+                        customIntervals.forEach(
+                            (interval: { referral_option?: { id: string } }, index: number) => {
+                                if (interval.referral_option?.id) {
+                                    planReferralMappings[`${paymentOption.id}_option_${index}`] =
+                                        interval.referral_option.id;
+                                }
+                            }
+                        );
+                    } catch (error) {
+                        console.error('Failed to parse subscription metadata:', error);
+                    }
+                } else {
+                    // For other plan types
+                    const firstPlan = paymentOption.payment_plans?.[0];
+                    if (firstPlan?.referral_option?.id) {
+                        planReferralMappings[paymentOption.id] = firstPlan.referral_option.id;
+                    }
+                }
+            }
+
+            // Split payment plans by type
+            const { freePlans: splitFreePlans, paidPlans: splitPaidPlans } = paymentsData
+                ? splitPlansByType(paymentsData)
+                : { freePlans: [], paidPlans: [] };
+
+            const selectedPaymentPlan = getMatchingPaymentPlan(
+                paymentsData,
+                paymentOptionDetailsForSelectedSession?.payment_option?.id || ''
+            );
+
             form.reset({
                 ...form.getValues(),
                 name: inviteLinkDetails?.name,
                 includeInstituteLogo:
                     safeJsonParse(inviteLinkDetails?.web_page_meta_data_json, {})
                         ?.includeInstituteLogo || false,
+                includePaymentPlans:
+                    safeJsonParse(inviteLinkDetails?.web_page_meta_data_json, {})
+                        ?.includePaymentPlans ?? true,
                 custom_fields:
                     inviteLinkDetails?.institute_custom_fields.length === 0
                         ? getInviteListCustomFields()
                         : ReTransformCustomFields(inviteLinkDetails),
-                selectedPlan: getMatchingPaymentPlan(
-                    paymentsData,
-                    paymentOptionDetailsForSelectedSession?.payment_option?.id || ''
-                ),
+                freePlans: splitFreePlans,
+                paidPlans: splitPaidPlans.map((plan) => ({
+                    ...plan,
+                    price: plan.price || '',
+                })),
+                selectedPlan: selectedPaymentPlan
+                    ? {
+                          ...selectedPaymentPlan,
+                          price: selectedPaymentPlan.price || '',
+                      }
+                    : undefined,
+                planReferralMappings: planReferralMappings,
                 discounts: [],
                 selectedDiscountId: 'none',
                 selectedReferral: {},
@@ -604,8 +707,8 @@ const GenerateInviteLinkDialog = ({
                     safeJsonParse(inviteLinkDetails?.web_page_meta_data_json, {})
                         ?.restrictToSameBatch || false,
                 accessDurationType:
-                    form.watch('selectedPlan')?.type === 'subscription' ? 'define' : '',
-                accessDurationDays: inviteLinkDetails?.learner_access_days,
+                    selectedPaymentPlan?.type?.toLowerCase() === 'subscription' ? 'define' : '',
+                accessDurationDays: inviteLinkDetails?.learner_access_days?.toString() || '',
                 inviteeEmails: [],
                 customHtml:
                     safeJsonParse(inviteLinkDetails?.web_page_meta_data_json, {})?.customHtml || '',
@@ -614,7 +717,17 @@ const GenerateInviteLinkDialog = ({
                         ?.showRelatedCourses || false,
             });
         }
-    }, [inviteLinkDetails]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        inviteLinkDetails,
+        singlePackageSessionId,
+        getPackageSessionId,
+        parentBatch?.courseId,
+        parentBatch?.levelId,
+        parentBatch?.sessionId,
+        selectedCourse?.id,
+        paymentsData,
+    ]);
 
     return (
         <Dialog open={showSummaryDialog} onOpenChange={setShowSummaryDialog}>
@@ -625,7 +738,7 @@ const GenerateInviteLinkDialog = ({
                         {/* Preview Invite Link Dialog */}
                         <PreviewInviteLink
                             form={form}
-                            levelName={selectedBatches[0]?.levelName || ''}
+                            levelName={parentBatch?.levelName || ''}
                             instituteLogo={instituteLogo}
                         />
                     </div>
@@ -651,12 +764,13 @@ const GenerateInviteLinkDialog = ({
                                 courseMediaRef={courseMediaRef}
                                 handleFileUpload={handleFileUpload}
                                 extractYouTubeVideoId={extractYouTubeVideoId}
+                                isBundle={isBundle}
+                                totalBatches={selectedBatches.length}
                             />
                             <PaymentPlanCard form={form} />
-                            {/* Discount Settings Card */}
-                            <DiscountSettingsCard form={form} />
+
                             {/* Referral Program Card */}
-                            <ReferralProgramCard form={form} />
+                            <PlanReferralMappingCard form={form} />
                             {/* New Card for Restrict to Same Batch */}
                             <RestrictSameBatch form={form} />
                             {/* Customize Invite Form Card */}
@@ -677,17 +791,9 @@ const GenerateInviteLinkDialog = ({
                             {form.watch('selectedPlan')?.type === 'subscription' && (
                                 <LearnerAccessDurationCard form={form} />
                             )}
-                            {/* Invite via email Card */}
-                            <InviteViaEmailCard
-                                form={form}
-                                isValidEmail={isValidEmail}
-                                handleAddInviteeEmail={handleAddInviteeEmail}
-                                handleRemoveInviteeEmail={handleRemoveInviteeEmail}
-                            />
+
                             {/* Custom HTML Card */}
                             <CustomHTMLCard form={form} />
-                            {/* Include Related Courses Card */}
-                            <ShowRelatedCoursesCard form={form} />
                         </form>
                     </Form>
                 </div>
@@ -739,6 +845,8 @@ const GenerateInviteLinkDialog = ({
             <ReferralProgramDialog form={form} />
             {/* Add New Referral Program Dialog */}
             <AddReferralProgramDialog form={form} />
+            {/* Plan Referral Configuration Dialog */}
+            <PlanReferralConfigDialog form={form} />
         </Dialog>
     );
 };

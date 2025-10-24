@@ -20,7 +20,14 @@ const ThemeContext = createContext<ThemeContextType>({
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const [primaryColor, setPrimaryColor] = useState('primary'); // Default theme code
+    const [primaryColor, setPrimaryColor] = useState(() => {
+        try {
+            const saved = typeof window !== 'undefined' ? localStorage.getItem('theme-code') : null;
+            return saved || 'primary';
+        } catch {
+            return 'primary';
+        }
+    }); // Default theme code
 
     const getPrimaryColorCode = () => {
         return (

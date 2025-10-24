@@ -29,6 +29,7 @@ export interface SessionType {
 }
 
 export interface ContentType {
+    attendancePercentage: number;
     fullName: string;
     attendanceDetails: string | null;
     attendanceTimestamp: string | null;

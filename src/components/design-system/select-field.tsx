@@ -45,11 +45,6 @@ const SelectField: React.FC<SelectFieldProps> = ({
         control={control as Control}
         name={name}
         render={({ field }) => {
-            // Set the default value to the first option if not already set
-            if (!field.value && options && options.length > 0) {
-                field.onChange(options[0]?.value.toString());
-            }
-
             return (
                 <FormItem
                     className={

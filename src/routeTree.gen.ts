@@ -23,6 +23,8 @@ import { Route as EvaluationIndexRouteImport } from "./routes/evaluation/index"
 import { Route as CommunityIndexRouteImport } from "./routes/community/index"
 import { Route as AuthTransferIndexRouteImport } from "./routes/auth-transfer/index"
 import { Route as AiCenterIndexRouteImport } from "./routes/ai-center/index"
+import { Route as UserTagsLinkIndexRouteImport } from "./routes/user-tags/link/index"
+import { Route as UserTagsInstituteIndexRouteImport } from "./routes/user-tags/institute/index"
 import { Route as StudyLibraryVoltIndexRouteImport } from "./routes/study-library/volt/index"
 import { Route as StudyLibraryReportsIndexRouteImport } from "./routes/study-library/reports/index"
 import { Route as StudyLibraryLiveSessionIndexRouteImport } from "./routes/study-library/live-session/index"
@@ -51,6 +53,7 @@ import { Route as AssessmentQuestionPapersIndexRouteImport } from "./routes/asse
 import { Route as AssessmentAssessmentListIndexRouteImport } from "./routes/assessment/assessment-list/index"
 import { Route as AnnouncementScheduleIndexRouteImport } from "./routes/announcement/schedule/index"
 import { Route as AnnouncementHistoryIndexRouteImport } from "./routes/announcement/history/index"
+import { Route as AnnouncementEmailCampaigningIndexRouteImport } from "./routes/announcement/email-campaigning/index"
 import { Route as AnnouncementCreateIndexRouteImport } from "./routes/announcement/create/index"
 import { Route as AnnouncementApprovalIndexRouteImport } from "./routes/announcement/approval/index"
 import { Route as AiCenterMyResourcesIndexRouteImport } from "./routes/ai-center/my-resources/index"
@@ -181,6 +184,16 @@ const AuthTransferIndexRoute = AuthTransferIndexRouteImport.update({
 const AiCenterIndexRoute = AiCenterIndexRouteImport.update({
   id: "/ai-center/",
   path: "/ai-center/",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UserTagsLinkIndexRoute = UserTagsLinkIndexRouteImport.update({
+  id: "/user-tags/link/",
+  path: "/user-tags/link/",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UserTagsInstituteIndexRoute = UserTagsInstituteIndexRouteImport.update({
+  id: "/user-tags/institute/",
+  path: "/user-tags/institute/",
   getParentRoute: () => rootRouteImport,
 } as any)
 const StudyLibraryVoltIndexRoute = StudyLibraryVoltIndexRouteImport.update({
@@ -346,6 +359,12 @@ const AnnouncementHistoryIndexRoute =
   AnnouncementHistoryIndexRouteImport.update({
     id: "/announcement/history/",
     path: "/announcement/history/",
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AnnouncementEmailCampaigningIndexRoute =
+  AnnouncementEmailCampaigningIndexRouteImport.update({
+    id: "/announcement/email-campaigning/",
+    path: "/announcement/email-campaigning/",
     getParentRoute: () => rootRouteImport,
   } as any)
 const AnnouncementCreateIndexRoute = AnnouncementCreateIndexRouteImport.update({
@@ -583,6 +602,7 @@ export interface FileRoutesByFullPath {
   "/ai-center/my-resources": typeof AiCenterMyResourcesIndexRoute
   "/announcement/approval": typeof AnnouncementApprovalIndexRoute
   "/announcement/create": typeof AnnouncementCreateIndexRoute
+  "/announcement/email-campaigning": typeof AnnouncementEmailCampaigningIndexRoute
   "/announcement/history": typeof AnnouncementHistoryIndexRoute
   "/announcement/schedule": typeof AnnouncementScheduleIndexRoute
   "/assessment/assessment-list": typeof AssessmentAssessmentListIndexRoute
@@ -611,6 +631,8 @@ export interface FileRoutesByFullPath {
   "/study-library/live-session": typeof StudyLibraryLiveSessionIndexRoute
   "/study-library/reports": typeof StudyLibraryReportsIndexRoute
   "/study-library/volt": typeof StudyLibraryVoltIndexRoute
+  "/user-tags/institute": typeof UserTagsInstituteIndexRoute
+  "/user-tags/link": typeof UserTagsLinkIndexRoute
   "/ai-center/ai-tools/vsmart-audio": typeof AiCenterAiToolsVsmartAudioIndexRoute
   "/ai-center/ai-tools/vsmart-chat": typeof AiCenterAiToolsVsmartChatIndexRoute
   "/ai-center/ai-tools/vsmart-extract": typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -663,6 +685,7 @@ export interface FileRoutesByTo {
   "/ai-center/my-resources": typeof AiCenterMyResourcesIndexRoute
   "/announcement/approval": typeof AnnouncementApprovalIndexRoute
   "/announcement/create": typeof AnnouncementCreateIndexRoute
+  "/announcement/email-campaigning": typeof AnnouncementEmailCampaigningIndexRoute
   "/announcement/history": typeof AnnouncementHistoryIndexRoute
   "/announcement/schedule": typeof AnnouncementScheduleIndexRoute
   "/assessment/assessment-list": typeof AssessmentAssessmentListIndexRoute
@@ -691,6 +714,8 @@ export interface FileRoutesByTo {
   "/study-library/live-session": typeof StudyLibraryLiveSessionIndexRoute
   "/study-library/reports": typeof StudyLibraryReportsIndexRoute
   "/study-library/volt": typeof StudyLibraryVoltIndexRoute
+  "/user-tags/institute": typeof UserTagsInstituteIndexRoute
+  "/user-tags/link": typeof UserTagsLinkIndexRoute
   "/ai-center/ai-tools/vsmart-audio": typeof AiCenterAiToolsVsmartAudioIndexRoute
   "/ai-center/ai-tools/vsmart-chat": typeof AiCenterAiToolsVsmartChatIndexRoute
   "/ai-center/ai-tools/vsmart-extract": typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -745,6 +770,7 @@ export interface FileRoutesById {
   "/ai-center/my-resources/": typeof AiCenterMyResourcesIndexRoute
   "/announcement/approval/": typeof AnnouncementApprovalIndexRoute
   "/announcement/create/": typeof AnnouncementCreateIndexRoute
+  "/announcement/email-campaigning/": typeof AnnouncementEmailCampaigningIndexRoute
   "/announcement/history/": typeof AnnouncementHistoryIndexRoute
   "/announcement/schedule/": typeof AnnouncementScheduleIndexRoute
   "/assessment/assessment-list/": typeof AssessmentAssessmentListIndexRoute
@@ -773,6 +799,8 @@ export interface FileRoutesById {
   "/study-library/live-session/": typeof StudyLibraryLiveSessionIndexRoute
   "/study-library/reports/": typeof StudyLibraryReportsIndexRoute
   "/study-library/volt/": typeof StudyLibraryVoltIndexRoute
+  "/user-tags/institute/": typeof UserTagsInstituteIndexRoute
+  "/user-tags/link/": typeof UserTagsLinkIndexRoute
   "/ai-center/ai-tools/vsmart-audio/": typeof AiCenterAiToolsVsmartAudioIndexRoute
   "/ai-center/ai-tools/vsmart-chat/": typeof AiCenterAiToolsVsmartChatIndexRoute
   "/ai-center/ai-tools/vsmart-extract/": typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -828,6 +856,7 @@ export interface FileRouteTypes {
     | "/ai-center/my-resources"
     | "/announcement/approval"
     | "/announcement/create"
+    | "/announcement/email-campaigning"
     | "/announcement/history"
     | "/announcement/schedule"
     | "/assessment/assessment-list"
@@ -856,6 +885,8 @@ export interface FileRouteTypes {
     | "/study-library/live-session"
     | "/study-library/reports"
     | "/study-library/volt"
+    | "/user-tags/institute"
+    | "/user-tags/link"
     | "/ai-center/ai-tools/vsmart-audio"
     | "/ai-center/ai-tools/vsmart-chat"
     | "/ai-center/ai-tools/vsmart-extract"
@@ -908,6 +939,7 @@ export interface FileRouteTypes {
     | "/ai-center/my-resources"
     | "/announcement/approval"
     | "/announcement/create"
+    | "/announcement/email-campaigning"
     | "/announcement/history"
     | "/announcement/schedule"
     | "/assessment/assessment-list"
@@ -936,6 +968,8 @@ export interface FileRouteTypes {
     | "/study-library/live-session"
     | "/study-library/reports"
     | "/study-library/volt"
+    | "/user-tags/institute"
+    | "/user-tags/link"
     | "/ai-center/ai-tools/vsmart-audio"
     | "/ai-center/ai-tools/vsmart-chat"
     | "/ai-center/ai-tools/vsmart-extract"
@@ -989,6 +1023,7 @@ export interface FileRouteTypes {
     | "/ai-center/my-resources/"
     | "/announcement/approval/"
     | "/announcement/create/"
+    | "/announcement/email-campaigning/"
     | "/announcement/history/"
     | "/announcement/schedule/"
     | "/assessment/assessment-list/"
@@ -1017,6 +1052,8 @@ export interface FileRouteTypes {
     | "/study-library/live-session/"
     | "/study-library/reports/"
     | "/study-library/volt/"
+    | "/user-tags/institute/"
+    | "/user-tags/link/"
     | "/ai-center/ai-tools/vsmart-audio/"
     | "/ai-center/ai-tools/vsmart-chat/"
     | "/ai-center/ai-tools/vsmart-extract/"
@@ -1070,6 +1107,7 @@ export interface RootRouteChildren {
   AiCenterMyResourcesIndexRoute: typeof AiCenterMyResourcesIndexRoute
   AnnouncementApprovalIndexRoute: typeof AnnouncementApprovalIndexRoute
   AnnouncementCreateIndexRoute: typeof AnnouncementCreateIndexRoute
+  AnnouncementEmailCampaigningIndexRoute: typeof AnnouncementEmailCampaigningIndexRoute
   AnnouncementHistoryIndexRoute: typeof AnnouncementHistoryIndexRoute
   AnnouncementScheduleIndexRoute: typeof AnnouncementScheduleIndexRoute
   AssessmentAssessmentListIndexRoute: typeof AssessmentAssessmentListIndexRoute
@@ -1098,6 +1136,8 @@ export interface RootRouteChildren {
   StudyLibraryLiveSessionIndexRoute: typeof StudyLibraryLiveSessionIndexRoute
   StudyLibraryReportsIndexRoute: typeof StudyLibraryReportsIndexRoute
   StudyLibraryVoltIndexRoute: typeof StudyLibraryVoltIndexRoute
+  UserTagsInstituteIndexRoute: typeof UserTagsInstituteIndexRoute
+  UserTagsLinkIndexRoute: typeof UserTagsLinkIndexRoute
   AiCenterAiToolsVsmartAudioIndexRoute: typeof AiCenterAiToolsVsmartAudioIndexRoute
   AiCenterAiToolsVsmartChatIndexRoute: typeof AiCenterAiToolsVsmartChatIndexRoute
   AiCenterAiToolsVsmartExtractIndexRoute: typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -1247,6 +1287,20 @@ declare module "@tanstack/react-router" {
       path: "/ai-center"
       fullPath: "/ai-center"
       preLoaderRoute: typeof AiCenterIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/user-tags/link/": {
+      id: "/user-tags/link/"
+      path: "/user-tags/link"
+      fullPath: "/user-tags/link"
+      preLoaderRoute: typeof UserTagsLinkIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/user-tags/institute/": {
+      id: "/user-tags/institute/"
+      path: "/user-tags/institute"
+      fullPath: "/user-tags/institute"
+      preLoaderRoute: typeof UserTagsInstituteIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/volt/": {
@@ -1443,6 +1497,13 @@ declare module "@tanstack/react-router" {
       path: "/announcement/history"
       fullPath: "/announcement/history"
       preLoaderRoute: typeof AnnouncementHistoryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/announcement/email-campaigning/": {
+      id: "/announcement/email-campaigning/"
+      path: "/announcement/email-campaigning"
+      fullPath: "/announcement/email-campaigning"
+      preLoaderRoute: typeof AnnouncementEmailCampaigningIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/announcement/create/": {
@@ -1720,6 +1781,8 @@ const rootRouteChildren: RootRouteChildren = {
   AiCenterMyResourcesIndexRoute: AiCenterMyResourcesIndexRoute,
   AnnouncementApprovalIndexRoute: AnnouncementApprovalIndexRoute,
   AnnouncementCreateIndexRoute: AnnouncementCreateIndexRoute,
+  AnnouncementEmailCampaigningIndexRoute:
+    AnnouncementEmailCampaigningIndexRoute,
   AnnouncementHistoryIndexRoute: AnnouncementHistoryIndexRoute,
   AnnouncementScheduleIndexRoute: AnnouncementScheduleIndexRoute,
   AssessmentAssessmentListIndexRoute: AssessmentAssessmentListIndexRoute,
@@ -1752,6 +1815,8 @@ const rootRouteChildren: RootRouteChildren = {
   StudyLibraryLiveSessionIndexRoute: StudyLibraryLiveSessionIndexRoute,
   StudyLibraryReportsIndexRoute: StudyLibraryReportsIndexRoute,
   StudyLibraryVoltIndexRoute: StudyLibraryVoltIndexRoute,
+  UserTagsInstituteIndexRoute: UserTagsInstituteIndexRoute,
+  UserTagsLinkIndexRoute: UserTagsLinkIndexRoute,
   AiCenterAiToolsVsmartAudioIndexRoute: AiCenterAiToolsVsmartAudioIndexRoute,
   AiCenterAiToolsVsmartChatIndexRoute: AiCenterAiToolsVsmartChatIndexRoute,
   AiCenterAiToolsVsmartExtractIndexRoute:

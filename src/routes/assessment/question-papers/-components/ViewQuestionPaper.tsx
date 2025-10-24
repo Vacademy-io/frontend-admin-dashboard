@@ -16,6 +16,7 @@ export const ViewQuestionPaper = ({
     isAssessment,
     currentQuestionIndex,
     setCurrentQuestionIndex,
+    examType,
 }: {
     questionPaperId: string | undefined;
     title: string | undefined;
@@ -25,10 +26,19 @@ export const ViewQuestionPaper = ({
     isAssessment?: boolean;
     currentQuestionIndex: number;
     setCurrentQuestionIndex: Dispatch<SetStateAction<number>>;
+    examType?: string;
 }) => {
     const { instituteDetails } = useInstituteDetailsStore();
-    const form = useForm<z.infer<typeof uploadQuestionPaperFormSchema>>({
-        resolver: zodResolver(uploadQuestionPaperFormSchema),
+
+    console.log('👁️ Creating ViewQuestionPaper form with examType:', {
+        examType,
+        isSurvey: examType === 'SURVEY',
+        questionPaperId,
+        title
+    });
+
+    const form = useForm<z.infer<ReturnType<typeof uploadQuestionPaperFormSchema>>>({
+        resolver: zodResolver(uploadQuestionPaperFormSchema(examType)),
         mode: 'onChange',
         defaultValues: {
             questionPaperId: questionPaperId,
@@ -47,7 +57,7 @@ export const ViewQuestionPaper = ({
         },
     });
 
-    function onSubmit(values: z.infer<typeof uploadQuestionPaperFormSchema>) {
+    function onSubmit(values: z.infer<ReturnType<typeof uploadQuestionPaperFormSchema>>) {
         console.log(values);
     }
 
@@ -70,6 +80,7 @@ export const ViewQuestionPaper = ({
                     isAssessment={isAssessment}
                     currentQuestionIndex={currentQuestionIndex}
                     setCurrentQuestionIndex={setCurrentQuestionIndex}
+                    examType={examType}
                 />
             </form>
         </FormProvider>

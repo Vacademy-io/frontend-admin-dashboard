@@ -2,9 +2,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { MyButton } from '@/components/design-system/button';
 import { CalendarBlank } from 'phosphor-react';
 import { useNavigate } from '@tanstack/react-router';
-import useIntroJsTour from '@/hooks/use-intro';
-import { IntroKey } from '@/constants/storage/introKey';
-import { createAssesmentButtonStep } from '@/constants/intro/steps';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Examination, Mock, Practice, Survey } from '@/svgs';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
@@ -31,11 +28,6 @@ export const ScheduleTestHeaderDescription = ({
             },
         });
     };
-
-    useIntroJsTour({
-        key: IntroKey.assessmentFirstTimeVisit,
-        steps: createAssesmentButtonStep,
-    });
 
     return (
         <div
