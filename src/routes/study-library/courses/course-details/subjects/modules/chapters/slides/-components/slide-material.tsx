@@ -34,7 +34,7 @@ import VideoSlidePreview from './video-slide-preview';
 import { handlePublishSlide } from './slide-operations/handlePublishSlide';
 import { handleUnpublishSlide } from './slide-operations/handleUnpublishSlide';
 import { updateHeading } from './slide-operations/updateSlideHeading';
-import { formatHTMLString } from './slide-operations/formatHtmlString';
+import { formatHTMLString, stripAwsQueryParamsFromUrls } from './slide-operations/formatHtmlString';
 import { handleConvertAndUpload } from './slide-operations/handleConvertUpload';
 import SlideEditor from './SlideEditor';
 import type { JSX } from 'react/jsx-runtime';
@@ -264,7 +264,10 @@ export const SlideMaterial = ({
                 ? activeItem.document_slide?.published_data || null
                 : activeItem?.document_slide?.data || null;
 
-        const editorContent = html.deserialize(editor, docData || '');
+        // Sanitize any public S3 URLs that may contain expired signatures
+        const sanitizedDocData = stripAwsQueryParamsFromUrls(docData || '');
+
+        const editorContent = html.deserialize(editor, sanitizedDocData || '');
 
         editor.setEditorValue(editorContent);
 
@@ -293,7 +296,7 @@ export const SlideMaterial = ({
         };
 
         // Check if content is empty - handle HTML structure
-        const isEmpty = checkIsEmpty(docData);
+        const isEmpty = checkIsEmpty(sanitizedDocData);
 
         setContent(<EditorWithPlaceholder initialIsEmpty={isEmpty} />);
         editor.focus();
@@ -303,7 +306,7 @@ export const SlideMaterial = ({
             activeItem?.source_type === 'DOCUMENT' &&
             activeItem?.document_slide?.type === 'DOC'
         ) {
-            const normalized = formatHTMLString(docData || '');
+            const normalized = formatHTMLString(sanitizedDocData || '');
             initialDocHtmlRef.current = { slideId: activeItem.id, html: normalized };
             currentDocHtmlRef.current = normalized;
             prevDocSlideRef.current = activeItem;

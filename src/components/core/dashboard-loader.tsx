@@ -1,6 +1,8 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, ErrorInfo, ReactNode, useEffect, useState } from 'react';
 import { Warning, ArrowClockwise } from '@phosphor-icons/react';
 import { MyButton } from '@/components/design-system/button';
+import { useTheme } from '@/providers/theme/theme-provider';
+import ClipLoader from 'react-spinners/ClipLoader';
 
 interface Props {
     children: ReactNode;
@@ -84,24 +86,331 @@ export class ErrorBoundary extends Component<Props, State> {
     }
 }
 
-// Main dashboard loader component
-export const DashboardLoader = ({ height = '', size = 20 }: { height?: string; size?: number }) => {
-    console.log(height, size);
+// Learning messages for status panel
+const learningMessages = ['Loading...', 'Setting up...', 'Almost ready...'];
+
+// Shimmer Card Component
+const ShimmerCard = ({
+    className = '',
+    children,
+}: {
+    className?: string;
+    children?: React.ReactNode;
+}) => (
+    <div className={`rounded-lg border border-slate-200 bg-white p-4 ${className}`}>
+        <div className="shimmer-wrapper">{children}</div>
+    </div>
+);
+
+// Shimmer Bar Component
+const ShimmerBar = ({
+    width = '100%',
+    height = 'h-4',
+    className = '',
+}: {
+    width?: string;
+    height?: string;
+    className?: string;
+}) => <div className={`${height} shimmer rounded bg-slate-200 ${className}`} style={{ width }} />;
+
+// Main dashboard loader component (keeps props for compatibility)
+export const DashboardLoader = ({
+    height = '',
+    size = 20,
+    fullscreen = false,
+}: {
+    height?: string;
+    size?: number;
+    fullscreen?: boolean;
+}) => {
+    const { getPrimaryColorCode } = useTheme();
+    const [messageIndex, setMessageIndex] = useState(0);
+    const [dots, setDots] = useState('');
+
+    useEffect(() => {
+        const messageInterval = setInterval(() => {
+            setMessageIndex((prev) => (prev + 1) % learningMessages.length);
+        }, 2000);
+
+        const dotsInterval = setInterval(() => {
+            setDots((prev) => {
+                if (prev === '...') return '';
+                return prev + '.';
+            });
+        }, 400);
+
+        return () => {
+            clearInterval(messageInterval);
+            clearInterval(dotsInterval);
+        };
+    }, []);
+
+    const containerMinHeight = height || '60vh';
+
     return (
-        <div className="flex size-full min-h-[400px] items-center justify-center">
-            <div className="relative">
-                {/* Outer ring */}
-                <div className="size-16 animate-spin rounded-full border-4 border-neutral-200 border-t-primary-500"></div>
+        <div
+            className={`${fullscreen ? 'fixed inset-0 overflow-auto' : 'w-full'} bg-slate-50`}
+            style={{ minHeight: containerMinHeight }}
+        >
+            <div className="mx-auto flex min-h-full max-w-screen-2xl flex-col lg:flex-row">
+                {/* Main Content Area with Shimmer Cards */}
+                <div className="flex-1 p-4 sm:p-6 lg:p-8">
+                    <div className="mx-auto w-full">
+                        {/* Header Section */}
+                        <div className="mb-8">
+                            <ShimmerCard className="mb-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-2">
+                                        <ShimmerBar
+                                            width="100%"
+                                            height="h-6"
+                                            className="max-w-[200px]"
+                                        />
+                                        <ShimmerBar
+                                            width="100%"
+                                            height="h-4"
+                                            className="max-w-[300px]"
+                                        />
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <ShimmerBar
+                                            width="100%"
+                                            height="h-8"
+                                            className="max-w-[80px]"
+                                        />
+                                        <ShimmerBar
+                                            width="100%"
+                                            height="h-8"
+                                            className="max-w-[100px]"
+                                        />
+                                    </div>
+                                </div>
+                            </ShimmerCard>
+                        </div>
 
-                {/* Inner ring */}
-                <div
-                    className="absolute inset-2 size-12 animate-spin rounded-full border-4 border-neutral-100 border-t-primary-400"
-                    style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}
-                ></div>
+                        {/* Stats Cards Row */}
+                        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            {[1, 2, 3, 4].map((i) => (
+                                <ShimmerCard key={i}>
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <ShimmerBar width="60px" height="h-4" />
+                                            <ShimmerBar
+                                                width="24px"
+                                                height="h-6"
+                                                className="rounded-full"
+                                            />
+                                        </div>
+                                        <ShimmerBar width="80px" height="h-8" />
+                                        <ShimmerBar width="120px" height="h-3" />
+                                    </div>
+                                </ShimmerCard>
+                            ))}
+                        </div>
 
-                {/* Center dot */}
-                <div className="absolute inset-6 size-4 animate-pulse rounded-full bg-primary-500"></div>
+                        {/* Main Content Grid */}
+                        <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+                            {/* Left Column - Large Card */}
+                            <div className="lg:col-span-2">
+                                <ShimmerCard className="min-h-64 md:min-h-72 lg:min-h-80">
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <ShimmerBar
+                                                width="100%"
+                                                height="h-5"
+                                                className="max-w-[150px]"
+                                            />
+                                            <ShimmerBar
+                                                width="100%"
+                                                height="h-4"
+                                                className="max-w-[60px]"
+                                            />
+                                        </div>
+                                        <div className="space-y-3">
+                                            <ShimmerBar width="100%" height="h-32" />
+                                            <div className="flex gap-4">
+                                                <ShimmerBar
+                                                    width="100%"
+                                                    height="h-4"
+                                                    className="max-w-[80px]"
+                                                />
+                                                <ShimmerBar
+                                                    width="100%"
+                                                    height="h-4"
+                                                    className="max-w-[100px]"
+                                                />
+                                                <ShimmerBar
+                                                    width="100%"
+                                                    height="h-4"
+                                                    className="max-w-[60px]"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ShimmerCard>
+                            </div>
+
+                            {/* Right Column - Smaller Cards */}
+                            <div className="space-y-4">
+                                <ShimmerCard className="min-h-32 md:min-h-36">
+                                    <div className="space-y-3">
+                                        <ShimmerBar
+                                            width="100%"
+                                            height="h-4"
+                                            className="max-w-[120px]"
+                                        />
+                                        <ShimmerBar width="100%" height="h-16" />
+                                        <ShimmerBar
+                                            width="100%"
+                                            height="h-3"
+                                            className="max-w-[80px]"
+                                        />
+                                    </div>
+                                </ShimmerCard>
+                                <ShimmerCard className="min-h-32 md:min-h-36">
+                                    <div className="space-y-3">
+                                        <ShimmerBar
+                                            width="100%"
+                                            height="h-4"
+                                            className="max-w-[100px]"
+                                        />
+                                        <ShimmerBar width="100%" height="h-16" />
+                                        <ShimmerBar
+                                            width="100%"
+                                            height="h-3"
+                                            className="max-w-[90px]"
+                                        />
+                                    </div>
+                                </ShimmerCard>
+                            </div>
+                        </div>
+
+                        {/* List Items */}
+                        <div className="space-y-4">
+                            {[1, 2, 3].map((i) => (
+                                <ShimmerCard key={i}>
+                                    <div className="flex items-center gap-4">
+                                        <ShimmerBar
+                                            width="48px"
+                                            height="h-12"
+                                            className="rounded-full"
+                                        />
+                                        <div className="flex-1 space-y-2">
+                                            <ShimmerBar
+                                                width="100%"
+                                                height="h-4"
+                                                className="max-w-[200px]"
+                                            />
+                                            <ShimmerBar
+                                                width="100%"
+                                                height="h-3"
+                                                className="max-w-[300px]"
+                                            />
+                                        </div>
+                                        <ShimmerBar
+                                            width="100%"
+                                            height="h-8"
+                                            className="max-w-[80px]"
+                                        />
+                                    </div>
+                                </ShimmerCard>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Loading Status Panel */}
+                <div className="border-l border-slate-200 bg-white p-6 lg:w-80">
+                    <div className="sticky top-6">
+                        {/* Logo/Icon Section */}
+                        <div className="mb-8 text-center">
+                            <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                <svg
+                                    className="size-8 animate-pulse text-slate-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={1.5}
+                                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                                    />
+                                </svg>
+                            </div>
+                        </div>
+
+                        {/* Loading Spinner */}
+                        <div className="mb-6 text-center">
+                            <ClipLoader
+                                size={size || 32}
+                                color={getPrimaryColorCode()}
+                                speedMultiplier={0.8}
+                            />
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="mb-6">
+                            <div className="h-1.5 overflow-hidden rounded-full bg-slate-200">
+                                <div
+                                    className="h-1.5 rounded-full bg-slate-600 transition-all duration-300 ease-out"
+                                    style={{
+                                        width: '65%',
+                                        animation: 'loadingProgress 2.5s ease-in-out infinite',
+                                    }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Dynamic Message */}
+                        <div className="mb-8 space-y-3 text-center">
+                            <p className="text-sm font-medium text-slate-800 transition-opacity duration-500">
+                                {learningMessages[messageIndex]}
+                                {dots}
+                            </p>
+                            <p className="text-xs leading-relaxed text-slate-500">
+                                {"We're setting up everything for your best learning experience"}
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            {/* Custom CSS for animations */}
+            <style
+                dangerouslySetInnerHTML={{
+                    __html: `
+          @keyframes loadingProgress {
+            0% { width: 20%; }
+            50% { width: 75%; }
+            100% { width: 20%; }
+          }
+
+          @keyframes shimmer {
+            0% {
+              opacity: 1;
+            }
+            50% {
+              opacity: 0.5;
+            }
+            100% {
+              opacity: 1;
+            }
+          }
+
+          .shimmer {
+            background: #e2e8f0;
+            animation: shimmer 1.5s linear infinite;
+          }
+
+          .shimmer-wrapper {
+            position: relative;
+            overflow: hidden;
+          }
+        `,
+                }}
+            />
         </div>
     );
 };

@@ -184,6 +184,12 @@ export default function ScheduleStep1() {
     useEffect(() => {
         if (!recurringSchedule) return;
 
+        // Skip auto-fill in edit mode - user's existing session data should be preserved
+        if (sessionDetails) return;
+
+        // Skip if form is still being initialized
+        if (!isFormInitialized) return;
+
         const selectedDays = recurringSchedule.filter((d) => d.isSelect).map((d) => d.day);
         const newDays = selectedDays.filter((d) => !prevSelectedDaysRef.current.includes(d));
 
@@ -212,7 +218,7 @@ export default function ScheduleStep1() {
             });
         }
         prevSelectedDaysRef.current = selectedDays;
-    }, [recurringSchedule, form]);
+    }, [recurringSchedule, form, sessionDetails, isFormInitialized]);
 
     // Watch form values and auto-fill recurring schedule sessions
     const durationHours = form.watch('durationHours');
@@ -221,6 +227,12 @@ export default function ScheduleStep1() {
     const startTimeValue = form.watch('startTime');
 
     useEffect(() => {
+        // Skip auto-fill in edit mode - user's existing session times should be preserved
+        if (sessionDetails) return;
+
+        // Skip if form is still being initialized
+        if (!isFormInitialized) return;
+
         const timeValue = startTimeValue?.split('T')[1] || '';
         const updatedSchedule = form.getValues('recurringSchedule')?.map((day) => {
             if (!day.isSelect) return day;
@@ -242,7 +254,15 @@ export default function ScheduleStep1() {
         if (updatedSchedule) {
             form.setValue('recurringSchedule', updatedSchedule);
         }
-    }, [durationHours, durationMinutes, defaultLink, startTimeValue, form]);
+    }, [
+        durationHours,
+        durationMinutes,
+        defaultLink,
+        startTimeValue,
+        form,
+        sessionDetails,
+        isFormInitialized,
+    ]);
 
     // Auto-detect platform from link
     useEffect(() => {
@@ -316,6 +336,8 @@ export default function ScheduleStep1() {
             'streamingType',
             schedule.session_streaming_service_type || SessionPlatform.EMBED_IN_APP
         );
+        // Default to LIVE session type if not specified in the API response
+        form.setValue('sessionType', SessionType.LIVE);
 
         // Calculate and set duration
         if (schedule.start_time && schedule.last_entry_time) {
@@ -336,15 +358,17 @@ export default function ScheduleStep1() {
             form.setValue('endDate', schedule.session_end_date);
 
             const transformedSchedules = WEEK_DAYS.map((day) => {
-                const matchingSchedule = schedule.added_schedules.find(
+                // Find ALL matching schedules for this day
+                const matchingSchedules = schedule.added_schedules.filter(
                     (scheduleItem) => scheduleItem.day.toLowerCase() === day.label.toLowerCase()
                 );
+
                 return {
                     day: day.label,
-                    isSelect: !!matchingSchedule,
-                    sessions: matchingSchedule
-                        ? [
-                              {
+                    isSelect: matchingSchedules.length > 0,
+                    sessions:
+                        matchingSchedules.length > 0
+                            ? matchingSchedules.map((matchingSchedule) => ({
                                   id: matchingSchedule.id,
                                   startTime: matchingSchedule.startTime,
                                   durationHours: String(
@@ -355,32 +379,35 @@ export default function ScheduleStep1() {
                                   thumbnailFileId: matchingSchedule.thumbnailFileId || '',
                                   countAttendanceDaily:
                                       matchingSchedule.countAttendanceDaily || false,
-                              },
-                          ]
-                        : [
-                              {
-                                  startTime: '00:00',
-                                  durationHours: '0',
-                                  durationMinutes: '30',
-                                  link: '',
-                                  thumbnailFileId: '',
-                                  countAttendanceDaily: false,
-                              },
-                          ],
+                              }))
+                            : [
+                                  {
+                                      startTime: '00:00',
+                                      durationHours: '0',
+                                      durationMinutes: '30',
+                                      link: '',
+                                      thumbnailFileId: '',
+                                      countAttendanceDaily: false,
+                                  },
+                              ],
                 };
             });
             form.setValue('recurringSchedule', transformedSchedules);
         }
 
-        // Handle waiting room settings
-        if (schedule.waiting_room_time) {
-            form.setValue('enableWaitingRoom', true);
+        // Handle waiting room settings (check for null/undefined, not falsy, since 0 is a valid value)
+        if (schedule.waiting_room_time !== null && schedule.waiting_room_time !== undefined) {
+            // Enable waiting room if value is greater than 0
+            const waitingRoomEnabled = schedule.waiting_room_time > 0;
+            form.setValue('enableWaitingRoom', waitingRoomEnabled);
             form.setValue('openWaitingRoomBefore', String(schedule.waiting_room_time));
+        } else {
+            form.setValue('enableWaitingRoom', false);
         }
 
-        // Set playback settings
-        form.setValue('allowRewind', schedule.allow_rewind || false);
-        form.setValue('allowPause', schedule.allow_play_pause || false);
+        // Set playback settings (handle null values)
+        form.setValue('allowRewind', schedule.allow_rewind ?? false);
+        form.setValue('allowPause', schedule.allow_play_pause ?? false);
 
         setIsFormInitialized(true);
     }, [sessionDetails, form]);
@@ -583,10 +610,14 @@ export default function ScheduleStep1() {
 
         setIsSubmitting(true);
 
-        let musicFileId: string | undefined;
-        let thumbnailFileId: string | undefined;
+        // Preserve existing file IDs from sessionDetails if in edit mode and no new files uploaded
+        let musicFileId: string | undefined =
+            sessionDetails?.schedule?.background_score_file_id || undefined;
+        let thumbnailFileId: string | undefined =
+            sessionDetails?.schedule?.thumbnail_file_id || undefined;
 
         try {
+            // Override with new uploads if files are selected
             if (selectedMusicFile) {
                 musicFileId = await UploadFileInS3(selectedMusicFile, () => {}, 'your-user-id');
             }
@@ -626,34 +657,14 @@ export default function ScheduleStep1() {
             }
         }
 
-        const transformedSchedules =
-            sessionDetails?.schedule?.added_schedules?.map((schedule) => ({
-                id: schedule.id,
-                day: schedule.day.toLowerCase() as
-                    | 'monday'
-                    | 'tuesday'
-                    | 'wednesday'
-                    | 'thursday'
-                    | 'friday'
-                    | 'saturday'
-                    | 'sunday',
-                isSelect: true,
-                sessions: [
-                    {
-                        id: schedule.id,
-                        startTime: schedule.startTime,
-                        durationHours: String(Math.floor(parseInt(schedule.duration) / 60)),
-                        durationMinutes: String(parseInt(schedule.duration) % 60),
-                        link: schedule.link || '',
-                        thumbnailFileId: schedule.thumbnailFileId || '',
-                        countAttendanceDaily: schedule.countAttendanceDaily ?? false,
-                    },
-                ],
-            })) || [];
+        // Transform function will handle added/updated/deleted schedules
+        // by comparing form data (updatedData) with original schedules
+        // We pass empty array for originalSchedules - the session IDs in the form data
+        // will be used by the backend to determine updates vs additions
         const body = transformFormToDTOStep1(
             updatedData,
             INSTITUTE_ID,
-            transformedSchedules,
+            [], // Empty array - session IDs in form data are sufficient for backend
             musicFileId,
             thumbnailFileId,
             instituteDetails?.institute_logo_file_id
