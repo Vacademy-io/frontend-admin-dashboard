@@ -542,6 +542,11 @@ export const getCustomColumns = (): ColumnDef<StudentTable>[] => {
     }
 };
 
+export const getColumnsVisibility = (): Record<string, boolean> => {
+    const { visibility } = processColumnsWithSystemFields(myColumns);
+    return visibility;
+};
+
 export const enrollRequestColumns: ColumnDef<StudentTable>[] = [
     {
         id: 'checkbox',

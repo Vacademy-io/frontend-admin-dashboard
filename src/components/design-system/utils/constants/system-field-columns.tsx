@@ -227,6 +227,7 @@ export const processColumnsWithSystemFields = <T,>(
 
     // Step 3: Get visibility settings
     const visibility = getSystemFieldColumnVisibility();
+    console.log(processedColumns, visibility);
 
     return {
         columns: processedColumns,

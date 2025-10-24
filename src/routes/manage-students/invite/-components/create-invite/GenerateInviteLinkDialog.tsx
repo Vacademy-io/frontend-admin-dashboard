@@ -29,6 +29,7 @@ import CoursePreviewCard from './-components/CoursePreviewCard';
 import PaymentPlanCard from './-components/PaymentPlanCard';
 import DiscountSettingsCard from './-components/DiscountSettingsCard';
 import ReferralProgramCard from './-components/ReferralProgramCard';
+import { getInviteListCustomFields } from '../../-utils/getInviteListCustomFields';
 import RestrictSameBatch from './-components/RestrictSameBatch';
 import CustomInviteFormCard from './-components/CustomInviteFormCard';
 import LearnerAccessDurationCard from './-components/LearnerAccessDurationCard';
@@ -100,35 +101,7 @@ const GenerateInviteLinkDialog = ({
             courseBannerBlob: '',
             courseMediaBlob: '',
             tags: [],
-            custom_fields: [
-                {
-                    id: '0',
-                    type: 'textfield',
-                    name: 'Full Name',
-                    oldKey: true,
-                    isRequired: true,
-                    key: 'full_name',
-                    order: 0,
-                },
-                {
-                    id: '1',
-                    type: 'textfield',
-                    name: 'Email',
-                    oldKey: true,
-                    isRequired: true,
-                    key: 'email',
-                    order: 1,
-                },
-                {
-                    id: '2',
-                    type: 'textfield',
-                    name: 'Phone Number',
-                    oldKey: true,
-                    isRequired: true,
-                    key: 'phone_number',
-                    order: 2,
-                },
-            ],
+            custom_fields: getInviteListCustomFields(),
             uploadingStates: {
                 coursePreview: false,
                 courseBanner: false,
@@ -615,39 +588,9 @@ const GenerateInviteLinkDialog = ({
                 includeInstituteLogo:
                     safeJsonParse(inviteLinkDetails?.web_page_meta_data_json, {})
                         ?.includeInstituteLogo || false,
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
                 custom_fields:
                     inviteLinkDetails?.institute_custom_fields.length === 0
-                        ? [
-                              {
-                                  id: '0',
-                                  type: 'textfield',
-                                  name: 'Full Name',
-                                  oldKey: true,
-                                  isRequired: true,
-                                  key: 'full_name',
-                                  order: 0,
-                              },
-                              {
-                                  id: '1',
-                                  type: 'textfield',
-                                  name: 'Email',
-                                  oldKey: true,
-                                  isRequired: true,
-                                  key: 'email',
-                                  order: 1,
-                              },
-                              {
-                                  id: '2',
-                                  type: 'textfield',
-                                  name: 'Phone Number',
-                                  oldKey: true,
-                                  isRequired: true,
-                                  key: 'phone_number',
-                                  order: 2,
-                              },
-                          ]
+                        ? getInviteListCustomFields()
                         : ReTransformCustomFields(inviteLinkDetails),
                 selectedPlan: getMatchingPaymentPlan(
                     paymentsData,
