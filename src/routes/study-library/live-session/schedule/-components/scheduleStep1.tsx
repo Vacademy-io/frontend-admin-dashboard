@@ -950,9 +950,8 @@ export default function ScheduleStep1() {
             if (targetDay && targetDay.isSelect) {
                 // If target session doesn't exist, create it
                 if (!targetDay.sessions[sessionIndex]) {
-                    const currentSessions = form.getValues(
-                        `recurringSchedule.${targetDayIndex}.sessions`
-                    );
+                    const currentSessions =
+                        form.getValues(`recurringSchedule.${targetDayIndex}.sessions`) || [];
                     form.setValue(`recurringSchedule.${targetDayIndex}.sessions`, [
                         ...currentSessions,
                         {
