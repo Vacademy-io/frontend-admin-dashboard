@@ -24,8 +24,8 @@ import {
 } from '../../-constants/enums';
 import { WEEK_DAYS } from '../../-constants/type';
 import { sessionFormSchema } from '../-schema/schema';
-import { Trash, UploadSimple, X, Plus } from 'phosphor-react';
-// import { MyDialog } from '@/components/design-system/dialog';
+import { Trash, UploadSimple, X, Plus, Copy } from 'phosphor-react';
+import { MyDialog } from '@/components/design-system/dialog';
 // import { MeetLogo, YoutubeLogo, ZoomLogo } from '@/svgs';
 import { transformFormToDTOStep1, timeOptions } from '../../-constants/helper';
 import { createLiveSessionStep1 } from '../-services/utils';
@@ -35,6 +35,7 @@ import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtili
 import { TokenKey } from '@/constants/auth/tokens';
 import { UploadFileInS3 } from '@/services/upload_file';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { XCircle } from 'phosphor-react';
 import {
@@ -68,6 +69,13 @@ export default function ScheduleStep1() {
     >(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isFormInitialized, setIsFormInitialized] = useState(false);
+    // State for copy to days dialog
+    const [isCopyDialogOpen, setIsCopyDialogOpen] = useState(false);
+    const [copySourceSession, setCopySourceSession] = useState<{
+        dayIndex: number;
+        sessionIndex: number;
+    } | null>(null);
+    const [selectedDaysToCopy, setSelectedDaysToCopy] = useState<number[]>([]);
 
     const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
     const { SubjectFilterData } = useFilterDataForAssesment(instituteDetails);
@@ -321,9 +329,24 @@ export default function ScheduleStep1() {
 
         // Set the original session start time instead of current time
         if (schedule.meeting_date && schedule.start_time) {
-            // Combine meeting_date and start_time to create the proper datetime format
-            const originalDateTime = `${schedule.meeting_date}T${schedule.start_time}`;
-            form.setValue('startTime', originalDateTime);
+            try {
+                // Combine meeting_date and start_time to create the proper datetime format
+                const originalDateTime = `${schedule.meeting_date}T${schedule.start_time}`;
+                // Validate it's a valid datetime
+                const testDate = new Date(originalDateTime);
+                if (!isNaN(testDate.getTime())) {
+                    form.setValue('startTime', originalDateTime);
+                } else {
+                    // Invalid date, use current time
+                    const currentTime = getCurrentTimeInTimezone(savedTimezone);
+                    form.setValue('startTime', currentTime);
+                }
+            } catch (error) {
+                console.error('Error parsing start time:', error);
+                // Fallback to current time if parsing fails
+                const currentTime = getCurrentTimeInTimezone(savedTimezone);
+                form.setValue('startTime', currentTime);
+            }
         } else {
             // Fallback to current time if session data is incomplete
             const currentTime = getCurrentTimeInTimezone(savedTimezone);
@@ -368,18 +391,19 @@ export default function ScheduleStep1() {
                     isSelect: matchingSchedules.length > 0,
                     sessions:
                         matchingSchedules.length > 0
-                            ? matchingSchedules.map((matchingSchedule) => ({
-                                  id: matchingSchedule.id,
-                                  startTime: matchingSchedule.startTime,
-                                  durationHours: String(
-                                      Math.floor(parseInt(matchingSchedule.duration) / 60)
-                                  ),
-                                  durationMinutes: String(parseInt(matchingSchedule.duration) % 60),
-                                  link: matchingSchedule.link || '',
-                                  thumbnailFileId: matchingSchedule.thumbnailFileId || '',
-                                  countAttendanceDaily:
-                                      matchingSchedule.countAttendanceDaily || false,
-                              }))
+                            ? matchingSchedules.map((matchingSchedule) => {
+                                  const duration = parseInt(matchingSchedule.duration) || 0;
+                                  return {
+                                      id: matchingSchedule.id,
+                                      startTime: matchingSchedule.startTime,
+                                      durationHours: String(Math.floor(duration / 60)),
+                                      durationMinutes: String(duration % 60),
+                                      link: matchingSchedule.link || '',
+                                      thumbnailFileId: matchingSchedule.thumbnailFileId || '',
+                                      countAttendanceDaily:
+                                          matchingSchedule.countAttendanceDaily || false,
+                                  };
+                              })
                             : [
                                   {
                                       startTime: '00:00',
@@ -537,7 +561,7 @@ export default function ScheduleStep1() {
     // Auth and Institute Data
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
-    const INSTITUTE_ID = (tokenData && Object.keys(tokenData.authorities)[0]) || '';
+    const INSTITUTE_ID = (tokenData?.authorities && Object.keys(tokenData.authorities)[0]) || '';
 
     // Event Handlers
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -545,7 +569,7 @@ export default function ScheduleStep1() {
         if (file) {
             setSelectedFile(file);
         } else {
-            alert('Please upload a PNG file');
+            toast.error('Please upload a valid image file');
         }
     };
 
@@ -619,13 +643,28 @@ export default function ScheduleStep1() {
         try {
             // Override with new uploads if files are selected
             if (selectedMusicFile) {
-                musicFileId = await UploadFileInS3(selectedMusicFile, () => {}, 'your-user-id');
+                try {
+                    musicFileId = await UploadFileInS3(selectedMusicFile, () => {}, 'your-user-id');
+                } catch (error) {
+                    console.error('Error uploading music file:', error);
+                    toast.error('Failed to upload background music. Please try again.');
+                    setIsSubmitting(false);
+                    return;
+                }
             }
             if (selectedFile) {
-                thumbnailFileId = await UploadFileInS3(selectedFile, () => {}, 'your-user-id');
+                try {
+                    thumbnailFileId = await UploadFileInS3(selectedFile, () => {}, 'your-user-id');
+                } catch (error) {
+                    console.error('Error uploading thumbnail:', error);
+                    toast.error('Failed to upload thumbnail image. Please try again.');
+                    setIsSubmitting(false);
+                    return;
+                }
             }
         } catch (error) {
             console.error('Error uploading files:', error);
+            toast.error('Failed to upload files. Please try again.');
             setIsSubmitting(false);
             return;
         }
@@ -639,17 +678,35 @@ export default function ScheduleStep1() {
                     for (let sessionIndex = 0; sessionIndex < day.sessions.length; sessionIndex++) {
                         const sessionThumbnail = getSessionThumbnail(dayIndex, sessionIndex);
                         if (sessionThumbnail) {
-                            const sessionThumbnailId = await UploadFileInS3(
-                                sessionThumbnail,
-                                () => {},
-                                'your-user-id'
-                            );
-                            if (
-                                updatedData.recurringSchedule?.[dayIndex]?.sessions?.[sessionIndex]
-                            ) {
-                                updatedData.recurringSchedule[dayIndex]!.sessions![
-                                    sessionIndex
-                                ]!.thumbnailFileId = sessionThumbnailId;
+                            try {
+                                const sessionThumbnailId = await UploadFileInS3(
+                                    sessionThumbnail,
+                                    () => {},
+                                    'your-user-id'
+                                );
+                                if (
+                                    updatedData.recurringSchedule?.[dayIndex]?.sessions?.[
+                                        sessionIndex
+                                    ]
+                                ) {
+                                    updatedData.recurringSchedule[dayIndex]!.sessions![
+                                        sessionIndex
+                                    ]!.thumbnailFileId = sessionThumbnailId;
+                                }
+                            } catch (error) {
+                                console.error(
+                                    `Error uploading thumbnail for ${day.day} session ${
+                                        sessionIndex + 1
+                                    }:`,
+                                    error
+                                );
+                                toast.error(
+                                    `Failed to upload thumbnail for ${day.day} session ${
+                                        sessionIndex + 1
+                                    }`
+                                );
+                                setIsSubmitting(false);
+                                return;
                             }
                         }
                     }
@@ -676,7 +733,8 @@ export default function ScheduleStep1() {
             setStep1Data(data);
             navigate({ to: '/study-library/live-session/schedule/step2' });
         } catch (error) {
-            console.error(error);
+            console.error('Error saving session:', error);
+            toast.error('Failed to save session. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
@@ -861,32 +919,91 @@ export default function ScheduleStep1() {
         });
     };
 
-    // *** NEW: helper to propagate a field's value across all selected recurring days ***
-    const propagateToOtherDays = (
-        fieldKey: 'startTime' | 'link',
-        value: string,
-        sourceDayIndex: number,
-        sessionIndex: number
-    ) => {
-        // Only auto‐propagate for the first session (index 0)
-        if (sessionIndex !== 0) return;
+    // Open dialog to select days to copy to
+    const openCopyDialog = (dayIndex: number, sessionIndex: number) => {
+        setCopySourceSession({ dayIndex, sessionIndex });
+        // Pre-select all other days that are enabled
+        const schedule = form.getValues('recurringSchedule');
+        if (schedule) {
+            const otherDaysIndices = schedule
+                .map((day, idx) => (idx !== dayIndex && day.isSelect ? idx : -1))
+                .filter((idx) => idx !== -1);
+            setSelectedDaysToCopy(otherDaysIndices);
+        }
+        setIsCopyDialogOpen(true);
+    };
+
+    // Manual copy function to copy session data to selected days
+    const copySessionToSelectedDays = () => {
+        if (!copySourceSession) return;
+
+        const { dayIndex: sourceDayIndex, sessionIndex } = copySourceSession;
         const schedule = form.getValues('recurringSchedule');
         if (!schedule) return;
 
-        schedule.forEach((day, idx) => {
-            if (idx !== sourceDayIndex && day.isSelect) {
-                // Ensure the target session exists
-                if (day.sessions[sessionIndex]) {
-                    form.setValue(
-                        `recurringSchedule.${idx}.sessions.${sessionIndex}.${fieldKey}` as any,
-                        value,
+        const sourceSession = schedule[sourceDayIndex]?.sessions[sessionIndex];
+        if (!sourceSession) return;
+
+        // Copy to selected days
+        selectedDaysToCopy.forEach((targetDayIndex) => {
+            const targetDay = schedule[targetDayIndex];
+            if (targetDay && targetDay.isSelect) {
+                // If target session doesn't exist, create it
+                if (!targetDay.sessions[sessionIndex]) {
+                    const currentSessions = form.getValues(
+                        `recurringSchedule.${targetDayIndex}.sessions`
+                    );
+                    form.setValue(`recurringSchedule.${targetDayIndex}.sessions`, [
+                        ...currentSessions,
                         {
-                            shouldDirty: true,
-                        }
+                            startTime: sourceSession.startTime,
+                            durationHours: sourceSession.durationHours,
+                            durationMinutes: sourceSession.durationMinutes,
+                            link: sourceSession.link || '',
+                            thumbnailFileId: '',
+                            countAttendanceDaily:
+                                targetDay.sessions[0]?.countAttendanceDaily || false,
+                        },
+                    ]);
+                } else {
+                    // Update existing session
+                    form.setValue(
+                        `recurringSchedule.${targetDayIndex}.sessions.${sessionIndex}.startTime`,
+                        sourceSession.startTime,
+                        { shouldDirty: true }
+                    );
+                    form.setValue(
+                        `recurringSchedule.${targetDayIndex}.sessions.${sessionIndex}.durationHours`,
+                        sourceSession.durationHours,
+                        { shouldDirty: true }
+                    );
+                    form.setValue(
+                        `recurringSchedule.${targetDayIndex}.sessions.${sessionIndex}.durationMinutes`,
+                        sourceSession.durationMinutes,
+                        { shouldDirty: true }
+                    );
+                    form.setValue(
+                        `recurringSchedule.${targetDayIndex}.sessions.${sessionIndex}.link`,
+                        sourceSession.link || '',
+                        { shouldDirty: true }
                     );
                 }
             }
         });
+
+        toast.success(
+            `Session details copied to ${selectedDaysToCopy.length} day${selectedDaysToCopy.length !== 1 ? 's' : ''}`
+        );
+        setIsCopyDialogOpen(false);
+        setCopySourceSession(null);
+        setSelectedDaysToCopy([]);
+    };
+
+    // Toggle day selection in copy dialog
+    const toggleDaySelection = (dayIndex: number) => {
+        setSelectedDaysToCopy((prev) =>
+            prev.includes(dayIndex) ? prev.filter((idx) => idx !== dayIndex) : [...prev, dayIndex]
+        );
     };
 
     // Render Functions
@@ -1572,14 +1689,6 @@ export default function ScheduleStep1() {
                                                                     )}
                                                                     control={form.control}
                                                                     className="min-w-fit"
-                                                                    onSelect={(value) =>
-                                                                        propagateToOtherDays(
-                                                                            'startTime',
-                                                                            value,
-                                                                            dayIndex,
-                                                                            sessionIndex
-                                                                        )
-                                                                    }
                                                                 />
                                                             </div>
 
@@ -1715,20 +1824,9 @@ export default function ScheduleStep1() {
                                                                                     input={
                                                                                         field.value
                                                                                     }
-                                                                                    onChangeFunction={(
-                                                                                        e
-                                                                                    ) => {
-                                                                                        field.onChange(
-                                                                                            e
-                                                                                        );
-                                                                                        propagateToOtherDays(
-                                                                                            'link',
-                                                                                            e.target
-                                                                                                .value,
-                                                                                            dayIndex,
-                                                                                            sessionIndex
-                                                                                        );
-                                                                                    }}
+                                                                                    onChangeFunction={
+                                                                                        field.onChange
+                                                                                    }
                                                                                     {...field}
                                                                                     onBlur={(e) => {
                                                                                         const url =
@@ -1772,69 +1870,90 @@ export default function ScheduleStep1() {
 
                                                         {/* Session Options */}
                                                         <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-gray-100 pt-4">
-                                                            {/* Thumbnail Upload */}
-                                                            <div className="flex items-center gap-3">
-                                                                <span className="text-sm font-medium text-gray-700">
-                                                                    Thumbnail:
-                                                                </span>
-                                                                <input
-                                                                    type="file"
-                                                                    accept=".png, .jpg, .jpeg"
-                                                                    onChange={(e) =>
-                                                                        handleSessionThumbnailSelect(
-                                                                            dayIndex,
-                                                                            sessionIndex,
-                                                                            e
-                                                                        )
-                                                                    }
-                                                                    className="hidden"
-                                                                    id={`session-thumbnail-${dayIndex}-${sessionIndex}`}
-                                                                />
-                                                                {getSessionThumbnail(
-                                                                    dayIndex,
-                                                                    sessionIndex
-                                                                ) ? (
-                                                                    <div className="flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2">
-                                                                        <span className="max-w-32 truncate text-nowrap text-sm text-green-700">
-                                                                            {
-                                                                                getSessionThumbnail(
-                                                                                    dayIndex,
-                                                                                    sessionIndex
-                                                                                )?.name
-                                                                            }
-                                                                        </span>
-                                                                        <button
+                                                            <div className="flex flex-wrap items-center gap-4">
+                                                                {/* Thumbnail Upload */}
+                                                                <div className="flex items-center gap-3">
+                                                                    <span className="text-sm font-medium text-gray-700">
+                                                                        Thumbnail:
+                                                                    </span>
+                                                                    <input
+                                                                        type="file"
+                                                                        accept=".png, .jpg, .jpeg"
+                                                                        onChange={(e) =>
+                                                                            handleSessionThumbnailSelect(
+                                                                                dayIndex,
+                                                                                sessionIndex,
+                                                                                e
+                                                                            )
+                                                                        }
+                                                                        className="hidden"
+                                                                        id={`session-thumbnail-${dayIndex}-${sessionIndex}`}
+                                                                    />
+                                                                    {getSessionThumbnail(
+                                                                        dayIndex,
+                                                                        sessionIndex
+                                                                    ) ? (
+                                                                        <div className="flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2">
+                                                                            <span className="max-w-32 truncate text-nowrap text-sm text-green-700">
+                                                                                {
+                                                                                    getSessionThumbnail(
+                                                                                        dayIndex,
+                                                                                        sessionIndex
+                                                                                    )?.name
+                                                                                }
+                                                                            </span>
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() =>
+                                                                                    handleSessionThumbnailRemove(
+                                                                                        dayIndex,
+                                                                                        sessionIndex
+                                                                                    )
+                                                                                }
+                                                                                className="text-green-600 hover:text-green-800"
+                                                                            >
+                                                                                <X size={16} />
+                                                                            </button>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <MyButton
                                                                             type="button"
-                                                                            onClick={() =>
-                                                                                handleSessionThumbnailRemove(
-                                                                                    dayIndex,
-                                                                                    sessionIndex
-                                                                                )
-                                                                            }
-                                                                            className="text-green-600 hover:text-green-800"
+                                                                            buttonType="secondary"
+                                                                            scale="small"
+                                                                            onClick={() => {
+                                                                                document
+                                                                                    .getElementById(
+                                                                                        `session-thumbnail-${dayIndex}-${sessionIndex}`
+                                                                                    )
+                                                                                    ?.click();
+                                                                            }}
+                                                                            className="flex items-center gap-2"
                                                                         >
-                                                                            <X size={16} />
-                                                                        </button>
-                                                                    </div>
-                                                                ) : (
-                                                                    <MyButton
-                                                                        type="button"
-                                                                        buttonType="secondary"
-                                                                        scale="small"
-                                                                        onClick={() => {
-                                                                            document
-                                                                                .getElementById(
-                                                                                    `session-thumbnail-${dayIndex}-${sessionIndex}`
-                                                                                )
-                                                                                ?.click();
-                                                                        }}
-                                                                        className="flex items-center gap-2"
-                                                                    >
-                                                                        <UploadSimple size={16} />
-                                                                        Upload
-                                                                    </MyButton>
-                                                                )}
+                                                                            <UploadSimple
+                                                                                size={16}
+                                                                            />
+                                                                            Upload
+                                                                        </MyButton>
+                                                                    )}
+                                                                </div>
                                                             </div>
+
+                                                            {/* Copy to days button */}
+                                                            <MyButton
+                                                                type="button"
+                                                                buttonType="primary"
+                                                                scale="small"
+                                                                onClick={() =>
+                                                                    openCopyDialog(
+                                                                        dayIndex,
+                                                                        sessionIndex
+                                                                    )
+                                                                }
+                                                                className="flex items-center gap-2"
+                                                            >
+                                                                <Copy size={16} />
+                                                                Copy to days
+                                                            </MyButton>
                                                         </div>
                                                     </div>
                                                 ))}
@@ -1891,6 +2010,93 @@ export default function ScheduleStep1() {
                     </form>
                 </FormProvider>
             )}
+
+            {/* Copy to Days Dialog */}
+            <MyDialog
+                open={isCopyDialogOpen}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setIsCopyDialogOpen(false);
+                        setCopySourceSession(null);
+                        setSelectedDaysToCopy([]);
+                    }
+                }}
+                heading="Select Days to Copy To"
+            >
+                <div className="space-y-4">
+                    {copySourceSession && (
+                        <>
+                            <div className="rounded-lg bg-primary-50 p-4">
+                                <p className="text-sm font-medium text-gray-900">
+                                    Copying from:{' '}
+                                    <span className="text-primary-600 font-semibold">
+                                        {WEEK_DAYS[copySourceSession.dayIndex]?.value || 'Unknown'}
+                                    </span>
+                                </p>
+                                <p className="mt-1 text-xs text-gray-600">
+                                    Session {copySourceSession.sessionIndex + 1}
+                                </p>
+                            </div>
+
+                            <div className="space-y-3">
+                                <Label className="text-sm font-medium">
+                                    Select days to copy to:
+                                </Label>
+                                <div className="space-y-2">
+                                    {form.getValues('recurringSchedule')?.map((day, idx) => {
+                                        // Don't show the source day or unselected days
+                                        if (idx === copySourceSession.dayIndex || !day.isSelect) {
+                                            return null;
+                                        }
+
+                                        return (
+                                            <div
+                                                key={idx}
+                                                className="flex items-center space-x-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50"
+                                            >
+                                                <Checkbox
+                                                    id={`day-${idx}`}
+                                                    checked={selectedDaysToCopy.includes(idx)}
+                                                    onCheckedChange={() => toggleDaySelection(idx)}
+                                                />
+                                                <label
+                                                    htmlFor={`day-${idx}`}
+                                                    className="flex-1 cursor-pointer text-sm font-medium text-gray-900"
+                                                >
+                                                    {WEEK_DAYS[idx]?.value || day.day}
+                                                </label>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-4">
+                                <MyButton
+                                    type="button"
+                                    buttonType="secondary"
+                                    onClick={() => {
+                                        setIsCopyDialogOpen(false);
+                                        setCopySourceSession(null);
+                                        setSelectedDaysToCopy([]);
+                                    }}
+                                >
+                                    Cancel
+                                </MyButton>
+                                <MyButton
+                                    type="button"
+                                    buttonType="primary"
+                                    onClick={copySessionToSelectedDays}
+                                    disable={selectedDaysToCopy.length === 0}
+                                >
+                                    Copy to {selectedDaysToCopy.length} day
+                                    {selectedDaysToCopy.length !== 1 ? 's' : ''}
+                                </MyButton>
+                            </div>
+                        </>
+                    )}
+                </div>
+            </MyDialog>
         </>
     );
 }
