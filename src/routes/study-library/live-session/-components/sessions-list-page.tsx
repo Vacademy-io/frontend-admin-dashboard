@@ -1,46 +1,52 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { MyButton } from '@/components/design-system/button';
 import { SessionStatus, sessionStatusLabels } from '../-constants/enums';
 import LiveSessionCard from './live-session-card';
 import { useNavigate } from '@tanstack/react-router';
-import {
-    useLiveSessions,
-    useUpcomingSessions,
-    usePastSessions,
-    useDraftSessions,
-} from '../-hooks/useLiveSessions';
+import { useSessionSearch } from '../-hooks/useLiveSessions';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
-import { DraftSessionDay, LiveSession, SessionsByDate } from '../-services/utils';
+import { SessionSearchRequest } from '../-services/utils';
 import PreviousSessionCard from './previous-session-card';
 import DraftSessionCard from './draft-session-card';
 import { useSessionDetailsStore } from '../-store/useSessionDetailsStore';
 import { useLiveSessionStore } from '../schedule/-store/sessionIdstore';
 import { CalendarIcon } from '@radix-ui/react-icons';
-import { CaretDown, VideoCameraSlash } from 'phosphor-react';
+import { CaretDown, VideoCameraSlash, Clock } from 'phosphor-react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
-import { toZonedTime, fromZonedTime, format as formatTZ } from 'date-fns-tz';
 import { useQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { useFilterDataForAssesment } from '@/routes/assessment/assessment-list/-utils.ts/useFiltersData';
 import { MyPagination } from '@/components/design-system/pagination';
-import { RecurringType, AccessType } from '../-constants/enums';
+import { RecurringType, AccessType, StreamingPlatform } from '../-constants/enums';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
-// import { useLiveSessionStore } from '../schedule/-store/sessionIdstore';
+import SelectChips, { SelectOption } from '@/components/design-system/SelectChips';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+
+const AllBatchesOption: SelectOption = {
+    label: 'All Batches',
+    value: 'all',
+};
 
 export default function SessionListPage() {
     const { setNavHeading } = useNavHeadingStore();
     const { clearSessionDetails } = useSessionDetailsStore();
     const { clearSessionId } = useLiveSessionStore();
+    const navigate = useNavigate();
 
-    // const [selectedTab, setSelectedTab] = useState<SessionStatus>(SessionStatus.LIVE);
-    // const navigate = useNavigate();
+    // Auth institute id
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const INSTITUTE_ID = (tokenData && Object.keys(tokenData.authorities)[0]) || '';
+
+    // Tab state
+    const [selectedTab, setSelectedTab] = useState<SessionStatus>(SessionStatus.LIVE);
 
     // Filter state
     const [searchQuery, setSearchQuery] = useState<string>('');
@@ -49,303 +55,187 @@ export default function SessionListPage() {
     const [meetingTypeFilter, setMeetingTypeFilter] = useState<string>('');
     const [subjectFilter, setSubjectFilter] = useState<string>('');
     const [accessFilter, setAccessFilter] = useState<string>('');
+    const [streamingServiceFilter, setStreamingServiceFilter] = useState<string>('');
+    const [startTimeOfDay, setStartTimeOfDay] = useState<string>('');
+    const [endTimeOfDay, setEndTimeOfDay] = useState<string>('');
     const [datePopoverOpen, setDatePopoverOpen] = useState(false);
+    const [timePopoverOpen, setTimePopoverOpen] = useState(false);
+
     const { data: instituteDetails } = useQuery(useInstituteQuery());
     const { SubjectFilterData } = useFilterDataForAssesment(instituteDetails!);
+    const { instituteDetails: storeInstituteDetails } = useInstituteDetailsStore();
 
-    // Pagination state
-    const ITEMS_PER_PAGE = 4;
-    const [currentPages, setCurrentPages] = useState({
-        [SessionStatus.LIVE]: 1,
-        [SessionStatus.UPCOMING]: 1,
-        [SessionStatus.PAST]: 1,
-        [SessionStatus.DRAFTS]: 1,
-    });
-    const paginateArray = <T,>(array: T[], page: number): T[] =>
-        array.slice((page - 1) * ITEMS_PER_PAGE, (page - 1) * ITEMS_PER_PAGE + ITEMS_PER_PAGE);
-    const handlePageChange = (tab: SessionStatus, pageIndex: number) =>
-        setCurrentPages((prev) => ({ ...prev, [tab]: pageIndex + 1 }));
+    // Build batch options from institute details
+    const batchOptions = useMemo(() => {
+        const batches =
+            storeInstituteDetails?.batches_for_sessions?.map((batch) => ({
+                label: `${batch.level.level_name} ${batch.package_dto.package_name}, ${batch.session.session_name}`,
+                value: batch.id, // This is the package_session_id
+            })) || [];
+        return [AllBatchesOption, ...batches];
+    }, [storeInstituteDetails?.batches_for_sessions]);
 
-    // Tab state
-    const [selectedTab, setSelectedTab] = useState<SessionStatus>(SessionStatus.LIVE);
+    const [selectedBatches, setSelectedBatches] = useState<SelectOption[]>([AllBatchesOption]);
 
-    // Auth institute id
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const tokenData = getTokenDecodedData(accessToken);
-    const INSTITUTE_ID = (tokenData && Object.keys(tokenData.authorities)[0]) || '';
+    // Pagination state - server-side
+    const ITEMS_PER_PAGE = 10;
+    const [currentPage, setCurrentPage] = useState(0);
 
-    // Helper function to get user's local timezone
-    const getUserTimezone = (): string => {
-        try {
-            return Intl.DateTimeFormat().resolvedOptions().timeZone;
-        } catch (error) {
-            console.error('Error detecting user timezone:', error);
-            return 'Asia/Kolkata';
+    // Build search request based on current filters and tab
+    const searchRequest: SessionSearchRequest = useMemo(() => {
+        const baseRequest: SessionSearchRequest = {
+            institute_id: INSTITUTE_ID,
+            page: currentPage,
+            size: ITEMS_PER_PAGE,
+            sort_by: 'meetingDate',
+            sort_direction: 'ASC',
+        };
+
+        // Set statuses based on tab
+        if (selectedTab === SessionStatus.LIVE) {
+            baseRequest.statuses = ['LIVE'];
+        } else if (selectedTab === SessionStatus.UPCOMING) {
+            baseRequest.statuses = ['LIVE'];
+            // For upcoming, we'll use date filters
+        } else if (selectedTab === SessionStatus.PAST) {
+            baseRequest.statuses = ['LIVE'];
+            // For past, we'll set end_date to yesterday
+        } else if (selectedTab === SessionStatus.DRAFTS) {
+            baseRequest.statuses = ['DRAFT'];
         }
-    };
 
-    // Helper function to convert session datetime to user's local timezone
-    const convertSessionToLocalTime = useCallback(
-        (
-            session: LiveSession
-        ): { localStartTime: Date; localEndTime: Date; isCurrentlyLive: boolean } => {
-            try {
-                // Get session timezone (fallback to Asia/Kolkata if not provided)
-                const sessionTimezone = session.timezone || 'Asia/Kolkata';
+        // Apply search query
+        if (searchQuery) {
+            baseRequest.search_query = searchQuery;
+        }
 
-                // Create date strings
-                const sessionStartString = `${session.meeting_date}T${session.start_time}`;
-                const sessionEndString = `${session.meeting_date}T${session.last_entry_time}`;
+        // Apply date filters
+        if (startDate) {
+            baseRequest.start_date = format(startDate, 'yyyy-MM-dd');
+        }
+        if (endDate) {
+            baseRequest.end_date = format(endDate, 'yyyy-MM-dd');
+        }
 
-                // Parse the dates and treat them as if they're in the session's timezone
-                // Then convert to UTC (which JavaScript Date represents)
-                const sessionStartInSessionTZ = fromZonedTime(sessionStartString, sessionTimezone);
-                const sessionEndInSessionTZ = fromZonedTime(sessionEndString, sessionTimezone);
+        // For upcoming tab, set start_date to tomorrow if not already set
+        if (selectedTab === SessionStatus.UPCOMING && !startDate) {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            baseRequest.start_date = format(tomorrow, 'yyyy-MM-dd');
+        }
 
-                // Get the current time
-                const now = new Date();
+        // For past tab, set end_date to yesterday if not already set
+        if (selectedTab === SessionStatus.PAST && !endDate) {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            baseRequest.end_date = format(yesterday, 'yyyy-MM-dd');
+        }
 
-                // Check if session is currently live
-                const isCurrentlyLive =
-                    now >= sessionStartInSessionTZ && now <= sessionEndInSessionTZ;
+        // Apply time of day filters
+        if (startTimeOfDay) {
+            baseRequest.start_time_of_day = startTimeOfDay;
+        }
+        if (endTimeOfDay) {
+            baseRequest.end_time_of_day = endTimeOfDay;
+        }
 
-                return {
-                    localStartTime: sessionStartInSessionTZ,
-                    localEndTime: sessionEndInSessionTZ,
-                    isCurrentlyLive,
-                };
-            } catch (error) {
-                console.error('Error converting session time to local timezone:', error);
-                // Fallback: treat as if it's already in local timezone
-                const fallbackStartTime = new Date(`${session.meeting_date}T${session.start_time}`);
-                const fallbackEndTime = new Date(
-                    `${session.meeting_date}T${session.last_entry_time}`
-                );
-                const now = new Date();
-                return {
-                    localStartTime: fallbackStartTime,
-                    localEndTime: fallbackEndTime,
-                    isCurrentlyLive: now >= fallbackStartTime && now <= fallbackEndTime,
-                };
+        // Apply recurrence type filter
+        if (meetingTypeFilter) {
+            if (meetingTypeFilter === 'custom') {
+                baseRequest.recurrence_types = ['WEEKLY'];
+            } else {
+                baseRequest.recurrence_types = [meetingTypeFilter.toUpperCase()];
             }
-        },
-        []
-    );
+        }
 
-    // Helper function to convert draft session datetime to user's local timezone
-    const convertDraftSessionToLocalTime = useCallback(
-        (session: DraftSessionDay): { localDateTime: Date | null } => {
-            try {
-                if (!session.meeting_date || !session.start_time) {
-                    return { localDateTime: null };
-                }
-
-                // Get session timezone (fallback to Asia/Kolkata if not provided)
-                const sessionTimezone = session.timezone || 'Asia/Kolkata';
-
-                // Combine meeting_date and start_time
-                const sessionStartString = `${session.meeting_date}T${session.start_time}`;
-
-                // Create date in session's timezone
-                const sessionStartInSessionTZ = toZonedTime(
-                    new Date(sessionStartString),
-                    sessionTimezone
-                );
-
-                // Convert to user's local timezone
-                const userTimezone = getUserTimezone();
-                const localStartTime = toZonedTime(sessionStartInSessionTZ, userTimezone);
-
-                return {
-                    localDateTime: localStartTime,
-                };
-            } catch (error) {
-                console.error('Error converting draft session time to local timezone:', error);
-                // Fallback: treat as if it's already in local timezone
-                const fallbackDateTime =
-                    session.meeting_date && session.start_time
-                        ? new Date(`${session.meeting_date}T${session.start_time}`)
-                        : null;
-                return {
-                    localDateTime: fallbackDateTime,
-                };
+        // Apply subject filter
+        if (subjectFilter) {
+            // Note: API doesn't have subject filter directly, we'll filter on client side or use search_query
+            // For now, we can append it to search_query
+            if (baseRequest.search_query) {
+                baseRequest.search_query = `${baseRequest.search_query} ${subjectFilter}`;
+            } else {
+                baseRequest.search_query = subjectFilter;
             }
-        },
-        []
-    );
+        }
 
-    // Flatten helper
-    const flattenByDate = (sessionsByDate: SessionsByDate[]): LiveSession[] =>
-        sessionsByDate.flatMap((day) => day.sessions);
+        // Apply access level filter
+        if (accessFilter) {
+            baseRequest.access_levels = [accessFilter.toUpperCase()];
+        }
 
-    // Session data hooks
-    const {
-        data: liveSessions,
-        isLoading: isLiveLoading,
-        error: liveError,
-    } = useLiveSessions(INSTITUTE_ID);
-    const {
-        data: upcomingSessions,
-        isLoading: isUpcomingLoading,
-        error: upcomingError,
-    } = useUpcomingSessions(INSTITUTE_ID);
-    const {
-        data: pastSessions,
-        isLoading: isPastLoading,
-        error: pastError,
-    } = usePastSessions(INSTITUTE_ID);
-    const {
-        data: draftSessions,
-        isLoading: isDraftLoading,
-        error: draftError,
-    } = useDraftSessions(INSTITUTE_ID);
+        // Apply streaming service filter
+        if (streamingServiceFilter) {
+            baseRequest.streaming_service_types = [streamingServiceFilter.toUpperCase()];
+        }
 
-    // Filtered sessions
-    const filteredLive = useMemo(
-        () =>
-            liveSessions?.filter((s) => {
-                // Check timezone-aware live status
-                const { isCurrentlyLive, localStartTime, localEndTime } =
-                    convertSessionToLocalTime(s);
+        // Apply batch filter
+        if (selectedBatches.length > 0 && !selectedBatches.some((b) => b.value === 'all')) {
+            baseRequest.batch_ids = selectedBatches.map((b) => b.value);
+        }
 
-                if (!isCurrentlyLive) {
-                    return false;
-                }
+        return baseRequest;
+    }, [
+        INSTITUTE_ID,
+        currentPage,
+        selectedTab,
+        searchQuery,
+        startDate,
+        endDate,
+        startTimeOfDay,
+        endTimeOfDay,
+        meetingTypeFilter,
+        subjectFilter,
+        accessFilter,
+        streamingServiceFilter,
+        selectedBatches,
+    ]);
 
-                const matchName = s.title.toLowerCase().includes(searchQuery.toLowerCase());
-                // Use the local datetime for date filtering
-                const matchDate =
-                    (!startDate || localStartTime >= startDate) &&
-                    (!endDate || localStartTime <= endDate);
-                const matchType =
-                    !meetingTypeFilter ||
-                    (meetingTypeFilter === 'custom'
-                        ? s.recurrence_type === RecurringType.WEEKLY
-                        : s.recurrence_type === meetingTypeFilter);
-                const matchSubject = !subjectFilter || s.subject === subjectFilter;
-                const matchAccess = !accessFilter || s.access_level === accessFilter;
-
-                const finalMatch =
-                    matchName && matchDate && matchType && matchSubject && matchAccess;
-
-                return finalMatch;
-            }) || [],
-        [
-            liveSessions,
-            searchQuery,
-            startDate,
-            endDate,
-            meetingTypeFilter,
-            subjectFilter,
-            accessFilter,
-            convertSessionToLocalTime,
-        ]
-    );
-    const filteredUpcoming = useMemo(
-        () =>
-            flattenByDate(upcomingSessions || []).filter((s) => {
-                // Convert session time to local timezone for accurate filtering
-                const { localStartTime } = convertSessionToLocalTime(s);
-
-                const matchName = s.title.toLowerCase().includes(searchQuery.toLowerCase());
-                return (
-                    matchName &&
-                    (!startDate || localStartTime >= startDate) &&
-                    (!endDate || localStartTime <= endDate) &&
-                    (!meetingTypeFilter ||
-                        (meetingTypeFilter === 'custom'
-                            ? s.recurrence_type === RecurringType.WEEKLY
-                            : s.recurrence_type === meetingTypeFilter)) &&
-                    (!subjectFilter || s.subject === subjectFilter) &&
-                    (!accessFilter || s.access_level === accessFilter)
-                );
-            }),
-        [
-            upcomingSessions,
-            searchQuery,
-            startDate,
-            endDate,
-            meetingTypeFilter,
-            subjectFilter,
-            accessFilter,
-            convertSessionToLocalTime,
-        ]
-    );
-    const filteredPast = useMemo(
-        () =>
-            flattenByDate(pastSessions || []).filter((s) => {
-                // Convert session time to local timezone for accurate filtering
-                const { localStartTime } = convertSessionToLocalTime(s);
-
-                const matchName = s.title.toLowerCase().includes(searchQuery.toLowerCase());
-                return (
-                    matchName &&
-                    (!startDate || localStartTime >= startDate) &&
-                    (!endDate || localStartTime <= endDate) &&
-                    (!meetingTypeFilter ||
-                        (meetingTypeFilter === 'custom'
-                            ? s.recurrence_type === RecurringType.WEEKLY
-                            : s.recurrence_type === meetingTypeFilter)) &&
-                    (!subjectFilter || s.subject === subjectFilter) &&
-                    (!accessFilter || s.access_level === accessFilter)
-                );
-            }),
-        [
-            pastSessions,
-            searchQuery,
-            startDate,
-            endDate,
-            meetingTypeFilter,
-            subjectFilter,
-            accessFilter,
-            convertSessionToLocalTime,
-        ]
-    );
-    const filteredDraft = useMemo(
-        () =>
-            draftSessions?.filter((d) => {
-                // Convert draft session time to local timezone for accurate filtering
-                const { localDateTime } = convertDraftSessionToLocalTime(d);
-
-                const matchName = d.title.toLowerCase().includes(searchQuery.toLowerCase());
-                return (
-                    matchName &&
-                    (!startDate || (localDateTime && localDateTime >= startDate)) &&
-                    (!endDate || (localDateTime && localDateTime <= endDate)) &&
-                    (!meetingTypeFilter ||
-                        (meetingTypeFilter === 'custom'
-                            ? d.recurrence_type === RecurringType.WEEKLY
-                            : d.recurrence_type === meetingTypeFilter)) &&
-                    (!subjectFilter || d.subject === subjectFilter) &&
-                    (!accessFilter || d.access_level === accessFilter)
-                );
-            }) || [],
-        [
-            draftSessions,
-            searchQuery,
-            startDate,
-            endDate,
-            meetingTypeFilter,
-            subjectFilter,
-            accessFilter,
-            convertDraftSessionToLocalTime,
-        ]
-    );
+    // Fetch sessions using the new search API
+    const { data: searchResponse, isLoading, error } = useSessionSearch(searchRequest);
 
     const handleTabChange = (value: string) => {
         setSelectedTab(value as SessionStatus);
+        setCurrentPage(0); // Reset to first page when changing tabs
     };
 
-    // Fixed search handler - removed debouncing for simplicity
+    const handlePageChange = (pageIndex: number) => {
+        setCurrentPage(pageIndex);
+    };
+
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value);
+        setCurrentPage(0); // Reset to first page on search
+    };
+
+    const clearFilters = () => {
+        setSearchQuery('');
+        setStartDate(undefined);
+        setEndDate(undefined);
+        setMeetingTypeFilter('');
+        setSubjectFilter('');
+        setAccessFilter('');
+        setStreamingServiceFilter('');
+        setStartTimeOfDay('');
+        setEndTimeOfDay('');
+        setSelectedBatches([AllBatchesOption]);
+        setDatePopoverOpen(false);
+        setTimePopoverOpen(false);
+        setCurrentPage(0);
+    };
+
+    const handleBatchChange = (batches: SelectOption[]) => {
+        if (batches.length > 0) {
+            setSelectedBatches(batches);
+            setCurrentPage(0); // Reset to first page on filter change
+        }
     };
 
     // Filter bar component
     const FilterBar = () => (
         <div className="mb-6 rounded-lg border bg-white p-4">
             <div className="flex flex-wrap gap-3">
-                {/* Search - Fixed implementation */}
+                {/* Search */}
                 <div className="relative min-w-[200px] flex-1">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                         <svg
@@ -374,17 +264,20 @@ export default function SessionListPage() {
                     />
                 </div>
 
-                {/* Rest of the filter components remain the same */}
                 {/* Date range */}
                 <div className="w-[220px]">
                     <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
                         <PopoverTrigger asChild>
                             <button
-                                className={`flex h-9 w-full items-center justify-between rounded-md border px-3 ${meetingTypeFilter ? 'border-primary-500' : 'border-neutral-300'} focus:border-primary-500 focus:ring-1 focus:ring-primary-500`}
+                                className={`flex h-9 w-full items-center justify-between rounded-md border px-3 ${startDate || endDate ? 'border-primary-500' : 'border-neutral-300'} focus:border-primary-500 focus:ring-1 focus:ring-primary-500`}
                             >
                                 {startDate && endDate
                                     ? `${format(startDate, 'dd/MM/yy')} - ${format(endDate, 'dd/MM/yy')}`
-                                    : 'Select date range'}
+                                    : startDate
+                                      ? `From ${format(startDate, 'dd/MM/yy')}`
+                                      : endDate
+                                        ? `To ${format(endDate, 'dd/MM/yy')}`
+                                        : 'Select date range'}
                                 <CalendarIcon className="text-neutral-500" />
                             </button>
                         </PopoverTrigger>
@@ -412,22 +305,37 @@ export default function SessionListPage() {
                                         Quick Select
                                     </h4>
                                     {[
-                                        { label: 'Past Day', days: 1 },
+                                        { label: 'Today', days: 0 },
                                         { label: 'Past Week', days: 7 },
                                         { label: 'Past Month', days: 30 },
-                                        { label: 'Past 6 Months', days: 182 },
-                                        { label: 'Past Year', days: 365 },
+                                        { label: 'Next Week', days: -7, future: true },
+                                        { label: 'Next Month', days: -30, future: true },
                                     ].map((preset) => (
                                         <button
                                             key={preset.label}
                                             onClick={() => {
-                                                const end = new Date();
-                                                const start = new Date();
-                                                start.setDate(start.getDate() - (preset.days - 1));
-                                                setStartDate(start);
-                                                setEndDate(end);
+                                                if (preset.future) {
+                                                    const start = new Date();
+                                                    const end = new Date();
+                                                    end.setDate(
+                                                        end.getDate() + Math.abs(preset.days)
+                                                    );
+                                                    setStartDate(start);
+                                                    setEndDate(end);
+                                                } else if (preset.days === 0) {
+                                                    const today = new Date();
+                                                    setStartDate(today);
+                                                    setEndDate(today);
+                                                } else {
+                                                    const end = new Date();
+                                                    const start = new Date();
+                                                    start.setDate(start.getDate() - preset.days);
+                                                    setStartDate(start);
+                                                    setEndDate(end);
+                                                }
+                                                setDatePopoverOpen(false);
                                             }}
-                                            className={`w-full rounded-md border px-3 py-1.5 text-left text-xs hover:bg-neutral-50 ${startDate && endDate && format(startDate, 'dd/MM/yy') === format(new Date(new Date().setDate(new Date().getDate() - (preset.days - 1))), 'dd/MM/yy') ? 'text-primary-600 bg-primary-50' : ''}`}
+                                            className="w-full rounded-md border px-3 py-1.5 text-left text-xs hover:bg-neutral-50"
                                         >
                                             {preset.label}
                                         </button>
@@ -437,12 +345,56 @@ export default function SessionListPage() {
                         </PopoverContent>
                     </Popover>
                 </div>
+
+                {/* Time of day filter */}
+                <div className="w-[180px]">
+                    <Popover open={timePopoverOpen} onOpenChange={setTimePopoverOpen}>
+                        <PopoverTrigger asChild>
+                            <button
+                                className={`flex h-9 w-full items-center justify-between rounded-md border px-3 ${startTimeOfDay || endTimeOfDay ? 'border-primary-500' : 'border-neutral-300'} focus:border-primary-500 focus:ring-1 focus:ring-primary-500`}
+                            >
+                                {startTimeOfDay || endTimeOfDay ? 'Time Set' : 'Time of Day'}
+                                <Clock size={20} className="text-neutral-500" />
+                            </button>
+                        </PopoverTrigger>
+                        <PopoverContent align="start" className="w-auto p-3">
+                            <div className="flex flex-col gap-3">
+                                <h4 className="text-xs font-medium text-neutral-500">Time Range</h4>
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-xs text-neutral-600">Start Time</label>
+                                    <input
+                                        type="time"
+                                        value={startTimeOfDay}
+                                        onChange={(e) => setStartTimeOfDay(e.target.value)}
+                                        className="rounded-md border border-neutral-300 px-2 py-1 text-sm"
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-xs text-neutral-600">End Time</label>
+                                    <input
+                                        type="time"
+                                        value={endTimeOfDay}
+                                        onChange={(e) => setEndTimeOfDay(e.target.value)}
+                                        className="rounded-md border border-neutral-300 px-2 py-1 text-sm"
+                                    />
+                                </div>
+                                <button
+                                    onClick={() => setTimePopoverOpen(false)}
+                                    className="rounded-md bg-primary-500 px-3 py-1.5 text-sm text-white hover:bg-primary-600"
+                                >
+                                    Apply
+                                </button>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
+                </div>
+
                 {/* Meeting Type */}
                 <div className="w-[180px]">
                     <Popover>
                         <PopoverTrigger asChild>
                             <button
-                                className={`flex h-9 w-full items-center justify-between rounded-md border px-3 ${subjectFilter ? 'border-primary-500' : 'border-neutral-300'} focus:border-primary-500 focus:ring-1 focus:ring-primary-500`}
+                                className={`flex h-9 w-full items-center justify-between rounded-md border px-3 ${meetingTypeFilter ? 'border-primary-500' : 'border-neutral-300'} focus:border-primary-500 focus:ring-1 focus:ring-primary-500`}
                             >
                                 {meetingTypeFilter || 'Meeting Type'}
                                 <CaretDown size={20} className="text-neutral-500" />
@@ -455,10 +407,9 @@ export default function SessionListPage() {
                                 </h4>
                                 {[
                                     { label: 'All', value: '' },
-                                    // explicit meeting type options
-                                    { label: 'once', value: RecurringType.ONCE },
-                                    { label: 'weekly', value: RecurringType.WEEKLY },
-                                    { label: 'custom', value: 'custom' },
+                                    { label: 'Once', value: RecurringType.ONCE },
+                                    { label: 'Weekly', value: RecurringType.WEEKLY },
+                                    { label: 'Custom', value: 'custom' },
                                 ].map((opt) => (
                                     <button
                                         key={opt.label}
@@ -472,12 +423,13 @@ export default function SessionListPage() {
                         </PopoverContent>
                     </Popover>
                 </div>
+
                 {/* Subject */}
                 <div className="w-[180px]">
                     <Popover>
                         <PopoverTrigger asChild>
                             <button
-                                className={`flex h-9 w-full items-center justify-between rounded-md border px-3 ${accessFilter ? 'border-primary-500' : 'border-neutral-300'} focus:border-primary-500 focus:ring-1 focus:ring-primary-500`}
+                                className={`flex h-9 w-full items-center justify-between rounded-md border px-3 ${subjectFilter ? 'border-primary-500' : 'border-neutral-300'} focus:border-primary-500 focus:ring-1 focus:ring-primary-500`}
                             >
                                 {subjectFilter || 'Subject'}
                                 <CaretDown size={20} className="text-neutral-500" />
@@ -510,7 +462,8 @@ export default function SessionListPage() {
                         </PopoverContent>
                     </Popover>
                 </div>
-                {/* Access */}
+
+                {/* Access Type */}
                 <div className="w-[180px]">
                     <Popover>
                         <PopoverTrigger asChild>
@@ -529,7 +482,7 @@ export default function SessionListPage() {
                                 {[
                                     { label: 'All', value: '' },
                                     ...Object.values(AccessType).map((a) => ({
-                                        label: a,
+                                        label: a.charAt(0).toUpperCase() + a.slice(1),
                                         value: a,
                                     })),
                                 ].map((opt) => (
@@ -545,42 +498,98 @@ export default function SessionListPage() {
                         </PopoverContent>
                     </Popover>
                 </div>
+
+                {/* Streaming Service */}
+                <div className="w-[180px]">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <button
+                                className={`flex h-9 w-full items-center justify-between rounded-md border px-3 ${streamingServiceFilter ? 'border-primary-500' : 'border-neutral-300'} focus:border-primary-500 focus:ring-1 focus:ring-primary-500`}
+                            >
+                                {streamingServiceFilter || 'Platform'}
+                                <CaretDown size={20} className="text-neutral-500" />
+                            </button>
+                        </PopoverTrigger>
+                        <PopoverContent align="start" className="w-auto p-3">
+                            <div className="flex flex-col gap-2">
+                                <h4 className="mb-1 text-xs font-medium text-neutral-500">
+                                    Streaming Platform
+                                </h4>
+                                {[
+                                    { label: 'All', value: '' },
+                                    { label: 'Zoom', value: 'zoom' },
+                                    { label: 'Google Meet', value: 'google_meet' },
+                                    { label: 'YouTube', value: 'youtube' },
+                                    { label: 'Other', value: 'other' },
+                                ].map((opt) => (
+                                    <button
+                                        key={opt.label}
+                                        onClick={() => setStreamingServiceFilter(opt.value)}
+                                        className={`w-full rounded-md border px-3 py-1.5 text-left text-sm ${streamingServiceFilter === opt.value ? 'text-primary-600 border-primary-500 bg-primary-50' : 'border-neutral-200 bg-white hover:bg-neutral-50'}`}
+                                    >
+                                        {opt.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </PopoverContent>
+                    </Popover>
+                </div>
+
+                {/* Batch Filter */}
+                <div className="w-[220px]">
+                    <SelectChips
+                        options={batchOptions}
+                        selected={selectedBatches}
+                        onChange={handleBatchChange}
+                        placeholder="Select Batches"
+                        multiSelect={true}
+                        hasClearFilter={false}
+                        className="h-9"
+                    />
+                </div>
+
                 {/* Clear filters */}
                 <button
-                    onClick={() => {
-                        setSearchQuery('');
-                        setStartDate(undefined);
-                        setEndDate(undefined);
-                        setMeetingTypeFilter('');
-                        setSubjectFilter('');
-                        setAccessFilter('');
-                        setDatePopoverOpen(false);
-                    }}
-                    className="h-9 rounded-md bg-neutral-100 px-3"
+                    onClick={clearFilters}
+                    className="h-9 rounded-md bg-neutral-100 px-3 text-sm hover:bg-neutral-200"
                 >
-                    Clear
+                    Clear All
                 </button>
             </div>
         </div>
     );
 
-    // Helper to render flat paginated sessions
-    function renderFlatSessions<T>(
-        sessions: T[],
-        isLoading: boolean,
-        error: Error | null,
-        tab: SessionStatus,
-        Card: React.ComponentType<{ session: T }>
-    ) {
-        if (isLoading) return <div>Loading...</div>;
-        if (error) return <div>Error loading sessions</div>;
-        if (!sessions.length) {
+    useEffect(() => {
+        setNavHeading(getTerminology(ContentTerms.LiveSession, SystemTerms.LiveSession) + 's');
+        clearSessionDetails();
+        clearSessionId();
+    }, [setNavHeading, clearSessionDetails, clearSessionId]);
+
+    // Render sessions based on current tab
+    const renderSessions = () => {
+        if (isLoading) {
+            return (
+                <div className="flex h-[300px] items-center justify-center">
+                    <div className="text-neutral-500">Loading sessions...</div>
+                </div>
+            );
+        }
+
+        if (error) {
+            return (
+                <div className="flex h-[300px] items-center justify-center">
+                    <div className="text-red-500">Error loading sessions: {error.message}</div>
+                </div>
+            );
+        }
+
+        if (!searchResponse?.sessions || searchResponse.sessions.length === 0) {
             const tabLabel =
-                tab === SessionStatus.LIVE
+                selectedTab === SessionStatus.LIVE
                     ? 'Live'
-                    : tab === SessionStatus.UPCOMING
+                    : selectedTab === SessionStatus.UPCOMING
                       ? 'Upcoming'
-                      : tab === SessionStatus.PAST
+                      : selectedTab === SessionStatus.PAST
                         ? 'Past'
                         : 'Draft';
 
@@ -589,115 +598,75 @@ export default function SessionListPage() {
                     <VideoCameraSlash size={64} className="text-neutral-300" />
                     <h2 className="text-2xl font-bold text-neutral-600">No {tabLabel} Sessions</h2>
                     <p className="max-w-xs text-sm text-neutral-500">
-                        Schedule your first live class to engage with learners in real time.
+                        {tabLabel === 'Draft'
+                            ? 'No draft sessions found. Create a new session to get started.'
+                            : 'Schedule your first live class to engage with learners in real time.'}
                     </p>
                 </div>
             );
         }
-        const page = currentPages[tab];
-        const total = Math.ceil(sessions.length / ITEMS_PER_PAGE);
-        const pageItems = paginateArray(sessions, page);
+
         return (
             <div>
                 <div className="space-y-4">
-                    {pageItems.map((item, index) => (
-                        <Card key={index} session={item} />
-                    ))}
+                    {searchResponse.sessions.map((session) => {
+                        // Convert API response to component props format
+                        const sessionData = {
+                            session_id: session.session_id,
+                            schedule_id: session.schedule_id,
+                            meeting_date: session.meeting_date,
+                            start_time: session.start_time,
+                            last_entry_time: session.last_entry_time,
+                            recurrence_type: session.recurrence_type,
+                            access_level: session.access_level,
+                            title: session.title,
+                            subject: session.subject || '',
+                            meeting_link: session.meeting_link,
+                            registration_form_link_for_public_sessions:
+                                session.registration_form_link_for_public_sessions || '',
+                            timezone: session.timezone,
+                        };
+
+                        if (selectedTab === SessionStatus.PAST) {
+                            return (
+                                <PreviousSessionCard
+                                    key={`${session.session_id}-${session.schedule_id}`}
+                                    session={sessionData}
+                                />
+                            );
+                        } else if (selectedTab === SessionStatus.DRAFTS) {
+                            const draftSession = {
+                                ...sessionData,
+                                waiting_room_time: session.waiting_room_time,
+                                thumbnail_file_id: session.thumbnail_file_id,
+                                background_score_file_id: session.background_score_file_id,
+                                session_streaming_service_type:
+                                    session.session_streaming_service_type,
+                            };
+                            return (
+                                <DraftSessionCard key={session.session_id} session={draftSession} />
+                            );
+                        } else {
+                            return (
+                                <LiveSessionCard
+                                    key={`${session.session_id}-${session.schedule_id}`}
+                                    session={sessionData}
+                                />
+                            );
+                        }
+                    })}
                 </div>
-                <div className="mt-6">
-                    <MyPagination
-                        currentPage={page - 1}
-                        totalPages={total}
-                        onPageChange={(idx) => handlePageChange(tab, idx)}
-                    />
-                </div>
+                {searchResponse.pagination.total_pages > 1 && (
+                    <div className="mt-6">
+                        <MyPagination
+                            currentPage={searchResponse.pagination.current_page}
+                            totalPages={searchResponse.pagination.total_pages}
+                            onPageChange={handlePageChange}
+                        />
+                    </div>
+                )}
             </div>
         );
-    }
-
-    const navigate = useNavigate();
-
-    useEffect(() => {
-        setNavHeading(getTerminology(ContentTerms.LiveSession, SystemTerms.LiveSession) + 's');
-        clearSessionDetails();
-        clearSessionId();
-    }, []);
-
-    const renderLiveSessions = (sessions: LiveSession[] | undefined) => {
-        if (isLiveLoading) return <div>Loading...</div>;
-        if (liveError) return <div>Error loading sessions: {liveError.message}</div>;
-        if (!sessions?.length)
-            return (
-                <div>
-                    No{' '}
-                    {getTerminology(
-                        ContentTerms.LiveSession,
-                        SystemTerms.LiveSession
-                    ).toLocaleLowerCase()}{' '}
-                    found
-                </div>
-            );
-        return sessions.map((session) => (
-            <LiveSessionCard key={session.session_id} session={session} />
-        ));
-    };
-
-    const renderSessionsByDate = (
-        sessions: SessionsByDate[] | undefined,
-        isLoading: boolean,
-        error: Error | null,
-        emptyMessage: string
-    ) => {
-        if (isLoading) return <div>Loading...</div>;
-        if (error) return <div>Error loading sessions: {error.message}</div>;
-        if (!sessions?.length) return <div>{emptyMessage}</div>;
-
-        return sessions.map((day) => (
-            <div key={day.date} className="mb-4">
-                <h2 className="mb-2 text-lg font-semibold">{day.date}</h2>
-                {day.sessions.map((session) => (
-                    <LiveSessionCard
-                        key={`${session.session_id}-${session.schedule_id}`}
-                        session={session}
-                    />
-                ))}
-            </div>
-        ));
-    };
-    const renderDraftSessions = (
-        sessions: DraftSessionDay[] | undefined,
-        isLoading: boolean,
-        error: Error | null,
-        emptyMessage: string
-    ) => {
-        if (isLoading) return <div>Loading...</div>;
-        if (error) return <div>Error loading sessions: {error.message}</div>;
-        if (!sessions?.length) return <div>{emptyMessage}</div>;
-
-        return sessions.map((day) => <DraftSessionCard key={day.session_id} session={day} />);
-    };
-
-    const renderPreviousSessions = (
-        sessions: SessionsByDate[] | undefined,
-        isLoading: boolean,
-        error: Error | null,
-        emptyMessage: string
-    ) => {
-        if (isLoading) return <div>Loading...</div>;
-        if (error) return <div>Error loading sessions: {error.message}</div>;
-        if (!sessions?.length) return <div>{emptyMessage}</div>;
-
-        return sessions.map((day) => (
-            <div key={day.date} className="mb-4">
-                <h2 className="mb-2 text-lg font-semibold">{day.date}</h2>
-                {day.sessions.map((session) => (
-                    <PreviousSessionCard
-                        key={`${session.session_id}-${session.schedule_id}`}
-                        session={session}
-                    />
-                ))}
-            </div>
-        ));
     };
 
     return (
@@ -729,52 +698,16 @@ export default function SessionListPage() {
                 </div>
 
                 <TabsContent value={SessionStatus.LIVE} className="space-y-4">
-                    {renderFlatSessions(
-                        filteredLive,
-                        isLiveLoading,
-                        liveError,
-                        SessionStatus.LIVE,
-                        LiveSessionCard
-                    )}
+                    {renderSessions()}
                 </TabsContent>
                 <TabsContent value={SessionStatus.UPCOMING} className="space-y-4">
-                    {renderFlatSessions(
-                        filteredUpcoming,
-                        isUpcomingLoading,
-                        upcomingError,
-                        SessionStatus.UPCOMING,
-                        LiveSessionCard
-                        // `No upcoming ${getTerminology(
-                        //     ContentTerms.LiveSession,
-                        //     SystemTerms.LiveSession
-                        // ).toLocaleLowerCase()} found`
-                    )}
+                    {renderSessions()}
                 </TabsContent>
                 <TabsContent value={SessionStatus.PAST} className="space-y-4">
-                    {renderFlatSessions(
-                        filteredPast,
-                        isPastLoading,
-                        pastError,
-                        SessionStatus.PAST,
-                        PreviousSessionCard
-                        // `No past ${getTerminology(
-                        //     ContentTerms.LiveSession,
-                        //     SystemTerms.LiveSession
-                        // ).toLocaleLowerCase()} found`
-                    )}
+                    {renderSessions()}
                 </TabsContent>
                 <TabsContent value={SessionStatus.DRAFTS} className="space-y-4">
-                    {renderFlatSessions(
-                        filteredDraft,
-                        isDraftLoading,
-                        draftError,
-                        SessionStatus.DRAFTS,
-                        DraftSessionCard
-                        // `No draft ${getTerminology(
-                        //     ContentTerms.LiveSession,
-                        //     SystemTerms.LiveSession
-                        // ).toLocaleLowerCase()} found`
-                    )}
+                    {renderSessions()}
                 </TabsContent>
             </Tabs>
         </>

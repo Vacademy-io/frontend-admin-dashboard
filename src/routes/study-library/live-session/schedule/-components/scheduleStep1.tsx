@@ -24,7 +24,7 @@ import {
 } from '../../-constants/enums';
 import { WEEK_DAYS } from '../../-constants/type';
 import { sessionFormSchema } from '../-schema/schema';
-import { Trash, UploadSimple, X, Plus, Copy } from 'phosphor-react';
+import { Trash, UploadSimple, X, Plus, Copy, Eye, MusicNote } from 'phosphor-react';
 import { MyDialog } from '@/components/design-system/dialog';
 // import { MeetLogo, YoutubeLogo, ZoomLogo } from '@/svgs';
 import { transformFormToDTOStep1, timeOptions } from '../../-constants/helper';
@@ -33,7 +33,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useLiveSessionStore } from '../-store/sessionIdstore';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
-import { UploadFileInS3 } from '@/services/upload_file';
+import { UploadFileInS3, getPublicUrl } from '@/services/upload_file';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
@@ -60,6 +60,8 @@ export default function ScheduleStep1() {
     const { sessionDetails } = useSessionDetailsStore();
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [selectedMusicFile, setSelectedMusicFile] = useState<File | null>(null);
+    const [existingThumbnailId, setExistingThumbnailId] = useState<string | null>(null);
+    const [existingMusicId, setExistingMusicId] = useState<string | null>(null);
     const musicFileInputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     // State for session thumbnails - Map<"dayIndex-sessionIndex", File>
@@ -69,6 +71,9 @@ export default function ScheduleStep1() {
     >(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isFormInitialized, setIsFormInitialized] = useState(false);
+    const [isLoadingEditData, setIsLoadingEditData] = useState(false);
+    // Ref to track if we're in edit mode - this should NEVER change during component lifecycle
+    const isEditModeRef = useRef<boolean>(false);
     // State for copy to days dialog
     const [isCopyDialogOpen, setIsCopyDialogOpen] = useState(false);
     const [copySourceSession, setCopySourceSession] = useState<{
@@ -192,8 +197,8 @@ export default function ScheduleStep1() {
     useEffect(() => {
         if (!recurringSchedule) return;
 
-        // Skip auto-fill in edit mode - user's existing session data should be preserved
-        if (sessionDetails) return;
+        // NEVER auto-fill in edit mode - user's existing session data should be preserved
+        if (isEditModeRef.current) return;
 
         // Skip if form is still being initialized
         if (!isFormInitialized) return;
@@ -226,7 +231,7 @@ export default function ScheduleStep1() {
             });
         }
         prevSelectedDaysRef.current = selectedDays;
-    }, [recurringSchedule, form, sessionDetails, isFormInitialized]);
+    }, [recurringSchedule, form, isFormInitialized]);
 
     // Watch form values and auto-fill recurring schedule sessions
     const durationHours = form.watch('durationHours');
@@ -235,8 +240,9 @@ export default function ScheduleStep1() {
     const startTimeValue = form.watch('startTime');
 
     useEffect(() => {
-        // Skip auto-fill in edit mode - user's existing session times should be preserved
-        if (sessionDetails) return;
+        // NEVER auto-fill in edit mode - user's existing session times should be preserved
+        // This includes when user manually updates the main start date/time field
+        if (isEditModeRef.current) return;
 
         // Skip if form is still being initialized
         if (!isFormInitialized) return;
@@ -262,15 +268,7 @@ export default function ScheduleStep1() {
         if (updatedSchedule) {
             form.setValue('recurringSchedule', updatedSchedule);
         }
-    }, [
-        durationHours,
-        durationMinutes,
-        defaultLink,
-        startTimeValue,
-        form,
-        sessionDetails,
-        isFormInitialized,
-    ]);
+    }, [durationHours, durationMinutes, defaultLink, startTimeValue, form, isFormInitialized]);
 
     // Auto-detect platform from link
     useEffect(() => {
@@ -309,6 +307,12 @@ export default function ScheduleStep1() {
             return;
         }
 
+        // Mark that we're in edit mode - this flag will NEVER change once set
+        isEditModeRef.current = true;
+
+        // Set loading flag to prevent auto-fill effects from running
+        setIsLoadingEditData(true);
+
         const schedule = sessionDetails.schedule;
 
         // Update form values with session data
@@ -327,28 +331,59 @@ export default function ScheduleStep1() {
             timeZone: savedTimezone,
         });
 
-        // Set the original session start time instead of current time
-        if (schedule.meeting_date && schedule.start_time) {
-            try {
-                // Combine meeting_date and start_time to create the proper datetime format
-                const originalDateTime = `${schedule.meeting_date}T${schedule.start_time}`;
-                // Validate it's a valid datetime
-                const testDate = new Date(originalDateTime);
-                if (!isNaN(testDate.getTime())) {
-                    form.setValue('startTime', originalDateTime);
-                } else {
-                    // Invalid date, use current time
-                    const currentTime = getCurrentTimeInTimezone(savedTimezone);
-                    form.setValue('startTime', currentTime);
+        // Set the original session start time
+        // IMPORTANT: ALWAYS preserve original datetime for BOTH one-time AND recurring sessions
+        // - For ONE-TIME sessions: Preserves user's scheduled date/time
+        // - For RECURRING sessions: Preserves the start date (individual weekday times are separate)
+        if (schedule.start_time) {
+            // Check if start_time is already in full datetime format (e.g., "2025-10-25T23:07:00")
+            if (schedule.start_time.includes('T')) {
+                // Already in datetime format - use directly
+                try {
+                    const testDate = new Date(schedule.start_time);
+                    if (!isNaN(testDate.getTime())) {
+                        form.setValue('startTime', schedule.start_time);
+                    } else {
+                        console.warn(
+                            'Invalid datetime format, keeping as-is:',
+                            schedule.start_time
+                        );
+                        form.setValue('startTime', schedule.start_time);
+                    }
+                } catch (error) {
+                    console.error('Error parsing start time:', error);
+                    form.setValue('startTime', schedule.start_time);
                 }
-            } catch (error) {
-                console.error('Error parsing start time:', error);
-                // Fallback to current time if parsing fails
-                const currentTime = getCurrentTimeInTimezone(savedTimezone);
-                form.setValue('startTime', currentTime);
+            } else if (schedule.meeting_date) {
+                // start_time is just time portion, combine with meeting_date
+                try {
+                    const originalDateTime = `${schedule.meeting_date}T${schedule.start_time}`;
+                    const testDate = new Date(originalDateTime);
+                    if (!isNaN(testDate.getTime())) {
+                        form.setValue('startTime', originalDateTime);
+                    } else {
+                        console.warn('Invalid datetime format, keeping as-is:', originalDateTime);
+                        form.setValue('startTime', originalDateTime);
+                    }
+                } catch (error) {
+                    console.error('Error parsing start time:', error);
+                    const originalDateTime = `${schedule.meeting_date}T${schedule.start_time}`;
+                    form.setValue('startTime', originalDateTime);
+                }
+            } else {
+                // Has start_time (time only) but no meeting_date - use today's date
+                try {
+                    const today = format(new Date(), 'yyyy-MM-dd');
+                    const dateTime = `${today}T${schedule.start_time}`;
+                    form.setValue('startTime', dateTime);
+                } catch (error) {
+                    console.warn('Could not parse time, using as-is:', schedule.start_time);
+                    form.setValue('startTime', schedule.start_time);
+                }
             }
         } else {
-            // Fallback to current time if session data is incomplete
+            // No datetime data available at all - only then use current time
+            console.warn('No start time data in session details, using current time');
             const currentTime = getCurrentTimeInTimezone(savedTimezone);
             form.setValue('startTime', currentTime);
         }
@@ -433,7 +468,20 @@ export default function ScheduleStep1() {
         form.setValue('allowRewind', schedule.allow_rewind ?? false);
         form.setValue('allowPause', schedule.allow_play_pause ?? false);
 
+        // Set existing file IDs for display
+        if (schedule.thumbnail_file_id) {
+            setExistingThumbnailId(schedule.thumbnail_file_id);
+        }
+        if (schedule.background_score_file_id) {
+            setExistingMusicId(schedule.background_score_file_id);
+        }
+
         setIsFormInitialized(true);
+
+        // Clear loading flag after a small delay to ensure all form values are set
+        setTimeout(() => {
+            setIsLoadingEditData(false);
+        }, 100);
     }, [sessionDetails, form]);
 
     // Initialize form with step1Data when available (for non-edit flows)
@@ -577,8 +625,18 @@ export default function ScheduleStep1() {
         setSelectedFile(null);
     };
 
+    const handleRemoveExistingThumbnail = () => {
+        setExistingThumbnailId(null);
+        toast.success('Thumbnail removed. Save to confirm changes.');
+    };
+
     const handleRemoveMusicFile = () => {
         setSelectedMusicFile(null);
+    };
+
+    const handleRemoveExistingMusic = () => {
+        setExistingMusicId(null);
+        toast.success('Background music removed. Save to confirm changes.');
     };
 
     const handleUploadClick = () => {
@@ -594,6 +652,20 @@ export default function ScheduleStep1() {
 
     const handleMusicUploadClick = () => {
         musicFileInputRef.current?.click();
+    };
+
+    const handleViewFile = async (fileId: string, fileType: 'thumbnail' | 'music') => {
+        try {
+            const url = await getPublicUrl(fileId);
+            if (url) {
+                window.open(url, '_blank');
+            } else {
+                toast.error(`Failed to get ${fileType} URL`);
+            }
+        } catch (error) {
+            console.error(`Error getting ${fileType} URL:`, error);
+            toast.error(`Failed to load ${fileType}`);
+        }
     };
 
     // Session thumbnail handlers
@@ -635,10 +707,9 @@ export default function ScheduleStep1() {
         setIsSubmitting(true);
 
         // Preserve existing file IDs from sessionDetails if in edit mode and no new files uploaded
-        let musicFileId: string | undefined =
-            sessionDetails?.schedule?.background_score_file_id || undefined;
-        let thumbnailFileId: string | undefined =
-            sessionDetails?.schedule?.thumbnail_file_id || undefined;
+        // If user removed existing file (existingXId is null), don't use the old file
+        let musicFileId: string | undefined = existingMusicId || undefined;
+        let thumbnailFileId: string | undefined = existingThumbnailId || undefined;
 
         try {
             // Override with new uploads if files are selected
@@ -1462,13 +1533,49 @@ export default function ScheduleStep1() {
                                 className="flex items-center gap-2"
                             >
                                 <UploadSimple size={20} />
-                                Upload
+                                {existingThumbnailId || selectedFile ? 'Replace' : 'Upload'}
                             </MyButton>
                         </div>
+                        {/* Show existing thumbnail */}
+                        {existingThumbnailId && !selectedFile && (
+                            <div className="mt-2 flex h-fit max-w-[200px] flex-row items-center justify-between gap-2 rounded-md border border-green-500 bg-green-50 p-2 text-sm">
+                                <span className="text-xs font-medium text-green-700">
+                                    Existing file
+                                </span>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            handleViewFile(existingThumbnailId, 'thumbnail')
+                                        }
+                                        className="text-green-600 hover:text-green-800"
+                                        title="View file"
+                                    >
+                                        <Eye size={18} weight="bold" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleRemoveExistingThumbnail}
+                                        className="text-red-500 hover:text-red-700"
+                                        title="Remove file"
+                                    >
+                                        <X size={18} weight="bold" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                        {/* Show newly selected file */}
                         {selectedFile && (
-                            <div className="mt-2 flex h-fit max-w-[140px] flex-row items-center justify-between gap-2 rounded-md border border-primary-500 p-1 text-sm">
-                                <span className="max-w-[120px] truncate">{selectedFile.name}</span>
-                                <X className="shrink-0 cursor-pointer" onClick={handleRemoveFile} />
+                            <div className="mt-2 flex h-fit max-w-[200px] flex-row items-center justify-between gap-2 rounded-md border border-primary-500 p-2 text-sm">
+                                <span className="max-w-[140px] truncate text-xs">
+                                    {selectedFile.name}
+                                </span>
+                                <X
+                                    className="shrink-0 cursor-pointer text-red-500 hover:text-red-700"
+                                    onClick={handleRemoveFile}
+                                    size={18}
+                                    weight="bold"
+                                />
                             </div>
                         )}
                     </div>
@@ -1482,16 +1589,50 @@ export default function ScheduleStep1() {
                                 className="flex items-center gap-2"
                             >
                                 <UploadSimple size={20} />
-                                Upload
+                                {existingMusicId || selectedMusicFile ? 'Replace' : 'Upload'}
                             </MyButton>
                         </div>
+                        {/* Show existing music file */}
+                        {existingMusicId && !selectedMusicFile && (
+                            <div className="mt-2 flex h-fit max-w-[200px] flex-row items-center justify-between gap-2 rounded-md border border-green-500 bg-green-50 p-2 text-sm">
+                                <div className="flex items-center gap-2">
+                                    <MusicNote size={16} weight="fill" className="text-green-600" />
+                                    <span className="text-xs font-medium text-green-700">
+                                        Existing file
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleViewFile(existingMusicId, 'music')}
+                                        className="text-green-600 hover:text-green-800"
+                                        title="Play audio"
+                                    >
+                                        <Eye size={18} weight="bold" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleRemoveExistingMusic}
+                                        className="text-red-500 hover:text-red-700"
+                                        title="Remove file"
+                                    >
+                                        <X size={18} weight="bold" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                        {/* Show newly selected music file */}
                         {selectedMusicFile && (
-                            <div className="mt-2 flex h-fit max-w-[140px] flex-row items-center justify-between gap-2 rounded-md border border-primary-500 p-1 text-sm">
-                                <span className="max-w-[120px] truncate">
+                            <div className="mt-2 flex h-fit max-w-[200px] flex-row items-center justify-between gap-2 rounded-md border border-primary-500 p-2 text-sm">
+                                <span className="max-w-[140px] truncate text-xs">
                                     {selectedMusicFile.name}
                                 </span>
-
-                                <X className="cursor-pointer" onClick={handleRemoveMusicFile} />
+                                <X
+                                    className="cursor-pointer text-red-500 hover:text-red-700"
+                                    onClick={handleRemoveMusicFile}
+                                    size={18}
+                                    weight="bold"
+                                />
                             </div>
                         )}
                     </div>

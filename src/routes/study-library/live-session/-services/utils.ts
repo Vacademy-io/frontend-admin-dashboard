@@ -7,6 +7,7 @@ import {
     LIVE_SESSION_REPORT_BY_SESSION_ID,
     STUDENT_ATTENDANCE_REPORT,
     BATCH_SESSION_ATTENDANCE_REPORT,
+    SEARCH_SESSIONS,
 } from '@/constants/urls';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 
@@ -305,6 +306,78 @@ export const getBatchSessionAttendanceReport = async (
     const response = await authenticatedAxiosInstance.get<BatchStudentReport[]>(
         BATCH_SESSION_ATTENDANCE_REPORT,
         { params }
+    );
+    return response.data;
+};
+
+// New Search API types
+export interface SessionSearchRequest {
+    institute_id: string;
+    page?: number;
+    size?: number;
+    sort_by?: 'meetingDate' | 'startTime' | 'title' | 'createdAt';
+    sort_direction?: 'ASC' | 'DESC';
+    statuses?: string[];
+    session_ids?: string[];
+    start_date?: string;
+    end_date?: string;
+    start_time_of_day?: string;
+    end_time_of_day?: string;
+    recurrence_types?: string[];
+    access_levels?: string[];
+    batch_ids?: string[];
+    user_ids?: string[];
+    search_query?: string;
+    timezones?: string[];
+    schedule_ids?: string[];
+    streaming_service_types?: string[];
+}
+
+export interface SessionSearchResponseItem {
+    session_id: string;
+    waiting_room_time: number | null;
+    thumbnail_file_id: string | null;
+    background_score_file_id: string | null;
+    session_streaming_service_type: string | null;
+    schedule_id: string;
+    meeting_date: string;
+    start_time: string;
+    last_entry_time: string;
+    recurrence_type: string;
+    access_level: string;
+    title: string;
+    subject: string | null;
+    meeting_link: string;
+    registration_form_link_for_public_sessions: string | null;
+    timezone: string;
+}
+
+export interface PaginationMetadata {
+    current_page: number;
+    page_size: number;
+    total_elements: number;
+    total_pages: number;
+    has_next: boolean;
+    has_previous: boolean;
+}
+
+export interface SessionSearchResponse {
+    sessions: SessionSearchResponseItem[];
+    pagination: PaginationMetadata;
+}
+
+export const searchSessions = async (
+    request: SessionSearchRequest
+): Promise<SessionSearchResponse> => {
+    const response = await authenticatedAxiosInstance.post<SessionSearchResponse>(
+        SEARCH_SESSIONS,
+        request,
+        {
+            headers: {
+                Accept: '*/*',
+                'Content-Type': 'application/json',
+            },
+        }
     );
     return response.data;
 };
