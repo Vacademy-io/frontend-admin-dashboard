@@ -18,6 +18,8 @@ import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingS
 import { EnrollRequestsStudentMenuOptions } from '@/routes/manage-students/enroll-requests/-components/bulk-actions/enroll-request-individual-options';
 import { generateCustomFieldColumns } from './custom-field-columns';
 import { processColumnsWithSystemFields } from './system-field-columns';
+import { generateEnrollRequestCustomFieldColumns } from './enroll-request-custom-field-columns';
+import { processEnrollRequestColumnsWithSystemFields } from './enroll-request-system-field-columns';
 
 interface CustomTableMeta {
     onSort?: (columnId: string, direction: string) => void;
@@ -137,11 +139,11 @@ const CreateClickableCell = ({ row, columnId }: { row: Row<StudentTable>; column
         if (value === null || value === undefined) {
             return '-';
         }
-        
+
         if (typeof value === 'string' || typeof value === 'number') {
             return value;
         }
-        
+
         if (typeof value === 'object') {
             // For objects, try to extract a meaningful display value
             if (value.name) return value.name;
@@ -150,18 +152,26 @@ const CreateClickableCell = ({ row, columnId }: { row: Row<StudentTable>; column
             if (value.id) return value.id;
             if (value.status) return value.status;
             if (value.type) return value.type;
-            
+
             // If it's an array, join the values
             if (Array.isArray(value)) {
-                return value.map(item => 
-                    typeof item === 'object' ? (item.name || item.title || item.label || item.id || JSON.stringify(item)) : item
-                ).join(', ');
+                return value
+                    .map((item) =>
+                        typeof item === 'object'
+                            ? item.name ||
+                              item.title ||
+                              item.label ||
+                              item.id ||
+                              JSON.stringify(item)
+                            : item
+                    )
+                    .join(', ');
             }
-            
+
             // Fallback to JSON string for complex objects
             return JSON.stringify(value);
         }
-        
+
         return String(value);
     };
 
@@ -772,6 +782,55 @@ export const enrollRequestColumns: ColumnDef<StudentTable>[] = [
         cell: ({ row }) => <EnrollRequestsStudentMenuOptions student={row.original} />,
     },
 ];
+
+/**
+ * Get columns with dynamic visibility based on custom field settings for Enroll Request
+ * This function:
+ * 1. Processes system fields (reorders, applies custom names)
+ * 2. Adds dynamic custom field columns for Enroll Request location
+ * 3. Returns final ordered columns
+ */
+export const getEnrollRequestColumns = (): ColumnDef<StudentTable>[] => {
+    try {
+        // Step 1: Process system fields (apply custom names and reorder)
+        const { columns: processedColumns } =
+            processEnrollRequestColumnsWithSystemFields(enrollRequestColumns);
+
+        // Step 2: Generate custom field columns for Enroll Request location
+        const customFieldColumns = generateEnrollRequestCustomFieldColumns();
+
+        // Step 3: Find the options column (should be last after reordering)
+        const optionsColumnIndex = processedColumns.findIndex((col) => col.id === 'options');
+
+        if (optionsColumnIndex === -1) {
+            // If options column not found, append custom fields at the end
+            return [...processedColumns, ...customFieldColumns];
+        }
+
+        // Step 4: Insert custom field columns before the options column
+        const columnsBeforeOptions = processedColumns.slice(0, optionsColumnIndex);
+        const optionsColumn = processedColumns[optionsColumnIndex];
+
+        if (!optionsColumn) {
+            return [...columnsBeforeOptions, ...customFieldColumns];
+        }
+
+        const finalColumns = [...columnsBeforeOptions, ...customFieldColumns, optionsColumn];
+        return finalColumns;
+    } catch (error) {
+        console.error('❌ Error in getEnrollRequestColumns:', error);
+        console.error('Falling back to original enroll request columns');
+        return enrollRequestColumns;
+    }
+};
+
+/**
+ * Get column visibility settings for Enroll Request based on system fields
+ */
+export const getEnrollRequestColumnsVisibility = (): Record<string, boolean> => {
+    const { visibility } = processEnrollRequestColumnsWithSystemFields(enrollRequestColumns);
+    return visibility;
+};
 
 export interface ActivityLogDialogProps {
     isOpen: boolean;
