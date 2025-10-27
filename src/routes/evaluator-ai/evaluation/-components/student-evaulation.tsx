@@ -33,7 +33,7 @@ const DEFAULT_ACCESS_TOKEN =
 // Helper function to get public URL
 const getPublicUrl = async (fileId: string | undefined | null): Promise<string> => {
     const response = await axios.get(GET_PUBLIC_URL, {
-        params: { fileId, expiryDays: 1 },
+        params: { fileId, expiryDays: 6 },
         headers: {
             Authorization: `Bearer ${DEFAULT_ACCESS_TOKEN}`,
         },
