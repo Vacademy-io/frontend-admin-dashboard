@@ -44,6 +44,13 @@ const CUSTOM_FIELD_SETTINGS_KEY = 'CUSTOM_FIELD_SETTING';
 const LOCALSTORAGE_KEY = 'custom-field-settings-cache';
 const CACHE_EXPIRY_HOURS = 24; // Cache expires after 24 hours
 
+// Config JSON structure for dropdown options
+export interface DropdownOptionConfig {
+    id: number;
+    value: string;
+    label: string;
+}
+
 // API Response Types (what we get from GET_INSITITUTE_SETTINGS)
 export interface ApiCustomField {
     id: string;
@@ -59,7 +66,7 @@ export interface ApiCustomField {
     canBeRenamed: boolean;
     locations: string[];
     status: string;
-    options?: string[];
+    config?: string; // JSON string for dropdown options: [{id: number, value: string, label: string}]
 }
 
 export interface ApiGroupField {
@@ -76,6 +83,7 @@ export interface ApiGroupField {
     canBeRenamed: boolean;
     locations: string[];
     status: string;
+    config?: string; // JSON string for dropdown options: [{id: number, value: string, label: string}]
 }
 
 export interface ApiCustomFieldResponse {
@@ -249,6 +257,44 @@ const VISIBILITY_TO_LOCATION_MAP: Record<keyof FieldVisibility, string> = {
 
 // System field identifiers (fieldName from API)
 const SYSTEM_FIELD_NAMES = ['name', 'email', 'username', 'password', 'batch', 'phone'];
+
+/**
+ * Convert options array (UI format) to config JSON string (API format)
+ * @param options - Array of option strings from the UI
+ * @returns JSON string with format: [{id: number, value: string, label: string}]
+ */
+export const optionsToConfigJson = (options?: string[]): string | undefined => {
+    if (!options || options.length === 0) {
+        return undefined;
+    }
+
+    const config: DropdownOptionConfig[] = options.map((option, index) => ({
+        id: index + 1,
+        value: option,
+        label: option,
+    }));
+
+    return JSON.stringify(config);
+};
+
+/**
+ * Convert config JSON string (API format) to options array (UI format)
+ * @param configJson - JSON string from API with format: [{id: number, value: string, label: string}]
+ * @returns Array of option strings for the UI
+ */
+export const configJsonToOptions = (configJson?: string): string[] | undefined => {
+    if (!configJson) {
+        return undefined;
+    }
+
+    try {
+        const config: DropdownOptionConfig[] = JSON.parse(configJson);
+        return config.map((item) => item.value);
+    } catch (error) {
+        console.error('❌ [DEBUG] Error parsing config JSON:', error);
+        return undefined;
+    }
+};
 
 /**
  * Default system fields based on table columns
@@ -457,7 +503,7 @@ const mapApiFieldToCustomField = (apiField: ApiCustomField): CustomField => {
         id: apiField.customFieldId,
         name: apiField.fieldName,
         type: apiField.fieldType as 'text' | 'dropdown' | 'number',
-        options: apiField.options,
+        options: configJsonToOptions(apiField.config), // Convert config JSON to options array
         visibility: mapLocationsToVisibility(apiField.locations),
         required: false, // Will be determined by compulsoryCustomFields
         canBeDeleted: apiField.canBeDeleted,
@@ -478,6 +524,7 @@ const mapApiGroupFieldToGroupField = (
         id: apiGroupField.customFieldId,
         name: apiGroupField.fieldName,
         type: apiGroupField.fieldType as 'text' | 'dropdown' | 'number',
+        options: configJsonToOptions(apiGroupField.config), // Convert config JSON to options array
         visibility: mapLocationsToVisibility(apiGroupField.locations),
         required: false, // Will be determined by compulsoryCustomFields
         canBeDeleted: apiGroupField.canBeDeleted,
@@ -673,13 +720,16 @@ const preserveApiField = (
     uiField: CustomField | FixedField,
     originalApiField: ApiCustomField
 ): ApiCustomField => {
+    const configJson =
+        'options' in uiField ? optionsToConfigJson(uiField.options) : originalApiField.config;
+
     return {
         ...originalApiField, // Preserve all original API data
         fieldName: uiField.name, // Update name if changed
         individualOrder: uiField.order, // Update order if changed
         locations: mapVisibilityToLocations(uiField.visibility), // Update visibility
         groupName: uiField.groupName || null, // Update groupName
-        options: 'options' in uiField ? uiField.options : originalApiField.options, // Update options if it's a custom field
+        config: configJson,
     };
 };
 
@@ -697,6 +747,7 @@ const preserveApiGroupField = (
         groupInternalOrder: uiField.groupInternalOrder, // Update group order if changed
         groupName: uiField.groupName || originalApiField.groupName, // Update groupName
         locations: mapVisibilityToLocations(uiField.visibility), // Update visibility
+        config: optionsToConfigJson(uiField.options), // Convert options to config JSON
     };
 };
 
@@ -720,7 +771,7 @@ const createNewApiField = (
         canBeRenamed: true,
         locations: mapVisibilityToLocations(customField.visibility),
         status: 'ACTIVE',
-        options: customField.options,
+        config: optionsToConfigJson(customField.options), // Convert options to config JSON
     };
 };
 
@@ -745,6 +796,7 @@ const createNewApiGroupField = (
         canBeRenamed: true,
         locations: mapVisibilityToLocations(groupField.visibility),
         status: 'ACTIVE',
+        config: optionsToConfigJson(groupField.options), // Convert options to config JSON
     };
 };
 
@@ -809,7 +861,7 @@ const mapUIToApiRequestFresh = (
             canBeRenamed: instituteField.canBeRenamed,
             locations: mapVisibilityToLocations(instituteField.visibility),
             status: 'ACTIVE',
-            options: instituteField.options,
+            config: optionsToConfigJson(instituteField.options), // Convert options to config JSON
         };
         currentCustomFieldsAndGroups.push(apiField);
 
@@ -837,7 +889,7 @@ const mapUIToApiRequestFresh = (
             canBeRenamed: customField.canBeRenamed,
             locations: mapVisibilityToLocations(customField.visibility),
             status: 'ACTIVE',
-            options: customField.options,
+            config: optionsToConfigJson(customField.options), // Convert options to config JSON
         };
         currentCustomFieldsAndGroups.push(apiField);
 
