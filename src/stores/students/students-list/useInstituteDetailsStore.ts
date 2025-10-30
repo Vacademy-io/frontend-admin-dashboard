@@ -332,4 +332,8 @@ export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get)
         if (!instituteDetails) return false;
         return instituteIds.includes(instituteDetails.id);
     },
+    getInstituteSettings: () => {
+        const { instituteDetails } = get();
+        return instituteDetails;
+    },
 }));

@@ -4,28 +4,30 @@ import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { FormItemWrapper } from '../form-components/form-item-wrapper';
 import { useForm } from 'react-hook-form';
 import { MyInput } from '@/components/design-system/input';
-import { MyDropdown } from '../dropdownForPackageItems';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useFormStore } from '@/stores/students/enroll-students-manually/enroll-manually-form-store';
+import { MyDropdown } from '../dropdownForPackageItems';
 import {
     StepTwoData,
     stepTwoSchema,
 } from '@/schemas/student/student-list/schema-enroll-students-manually';
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { useEffect, useRef, useState } from 'react';
-import { DropdownItemType, DropdownValueType } from '../dropdownTypesForPackageItems';
+import { useEffect, useRef, useMemo } from 'react';
 import { StudentTable } from '@/types/student-table-types';
-import { BatchForSessionType } from '@/schemas/student/student-list/institute-schema';
-import { MyButton } from '@/components/design-system/button';
-import { CourseFormData } from '@/components/common/study-library/add-course/add-course-form';
-import { useAddCourse } from '@/services/study-library/course-operations/add-course';
-import { toast } from 'sonner';
-import { AddSessionDataType } from '@/routes/manage-institute/sessions/-components/session-operations/add-session/add-session-form';
-import { useAddSession } from '@/services/study-library/session-management/addSession';
-import { AddLevelData } from '@/routes/study-library/courses/course-details/-components/add-course-details-form';
-import { useAddLevel } from '@/routes/study-library/courses/course-details/-services/add-level';
-import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
-import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import {
+    getCustomFieldSettingsFromCache,
+    SystemField,
+    CustomField,
+} from '@/services/custom-field-settings';
+import PhoneInputField from '@/components/design-system/phone-input-field';
+
+interface SystemFieldConfig {
+    key: keyof StepTwoData;
+    label: string;
+    type: 'text' | 'email' | 'tel' | 'date';
+    required: boolean;
+    order: number;
+    visible: boolean;
+}
 
 export const StepTwoForm = ({
     initialValues,
@@ -35,73 +37,308 @@ export const StepTwoForm = ({
     submitFn: (fn: () => void) => void;
 }) => {
     const { stepTwoData, setStepTwoData, nextStep } = useFormStore();
-    const addLevelMutation = useAddLevel();
+    const formRef = useRef<HTMLFormElement>(null);
 
-    const {
-        instituteDetails,
-        getCourseFromPackage,
-        getSessionFromPackage,
-        getLevelsFromPackage,
-        getDetailsFromPackageSessionId,
-        showForInstitutes,
-    } = useInstituteDetailsStore();
+    // Get system fields and custom fields from cache
+    const customFieldSettings = getCustomFieldSettingsFromCache();
 
-    const [courseList, setCourseList] = useState<DropdownItemType[]>(getCourseFromPackage());
-    const [sessionList, setSessionList] = useState<DropdownItemType[]>(getSessionFromPackage());
-    const [levelList, setLevelList] = useState<DropdownItemType[]>(getLevelsFromPackage());
-    const addCourseMutation = useAddCourse();
-    const [initialBatch, setInitialBatch] = useState<BatchForSessionType | null>(null);
-    const addSessionMutation = useAddSession();
+    // Map system field keys to form data keys (API uses UPPERCASE keys)
+    // Note: Some fields like USERNAME, PACKAGE_SESSION_ID, INSTITUTE_ENROLLMENT_ID, etc.
+    // are not applicable for enrollment form (they're for display in learner list)
+    const systemFieldKeyMapping: Record<string, keyof StepTwoData> = {
+        // Uppercase keys from API - Personal Information
+        FULL_NAME: 'full_name',
+        EMAIL: 'email',
+        MOBILE_NUMBER: 'mobile_number',
+        DATE_OF_BIRTH: 'date_of_birth',
+        GENDER: 'gender',
+        LINKED_INSTITUTE_NAME: 'linked_institute_name',
 
-    const genderList: DropdownValueType[] =
-        instituteDetails?.genders.map((gender, index) => ({
-            id: index.toString(),
-            name: gender as string,
-        })) || [];
+        // Address Information
+        ADDRESS_LINE: 'address_line',
+        CITY: 'city',
+        REGION: 'region',
+        PIN_CODE: 'pin_code',
 
-    // Prepare default form values prioritizing saved stepTwoData, then initialValues, then empty defaults
+        // Parent/Guardian Information
+        FATHER_NAME: 'father_name',
+        MOTHER_NAME: 'mother_name',
+        PARENTS_EMAIL: 'parents_email',
+        PARENTS_MOBILE_NUMBER: 'parents_mobile_number',
+        PARENTS_TO_MOTHER_EMAIL: 'parents_to_mother_email',
+        PARENTS_TO_MOTHER_MOBILE_NUMBER: 'parents_to_mother_mobile_number',
+
+        // Note: These fields are excluded because they're not part of enrollment form:
+        // - USERNAME: Generated by system
+        // - PACKAGE_SESSION_ID: Selected in Step 3
+        // - INSTITUTE_ENROLLMENT_ID: Generated or entered in Step 3
+        // - ATTENDANCE: System calculated field
+        // - COUNTRY: Not in current schema
+        // - PLAN_TYPE: Selected in Step 4
+        // - AMOUNT_PAID: Derived from payment
+        // - PREFFERED_BATCH: Not in enrollment flow
+        // - EXPIRY_DATE: Calculated from access_days in Step 3
+        // - STATUS: System managed field
+    };
+
+    // Map system field types based on the field key
+    const getInputType = (key: string): 'text' | 'email' | 'tel' | 'date' => {
+        const upperKey = key.toUpperCase();
+        if (upperKey.includes('EMAIL')) return 'email';
+        if (upperKey.includes('MOBILE') || upperKey.includes('PHONE')) return 'tel';
+        if (upperKey.includes('DATE')) return 'date';
+        return 'text';
+    };
+
+    // Process system fields from cache
+    const systemFieldsConfig: SystemFieldConfig[] = useMemo(() => {
+        if (!customFieldSettings?.systemFields) {
+            // Fallback: Show comprehensive default fields if cache is not available
+            console.warn('⚠️ No system fields found in cache, using fallback default fields');
+            return [
+                // Mandatory fields
+                {
+                    key: 'full_name',
+                    label: 'Full Name',
+                    type: 'text',
+                    required: true,
+                    order: 1,
+                    visible: true,
+                },
+                {
+                    key: 'email',
+                    label: 'Email',
+                    type: 'email',
+                    required: true,
+                    order: 2,
+                    visible: true,
+                },
+                {
+                    key: 'mobile_number',
+                    label: 'Mobile Number',
+                    type: 'tel',
+                    required: true,
+                    order: 3,
+                    visible: true,
+                },
+                // Optional personal fields
+                {
+                    key: 'gender',
+                    label: 'Gender',
+                    type: 'text',
+                    required: false,
+                    order: 4,
+                    visible: true,
+                },
+                {
+                    key: 'date_of_birth',
+                    label: 'Date of Birth',
+                    type: 'date',
+                    required: false,
+                    order: 5,
+                    visible: true,
+                },
+                {
+                    key: 'linked_institute_name',
+                    label: 'College/School Name',
+                    type: 'text',
+                    required: false,
+                    order: 6,
+                    visible: true,
+                },
+                // Address fields
+                {
+                    key: 'address_line',
+                    label: 'Address',
+                    type: 'text',
+                    required: false,
+                    order: 7,
+                    visible: true,
+                },
+                {
+                    key: 'city',
+                    label: 'City',
+                    type: 'text',
+                    required: false,
+                    order: 8,
+                    visible: true,
+                },
+                {
+                    key: 'region',
+                    label: 'State/Region',
+                    type: 'text',
+                    required: false,
+                    order: 9,
+                    visible: true,
+                },
+                {
+                    key: 'pin_code',
+                    label: 'PIN Code',
+                    type: 'text',
+                    required: false,
+                    order: 10,
+                    visible: true,
+                },
+                // Parent/Guardian fields
+                {
+                    key: 'father_name',
+                    label: "Father's Name",
+                    type: 'text',
+                    required: false,
+                    order: 11,
+                    visible: true,
+                },
+                {
+                    key: 'mother_name',
+                    label: "Mother's Name",
+                    type: 'text',
+                    required: false,
+                    order: 12,
+                    visible: true,
+                },
+                {
+                    key: 'parents_mobile_number',
+                    label: "Father's Mobile Number",
+                    type: 'tel',
+                    required: false,
+                    order: 13,
+                    visible: true,
+                },
+                {
+                    key: 'parents_email',
+                    label: "Father's Email",
+                    type: 'email',
+                    required: false,
+                    order: 14,
+                    visible: true,
+                },
+                {
+                    key: 'parents_to_mother_mobile_number',
+                    label: "Mother's Mobile Number",
+                    type: 'tel',
+                    required: false,
+                    order: 15,
+                    visible: true,
+                },
+                {
+                    key: 'parents_to_mother_email',
+                    label: "Mother's Email",
+                    type: 'email',
+                    required: false,
+                    order: 16,
+                    visible: true,
+                },
+            ];
+        }
+
+        console.log(
+            '📋 System fields from cache:',
+            customFieldSettings.systemFields.length,
+            'total fields'
+        );
+
+        // Fields that are excluded from enrollment form (they're system-managed or in other steps)
+        const excludedFields = [
+            'USERNAME',
+            'PACKAGE_SESSION_ID',
+            'INSTITUTE_ENROLLMENT_ID',
+            'ATTENDANCE',
+            'COUNTRY',
+            'PLAN_TYPE',
+            'AMOUNT_PAID',
+            'PREFFERED_BATCH',
+            'EXPIRY_DATE',
+            'STATUS',
+        ];
+
+        return customFieldSettings.systemFields
+            .map((field: SystemField): SystemFieldConfig | null => {
+                // Skip fields that are not part of enrollment form
+                if (excludedFields.includes(field.key)) {
+                    console.log(`  ⏭️ Skipping ${field.key} (system-managed or in other step)`);
+                    return null;
+                }
+
+                // Try to map the field key (API returns UPPERCASE keys)
+                const formKey =
+                    systemFieldKeyMapping[field.key] ||
+                    systemFieldKeyMapping[field.key.toLowerCase()];
+                if (!formKey) {
+                    console.warn(`  ⚠️ System field key not mapped: ${field.key}`);
+                    return null;
+                }
+
+                // Mandatory fields (name, email, phone) are always visible
+                const isMandatory = ['full_name', 'email', 'mobile_number'].includes(formKey);
+                const isVisible = isMandatory || field.visibility;
+
+                if (isVisible) {
+                    console.log(
+                        `  ✅ ${field.key} → ${formKey} (${isMandatory ? 'MANDATORY' : 'visible'}, label: "${field.customValue || field.defaultValue}")`
+                    );
+                } else {
+                    console.log(`  👁️ Hiding ${field.key} (visibility: false)`);
+                    return null;
+                }
+
+                return {
+                    key: formKey,
+                    label: field.customValue || field.defaultValue,
+                    type: getInputType(field.key),
+                    required: isMandatory,
+                    order: field.order,
+                    visible: isVisible,
+                };
+            })
+            .filter((field): field is SystemFieldConfig => field !== null)
+            .sort((a, b) => a.order - b.order);
+    }, [customFieldSettings]);
+
+    // Get custom fields visible in learner enrollment
+    const customFieldsConfig: CustomField[] = useMemo(() => {
+        if (!customFieldSettings?.customFields) return [];
+
+        return customFieldSettings.customFields.filter(
+            (field: CustomField) => field.visibility?.learnerEnrollment === true
+        );
+    }, [customFieldSettings]);
+
+    // Prepare default form values
     const prepareDefaultValues = (): StepTwoData => {
         if (stepTwoData && Object.keys(stepTwoData).length > 0) {
             return stepTwoData;
         }
+
+        // Pre-fill from initialValues if available (re-enrollment scenario)
         if (initialValues) {
-            const details = getDetailsFromPackageSessionId({
-                packageSessionId: initialValues.package_session_id,
-            });
-            if (details) {
-                return {
-                    fullName: initialValues?.full_name || '',
-                    course: {
-                        id: details?.package_dto?.id || '',
-                        name: details?.package_dto?.package_name || '',
-                    },
-                    session: {
-                        id: details?.session?.id || '',
-                        name: details?.session?.session_name || '',
-                    },
-                    level: {
-                        id: details?.level?.id || '',
-                        name: details?.level?.level_name || '',
-                    },
-                    accessDays: initialValues?.session_expiry_days?.toString() || '',
-                    enrollmentNumber: initialValues?.institute_enrollment_id || '',
-                    gender: {
-                        id: initialValues?.gender || '',
-                        name: initialValues?.gender || '',
-                    },
-                    collegeName: initialValues?.linked_institute_name || '',
-                };
-            }
+            return {
+                full_name: initialValues.full_name || '',
+                email: initialValues.email || '',
+                mobile_number: initialValues.mobile_number || '',
+                gender: initialValues.gender || '',
+                date_of_birth: initialValues.date_of_birth || '',
+                linked_institute_name: initialValues.linked_institute_name || '',
+                address_line: initialValues.address_line || '',
+                city: initialValues.city || '',
+                region: initialValues.region || '',
+                pin_code: initialValues.pin_code || '',
+                father_name: initialValues.father_name || '',
+                mother_name: initialValues.mother_name || '',
+                parents_email: initialValues.parents_email || '',
+                parents_mobile_number: initialValues.parents_mobile_number || '',
+                parents_to_mother_email: initialValues.parents_to_mother_email || '',
+                parents_to_mother_mobile_number:
+                    initialValues.parents_to_mother_mobile_number || '',
+                custom_fields: {},
+            };
         }
+
+        // Default empty values
         return {
-            fullName: '',
-            course: { id: '', name: '' },
-            session: { id: '', name: '' },
-            level: { id: '', name: '' },
-            accessDays: '',
-            enrollmentNumber: '',
-            gender: { id: '', name: '' },
-            collegeName: '',
+            full_name: '',
+            email: '',
+            mobile_number: '',
+            custom_fields: {},
         };
     };
 
@@ -111,297 +348,15 @@ export const StepTwoForm = ({
         mode: 'onChange',
     });
 
-    // Update lists when instituteDetails changes
-    // Removed resetting form here to avoid clearing user input on instituteDetails update
-    useEffect(() => {
-        setCourseList(getCourseFromPackage());
-        setSessionList(getSessionFromPackage());
-        setLevelList(getLevelsFromPackage());
-    }, [instituteDetails]);
-
-    // Keep initialBatch updated when initialValues changes
-    useEffect(() => {
-        if (initialValues) {
-            const details = getDetailsFromPackageSessionId({
-                packageSessionId: initialValues.package_session_id,
-            });
-            setInitialBatch(details);
-        } else {
-            setInitialBatch(null);
-        }
-    }, [initialValues]);
-
-    // Initialize form values when initialValues change IF form is not already filled (avoid overwrite)
-    useEffect(() => {
-        if (initialValues) {
-            const currentValues = form.getValues();
-            // Check if form is "empty" before resetting to initialValues
-            const isFormEmpty =
-                !currentValues.fullName &&
-                !currentValues.course?.id &&
-                !currentValues.session?.id &&
-                !currentValues.level?.id &&
-                !currentValues.accessDays &&
-                !currentValues.enrollmentNumber &&
-                (!currentValues.gender || !currentValues.gender.id) &&
-                !currentValues.collegeName;
-
-            if (isFormEmpty) {
-                const details = getDetailsFromPackageSessionId({
-                    packageSessionId: initialValues.package_session_id,
-                });
-                if (details) {
-                    form.reset({
-                        fullName: initialValues?.full_name || '',
-                        course: {
-                            id: details?.package_dto?.id || '',
-                            name: details?.package_dto?.package_name || '',
-                        },
-                        session: {
-                            id: details?.session?.id || '',
-                            name: details?.session?.session_name || '',
-                        },
-                        level: {
-                            id: details?.level?.id || '',
-                            name: details?.level?.level_name || '',
-                        },
-                        accessDays: initialValues?.session_expiry_days?.toString() || '',
-                        enrollmentNumber: initialValues?.institute_enrollment_id || '',
-                        gender: {
-                            id: initialValues?.gender || '',
-                            name: initialValues?.gender || '',
-                        },
-                        collegeName: initialValues?.linked_institute_name || '',
-                    });
-                }
-            }
-        }
-    }, [initialValues]);
-
-    // Track which field was most recently changed
-    const lastChangedField = useRef<string | null>(null);
-
     const onSubmit = (values: StepTwoData) => {
         setStepTwoData(values);
         nextStep();
     };
 
-    // Custom onChange handlers to track which field changed
-    const handleCourseChange = (value: any) => {
-        lastChangedField.current = 'course';
-        form.setValue('course', value);
-    };
-
-    const handleSessionChange = (value: any) => {
-        lastChangedField.current = 'session';
-        form.setValue('session', value);
-    };
-
-    const handleLevelChange = (value: any) => {
-        lastChangedField.current = 'level';
-        form.setValue('level', value);
-    };
-
-    const courseValue = form.watch('course');
-    const sessionValue = form.watch('session');
-    const levelValue = form.watch('level');
-    const { setValue } = form;
-
-    useEffect(() => {
-        if (lastChangedField.current === 'course' && courseValue?.id) {
-            setSessionList(
-                getSessionFromPackage({
-                    courseId: courseValue?.id,
-                })
-            );
-
-            setLevelList(
-                getLevelsFromPackage({
-                    courseId: courseValue?.id,
-                })
-            );
-
-            const currentSession = form.getValues('session');
-            const currentLevel = form.getValues('level');
-
-            const validSessions = getSessionFromPackage({ courseId: courseValue?.id });
-            const sessionIsValid = validSessions.some((s) => s?.id === currentSession?.id);
-            if (!sessionIsValid && currentSession?.id) {
-                form.setValue('session', { id: '', name: '' });
-            }
-
-            const validLevels = getLevelsFromPackage({ courseId: courseValue?.id });
-            const levelIsValid = validLevels.some((l) => l?.id === currentLevel?.id);
-            if (!levelIsValid && currentLevel?.id) {
-                form.setValue('level', { id: '', name: '' });
-            }
-        }
-        lastChangedField.current = null;
-    }, [courseValue, getSessionFromPackage, getLevelsFromPackage]);
-
-    useEffect(() => {
-        if (lastChangedField.current === 'session' && sessionValue?.id) {
-            setCourseList(
-                getCourseFromPackage({
-                    sessionId: sessionValue?.id,
-                })
-            );
-
-            setLevelList(
-                getLevelsFromPackage({
-                    sessionId: sessionValue?.id,
-                })
-            );
-
-            const currentCourse = form.getValues('course');
-            const currentLevel = form.getValues('level');
-
-            const validCourses = getCourseFromPackage({ sessionId: sessionValue?.id });
-            const courseIsValid = validCourses.some((c) => c?.id === currentCourse?.id);
-            if (!courseIsValid && currentCourse?.id) {
-                form.setValue('course', { id: '', name: '' });
-            }
-
-            const validLevels = getLevelsFromPackage({ sessionId: sessionValue?.id });
-            const levelIsValid = validLevels.some((l) => l?.id === currentLevel?.id);
-            if (!levelIsValid && currentLevel?.id) {
-                form.setValue('level', { id: '', name: '' });
-            }
-        }
-        lastChangedField.current = null;
-    }, [sessionValue, getCourseFromPackage, getLevelsFromPackage]);
-
-    useEffect(() => {
-        if (lastChangedField.current === 'level' && levelValue?.id) {
-            setCourseList(
-                getCourseFromPackage({
-                    levelId: levelValue?.id,
-                })
-            );
-
-            setSessionList(
-                getSessionFromPackage({
-                    levelId: levelValue?.id,
-                })
-            );
-
-            const currentCourse = form.getValues('course');
-            const currentSession = form.getValues('session');
-
-            const validCourses = getCourseFromPackage({ levelId: levelValue?.id });
-            const courseIsValid = validCourses.some((c) => c?.id === currentCourse?.id);
-            if (!courseIsValid && currentCourse?.id) {
-                form.setValue('course', { id: '', name: '' });
-            }
-
-            const validSessions = getSessionFromPackage({ levelId: levelValue?.id });
-            const sessionIsValid = validSessions.some((s) => s?.id === currentSession?.id);
-            if (!sessionIsValid && currentSession?.id) {
-                form.setValue('session', { id: '', name: '' });
-            }
-        }
-        lastChangedField.current = null;
-    }, [levelValue, getCourseFromPackage, getSessionFromPackage]);
-
-    useEffect(() => {
-        if (sessionList.length === 1 && !sessionValue?.id) {
-            handleSessionChange(sessionList[0]);
-        }
-        if (courseList.length === 1 && !courseValue?.id) {
-            handleCourseChange(courseList[0]);
-        }
-        if (levelList.length === 1 && !levelValue?.id) {
-            handleLevelChange(levelList[0]);
-        }
-    }, [sessionList, courseList, levelList]);
-
-    const formRef = useRef<HTMLFormElement>(null);
-
     const requestFormSubmit = () => {
         if (formRef.current) {
             formRef.current.requestSubmit();
         }
-    };
-
-    const handleGenerateEnrollNum = () => {
-        const enrollNum = Math.floor(100000 + Math.random() * 900000).toString();
-        setValue('enrollmentNumber', enrollNum);
-    };
-
-    const handleAddCourse = ({ requestData }: { requestData: CourseFormData }) => {
-        addCourseMutation.mutate(
-            { requestData: requestData },
-            {
-                onSuccess: () => {
-                    toast.success('Course created successfully');
-                },
-                onError: () => {
-                    toast.error('Failed to create batch');
-                },
-            }
-        );
-    };
-
-    const handleAddSession = (sessionData: AddSessionDataType) => {
-        const processedData = structuredClone(sessionData);
-
-        const transformedData = {
-            ...processedData,
-            levels: processedData.levels.map((level) => ({
-                id: level.level_dto?.id,
-                new_level: level.level_dto?.new_level === true,
-                level_name: level.level_dto?.level_name,
-                duration_in_days: level.level_dto?.duration_in_days,
-                thumbnail_file_id: level.level_dto?.thumbnail_file_id,
-                package_id: level.level_dto?.package_id,
-            })),
-        };
-
-        addSessionMutation.mutate(
-            { requestData: transformedData as unknown as AddSessionDataType },
-            {
-                onSuccess: () => {
-                    toast.success(
-                        ` ${getTerminology(
-                            ContentTerms.Session,
-                            SystemTerms.Session
-                        )} added successfully`
-                    );
-                },
-                onError: (error) => {
-                    toast.error(
-                        error.message ||
-                            `Failed to add ${getTerminology(
-                                ContentTerms.Session,
-                                SystemTerms.Session
-                            ).toLocaleLowerCase()}`
-                    );
-                },
-            }
-        );
-    };
-
-    const handleAddLevel = ({
-        requestData,
-        packageId,
-        sessionId,
-    }: {
-        requestData: AddLevelData;
-        packageId?: string;
-        sessionId?: string;
-        levelId?: string;
-    }) => {
-        addLevelMutation.mutate(
-            { requestData: requestData, packageId: packageId || '', sessionId: sessionId || '' },
-            {
-                onSuccess: () => {
-                    toast.success('Level added successfully');
-                },
-                onError: (error) => {
-                    toast.error(error.message || 'Failed to add course');
-                },
-            }
-        );
     };
 
     useEffect(() => {
@@ -419,270 +374,292 @@ export const StepTwoForm = ({
                         onSubmit={form.handleSubmit(onSubmit)}
                         className="flex flex-col gap-6"
                     >
-                        <FormItemWrapper<StepTwoData> control={form.control} name="fullName">
-                            <FormStepHeading stepNumber={2} heading="General Details" />
+                        <FormItemWrapper<StepTwoData> control={form.control} name="full_name">
+                            <FormStepHeading stepNumber={2} heading="Personal Details" />
                         </FormItemWrapper>
 
                         <div className="flex flex-col gap-8">
-                            <FormField
-                                control={form.control}
-                                name="fullName"
-                                render={({ field: { onChange, value, ...field } }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <MyInput
-                                                inputType="text"
-                                                label="Full Name"
-                                                inputPlaceholder="Full name (First and Last)"
-                                                input={value}
-                                                onChangeFunction={onChange}
-                                                error={form.formState.errors.fullName?.message}
-                                                required={true}
-                                                size="large"
-                                                className="w-full"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="course"
-                                render={({ field: { value } }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <div className="flex flex-col gap-1">
-                                                <div>
-                                                    {getTerminology(
-                                                        ContentTerms.Course,
-                                                        SystemTerms.Course
-                                                    )}
-                                                    <span className="text-subtitle text-danger-600">
-                                                        *
-                                                    </span>
-                                                </div>
-                                                <MyDropdown
-                                                    currentValue={value.name}
-                                                    dropdownList={courseList}
-                                                    handleChange={handleCourseChange}
-                                                    placeholder={`Select ${getTerminology(
-                                                        ContentTerms.Course,
-                                                        SystemTerms.Course
-                                                    )}`}
-                                                    error={
-                                                        form.formState.errors.course?.id?.message ||
-                                                        form.formState.errors.course?.name?.message
-                                                    }
-                                                    required={true}
-                                                    showAddCourseButton={true}
-                                                    onAddCourse={handleAddCourse}
-                                                />
-                                            </div>
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
+                            {/* System Fields */}
+                            {systemFieldsConfig.map((fieldConfig) => {
+                                const fieldKey = fieldConfig.key;
 
-                            <FormField
-                                control={form.control}
-                                name="session"
-                                render={({ field: { value } }) => (
-                                    <FormItem className="w-full">
-                                        <FormControl>
-                                            <div className="flex flex-col gap-1">
-                                                <div>
-                                                    {getTerminology(
-                                                        ContentTerms.Session,
-                                                        SystemTerms.Session
-                                                    )}{' '}
-                                                    <span className="text-subtitle text-danger-600">
-                                                        *
-                                                    </span>
-                                                </div>
-                                                <MyDropdown
-                                                    currentValue={value}
-                                                    dropdownList={sessionList}
-                                                    handleChange={handleSessionChange}
-                                                    placeholder={`Select ${getTerminology(
-                                                        ContentTerms.Session,
-                                                        SystemTerms.Session
-                                                    )}`}
-                                                    error={
-                                                        form.formState.errors.session?.id
-                                                            ?.message ||
-                                                        form.formState.errors.session?.name?.message
-                                                    }
-                                                    required={true}
-                                                    showAddSessionButton={true}
-                                                    onAddSession={handleAddSession}
-                                                    disable={!courseValue?.id}
-                                                />
-                                            </div>
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
+                                // Special handling for phone number field
+                                if (fieldConfig.type === 'tel' && fieldKey === 'mobile_number') {
+                                    return (
+                                        <FormField
+                                            key={fieldKey}
+                                            control={form.control}
+                                            name={fieldKey}
+                                            render={() => (
+                                                <FormItem>
+                                                    <FormControl>
+                                                        <PhoneInputField
+                                                            label={fieldConfig.label}
+                                                            placeholder="123 456 7890"
+                                                            name={fieldKey}
+                                                            control={form.control}
+                                                            country="in"
+                                                            required={fieldConfig.required}
+                                                        />
+                                                    </FormControl>
+                                                </FormItem>
+                                            )}
+                                        />
+                                    );
+                                }
 
-                            <FormField
-                                control={form.control}
-                                name="level"
-                                render={({ field: { value } }) => (
-                                    <FormItem className="w-full">
-                                        <FormControl>
-                                            <div className="flex flex-col gap-1">
-                                                <div>
-                                                    {getTerminology(
-                                                        ContentTerms.Level,
-                                                        SystemTerms.Level
-                                                    )}{' '}
-                                                    <span className="text-subtitle text-danger-600">
-                                                        *
-                                                    </span>
-                                                </div>
-                                                <MyDropdown
-                                                    currentValue={value.name}
-                                                    dropdownList={levelList}
-                                                    handleChange={handleLevelChange}
-                                                    placeholder={`Select ${getTerminology(
-                                                        ContentTerms.Level,
-                                                        SystemTerms.Level
-                                                    )}`}
-                                                    error={
-                                                        form.formState.errors.level?.id?.message ||
-                                                        form.formState.errors.level?.name?.message
-                                                    }
-                                                    required={true}
-                                                    showAddLevelButton={true}
-                                                    onAddLevel={handleAddLevel}
-                                                    packageId={courseValue?.id ?? ''}
-                                                    disableAddLevelButton={courseValue?.id === ''}
-                                                    disable={!sessionValue?.id}
-                                                />
-                                            </div>
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
+                                // Special handling for other phone fields
+                                if (
+                                    fieldConfig.type === 'tel' &&
+                                    (fieldKey === 'parents_mobile_number' ||
+                                        fieldKey === 'parents_to_mother_mobile_number')
+                                ) {
+                                    return (
+                                        <FormField
+                                            key={fieldKey}
+                                            control={form.control}
+                                            name={fieldKey}
+                                            render={() => (
+                                                <FormItem>
+                                                    <FormControl>
+                                                        <PhoneInputField
+                                                            label={fieldConfig.label}
+                                                            placeholder="123 456 7890"
+                                                            name={fieldKey}
+                                                            control={form.control}
+                                                            country="in"
+                                                            required={fieldConfig.required}
+                                                        />
+                                                    </FormControl>
+                                                </FormItem>
+                                            )}
+                                        />
+                                    );
+                                }
 
-                            <FormField
-                                control={form.control}
-                                name="accessDays"
-                                render={({ field: { onChange, value, ...field } }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <MyInput
-                                                inputType="number"
-                                                label="Enter access days"
-                                                inputPlaceholder="Eg. 365"
-                                                input={value}
-                                                onChangeFunction={(e) => {
-                                                    const numValue = Math.floor(
-                                                        Number(e.target.value)
-                                                    );
-                                                    if (!isNaN(numValue)) {
-                                                        onChange(String(numValue));
-                                                    }
-                                                }}
-                                                error={form.formState.errors.accessDays?.message}
-                                                required={true}
-                                                size="large"
-                                                className="w-full"
-                                                {...field}
-                                                step="1"
-                                                min="1"
-                                                onWheel={(e) => e.currentTarget.blur()}
-                                            />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
-                            <div className="flex items-end justify-between gap-4">
-                                <div className="w-full">
+                                // Special handling for gender field - dropdown
+                                if (fieldKey === 'gender') {
+                                    const genderOptions = [
+                                        { id: 'MALE', name: 'Male' },
+                                        { id: 'FEMALE', name: 'Female' },
+                                        { id: 'OTHER', name: 'Other' },
+                                    ];
+
+                                    return (
+                                        <FormField
+                                            key={fieldKey}
+                                            control={form.control}
+                                            name={fieldKey}
+                                            render={({ field }) => {
+                                                const selectedGender = field.value
+                                                    ? genderOptions.find(
+                                                          (option) => option.id === field.value
+                                                      )
+                                                    : undefined;
+
+                                                return (
+                                                    <FormItem>
+                                                        <FormControl>
+                                                            <div className="flex flex-col gap-1">
+                                                                <label className="text-sm font-medium">
+                                                                    {fieldConfig.label}
+                                                                    {fieldConfig.required && (
+                                                                        <span className="ml-1 text-danger-600">
+                                                                            *
+                                                                        </span>
+                                                                    )}
+                                                                </label>
+                                                                <MyDropdown
+                                                                    currentValue={selectedGender}
+                                                                    dropdownList={genderOptions}
+                                                                    handleChange={(value) => {
+                                                                        if (
+                                                                            typeof value ===
+                                                                                'object' &&
+                                                                            'id' in value
+                                                                        ) {
+                                                                            field.onChange(
+                                                                                value.id
+                                                                            );
+                                                                        }
+                                                                    }}
+                                                                    placeholder="Select Gender"
+                                                                    error={
+                                                                        form.formState.errors.gender
+                                                                            ?.message as string
+                                                                    }
+                                                                    required={fieldConfig.required}
+                                                                    disable={false}
+                                                                />
+                                                            </div>
+                                                        </FormControl>
+                                                    </FormItem>
+                                                );
+                                            }}
+                                        />
+                                    );
+                                }
+
+                                // Standard input fields
+                                return (
                                     <FormField
+                                        key={fieldKey}
                                         control={form.control}
-                                        name="enrollmentNumber"
+                                        name={fieldKey}
                                         render={({ field: { onChange, value, ...field } }) => (
                                             <FormItem>
                                                 <FormControl>
                                                     <MyInput
-                                                        inputType="text"
-                                                        label="Enrollment Number"
-                                                        inputPlaceholder="123456"
-                                                        input={value}
+                                                        inputType={fieldConfig.type}
+                                                        label={fieldConfig.label}
+                                                        inputPlaceholder={`Enter ${fieldConfig.label}`}
+                                                        input={(value as string) || ''}
                                                         onChangeFunction={onChange}
                                                         error={
-                                                            form.formState.errors.enrollmentNumber
-                                                                ?.message
+                                                            form.formState.errors[fieldKey]
+                                                                ?.message as string
                                                         }
-                                                        required={true}
+                                                        required={fieldConfig.required}
                                                         size="large"
                                                         className="w-full"
                                                         {...field}
-                                                        onWheel={(e) => e.currentTarget.blur()}
                                                     />
                                                 </FormControl>
                                             </FormItem>
                                         )}
                                     />
-                                </div>
-                                <MyButton
-                                    type="button"
-                                    buttonType="secondary"
-                                    scale="large"
-                                    onClick={handleGenerateEnrollNum}
-                                >
-                                    Auto Generate
-                                </MyButton>
-                            </div>
+                                );
+                            })}
 
-                            <FormField
-                                control={form.control}
-                                name="gender"
-                                render={({ field: { onChange, value } }) => (
-                                    <FormItem className="w-full">
-                                        <FormControl>
-                                            <div className="flex flex-col gap-1">
-                                                <div>
-                                                    Gender{' '}
-                                                    <span className="text-subtitle text-danger-600">
-                                                        *
-                                                    </span>
-                                                </div>
-                                                <MyDropdown
-                                                    currentValue={value}
-                                                    dropdownList={genderList}
-                                                    handleChange={onChange}
-                                                    placeholder="Select Gender"
-                                                    error={form.formState.errors.gender?.message}
-                                                    required={true}
+                            {/* Custom Fields */}
+                            {customFieldsConfig.length > 0 && (
+                                <>
+                                    <div className="mt-4 border-t pt-4">
+                                        <h3 className="text-h6 mb-4 font-semibold">
+                                            Additional Information
+                                        </h3>
+                                    </div>
+                                    {customFieldsConfig.map((customField: CustomField) => {
+                                        const customFieldKey = `custom_fields.${customField.id}`;
+
+                                        if (customField.type === 'dropdown') {
+                                            // Convert options to dropdown format
+                                            const dropdownOptions =
+                                                customField.options?.map((option) => ({
+                                                    id: option,
+                                                    name: option,
+                                                })) || [];
+
+                                            return (
+                                                <FormField
+                                                    key={customField.id}
+                                                    control={form.control}
+                                                    name="custom_fields"
+                                                    render={({ field }) => {
+                                                        const currentValue =
+                                                            field.value?.[customField.id];
+                                                        const selectedOption = currentValue
+                                                            ? {
+                                                                  id: currentValue,
+                                                                  name: currentValue,
+                                                              }
+                                                            : undefined;
+
+                                                        return (
+                                                            <FormItem>
+                                                                <FormControl>
+                                                                    <div className="flex flex-col gap-1">
+                                                                        <label className="text-sm font-medium">
+                                                                            {customField.name}
+                                                                            {customField.required && (
+                                                                                <span className="ml-1 text-danger-600">
+                                                                                    *
+                                                                                </span>
+                                                                            )}
+                                                                        </label>
+                                                                        <MyDropdown
+                                                                            currentValue={
+                                                                                selectedOption
+                                                                            }
+                                                                            dropdownList={
+                                                                                dropdownOptions
+                                                                            }
+                                                                            handleChange={(
+                                                                                value
+                                                                            ) => {
+                                                                                if (
+                                                                                    typeof value ===
+                                                                                        'object' &&
+                                                                                    'id' in value
+                                                                                ) {
+                                                                                    const newCustomFields =
+                                                                                        {
+                                                                                            ...(field.value ||
+                                                                                                {}),
+                                                                                            [customField.id]:
+                                                                                                value.id,
+                                                                                        };
+                                                                                    field.onChange(
+                                                                                        newCustomFields
+                                                                                    );
+                                                                                }
+                                                                            }}
+                                                                            placeholder={`Select ${customField.name}`}
+                                                                            required={
+                                                                                customField.required
+                                                                            }
+                                                                            disable={false}
+                                                                        />
+                                                                    </div>
+                                                                </FormControl>
+                                                            </FormItem>
+                                                        );
+                                                    }}
                                                 />
-                                            </div>
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="collegeName"
-                                render={({ field: { onChange, value, ...field } }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <MyInput
-                                                inputType="text"
-                                                label="College/School Name"
-                                                inputPlaceholder="Enter Student's College/School Name"
-                                                input={value}
-                                                onChangeFunction={onChange}
-                                                error={form.formState.errors.collegeName?.message}
-                                                size="large"
-                                                className="w-full"
-                                                {...field}
+                                            );
+                                        }
+
+                                        // Text/Number custom fields
+                                        return (
+                                            <FormField
+                                                key={customField.id}
+                                                control={form.control}
+                                                name="custom_fields"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormControl>
+                                                            <MyInput
+                                                                inputType={
+                                                                    customField.type === 'number'
+                                                                        ? 'number'
+                                                                        : 'text'
+                                                                }
+                                                                label={customField.name}
+                                                                inputPlaceholder={`Enter ${customField.name}`}
+                                                                input={
+                                                                    field.value?.[customField.id] ||
+                                                                    ''
+                                                                }
+                                                                onChangeFunction={(e) => {
+                                                                    const newCustomFields = {
+                                                                        ...(field.value || {}),
+                                                                        [customField.id]:
+                                                                            e.target.value,
+                                                                    };
+                                                                    field.onChange(newCustomFields);
+                                                                }}
+                                                                required={customField.required}
+                                                                size="large"
+                                                                className="w-full"
+                                                            />
+                                                        </FormControl>
+                                                    </FormItem>
+                                                )}
                                             />
-                                        </FormControl>
-                                    </FormItem>
-                                )}
-                            />
+                                        );
+                                    })}
+                                </>
+                            )}
                         </div>
                     </form>
                 </Form>

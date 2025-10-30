@@ -160,6 +160,7 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
             payment_status: '',
             attendance_percent: 0,
             referral_count: 0,
+            custom_fields: {},
         }));
     };
 
@@ -311,7 +312,7 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
                 <div className="flex items-center gap-2 text-primary-500">
                     <button
                         type="button"
-                        className="hover:text-primary-600 flex items-center gap-2 rounded-sm text-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                        className="flex items-center gap-2 rounded-sm text-primary-500 transition-colors hover:text-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                         onClick={handleOpenDialog}
                     >
                         <span>View Attendance Report</span>

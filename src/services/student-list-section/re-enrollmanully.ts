@@ -4,10 +4,7 @@ import { EnrollStudentRequest } from '@/types/students/type-enroll-student-manua
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 
-export const reEnrollStudent = async ({
-    formData,
-    packageSessionId,
-}: EnrollStudentRequest): Promise<string> => {
+export const reEnrollStudent = async ({ formData }: EnrollStudentRequest): Promise<string> => {
     try {
         const accessToken = getTokenFromCookie(TokenKey.accessToken);
         const tokenData = getTokenDecodedData(accessToken);
@@ -16,44 +13,47 @@ export const reEnrollStudent = async ({
 
         const INSTITUTE_ID = instituteIds[0];
 
+        // Build payment_initiation_request
+        const paymentInitiationRequest = {
+            amount: parseFloat(formData.stepFourData?.amount || '0'),
+            currency: formData.stepFourData?.currency || 'INR',
+            manual_request: {
+                file_id: formData.stepFourData?.file_id || undefined,
+                transaction_id: formData.stepFourData?.transaction_id || undefined,
+            },
+        };
+
+        // Build learner_extra_details object with parent/guardian fields
+        const learnerExtraDetails = {
+            fathers_name: formData.stepTwoData?.father_name || undefined,
+            mothers_name: formData.stepTwoData?.mother_name || undefined,
+            parents_mobile_number: formData.stepTwoData?.parents_mobile_number || undefined,
+            parents_email: formData.stepTwoData?.parents_email || undefined,
+            parents_to_mother_mobile_number:
+                formData.stepTwoData?.parents_to_mother_mobile_number || undefined,
+            parents_to_mother_email: formData.stepTwoData?.parents_to_mother_email || undefined,
+            linked_institute_name: formData.stepTwoData?.linked_institute_name || undefined,
+        };
+
         const requestBody = {
-            user_details: {
-                username: formData.stepFiveData?.username ?? '',
-                email: formData.stepThreeData?.email ?? '',
-                full_name: formData.stepTwoData?.fullName ?? '',
-                address_line: formData.stepThreeData?.addressLine ?? '',
-                city: formData.stepThreeData?.city ?? '',
-                region: formData.stepThreeData?.state ?? '',
-                pin_code: formData.stepThreeData?.pincode ?? '',
-                mobile_number: formData.stepThreeData?.mobileNumber ?? '',
-                date_of_birth: '',
-                gender: formData.stepTwoData?.gender?.name ?? '',
-                password: formData.stepFiveData?.password ?? '',
-                profile_pic_file_id: formData.stepOneData?.profilePicture ?? '', // ✅ safe fallback
-                roles: ['STUDENT'],
-                root_user: false,
+            user: {
+                full_name: formData.stepTwoData?.full_name || '',
+                email: formData.stepTwoData?.email || '',
+                mobile_number: formData.stepTwoData?.mobile_number || '',
+                username: formData.stepFiveData?.username || '',
+                password: formData.stepFiveData?.password || '',
+                gender: formData.stepTwoData?.gender || undefined,
+                date_of_birth: formData.stepTwoData?.date_of_birth || undefined,
             },
-            student_extra_details: {
-                fathers_name: formData.stepFourData?.fatherName ?? '',
-                mothers_name: formData.stepFourData?.motherName ?? '',
-                parents_mobile_number: formData.stepFourData?.guardianMobileNumber ?? '',
-                parents_email: formData.stepFourData?.guardianEmail ?? '',
-                linked_institute_name: formData.stepTwoData?.collegeName ?? '',
-                parents_to_mother_mobile_number: formData.stepFourData?.motherMobileNumber ?? '',
-                parents_to_mother_email: formData.stepFourData?.motherEmail ?? '',
+            institute_id: INSTITUTE_ID,
+            learner_package_session_enroll: {
+                package_session_ids: formData.stepThreeData?.invite?.package_session_ids || [],
+                enroll_invite_id: formData.stepThreeData?.invite?.id || '',
+                payment_option_id: formData.stepThreeData?.invite?.payment_option_id || '',
+                plan_id: formData.stepFourData?.plan_id || undefined,
+                payment_initiation_request: paymentInitiationRequest,
+                learner_extra_details: learnerExtraDetails,
             },
-            institute_student_details: {
-                institute_id: INSTITUTE_ID,
-                package_session_id: packageSessionId,
-                enrollment_id: formData.stepTwoData?.enrollmentNumber ?? '',
-                enrollment_status: 'ACTIVE',
-                enrollment_date: new Date().toISOString(),
-                group_id: null,
-                access_days: formData.stepTwoData?.accessDays ?? '',
-            },
-            status: true,
-            status_message: '',
-            error_message: '',
         };
 
         const response = await authenticatedAxiosInstance.post(
@@ -62,8 +62,9 @@ export const reEnrollStudent = async ({
         );
 
         return response.data;
-    } catch (error: any) {
-        console.error('[ReEnrollStudent Error]', error?.message || error);
-        throw new Error(error?.response?.data?.message || 'Failed to re-enroll student.');
+    } catch (error: unknown) {
+        const err = error as { message?: string; response?: { data?: { message?: string } } };
+        console.error('[ReEnrollStudent Error]', err?.message || error);
+        throw new Error(err?.response?.data?.message || 'Failed to re-enroll student.');
     }
 };

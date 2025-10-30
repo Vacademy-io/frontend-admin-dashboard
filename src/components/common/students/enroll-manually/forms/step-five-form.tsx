@@ -12,7 +12,6 @@ import {
 } from '@/schemas/student/student-list/schema-enroll-students-manually';
 import { useEnrollStudent } from '@/hooks/student-list-section/enroll-student-manually/useEnrollStudent';
 import { useEffect, useRef, useState } from 'react';
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { toast } from 'sonner';
 import { StudentTable, StudentCredentialsType } from '@/types/student-table-types';
 import { useReEnrollStudent } from '@/hooks/student-list-section/enroll-student-manually/useReEnrollStudent';
@@ -48,26 +47,11 @@ export const StepFiveForm = ({
 
     useEffect(() => {
         handleNextButtonDisable(!showCredentials);
-    }, [showCredentials]);
+    }, [showCredentials, handleNextButtonDisable]);
 
-    const { getPackageSessionId } = useInstituteDetailsStore();
-    const [packageSessionId, setPackageSessionId] = useState(
-        getPackageSessionId({
-            courseId: stepTwoData?.course.id || '',
-            levelId: stepTwoData?.level.id || '',
-            sessionId: stepTwoData?.session.id || '',
-        })
-    );
-
-    useEffect(() => {
-        setPackageSessionId(
-            getPackageSessionId({
-                courseId: stepTwoData?.course.id || '',
-                levelId: stepTwoData?.level.id || '',
-                sessionId: stepTwoData?.session.id || '',
-            })
-        );
-    }, [stepTwoData?.course, stepTwoData?.level, stepTwoData?.session]);
+    // Package session IDs now come from invite in step 3
+    // No need to use getPackageSessionId since we get them from package_session_to_payment_options
+    const packageSessionId = stepThreeData?.invite?.package_session_ids?.[0] || '';
 
     const form = useForm<StepFiveData>({
         resolver: zodResolver(stepFiveSchema),
@@ -80,7 +64,7 @@ export const StepFiveForm = ({
 
     const generateUsername = () => {
         let namePart =
-            stepTwoData?.fullName.replace(/\s+/g, '').substring(0, 4).toLowerCase() || '';
+            stepTwoData?.full_name?.replace(/\s+/g, '').substring(0, 4).toLowerCase() || '';
         while (namePart.length < 4) namePart += 'X';
         return namePart + Math.floor(1000 + Math.random() * 9000).toString();
     };
@@ -104,7 +88,8 @@ export const StepFiveForm = ({
     const onSubmit = async (values: StepFiveData) => {
         setStepFiveData(values);
 
-        if (!stepOneData || !stepTwoData || !stepThreeData || !stepFourData) {
+        // Step 4 (payment) is optional, so we only check for steps 1, 2, and 3
+        if (!stepOneData || !stepTwoData || !stepThreeData) {
             toast.error(
                 'Some form steps are incomplete. Please complete all steps before submitting.'
             );
