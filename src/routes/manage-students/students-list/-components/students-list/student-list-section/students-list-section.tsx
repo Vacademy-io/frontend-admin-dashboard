@@ -10,7 +10,10 @@ import { StudentFilters } from './student-filters';
 import { useStudentFilters } from '@/routes/manage-students/students-list/-hooks/useStudentFilters';
 import { useStudentTable } from '@/routes/manage-students/students-list/-hooks/useStudentTable';
 import { StudentTable } from '@/types/student-table-types';
-import { myColumns } from '@/components/design-system/utils/constants/table-column-data';
+import {
+    getColumnsVisibility,
+    getCustomColumns,
+} from '@/components/design-system/utils/constants/table-column-data';
 import { STUDENT_LIST_COLUMN_WIDTHS } from '@/components/design-system/utils/constants/table-layout';
 import { BulkActions } from './bulk-actions/bulk-actions';
 import { OnChangeFn, RowSelectionState } from '@tanstack/react-table';
@@ -324,7 +327,10 @@ export const StudentsListSection = () => {
                                                 total_elements: studentTableData.total_elements,
                                                 last: studentTableData.last,
                                             }}
-                                            columns={myColumns}
+                                            columns={getCustomColumns()}
+                                            tableState={{
+                                                columnVisibility: getColumnsVisibility(),
+                                            }}
                                             isLoading={loadingData}
                                             error={loadingError}
                                             onSort={handleSort}
@@ -332,11 +338,6 @@ export const StudentsListSection = () => {
                                             rowSelection={currentPageSelection}
                                             onRowSelectionChange={handleRowSelectionChange}
                                             currentPage={page}
-                                            tableState={{
-                                                columnVisibility: {
-                                                    referral_count: false,
-                                                },
-                                            }}
                                         />
                                         <div>
                                             <StudentSidebar

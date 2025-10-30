@@ -65,6 +65,7 @@ export interface StudentTable {
     destination_package_session_id: string;
     enroll_invite_id: string;
     payment_status: string;
+    custom_fields: Record<string, string | null>;
 }
 
 export interface StudentListResponse {

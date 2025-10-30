@@ -30,6 +30,10 @@ import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { StudentTable } from '@/types/student-table-types';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { getFieldsForLocation, type FieldForLocation } from '@/lib/custom-fields/utils';
+import { getCustomFieldSettingsFromCache } from '@/services/custom-field-settings';
+import type { FieldGroup } from '@/services/custom-field-settings';
+import { Tag, Folders } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -47,6 +51,8 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
     const [overviewData, setOverviewData] = useState<OverviewDetailsType[] | null>(null);
     const [daysUntilExpiry, setDaysUntilExpiry] = useState<number>(0);
     const [copiedField, setCopiedField] = useState<string>('');
+    const [customFields, setCustomFields] = useState<FieldForLocation[]>([]);
+    const [fieldGroups, setFieldGroups] = useState<FieldGroup[]>([]);
     const userId = isSubmissionTab ? selectedStudent?.id : selectedStudent?.user_id;
     const { data: studentDetails, isLoading, isError, error } = useGetStudentDetails(userId || '');
 
@@ -67,6 +73,44 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
         openIndividualSendEmailDialog,
         openIndividualSendMessageDialog,
     } = useDialogStore();
+
+    // Load custom fields and groups for Learner Profile location
+    useEffect(() => {
+        // Get all fields for Learner Profile
+        const fields = getFieldsForLocation('Learner Profile');
+        // Get the full settings to access groups
+        const settings = getCustomFieldSettingsFromCache();
+
+        if (settings) {
+            // Get the visibility key for Learner Profile
+            const visibilityKey = 'learnerProfile';
+
+            // Filter groups that have at least one field visible in Learner Profile
+            const visibleGroups = settings.fieldGroups.filter((group) => {
+                return group.fields.some((field) => field.visibility[visibilityKey]);
+            });
+
+            // For each visible group, filter to only include fields visible in Learner Profile
+            const filteredGroups = visibleGroups.map((group) => ({
+                ...group,
+                fields: group.fields.filter((field) => field.visibility[visibilityKey]),
+            }));
+
+            // Get field IDs that are in groups
+            const fieldIdsInGroups = new Set(
+                filteredGroups.flatMap((group) => group.fields.map((f) => f.id))
+            );
+
+            // Filter out fields that are already in groups
+            const individualFields = fields.filter((field) => !fieldIdsInGroups.has(field.id));
+
+            setCustomFields(individualFields);
+            setFieldGroups(filteredGroups);
+        } else {
+            setCustomFields(fields);
+            setFieldGroups([]);
+        }
+    }, []);
 
     // Copy function with feedback
     const handleCopy = async (text: string, fieldName: string) => {
@@ -267,7 +311,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                                 openIndividualSendEmailDialog(selectedStudent);
                             }
                         }}
-                        className="hover:scale-102 group flex flex-1 cursor-pointer items-center justify-center gap-1.5 border border-blue-200 bg-white text-xs text-blue-700 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50"
+                        className="group flex flex-1 cursor-pointer items-center justify-center gap-1.5 border border-blue-200 bg-white text-xs text-blue-700 transition-all duration-200 hover:scale-100 hover:border-blue-300 hover:bg-blue-50"
                         style={{ pointerEvents: 'auto', zIndex: 10 }}
                     >
                         <Envelope className="size-3 transition-transform duration-200 group-hover:scale-110" />
@@ -284,7 +328,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                                 openIndividualSendMessageDialog(selectedStudent);
                             }
                         }}
-                        className="hover:scale-102 group flex flex-1 cursor-pointer items-center justify-center gap-1.5 border border-green-200 bg-white text-xs text-green-700 transition-all duration-200 hover:border-green-300 hover:bg-green-50"
+                        className="group flex flex-1 cursor-pointer items-center justify-center gap-1.5 border border-green-200 bg-white text-xs text-green-700 transition-all duration-200 hover:scale-100 hover:border-green-300 hover:bg-green-50"
                         style={{ pointerEvents: 'auto', zIndex: 10 }}
                     >
                         <WhatsappLogo className="size-3 transition-transform duration-200 group-hover:scale-110" />
@@ -612,6 +656,146 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                     </div>
                 )}
             </div>
+
+            {/* Custom Fields Section */}
+            {(customFields.length > 0 || fieldGroups.length > 0) && (
+                <div className="space-y-2.5">
+                    {/* Field Groups */}
+                    {fieldGroups.map((group) => (
+                        <div key={group.id} className="group">
+                            <div className="rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-blue-50/20 p-2.5 transition-all duration-200 hover:scale-[1.01] hover:border-blue-200/50 hover:shadow-md">
+                                {/* Group header */}
+                                <div className="mb-2 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="rounded-md bg-gradient-to-br from-blue-50 to-blue-100 p-1 transition-transform duration-200 group-hover:scale-105">
+                                            <Folders className="size-3.5 text-blue-600" />
+                                        </div>
+                                        <h3 className="text-xs font-semibold text-neutral-700 ">
+                                            {group.name}
+                                        </h3>
+                                    </div>
+                                </div>
+
+                                {/* Group fields content */}
+                                <div className="space-y-1">
+                                    {group.fields.map((field) => {
+                                        const value =
+                                            selectedStudent?.custom_fields?.[field.id] || 'N/A';
+                                        const canCopy =
+                                            value &&
+                                            value !== 'N/A' &&
+                                            value !== 'null' &&
+                                            value !== '';
+
+                                        return (
+                                            <div
+                                                key={field.id}
+                                                className="flex items-start gap-2 rounded-md px-1.5 py-1"
+                                            >
+                                                <div className="mt-1.5 size-1 shrink-0 rounded-full bg-neutral-300"></div>
+                                                <div className="min-w-0 flex-1 text-xs leading-relaxed text-neutral-700">
+                                                    <span className="font-medium text-neutral-600">
+                                                        {field.name}:{' '}
+                                                    </span>
+                                                    <span className="group/value relative inline-flex items-center text-neutral-800">
+                                                        <span>{value}</span>
+                                                        {canCopy && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    handleCopy(value, field.name)
+                                                                }
+                                                                className="ml-2 cursor-pointer rounded-md p-1 hover:bg-neutral-200"
+                                                                style={{
+                                                                    pointerEvents: 'auto',
+                                                                }}
+                                                            >
+                                                                {copiedField === field.name ? (
+                                                                    <Check className="size-3 text-green-600" />
+                                                                ) : (
+                                                                    <Copy className="size-3 text-neutral-500 hover:text-neutral-700" />
+                                                                )}
+                                                            </button>
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+
+                    {/* Individual Custom Fields */}
+                    {customFields.length > 0 && (
+                        <div className="group">
+                            <div className="rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 p-2.5 transition-all duration-200 hover:scale-[1.01] hover:border-purple-200/50 hover:shadow-md">
+                                {/* Section header */}
+                                <div className="mb-2 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="rounded-md bg-gradient-to-br from-purple-50 to-purple-100 p-1 transition-transform duration-200 group-hover:scale-105">
+                                            <Tag className="size-3.5 text-purple-600" />
+                                        </div>
+                                        <h3 className="text-xs font-semibold text-neutral-700 transition-colors duration-200 group-hover:text-purple-700">
+                                            Custom Fields
+                                        </h3>
+                                    </div>
+                                </div>
+
+                                {/* Custom fields content */}
+                                <div className="space-y-1">
+                                    {customFields.map((field) => {
+                                        // Get the value from student's custom_fields object
+                                        const value =
+                                            selectedStudent?.custom_fields?.[field.id] || 'N/A';
+                                        const canCopy =
+                                            value &&
+                                            value !== 'N/A' &&
+                                            value !== 'null' &&
+                                            value !== '';
+
+                                        return (
+                                            <div
+                                                key={field.id}
+                                                className="flex items-start gap-2 rounded-md px-1.5 py-1"
+                                            >
+                                                <div className="mt-1.5 size-1 shrink-0 rounded-full bg-neutral-300"></div>
+                                                <div className="min-w-0 flex-1 text-xs leading-relaxed text-neutral-700">
+                                                    <span className="font-medium text-neutral-600">
+                                                        {field.name}:{' '}
+                                                    </span>
+                                                    <span className="group/value relative inline-flex items-center text-neutral-800">
+                                                        <span>{value}</span>
+                                                        {canCopy && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    handleCopy(value, field.name)
+                                                                }
+                                                                className="ml-2 cursor-pointer rounded-md p-1 hover:bg-neutral-200"
+                                                                style={{
+                                                                    pointerEvents: 'auto',
+                                                                }}
+                                                            >
+                                                                {copiedField === field.name ? (
+                                                                    <Check className="size-3 text-green-600" />
+                                                                ) : (
+                                                                    <Copy className="size-3 text-neutral-500 hover:text-neutral-700" />
+                                                                )}
+                                                            </button>
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 };

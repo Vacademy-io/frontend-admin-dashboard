@@ -39,11 +39,11 @@ export const UPDATE_ADMIN_DETAILS_URL = `${BASE_URL}/auth-service/v1/user-detail
 export const GET_DASHBOARD_ASSESSMENT_COUNT_URL = `${BASE_URL}/assessment-service/assessment/admin/dashboard/get-count`;
 export const INIT_INSTITUTE = `${BASE_URL}/admin-core-service/institute/v1/details`;
 export const ADMIN_DETAILS_URL = `${BASE_URL}/auth-service/v1/user-details/get`;
-export const GET_STUDENTS = `${BASE_URL}/admin-core-service/institute/institute_learner/get/v1/all`;
+export const GET_STUDENTS = `${BASE_URL}/admin-core-service/institute/institute_learner/get/v2/all`;
 export const GET_ASSESSMENT_DETAILS = `${BASE_URL}/assessment-service/assessment/create/v1/status`;
 export const GET_STUDENTS_CSV = `${BASE_URL}/admin-core-service/institute/institute_learner/get/v1/all-csv`;
 
-export const ENROLL_STUDENT_MANUALLY = `${BASE_URL}/admin-core-service/institute/institute_learner/v1/add-institute_learner`;
+export const ENROLL_STUDENT_MANUALLY = `${BASE_URL}/admin-core-service/institute/institute_learner/v1/learner/enroll`;
 export const RE_ENROLL_STUDENT_MANUALLY = `${BASE_URL}/admin-core-service/institute/institute_learner-operation/v1/re-enroll-learner`;
 export const ENROLL_REQUESTS_LISTS = `${BASE_URL}/admin-core-service/institute/institute_learner/get/v2/all`;
 export const APPROVE_ENROLL_REQUESTS = `${BASE_URL}/admin-core-service/institute/learner-batch/v1/approve-learner-request-bulk`;
@@ -344,6 +344,8 @@ export const LIVE_SESSION_ALL_ATTENDANCE = `${BASE_URL}/admin-core-service/live-
 export const REFERRAL_API_BASE = `${BASE_URL}/admin-core-service/v1/referral-option`;
 export const REFERRAL_DELETE = `${BASE_URL}/admin-core-service/v1/referral-option/referral-option`;
 
+export const GET_INSITITUTE_SETTINGS = `${BASE_URL}/admin-core-service/institute/setting/v1/get`;
+export const UPDATE_CUSTOM_FIELD_SETTINGS = `${BASE_URL}/admin-core-service/institute/v1/custom-field/create-or-update`;
 // Message Templates
 export const MESSAGE_TEMPLATE_BASE = `${BASE_URL}/admin-core-service/institute/template/v1`;
 export const CREATE_MESSAGE_TEMPLATE = `${MESSAGE_TEMPLATE_BASE}/create`;

@@ -90,6 +90,7 @@ export const enum SettingsTabs {
     AdminDisplay = 'adminDisplay',
     TeacherDisplay = 'teacherDisplay',
     StudentDisplay = 'studentDisplay',
+    CustomFields = 'customFields',
     Certificates = 'certificates',
     Templates = 'templates',
 }

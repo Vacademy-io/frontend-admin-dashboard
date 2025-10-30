@@ -27,6 +27,7 @@ import { ReferralProgramDialog } from './ReferralProgramDialog';
 import InstituteBrandingCard from './-components/InstituteBrandingCard';
 import CoursePreviewCard from './-components/CoursePreviewCard';
 import PaymentPlanCard from './-components/PaymentPlanCard';
+import { getInviteListCustomFields } from '../../-utils/getInviteListCustomFields';
 import PlanReferralMappingCard from './-components/PlanReferralMappingCard';
 import { PlanReferralConfigDialog } from './PlanReferralConfigDialog';
 import RestrictSameBatch from './-components/RestrictSameBatch';
@@ -105,35 +106,7 @@ const GenerateInviteLinkDialog = ({
             courseBannerBlob: '',
             courseMediaBlob: '',
             tags: [],
-            custom_fields: [
-                {
-                    id: '0',
-                    type: 'textfield',
-                    name: 'Full Name',
-                    oldKey: true,
-                    isRequired: true,
-                    key: 'full_name',
-                    order: 0,
-                },
-                {
-                    id: '1',
-                    type: 'textfield',
-                    name: 'Email',
-                    oldKey: true,
-                    isRequired: true,
-                    key: 'email',
-                    order: 1,
-                },
-                {
-                    id: '2',
-                    type: 'textfield',
-                    name: 'Phone Number',
-                    oldKey: true,
-                    isRequired: true,
-                    key: 'phone_number',
-                    order: 2,
-                },
-            ],
+            custom_fields: getInviteListCustomFields(),
             uploadingStates: {
                 coursePreview: false,
                 courseBanner: false,
@@ -712,48 +685,8 @@ const GenerateInviteLinkDialog = ({
                         ?.includePaymentPlans ?? true,
                 custom_fields:
                     inviteLinkDetails?.institute_custom_fields.length === 0
-                        ? [
-                              {
-                                  id: '0',
-                                  type: 'textfield',
-                                  name: 'Full Name',
-                                  oldKey: true,
-                                  isRequired: true,
-                                  key: 'full_name',
-                                  order: 0,
-                              },
-                              {
-                                  id: '1',
-                                  type: 'textfield',
-                                  name: 'Email',
-                                  oldKey: true,
-                                  isRequired: true,
-                                  key: 'email',
-                                  order: 1,
-                              },
-                              {
-                                  id: '2',
-                                  type: 'textfield',
-                                  name: 'Phone Number',
-                                  oldKey: true,
-                                  isRequired: true,
-                                  key: 'phone_number',
-                                  order: 2,
-                              },
-                          ]
-                        : ReTransformCustomFields(inviteLinkDetails)?.map((field, index) => ({
-                              id: field.id,
-                              type: field.type,
-                              name: field.name,
-                              oldKey: field.oldKey,
-                              isRequired: field.isRequired,
-                              key: field.name.toLowerCase().replace(/\s+/g, '_'),
-                              order: index,
-                              options: field.options?.map((opt, idx) => ({
-                                  id: String(idx),
-                                  value: opt,
-                              })),
-                          })) || [],
+                        ? getInviteListCustomFields()
+                        : ReTransformCustomFields(inviteLinkDetails),
                 freePlans: splitFreePlans,
                 paidPlans: splitPaidPlans.map((plan) => ({
                     ...plan,

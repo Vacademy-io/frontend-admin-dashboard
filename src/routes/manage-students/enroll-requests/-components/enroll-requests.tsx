@@ -3,7 +3,10 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { StudentTable } from '@/types/student-table-types';
 import { useEffect, useRef, useState } from 'react';
 import { StudentSidebar } from '../../students-list/-components/students-list/student-side-view/student-side-view';
-import { enrollRequestColumns } from '@/components/design-system/utils/constants/table-column-data';
+import {
+    getEnrollRequestColumns,
+    getEnrollRequestColumnsVisibility,
+} from '@/components/design-system/utils/constants/table-column-data';
 import { STUDENT_LIST_COLUMN_WIDTHS } from '@/components/design-system/utils/constants/table-layout';
 import { OnChangeFn, RowSelectionState } from '@tanstack/react-table';
 import { MyPagination } from '@/components/design-system/pagination';
@@ -229,10 +232,18 @@ export const EnrollRequests = () => {
         setSelectedFilter((prev) => {
             // For fields that expect MyFilterOption[], keep as is
             // For fields that expect string[], convert to string array
-            const fieldsThatExpectStringArray = ['payment_statuses', 'approval_statuses', 'payment_option', 'sources', 'types', 'type_ids', 'level_ids'];
-            
+            const fieldsThatExpectStringArray = [
+                'payment_statuses',
+                'approval_statuses',
+                'payment_option',
+                'sources',
+                'types',
+                'type_ids',
+                'level_ids',
+            ];
+
             if (fieldsThatExpectStringArray.includes(filterKey)) {
-                const stringValues = selectedItems.map(item => item.name);
+                const stringValues = selectedItems.map((item) => item.name);
                 return { ...prev, [filterKey]: stringValues };
             } else {
                 // Keep as MyFilterOption[] for fields like gender, custom_fields, preferred_batch
@@ -299,9 +310,7 @@ export const EnrollRequests = () => {
                             label="Gender"
                             data={[]}
                             selectedItems={selectedFilter['gender'] || []}
-                            onSelectionChange={(items) =>
-                                handleFilterChange('gender', items)
-                            }
+                            onSelectionChange={(items) => handleFilterChange('gender', items)}
                         />
                         <ScheduleTestFilters
                             label="Preferred Batch"
@@ -314,7 +323,9 @@ export const EnrollRequests = () => {
                         <ScheduleTestFilters
                             label="Payment Status"
                             data={[]}
-                            selectedItems={convertToStringArray(selectedFilter['payment_statuses'] || [])}
+                            selectedItems={convertToStringArray(
+                                selectedFilter['payment_statuses'] || []
+                            )}
                             onSelectionChange={(items) =>
                                 handleFilterChange('payment_statuses', items)
                             }
@@ -322,7 +333,9 @@ export const EnrollRequests = () => {
                         <ScheduleTestFilters
                             label="Approval Status"
                             data={[]}
-                            selectedItems={convertToStringArray(selectedFilter['approval_statuses'] || [])}
+                            selectedItems={convertToStringArray(
+                                selectedFilter['approval_statuses'] || []
+                            )}
                             onSelectionChange={(items) =>
                                 handleFilterChange('approval_statuses', items)
                             }
@@ -330,22 +343,26 @@ export const EnrollRequests = () => {
                         <ScheduleTestFilters
                             label="Payment Option"
                             data={[]}
-                            selectedItems={convertToStringArray(selectedFilter['payment_option'] || [])}
+                            selectedItems={convertToStringArray(
+                                selectedFilter['payment_option'] || []
+                            )}
                             onSelectionChange={(items) =>
                                 handleFilterChange('payment_option', items)
                             }
                         />
                     </div>
                     <Step3ParticipantsFilterButtons
-                        selectedQuestionPaperFilters={{
-                            name: selectedFilter.name,
-                            statuses: selectedFilter.statuses,
-                            institute_ids: selectedFilter.institute_ids,
-                            package_session_ids: selectedFilter.package_session_ids,
-                            group_ids: selectedFilter.group_ids,
-                            gender: selectedFilter.gender,
-                            sort_columns: selectedFilter.sort_columns,
-                        } as any}
+                        selectedQuestionPaperFilters={
+                            {
+                                name: selectedFilter.name,
+                                statuses: selectedFilter.statuses,
+                                institute_ids: selectedFilter.institute_ids,
+                                package_session_ids: selectedFilter.package_session_ids,
+                                group_ids: selectedFilter.group_ids,
+                                gender: selectedFilter.gender,
+                                sort_columns: selectedFilter.sort_columns,
+                            } as any
+                        }
                         handleSubmitFilters={() => {}}
                         handleResetFilters={handleResetFilters}
                     />
@@ -377,7 +394,10 @@ export const EnrollRequests = () => {
                                     total_elements: studentTableData.total_elements,
                                     last: studentTableData.last,
                                 }}
-                                columns={enrollRequestColumns}
+                                columns={getEnrollRequestColumns()}
+                                tableState={{
+                                    columnVisibility: getEnrollRequestColumnsVisibility(),
+                                }}
                                 columnWidths={STUDENT_LIST_COLUMN_WIDTHS}
                                 rowSelection={currentPageSelection}
                                 onRowSelectionChange={handleRowSelectionChange}

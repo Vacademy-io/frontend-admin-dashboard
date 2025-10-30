@@ -165,19 +165,17 @@ function transformCustomFields(customFields: CustomField[], instituteId: string)
             .replace(/\s+/g, '_') // Replace spaces with underscores
             .replace(/([a-z])([A-Z])/g, '$1_$2') // Add underscore between camelCase transitions
             .toLowerCase();
-
     return customFields.map((field, index) => {
         const isDropdown = field.type === 'dropdown';
         const options = isDropdown ? field.options?.map((opt) => opt.value).join(',') : '';
 
         return {
-            // id: crypto.randomUUID(),
             institute_id: instituteId,
             type: field.type,
             type_id: '',
             custom_field: {
                 guestId: '',
-                // id: crypto.randomUUID(),
+                id: field.id,
                 fieldKey: toSnakeCase(field.name),
                 fieldName: field.name,
                 fieldType: field.type,
@@ -206,21 +204,34 @@ function safeJsonParse<T = unknown>(str: string, fallback: T): T {
     }
 }
 
-export function ReTransformCustomFields(customFields: IndividualInviteLinkDetails) {
-    return customFields?.institute_custom_fields?.map((field) => {
+export function ReTransformCustomFields(inviteDetails: IndividualInviteLinkDetails) {
+    return inviteDetails?.institute_custom_fields?.map((field, index) => {
         const config = safeJsonParse<{ coommaSepartedOptions?: string }>(
             field.custom_field.config,
             {}
         );
+
+        // Convert options to the new format with id, value, and disabled
+        const options = config.coommaSepartedOptions
+            ? config.coommaSepartedOptions.split(',').map((option: string, optIndex: number) => ({
+                  id: String(optIndex),
+                  value: option.trim(),
+                  disabled: true,
+              }))
+            : undefined;
+
         return {
             id: field.id,
             type: field.type,
             name: field.custom_field.fieldName,
             oldKey: false,
             isRequired: field.custom_field.isMandatory,
-            options: config.coommaSepartedOptions ? config.coommaSepartedOptions.split(',') : [],
-            _id: '',
-            status: 'ACTIVE',
+            key: field.custom_field.fieldName
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '_')
+                .replace(/^_+|_+$/g, ''),
+            order: index,
+            ...(options && { options }),
         };
     });
 }

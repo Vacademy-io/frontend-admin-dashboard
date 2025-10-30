@@ -19,7 +19,17 @@ import { NamingSettingsType, SettingsTabs } from '@/routes/settings/-constants/t
 const getNamingSettings = (): NamingSettingsType[] => {
     try {
         const saved = localStorage.getItem(StorageKey.NAMING_SETTINGS);
-        return saved ? JSON.parse(saved) : [];
+        if (!saved) return [];
+
+        const parsed = JSON.parse(saved);
+
+        // Ensure the parsed data is an array
+        if (!Array.isArray(parsed)) {
+            console.warn('Naming settings in localStorage is not an array:', parsed);
+            return [];
+        }
+
+        return parsed;
     } catch (error) {
         console.error('Failed to parse naming settings from localStorage:', error);
         return [];
@@ -29,6 +39,13 @@ const getNamingSettings = (): NamingSettingsType[] => {
 // Utility function to get custom terminology with fallback to default
 export const getTerminology = (key: string, defaultValue: string): string => {
     const settings = getNamingSettings();
+
+    // Double-check that settings is an array before calling find
+    if (!Array.isArray(settings)) {
+        console.warn('Settings is not an array in getTerminology:', settings);
+        return defaultValue;
+    }
+
     const setting = settings.find((item) => item.key === key);
     return setting?.customValue || defaultValue;
 };
