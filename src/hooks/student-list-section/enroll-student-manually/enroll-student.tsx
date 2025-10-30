@@ -94,12 +94,6 @@ export const useEnrollStudent = () => {
                 },
             };
 
-            console.log('🚀 FINAL ENROLLMENT PAYLOAD:', {
-                stepThreeData: stepThreeData,
-                payment_option_id: stepThreeData?.invite?.payment_option_id,
-                full_payload: requestBody,
-            });
-
             const response = await authenticatedAxiosInstance.post(
                 ENROLL_STUDENT_MANUALLY,
                 requestBody

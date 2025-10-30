@@ -1,9 +1,7 @@
 /* eslint-disable */
 import { FormStepHeading } from '../form-components/form-step-heading';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
-import { FormItemWrapper } from '../form-components/form-item-wrapper';
 import { useForm } from 'react-hook-form';
-import { MyInput } from '@/components/design-system/input';
 import { MyDropdown } from '../dropdownForPackageItems';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useFormStore } from '@/stores/students/enroll-students-manually/enroll-manually-form-store';
@@ -14,7 +12,6 @@ import {
 import { useEffect, useRef } from 'react';
 import { DropdownValueType } from '../dropdownTypesForPackageItems';
 import { StudentTable } from '@/types/student-table-types';
-import { MyButton } from '@/components/design-system/button';
 import { useQuery } from '@tanstack/react-query';
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { GET_INVITE_LINKS, GET_SINGLE_INVITE_DETAILS } from '@/constants/urls';
@@ -112,7 +109,6 @@ export const StepThreeForm = ({
                     },
                 }
             );
-            console.log('🔍 Raw API Response for invite details:', response.data);
             return response.data;
         },
         enabled: !!selectedInviteId && !!instituteId,
@@ -137,13 +133,6 @@ export const StepThreeForm = ({
             const paymentOptionId = firstElement?.payment_option?.id || '';
             const paymentPlans = firstElement?.payment_option?.payment_plans || [];
 
-            console.log('🔍 Extracted from package_session_to_payment_options:', {
-                raw_data: packageSessionToPaymentOptions,
-                payment_option_id: paymentOptionId,
-                package_session_ids: packageSessionIds,
-                payment_plans: paymentPlans,
-            });
-
             form.setValue(
                 'invite',
                 {
@@ -155,12 +144,6 @@ export const StepThreeForm = ({
                 },
                 { shouldValidate: true }
             ); // Trigger validation after setting values
-
-            console.log('✅ Invite details loaded and form updated:', {
-                payment_option_id: paymentOptionId,
-                package_session_ids: packageSessionIds,
-                payment_plans_count: paymentPlans.length,
-            });
 
             // Manually trigger validation to ensure form is valid
             form.trigger('invite');
@@ -189,13 +172,6 @@ export const StepThreeForm = ({
     };
 
     const onSubmit = (values: StepThreeData) => {
-        console.log('📤 Step 3 - Submitting data:', {
-            invite: values.invite,
-            payment_option_id: values.invite?.payment_option_id,
-            package_session_ids: values.invite?.package_session_ids,
-            all_form_values: values,
-        });
-
         // No extra validation - only invite id is required (handled by schema)
         setStepThreeData(values);
         nextStep();

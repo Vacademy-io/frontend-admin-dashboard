@@ -165,13 +165,11 @@ function transformCustomFields(customFields: CustomField[], instituteId: string)
             .replace(/\s+/g, '_') // Replace spaces with underscores
             .replace(/([a-z])([A-Z])/g, '$1_$2') // Add underscore between camelCase transitions
             .toLowerCase();
-    console.log('Transforming custom fields:', customFields);
     return customFields.map((field, index) => {
         const isDropdown = field.type === 'dropdown';
         const options = isDropdown ? field.options?.map((opt) => opt.value).join(',') : '';
 
         return {
-            // id: crypto.randomUUID(),
             institute_id: instituteId,
             type: field.type,
             type_id: '',

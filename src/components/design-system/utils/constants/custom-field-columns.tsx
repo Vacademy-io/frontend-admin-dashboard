@@ -46,7 +46,7 @@ export const generateCustomFieldColumns = (): ColumnDef<StudentTable>[] => {
         const customFields = getFieldsForLocation("Learner's List");
 
         if (!customFields || customFields.length === 0) {
-            console.log("No custom fields configured for Learner's List");
+            console.warn("No custom fields configured for Learner's List");
             return [];
         }
 

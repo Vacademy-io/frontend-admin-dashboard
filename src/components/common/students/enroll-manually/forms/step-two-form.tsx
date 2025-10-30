@@ -540,8 +540,6 @@ export const StepTwoForm = ({
                                         </h3>
                                     </div>
                                     {customFieldsConfig.map((customField: CustomField) => {
-                                        const customFieldKey = `custom_fields.${customField.id}`;
-
                                         if (customField.type === 'dropdown') {
                                             // Convert options to dropdown format
                                             const dropdownOptions =

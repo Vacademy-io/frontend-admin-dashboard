@@ -76,8 +76,6 @@ export const useReEnrollStudent = () => {
                 },
             };
 
-            console.log('🔄 RE-ENROLL PAYLOAD:', requestBody);
-
             const response = await authenticatedAxiosInstance.post(
                 ENROLL_STUDENT_MANUALLY,
                 requestBody
