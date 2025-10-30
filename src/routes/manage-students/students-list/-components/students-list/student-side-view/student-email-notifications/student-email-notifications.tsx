@@ -230,6 +230,10 @@ export const StudentEmailNotifications = () => {
                                             const subjectMatch = detailsWithoutMsgId.match(/Subject:\s*([^\n]+)/i);
                                             const fromMatch = detailsWithoutMsgId.match(/From:\s*([^\n]+)/i);
                                             const toMatch = detailsWithoutMsgId.match(/To:\s*([^\n]+)/i);
+                                            const emailEvent = emailEventMatch?.[1]?.trim();
+                                            const subject = subjectMatch?.[1]?.trim();
+                                            const fromAddr = fromMatch?.[1]?.trim();
+                                            const toAddr = toMatch?.[1]?.trim();
                                             const cleanedDetails = detailsWithoutMsgId
                                                 .replace(/Email\s*Event:[^\n]*\n?/i, '')
                                                 .replace(/Subject:[^\n]*\n?/i, '')
@@ -253,19 +257,19 @@ export const StudentEmailNotifications = () => {
                                                             {formatLocalDateTime(ev.eventTimestampIso || ev.eventTimestamp)}
                                                         </span>
                                                     </div>
-                                                    {(emailEventMatch || fromMatch || toMatch || subjectMatch || cleanedDetails.length > 0) && (
+                                                    {(emailEvent || fromAddr || toAddr || subject || cleanedDetails.length > 0) && (
                                                         <div className="text-neutral-600 mt-0.5 break-words space-y-0.5">
-                                                            {emailEventMatch && (
-                                                                <div><span className="font-medium">Email Event:</span> {emailEventMatch[1].trim()}</div>
+                                                            {emailEvent && (
+                                                                <div><span className="font-medium">Email Event:</span> {emailEvent}</div>
                                                             )}
-                                                            {fromMatch && (
-                                                                <div><span className="font-medium">From:</span> {fromMatch[1].trim()}</div>
+                                                            {fromAddr && (
+                                                                <div><span className="font-medium">From:</span> {fromAddr}</div>
                                                             )}
-                                                            {toMatch && (
-                                                                <div><span className="font-medium">To:</span> {toMatch[1].trim()}</div>
+                                                            {toAddr && (
+                                                                <div><span className="font-medium">To:</span> {toAddr}</div>
                                                             )}
-                                                            {subjectMatch && (
-                                                                <div><span className="font-medium">Subject:</span> {subjectMatch[1].trim()}</div>
+                                                            {subject && (
+                                                                <div><span className="font-medium">Subject:</span> {subject}</div>
                                                             )}
                                                             {cleanedDetails.map((line, idx2) => (
                                                                 <div key={`${key}-rest-${idx2}`}>{line}</div>
