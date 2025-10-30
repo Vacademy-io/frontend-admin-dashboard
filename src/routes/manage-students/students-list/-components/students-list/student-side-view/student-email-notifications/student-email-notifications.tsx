@@ -11,7 +11,8 @@ import {
     Eye, 
     MousePointer,
     AlertCircle,
-    RefreshCw
+    RefreshCw,
+    Info
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -62,13 +63,34 @@ const getStatusColor = (eventType: string) => {
 };
 
 const formatEventType = (eventType: string) => {
+    const et = eventType.toLowerCase();
+    if (et === 'delivery') return 'Delivered';
+    if (et === 'open') return 'Opened';
+    // Optional: normalize other common ones
+    if (et === 'send') return 'Sent';
     return eventType.charAt(0).toUpperCase() + eventType.slice(1).toLowerCase();
+};
+
+const formatLocalDateTime = (isoOrLocal: string) => {
+    // Prefer ISO if provided
+    const date = new Date(isoOrLocal);
+    // Fall back if invalid
+    if (isNaN(date.getTime())) return isoOrLocal;
+    return new Intl.DateTimeFormat(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+    }).format(date);
 };
 
 export const StudentEmailNotifications = () => {
     const { selectedStudent } = useStudentSidebar();
     const [page, setPage] = useState(0);
     const pageSize = 10;
+    const [expandedMsg, setExpandedMsg] = useState<Record<string, boolean>>({});
 
     const {
         data: emailData,
@@ -190,13 +212,94 @@ export const StudentEmailNotifications = () => {
                                     </div>
                                 </div>
                                 
-                                <div className="pl-7 space-y-1">
+                                <div className="pl-7 space-y-2">
                                     <div className="flex items-center gap-2 text-xs text-neutral-600">
                                         <span className="font-medium">To:</span>
                                         <span className="truncate">{notification.recipientEmail}</span>
                                     </div>
-                                    <div className="text-xs text-neutral-500 leading-relaxed">
-                                        <span className="font-medium">Details:</span> {notification.latestStatus.eventDetails}
+
+                                    {/* All Events Timeline */}
+                                    <div className="mt-1 space-y-1.5">
+                                        {(notification.events || [notification.latestStatus]).map((ev, i) => {
+                                            const key = `${notification.emailId}-${ev.eventType}-${ev.eventTimestamp}-${i}`;
+                                            const details = ev.eventDetails || '';
+                                            const msgMatch = details.match(/Message ID:\s*([^\n]+)/i);
+                                            const messageId = msgMatch?.[1]?.trim();
+                                            const detailsWithoutMsgId = details.replace(/Message ID:[^\n]*\n?/i, '');
+                                            const emailEventMatch = detailsWithoutMsgId.match(/Email\s*Event:\s*([^\n]+)/i);
+                                            const subjectMatch = detailsWithoutMsgId.match(/Subject:\s*([^\n]+)/i);
+                                            const fromMatch = detailsWithoutMsgId.match(/From:\s*([^\n]+)/i);
+                                            const toMatch = detailsWithoutMsgId.match(/To:\s*([^\n]+)/i);
+                                            const cleanedDetails = detailsWithoutMsgId
+                                                .replace(/Email\s*Event:[^\n]*\n?/i, '')
+                                                .replace(/Subject:[^\n]*\n?/i, '')
+                                                .replace(/From:[^\n]*\n?/i, '')
+                                                .replace(/To:[^\n]*\n?/i, '')
+                                                .split('\n')
+                                                .map((s) => s.trim())
+                                                .filter(Boolean);
+                                            const isExpanded = !!expandedMsg[key];
+                                            return (
+                                            <div key={key} className="flex items-start gap-2 text-xs">
+                                                <div className="mt-0.5">
+                                                    {getStatusIcon(ev.eventType)}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2">
+                                                        <Badge variant="outline" className={`font-medium ${getStatusColor(ev.eventType)}`}>
+                                                            {formatEventType(ev.eventType)}
+                                                        </Badge>
+                                                        <span className="text-neutral-500">
+                                                            {formatLocalDateTime(ev.eventTimestampIso || ev.eventTimestamp)}
+                                                        </span>
+                                                    </div>
+                                                    {(emailEventMatch || fromMatch || toMatch || subjectMatch || cleanedDetails.length > 0) && (
+                                                        <div className="text-neutral-600 mt-0.5 break-words space-y-0.5">
+                                                            {emailEventMatch && (
+                                                                <div><span className="font-medium">Email Event:</span> {emailEventMatch[1].trim()}</div>
+                                                            )}
+                                                            {fromMatch && (
+                                                                <div><span className="font-medium">From:</span> {fromMatch[1].trim()}</div>
+                                                            )}
+                                                            {toMatch && (
+                                                                <div><span className="font-medium">To:</span> {toMatch[1].trim()}</div>
+                                                            )}
+                                                            {subjectMatch && (
+                                                                <div><span className="font-medium">Subject:</span> {subjectMatch[1].trim()}</div>
+                                                            )}
+                                                            {cleanedDetails.map((line, idx2) => (
+                                                                <div key={`${key}-rest-${idx2}`}>{line}</div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                    {messageId && (
+                                                        <div className="mt-1 flex items-center gap-2 text-neutral-600">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setExpandedMsg((prev) => ({ ...prev, [key]: !isExpanded }))}
+                                                                className="inline-flex items-center gap-1 text-xs text-blue-700 hover:text-blue-800"
+                                                                aria-expanded={isExpanded}
+                                                                aria-label="Toggle message id"
+                                                            >
+                                                                <Info className="size-3" />
+                                                                <span>Message ID</span>
+                                                            </button>
+                                                            {isExpanded && (
+                                                                <span className="px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-800 border border-neutral-200">
+                                                                    {messageId}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                    {ev.clickedLink && (
+                                                        <div className="text-neutral-600 mt-0.5 break-words">
+                                                            Clicked: {ev.clickedLink}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </div>

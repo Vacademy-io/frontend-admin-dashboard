@@ -13,6 +13,8 @@ export interface EmailTrackingItem {
     latestStatus: {
         eventType: string;
         eventTimestamp: string;
+        eventTimestampIso?: string;
+        timezone?: string;
         eventDetails: string;
         bounceType: string | null;
         bounceSubType: string | null;
@@ -21,6 +23,19 @@ export interface EmailTrackingItem {
         userAgent: string | null;
         complaintFeedbackType: string | null;
     };
+    events?: Array<{
+        eventType: string;
+        eventTimestamp: string;
+        eventTimestampIso?: string;
+        timezone?: string;
+        eventDetails: string;
+        bounceType: string | null;
+        bounceSubType: string | null;
+        clickedLink: string | null;
+        ipAddress: string | null;
+        userAgent: string | null;
+        complaintFeedbackType: string | null;
+    }>;
 }
 
 export interface EmailTrackingResponse {
