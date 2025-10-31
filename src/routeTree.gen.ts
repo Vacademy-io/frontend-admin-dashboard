@@ -25,6 +25,7 @@ import { Route as AuthTransferIndexRouteImport } from "./routes/auth-transfer/in
 import { Route as AiCenterIndexRouteImport } from "./routes/ai-center/index"
 import { Route as UserTagsLinkIndexRouteImport } from "./routes/user-tags/link/index"
 import { Route as UserTagsInstituteIndexRouteImport } from "./routes/user-tags/institute/index"
+import { Route as TemplatesCreateIndexRouteImport } from "./routes/templates/create/index"
 import { Route as StudyLibraryVoltIndexRouteImport } from "./routes/study-library/volt/index"
 import { Route as StudyLibraryReportsIndexRouteImport } from "./routes/study-library/reports/index"
 import { Route as StudyLibraryLiveSessionIndexRouteImport } from "./routes/study-library/live-session/index"
@@ -58,6 +59,7 @@ import { Route as AnnouncementCreateIndexRouteImport } from "./routes/announceme
 import { Route as AnnouncementApprovalIndexRouteImport } from "./routes/announcement/approval/index"
 import { Route as AiCenterMyResourcesIndexRouteImport } from "./routes/ai-center/my-resources/index"
 import { Route as AiCenterAiToolsIndexRouteImport } from "./routes/ai-center/ai-tools/index"
+import { Route as TemplatesEditTemplateIdRouteImport } from "./routes/templates/edit/$templateId"
 import { Route as SignupOauthCallbackRouteImport } from "./routes/signup/oauth/callback"
 import { Route as LoginOauthRedirectRouteImport } from "./routes/login/oauth/redirect"
 import { Route as StudyLibraryVoltAddIndexRouteImport } from "./routes/study-library/volt/add/index"
@@ -194,6 +196,11 @@ const UserTagsLinkIndexRoute = UserTagsLinkIndexRouteImport.update({
 const UserTagsInstituteIndexRoute = UserTagsInstituteIndexRouteImport.update({
   id: "/user-tags/institute/",
   path: "/user-tags/institute/",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TemplatesCreateIndexRoute = TemplatesCreateIndexRouteImport.update({
+  id: "/templates/create/",
+  path: "/templates/create/",
   getParentRoute: () => rootRouteImport,
 } as any)
 const StudyLibraryVoltIndexRoute = StudyLibraryVoltIndexRouteImport.update({
@@ -387,6 +394,11 @@ const AiCenterMyResourcesIndexRoute =
 const AiCenterAiToolsIndexRoute = AiCenterAiToolsIndexRouteImport.update({
   id: "/ai-center/ai-tools/",
   path: "/ai-center/ai-tools/",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TemplatesEditTemplateIdRoute = TemplatesEditTemplateIdRouteImport.update({
+  id: "/templates/edit/$templateId",
+  path: "/templates/edit/$templateId",
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignupOauthCallbackRoute = SignupOauthCallbackRouteImport.update({
@@ -598,6 +610,7 @@ export interface FileRoutesByFullPath {
   "/dashboard": typeof DashboardIndexLazyRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
+  "/templates/edit/$templateId": typeof TemplatesEditTemplateIdRoute
   "/ai-center/ai-tools": typeof AiCenterAiToolsIndexRoute
   "/ai-center/my-resources": typeof AiCenterMyResourcesIndexRoute
   "/announcement/approval": typeof AnnouncementApprovalIndexRoute
@@ -631,6 +644,7 @@ export interface FileRoutesByFullPath {
   "/study-library/live-session": typeof StudyLibraryLiveSessionIndexRoute
   "/study-library/reports": typeof StudyLibraryReportsIndexRoute
   "/study-library/volt": typeof StudyLibraryVoltIndexRoute
+  "/templates/create": typeof TemplatesCreateIndexRoute
   "/user-tags/institute": typeof UserTagsInstituteIndexRoute
   "/user-tags/link": typeof UserTagsLinkIndexRoute
   "/ai-center/ai-tools/vsmart-audio": typeof AiCenterAiToolsVsmartAudioIndexRoute
@@ -681,6 +695,7 @@ export interface FileRoutesByTo {
   "/dashboard": typeof DashboardIndexLazyRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
+  "/templates/edit/$templateId": typeof TemplatesEditTemplateIdRoute
   "/ai-center/ai-tools": typeof AiCenterAiToolsIndexRoute
   "/ai-center/my-resources": typeof AiCenterMyResourcesIndexRoute
   "/announcement/approval": typeof AnnouncementApprovalIndexRoute
@@ -714,6 +729,7 @@ export interface FileRoutesByTo {
   "/study-library/live-session": typeof StudyLibraryLiveSessionIndexRoute
   "/study-library/reports": typeof StudyLibraryReportsIndexRoute
   "/study-library/volt": typeof StudyLibraryVoltIndexRoute
+  "/templates/create": typeof TemplatesCreateIndexRoute
   "/user-tags/institute": typeof UserTagsInstituteIndexRoute
   "/user-tags/link": typeof UserTagsLinkIndexRoute
   "/ai-center/ai-tools/vsmart-audio": typeof AiCenterAiToolsVsmartAudioIndexRoute
@@ -766,6 +782,7 @@ export interface FileRoutesById {
   "/dashboard/": typeof DashboardIndexLazyRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
+  "/templates/edit/$templateId": typeof TemplatesEditTemplateIdRoute
   "/ai-center/ai-tools/": typeof AiCenterAiToolsIndexRoute
   "/ai-center/my-resources/": typeof AiCenterMyResourcesIndexRoute
   "/announcement/approval/": typeof AnnouncementApprovalIndexRoute
@@ -799,6 +816,7 @@ export interface FileRoutesById {
   "/study-library/live-session/": typeof StudyLibraryLiveSessionIndexRoute
   "/study-library/reports/": typeof StudyLibraryReportsIndexRoute
   "/study-library/volt/": typeof StudyLibraryVoltIndexRoute
+  "/templates/create/": typeof TemplatesCreateIndexRoute
   "/user-tags/institute/": typeof UserTagsInstituteIndexRoute
   "/user-tags/link/": typeof UserTagsLinkIndexRoute
   "/ai-center/ai-tools/vsmart-audio/": typeof AiCenterAiToolsVsmartAudioIndexRoute
@@ -852,6 +870,7 @@ export interface FileRouteTypes {
     | "/dashboard"
     | "/login/oauth/redirect"
     | "/signup/oauth/callback"
+    | "/templates/edit/$templateId"
     | "/ai-center/ai-tools"
     | "/ai-center/my-resources"
     | "/announcement/approval"
@@ -885,6 +904,7 @@ export interface FileRouteTypes {
     | "/study-library/live-session"
     | "/study-library/reports"
     | "/study-library/volt"
+    | "/templates/create"
     | "/user-tags/institute"
     | "/user-tags/link"
     | "/ai-center/ai-tools/vsmart-audio"
@@ -935,6 +955,7 @@ export interface FileRouteTypes {
     | "/dashboard"
     | "/login/oauth/redirect"
     | "/signup/oauth/callback"
+    | "/templates/edit/$templateId"
     | "/ai-center/ai-tools"
     | "/ai-center/my-resources"
     | "/announcement/approval"
@@ -968,6 +989,7 @@ export interface FileRouteTypes {
     | "/study-library/live-session"
     | "/study-library/reports"
     | "/study-library/volt"
+    | "/templates/create"
     | "/user-tags/institute"
     | "/user-tags/link"
     | "/ai-center/ai-tools/vsmart-audio"
@@ -1019,6 +1041,7 @@ export interface FileRouteTypes {
     | "/dashboard/"
     | "/login/oauth/redirect"
     | "/signup/oauth/callback"
+    | "/templates/edit/$templateId"
     | "/ai-center/ai-tools/"
     | "/ai-center/my-resources/"
     | "/announcement/approval/"
@@ -1052,6 +1075,7 @@ export interface FileRouteTypes {
     | "/study-library/live-session/"
     | "/study-library/reports/"
     | "/study-library/volt/"
+    | "/templates/create/"
     | "/user-tags/institute/"
     | "/user-tags/link/"
     | "/ai-center/ai-tools/vsmart-audio/"
@@ -1103,6 +1127,7 @@ export interface RootRouteChildren {
   DashboardIndexLazyRoute: typeof DashboardIndexLazyRoute
   LoginOauthRedirectRoute: typeof LoginOauthRedirectRoute
   SignupOauthCallbackRoute: typeof SignupOauthCallbackRoute
+  TemplatesEditTemplateIdRoute: typeof TemplatesEditTemplateIdRoute
   AiCenterAiToolsIndexRoute: typeof AiCenterAiToolsIndexRoute
   AiCenterMyResourcesIndexRoute: typeof AiCenterMyResourcesIndexRoute
   AnnouncementApprovalIndexRoute: typeof AnnouncementApprovalIndexRoute
@@ -1136,6 +1161,7 @@ export interface RootRouteChildren {
   StudyLibraryLiveSessionIndexRoute: typeof StudyLibraryLiveSessionIndexRoute
   StudyLibraryReportsIndexRoute: typeof StudyLibraryReportsIndexRoute
   StudyLibraryVoltIndexRoute: typeof StudyLibraryVoltIndexRoute
+  TemplatesCreateIndexRoute: typeof TemplatesCreateIndexRoute
   UserTagsInstituteIndexRoute: typeof UserTagsInstituteIndexRoute
   UserTagsLinkIndexRoute: typeof UserTagsLinkIndexRoute
   AiCenterAiToolsVsmartAudioIndexRoute: typeof AiCenterAiToolsVsmartAudioIndexRoute
@@ -1301,6 +1327,13 @@ declare module "@tanstack/react-router" {
       path: "/user-tags/institute"
       fullPath: "/user-tags/institute"
       preLoaderRoute: typeof UserTagsInstituteIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/templates/create/": {
+      id: "/templates/create/"
+      path: "/templates/create"
+      fullPath: "/templates/create"
+      preLoaderRoute: typeof TemplatesCreateIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/volt/": {
@@ -1532,6 +1565,13 @@ declare module "@tanstack/react-router" {
       path: "/ai-center/ai-tools"
       fullPath: "/ai-center/ai-tools"
       preLoaderRoute: typeof AiCenterAiToolsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/templates/edit/$templateId": {
+      id: "/templates/edit/$templateId"
+      path: "/templates/edit/$templateId"
+      fullPath: "/templates/edit/$templateId"
+      preLoaderRoute: typeof TemplatesEditTemplateIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/signup/oauth/callback": {
@@ -1777,6 +1817,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardIndexLazyRoute: DashboardIndexLazyRoute,
   LoginOauthRedirectRoute: LoginOauthRedirectRoute,
   SignupOauthCallbackRoute: SignupOauthCallbackRoute,
+  TemplatesEditTemplateIdRoute: TemplatesEditTemplateIdRoute,
   AiCenterAiToolsIndexRoute: AiCenterAiToolsIndexRoute,
   AiCenterMyResourcesIndexRoute: AiCenterMyResourcesIndexRoute,
   AnnouncementApprovalIndexRoute: AnnouncementApprovalIndexRoute,
@@ -1815,6 +1856,7 @@ const rootRouteChildren: RootRouteChildren = {
   StudyLibraryLiveSessionIndexRoute: StudyLibraryLiveSessionIndexRoute,
   StudyLibraryReportsIndexRoute: StudyLibraryReportsIndexRoute,
   StudyLibraryVoltIndexRoute: StudyLibraryVoltIndexRoute,
+  TemplatesCreateIndexRoute: TemplatesCreateIndexRoute,
   UserTagsInstituteIndexRoute: UserTagsInstituteIndexRoute,
   UserTagsLinkIndexRoute: UserTagsLinkIndexRoute,
   AiCenterAiToolsVsmartAudioIndexRoute: AiCenterAiToolsVsmartAudioIndexRoute,
