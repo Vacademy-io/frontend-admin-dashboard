@@ -15,21 +15,19 @@ import {
     deleteMessageTemplate,
 } from '@/services/message-template-service';
 import { templateCacheService } from '@/services/template-cache-service';
-import { TemplateEditor } from '../shared/TemplateEditor';
 import { TemplatePreview } from '../shared/TemplatePreview';
 import { TEMPLATE_TYPE_CONFIG, STATUS_CONFIG, TEMPLATE_TYPE_KEYWORDS, DATE_FORMAT_OPTIONS } from '../shared/constants';
 import { toast } from 'sonner';
+import { useNavigate } from '@tanstack/react-router';
 
 export const EmailTemplatesTab: React.FC = () => {
+    const navigate = useNavigate();
     const [templates, setTemplates] = useState<MessageTemplate[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredTemplates, setFilteredTemplates] = useState<MessageTemplate[]>([]);
-    const [showEditor, setShowEditor] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
-    const [editingTemplate, setEditingTemplate] = useState<MessageTemplate | null>(null);
     const [previewTemplate, setPreviewTemplate] = useState<MessageTemplate | null>(null);
-    const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [deleteTemplateId, setDeleteTemplateId] = useState<string | null>(null);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -68,13 +66,11 @@ export const EmailTemplatesTab: React.FC = () => {
     }, []);
 
     const handleCreateTemplate = () => {
-        setEditingTemplate(null);
-        setShowEditor(true);
+        navigate({ to: '/templates/create' });
     };
 
     const handleEditTemplate = (template: MessageTemplate) => {
-        setEditingTemplate(template);
-        setShowEditor(true);
+        navigate({ to: '/templates/edit/$templateId', params: { templateId: template.id } });
     };
 
     const handlePreviewTemplate = (template: MessageTemplate) => {
@@ -82,37 +78,6 @@ export const EmailTemplatesTab: React.FC = () => {
         setShowPreview(true);
     };
 
-    const handleSaveTemplate = async (templateData: CreateTemplateRequest) => {
-        console.log('handleSaveTemplate called with:', templateData);
-        setIsSaving(true);
-        try {
-            if (editingTemplate) {
-                console.log('Updating existing template:', editingTemplate.id);
-                // Update existing template
-                await updateMessageTemplate({
-                    id: editingTemplate.id,
-                    ...templateData,
-                });
-            } else {
-                console.log('Creating new template');
-                // Create new template
-                await createMessageTemplate(templateData);
-            }
-
-            // Clear cache and reload templates
-            templateCacheService.clearCache('EMAIL');
-            await loadTemplates();
-
-            setShowEditor(false);
-            setEditingTemplate(null);
-            toast.success(editingTemplate ? 'Template updated successfully!' : 'Template created successfully!');
-        } catch (error) {
-            console.error('Error in handleSaveTemplate:', error);
-            toast.error(editingTemplate ? 'Failed to update template.' : 'Failed to create template.');
-        } finally {
-            setIsSaving(false);
-        }
-    };
 
     const handleDeleteTemplate = async (templateId: string) => {
         setIsDeleting(true);
@@ -307,19 +272,6 @@ export const EmailTemplatesTab: React.FC = () => {
                         </TableBody>
                     </Table>
                 </div>
-            )}
-
-            {/* Template Editor Dialog */}
-            {showEditor && (
-                <TemplateEditor
-                    template={editingTemplate}
-                    onSave={handleSaveTemplate}
-                    onClose={() => {
-                        setShowEditor(false);
-                        setEditingTemplate(null);
-                    }}
-                    isSaving={isSaving}
-                />
             )}
 
             {/* Template Preview Dialog */}
