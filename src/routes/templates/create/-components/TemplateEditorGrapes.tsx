@@ -1,7 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import grapesjs from 'grapesjs';
-import presetNewsletter from 'grapesjs-preset-newsletter';
-import 'grapesjs/dist/css/grapes.min.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,6 +21,7 @@ import {
 import type { MessageTemplate, CreateTemplateRequest } from '@/types/message-template-types';
 import { ALL_TEMPLATE_VARIABLES, TEMPLATE_VARIABLES } from '@/types/message-template-types';
 import { extractVariablesFromContent } from '@/components/templates/shared/TemplateEditorUtils';
+import { templateCacheService } from '@/services/template-cache-service';
 import {
     Tooltip,
     TooltipContent,
@@ -109,17 +107,65 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
         if (templateId && !template) return; // Wait for template to load
         if (isEditorInitialized.current) return; // Don't initialize twice
 
+        let isMounted = true; // Track if component is still mounted
+
         // Handle window resize to refresh editor
         const handleResize = () => {
-            if (editorRef.current) {
+            if (editorRef.current && isMounted) {
                 editorRef.current.refresh();
             }
         };
 
+        // Dynamically import GrapesJS only when needed
+        const initGrapesJS = async () => {
+            try {
+                // Check if component is still mounted before importing
+                if (!isMounted || !editorContainerRef.current) return;
+
+                // Dynamic imports for GrapesJS
+                const [grapesjsModule, presetNewsletterModule] = await Promise.all([
+                    import('grapesjs'),
+                    import('grapesjs-preset-newsletter'),
+                    import('grapesjs/dist/css/grapes.min.css'),
+                ]);
+
+                // Check again after async import completes
+                if (!isMounted || !editorContainerRef.current || isEditorInitialized.current) {
+                    return;
+                }
+
+                const grapesjs = grapesjsModule.default || grapesjsModule;
+                const presetNewsletter = presetNewsletterModule.default || presetNewsletterModule;
+
+                // Now initialize the editor
+                initializeEditor(grapesjs, presetNewsletter);
+            } catch (error) {
+                if (isMounted) {
+                    console.error('Error loading GrapesJS:', error);
+                    toast.error('Failed to load editor. Please refresh the page.');
+                }
+            }
+        };
+
         // Wait for container to have dimensions
-        const initEditor = () => {
+        const initializeEditor = (grapesjs: any, presetNewsletter: any) => {
+            // Check if component is still mounted
+            if (!isMounted) {
+                console.log('Component unmounted, skipping editor initialization');
+                return;
+            }
+
             const container = editorContainerRef.current;
-            if (!container) return;
+            if (!container) {
+                console.log('Container not found during initialization');
+                return;
+            }
+
+            // Check if already initialized to prevent double initialization
+            if (isEditorInitialized.current) {
+                console.log('Editor already initialized, skipping');
+                return;
+            }
 
             // Check if container has proper dimensions
             const containerHeight = container.offsetHeight || container.clientHeight;
@@ -127,7 +173,11 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
 
             if (containerHeight === 0 || containerWidth === 0) {
                 console.log('Container not ready, retrying...', { containerHeight, containerWidth });
-                setTimeout(initEditor, 100);
+                setTimeout(() => {
+                    if (isMounted && !isEditorInitialized.current) {
+                        initializeEditor(grapesjs, presetNewsletter);
+                    }
+                }, 100);
                 return;
             }
 
@@ -173,6 +223,9 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                     },
                 },
             });
+
+            // Store the modules for cleanup if needed
+            (window as any).__grapesjs_modules__ = { grapesjs, presetNewsletter };
 
             // Configure canvas after editor is ready
             const configureCanvas = () => {
@@ -275,8 +328,20 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                 console.log('Device Manager initialized:', dm.getDevices());
             }
 
+            // Store editor reference and mark as initialized
             editorRef.current = editor;
             isEditorInitialized.current = true;
+            
+            // Verify editor has required methods for saving
+            if (typeof editor.getHtml !== 'function' || typeof editor.getCss !== 'function') {
+                console.error('Editor initialized but save methods not available', {
+                    hasGetHtml: typeof editor.getHtml,
+                    hasGetCss: typeof editor.getCss,
+                });
+                toast.error('Editor initialized but save functionality may not work. Please refresh.');
+            } else {
+                console.log('Editor initialized successfully - save methods available');
+            }
 
             const bm = editor.BlockManager;
 
@@ -809,35 +874,132 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                 }
             });
 
-            // Load template content if editing
+            // Load template content if editing - wait for editor to be fully ready
             if (template && template.content) {
-                try {
-                    let htmlContent = template.content;
-                    let cssContent = '';
+                // Wait for editor to be ready before loading content
+                const loadTemplateContent = () => {
+                    try {
+                        let htmlContent = template.content;
+                        let cssContent = '';
 
-                    // Extract CSS from style tag if present
-                    if (template.content.includes('<style>')) {
-                        const styleMatch = template.content.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
-                        if (styleMatch && styleMatch[1]) {
-                            cssContent = styleMatch[1];
-                            // Remove style tag from HTML
-                            htmlContent = template.content.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+                        // Check if this is a complete HTML document or just body content
+                        const isCompleteDocument = htmlContent.trim().startsWith('<!DOCTYPE html>') || 
+                                                   htmlContent.trim().startsWith('<html>');
+
+                        if (isCompleteDocument) {
+                            // Extract CSS from style tag in head if present
+                            const headMatch = htmlContent.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+                            if (headMatch && headMatch[1]) {
+                                const styleMatch = headMatch[1].match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+                                if (styleMatch && styleMatch[1]) {
+                                    cssContent = styleMatch[1];
+                                }
+                            }
+
+                            // Extract body content
+                            const bodyMatch = htmlContent.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+                            if (bodyMatch && bodyMatch[1]) {
+                                htmlContent = bodyMatch[1];
+                            } else {
+                                // Fallback: try to extract content between body tags or remove DOCTYPE/html tags
+                                htmlContent = htmlContent
+                                    .replace(/<!DOCTYPE[^>]*>/gi, '')
+                                    .replace(/<html[^>]*>/gi, '')
+                                    .replace(/<\/html>/gi, '')
+                                    .replace(/<head[^>]*>[\s\S]*?<\/head>/gi, '')
+                                    .replace(/<body[^>]*>/gi, '')
+                                    .replace(/<\/body>/gi, '');
+                            }
+                        } else {
+                            // Old format: Extract CSS from style tag if present (for backward compatibility)
+                            if (template.content.includes('<style>')) {
+                                const styleMatch = template.content.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+                                if (styleMatch && styleMatch[1]) {
+                                    cssContent = styleMatch[1];
+                                    // Remove style tag from HTML
+                                    htmlContent = template.content.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+                                }
+                            }
                         }
-                    }
 
-                    // Set HTML content in GrapesJS
-                    editor.setComponents(htmlContent.trim());
-                    
-                    // Set CSS if we extracted any
-                    if (cssContent) {
-                        editor.setStyle(cssContent);
-                    }
+                        // Check for base64 images in the content
+                        const hasBase64Images = htmlContent.includes('data:image');
+                        const base64Count = (htmlContent.match(/data:image/g) || []).length;
+                        console.log('Loading template:', {
+                            htmlLength: htmlContent.length,
+                            hasBase64Images,
+                            base64Count,
+                            hasCss: !!cssContent,
+                            sampleBase64: htmlContent.includes('data:image') ? htmlContent.substring(htmlContent.indexOf('data:image'), htmlContent.indexOf('data:image') + 100) : 'none',
+                        });
 
-                    console.log('Template loaded successfully:', { htmlContent: htmlContent.substring(0, 100), hasCss: !!cssContent });
-                } catch (error) {
-                    console.error('Error loading template content:', error);
-                    toast.error('Failed to load template content');
-                }
+                        // Set HTML content in GrapesJS - this will include base64 images
+                        editor.setComponents(htmlContent.trim());
+                        
+                        // Set CSS if we extracted any
+                        if (cssContent) {
+                            editor.setStyle(cssContent);
+                        }
+
+                        // Force refresh multiple times to ensure base64 images are displayed
+                        const refreshImages = () => {
+                            try {
+                                editor.refresh();
+                                
+                                // Try to access iframe and ensure images load
+                                const canvas = editor.Canvas;
+                                const frameEl = canvas.getFrameEl();
+                                if (frameEl) {
+                                    const iframe = frameEl.querySelector('iframe') as HTMLIFrameElement;
+                                    if (iframe) {
+                                        try {
+                                            const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+                                            if (iframeDoc) {
+                                                // Find all base64 images and ensure they load
+                                                const images = iframeDoc.querySelectorAll('img');
+                                                images.forEach((imgEl) => {
+                                                    const imgSrc = imgEl.getAttribute('src');
+                                                    if (imgSrc && imgSrc.startsWith('data:image')) {
+                                                        // Create new image to force load
+                                                        const newImg = new Image();
+                                                        newImg.onload = () => {
+                                                            (imgEl as HTMLImageElement).src = imgSrc;
+                                                        };
+                                                        newImg.src = imgSrc;
+                                                    }
+                                                });
+                                            }
+                                        } catch (e) {
+                                            // CORS - images should still work
+                                            console.log('CORS on iframe access (expected):', e);
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('Error refreshing images:', e);
+                            }
+                        };
+
+                        // Refresh immediately and multiple times to ensure images appear
+                        refreshImages();
+                        setTimeout(refreshImages, 300);
+                        setTimeout(refreshImages, 800);
+                        setTimeout(refreshImages, 1500);
+
+                        console.log('Template loaded successfully with base64 images:', { 
+                            htmlPreview: htmlContent.substring(0, 100),
+                            hasCss: !!cssContent,
+                            hasBase64Images,
+                            base64Count,
+                        });
+                    } catch (error) {
+                        console.error('Error loading template content:', error);
+                        toast.error('Failed to load template content');
+                    }
+                };
+
+                // Load content after a delay to ensure editor is ready
+                setTimeout(loadTemplateContent, 300);
             }
 
             // Wait for editor to be fully loaded
@@ -949,20 +1111,208 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
             window.addEventListener('resize', handleResize);
         };
 
-        // Initialize with a small delay to ensure DOM is ready
+        // Initialize with a small delay to ensure DOM is ready, then load GrapesJS
         const timeoutId = setTimeout(() => {
-            initEditor();
+            initGrapesJS();
         }, 100);
 
         return () => {
+            isMounted = false; // Mark as unmounted to prevent further operations
             clearTimeout(timeoutId);
             window.removeEventListener('resize', handleResize);
             if (editorRef.current && isEditorInitialized.current) {
-                editorRef.current.destroy();
+                try {
+                    editorRef.current.destroy();
+                } catch (error) {
+                    console.error('Error destroying editor:', error);
+                }
                 isEditorInitialized.current = false;
             }
         };
     }, [isLoading, template, templateId]);
+
+    // Helper function to convert image URLs to base64 with size optimization
+    const convertImagesToBase64 = async (html: string): Promise<string> => {
+        // Create a temporary DOM element to parse HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+
+        // Find all img tags
+        const images = tempDiv.querySelectorAll('img');
+        const imagePromises: Promise<void>[] = [];
+        
+        // Track total size to prevent exceeding limits
+        let totalBase64Size = 0;
+        const MAX_TOTAL_BASE64_SIZE = 5 * 1024 * 1024; // 5MB total for all new images combined - reasonable for email templates
+
+        images.forEach((img) => {
+            const src = img.getAttribute('src');
+            
+            // Skip if no src
+            if (!src) {
+                return;
+            }
+            
+            // Skip if already base64 - keep existing base64 images as they are needed for email sending
+            if (src.startsWith('data:')) {
+                return;
+            }
+
+            // Skip if we've already exceeded size limit
+            if (totalBase64Size > MAX_TOTAL_BASE64_SIZE) {
+                console.warn('Skipping image conversion - total size limit reached');
+                return;
+            }
+
+            // Convert external URLs to base64 (but skip very large images or if total is too big)
+            if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('//')) {
+
+                // Convert to base64
+                const promise = new Promise<void>((resolve) => {
+                    const image = new Image();
+                    
+                    // Try with crossOrigin first, but handle CORS errors gracefully
+                    const tryConvert = (useCrossOrigin: boolean) => {
+                        image.crossOrigin = (useCrossOrigin ? 'anonymous' : null) as string | null;
+                        
+                        image.onload = () => {
+                            try {
+                                const canvas = document.createElement('canvas');
+                                canvas.width = image.naturalWidth || image.width || 800;
+                                canvas.height = image.naturalHeight || image.height || 250;
+                                const ctx = canvas.getContext('2d');
+                                
+                                if (ctx) {
+                                    try {
+                                        // Limit canvas size aggressively to prevent huge base64 strings
+                                        const MAX_DIMENSION = 800; // Max width or height - much smaller
+                                        let drawWidth = image.naturalWidth || image.width || 800;
+                                        let drawHeight = image.naturalHeight || image.height || 250;
+                                        
+                                        // Scale down aggressively if too large
+                                        if (drawWidth > MAX_DIMENSION || drawHeight > MAX_DIMENSION) {
+                                            const ratio = Math.min(MAX_DIMENSION / drawWidth, MAX_DIMENSION / drawHeight);
+                                            drawWidth = Math.floor(drawWidth * ratio);
+                                            drawHeight = Math.floor(drawHeight * ratio);
+                                        }
+                                        
+                                        // Also limit max area to prevent huge images
+                                        const MAX_AREA = 640000; // 800x800 max
+                                        if (drawWidth * drawHeight > MAX_AREA) {
+                                            const scale = Math.sqrt(MAX_AREA / (drawWidth * drawHeight));
+                                            drawWidth = Math.floor(drawWidth * scale);
+                                            drawHeight = Math.floor(drawHeight * scale);
+                                        }
+                                        
+                                        canvas.width = drawWidth;
+                                        canvas.height = drawHeight;
+                                        
+                                        ctx.drawImage(image, 0, 0, drawWidth, drawHeight);
+                                        
+                                        // Use JPEG with compression to reduce size while maintaining quality for emails
+                                        let quality = 0.8; // Start with good quality for email templates
+                                        let base64 = canvas.toDataURL('image/jpeg', quality);
+                                        
+                                        // If still too large, reduce quality further
+                                        const MAX_IMAGE_SIZE = 1 * 1024 * 1024; // 1MB per image max - reasonable for email
+                                        let attempts = 0;
+                                        while (base64.length > MAX_IMAGE_SIZE && quality > 0.5 && attempts < 3) {
+                                            quality -= 0.1;
+                                            base64 = canvas.toDataURL('image/jpeg', quality);
+                                            attempts++;
+                                        }
+                                        
+                                        if (base64 && base64.length > 100 && !base64.includes('error')) {
+                                            // Check if adding this image would exceed total limit
+                                            if (totalBase64Size + base64.length > MAX_TOTAL_BASE64_SIZE) {
+                                                console.warn('Skipping image - would exceed total size limit:', {
+                                                    currentTotal: (totalBase64Size / 1024 / 1024).toFixed(2) + 'MB',
+                                                    imageSize: (base64.length / 1024 / 1024).toFixed(2) + 'MB'
+                                                });
+                                                // Keep original URL
+                                            } else if (base64.length < MAX_IMAGE_SIZE * 1.5) { // Allow up to 1.5MB per image if under total limit
+                                                img.setAttribute('src', base64);
+                                                totalBase64Size += base64.length;
+                                                console.log('Converted image to base64:', {
+                                                    original: src.substring(0, 50),
+                                                    base64Length: base64.length,
+                                                    base64SizeKB: (base64.length / 1024).toFixed(2),
+                                                    originalDimensions: `${image.naturalWidth}x${image.naturalHeight}`,
+                                                    scaledDimensions: `${drawWidth}x${drawHeight}`,
+                                                    quality: quality.toFixed(2),
+                                                    totalSizeMB: (totalBase64Size / 1024 / 1024).toFixed(2)
+                                                });
+                                            } else {
+                                                console.warn('Image too large after conversion, keeping original URL:', {
+                                                    base64Length: base64.length,
+                                                    base64SizeMB: (base64.length / 1024 / 1024).toFixed(2)
+                                                });
+                                                // Keep original URL for very large images
+                                            }
+                                        } else {
+                                            throw new Error('Invalid base64 data');
+                                        }
+                                    } catch (canvasError: any) {
+                                        // CORS or tainted canvas error
+                                        if (canvasError.name === 'SecurityError' || canvasError.message?.includes('tainted')) {
+                                            console.warn('CORS error converting image (keeping original URL):', src.substring(0, 50));
+                                            // Keep original src - this is OK for email templates
+                                        } else {
+                                            console.error('Canvas error:', canvasError);
+                                        }
+                                    }
+                                }
+                            } catch (error: any) {
+                                if (error.name === 'SecurityError' || error.message?.includes('tainted')) {
+                                    console.warn('Security error converting image (keeping original URL):', src.substring(0, 50));
+                                } else {
+                                    console.error('Error converting image to base64:', error);
+                                }
+                            }
+                            resolve();
+                        };
+                        
+                        image.onerror = () => {
+                            // If first attempt with crossOrigin failed and we haven't tried without it, try without
+                            if (useCrossOrigin && !src.startsWith(window.location.origin)) {
+                                console.log('Image load failed with CORS, trying without:', src.substring(0, 50));
+                                tryConvert(false);
+                            } else {
+                                console.warn('Failed to load image for conversion (keeping original URL):', src.substring(0, 50));
+                                resolve();
+                            }
+                        };
+                        
+                        // Try loading the image
+                        image.src = src;
+                    };
+
+                    // Start with crossOrigin enabled for external images
+                    tryConvert(true);
+                });
+                
+                imagePromises.push(promise);
+            }
+        });
+
+        // Wait for all image conversions with timeout
+        try {
+            await Promise.race([
+                Promise.all(imagePromises),
+                new Promise<void>((resolve) => {
+                    setTimeout(() => {
+                        console.warn('Image conversion timeout - continuing with available conversions');
+                        resolve();
+                    }, 30000);
+                })
+            ]);
+        } catch (error) {
+            console.warn('Some images failed to convert:', error);
+        }
+
+        // Return the modified HTML
+        return tempDiv.innerHTML;
+    };
 
     const handleSave = async () => {
         if (!formData.name.trim()) {
@@ -970,21 +1320,79 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
             return;
         }
 
+        // Check if editor is initialized
         if (!editorRef.current) {
-            toast.error('Editor not initialized');
+            console.error('Editor not initialized when trying to save', {
+                isEditorInitialized: isEditorInitialized.current,
+                editorRef: !!editorRef.current,
+                container: !!editorContainerRef.current,
+            });
+            toast.error('Editor not initialized. Please wait for the editor to load.');
+            return;
+        }
+
+        // Verify editor methods exist
+        if (typeof editorRef.current.getHtml !== 'function' || typeof editorRef.current.getCss !== 'function') {
+            console.error('Editor methods not available', {
+                hasGetHtml: typeof editorRef.current.getHtml,
+                hasGetCss: typeof editorRef.current.getCss,
+            });
+            toast.error('Editor methods not available. Please refresh the page.');
             return;
         }
 
         setIsSaving(true);
         try {
-            const htmlContent = editorRef.current.getHtml();
+            let htmlContent = editorRef.current.getHtml();
             const cssContent = editorRef.current.getCss();
+            
+            console.log('Saving template (before conversion):', {
+                hasHtml: !!htmlContent,
+                hasCss: !!cssContent,
+                htmlLength: htmlContent?.length || 0,
+                cssLength: cssContent?.length || 0,
+                hasImages: htmlContent?.includes('<img') || false,
+            });
 
-            // Combine HTML and CSS for variable extraction and storage
-            // GrapesJS generates email-safe HTML, so we'll include CSS in a style tag
-            const finalContent = cssContent
-                ? `${htmlContent}<style>${cssContent}</style>`
-                : htmlContent;
+            // Convert images to base64 with aggressive size optimization
+            // This will compress and scale images to keep total size reasonable
+            toast.info('Optimizing images...', { duration: 2000 });
+            htmlContent = await convertImagesToBase64(htmlContent);
+            
+            const finalSize = htmlContent.length;
+            const sizeMB = (finalSize / 1024 / 1024).toFixed(2);
+            
+            console.log('Saving template (after conversion):', {
+                htmlLength: htmlContent?.length || 0,
+                sizeMB: sizeMB,
+                hasBase64Images: htmlContent?.includes('data:image') || false,
+            });
+            
+            // Warn if content is very large, but still allow saving for email templates
+            if (finalSize > 10 * 1024 * 1024) { // 10MB
+                const errorMsg = `Template content is very large (${sizeMB}MB). The server may reject it. Consider optimizing images.`;
+                console.warn(errorMsg);
+                toast.warning(errorMsg, { duration: 5000 });
+            }
+
+            // Build complete HTML document structure for email
+            // This creates a full HTML document that can be sent as-is in emails
+            const completeHtmlDocument = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>${formData.name || 'Email Template'}</title>
+    ${cssContent ? `<style type="text/css">${cssContent}</style>` : ''}
+</head>
+<body style="margin: 0; padding: 0; background-color: #ffffff;">
+    ${htmlContent}
+</body>
+</html>`;
+
+            // Use complete HTML document for variable extraction and storage
+            const finalContent = completeHtmlDocument;
 
             // Extract variables from content and subject
             const contentVariables = extractVariablesFromContent(finalContent);
@@ -1011,17 +1419,39 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                     id: templateId,
                     ...templateData,
                 });
+                // Clear cache to force refresh
+                templateCacheService.clearCache(formData.type);
                 toast.success('Template updated successfully!');
             } else {
                 await createMessageTemplate(templateData);
+                // Clear cache to force refresh
+                templateCacheService.clearCache(formData.type);
                 toast.success('Template created successfully!');
             }
 
             // Navigate back to settings
             navigate({ to: '/settings', search: { selectedTab: 'templates' } });
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error saving template:', error);
-            toast.error(templateId ? 'Failed to update template' : 'Failed to create template');
+            const errorMessage = error?.message || error?.toString() || 'Unknown error';
+            console.error('Full error details:', {
+                error,
+                message: errorMessage,
+                stack: error?.stack,
+            });
+            
+            // Show more detailed error message
+            const userMessage = errorMessage.includes('401') || errorMessage.includes('Unauthorized')
+                ? 'Authentication failed. Please login again.'
+                : errorMessage.includes('403') || errorMessage.includes('Forbidden')
+                ? 'You do not have permission to save templates.'
+                : errorMessage.includes('400') || errorMessage.includes('Bad Request')
+                ? `Invalid data: ${errorMessage}`
+                : templateId 
+                ? `Failed to update template: ${errorMessage}`
+                : `Failed to create template: ${errorMessage}`;
+            
+            toast.error(userMessage);
         } finally {
             setIsSaving(false);
         }

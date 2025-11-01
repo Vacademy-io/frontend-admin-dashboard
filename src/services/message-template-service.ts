@@ -67,27 +67,28 @@ export const createMessageTemplate = async (
         }
 
         const instituteId = getInstituteId();
+        if (!instituteId) {
+            throw new Error('Institute ID not found. Please login again.');
+        }
+        
         const payload = {
             type: template.type?.toLowerCase() || 'email',
             vendorId: 'default',
             instituteId: instituteId,
             name: template.name,
             subject: template.subject || '',
-            content: template.content,
-            contentType: 'text/plain',
+            content: template.content, // HTML content from GrapesJS editor
+            contentType: 'text/html', // HTML content with base64 images for email templates
             settingJson: {
                 variables: template.variables || [],
                 isDefault: template.isDefault || false,
                 templateType: template.templateType || 'utility',
             },
-            dynamicParameters: {
-                // Add any dynamic parameters if needed
-            },
+            dynamicParameters: {},
             canDelete: true,
             createdBy: 'current-user',
             updatedBy: 'current-user',
         };
-
 
         const response = await fetch(CREATE_MESSAGE_TEMPLATE, {
             method: 'POST',
@@ -103,6 +104,13 @@ export const createMessageTemplate = async (
 
         if (!response.ok) {
             const errorText = await response.text();
+            console.error('Create template API error:', {
+                status: response.status,
+                statusText: response.statusText,
+                errorText,
+                hasToken: !!accessToken,
+                hasInstituteId: !!instituteId,
+            });
             throw new Error(`Failed to create template: ${response.status} ${errorText}`);
         }
 
@@ -311,24 +319,28 @@ export const updateMessageTemplate = async (
             throw new Error('Access token not found. Please login again.');
         }
 
+        const instituteId = getInstituteId();
+        if (!instituteId) {
+            throw new Error('Institute ID not found. Please login again.');
+        }
+        
         const { id, ...updateData } = template;
 
         const payload = {
             id: id,
             type: updateData.type?.toLowerCase() || 'email',
             vendorId: 'default',
+            instituteId: instituteId,
             name: updateData.name || '',
             subject: updateData.subject || '',
-            content: updateData.content || '',
-            contentType: 'text/plain',
+            content: updateData.content || '', // HTML content from GrapesJS editor
+            contentType: 'text/html', // HTML content with base64 images for email templates
             settingJson: {
                 variables: updateData.variables || [],
                 isDefault: updateData.isDefault || false,
                 templateType: updateData.templateType || 'utility',
             },
-            dynamicParameters: {
-                // Add any dynamic parameters if needed
-            },
+            dynamicParameters: {},
             canDelete: true,
             updatedBy: 'current-user',
         };
@@ -348,6 +360,13 @@ export const updateMessageTemplate = async (
 
         if (!response.ok) {
             const errorText = await response.text();
+            console.error('Update template API error:', {
+                status: response.status,
+                statusText: response.statusText,
+                errorText,
+                hasToken: !!accessToken,
+                hasInstituteId: !!instituteId,
+            });
             throw new Error(`Failed to update template: ${response.status} ${errorText}`);
         }
 
