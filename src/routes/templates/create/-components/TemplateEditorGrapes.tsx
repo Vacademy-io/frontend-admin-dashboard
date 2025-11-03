@@ -199,7 +199,6 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                     styles: [],
                     scripts: [],
                 },
-                dragMode: 'absolute', // Enable absolute positioning for dragging
                 deviceManager: {
                     devices: [
                         {
@@ -217,6 +216,10 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                             widthMedia: '768px',
                         },
                     ],
+                },
+                layerManager: {
+                    // Only allow single selection in layer manager
+                    multipleSelection: false,
                 },
                 plugins: [presetNewsletter],
                 pluginsOpts: {
@@ -243,7 +246,35 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                     }
 
                     // Make the canvas wrapper fill available space and scrollable
-                    const canvasWrapper = (editor.Canvas as any).getWrapperEl();
+                    // Try multiple ways to get the canvas wrapper element
+                    let canvasWrapper: HTMLElement | null = null;
+                    
+                    // Method 1: Try to get from Canvas module
+                    try {
+                        if ((editor.Canvas as any).getWrapperEl) {
+                            canvasWrapper = (editor.Canvas as any).getWrapperEl();
+                        }
+                    } catch (e) {
+                        // Method 1 failed, try Method 2
+                    }
+                    
+                    // Method 2: Try to find by class name
+                    if (!canvasWrapper) {
+                        canvasWrapper = container.querySelector('.gjs-cv-canvas')?.parentElement as HTMLElement || null;
+                    }
+                    
+                    // Method 3: Try to find canvas view and get parent
+                    if (!canvasWrapper) {
+                        try {
+                            const canvasView = editor.Canvas.getCanvasView();
+                            if (canvasView && canvasView.el) {
+                                canvasWrapper = canvasView.el.parentElement as HTMLElement;
+                            }
+                        } catch (e) {
+                            // Method 3 failed
+                        }
+                    }
+                    
                     if (canvasWrapper) {
                         canvasWrapper.style.height = '100%';
                         canvasWrapper.style.flex = '1';
@@ -280,19 +311,80 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                                 try {
                                     const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
                                     if (iframeDoc) {
+                                        // Add or update viewport meta tag for responsive behavior
+                                        let viewportMeta = iframeDoc.querySelector('meta[name="viewport"]');
+                                        if (!viewportMeta) {
+                                            viewportMeta = iframeDoc.createElement('meta');
+                                            viewportMeta.setAttribute('name', 'viewport');
+                                            iframeDoc.head.appendChild(viewportMeta);
+                                        }
+                                        viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes');
+                                        
                                         // Set html element
                                         if (iframeDoc.documentElement) {
                                             iframeDoc.documentElement.style.height = 'auto';
                                             iframeDoc.documentElement.style.minHeight = '100%';
                                         }
                                         
-                                        // Configure body to expand with content
+                                        // Configure body to expand with content and be responsive
+                                        // Don't set maxWidth as it can break absolute positioning
                                         if (iframeDoc.body) {
                                             const iframeBody = iframeDoc.body;
                                             iframeBody.style.minHeight = '100%';
                                             iframeBody.style.height = 'auto';
                                             iframeBody.style.overflowY = 'visible';
                                             iframeBody.style.overflowX = 'hidden';
+                                            // Ensure responsive behavior without breaking positioning
+                                            iframeBody.style.width = '100%';
+                                            iframeBody.style.boxSizing = 'border-box';
+                                            // Don't set maxWidth - let CSS media queries handle responsive behavior
+                                        }
+                                        
+                                        // Add responsive CSS to head if not already present
+                                        let responsiveStyle = iframeDoc.querySelector('style[data-responsive]');
+                                        if (!responsiveStyle) {
+                                            responsiveStyle = iframeDoc.createElement('style');
+                                            responsiveStyle.setAttribute('data-responsive', 'true');
+                                            responsiveStyle.textContent = `
+                                                /* Responsive styles for tablet and mobile */
+                                                @media screen and (max-width: 768px) {
+                                                    table {
+                                                        width: 100% !important;
+                                                        max-width: 100% !important;
+                                                    }
+                                                    img {
+                                                        max-width: 100% !important;
+                                                        height: auto !important;
+                                                    }
+                                                    * {
+                                                        box-sizing: border-box;
+                                                    }
+                                                    /* Preserve absolute positioning when switching devices */
+                                                    [style*="position: absolute"],
+                                                    [style*="position:absolute"],
+                                                    [style*="position: relative"],
+                                                    [style*="position:relative"] {
+                                                        /* Keep original positioning intact */
+                                                    }
+                                                }
+                                                @media screen and (max-width: 480px) {
+                                                    table {
+                                                        width: 100% !important;
+                                                        font-size: 14px !important;
+                                                    }
+                                                    td, th {
+                                                        padding: 8px !important;
+                                                    }
+                                                    /* Preserve positioning on mobile */
+                                                    [style*="position: absolute"],
+                                                    [style*="position:absolute"],
+                                                    [style*="position: relative"],
+                                                    [style*="position:relative"] {
+                                                        /* Keep original positioning intact */
+                                                    }
+                                                }
+                                            `;
+                                            iframeDoc.head.appendChild(responsiveStyle);
                                         }
                                     }
                                 } catch (e) {
@@ -328,8 +420,288 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
             // Ensure device manager is properly initialized
             const dm = editor.DeviceManager;
             if (dm) {
-                console.log('Device Manager initialized:', dm.getDevices());
+                const devices = dm.getDevices();
+                console.log('Device Manager initialized:', devices);
+                
+                // Log available devices for debugging
+                console.log('Available devices:', devices.map((d: any) => ({
+                    name: d.getName ? d.getName() : d.name,
+                    width: d.getWidth ? d.getWidth() : d.width,
+                    id: d.id || d.getName ? d.getName() : d.name
+                })));
+                
+                // Check if mobile device exists and can be selected
+                const mobileDevice = devices.find((d: any) => {
+                    const name = d.getName ? d.getName() : d.name;
+                    return name && name.toLowerCase().includes('mobile');
+                });
+                
+                if (mobileDevice) {
+                    console.log('Mobile device found:', mobileDevice);
+                } else {
+                    console.warn('Mobile device not found in device list');
+                }
             }
+
+            // Configure Style Manager with comprehensive positioning properties
+            // This ensures all positioning controls are available in the sidepanel
+            const configureStyleManager = () => {
+                try {
+                    const styleManager = editor.StyleManager;
+                    if (!styleManager) {
+                        console.warn('Style Manager not available');
+                        return;
+                    }
+
+                    // Get all existing sectors
+                    const sectors = styleManager.getSectors();
+                    
+                    // Helper function to check if property exists in ANY sector
+                    const propertyExistsInAnySector = (propName: string): boolean => {
+                        try {
+                            for (const sector of sectors) {
+                                const existingProps = sector.getProperties();
+                                const exists = existingProps.some((p: any) => {
+                                    const pProperty = p.getProperty ? p.getProperty() : p.property;
+                                    const pName = p.getName ? p.getName() : p.name;
+                                    return pProperty === propName || pName === propName;
+                                });
+                                if (exists) return true;
+                            }
+                            return false;
+                        } catch (error) {
+                            return false;
+                        }
+                    };
+                    
+                    // Helper function to add property if it doesn't exist in ANY sector
+                    const addPropertyIfNotExists = (sector: any, prop: any) => {
+                        const propName = prop.property || prop.name;
+                        if (propertyExistsInAnySector(propName)) {
+                            // Property already exists, don't add it
+                            return;
+                        }
+                        
+                        try {
+                            const existingProps = sector.getProperties();
+                            const exists = existingProps.some((p: any) => {
+                                const pProperty = p.getProperty ? p.getProperty() : p.property;
+                                const pName = p.getName ? p.getName() : p.name;
+                                return pProperty === propName || pName === propName;
+                            });
+                            if (!exists) {
+                                sector.addProperty(prop);
+                            }
+                        } catch (error) {
+                            console.warn('Error checking property existence:', error);
+                            // Don't add if there's an error - might conflict with existing
+                        }
+                    };
+
+                    // Find or create Dimension sector
+                    let dimensionSector = sectors.find((s: any) => {
+                        const id = s.getId ? s.getId() : s.id;
+                        const name = s.getName ? s.getName() : s.name;
+                        return id === 'dimension' || name === 'Dimension';
+                    });
+                    if (!dimensionSector) {
+                        dimensionSector = styleManager.addSector('dimension', {
+                            name: 'Dimension',
+                            open: true,
+                        });
+                    }
+                    
+                    // Add dimension properties - only add if they don't already exist
+                    // Skip width and height if preset-newsletter already provides them
+                    const widthExists = propertyExistsInAnySector('width');
+                    const heightExists = propertyExistsInAnySector('height');
+                    
+                    const dimensionProps = [];
+                    
+                    // Only add width if it doesn't exist
+                    if (!widthExists) {
+                        dimensionProps.push({
+                            name: 'width',
+                            type: 'integer',
+                            units: ['px', '%', 'em', 'rem', 'vw', 'vh', 'auto'],
+                            defaults: 'auto',
+                            min: 0,
+                            unit: 'px',
+                            property: 'width',
+                        });
+                    }
+                    
+                    // Only add height if it doesn't exist
+                    if (!heightExists) {
+                        dimensionProps.push({
+                            name: 'height',
+                            type: 'integer',
+                            units: ['px', '%', 'em', 'rem', 'vh', 'vw', 'auto'],
+                            defaults: 'auto',
+                            min: 0,
+                            unit: 'px',
+                            property: 'height',
+                        });
+                    }
+                    
+                    // Always try to add min/max properties (these are usually not in preset-newsletter)
+                    dimensionProps.push(
+                        {
+                            name: 'min-width',
+                            type: 'integer',
+                            units: ['px', '%', 'em', 'rem', 'vw', 'auto'],
+                            defaults: '0',
+                            min: 0,
+                            unit: 'px',
+                            property: 'min-width',
+                        },
+                        {
+                            name: 'max-width',
+                            type: 'integer',
+                            units: ['px', '%', 'em', 'rem', 'vw', 'none'],
+                            defaults: 'none',
+                            min: 0,
+                            unit: 'px',
+                            property: 'max-width',
+                        },
+                        {
+                            name: 'min-height',
+                            type: 'integer',
+                            units: ['px', '%', 'em', 'rem', 'vh', 'auto'],
+                            defaults: '0',
+                            min: 0,
+                            unit: 'px',
+                            property: 'min-height',
+                        },
+                        {
+                            name: 'max-height',
+                            type: 'integer',
+                            units: ['px', '%', 'em', 'rem', 'vh', 'none'],
+                            defaults: 'none',
+                            min: 0,
+                            unit: 'px',
+                            property: 'max-height',
+                        }
+                    );
+
+                    dimensionProps.forEach((prop) => addPropertyIfNotExists(dimensionSector, prop));
+
+                    // Find or create Spacing sector
+                    let spacingSector = sectors.find((s: any) => {
+                        const id = s.getId ? s.getId() : s.id;
+                        const name = s.getName ? s.getName() : s.name;
+                        return id === 'spacing' || name === 'Spacing';
+                    });
+                    if (!spacingSector) {
+                        spacingSector = styleManager.addSector('spacing', {
+                            name: 'Spacing',
+                            open: true,
+                        });
+                    }
+                    
+                    // Add spacing properties (margin and padding)
+                    const spacingProps = [
+                        {
+                            type: 'composite',
+                            name: 'margin',
+                            property: 'margin',
+                            properties: [
+                                { name: 'margin-top', type: 'integer', units: ['px', '%', 'em', 'rem', 'auto'], defaults: '0', min: 0, unit: 'px' },
+                                { name: 'margin-right', type: 'integer', units: ['px', '%', 'em', 'rem', 'auto'], defaults: '0', min: 0, unit: 'px' },
+                                { name: 'margin-bottom', type: 'integer', units: ['px', '%', 'em', 'rem', 'auto'], defaults: '0', min: 0, unit: 'px' },
+                                { name: 'margin-left', type: 'integer', units: ['px', '%', 'em', 'rem', 'auto'], defaults: '0', min: 0, unit: 'px' },
+                            ],
+                        },
+                        {
+                            type: 'composite',
+                            name: 'padding',
+                            property: 'padding',
+                            properties: [
+                                { name: 'padding-top', type: 'integer', units: ['px', '%', 'em', 'rem'], defaults: '0', min: 0, unit: 'px' },
+                                { name: 'padding-right', type: 'integer', units: ['px', '%', 'em', 'rem'], defaults: '0', min: 0, unit: 'px' },
+                                { name: 'padding-bottom', type: 'integer', units: ['px', '%', 'em', 'rem'], defaults: '0', min: 0, unit: 'px' },
+                                { name: 'padding-left', type: 'integer', units: ['px', '%', 'em', 'rem'], defaults: '0', min: 0, unit: 'px' },
+                            ],
+                        },
+                    ];
+
+                    spacingProps.forEach((prop) => addPropertyIfNotExists(spacingSector, prop));
+
+                    // Find or create Position sector
+                    let positionSector = sectors.find((s: any) => {
+                        const id = s.getId ? s.getId() : s.id;
+                        const name = s.getName ? s.getName() : s.name;
+                        return id === 'position' || name === 'Position';
+                    });
+                    if (!positionSector) {
+                        positionSector = styleManager.addSector('position', {
+                            name: 'Position',
+                            open: false,
+                        });
+                    }
+                    
+                    // Add position properties
+                    const positionProps = [
+                        {
+                            name: 'position',
+                            type: 'select',
+                            defaults: 'static',
+                            options: [
+                                { value: 'static', name: 'Static' },
+                                { value: 'relative', name: 'Relative' },
+                                { value: 'absolute', name: 'Absolute' },
+                                { value: 'fixed', name: 'Fixed' },
+                                { value: 'sticky', name: 'Sticky' },
+                            ],
+                            property: 'position',
+                        },
+                        {
+                            name: 'top',
+                            type: 'integer',
+                            units: ['px', '%', 'em', 'rem', 'auto'],
+                            defaults: 'auto',
+                            unit: 'px',
+                            property: 'top',
+                        },
+                        {
+                            name: 'right',
+                            type: 'integer',
+                            units: ['px', '%', 'em', 'rem', 'auto'],
+                            defaults: 'auto',
+                            unit: 'px',
+                            property: 'right',
+                        },
+                        {
+                            name: 'bottom',
+                            type: 'integer',
+                            units: ['px', '%', 'em', 'rem', 'auto'],
+                            defaults: 'auto',
+                            unit: 'px',
+                            property: 'bottom',
+                        },
+                        {
+                            name: 'left',
+                            type: 'integer',
+                            units: ['px', '%', 'em', 'rem', 'auto'],
+                            defaults: 'auto',
+                            unit: 'px',
+                            property: 'left',
+                        },
+                        {
+                            name: 'z-index',
+                            type: 'integer',
+                            defaults: 'auto',
+                            property: 'z-index',
+                        },
+                    ];
+
+                    positionProps.forEach((prop) => addPropertyIfNotExists(positionSector, prop));
+
+                    console.log('Style Manager configured with comprehensive positioning properties');
+                } catch (error) {
+                    console.error('Error configuring Style Manager:', error);
+                }
+            };
 
             // Store editor reference and mark as initialized
             editorRef.current = editor;
@@ -468,7 +840,24 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                 cmp.get('traits').reset(traits);
             };
 
+            // Ensure only single selection in layer manager
             editor.on('component:selected', (cmp: any) => {
+                // Clear other selections to ensure only one item is selected at a time
+                try {
+                    const selected = editor.getSelected();
+                    if (selected && selected.length > 1) {
+                        // Keep only the last selected component
+                        const lastSelected = selected[selected.length - 1];
+                        selected.forEach((comp: any) => {
+                            if (comp !== lastSelected) {
+                                comp.set('selected', false);
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.log('Error managing single selection:', e);
+                }
+                
                 const anchorCmp = cmp.closest && cmp.closest('a');
                 const targetCmp = anchorCmp || cmp;
                 const el = targetCmp.getEl && targetCmp.getEl();
@@ -731,7 +1120,13 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
             const enableResizingForNestedCells = (component: any) => {
                 // Check if this component is a table cell
                 const el = component.getEl && component.getEl();
-                if (el && (el.tagName === 'TD' || el.tagName === 'TH' || el.hasAttribute('data-email-cell'))) {
+                // Ensure el is a DOM element before checking attributes
+                if (el && typeof el === 'object' && el.nodeType && el.nodeType === 1) {
+                    // Check if it's a table cell or has the data attribute
+                    const isTableCell = el.tagName === 'TD' || el.tagName === 'TH';
+                    const hasDataAttr = el.hasAttribute && typeof el.hasAttribute === 'function' && el.hasAttribute('data-email-cell');
+                    
+                    if (isTableCell || hasDataAttr) {
                     setTimeout(() => {
                         component.set('resizable', {
                             tl: 1, // top-left corner
@@ -761,14 +1156,24 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                             component.addStyle({ height: height });
                         }
                     });
+                    }
                 }
                 
-                // Recursively check children
-                const children = component.components ? component.components().models : [];
+                // Recursively check children - with error handling
+                if (component && component.components) {
+                    try {
+                        const children = component.components().models || [];
                 if (children && children.length > 0) {
                     children.forEach((child: any) => {
+                                if (child) {
                         enableResizingForNestedCells(child);
+                                }
                     });
+                        }
+                    } catch (e) {
+                        // Ignore errors in recursive traversal
+                        console.warn('Error in recursive cell resizing:', e);
+                    }
                 }
             };
 
@@ -1005,9 +1410,19 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                 setTimeout(loadTemplateContent, 300);
             }
 
+            // Configure Style Manager after a delay to ensure editor is ready
+            setTimeout(() => {
+                configureStyleManager();
+            }, 300);
+
             // Wait for editor to be fully loaded
             editor.on('load', () => {
                 console.log('GrapesJS editor loaded successfully');
+                
+                // Configure Style Manager after load to ensure it's available
+                setTimeout(() => {
+                    configureStyleManager();
+                }, 100);
                 
                 // Enable resizing for all existing table elements and cells after load
                 const allComponents = editor.getComponents();
@@ -1087,14 +1502,190 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                 }
             }, 200);
 
-            // Handle device change
+            // Handle device change - ensure responsive behavior without breaking positioning
             editor.on('change:device', () => {
-                console.log('Device changed:', editor.getDevice());
-                // Refresh the canvas when device changes
+                const currentDevice = editor.getDevice();
+                const deviceName = currentDevice?.getName ? currentDevice.getName() : (currentDevice?.name || currentDevice || '');
+                console.log('Device changed:', deviceName, currentDevice);
+                
+                // Normalize device name for comparison (handle "Mobile portrait", "Mobile", etc.)
+                const deviceNameLower = deviceName.toLowerCase();
+                
+                // Verify device is actually selected
+                const dm = editor.DeviceManager;
+                if (dm) {
+                    const selectedDevice = dm.getSelected();
+                    console.log('Device Manager selected device:', selectedDevice?.getName ? selectedDevice.getName() : selectedDevice?.name || selectedDevice);
+                    console.log('Current device from editor:', editor.getDevice()?.getName ? editor.getDevice().getName() : editor.getDevice()?.name || editor.getDevice());
+                    
+                    // If device is not selected but editor has it, try to select it
+                    if (!selectedDevice && currentDevice) {
+                        try {
+                            const deviceId = currentDevice.id || currentDevice.getName ? currentDevice.getName() : currentDevice.name;
+                            if (deviceId) {
+                                dm.select(deviceId);
+                                console.log('Attempted to select device:', deviceId);
+                            }
+                        } catch (e) {
+                            console.warn('Could not select device:', e);
+                        }
+                    }
+                }
+                
+                // Get device width for canvas resizing
+                const deviceWidth = currentDevice?.getWidth ? currentDevice.getWidth() : (currentDevice?.width || '');
+                console.log('Device width:', deviceWidth);
+                
+                // Use a small delay to let GrapeJS finish its device change handling
                 setTimeout(() => {
-                    editor.refresh();
+                    // Re-configure canvas - this ensures responsive styles are applied
+                    // Wrap in try-catch to prevent errors from breaking device switching
+                    try {
                     configureCanvas();
+                    } catch (e) {
+                        console.warn('Error configuring canvas on device change (non-critical):', e);
+                    }
+                    
+                    // Explicitly update canvas wrapper width to match device
+                    try {
+                        const canvasWrapper = container.querySelector('.gjs-cv-canvas')?.parentElement as HTMLElement;
+                        if (canvasWrapper) {
+                            // Update canvas wrapper max-width to match device width
+                            if (deviceWidth) {
+                                canvasWrapper.style.maxWidth = deviceWidth;
+                                console.log('Updated canvas wrapper max-width to:', deviceWidth);
+                            } else {
+                                // Desktop - remove max-width constraint
+                                canvasWrapper.style.maxWidth = '';
+                            }
+                        }
+                        
+                        // Also update the canvas view container
+                        const canvasView = editor.Canvas.getCanvasView();
+                        if (canvasView && canvasView.el) {
+                            const canvasContainer = canvasView.el.parentElement as HTMLElement;
+                            if (canvasContainer) {
+                                if (deviceWidth) {
+                                    canvasContainer.style.maxWidth = deviceWidth;
+                                } else {
+                                    canvasContainer.style.maxWidth = '';
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Error updating canvas wrapper width:', e);
+                    }
+                    
+                    // Force canvas to update/refresh after width change
+                    try {
+                        // Small delay then refresh to ensure width changes are applied
+                        setTimeout(() => {
+                            editor.Canvas.getFrameEl().style.width = deviceWidth || '100%';
+                            editor.refresh();
                 }, 50);
+                    } catch (e) {
+                        console.warn('Error refreshing canvas:', e);
+                    }
+                    
+                    // Ensure Style Manager is still configured after device change
+                    configureStyleManager();
+                    
+                    // Re-apply responsive styles when device changes
+                    try {
+                        const canvasEl = editor.Canvas.getCanvasView().el;
+                        if (canvasEl) {
+                            const iframe = canvasEl.querySelector('iframe') as HTMLIFrameElement;
+                            if (iframe) {
+                                // Update iframe width to match device
+                                if (deviceWidth) {
+                                    iframe.style.maxWidth = deviceWidth;
+                                    iframe.style.width = deviceWidth;
+                                } else {
+                                    iframe.style.maxWidth = '';
+                                    iframe.style.width = '100%';
+                                }
+                                
+                                const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+                                if (iframeDoc) {
+                                    // Update viewport meta tag
+                                    let viewportMeta = iframeDoc.querySelector('meta[name="viewport"]');
+                                    if (!viewportMeta) {
+                                        viewportMeta = iframeDoc.createElement('meta');
+                                        viewportMeta.setAttribute('name', 'viewport');
+                                        iframeDoc.head.appendChild(viewportMeta);
+                                    }
+                                    // Set appropriate viewport for mobile/tablet
+                                    // Handle both "Mobile" and "Mobile portrait" device names
+                                    const deviceNameLower = deviceName.toLowerCase();
+                                    const isMobile = deviceNameLower.includes('mobile');
+                                    const isTablet = deviceNameLower.includes('tablet');
+                                    viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes');
+                                    
+                                    // Update body styles for responsive behavior - but don't break positioning
+                                    if (iframeDoc.body) {
+                                        // Don't set maxWidth on body - it breaks absolute positioning
+                                        // Let GrapeJS handle the device width through its canvas
+                                        iframeDoc.body.style.width = '100%';
+                                        iframeDoc.body.style.boxSizing = 'border-box';
+                                        // Remove any maxWidth that might have been set previously
+                                        iframeDoc.body.style.maxWidth = '';
+                                    }
+                                    
+                                    // Ensure responsive CSS is present and update it if needed
+                                    let responsiveStyle = iframeDoc.querySelector('style[data-responsive]') as HTMLStyleElement;
+                                    if (!responsiveStyle) {
+                                        responsiveStyle = iframeDoc.createElement('style');
+                                        responsiveStyle.setAttribute('data-responsive', 'true');
+                                        iframeDoc.head.appendChild(responsiveStyle);
+                                    }
+                                    
+                                    // Update responsive CSS content
+                                    responsiveStyle.textContent = `
+                                        /* Responsive styles for tablet and mobile */
+                                        @media screen and (max-width: 768px) {
+                                            table {
+                                                width: 100% !important;
+                                                max-width: 100% !important;
+                                            }
+                                            img {
+                                                max-width: 100% !important;
+                                                height: auto !important;
+                                            }
+                                            * {
+                                                box-sizing: border-box;
+                                            }
+                                            /* Preserve absolute positioning when switching devices */
+                                            [style*="position: absolute"],
+                                            [style*="position:absolute"],
+                                            [style*="position: relative"],
+                                            [style*="position:relative"] {
+                                                /* Keep original positioning intact */
+                                            }
+                                        }
+                                        @media screen and (max-width: 480px) {
+                                            table {
+                                                width: 100% !important;
+                                                font-size: 14px !important;
+                                            }
+                                            td, th {
+                                                padding: 8px !important;
+                                            }
+                                            /* Preserve positioning on mobile */
+                                            [style*="position: absolute"],
+                                            [style*="position:absolute"],
+                                            [style*="position: relative"],
+                                            [style*="position:relative"] {
+                                                /* Keep original positioning intact */
+                                            }
+                                        }
+                                    `;
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.log('Error applying responsive styles on device change:', e);
+                    }
+                }, 150);
             });
 
             // Update canvas configuration when content changes
@@ -1134,8 +1725,8 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
         };
     }, [isLoading, template, templateId]);
 
-    // Helper function to upload images to S3 and replace URLs in HTML
-    const uploadImagesToS3 = async (html: string): Promise<string> => {
+    // Helper function to upload images to S3 and replace URLs in HTML and CSS
+    const uploadImagesToS3 = async (html: string, css?: string): Promise<{ html: string; css: string }> => {
         // Get user credentials for S3 upload
         const userId = getUserId();
         const instituteId = getInstituteId();
@@ -1143,19 +1734,181 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
         if (!userId || !instituteId) {
             console.error('Missing user credentials for image upload');
             toast.error('Unable to upload images. Please refresh and try again.');
-            return html;
+            return { html, css: css || '' };
         }
+        
+        let processedCss = css || '';
 
         // Create a temporary DOM element to parse HTML
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = html;
 
-        // Find all img tags
-        const images = tempDiv.querySelectorAll('img');
+        // Find all img tags - only collect base64 images for S3 upload
+        const allImages = tempDiv.querySelectorAll('img');
+        const images: Element[] = [];
+        allImages.forEach((img) => {
+            const src = img.getAttribute('src');
+            // Only collect base64 images for S3 upload
+            // External URLs (http/https) will be kept as-is
+            if (src && src.startsWith('data:')) {
+                // Skip if already an S3 URL (shouldn't happen, but safety check)
+                if (!src.includes('s3.') && !src.includes('amazonaws.com') && !src.includes('cloudfront.net')) {
+                    images.push(img);
+                }
+            }
+        });
+        
+        // Find all elements with background-image styles - only collect base64 images
+        const allElements = tempDiv.querySelectorAll('*');
+        const elementsWithBgImages: Array<{ element: Element; bgImage: string }> = [];
+        
+        // Helper function to extract background-image URL from style string
+        const extractBgImageUrl = (styleString: string): string | null => {
+            // Match various formats: url('data:...'), url("data:..."), url(data:...), etc.
+            const patterns = [
+                /background-image:\s*url\(['"]?([^'")]+)['"]?\)/i,
+                /background:\s*[^;]*url\(['"]?([^'")]+)['"]?\)/i,
+            ];
+            
+            for (const pattern of patterns) {
+                const match = styleString.match(pattern);
+                if (match && match[1]) {
+                    return match[1];
+                }
+            }
+            return null;
+        };
+        
+        allElements.forEach((element) => {
+            const el = element as HTMLElement;
+            const style = el.getAttribute('style') || '';
+            
+            // Check inline style
+            const bgUrl = extractBgImageUrl(style);
+            if (bgUrl) {
+                // Only collect base64 images for S3 upload
+                // External URLs (http/https) will be kept as-is
+                if (bgUrl.startsWith('data:')) {
+                    // Skip if already an S3 URL (shouldn't happen, but safety check)
+                    if (!bgUrl.includes('s3.') && !bgUrl.includes('amazonaws.com') && !bgUrl.includes('cloudfront.net')) {
+                        elementsWithBgImages.push({ element: el, bgImage: bgUrl });
+                    }
+                }
+            }
+        });
+        
+        // Also check for background images in style tags (CSS)
+        const styleTags = tempDiv.querySelectorAll('style');
+        const styleTagBgImages: Array<{ selector: string; bgImage: string; styleTag: Element; fullMatch: string }> = [];
+        
+        styleTags.forEach((styleTag) => {
+            const cssContent = styleTag.textContent || '';
+            // Find all background-image declarations in CSS
+            // Match both background-image: url(...) and background: ... url(...) ...
+            const bgImageRegex = /([^{}]+)\{([^}]*)\}/gi;
+            let ruleMatch: RegExpExecArray | null;
+            while ((ruleMatch = bgImageRegex.exec(cssContent)) !== null) {
+                const selector = ruleMatch[1];
+                const declarations = ruleMatch[2];
+                if (selector && declarations) {
+                    // Check for background-image: url(...)
+                    let bgImageMatch = declarations.match(/background-image:\s*url\(['"]?([^'")]+)['"]?\)/i);
+                    if (!bgImageMatch) {
+                        // Check for background: ... url(...) (shorthand)
+                        bgImageMatch = declarations.match(/background:\s*[^;]*url\(['"]?([^'")]+)['"]?\)/i);
+                    }
+                    
+                    if (bgImageMatch && bgImageMatch[1]) {
+                        const bgUrl = bgImageMatch[1];
+                        if (bgUrl.startsWith('data:') || 
+                            (bgUrl.startsWith('http') && !bgUrl.includes('s3.') && !bgUrl.includes('amazonaws.com') && !bgUrl.includes('cloudfront.net'))) {
+                            styleTagBgImages.push({ 
+                                selector: selector.trim(), 
+                                bgImage: bgUrl, 
+                                styleTag,
+                                fullMatch: ruleMatch[0]
+                            });
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Process CSS content for background images
+        const cssBgImages: Array<{ bgImage: string; fullMatch: string }> = [];
+        if (processedCss) {
+            console.log('Processing CSS for background images, CSS length:', processedCss.length);
+            
+            // First, try to find all background-image URLs directly in CSS (more comprehensive)
+            // This handles cases where CSS might have background-image on multiple lines or in different formats
+            const directBgImageRegex = /background(?:-image)?:\s*[^;]*url\(['"]?([^'")]+)['"]?\)/gi;
+            let directMatch: RegExpExecArray | null;
+            while ((directMatch = directBgImageRegex.exec(processedCss)) !== null) {
+                if (directMatch[1]) {
+                    const bgUrl = directMatch[1];
+                    // Check if it's base64 or external URL (not already S3)
+                    if (bgUrl.startsWith('data:') || 
+                        (bgUrl.startsWith('http') && !bgUrl.includes('s3.') && !bgUrl.includes('amazonaws.com') && !bgUrl.includes('cloudfront.net'))) {
+                        // Check if we already have this URL to avoid duplicates
+                        const exists = cssBgImages.some(item => item.bgImage === bgUrl);
+                        if (!exists) {
+                            cssBgImages.push({ 
+                                bgImage: bgUrl,
+                                fullMatch: directMatch[0]
+                            });
+                            console.log('Found background image in CSS:', bgUrl.substring(0, 60));
+                        }
+                    }
+                }
+            }
+            
+            // Also try the rule-based approach for completeness
+            const bgImageRegex = /([^{}]+)\{([^}]*)\}/gi;
+            let ruleMatch: RegExpExecArray | null;
+            while ((ruleMatch = bgImageRegex.exec(processedCss)) !== null) {
+                const declarations = ruleMatch[2];
+                if (declarations) {
+                    // Check for background-image: url(...)
+                    let bgImageMatch = declarations.match(/background-image:\s*url\(['"]?([^'")]+)['"]?\)/i);
+                    if (!bgImageMatch) {
+                        // Check for background: ... url(...) (shorthand)
+                        bgImageMatch = declarations.match(/background:\s*[^;]*url\(['"]?([^'")]+)['"]?\)/i);
+                    }
+                    
+                    if (bgImageMatch && bgImageMatch[1]) {
+                        const bgUrl = bgImageMatch[1];
+                        if (bgUrl.startsWith('data:') || 
+                            (bgUrl.startsWith('http') && !bgUrl.includes('s3.') && !bgUrl.includes('amazonaws.com') && !bgUrl.includes('cloudfront.net'))) {
+                            // Check if we already have this URL
+                            const exists = cssBgImages.some(item => item.bgImage === bgUrl);
+                            if (!exists) {
+                                cssBgImages.push({ 
+                                    bgImage: bgUrl,
+                                    fullMatch: ruleMatch[0]
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            
+            console.log(`Found ${cssBgImages.length} background image(s) in CSS content`);
+        }
+        
+        const totalImages = images.length + elementsWithBgImages.length + styleTagBgImages.length + cssBgImages.length;
+        
+        if (totalImages === 0) {
+            console.log('No images found in HTML or CSS, skipping S3 upload');
+            return { html, css: processedCss };
+        }
+        
+        console.log(`Found ${images.length} img tag(s), ${elementsWithBgImages.length} inline background-image(s), ${styleTagBgImages.length} style tag background-image(s), and ${cssBgImages.length} CSS background-image(s) to process for S3 upload`);
+        
         const imagePromises: Promise<void>[] = [];
         
         let uploadedCount = 0;
         let failedCount = 0;
+        let base64Count = 0;
 
         // Helper function to convert image URL/Blob to File
         const urlToFile = async (url: string, filename: string): Promise<File | null> => {
@@ -1202,14 +1955,21 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                 const randomId = Math.random().toString(36).substring(2, 15);
                 
                 if (originalSrc.startsWith('data:')) {
-                    // Base64 image
+                    // Base64 image - convert to File and upload to S3
+                    console.log('Processing base64 image for S3 upload...');
                     const match = originalSrc.match(/data:([^;]+);base64,(.+)/);
                     if (match && match[1] && match[2]) {
                         mimeType = match[1];
                         const base64Data: string = match[2]; // Type assertion since we checked match[2] exists
                         const extension = mimeType.split('/')[1] || 'png';
                         const filename = `template-image-${timestamp}-${randomId}.${extension}`;
+                        console.log('Converting base64 to File:', { mimeType, extension, filename });
                         file = base64ToFile(base64Data, mimeType, filename);
+                        if (!file) {
+                            console.error('Failed to convert base64 to File');
+                            return null;
+                        }
+                        console.log('Base64 converted to File successfully, size:', file.size, 'bytes');
                     } else {
                         console.error('Invalid base64 image format:', originalSrc.substring(0, 50));
                         return null;
@@ -1251,6 +2011,7 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                 }
 
                 // Upload to S3
+                console.log('Uploading file to S3:', { filename: file.name, size: file.size, type: file.type });
                 const fileId = await UploadFileInS3(
                     file,
                     () => {}, // Progress callback
@@ -1261,16 +2022,20 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                 );
 
                 if (!fileId) {
+                    console.error('UploadFileInS3 returned null fileId');
                     throw new Error('Failed to upload image to S3');
                 }
+                
+                console.log('File uploaded to S3, fileId:', fileId);
 
                 // Get public URL
                 const publicUrl = await getPublicUrl(fileId);
                 if (!publicUrl) {
+                    console.error('getPublicUrl returned null for fileId:', fileId);
                     throw new Error('Failed to get public URL from S3');
                 }
 
-                console.log('Successfully uploaded image to S3:', {
+                console.log('✓ Successfully uploaded image to S3:', {
                     original: originalSrc.substring(0, 50),
                     s3Url: publicUrl.substring(0, 50),
                     fileId,
@@ -1288,6 +2053,7 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
             
             // Skip if no src
             if (!src) {
+                console.log('Skipping image (no src attribute)');
                 return;
             }
             
@@ -1298,14 +2064,260 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                 return;
             }
 
+            // Count base64 images
+            if (src.startsWith('data:')) {
+                base64Count++;
+            }
+
             // Upload image (base64 or external URL) to S3
-            const promise = uploadImageToS3(img, src).then((s3Url) => {
+            const promise = uploadImageToS3(img, src)
+                .then((s3Url) => {
                 if (s3Url) {
                     img.setAttribute('src', s3Url);
                     uploadedCount++;
+                        console.log('✓ Image uploaded to S3, replaced src:', {
+                            original: src.substring(0, 50),
+                            newUrl: s3Url.substring(0, 50)
+                        });
                 } else {
                     failedCount++;
-                    console.warn('Failed to upload image, keeping original URL:', src.substring(0, 50));
+                        console.warn('✗ Failed to upload image to S3, keeping original URL:', src.substring(0, 50));
+                        // If upload failed and it's base64, we should still try to save it
+                        // But ideally we want S3 URLs, so log a warning
+                        if (src.startsWith('data:')) {
+                            console.error('CRITICAL: Base64 image failed to upload to S3. Image will be saved as base64:', src.substring(0, 100));
+                        }
+                    }
+                })
+                .catch((error) => {
+                    failedCount++;
+                    console.error('✗ Error in image upload promise:', error);
+                    if (src.startsWith('data:')) {
+                        console.error('CRITICAL: Base64 image upload error. Image will be saved as base64:', src.substring(0, 100));
+                    }
+                });
+
+            imagePromises.push(promise);
+        });
+
+        // Process background images
+        elementsWithBgImages.forEach(({ element, bgImage }) => {
+            // Skip if already an S3 URL
+            if (bgImage.includes('s3.') || bgImage.includes('amazonaws.com') || bgImage.includes('cloudfront.net')) {
+                console.log('Skipping background-image (already S3 URL):', bgImage.substring(0, 50));
+                return;
+            }
+
+            // Count base64 background images
+            if (bgImage.startsWith('data:')) {
+                base64Count++;
+            }
+
+            // Upload background image (base64 or external URL) to S3
+            const promise = uploadImageToS3(element, bgImage)
+                .then((s3Url) => {
+                    if (s3Url) {
+                        // Update the style attribute with new S3 URL
+                        const currentStyle = element.getAttribute('style') || '';
+                        // Replace the background-image URL in the style
+                        const updatedStyle = currentStyle.replace(
+                            /background-image:\s*url\(['"]?[^'")]+['"]?\)/gi,
+                            `background-image: url('${s3Url}')`
+                        );
+                        // If no background-image was found, add it
+                        if (updatedStyle === currentStyle) {
+                            element.setAttribute('style', `${currentStyle}; background-image: url('${s3Url}')`.trim());
+                        } else {
+                            element.setAttribute('style', updatedStyle);
+                        }
+                        uploadedCount++;
+                        console.log('✓ Background image uploaded to S3, replaced style:', {
+                            original: bgImage.substring(0, 50),
+                            newUrl: s3Url.substring(0, 50)
+                        });
+                    } else {
+                        failedCount++;
+                        console.warn('✗ Failed to upload background image to S3, keeping original URL:', bgImage.substring(0, 50));
+                        if (bgImage.startsWith('data:')) {
+                            console.error('CRITICAL: Base64 background image failed to upload to S3. Image will be saved as base64:', bgImage.substring(0, 100));
+                        }
+                    }
+                })
+                .catch((error) => {
+                    failedCount++;
+                    console.error('✗ Error in background image upload promise:', error);
+                    if (bgImage.startsWith('data:')) {
+                        console.error('CRITICAL: Base64 background image upload error. Image will be saved as base64:', bgImage.substring(0, 100));
+                    }
+                });
+
+            imagePromises.push(promise);
+        });
+
+        // Process background images in style tags (CSS)
+        styleTagBgImages.forEach(({ selector, bgImage, styleTag, fullMatch }) => {
+            // Skip if already an S3 URL
+            if (bgImage.includes('s3.') || bgImage.includes('amazonaws.com') || bgImage.includes('cloudfront.net')) {
+                console.log('Skipping CSS background-image (already S3 URL):', bgImage.substring(0, 50));
+                return;
+            }
+
+            // Count base64 background images
+            if (bgImage.startsWith('data:')) {
+                base64Count++;
+            }
+
+            // Upload background image (base64 or external URL) to S3
+            const promise = uploadImageToS3(styleTag, bgImage)
+                .then((s3Url) => {
+                    if (s3Url) {
+                        // Update the CSS in the style tag
+                        const cssContent = styleTag.textContent || '';
+                        // Replace the background-image URL in CSS
+                        // Handle both background-image: url(...) and background: ... url(...) formats
+                        let updatedCss = cssContent;
+                        
+                        // Replace background-image: url(...)
+                        updatedCss = updatedCss.replace(
+                            new RegExp(`background-image:\\s*url\\(['"]?${bgImage.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]?\\)`, 'gi'),
+                            `background-image: url('${s3Url}')`
+                        );
+                        
+                        // Replace background: ... url(...) (shorthand)
+                        updatedCss = updatedCss.replace(
+                            new RegExp(`background:\\s*([^;]*?)url\\(['"]?${bgImage.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]?\\)([^;]*)`, 'gi'),
+                            `background: $1url('${s3Url}')$2`
+                        );
+                        
+                        styleTag.textContent = updatedCss;
+                        uploadedCount++;
+                        console.log('✓ CSS background image uploaded to S3, replaced in style tag:', {
+                            selector,
+                            original: bgImage.substring(0, 50),
+                            newUrl: s3Url.substring(0, 50)
+                        });
+                    } else {
+                        failedCount++;
+                        console.warn('✗ Failed to upload CSS background image to S3, keeping original URL:', bgImage.substring(0, 50));
+                        if (bgImage.startsWith('data:')) {
+                            console.error('CRITICAL: Base64 CSS background image failed to upload to S3. Image will be saved as base64:', bgImage.substring(0, 100));
+                        }
+                    }
+                })
+                .catch((error) => {
+                    failedCount++;
+                    console.error('✗ Error in CSS background image upload promise:', error);
+                    if (bgImage.startsWith('data:')) {
+                        console.error('CRITICAL: Base64 CSS background image upload error. Image will be saved as base64:', bgImage.substring(0, 100));
+                    }
+                });
+
+            imagePromises.push(promise);
+        });
+
+        // Helper function to escape special regex characters
+        // This escapes all characters that have special meaning in regex
+        const escapeRegex = (string: string): string => {
+            // Escape all special regex characters
+            return string.replace(/[.*+?^${}()|[\]\\\/\-]/g, (match) => {
+                // Double escape backslashes and forward slashes
+                if (match === '\\' || match === '/') {
+                    return '\\' + match;
+                }
+                return '\\' + match;
+            });
+        };
+
+        // Process background images in CSS content
+        cssBgImages.forEach(({ bgImage }) => {
+            // Skip if already an S3 URL
+            if (bgImage.includes('s3.') || bgImage.includes('amazonaws.com') || bgImage.includes('cloudfront.net')) {
+                console.log('Skipping CSS background-image (already S3 URL):', bgImage.substring(0, 50));
+                return;
+            }
+
+            // Count base64 background images
+            if (bgImage.startsWith('data:')) {
+                base64Count++;
+            }
+
+            // Upload background image (base64 or external URL) to S3
+            const promise = uploadImageToS3(document.createElement('div'), bgImage)
+                .then((s3Url) => {
+                    if (s3Url) {
+                        // Replace the background-image URL in CSS using simple string replacement
+                        // This avoids regex escaping issues with base64 data
+                        
+                        // Try different URL formats that might exist in CSS
+                        const urlFormats = [
+                            `url('${bgImage}')`,
+                            `url("${bgImage}")`,
+                            `url(${bgImage})`,
+                        ];
+                        
+                        let replaced = false;
+                        
+                        // First, try exact string replacement for each format
+                        for (const urlFormat of urlFormats) {
+                            if (processedCss.includes(urlFormat)) {
+                                // Replace with the same quote style
+                                const quoteChar = urlFormat.includes(`'${bgImage}'`) ? "'" : 
+                                                 urlFormat.includes(`"${bgImage}"`) ? '"' : '';
+                                const replacement = quoteChar ? `url(${quoteChar}${s3Url}${quoteChar})` : `url(${s3Url})`;
+                                processedCss = processedCss.split(urlFormat).join(replacement);
+                                replaced = true;
+                                break;
+                            }
+                        }
+                        
+                        // If exact match failed, try replacing just the URL part (handles various quote styles)
+                        if (!replaced) {
+                            // Find all occurrences of the bgImage URL in the CSS
+                            // This handles cases where quotes might be different or missing
+                            const urlPatterns = [
+                                new RegExp(`url\\(['"]?${escapeRegex(bgImage)}['"]?\\)`, 'gi'),
+                                new RegExp(`url\\(['"]?${escapeRegex(bgImage.replace(/[\/\\]/g, '\\$&'))}['"]?\\)`, 'gi'),
+                            ];
+                            
+                            for (const pattern of urlPatterns) {
+                                try {
+                                    if (pattern.test(processedCss)) {
+                                        processedCss = processedCss.replace(pattern, `url('${s3Url}')`);
+                                        replaced = true;
+                                        break;
+                                    }
+                                } catch (e) {
+                                    // Pattern might be invalid, try next one
+                                    continue;
+                                }
+                            }
+                        }
+                        
+                        // Final fallback: direct string replacement (less precise but safer)
+                        if (!replaced) {
+                            console.warn('Using fallback string replacement for background image');
+                            processedCss = processedCss.split(bgImage).join(s3Url);
+                        }
+                        
+                        uploadedCount++;
+                        console.log('✓ CSS background image uploaded to S3, replaced in CSS:', {
+                            original: bgImage.substring(0, 50),
+                            newUrl: s3Url.substring(0, 50),
+                            replaced
+                        });
+                    } else {
+                        failedCount++;
+                        console.warn('✗ Failed to upload CSS background image to S3, keeping original URL:', bgImage.substring(0, 50));
+                        if (bgImage.startsWith('data:')) {
+                            console.error('CRITICAL: Base64 CSS background image failed to upload to S3. Image will be saved as base64:', bgImage.substring(0, 100));
+                        }
+                    }
+                })
+                .catch((error) => {
+                    failedCount++;
+                    console.error('✗ Error in CSS background image upload promise:', error);
+                    if (bgImage.startsWith('data:')) {
+                        console.error('CRITICAL: Base64 CSS background image upload error. Image will be saved as base64:', bgImage.substring(0, 100));
                 }
             });
 
@@ -1327,8 +2339,8 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
             console.warn('Some images failed to upload:', error);
         }
 
-        if (uploadedCount > 0 || failedCount > 0) {
-            console.log(`Image upload complete: ${uploadedCount} uploaded, ${failedCount} failed`);
+        if (uploadedCount > 0 || failedCount > 0 || base64Count > 0) {
+            console.log(`Image upload complete: ${uploadedCount} uploaded, ${failedCount} failed, ${base64Count} base64 found`);
             if (uploadedCount > 0) {
                 toast.success(`${uploadedCount} image${uploadedCount > 1 ? 's' : ''} uploaded to S3`, { duration: 2000 });
             }
@@ -1337,8 +2349,25 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
             }
         }
 
-        // Return the modified HTML
-        return tempDiv.innerHTML;
+        // Return the modified HTML and CSS with S3 URLs (or original if upload failed)
+        const finalHtml = tempDiv.innerHTML;
+        const hasBase64InFinal = finalHtml.includes('data:image') || processedCss.includes('data:image');
+        const hasS3InFinal = finalHtml.includes('s3.') || finalHtml.includes('amazonaws.com') || finalHtml.includes('cloudfront.net') ||
+                            processedCss.includes('s3.') || processedCss.includes('amazonaws.com') || processedCss.includes('cloudfront.net');
+        
+        console.log('Final HTML and CSS status:', {
+            hasBase64: hasBase64InFinal,
+            hasS3: hasS3InFinal,
+            uploadedCount,
+            failedCount,
+            cssLength: processedCss.length
+        });
+        
+        if (hasBase64InFinal && !hasS3InFinal && base64Count > 0) {
+            console.warn('WARNING: Final HTML/CSS still contains base64 images. S3 upload may have failed for all images.');
+        }
+        
+        return { html: finalHtml, css: processedCss };
     };
 
     const handleSave = async () => {
@@ -1382,8 +2411,10 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
             });
 
             // Upload images to S3 instead of converting to base64
-            toast.info('Uploading images to S3...', { duration: 2000 });
-            htmlContent = await uploadImagesToS3(htmlContent);
+            toast.info('Saving the metadata', { duration: 2000 });
+            const { html: processedHtml, css: processedCss } = await uploadImagesToS3(htmlContent, cssContent);
+            htmlContent = processedHtml;
+            const finalCssContent = processedCss;
             
             const finalSize = htmlContent.length;
             const sizeMB = (finalSize / 1024 / 1024).toFixed(2);
@@ -1411,7 +2442,7 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>${formData.name || 'Email Template'}</title>
-    ${cssContent ? `<style type="text/css">${cssContent}</style>` : ''}
+    ${finalCssContent ? `<style type="text/css">${finalCssContent}</style>` : ''}
 </head>
 <body style="margin: 0; padding: 0; background-color: #ffffff;">
     ${htmlContent}
