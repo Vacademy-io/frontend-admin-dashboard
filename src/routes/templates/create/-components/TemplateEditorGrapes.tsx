@@ -202,15 +202,18 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                 deviceManager: {
                     devices: [
                         {
+                            id: 'desktop',
                             name: 'Desktop',
                             width: '',
                         },
                         {
+                            id: 'tablet',
                             name: 'Tablet',
                             width: '768px',
                             widthMedia: '992px',
                         },
                         {
+                            id: 'mobile',
                             name: 'Mobile',
                             width: '320px',
                             widthMedia: '768px',
@@ -424,20 +427,27 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                 console.log('Device Manager initialized:', devices);
                 
                 // Log available devices for debugging
-                console.log('Available devices:', devices.map((d: any) => ({
-                    name: d.getName ? d.getName() : d.name,
-                    width: d.getWidth ? d.getWidth() : d.width,
-                    id: d.id || d.getName ? d.getName() : d.name
-                })));
+                console.log('Available devices:', devices.map((d: any) => {
+                    const name = d.getName ? d.getName() : d.name;
+                    const width = d.getWidth ? d.getWidth() : (d.width || '');
+                    const id = d.id || d.getName ? d.getName() : d.name;
+                    return { name, width, id };
+                }));
                 
                 // Check if mobile device exists and can be selected
                 const mobileDevice = devices.find((d: any) => {
                     const name = d.getName ? d.getName() : d.name;
-                    return name && name.toLowerCase().includes('mobile');
+                    const id = d.id || '';
+                    return (name && name.toLowerCase().includes('mobile')) || 
+                           (id && id.toLowerCase().includes('mobile'));
                 });
                 
                 if (mobileDevice) {
-                    console.log('Mobile device found:', mobileDevice);
+                    console.log('Mobile device found:', {
+                        name: mobileDevice.getName ? mobileDevice.getName() : mobileDevice.name,
+                        width: mobileDevice.getWidth ? mobileDevice.getWidth() : mobileDevice.width,
+                        id: mobileDevice.id
+                    });
                 } else {
                     console.warn('Mobile device not found in device list');
                 }
@@ -1419,6 +1429,36 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
             editor.on('load', () => {
                 console.log('GrapesJS editor loaded successfully');
                 
+                // Ensure device manager has proper devices after load
+                // This handles cases where preset-newsletter might modify devices
+                setTimeout(() => {
+                    const dm = editor.DeviceManager;
+                    if (dm) {
+                        const devices = dm.getDevices();
+                        console.log('Devices after load:', devices.map((d: any) => ({
+                            id: d.id,
+                            name: d.getName ? d.getName() : d.name,
+                            width: d.getWidth ? d.getWidth() : d.width
+                        })));
+                        
+                        // Ensure mobile device exists and can be selected
+                        const mobileDevice = devices.find((d: any) => {
+                            const name = d.getName ? d.getName() : d.name;
+                            const id = d.id || '';
+                            const nameLower = name ? name.toLowerCase() : '';
+                            return nameLower.includes('mobile') || id.toLowerCase().includes('mobile');
+                        });
+                        
+                        if (mobileDevice) {
+                            console.log('Mobile device available after load:', {
+                                id: mobileDevice.id,
+                                name: mobileDevice.getName ? mobileDevice.getName() : mobileDevice.name,
+                                width: mobileDevice.getWidth ? mobileDevice.getWidth() : mobileDevice.width
+                            });
+                        }
+                    }
+                }, 200);
+                
                 // Configure Style Manager after load to ensure it's available
                 setTimeout(() => {
                     configureStyleManager();
@@ -1511,30 +1551,152 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                 // Normalize device name for comparison (handle "Mobile portrait", "Mobile", etc.)
                 const deviceNameLower = deviceName.toLowerCase();
                 
-                // Verify device is actually selected
+                // Verify device is actually selected and get device width
                 const dm = editor.DeviceManager;
+                let deviceWidth = '';
+                let selectedDevice = null;
+                
                 if (dm) {
-                    const selectedDevice = dm.getSelected();
+                    selectedDevice = dm.getSelected();
                     console.log('Device Manager selected device:', selectedDevice?.getName ? selectedDevice.getName() : selectedDevice?.name || selectedDevice);
                     console.log('Current device from editor:', editor.getDevice()?.getName ? editor.getDevice().getName() : editor.getDevice()?.name || editor.getDevice());
                     
                     // If device is not selected but editor has it, try to select it
                     if (!selectedDevice && currentDevice) {
                         try {
-                            const deviceId = currentDevice.id || currentDevice.getName ? currentDevice.getName() : currentDevice.name;
-                            if (deviceId) {
-                                dm.select(deviceId);
-                                console.log('Attempted to select device:', deviceId);
+                            // Try multiple ways to get device ID
+                            let deviceId = currentDevice.id;
+                            if (!deviceId && currentDevice.getName) {
+                                deviceId = currentDevice.getName();
+                            }
+                            if (!deviceId && currentDevice.name) {
+                                deviceId = currentDevice.name;
+                            }
+                            
+                            // Also try to find device by name in device list
+                            if (!deviceId) {
+                                const devices = dm.getDevices();
+                                const matchingDevice = devices.find((d: any) => {
+                                    const dName = d.getName ? d.getName() : d.name;
+                                    return dName && dName.toLowerCase() === deviceNameLower;
+                                });
+                                if (matchingDevice) {
+                                    deviceId = matchingDevice.id || matchingDevice.getName ? matchingDevice.getName() : matchingDevice.name;
+                                    selectedDevice = matchingDevice;
+                                }
+                            }
+                            
+                            if (deviceId && !selectedDevice) {
+                                try {
+                                    dm.select(deviceId);
+                                    console.log('Attempted to select device by ID:', deviceId);
+                                    selectedDevice = dm.getSelected();
+                                } catch (selectError) {
+                                    console.warn('Failed to select device by ID, trying by name:', selectError);
+                                    // If selecting by ID fails, try to find and select by name
+                                    if (deviceNameLower.includes('mobile')) {
+                                        const devices = dm.getDevices();
+                                        const mobileDevice = devices.find((d: any) => {
+                                            const dId = d.id || '';
+                                            return dId.toLowerCase() === 'mobile';
+                                        });
+                                        if (mobileDevice) {
+                                            try {
+                                                dm.select('mobile');
+                                                selectedDevice = dm.getSelected();
+                                                console.log('Successfully selected mobile device by ID "mobile"');
+                                            } catch (e) {
+                                                console.warn('Could not select mobile device:', e);
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         } catch (e) {
                             console.warn('Could not select device:', e);
                         }
                     }
+                    
+                    // If still no selected device and it's a mobile device, try to select our configured mobile device
+                    if (!selectedDevice && deviceNameLower.includes('mobile')) {
+                        try {
+                            const devices = dm.getDevices();
+                            const mobileDevice = devices.find((d: any) => {
+                                const dId = d.id || '';
+                                return dId.toLowerCase() === 'mobile';
+                            });
+                            if (mobileDevice) {
+                                dm.select('mobile');
+                                selectedDevice = dm.getSelected();
+                                console.log('Force selected mobile device');
+                            }
+                        } catch (e) {
+                            console.warn('Could not force select mobile device:', e);
+                        }
+                    }
+                    
+                    // Use selected device if available, otherwise use current device
+                    const deviceToUse = selectedDevice || currentDevice;
+                    
+                    // Get device width - try multiple methods
+                    if (deviceToUse) {
+                        if (typeof deviceToUse.getWidth === 'function') {
+                            deviceWidth = deviceToUse.getWidth() || '';
+                        } else if (deviceToUse.width) {
+                            deviceWidth = deviceToUse.width || '';
+                        }
+                        
+                        // If still no width, try to find device in device list
+                        if (!deviceWidth) {
+                            const devices = dm.getDevices();
+                            // Try to find device by exact match first, then partial match
+                            let matchingDevice = devices.find((d: any) => {
+                                const dName = d.getName ? d.getName() : d.name;
+                                const dId = d.id || '';
+                                const dNameLower = dName ? dName.toLowerCase() : '';
+                                const dIdLower = dId ? dId.toLowerCase() : '';
+                                return (dNameLower === deviceNameLower) || (dIdLower === deviceNameLower);
+                            });
+                            
+                            // If no exact match, try partial match
+                            if (!matchingDevice) {
+                                matchingDevice = devices.find((d: any) => {
+                                    const dName = d.getName ? d.getName() : d.name;
+                                    const dId = d.id || '';
+                                    const dNameLower = dName ? dName.toLowerCase() : '';
+                                    const dIdLower = dId ? dId.toLowerCase() : '';
+                                    return (dName && deviceNameLower.includes(dNameLower)) ||
+                                           (dName && dNameLower.includes(deviceNameLower)) ||
+                                           (dId && deviceNameLower.includes(dIdLower)) ||
+                                           (dId && dIdLower.includes(deviceNameLower));
+                                });
+                            }
+                            
+                            if (matchingDevice) {
+                                if (typeof matchingDevice.getWidth === 'function') {
+                                    deviceWidth = matchingDevice.getWidth() || '';
+                                } else if (matchingDevice.width) {
+                                    deviceWidth = matchingDevice.width || '';
+                                }
+                                
+                                // If still no width, use default for mobile
+                                if (!deviceWidth && deviceNameLower.includes('mobile')) {
+                                    deviceWidth = '320px';
+                                }
+                            } else if (deviceNameLower.includes('mobile')) {
+                                // Fallback: use default mobile width
+                                deviceWidth = '320px';
+                            }
+                        }
+                    }
                 }
                 
-                // Get device width for canvas resizing
-                const deviceWidth = currentDevice?.getWidth ? currentDevice.getWidth() : (currentDevice?.width || '');
-                console.log('Device width:', deviceWidth);
+                // Fallback: if we still don't have width and it's mobile, use default
+                if (!deviceWidth && deviceNameLower.includes('mobile')) {
+                    deviceWidth = '320px';
+                }
+                
+                console.log('Device width (final):', deviceWidth);
                 
                 // Use a small delay to let GrapeJS finish its device change handling
                 setTimeout(() => {
@@ -1546,43 +1708,48 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                         console.warn('Error configuring canvas on device change (non-critical):', e);
                     }
                     
-                    // Explicitly update canvas wrapper width to match device
+                    // Only update the canvas preview iframe, NOT any wrapper/container elements
+                    // This ensures the editor UI (toolbar, panels) stays at full width
                     try {
-                        const canvasWrapper = container.querySelector('.gjs-cv-canvas')?.parentElement as HTMLElement;
-                        if (canvasWrapper) {
-                            // Update canvas wrapper max-width to match device width
-                            if (deviceWidth) {
-                                canvasWrapper.style.maxWidth = deviceWidth;
-                                console.log('Updated canvas wrapper max-width to:', deviceWidth);
-                            } else {
-                                // Desktop - remove max-width constraint
-                                canvasWrapper.style.maxWidth = '';
-                            }
-                        }
-                        
-                        // Also update the canvas view container
-                        const canvasView = editor.Canvas.getCanvasView();
-                        if (canvasView && canvasView.el) {
-                            const canvasContainer = canvasView.el.parentElement as HTMLElement;
-                            if (canvasContainer) {
+                        const canvasEl = editor.Canvas.getCanvasView().el;
+                        if (canvasEl) {
+                            const iframe = canvasEl.querySelector('iframe') as HTMLIFrameElement;
+                            if (iframe) {
+                                // Only constrain the iframe width (the preview area), not wrapper containers
                                 if (deviceWidth) {
-                                    canvasContainer.style.maxWidth = deviceWidth;
+                                    iframe.style.width = deviceWidth;
+                                    iframe.style.maxWidth = deviceWidth;
+                                    iframe.style.margin = '0 auto';
+                                    iframe.style.display = 'block';
+                                    console.log('Updated iframe width to:', deviceWidth);
                                 } else {
-                                    canvasContainer.style.maxWidth = '';
+                                    // Desktop - full width
+                                    iframe.style.width = '100%';
+                                    iframe.style.maxWidth = '100%';
+                                    iframe.style.margin = '0';
                                 }
                             }
                         }
+                        
+                        // Ensure frame container stays at 100% width (so editor UI doesn't shrink)
+                        const frameEl = editor.Canvas.getFrameEl();
+                        if (frameEl) {
+                            frameEl.style.width = '100%';
+                            frameEl.style.maxWidth = '100%';
+                            frameEl.style.display = 'flex';
+                            frameEl.style.justifyContent = 'center';
+                            frameEl.style.alignItems = 'flex-start';
+                        }
                     } catch (e) {
-                        console.warn('Error updating canvas wrapper width:', e);
+                        console.warn('Error updating canvas iframe width:', e);
                     }
                     
                     // Force canvas to update/refresh after width change
                     try {
                         // Small delay then refresh to ensure width changes are applied
                         setTimeout(() => {
-                            editor.Canvas.getFrameEl().style.width = deviceWidth || '100%';
                             editor.refresh();
-                }, 50);
+                        }, 50);
                     } catch (e) {
                         console.warn('Error refreshing canvas:', e);
                     }
@@ -1594,15 +1761,18 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                     try {
                         const canvasEl = editor.Canvas.getCanvasView().el;
                         if (canvasEl) {
-                            const iframe = canvasEl.querySelector('iframe') as HTMLIFrameElement;
+                                const iframe = canvasEl.querySelector('iframe') as HTMLIFrameElement;
                             if (iframe) {
-                                // Update iframe width to match device
+                                // Update iframe width to match device (only the preview, not editor UI)
                                 if (deviceWidth) {
-                                    iframe.style.maxWidth = deviceWidth;
                                     iframe.style.width = deviceWidth;
+                                    iframe.style.maxWidth = deviceWidth;
+                                    iframe.style.margin = '0 auto';
+                                    iframe.style.display = 'block';
                                 } else {
-                                    iframe.style.maxWidth = '';
                                     iframe.style.width = '100%';
+                                    iframe.style.maxWidth = '100%';
+                                    iframe.style.margin = '0';
                                 }
                                 
                                 const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
@@ -2685,20 +2855,25 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                         flex-direction: column !important;
                     }
                     
-                    /* Make canvas frame fill available space */
+                    /* Make canvas frame container always full width - centers the iframe preview */
                     .gjs-frame {
                         flex: 1 !important;
                         min-height: 100% !important;
                         height: auto !important;
-                        display: block !important;
+                        width: 100% !important;
+                        max-width: 100% !important;
+                        display: flex !important;
+                        justify-content: center !important;
+                        align-items: flex-start !important;
                     }
                     
-                    /* Ensure iframe fills the frame */
+                    /* Iframe can be constrained to device width, but frame container stays 100% */
                     .gjs-frame iframe {
-                        width: 100% !important;
                         min-height: 100% !important;
                         height: auto !important;
                         display: block !important;
+                        /* Width is set dynamically by device change handler */
+                        /* Default to 100% for desktop, constrained for mobile/tablet */
                     }
                     
                     /* Enable proper dragging for components */
