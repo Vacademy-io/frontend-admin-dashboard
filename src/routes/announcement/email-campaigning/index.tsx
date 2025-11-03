@@ -51,6 +51,7 @@ import type { MessageTemplate } from '@/types/message-template-types';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { getEmailConfigurations, type EmailConfiguration } from '@/services/email-configuration-service';
+import { getCustomFieldSettings, type CustomField, type FixedField, type GroupField } from '@/services/custom-field-settings';
 
 export const Route = createFileRoute('/announcement/email-campaigning/')({
     component: () => (
@@ -111,6 +112,21 @@ function EmailCampaigningPage() {
     const [estimatedUsers, setEstimatedUsers] = useState<number | null>(null);
     const [estimatingUsers, setEstimatingUsers] = useState(false);
     const [rowTagEstimates, setRowTagEstimates] = useState<Record<number, number | null>>({});
+    
+    // For CUSTOM_FIELD recipient rows
+    const [customFieldOptions, setCustomFieldOptions] = useState<Array<{
+        id: string;
+        name: string;
+        type: 'text' | 'dropdown' | 'number';
+        options?: string[];
+    }>>([]);
+    const [customFieldFilters, setCustomFieldFilters] = useState<Record<number, Array<{
+        fieldId: string;
+        fieldName: string;
+        fieldType: 'text' | 'dropdown' | 'number';
+        filterValue?: string | string[];
+        operator?: 'equals' | 'contains' | 'starts_with' | 'ends_with';
+    }>>>({});
     
     const [scheduleType, setScheduleType] = useState<'IMMEDIATE' | 'ONE_TIME' | 'RECURRING'>(
         'IMMEDIATE'
@@ -179,6 +195,72 @@ function EmailCampaigningPage() {
                 setTagMapById(map);
             } finally {
                 setTagsLoading(false);
+            }
+        })();
+    }, []);
+
+    // Load custom fields for CUSTOM_FIELD recipients
+    useEffect(() => {
+        (async () => {
+            try {
+                // Fetch from API if cache is empty, otherwise use cache
+                const settings = await getCustomFieldSettings();
+                if (settings) {
+                    const allFields: Array<{
+                        id: string;
+                        name: string;
+                        type: 'text' | 'dropdown' | 'number';
+                        options?: string[];
+                    }> = [];
+
+                    // Add fixed fields (if they have appropriate types)
+                    settings.fixedFields.forEach((field: FixedField) => {
+                        // Only include if it's a filterable type
+                        allFields.push({
+                            id: field.id,
+                            name: field.name,
+                            type: 'text', // Fixed fields are typically text
+                        });
+                    });
+
+                    // Add institute fields
+                    settings.instituteFields.forEach((field: CustomField) => {
+                        allFields.push({
+                            id: field.id,
+                            name: field.name,
+                            type: field.type,
+                            options: field.options,
+                        });
+                    });
+
+                    // Add custom fields
+                    settings.customFields.forEach((field: CustomField) => {
+                        allFields.push({
+                            id: field.id,
+                            name: field.name,
+                            type: field.type,
+                            options: field.options,
+                        });
+                    });
+
+                    // Add group fields
+                    settings.fieldGroups.forEach((group) => {
+                        group.fields.forEach((field: GroupField) => {
+                            allFields.push({
+                                id: field.id,
+                                name: field.name,
+                                type: field.type,
+                                options: field.options,
+                            });
+                        });
+                    });
+
+                    setCustomFieldOptions(allFields);
+                }
+            } catch (error) {
+                console.error('Error loading custom fields:', error);
+                // On error, set empty array so buttons don't show
+                setCustomFieldOptions([]);
             }
         })();
     }, []);
@@ -411,6 +493,64 @@ function EmailCampaigningPage() {
             delete next[idx];
             return next;
         });
+        setCustomFieldFilters((prev) => {
+            const next = { ...prev };
+            delete next[idx];
+            return next;
+        });
+    };
+
+    const addCustomFieldFilter = (recipientIdx: number) => {
+        setCustomFieldFilters((prev) => {
+            const current = prev[recipientIdx] || [];
+            return {
+                ...prev,
+                [recipientIdx]: [
+                    ...current,
+                    {
+                        fieldId: '',
+                        fieldName: '',
+                        fieldType: 'text',
+                        filterValue: '',
+                        operator: 'equals',
+                    },
+                ],
+            };
+        });
+    };
+
+    const removeCustomFieldFilter = (recipientIdx: number, filterIdx: number) => {
+        setCustomFieldFilters((prev) => {
+            const current = prev[recipientIdx] || [];
+            const updated = current.filter((_, i) => i !== filterIdx);
+            return {
+                ...prev,
+                [recipientIdx]: updated,
+            };
+        });
+    };
+
+    const updateCustomFieldFilter = (
+        recipientIdx: number,
+        filterIdx: number,
+        updates: Partial<{
+            fieldId: string;
+            fieldName: string;
+            fieldType: 'text' | 'dropdown' | 'number';
+            filterValue: string | string[];
+            operator: 'equals' | 'contains' | 'starts_with' | 'ends_with';
+        }>
+    ) => {
+        setCustomFieldFilters((prev) => {
+            const current = prev[recipientIdx] || [];
+            const updated = current.map((filter, i) =>
+                i === filterIdx ? { ...filter, ...updates } : filter
+            );
+            return {
+                ...prev,
+                [recipientIdx]: updated,
+            };
+        });
     };
 
     const dateToLocalInput = (d: Date): string => {
@@ -459,6 +599,13 @@ function EmailCampaigningPage() {
                     const tag = tagMapById[tagId];
                     items.push({ type: 'TAG', text: tag?.tagName || tagId });
                 });
+            } else if (r.recipientType === 'CUSTOM_FIELD_FILTER') {
+                const filters = customFieldFilters[idx] || [];
+                const filterText = filters
+                    .filter(f => f.fieldId && f.filterValue)
+                    .map(f => `${f.fieldName}: ${Array.isArray(f.filterValue) ? f.filterValue.join(', ') : f.filterValue}`)
+                    .join('; ');
+                items.push({ type: 'CUSTOM_FIELD_FILTER', text: filterText || '—' });
             } else {
                 items.push({
                     type: r.recipientType === 'PACKAGE_SESSION' ? 'Batch' : r.recipientType,
@@ -546,7 +693,27 @@ function EmailCampaigningPage() {
                 }
             }
 
-            // Expand TAG selections into recipient entries
+            // Validate CUSTOM_FIELD_FILTER recipients
+            const anyCustomFieldRow = recipients.some((r) => r.recipientType === 'CUSTOM_FIELD_FILTER');
+            if (anyCustomFieldRow) {
+                const missingFilters = recipients.some(
+                    (r, idx) => {
+                        if (r.recipientType !== 'CUSTOM_FIELD_FILTER') return false;
+                        const filters = customFieldFilters[idx];
+                        return !filters || !filters.some(f => f.fieldId && f.filterValue);
+                    }
+                );
+                if (missingFilters) {
+                    toast({
+                        title: 'Configure custom field filters',
+                        description: 'You have a Custom Field Filter recipient without any configured filters.',
+                        variant: 'destructive',
+                    });
+                    return;
+                }
+            }
+
+            // Expand TAG selections and CUSTOM_FIELD filters into recipient entries
             const expandedRecipients: CreateAnnouncementRequest['recipients'] = [];
             recipients.forEach((r, idx) => {
                 if (r.recipientType === 'TAG') {
@@ -559,6 +726,26 @@ function EmailCampaigningPage() {
                             recipientName: tag?.tagName,
                         });
                     });
+                } else if (r.recipientType === 'CUSTOM_FIELD_FILTER') {
+                    const filters = customFieldFilters[idx] || [];
+                    if (filters.length > 0 && filters.some(f => f.fieldId && f.filterValue)) {
+                        // Only add if at least one filter is configured
+                        expandedRecipients.push({
+                            recipientType: 'CUSTOM_FIELD_FILTER',
+                            filters: filters.filter(f => f.fieldId && f.filterValue).map(f => {
+                                // Convert fieldValue to string for API (array for dropdown becomes comma-separated string or stays as array)
+                                const fieldValue = Array.isArray(f.filterValue) 
+                                    ? f.filterValue 
+                                    : (f.filterValue || '');
+                                
+                                return {
+                                    customFieldId: f.fieldId, // This is the customFieldId from API
+                                    fieldValue: fieldValue,
+                                    operator: f.operator,
+                                };
+                            }),
+                        });
+                    }
                 } else if (r.recipientType && r.recipientId) {
                     expandedRecipients.push({
                         recipientType: r.recipientType,
@@ -1065,6 +1252,39 @@ function EmailCampaigningPage() {
                             + Specific User
                         </Button>
                     </div>
+                    {/* Individual Custom Field Buttons */}
+                    {customFieldOptions.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                            {customFieldOptions.map((field) => (
+                                <Button
+                                    key={field.id}
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        const newRecipientIdx = recipients.length;
+                                setRecipients((prev) => [
+                                    ...prev,
+                                    { recipientType: 'CUSTOM_FIELD_FILTER', recipientId: '', recipientName: '' },
+                                ]);
+                                        // Add initial filter for this field
+                                        // field.id is the customFieldId from API
+                                        setCustomFieldFilters((prev) => ({
+                                            ...prev,
+                                            [newRecipientIdx]: [{
+                                                fieldId: field.id, // This is customFieldId from API
+                                                fieldName: field.name,
+                                                fieldType: field.type,
+                                                filterValue: field.type === 'dropdown' ? [] : '',
+                                                operator: field.type === 'text' ? 'equals' : undefined,
+                                            }],
+                                        }));
+                                    }}
+                                >
+                                    + {field.name}
+                                </Button>
+                            ))}
+                        </div>
+                    )}
 
                     <div className="grid gap-3">
                         {recipients.map((r, idx) => (
@@ -1075,12 +1295,20 @@ function EmailCampaigningPage() {
                                         setRecipients((prev) => {
                                             const copy = [...prev];
                                             copy[idx] = {
-                                                recipientType: v as 'ROLE' | 'USER' | 'PACKAGE_SESSION' | 'TAG',
+                                                recipientType: v as 'ROLE' | 'USER' | 'PACKAGE_SESSION' | 'TAG' | 'CUSTOM_FIELD_FILTER',
                                                 recipientId: '',
                                                 recipientName: '',
                                             };
                                             return copy;
                                         });
+                                        // Clear custom field filters when switching types
+                                        if (v !== 'CUSTOM_FIELD_FILTER') {
+                                            setCustomFieldFilters((prev) => {
+                                                const next = { ...prev };
+                                                delete next[idx];
+                                                return next;
+                                            });
+                                        }
                                     }}
                                 >
                                     <SelectTrigger className="w-40">
@@ -1091,6 +1319,9 @@ function EmailCampaigningPage() {
                                         <SelectItem value="USER">User</SelectItem>
                                         <SelectItem value="PACKAGE_SESSION">Batch</SelectItem>
                                         <SelectItem value="TAG">Tag</SelectItem>
+                                        {customFieldOptions.length > 0 && (
+                                            <SelectItem value="CUSTOM_FIELD_FILTER">Custom Field Filter</SelectItem>
+                                        )}
                                     </SelectContent>
                                 </Select>
                                 {r.recipientType === 'ROLE' && (
@@ -1189,6 +1420,124 @@ function EmailCampaigningPage() {
                                                     {rowTagEstimates[idx] ?? '—'}
                                                 </div>
                                             )}
+                                    </div>
+                                )}
+                                {r.recipientType === 'CUSTOM_FIELD_FILTER' && (
+                                    <div className="flex-1 space-y-3">
+                                        <div className="text-xs text-muted-foreground mb-2">
+                                            Filter users based on custom field values. Add multiple filters to narrow down the audience.
+                                        </div>
+                                        {(customFieldFilters[idx] || []).map((filter, filterIdx) => {
+                                            const selectedField = customFieldOptions.find(f => f.id === filter.fieldId);
+                                            return (
+                                                <div key={filterIdx} className="border rounded-md p-3 space-y-2">
+                                                    <div className="flex items-start gap-2">
+                                                        <div className="flex-1 space-y-2">
+                                                            <Select
+                                                                value={filter.fieldId}
+                                                                onValueChange={(fieldId) => {
+                                                                    const field = customFieldOptions.find(f => f.id === fieldId);
+                                                                    updateCustomFieldFilter(idx, filterIdx, {
+                                                                        fieldId,
+                                                                        fieldName: field?.name || '',
+                                                                        fieldType: field?.type || 'text',
+                                                                        filterValue: field?.type === 'dropdown' ? [] : '',
+                                                                        operator: field?.type === 'text' ? 'equals' : undefined,
+                                                                    });
+                                                                }}
+                                                            >
+                                                                <SelectTrigger className="w-full">
+                                                                    <SelectValue placeholder="Select custom field" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {customFieldOptions.map((field) => (
+                                                                        <SelectItem key={field.id} value={field.id}>
+                                                                            {field.name} ({field.type})
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+
+                                                            {selectedField && selectedField.type === 'text' && (
+                                                                <div className="space-y-2">
+                                                                    <Select
+                                                                        value={filter.operator || 'equals'}
+                                                                        onValueChange={(op) =>
+                                                                            updateCustomFieldFilter(idx, filterIdx, {
+                                                                                operator: op as 'equals' | 'contains' | 'starts_with' | 'ends_with',
+                                                                            })
+                                                                        }
+                                                                    >
+                                                                        <SelectTrigger className="w-full">
+                                                                            <SelectValue />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            <SelectItem value="equals">Equals</SelectItem>
+                                                                            <SelectItem value="contains">Contains</SelectItem>
+                                                                            <SelectItem value="starts_with">Starts with</SelectItem>
+                                                                            <SelectItem value="ends_with">Ends with</SelectItem>
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                    <Input
+                                                                        placeholder="Enter filter value"
+                                                                        value={typeof filter.filterValue === 'string' ? filter.filterValue : ''}
+                                                                        onChange={(e) =>
+                                                                            updateCustomFieldFilter(idx, filterIdx, {
+                                                                                filterValue: e.target.value,
+                                                                            })
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                            )}
+
+                                                            {selectedField && selectedField.type === 'dropdown' && (
+                                                                <MultiSelect
+                                                                    options={(selectedField.options || []).map(opt => ({
+                                                                        label: opt,
+                                                                        value: opt,
+                                                                    }))}
+                                                                    selected={Array.isArray(filter.filterValue) ? filter.filterValue : []}
+                                                                    onChange={(vals) =>
+                                                                        updateCustomFieldFilter(idx, filterIdx, {
+                                                                            filterValue: vals,
+                                                                        })
+                                                                    }
+                                                                    placeholder="Select values"
+                                                                />
+                                                            )}
+
+                                                            {selectedField && selectedField.type === 'number' && (
+                                                                <Input
+                                                                    type="number"
+                                                                    placeholder="Enter number"
+                                                                    value={typeof filter.filterValue === 'string' ? filter.filterValue : ''}
+                                                                    onChange={(e) =>
+                                                                        updateCustomFieldFilter(idx, filterIdx, {
+                                                                            filterValue: e.target.value,
+                                                                        })
+                                                                    }
+                                                                />
+                                                            )}
+                                                        </div>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => removeCustomFieldFilter(idx, filterIdx)}
+                                                        >
+                                                            ×
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => addCustomFieldFilter(idx)}
+                                            className="w-full"
+                                        >
+                                            + Add Filter
+                                        </Button>
                                     </div>
                                 )}
                                 <Button variant="ghost" onClick={() => removeRecipientAtIndex(idx)}>
