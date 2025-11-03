@@ -22,6 +22,9 @@ import type { MessageTemplate, CreateTemplateRequest } from '@/types/message-tem
 import { ALL_TEMPLATE_VARIABLES, TEMPLATE_VARIABLES } from '@/types/message-template-types';
 import { extractVariablesFromContent } from '@/components/templates/shared/TemplateEditorUtils';
 import { templateCacheService } from '@/services/template-cache-service';
+import { UploadFileInS3, getPublicUrl } from '@/services/upload_file';
+import { getInstituteId } from '@/constants/helper';
+import { getUserId } from '@/utils/userDetails';
 import {
     Tooltip,
     TooltipContent,
@@ -1131,8 +1134,18 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
         };
     }, [isLoading, template, templateId]);
 
-    // Helper function to convert image URLs to base64 with size optimization
-    const convertImagesToBase64 = async (html: string): Promise<string> => {
+    // Helper function to upload images to S3 and replace URLs in HTML
+    const uploadImagesToS3 = async (html: string): Promise<string> => {
+        // Get user credentials for S3 upload
+        const userId = getUserId();
+        const instituteId = getInstituteId();
+        
+        if (!userId || !instituteId) {
+            console.error('Missing user credentials for image upload');
+            toast.error('Unable to upload images. Please refresh and try again.');
+            return html;
+        }
+
         // Create a temporary DOM element to parse HTML
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = html;
@@ -1141,9 +1154,134 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
         const images = tempDiv.querySelectorAll('img');
         const imagePromises: Promise<void>[] = [];
         
-        // Track total size to prevent exceeding limits
-        let totalBase64Size = 0;
-        const MAX_TOTAL_BASE64_SIZE = 5 * 1024 * 1024; // 5MB total for all new images combined - reasonable for email templates
+        let uploadedCount = 0;
+        let failedCount = 0;
+
+        // Helper function to convert image URL/Blob to File
+        const urlToFile = async (url: string, filename: string): Promise<File | null> => {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to fetch image');
+                const blob = await response.blob();
+                return new File([blob], filename, { type: blob.type || 'image/png' });
+            } catch (error) {
+                console.error('Error converting URL to File:', error);
+                return null;
+            }
+        };
+
+        // Helper function to convert base64 to File
+        const base64ToFile = (base64Data: string, mimeType: string, filename: string): File | null => {
+            try {
+                // Remove data:image/xxx;base64, prefix if present
+                const base64String = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
+                if (!base64String) {
+                    throw new Error('Invalid base64 data');
+                }
+                const binaryString = atob(base64String);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                const blob = new Blob([bytes], { type: mimeType });
+                return new File([blob], filename, { type: mimeType });
+            } catch (error) {
+                console.error('Error converting base64 to File:', error);
+                return null;
+            }
+        };
+
+        // Helper function to upload a single image to S3
+        const uploadImageToS3 = async (img: Element, originalSrc: string): Promise<string | null> => {
+            try {
+                let file: File | null = null;
+                let mimeType = 'image/png';
+                
+                // Determine filename and file object based on source type
+                const timestamp = Date.now();
+                const randomId = Math.random().toString(36).substring(2, 15);
+                
+                if (originalSrc.startsWith('data:')) {
+                    // Base64 image
+                    const match = originalSrc.match(/data:([^;]+);base64,(.+)/);
+                    if (match && match[1] && match[2]) {
+                        mimeType = match[1];
+                        const base64Data: string = match[2]; // Type assertion since we checked match[2] exists
+                        const extension = mimeType.split('/')[1] || 'png';
+                        const filename = `template-image-${timestamp}-${randomId}.${extension}`;
+                        file = base64ToFile(base64Data, mimeType, filename);
+                    } else {
+                        console.error('Invalid base64 image format:', originalSrc.substring(0, 50));
+                        return null;
+                    }
+                } else if (originalSrc.startsWith('http://') || originalSrc.startsWith('https://') || originalSrc.startsWith('//')) {
+                    // External URL - download and convert to File
+                    const fullUrl = originalSrc.startsWith('//') ? `https:${originalSrc}` : originalSrc;
+                    let urlPath: string;
+                    try {
+                        urlPath = new URL(fullUrl).pathname;
+                    } catch (e) {
+                        console.error('Invalid URL:', fullUrl);
+                        return null;
+                    }
+                    const extension = urlPath.split('.').pop() || 'png';
+                    const filename = `template-image-${timestamp}-${randomId}.${extension}`;
+                    
+                    // Try to determine mime type from extension
+                    const mimeTypes: Record<string, string> = {
+                        jpg: 'image/jpeg',
+                        jpeg: 'image/jpeg',
+                        png: 'image/png',
+                        gif: 'image/gif',
+                        webp: 'image/webp',
+                        svg: 'image/svg+xml',
+                    };
+                    mimeType = mimeTypes[extension.toLowerCase()] || 'image/png';
+                    
+                    file = await urlToFile(fullUrl, filename);
+                } else {
+                    // Skip relative paths or other formats
+                    console.log('Skipping image (not a URL or base64):', originalSrc.substring(0, 50));
+                    return null;
+                }
+
+                if (!file) {
+                    console.error('Failed to create File object for image');
+                    return null;
+                }
+
+                // Upload to S3
+                const fileId = await UploadFileInS3(
+                    file,
+                    () => {}, // Progress callback
+                    userId,
+                    instituteId,
+                    'ADMIN', // source
+                    true // Generate public URL
+                );
+
+                if (!fileId) {
+                    throw new Error('Failed to upload image to S3');
+                }
+
+                // Get public URL
+                const publicUrl = await getPublicUrl(fileId);
+                if (!publicUrl) {
+                    throw new Error('Failed to get public URL from S3');
+                }
+
+                console.log('Successfully uploaded image to S3:', {
+                    original: originalSrc.substring(0, 50),
+                    s3Url: publicUrl.substring(0, 50),
+                    fileId,
+                });
+
+                return publicUrl;
+            } catch (error) {
+                console.error('Error uploading image to S3:', error);
+                return null;
+            }
+        };
 
         images.forEach((img) => {
             const src = img.getAttribute('src');
@@ -1153,161 +1291,50 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                 return;
             }
             
-            // Skip if already base64 - keep existing base64 images as they are needed for email sending
-            if (src.startsWith('data:')) {
+            // Skip if already an S3 URL (check for common S3 URL patterns)
+            // This prevents re-uploading images that are already in S3
+            if (src.includes('s3.') || src.includes('amazonaws.com') || src.includes('cloudfront.net')) {
+                console.log('Skipping image (already S3 URL):', src.substring(0, 50));
                 return;
             }
 
-            // Skip if we've already exceeded size limit
-            if (totalBase64Size > MAX_TOTAL_BASE64_SIZE) {
-                console.warn('Skipping image conversion - total size limit reached');
-                return;
-            }
+            // Upload image (base64 or external URL) to S3
+            const promise = uploadImageToS3(img, src).then((s3Url) => {
+                if (s3Url) {
+                    img.setAttribute('src', s3Url);
+                    uploadedCount++;
+                } else {
+                    failedCount++;
+                    console.warn('Failed to upload image, keeping original URL:', src.substring(0, 50));
+                }
+            });
 
-            // Convert external URLs to base64 (but skip very large images or if total is too big)
-            if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('//')) {
-
-                // Convert to base64
-                const promise = new Promise<void>((resolve) => {
-                    const image = new Image();
-                    
-                    // Try with crossOrigin first, but handle CORS errors gracefully
-                    const tryConvert = (useCrossOrigin: boolean) => {
-                        image.crossOrigin = (useCrossOrigin ? 'anonymous' : null) as string | null;
-                        
-                        image.onload = () => {
-                            try {
-                                const canvas = document.createElement('canvas');
-                                canvas.width = image.naturalWidth || image.width || 800;
-                                canvas.height = image.naturalHeight || image.height || 250;
-                                const ctx = canvas.getContext('2d');
-                                
-                                if (ctx) {
-                                    try {
-                                        // Limit canvas size aggressively to prevent huge base64 strings
-                                        const MAX_DIMENSION = 800; // Max width or height - much smaller
-                                        let drawWidth = image.naturalWidth || image.width || 800;
-                                        let drawHeight = image.naturalHeight || image.height || 250;
-                                        
-                                        // Scale down aggressively if too large
-                                        if (drawWidth > MAX_DIMENSION || drawHeight > MAX_DIMENSION) {
-                                            const ratio = Math.min(MAX_DIMENSION / drawWidth, MAX_DIMENSION / drawHeight);
-                                            drawWidth = Math.floor(drawWidth * ratio);
-                                            drawHeight = Math.floor(drawHeight * ratio);
-                                        }
-                                        
-                                        // Also limit max area to prevent huge images
-                                        const MAX_AREA = 640000; // 800x800 max
-                                        if (drawWidth * drawHeight > MAX_AREA) {
-                                            const scale = Math.sqrt(MAX_AREA / (drawWidth * drawHeight));
-                                            drawWidth = Math.floor(drawWidth * scale);
-                                            drawHeight = Math.floor(drawHeight * scale);
-                                        }
-                                        
-                                        canvas.width = drawWidth;
-                                        canvas.height = drawHeight;
-                                        
-                                        ctx.drawImage(image, 0, 0, drawWidth, drawHeight);
-                                        
-                                        // Use JPEG with compression to reduce size while maintaining quality for emails
-                                        let quality = 0.8; // Start with good quality for email templates
-                                        let base64 = canvas.toDataURL('image/jpeg', quality);
-                                        
-                                        // If still too large, reduce quality further
-                                        const MAX_IMAGE_SIZE = 1 * 1024 * 1024; // 1MB per image max - reasonable for email
-                                        let attempts = 0;
-                                        while (base64.length > MAX_IMAGE_SIZE && quality > 0.5 && attempts < 3) {
-                                            quality -= 0.1;
-                                            base64 = canvas.toDataURL('image/jpeg', quality);
-                                            attempts++;
-                                        }
-                                        
-                                        if (base64 && base64.length > 100 && !base64.includes('error')) {
-                                            // Check if adding this image would exceed total limit
-                                            if (totalBase64Size + base64.length > MAX_TOTAL_BASE64_SIZE) {
-                                                console.warn('Skipping image - would exceed total size limit:', {
-                                                    currentTotal: (totalBase64Size / 1024 / 1024).toFixed(2) + 'MB',
-                                                    imageSize: (base64.length / 1024 / 1024).toFixed(2) + 'MB'
-                                                });
-                                                // Keep original URL
-                                            } else if (base64.length < MAX_IMAGE_SIZE * 1.5) { // Allow up to 1.5MB per image if under total limit
-                                                img.setAttribute('src', base64);
-                                                totalBase64Size += base64.length;
-                                                console.log('Converted image to base64:', {
-                                                    original: src.substring(0, 50),
-                                                    base64Length: base64.length,
-                                                    base64SizeKB: (base64.length / 1024).toFixed(2),
-                                                    originalDimensions: `${image.naturalWidth}x${image.naturalHeight}`,
-                                                    scaledDimensions: `${drawWidth}x${drawHeight}`,
-                                                    quality: quality.toFixed(2),
-                                                    totalSizeMB: (totalBase64Size / 1024 / 1024).toFixed(2)
-                                                });
-                                            } else {
-                                                console.warn('Image too large after conversion, keeping original URL:', {
-                                                    base64Length: base64.length,
-                                                    base64SizeMB: (base64.length / 1024 / 1024).toFixed(2)
-                                                });
-                                                // Keep original URL for very large images
-                                            }
-                                        } else {
-                                            throw new Error('Invalid base64 data');
-                                        }
-                                    } catch (canvasError: any) {
-                                        // CORS or tainted canvas error
-                                        if (canvasError.name === 'SecurityError' || canvasError.message?.includes('tainted')) {
-                                            console.warn('CORS error converting image (keeping original URL):', src.substring(0, 50));
-                                            // Keep original src - this is OK for email templates
-                                        } else {
-                                            console.error('Canvas error:', canvasError);
-                                        }
-                                    }
-                                }
-                            } catch (error: any) {
-                                if (error.name === 'SecurityError' || error.message?.includes('tainted')) {
-                                    console.warn('Security error converting image (keeping original URL):', src.substring(0, 50));
-                                } else {
-                                    console.error('Error converting image to base64:', error);
-                                }
-                            }
-                            resolve();
-                        };
-                        
-                        image.onerror = () => {
-                            // If first attempt with crossOrigin failed and we haven't tried without it, try without
-                            if (useCrossOrigin && !src.startsWith(window.location.origin)) {
-                                console.log('Image load failed with CORS, trying without:', src.substring(0, 50));
-                                tryConvert(false);
-                            } else {
-                                console.warn('Failed to load image for conversion (keeping original URL):', src.substring(0, 50));
-                                resolve();
-                            }
-                        };
-                        
-                        // Try loading the image
-                        image.src = src;
-                    };
-
-                    // Start with crossOrigin enabled for external images
-                    tryConvert(true);
-                });
-                
-                imagePromises.push(promise);
-            }
+            imagePromises.push(promise);
         });
 
-        // Wait for all image conversions with timeout
+        // Wait for all image uploads with timeout
         try {
             await Promise.race([
                 Promise.all(imagePromises),
                 new Promise<void>((resolve) => {
                     setTimeout(() => {
-                        console.warn('Image conversion timeout - continuing with available conversions');
+                        console.warn('Image upload timeout - continuing with available uploads');
                         resolve();
-                    }, 30000);
+                    }, 60000); // 60 seconds timeout
                 })
             ]);
         } catch (error) {
-            console.warn('Some images failed to convert:', error);
+            console.warn('Some images failed to upload:', error);
+        }
+
+        if (uploadedCount > 0 || failedCount > 0) {
+            console.log(`Image upload complete: ${uploadedCount} uploaded, ${failedCount} failed`);
+            if (uploadedCount > 0) {
+                toast.success(`${uploadedCount} image${uploadedCount > 1 ? 's' : ''} uploaded to S3`, { duration: 2000 });
+            }
+            if (failedCount > 0) {
+                toast.warning(`${failedCount} image${failedCount > 1 ? 's' : ''} failed to upload`, { duration: 3000 });
+            }
         }
 
         // Return the modified HTML
@@ -1354,17 +1381,17 @@ export const TemplateEditorGrapes: React.FC<TemplateEditorGrapesProps> = ({ temp
                 hasImages: htmlContent?.includes('<img') || false,
             });
 
-            // Convert images to base64 with aggressive size optimization
-            // This will compress and scale images to keep total size reasonable
-            toast.info('Optimizing images...', { duration: 2000 });
-            htmlContent = await convertImagesToBase64(htmlContent);
+            // Upload images to S3 instead of converting to base64
+            toast.info('Uploading images to S3...', { duration: 2000 });
+            htmlContent = await uploadImagesToS3(htmlContent);
             
             const finalSize = htmlContent.length;
             const sizeMB = (finalSize / 1024 / 1024).toFixed(2);
             
-            console.log('Saving template (after conversion):', {
+            console.log('Saving template (after S3 upload):', {
                 htmlLength: htmlContent?.length || 0,
                 sizeMB: sizeMB,
+                hasS3Images: htmlContent?.includes('amazonaws.com') || htmlContent?.includes('cloudfront.net') || htmlContent?.includes('s3.') || false,
                 hasBase64Images: htmlContent?.includes('data:image') || false,
             });
             
