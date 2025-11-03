@@ -15,7 +15,7 @@ export type ModeType =
 
 export type MediumType = 'WHATSAPP' | 'PUSH_NOTIFICATION' | 'EMAIL';
 
-export type RecipientType = 'ROLE' | 'USER' | 'PACKAGE_SESSION' | 'TAG';
+export type RecipientType = 'ROLE' | 'USER' | 'PACKAGE_SESSION' | 'TAG' | 'CUSTOM_FIELD_FILTER';
 
 export interface CreateAnnouncementRequest {
     title: string;
@@ -27,8 +27,13 @@ export interface CreateAnnouncementRequest {
     timezone?: string;
     recipients: Array<{
         recipientType: RecipientType;
-        recipientId: string;
+        recipientId?: string;
         recipientName?: string;
+        filters?: Array<{
+            customFieldId: string;
+            fieldValue: string | string[]; // For dropdown: array of selected values, for text/number: single value
+            operator?: 'equals' | 'contains' | 'starts_with' | 'ends_with'; // For text fields
+        }>;
     }>;
     exclusions?: Array<{
         recipientType: RecipientType;

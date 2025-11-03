@@ -60,6 +60,7 @@ import type { MessageTemplate } from '@/types/message-template-types';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { getEmailConfigurations, type EmailConfiguration } from '@/services/email-configuration-service';
+import { getCustomFieldSettings, type CustomField, type FixedField, type GroupField } from '@/services/custom-field-settings';
 
 export const Route = createFileRoute('/announcement/create/')({
     component: () => (
@@ -127,6 +128,21 @@ function CreateAnnouncementPage() {
     const [estimatedUsers, setEstimatedUsers] = useState<number | null>(null);
     const [estimatingUsers, setEstimatingUsers] = useState(false);
     const [rowTagEstimates, setRowTagEstimates] = useState<Record<number, number | null>>({});
+    
+    // For CUSTOM_FIELD recipient rows
+    const [customFieldOptions, setCustomFieldOptions] = useState<Array<{
+        id: string;
+        name: string;
+        type: 'text' | 'dropdown' | 'number';
+        options?: string[];
+    }>>([]);
+    const [customFieldFilters, setCustomFieldFilters] = useState<Record<number, Array<{
+        fieldId: string;
+        fieldName: string;
+        fieldType: 'text' | 'dropdown' | 'number';
+        filterValue?: string | string[];
+        operator?: 'equals' | 'contains' | 'starts_with' | 'ends_with';
+    }>>>({});
     const [scheduleType, setScheduleType] = useState<'IMMEDIATE' | 'ONE_TIME' | 'RECURRING'>(
         'IMMEDIATE'
     );
@@ -202,6 +218,71 @@ function CreateAnnouncementPage() {
                 setTagMapById(map);
             } finally {
                 setTagsLoading(false);
+            }
+        })();
+    }, []);
+
+    // Load custom fields for CUSTOM_FIELD recipients
+    useEffect(() => {
+        (async () => {
+            try {
+                // Fetch from API if cache is empty, otherwise use cache
+                const settings = await getCustomFieldSettings();
+                if (settings) {
+                    const allFields: Array<{
+                        id: string;
+                        name: string;
+                        type: 'text' | 'dropdown' | 'number';
+                        options?: string[];
+                    }> = [];
+
+                    // Add fixed fields
+                    settings.fixedFields.forEach((field: FixedField) => {
+                        allFields.push({
+                            id: field.id,
+                            name: field.name,
+                            type: 'text',
+                        });
+                    });
+
+                    // Add institute fields
+                    settings.instituteFields.forEach((field: CustomField) => {
+                        allFields.push({
+                            id: field.id,
+                            name: field.name,
+                            type: field.type,
+                            options: field.options,
+                        });
+                    });
+
+                    // Add custom fields
+                    settings.customFields.forEach((field: CustomField) => {
+                        allFields.push({
+                            id: field.id,
+                            name: field.name,
+                            type: field.type,
+                            options: field.options,
+                        });
+                    });
+
+                    // Add group fields
+                    settings.fieldGroups.forEach((group) => {
+                        group.fields.forEach((field: GroupField) => {
+                            allFields.push({
+                                id: field.id,
+                                name: field.name,
+                                type: field.type,
+                                options: field.options,
+                            });
+                        });
+                    });
+
+                    setCustomFieldOptions(allFields);
+                }
+            } catch (error) {
+                console.error('Error loading custom fields:', error);
+                // On error, set empty array so buttons don't show
+                setCustomFieldOptions([]);
             }
         })();
     }, []);
@@ -442,6 +523,13 @@ function CreateAnnouncementPage() {
                     const tag = tagMapById[id];
                     items.push({ type: 'TAG', text: tag?.tagName || id });
                 });
+            } else if (r.recipientType === 'CUSTOM_FIELD_FILTER') {
+                const filters = customFieldFilters[idx] || [];
+                const filterText = filters
+                    .filter(f => f.fieldId && f.filterValue)
+                    .map(f => `${f.fieldName}: ${Array.isArray(f.filterValue) ? f.filterValue.join(', ') : f.filterValue}`)
+                    .join('; ');
+                items.push({ type: 'CUSTOM_FIELD_FILTER', text: filterText || '—' });
             } else {
                 items.push({
                     type: r.recipientType,
@@ -450,7 +538,7 @@ function CreateAnnouncementPage() {
             }
         });
         return items;
-    }, [recipients, tagSelections, tagMapById]);
+    }, [recipients, tagSelections, tagMapById, customFieldFilters]);
 
     const dateToLocalInput = (dt: Date) => {
         const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000)
@@ -607,6 +695,64 @@ function CreateAnnouncementPage() {
             const next = { ...prev };
             delete next[idx];
             return next;
+        });
+        setCustomFieldFilters((prev) => {
+            const next = { ...prev };
+            delete next[idx];
+            return next;
+        });
+    };
+
+    const addCustomFieldFilter = (recipientIdx: number) => {
+        setCustomFieldFilters((prev) => {
+            const current = prev[recipientIdx] || [];
+            return {
+                ...prev,
+                [recipientIdx]: [
+                    ...current,
+                    {
+                        fieldId: '',
+                        fieldName: '',
+                        fieldType: 'text',
+                        filterValue: '',
+                        operator: 'equals',
+                    },
+                ],
+            };
+        });
+    };
+
+    const removeCustomFieldFilter = (recipientIdx: number, filterIdx: number) => {
+        setCustomFieldFilters((prev) => {
+            const current = prev[recipientIdx] || [];
+            const updated = current.filter((_, i) => i !== filterIdx);
+            return {
+                ...prev,
+                [recipientIdx]: updated,
+            };
+        });
+    };
+
+    const updateCustomFieldFilter = (
+        recipientIdx: number,
+        filterIdx: number,
+        updates: Partial<{
+            fieldId: string;
+            fieldName: string;
+            fieldType: 'text' | 'dropdown' | 'number';
+            filterValue: string | string[];
+            operator: 'equals' | 'contains' | 'starts_with' | 'ends_with';
+        }>
+    ) => {
+        setCustomFieldFilters((prev) => {
+            const current = prev[recipientIdx] || [];
+            const updated = current.map((filter, i) =>
+                i === filterIdx ? { ...filter, ...updates } : filter
+            );
+            return {
+                ...prev,
+                [recipientIdx]: updated,
+            };
         });
     };
 
@@ -856,6 +1002,39 @@ function CreateAnnouncementPage() {
                             </Button>
                         </div>
                     </div>
+                    {/* Individual Custom Field Buttons */}
+                    {customFieldOptions.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                            {customFieldOptions.map((field) => (
+                                <Button
+                                    key={field.id}
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        const newRecipientIdx = recipients.length;
+                                        setRecipients((prev) => [
+                                            ...prev,
+                                            { recipientType: 'CUSTOM_FIELD_FILTER', recipientId: '', recipientName: '' },
+                                        ]);
+                                        // Add initial filter for this field
+                                        // field.id is the customFieldId from API
+                                        setCustomFieldFilters((prev) => ({
+                                            ...prev,
+                                            [newRecipientIdx]: [{
+                                                fieldId: field.id, // This is customFieldId from API
+                                                fieldName: field.name,
+                                                fieldType: field.type,
+                                                filterValue: field.type === 'dropdown' ? [] : '',
+                                                operator: field.type === 'text' ? 'equals' : undefined,
+                                            }],
+                                        }));
+                                    }}
+                                >
+                                    + {field.name}
+                                </Button>
+                            ))}
+                        </div>
+                    )}
                     <div className="text-xs text-muted-foreground">
                         Tags target users linked to the selected tags. If multiple tags are
                         selected, users with any of those tags will receive the announcement.
@@ -867,17 +1046,18 @@ function CreateAnnouncementPage() {
                                 <Select
                                     value={r.recipientType}
                                     onValueChange={(val) => {
-                                        const updated = [...recipients];
-                                        updated[idx] = {
-                                            ...r,
-                                            recipientType: val as
-                                                | 'ROLE'
-                                                | 'USER'
-                                                | 'PACKAGE_SESSION'
-                                                | 'TAG',
-                                            recipientId: '',
-                                        };
-                                        setRecipients(updated);
+                                            const updated = [...recipients];
+                                            updated[idx] = {
+                                                ...r,
+                                                recipientType: val as
+                                                    | 'ROLE'
+                                                    | 'USER'
+                                                    | 'PACKAGE_SESSION'
+                                                    | 'TAG'
+                                                    | 'CUSTOM_FIELD_FILTER',
+                                                recipientId: '',
+                                            };
+                                            setRecipients(updated);
                                         // Initialize/clear tag selections when switching types
                                         setTagSelections((prev) => {
                                             const next = { ...prev };
@@ -891,6 +1071,14 @@ function CreateAnnouncementPage() {
                                             else delete next[idx];
                                             return next;
                                         });
+                                        // Clear custom field filters when switching types
+                                        if (val !== 'CUSTOM_FIELD_FILTER') {
+                                            setCustomFieldFilters((prev) => {
+                                                const next = { ...prev };
+                                                delete next[idx];
+                                                return next;
+                                            });
+                                        }
                                     }}
                                 >
                                     <SelectTrigger>
@@ -903,6 +1091,9 @@ function CreateAnnouncementPage() {
                                         </SelectItem>
                                         <SelectItem value="USER">USER</SelectItem>
                                         <SelectItem value="TAG">TAG</SelectItem>
+                                        {customFieldOptions.length > 0 && (
+                                            <SelectItem value="CUSTOM_FIELD_FILTER">Custom Field Filter</SelectItem>
+                                        )}
                                     </SelectContent>
                                 </Select>
                                 {r.recipientType === 'ROLE' ? (
@@ -953,7 +1144,124 @@ function CreateAnnouncementPage() {
                                             setRecipients(updated);
                                         }}
                                     />
-                                ) : (
+                                ) : r.recipientType === 'CUSTOM_FIELD_FILTER' ? (
+                                    <div className="col-span-2 flex-1 space-y-3">
+                                        <div className="text-xs text-muted-foreground mb-2">
+                                            Filter users based on custom field values. Add multiple filters to narrow down the audience.
+                                        </div>
+                                        {(customFieldFilters[idx] || []).map((filter, filterIdx) => {
+                                            const selectedField = customFieldOptions.find(f => f.id === filter.fieldId);
+                                            return (
+                                                <div key={filterIdx} className="border rounded-md p-3 space-y-2">
+                                                    <div className="flex items-start gap-2">
+                                                        <div className="flex-1 space-y-2">
+                                                            <Select
+                                                                value={filter.fieldId}
+                                                                onValueChange={(fieldId) => {
+                                                                    const field = customFieldOptions.find(f => f.id === fieldId);
+                                                                    updateCustomFieldFilter(idx, filterIdx, {
+                                                                        fieldId,
+                                                                        fieldName: field?.name || '',
+                                                                        fieldType: field?.type || 'text',
+                                                                        filterValue: field?.type === 'dropdown' ? [] : '',
+                                                                        operator: field?.type === 'text' ? 'equals' : undefined,
+                                                                    });
+                                                                }}
+                                                            >
+                                                                <SelectTrigger className="w-full">
+                                                                    <SelectValue placeholder="Select custom field" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {customFieldOptions.map((field) => (
+                                                                        <SelectItem key={field.id} value={field.id}>
+                                                                            {field.name} ({field.type})
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+
+                                                            {selectedField && selectedField.type === 'text' && (
+                                                                <div className="space-y-2">
+                                                                    <Select
+                                                                        value={filter.operator || 'equals'}
+                                                                        onValueChange={(op) =>
+                                                                            updateCustomFieldFilter(idx, filterIdx, {
+                                                                                operator: op as 'equals' | 'contains' | 'starts_with' | 'ends_with',
+                                                                            })
+                                                                        }
+                                                                    >
+                                                                        <SelectTrigger className="w-full">
+                                                                            <SelectValue />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            <SelectItem value="equals">Equals</SelectItem>
+                                                                            <SelectItem value="contains">Contains</SelectItem>
+                                                                            <SelectItem value="starts_with">Starts with</SelectItem>
+                                                                            <SelectItem value="ends_with">Ends with</SelectItem>
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                    <Input
+                                                                        placeholder="Enter filter value"
+                                                                        value={typeof filter.filterValue === 'string' ? filter.filterValue : ''}
+                                                                        onChange={(e) =>
+                                                                            updateCustomFieldFilter(idx, filterIdx, {
+                                                                                filterValue: e.target.value,
+                                                                            })
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                            )}
+
+                                                            {selectedField && selectedField.type === 'dropdown' && (
+                                                                <MultiSelect
+                                                                    options={(selectedField.options || []).map(opt => ({
+                                                                        label: opt,
+                                                                        value: opt,
+                                                                    }))}
+                                                                    selected={Array.isArray(filter.filterValue) ? filter.filterValue : []}
+                                                                    onChange={(vals) =>
+                                                                        updateCustomFieldFilter(idx, filterIdx, {
+                                                                            filterValue: vals,
+                                                                        })
+                                                                    }
+                                                                    placeholder="Select values"
+                                                                />
+                                                            )}
+
+                                                            {selectedField && selectedField.type === 'number' && (
+                                                                <Input
+                                                                    type="number"
+                                                                    placeholder="Enter number"
+                                                                    value={typeof filter.filterValue === 'string' ? filter.filterValue : ''}
+                                                                    onChange={(e) =>
+                                                                        updateCustomFieldFilter(idx, filterIdx, {
+                                                                            filterValue: e.target.value,
+                                                                        })
+                                                                    }
+                                                                />
+                                                            )}
+                                                        </div>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => removeCustomFieldFilter(idx, filterIdx)}
+                                                        >
+                                                            ×
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => addCustomFieldFilter(idx)}
+                                            className="w-full"
+                                        >
+                                            + Add Filter
+                                        </Button>
+                                    </div>
+                                ) : r.recipientType === 'TAG' ? (
                                     <div className="col-span-2">
                                         <div className="mb-1 flex items-center gap-2">
                                             <Label className="text-xs">Filter</Label>
@@ -1022,7 +1330,7 @@ function CreateAnnouncementPage() {
                                                 </div>
                                             )}
                                     </div>
-                                )}
+                                ) : null}
                                 <Button variant="ghost" onClick={() => removeRecipientAtIndex(idx)}>
                                     Remove
                                 </Button>
@@ -1065,6 +1373,32 @@ function CreateAnnouncementPage() {
                                             </span>
                                         );
                                     });
+                                }
+                                if (r.recipientType === 'CUSTOM_FIELD_FILTER') {
+                                    const filters = customFieldFilters[idx] || [];
+                                    const filterText = filters
+                                        .filter(f => f.fieldId && f.filterValue)
+                                        .map(f => `${f.fieldName}: ${Array.isArray(f.filterValue) ? f.filterValue.join(', ') : f.filterValue}`)
+                                        .join('; ');
+                                    return (
+                                        <span
+                                            key={idx}
+                                            className="inline-flex items-center gap-2 rounded-full border px-2 py-0.5"
+                                        >
+                                            <span className="font-medium">CUSTOM_FIELD_FILTER</span>
+                                            <span className="text-neutral-600">
+                                                {filterText || '—'}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                className="text-neutral-500 hover:text-neutral-800"
+                                                onClick={() => removeRecipientAtIndex(idx)}
+                                                aria-label="Remove custom field filter"
+                                            >
+                                                ×
+                                            </button>
+                                        </span>
+                                    );
                                 }
                                 return (
                                     <span
@@ -1897,6 +2231,26 @@ function CreateAnnouncementPage() {
                                     }
                                 }
 
+                                // Validate CUSTOM_FIELD_FILTER recipients
+                                const anyCustomFieldRow = recipients.some((r) => r.recipientType === 'CUSTOM_FIELD_FILTER');
+                                if (anyCustomFieldRow) {
+                                    const missingFilters = recipients.some(
+                                        (r, idx) => {
+                                            if (r.recipientType !== 'CUSTOM_FIELD_FILTER') return false;
+                                            const filters = customFieldFilters[idx];
+                                            return !filters || !filters.some(f => f.fieldId && f.filterValue);
+                                        }
+                                    );
+                                    if (missingFilters) {
+                                        toast({
+                                            title: 'Configure custom field filters',
+                                            description: 'You have a Custom Field Filter recipient without any configured filters.',
+                                            variant: 'destructive',
+                                        });
+                                        return;
+                                    }
+                                }
+
                                 // Expand TAG selections into recipient entries with names
                                 const expandedRecipients: CreateAnnouncementRequest['recipients'] =
                                     [];
@@ -1911,6 +2265,26 @@ function CreateAnnouncementPage() {
                                                 recipientName: tag?.tagName,
                                             });
                                         });
+                                    } else if (r.recipientType === 'CUSTOM_FIELD_FILTER') {
+                                        const filters = customFieldFilters[idx] || [];
+                                        if (filters.length > 0 && filters.some(f => f.fieldId && f.filterValue)) {
+                                            // Only add if at least one filter is configured
+                                            expandedRecipients.push({
+                                                recipientType: 'CUSTOM_FIELD_FILTER',
+                                                filters: filters.filter(f => f.fieldId && f.filterValue).map(f => {
+                                                    // Convert fieldValue to string for API (array for dropdown stays as array)
+                                                    const fieldValue = Array.isArray(f.filterValue) 
+                                                        ? f.filterValue 
+                                                        : (f.filterValue || '');
+                                                    
+                                                    return {
+                                                        customFieldId: f.fieldId, // This is the customFieldId from API
+                                                        fieldValue: fieldValue,
+                                                        operator: f.operator,
+                                                    };
+                                                }),
+                                            });
+                                        }
                                     } else if (r.recipientType && r.recipientId) {
                                         expandedRecipients.push({
                                             recipientType: r.recipientType,
