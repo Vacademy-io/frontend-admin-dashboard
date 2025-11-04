@@ -155,6 +155,20 @@ const EvaluateReportPreview = ({
                             </h3>
                             {evaluateLectureData.criteria?.map((criterion, index) => {
                                 const IconComponent = getCriteriaIcon(criterion?.name); // Get specific icon
+                                
+                                // Validate that criterion score doesn't exceed max
+                                const getValidatedScore = () => {
+                                    if (!criterion?.score) return 'N/A';
+                                    const match = criterion.score.match(/(\d+)\/(\d+)/);
+                                    if (match && match[1] && match[2]) {
+                                        const achieved = parseInt(match[1], 10);
+                                        const max = parseInt(match[2], 10);
+                                        const validAchieved = Math.min(achieved, max);
+                                        return `${validAchieved}/${max}`;
+                                    }
+                                    return criterion.score;
+                                };
+                                
                                 return (
                                     <div
                                         key={index}
@@ -167,8 +181,7 @@ const EvaluateReportPreview = ({
                                                 {index + 1}. {criterion?.name}
                                             </h4>
                                             <span className="text-sm font-medium text-muted-foreground">
-                                                (Score: {criterion?.score ?? 'N/A'} /
-                                                {getScoreFromString(criterion?.name)})
+                                                (Score: {getValidatedScore()})
                                             </span>
                                         </div>
 
