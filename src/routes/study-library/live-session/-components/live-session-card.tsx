@@ -39,6 +39,7 @@ import { getTerminology } from '@/components/common/layout-container/sidebar/uti
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 import { useServerTime } from '@/hooks/use-server-time';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
 
 interface LiveSessionCardProps {
     session: LiveSession;
