@@ -1,4 +1,3 @@
-import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { MyButton } from '@/components/design-system/button';
 import { Input } from '@/components/ui/input';
 import { StarFour, UploadSimple } from 'phosphor-react';
@@ -128,8 +127,12 @@ export const GenerateCard = ({
                                     buttonType="primary"
                                     layoutVariant="default"
                                     className="w-full text-sm"
+                                    disable
                                 >
-                                    <DashboardLoader />
+                                    <div className="flex items-center">
+                                        <div className="mr-2 size-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                        <span>Uploading...</span>
+                                    </div>
                                 </MyButton>
                             ) : (
                                 <MyButton

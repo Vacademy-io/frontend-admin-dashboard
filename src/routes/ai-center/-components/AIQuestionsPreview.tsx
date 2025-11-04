@@ -1,4 +1,3 @@
-import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { MyButton } from '@/components/design-system/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import {
@@ -295,7 +294,14 @@ const AIQuestionsPreview = ({
                             className="border-none text-sm !text-blue-600 shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 active:bg-transparent"
                             onClick={() => handleRetryTask(task.id)}
                         >
-                            {getRetryMutation.status === 'pending' ? <DashboardLoader /> : 'Retry'}
+                            {getRetryMutation.status === 'pending' ? (
+                                <>
+                                    <div className="ml-1 size-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+                                    <span className="ml-1">Retrying...</span>
+                                </>
+                            ) : (
+                                'Retry'
+                            )}
                         </MyButton>
                     ) : (
                         <MyButton
@@ -306,7 +312,10 @@ const AIQuestionsPreview = ({
                             onClick={() => handlViewQuestionsList(task.id)}
                         >
                             {getQuestionsListMutation.status === 'pending' ? (
-                                <DashboardLoader />
+                                <>
+                                    <div className="ml-1 size-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+                                    <span className="ml-1">Loading...</span>
+                                </>
                             ) : (
                                 'View'
                             )}
@@ -342,8 +351,9 @@ const AIQuestionsPreview = ({
                                     <div className="mt-2 flex items-center gap-4">
                                         {currentSectionIndex !== undefined &&
                                             (handleSubmitFormData.status === 'pending' ? (
-                                                <MyButton type="button">
-                                                    <DashboardLoader />
+                                                <MyButton type="button" disable>
+                                                    <div className="ml-1 size-3 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                                    <span className="ml-1">Saving...</span>
                                                 </MyButton>
                                             ) : (
                                                 <MyButton

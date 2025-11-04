@@ -180,7 +180,7 @@ export default defineConfig({
             'date-fns',
             'pako',
             '@tanstack/react-router',
-            '@tanstack/router-devtools'
+            '@tanstack/router-devtools',
         ],
         esbuildOptions: {
             target: 'esnext',

@@ -5,7 +5,6 @@ import React, { useMemo, useState } from 'react';
 import Papa from 'papaparse';
 import { toast } from 'sonner';
 import { DownloadSimple } from 'phosphor-react';
-import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { MyDialog } from '@/components/design-system/dialog';
 import { fetchSessionDetails, SessionDetailsResponse } from '../-hooks/useSessionDetails';
 import { MyButton } from '@/components/design-system/button';
@@ -457,7 +456,10 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
                                     onClick={handleExportPastAttendance}
                                 >
                                     {isAttendanceExporting ? (
-                                        <DashboardLoader />
+                                        <>
+                                            <div className="mr-2 size-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                            <span>Exporting...</span>
+                                        </>
                                     ) : (
                                         <>
                                             <DownloadSimple size={20} className="mr-2" />
