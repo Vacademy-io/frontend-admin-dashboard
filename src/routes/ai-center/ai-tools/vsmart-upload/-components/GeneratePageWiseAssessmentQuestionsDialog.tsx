@@ -16,7 +16,6 @@ import useInstituteLogoStore from '@/components/common/layout-container/sidebar/
 import { Input } from '@/components/ui/input';
 import { AIAssessmentResponseInterface } from '@/types/ai/generate-assessment/generate-complete-assessment';
 import ExportQuestionPaperAI from '@/routes/ai-center/-components/export-ai-question-paper/ExportQuestionPaperAI';
-import { DashboardLoader } from '@/components/core/dashboard-loader';
 
 // Infer the form type from the schema
 type GeneratePageWiseAssessmentQuestionsDialog = z.infer<
@@ -88,7 +87,14 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
                     className="text-sm"
                     onClick={handleGenerateQuestionsForAssessment}
                 >
-                    {loadingState === 'pending' ? <DashboardLoader /> : 'Extract Copied Questions'}
+                    {loadingState === 'pending' ? (
+                        <>
+                            <div className="mr-2 size-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                            <span>Extracting...</span>
+                        </>
+                    ) : (
+                        'Extract Copied Questions'
+                    )}
                 </MyButton>
             </DialogTrigger>
             {assessmentData!.questions.length > 0 && (
@@ -215,7 +221,7 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
                                                                             ) as QuestionType
                                                                         }
                                                                         props={{
-                                                                                        form: form as any,
+                                                                            form: form as any,
                                                                             currentQuestionIndex:
                                                                                 index,
                                                                             setCurrentQuestionIndex:
@@ -247,7 +253,7 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
                                             ) as QuestionType
                                         }
                                         props={{
-                                                                                        form: form as any,
+                                            form: form as any,
                                             currentQuestionIndex: currentQuestionIndex,
                                             setCurrentQuestionIndex: setCurrentQuestionIndex,
                                             className:
