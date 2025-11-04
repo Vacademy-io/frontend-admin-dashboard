@@ -1,6 +1,7 @@
 import { Link, useRouter } from '@tanstack/react-router';
 import { Helmet } from 'react-helmet';
-import { Button } from '../ui/button';
+import { MyButton } from '../design-system/button';
+import { removeCookiesAndLogout } from '@/lib/auth/sessionUtility';
 
 function RootErrorComponent() {
     const router = useRouter();
@@ -28,18 +29,19 @@ function RootErrorComponent() {
                         Please try again later or contact support if the problem persists.
                     </p>
 
-                    <div className="text-base-white mt-8 flex justify-center gap-5">
-                        <Button asChild variant="default" className="h-10 min-w-32">
+                    <div className="my-8 flex justify-center gap-5 text-base">
+                        <MyButton asChild className="h-10 min-w-32">
                             <Link to="/dashboard">Return Home</Link>
-                        </Button>
-                        <Button
-                            variant="default"
+                        </MyButton>
+                        <MyButton
+                            buttonType="secondary"
                             className="h-10 min-w-32"
                             onClick={() => router.history.back()}
                         >
                             Go Back
-                        </Button>
+                        </MyButton>
                     </div>
+                    <MyButton onClick={() => removeCookiesAndLogout()}>Logout</MyButton>
                 </div>
             </div>
         </>

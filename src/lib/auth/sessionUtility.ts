@@ -279,6 +279,7 @@ const removeCookiesAndLogout = (): void => {
     // Remove from shared domain
     Cookies.remove(TokenKey.accessToken, { domain: SSO_CONFIG.SHARED_DOMAIN });
     Cookies.remove(TokenKey.refreshToken, { domain: SSO_CONFIG.SHARED_DOMAIN });
+    window.location.href = '/login';
 };
 
 // Debug function to check token status
