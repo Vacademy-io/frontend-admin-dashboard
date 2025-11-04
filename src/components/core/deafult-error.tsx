@@ -1,10 +1,11 @@
-import { Link, useRouter } from '@tanstack/react-router';
+import { Link, useNavigate, useRouter } from '@tanstack/react-router';
 import { Helmet } from 'react-helmet';
 import { MyButton } from '../design-system/button';
 import { removeCookiesAndLogout } from '@/lib/auth/sessionUtility';
 
 function RootErrorComponent() {
     const router = useRouter();
+    const navigate = useNavigate();
 
     return (
         <>
@@ -41,7 +42,14 @@ function RootErrorComponent() {
                             Go Back
                         </MyButton>
                     </div>
-                    <MyButton onClick={() => removeCookiesAndLogout()}>Logout</MyButton>
+                    <MyButton
+                        onClick={() => {
+                            removeCookiesAndLogout();
+                            navigate({ to: '/login' });
+                        }}
+                    >
+                        Logout
+                    </MyButton>
                 </div>
             </div>
         </>
