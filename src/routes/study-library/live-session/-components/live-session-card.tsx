@@ -33,7 +33,6 @@ import {
 } from '../-constants/reportTable';
 import { MyTable } from '@/components/design-system/table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { DashboardLoader } from '@/components/core/dashboard-loader';
 import DeleteSessionDialog from './delete-session-dialog';
 import { getSessionJoinLink } from '../-utils/live-sesstions';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
@@ -434,7 +433,10 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                                                 onClick={handleExportRegistration}
                                             >
                                                 {isRegistrationExporting ? (
-                                                    <DashboardLoader></DashboardLoader>
+                                                    <>
+                                                        <div className="mr-2 size-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                                        <span>Exporting...</span>
+                                                    </>
                                                 ) : (
                                                     <>
                                                         <DownloadSimple
@@ -475,7 +477,10 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                                                 onClick={handleExportAttendance}
                                             >
                                                 {isAttendanceExporting ? (
-                                                    <DashboardLoader></DashboardLoader>
+                                                    <>
+                                                        <div className="mr-2 size-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                                        <span>Exporting...</span>
+                                                    </>
                                                 ) : (
                                                     <>
                                                         <DownloadSimple
