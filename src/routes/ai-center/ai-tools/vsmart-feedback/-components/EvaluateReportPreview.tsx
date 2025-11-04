@@ -130,7 +130,7 @@ const EvaluateReportPreview = ({
                                         Total Score
                                     </span>
                                     <span className="text-primary text-2xl font-bold">
-                                        {evaluateLectureData.totalScore ?? 'N/A'}/100
+                                        {evaluateLectureData.totalScore ?? 'N/A'}
                                     </span>
                                 </div>
                                 <div className="text-center">
