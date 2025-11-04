@@ -8,6 +8,7 @@ import {
     HeadCircuit,
     ChartLineUp,
     Tag,
+    FlowArrow,
 } from '@phosphor-icons/react';
 import { SidebarItemsType } from '../../../../types/layout-container/layout-container-types';
 import { GearSix, Lightning, NotePencil, UsersFour } from 'phosphor-react';
@@ -236,6 +237,12 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemId: 'announcement-approval',
             },
         ],
+    },
+    {
+        icon: FlowArrow,
+        id: 'workflow',
+        title: 'Workflows',
+        to: '/workflow/list',
     },
     {
         icon: Globe,

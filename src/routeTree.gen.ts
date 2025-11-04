@@ -20,9 +20,12 @@ import { Route as LoginIndexRouteImport } from "./routes/login/index"
 import { Route as LearnerInsightsIndexRouteImport } from "./routes/learner-insights/index"
 import { Route as EvaluatorAiIndexRouteImport } from "./routes/evaluator-ai/index"
 import { Route as EvaluationIndexRouteImport } from "./routes/evaluation/index"
+import { Route as DashboardIndexRouteImport } from "./routes/dashboard/index"
 import { Route as CommunityIndexRouteImport } from "./routes/community/index"
 import { Route as AuthTransferIndexRouteImport } from "./routes/auth-transfer/index"
 import { Route as AiCenterIndexRouteImport } from "./routes/ai-center/index"
+import { Route as WorkflowListIndexRouteImport } from "./routes/workflow/list/index"
+import { Route as WorkflowWorkflowIdIndexRouteImport } from "./routes/workflow/$workflowId/index"
 import { Route as UserTagsLinkIndexRouteImport } from "./routes/user-tags/link/index"
 import { Route as UserTagsInstituteIndexRouteImport } from "./routes/user-tags/institute/index"
 import { Route as TemplatesCreateIndexRouteImport } from "./routes/templates/create/index"
@@ -94,7 +97,6 @@ import { Route as AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeA
 const PricingLazyRouteImport = createFileRoute("/pricing")()
 const LearnerInsightsLazyRouteImport = createFileRoute("/learner-insights")()
 const LandingLazyRouteImport = createFileRoute("/landing")()
-const DashboardIndexLazyRouteImport = createFileRoute("/dashboard/")()
 const AssessmentIndexLazyRouteImport = createFileRoute("/assessment/")()
 
 const PricingLazyRoute = PricingLazyRouteImport.update({
@@ -114,13 +116,6 @@ const LandingLazyRoute = LandingLazyRouteImport.update({
   path: "/landing",
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import("./routes/landing.lazy").then((d) => d.Route))
-const DashboardIndexLazyRoute = DashboardIndexLazyRouteImport.update({
-  id: "/dashboard/",
-  path: "/dashboard/",
-  getParentRoute: () => rootRouteImport,
-} as any).lazy(() =>
-  import("./routes/dashboard/index.lazy").then((d) => d.Route),
-)
 const AssessmentIndexLazyRoute = AssessmentIndexLazyRouteImport.update({
   id: "/assessment/",
   path: "/assessment/",
@@ -173,6 +168,11 @@ const EvaluationIndexRoute = EvaluationIndexRouteImport.update({
   path: "/evaluation/",
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: "/dashboard/",
+  path: "/dashboard/",
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CommunityIndexRoute = CommunityIndexRouteImport.update({
   id: "/community/",
   path: "/community/",
@@ -186,6 +186,16 @@ const AuthTransferIndexRoute = AuthTransferIndexRouteImport.update({
 const AiCenterIndexRoute = AiCenterIndexRouteImport.update({
   id: "/ai-center/",
   path: "/ai-center/",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorkflowListIndexRoute = WorkflowListIndexRouteImport.update({
+  id: "/workflow/list/",
+  path: "/workflow/list/",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorkflowWorkflowIdIndexRoute = WorkflowWorkflowIdIndexRouteImport.update({
+  id: "/workflow/$workflowId/",
+  path: "/workflow/$workflowId/",
   getParentRoute: () => rootRouteImport,
 } as any)
 const UserTagsLinkIndexRoute = UserTagsLinkIndexRouteImport.update({
@@ -597,6 +607,7 @@ export interface FileRoutesByFullPath {
   "/ai-center": typeof AiCenterIndexRoute
   "/auth-transfer": typeof AuthTransferIndexRoute
   "/community": typeof CommunityIndexRoute
+  "/dashboard": typeof DashboardIndexRoute
   "/evaluation": typeof EvaluationIndexRoute
   "/evaluator-ai": typeof EvaluatorAiIndexRoute
   "/learner-insights/": typeof LearnerInsightsIndexRoute
@@ -607,7 +618,6 @@ export interface FileRoutesByFullPath {
   "/signup": typeof SignupIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
   "/assessment": typeof AssessmentIndexLazyRoute
-  "/dashboard": typeof DashboardIndexLazyRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/templates/edit/$templateId": typeof TemplatesEditTemplateIdRoute
@@ -647,6 +657,8 @@ export interface FileRoutesByFullPath {
   "/templates/create": typeof TemplatesCreateIndexRoute
   "/user-tags/institute": typeof UserTagsInstituteIndexRoute
   "/user-tags/link": typeof UserTagsLinkIndexRoute
+  "/workflow/$workflowId": typeof WorkflowWorkflowIdIndexRoute
+  "/workflow/list": typeof WorkflowListIndexRoute
   "/ai-center/ai-tools/vsmart-audio": typeof AiCenterAiToolsVsmartAudioIndexRoute
   "/ai-center/ai-tools/vsmart-chat": typeof AiCenterAiToolsVsmartChatIndexRoute
   "/ai-center/ai-tools/vsmart-extract": typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -682,6 +694,7 @@ export interface FileRoutesByTo {
   "/ai-center": typeof AiCenterIndexRoute
   "/auth-transfer": typeof AuthTransferIndexRoute
   "/community": typeof CommunityIndexRoute
+  "/dashboard": typeof DashboardIndexRoute
   "/evaluation": typeof EvaluationIndexRoute
   "/evaluator-ai": typeof EvaluatorAiIndexRoute
   "/learner-insights": typeof LearnerInsightsIndexRoute
@@ -692,7 +705,6 @@ export interface FileRoutesByTo {
   "/signup": typeof SignupIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
   "/assessment": typeof AssessmentIndexLazyRoute
-  "/dashboard": typeof DashboardIndexLazyRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/templates/edit/$templateId": typeof TemplatesEditTemplateIdRoute
@@ -732,6 +744,8 @@ export interface FileRoutesByTo {
   "/templates/create": typeof TemplatesCreateIndexRoute
   "/user-tags/institute": typeof UserTagsInstituteIndexRoute
   "/user-tags/link": typeof UserTagsLinkIndexRoute
+  "/workflow/$workflowId": typeof WorkflowWorkflowIdIndexRoute
+  "/workflow/list": typeof WorkflowListIndexRoute
   "/ai-center/ai-tools/vsmart-audio": typeof AiCenterAiToolsVsmartAudioIndexRoute
   "/ai-center/ai-tools/vsmart-chat": typeof AiCenterAiToolsVsmartChatIndexRoute
   "/ai-center/ai-tools/vsmart-extract": typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -769,6 +783,7 @@ export interface FileRoutesById {
   "/ai-center/": typeof AiCenterIndexRoute
   "/auth-transfer/": typeof AuthTransferIndexRoute
   "/community/": typeof CommunityIndexRoute
+  "/dashboard/": typeof DashboardIndexRoute
   "/evaluation/": typeof EvaluationIndexRoute
   "/evaluator-ai/": typeof EvaluatorAiIndexRoute
   "/learner-insights/": typeof LearnerInsightsIndexRoute
@@ -779,7 +794,6 @@ export interface FileRoutesById {
   "/signup/": typeof SignupIndexRoute
   "/study-library/": typeof StudyLibraryIndexRoute
   "/assessment/": typeof AssessmentIndexLazyRoute
-  "/dashboard/": typeof DashboardIndexLazyRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/templates/edit/$templateId": typeof TemplatesEditTemplateIdRoute
@@ -819,6 +833,8 @@ export interface FileRoutesById {
   "/templates/create/": typeof TemplatesCreateIndexRoute
   "/user-tags/institute/": typeof UserTagsInstituteIndexRoute
   "/user-tags/link/": typeof UserTagsLinkIndexRoute
+  "/workflow/$workflowId/": typeof WorkflowWorkflowIdIndexRoute
+  "/workflow/list/": typeof WorkflowListIndexRoute
   "/ai-center/ai-tools/vsmart-audio/": typeof AiCenterAiToolsVsmartAudioIndexRoute
   "/ai-center/ai-tools/vsmart-chat/": typeof AiCenterAiToolsVsmartChatIndexRoute
   "/ai-center/ai-tools/vsmart-extract/": typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -857,6 +873,7 @@ export interface FileRouteTypes {
     | "/ai-center"
     | "/auth-transfer"
     | "/community"
+    | "/dashboard"
     | "/evaluation"
     | "/evaluator-ai"
     | "/learner-insights/"
@@ -867,7 +884,6 @@ export interface FileRouteTypes {
     | "/signup"
     | "/study-library"
     | "/assessment"
-    | "/dashboard"
     | "/login/oauth/redirect"
     | "/signup/oauth/callback"
     | "/templates/edit/$templateId"
@@ -907,6 +923,8 @@ export interface FileRouteTypes {
     | "/templates/create"
     | "/user-tags/institute"
     | "/user-tags/link"
+    | "/workflow/$workflowId"
+    | "/workflow/list"
     | "/ai-center/ai-tools/vsmart-audio"
     | "/ai-center/ai-tools/vsmart-chat"
     | "/ai-center/ai-tools/vsmart-extract"
@@ -942,6 +960,7 @@ export interface FileRouteTypes {
     | "/ai-center"
     | "/auth-transfer"
     | "/community"
+    | "/dashboard"
     | "/evaluation"
     | "/evaluator-ai"
     | "/learner-insights"
@@ -952,7 +971,6 @@ export interface FileRouteTypes {
     | "/signup"
     | "/study-library"
     | "/assessment"
-    | "/dashboard"
     | "/login/oauth/redirect"
     | "/signup/oauth/callback"
     | "/templates/edit/$templateId"
@@ -992,6 +1010,8 @@ export interface FileRouteTypes {
     | "/templates/create"
     | "/user-tags/institute"
     | "/user-tags/link"
+    | "/workflow/$workflowId"
+    | "/workflow/list"
     | "/ai-center/ai-tools/vsmart-audio"
     | "/ai-center/ai-tools/vsmart-chat"
     | "/ai-center/ai-tools/vsmart-extract"
@@ -1028,6 +1048,7 @@ export interface FileRouteTypes {
     | "/ai-center/"
     | "/auth-transfer/"
     | "/community/"
+    | "/dashboard/"
     | "/evaluation/"
     | "/evaluator-ai/"
     | "/learner-insights/"
@@ -1038,7 +1059,6 @@ export interface FileRouteTypes {
     | "/signup/"
     | "/study-library/"
     | "/assessment/"
-    | "/dashboard/"
     | "/login/oauth/redirect"
     | "/signup/oauth/callback"
     | "/templates/edit/$templateId"
@@ -1078,6 +1098,8 @@ export interface FileRouteTypes {
     | "/templates/create/"
     | "/user-tags/institute/"
     | "/user-tags/link/"
+    | "/workflow/$workflowId/"
+    | "/workflow/list/"
     | "/ai-center/ai-tools/vsmart-audio/"
     | "/ai-center/ai-tools/vsmart-chat/"
     | "/ai-center/ai-tools/vsmart-extract/"
@@ -1115,6 +1137,7 @@ export interface RootRouteChildren {
   AiCenterIndexRoute: typeof AiCenterIndexRoute
   AuthTransferIndexRoute: typeof AuthTransferIndexRoute
   CommunityIndexRoute: typeof CommunityIndexRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
   EvaluationIndexRoute: typeof EvaluationIndexRoute
   EvaluatorAiIndexRoute: typeof EvaluatorAiIndexRoute
   LoginIndexRoute: typeof LoginIndexRoute
@@ -1124,7 +1147,6 @@ export interface RootRouteChildren {
   SignupIndexRoute: typeof SignupIndexRoute
   StudyLibraryIndexRoute: typeof StudyLibraryIndexRoute
   AssessmentIndexLazyRoute: typeof AssessmentIndexLazyRoute
-  DashboardIndexLazyRoute: typeof DashboardIndexLazyRoute
   LoginOauthRedirectRoute: typeof LoginOauthRedirectRoute
   SignupOauthCallbackRoute: typeof SignupOauthCallbackRoute
   TemplatesEditTemplateIdRoute: typeof TemplatesEditTemplateIdRoute
@@ -1164,6 +1186,8 @@ export interface RootRouteChildren {
   TemplatesCreateIndexRoute: typeof TemplatesCreateIndexRoute
   UserTagsInstituteIndexRoute: typeof UserTagsInstituteIndexRoute
   UserTagsLinkIndexRoute: typeof UserTagsLinkIndexRoute
+  WorkflowWorkflowIdIndexRoute: typeof WorkflowWorkflowIdIndexRoute
+  WorkflowListIndexRoute: typeof WorkflowListIndexRoute
   AiCenterAiToolsVsmartAudioIndexRoute: typeof AiCenterAiToolsVsmartAudioIndexRoute
   AiCenterAiToolsVsmartChatIndexRoute: typeof AiCenterAiToolsVsmartChatIndexRoute
   AiCenterAiToolsVsmartExtractIndexRoute: typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -1215,13 +1239,6 @@ declare module "@tanstack/react-router" {
       path: "/landing"
       fullPath: "/landing"
       preLoaderRoute: typeof LandingLazyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/dashboard/": {
-      id: "/dashboard/"
-      path: "/dashboard"
-      fullPath: "/dashboard"
-      preLoaderRoute: typeof DashboardIndexLazyRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/assessment/": {
@@ -1294,6 +1311,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof EvaluationIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/dashboard/": {
+      id: "/dashboard/"
+      path: "/dashboard"
+      fullPath: "/dashboard"
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/community/": {
       id: "/community/"
       path: "/community"
@@ -1313,6 +1337,20 @@ declare module "@tanstack/react-router" {
       path: "/ai-center"
       fullPath: "/ai-center"
       preLoaderRoute: typeof AiCenterIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/workflow/list/": {
+      id: "/workflow/list/"
+      path: "/workflow/list"
+      fullPath: "/workflow/list"
+      preLoaderRoute: typeof WorkflowListIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/workflow/$workflowId/": {
+      id: "/workflow/$workflowId/"
+      path: "/workflow/$workflowId"
+      fullPath: "/workflow/$workflowId"
+      preLoaderRoute: typeof WorkflowWorkflowIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/user-tags/link/": {
@@ -1805,6 +1843,7 @@ const rootRouteChildren: RootRouteChildren = {
   AiCenterIndexRoute: AiCenterIndexRoute,
   AuthTransferIndexRoute: AuthTransferIndexRoute,
   CommunityIndexRoute: CommunityIndexRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
   EvaluationIndexRoute: EvaluationIndexRoute,
   EvaluatorAiIndexRoute: EvaluatorAiIndexRoute,
   LoginIndexRoute: LoginIndexRoute,
@@ -1814,7 +1853,6 @@ const rootRouteChildren: RootRouteChildren = {
   SignupIndexRoute: SignupIndexRoute,
   StudyLibraryIndexRoute: StudyLibraryIndexRoute,
   AssessmentIndexLazyRoute: AssessmentIndexLazyRoute,
-  DashboardIndexLazyRoute: DashboardIndexLazyRoute,
   LoginOauthRedirectRoute: LoginOauthRedirectRoute,
   SignupOauthCallbackRoute: SignupOauthCallbackRoute,
   TemplatesEditTemplateIdRoute: TemplatesEditTemplateIdRoute,
@@ -1859,6 +1897,8 @@ const rootRouteChildren: RootRouteChildren = {
   TemplatesCreateIndexRoute: TemplatesCreateIndexRoute,
   UserTagsInstituteIndexRoute: UserTagsInstituteIndexRoute,
   UserTagsLinkIndexRoute: UserTagsLinkIndexRoute,
+  WorkflowWorkflowIdIndexRoute: WorkflowWorkflowIdIndexRoute,
+  WorkflowListIndexRoute: WorkflowListIndexRoute,
   AiCenterAiToolsVsmartAudioIndexRoute: AiCenterAiToolsVsmartAudioIndexRoute,
   AiCenterAiToolsVsmartChatIndexRoute: AiCenterAiToolsVsmartChatIndexRoute,
   AiCenterAiToolsVsmartExtractIndexRoute:

@@ -404,130 +404,117 @@ export function LoginForm() {
     }
 
     return (
-        <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-b from-neutral-50 to-white">
-            <div className="w-full max-w-screen-sm px-4 py-6 md:max-w-[720px]">
-                <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm md:p-6">
-                    <div className="mb-4 text-center md:mb-5">
-                        {instituteLogo ? (
-                            <img
-                                src={instituteLogo}
-                                alt="institute logo"
-                                className="mx-auto mb-3 size-14 rounded-full"
-                            />
-                        ) : null}
-                        {instituteName ? (
-                            <div className="mb-2 text-base font-medium text-neutral-800">
-                                {instituteName}
-                            </div>
-                        ) : null}
-                        <div className="text-primary-700 mx-auto inline-block rounded-full border border-primary-200 bg-primary-50 px-3 py-0.5 text-xs">
-                            Welcome to the{' '}
-                            <span className="font-semibold">{portalRoleLabel} Portal</span> of{' '}
-                            <span className="font-semibold">{portalInstitute}</span>
-                        </div>
-                    </div>
+        <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-neutral-50">
+            {/* Decorative background elements - subtle bars */}
+            <div className="pointer-events-none absolute inset-0">
+                <div className="absolute left-0 top-20 h-32 w-64 bg-primary-100/20"></div>
+                <div className="absolute right-0 top-1/3 h-48 w-72 bg-neutral-200/30"></div>
+                <div className="absolute bottom-32 left-1/4 h-24 w-96 bg-primary-50/15"></div>
+                <div className="absolute right-1/3 top-1/2 h-40 w-56 bg-neutral-300/20"></div>
+            </div>
 
-                    <div className="flex w-full flex-col items-center gap-5">
-                        <div className="flex w-full max-w-screen-sm flex-col gap-3 md:max-w-[720px]">
-                            {providerFlags.allowGoogleAuth && (
-                                <button
-                                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50"
-                                    onClick={() => {
-                                        trackEvent('OAuth Login Initiated', {
-                                            provider: 'google',
-                                            action: 'login',
-                                            timestamp: new Date().toISOString(),
-                                        });
-                                        handleOAuthLogin('google', { isSignup: false });
-                                    }}
-                                    type="button"
-                                >
-                                    {FcGoogle({ size: 20 })}
-                                    Continue with Google
-                                </button>
-                            )}
-                            {providerFlags.allowGithubAuth && (
-                                <button
-                                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50"
-                                    onClick={() => {
-                                        trackEvent('OAuth Login Initiated', {
-                                            provider: 'github',
-                                            action: 'login',
-                                            timestamp: new Date().toISOString(),
-                                        });
-                                        handleOAuthLogin('github', { isSignup: false });
-                                    }}
-                                    type="button"
-                                >
-                                    <GitHubLogoIcon className="size-5" />
-                                    Continue with GitHub
-                                </button>
-                            )}
-
-                            {(providerFlags.allowGoogleAuth || providerFlags.allowGithubAuth) && (
-                                <div className="relative my-1.5 flex items-center justify-center">
-                                    <div className="absolute inset-0 flex items-center">
-                                        <span className="w-full border-t" />
-                                    </div>
-                                    <div className="relative rounded-full border border-neutral-200 bg-white px-3 py-0.5 text-xs text-neutral-500">
-                                        or continue with
-                                    </div>
+            <div className="relative z-10 w-full max-w-5xl px-4">
+                <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl">
+                    <div className="grid grid-cols-1 md:grid-cols-2">
+                        {/* Left side - Branding */}
+                        <div className="flex flex-col items-center justify-center border-b border-neutral-200 bg-neutral-50/50 p-8 md:border-b-0 md:border-r md:p-12">
+                            {instituteLogo ? (
+                                <img
+                                    src={instituteLogo}
+                                    alt="institute logo"
+                                    className="mb-6 max-h-20 max-w-[200px] object-contain"
+                                />
+                            ) : null}
+                            {instituteName ? (
+                                <div className="mb-4 text-xl font-bold text-neutral-900">
+                                    {instituteName}
                                 </div>
-                            )}
+                            ) : null}
+                            <div className="text-primary-700 rounded-lg border border-primary-200/60 bg-primary-50/60 px-5 py-2 text-center text-sm font-medium">
+                                Welcome to the{' '}
+                                <span className="font-semibold">{portalRoleLabel} Portal</span> of{' '}
+                                <span className="font-semibold">{portalInstitute}</span>
+                            </div>
                         </div>
 
-                        {isEmailLogin ? (
-                            <EmailLogin onSwitchToUsername={handleSwitchToUsername} />
-                        ) : (
-                            <Form {...form}>
-                                <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
-                                    <div className="flex w-full max-w-screen-sm flex-col items-center justify-center gap-4 px-6 md:max-w-[720px] md:px-8">
-                                        <FormField
-                                            control={form.control}
-                                            name="username"
-                                            render={({ field: { onChange, value, ...field } }) => (
-                                                <FormItem>
-                                                    <FormControl>
-                                                        <MyInput
-                                                            inputType="text"
-                                                            inputPlaceholder="Enter your username"
-                                                            input={value}
-                                                            onChangeFunction={onChange}
-                                                            error={
-                                                                form.formState.errors.username
-                                                                    ?.message
-                                                            }
-                                                            required={true}
-                                                            size="large"
-                                                            label="Username"
-                                                            {...field}
-                                                            className="w-full"
-                                                        />
-                                                    </FormControl>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <div className="flex flex-col gap-2">
+                        {/* Right side - Login form */}
+                        <div className="flex flex-col justify-center p-8 md:p-12">
+                            <div className="flex w-full flex-col gap-4">
+                                {providerFlags.allowGoogleAuth && (
+                                    <button
+                                        className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-800 transition-all hover:border-neutral-400 hover:bg-neutral-50"
+                                        onClick={() => {
+                                            trackEvent('OAuth Login Initiated', {
+                                                provider: 'google',
+                                                action: 'login',
+                                                timestamp: new Date().toISOString(),
+                                            });
+                                            handleOAuthLogin('google', { isSignup: false });
+                                        }}
+                                        type="button"
+                                    >
+                                        {FcGoogle({ size: 20 })}
+                                        Continue with Google
+                                    </button>
+                                )}
+                                {providerFlags.allowGithubAuth && (
+                                    <button
+                                        className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-800 transition-all hover:border-neutral-400 hover:bg-neutral-50"
+                                        onClick={() => {
+                                            trackEvent('OAuth Login Initiated', {
+                                                provider: 'github',
+                                                action: 'login',
+                                                timestamp: new Date().toISOString(),
+                                            });
+                                            handleOAuthLogin('github', { isSignup: false });
+                                        }}
+                                        type="button"
+                                    >
+                                        <GitHubLogoIcon className="size-5" />
+                                        Continue with GitHub
+                                    </button>
+                                )}
+
+                                {(providerFlags.allowGoogleAuth ||
+                                    providerFlags.allowGithubAuth) && (
+                                    <div className="relative my-1 flex items-center justify-center">
+                                        <div className="absolute inset-0 flex items-center">
+                                            <span className="w-full border-t border-neutral-300" />
+                                        </div>
+                                        <div className="relative bg-white px-3 text-xs font-medium text-neutral-600">
+                                            or continue with
+                                        </div>
+                                    </div>
+                                )}
+
+                                {isEmailLogin ? (
+                                    <EmailLogin onSwitchToUsername={handleSwitchToUsername} />
+                                ) : (
+                                    <Form {...form}>
+                                        <form
+                                            onSubmit={form.handleSubmit(onSubmit)}
+                                            className="w-full space-y-4"
+                                        >
                                             <FormField
                                                 control={form.control}
-                                                name="password"
+                                                name="username"
                                                 render={({
                                                     field: { onChange, value, ...field },
                                                 }) => (
                                                     <FormItem>
                                                         <FormControl>
                                                             <MyInput
-                                                                inputType="password"
-                                                                inputPlaceholder="••••••••"
+                                                                inputType="text"
+                                                                inputPlaceholder="Enter your username"
                                                                 input={value}
                                                                 onChangeFunction={onChange}
                                                                 error={
-                                                                    form.formState.errors.password
+                                                                    form.formState.errors.username
                                                                         ?.message
                                                                 }
                                                                 required={true}
                                                                 size="large"
-                                                                label="Password"
+                                                                label="Username"
                                                                 {...field}
                                                                 className="w-full"
                                                             />
@@ -535,64 +522,95 @@ export function LoginForm() {
                                                     </FormItem>
                                                 )}
                                             />
-                                            <div className="flex items-center justify-between pl-1">
-                                                <Link to="/login/forgot-password">
-                                                    <div className="cursor-pointer text-caption font-regular text-primary-500">
-                                                        Forgot Password?
-                                                    </div>
-                                                </Link>
+                                            <div className="space-y-1">
+                                                <FormField
+                                                    control={form.control}
+                                                    name="password"
+                                                    render={({
+                                                        field: { onChange, value, ...field },
+                                                    }) => (
+                                                        <FormItem>
+                                                            <FormControl>
+                                                                <MyInput
+                                                                    inputType="password"
+                                                                    inputPlaceholder="••••••••"
+                                                                    input={value}
+                                                                    onChangeFunction={onChange}
+                                                                    error={
+                                                                        form.formState.errors
+                                                                            .password?.message
+                                                                    }
+                                                                    required={true}
+                                                                    size="large"
+                                                                    label="Password"
+                                                                    {...field}
+                                                                    className="w-full"
+                                                                />
+                                                            </FormControl>
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                                <div className="flex items-center justify-end">
+                                                    <Link to="/login/forgot-password">
+                                                        <div className="hover:text-primary-700 cursor-pointer text-xs font-medium text-primary-600 transition-colors">
+                                                            Forgot Password?
+                                                        </div>
+                                                    </Link>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                    {providerFlags.allowEmailOtpAuth &&
-                                        providerFlags.allowUsernamePasswordAuth && (
-                                            <div className="flex w-full items-center justify-center p-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={handleSwitchToEmail}
-                                                    className="hover:text-primary-600 cursor-pointer text-sm font-regular text-primary-500 transition-colors"
-                                                >
-                                                    Prefer email login?
-                                                </button>
-                                            </div>
-                                        )}
 
-                                    <div className="mt-4 flex flex-col items-center gap-1">
-                                        <MyButton
-                                            type="submit"
-                                            scale="large"
-                                            buttonType="primary"
-                                            layoutVariant="default"
-                                            disabled={mutation.isPending}
-                                        >
-                                            {mutation.isPending ? 'Logging in...' : 'Login'}
-                                        </MyButton>
-                                        {allowSignup && (
-                                            <p className="text-sm">
-                                                Don&apos;t have an account?&nbsp;&nbsp;
-                                                <span
-                                                    className="cursor-pointer text-primary-500"
-                                                    onClick={handleNavigateSignup}
+                                            {providerFlags.allowEmailOtpAuth &&
+                                                providerFlags.allowUsernamePasswordAuth && (
+                                                    <div className="flex w-full items-center justify-center pt-1">
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleSwitchToEmail}
+                                                            className="hover:text-primary-700 cursor-pointer text-xs font-medium text-primary-600 transition-colors"
+                                                        >
+                                                            Prefer email login?
+                                                        </button>
+                                                    </div>
+                                                )}
+
+                                            <div className="flex flex-col items-center gap-2 pt-2">
+                                                <MyButton
+                                                    type="submit"
+                                                    scale="large"
+                                                    buttonType="primary"
+                                                    layoutVariant="default"
+                                                    disabled={mutation.isPending}
                                                 >
-                                                    Create One
-                                                </span>
-                                            </p>
-                                        )}
-                                    </div>
-                                </form>
-                            </Form>
-                        )}
+                                                    {mutation.isPending ? 'Logging in...' : 'Login'}
+                                                </MyButton>
+                                                {allowSignup && (
+                                                    <p className="text-xs text-neutral-700">
+                                                        Don&apos;t have an account?&nbsp;&nbsp;
+                                                        <span
+                                                            className="hover:text-primary-700 cursor-pointer font-medium text-primary-600 transition-colors"
+                                                            onClick={handleNavigateSignup}
+                                                        >
+                                                            Create One
+                                                        </span>
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </form>
+                                    </Form>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
+
                 {Boolean(cachedBranding?.termsAndConditionUrl) ||
                 Boolean(cachedBranding?.privacyPolicyUrl) ? (
-                    <div className="mt-4 text-center text-xs text-neutral-500">
+                    <div className="mt-4 text-center text-xs text-neutral-600">
                         {cachedBranding?.termsAndConditionUrl ? (
                             <a
                                 href={cachedBranding.termsAndConditionUrl}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="underline hover:text-primary-500"
+                                className="font-medium transition-colors hover:text-primary-600"
                             >
                                 Terms & Conditions
                             </a>
@@ -606,7 +624,7 @@ export function LoginForm() {
                                 href={cachedBranding.privacyPolicyUrl}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="underline hover:text-primary-500"
+                                className="font-medium transition-colors hover:text-primary-600"
                             >
                                 Privacy Policy
                             </a>

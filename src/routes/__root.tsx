@@ -17,11 +17,13 @@ const TanStackRouterDevtools =
     process.env.NODE_ENV === 'production'
         ? () => null
         : React.lazy(() =>
-              import('@tanstack/router-devtools').then((res) => ({
-                  default: res.TanStackRouterDevtools,
-              })).catch(() => ({
-                  default: () => null
-              }))
+              import('@tanstack/router-devtools')
+                  .then((res) => ({
+                      default: res.TanStackRouterDevtools,
+                  }))
+                  .catch(() => ({
+                      default: () => null,
+                  }))
           );
 
 const isAuthenticated = () => {
@@ -55,87 +57,99 @@ const publicRoutes = [
     '/evaluator-ai',
     '/landing',
     '/pricing',
+    '/auth-transfer', // Allow auth-transfer to process tokens and load settings
 ];
 
 // Helper functions to break down the complex beforeLoad logic
-const handleRootPathRedirect = (location: any) => {
-        if (location.pathname === '/') {
-            const subdomain =
-                typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '';
-            const isVoltSubdomain = subdomain === 'volt';
-            throw redirect({ to: isVoltSubdomain ? '/landing' : '/login' });
-        }
+const handleRootPathRedirect = (location: { pathname: string }) => {
+    if (location.pathname === '/') {
+        const subdomain =
+            typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '';
+        const isVoltSubdomain = subdomain === 'volt';
+        throw redirect({ to: isVoltSubdomain ? '/landing' : '/login' });
+    }
 };
 
-const handleAuthTransferRoute = (location: any) => {
-        if (location.pathname === '/auth-transfer') {
-            if (isAuthenticated()) {
-                // User has valid tokens, redirect to study library
-                throw redirect({ to: '/study-library/courses' });
-            } else {
-                // User doesn't have tokens, redirect to login with redirect parameter
-                throw redirect({
-                    to: '/login',
-                    search: {
-                        redirect: '/auth-transfer',
-                    },
-                });
-            }
-        }
+const handleAuthTransferRoute = (location: { pathname: string }) => {
+    // Let the auth-transfer component handle the full flow including:
+    // - Setting tokens from URL params
+    // - Loading institute settings
+    // - Loading display settings with retry logic
+    // - Determining the correct redirect URL
+    // Don't redirect prematurely here
+    if (location.pathname === '/auth-transfer') {
+        return; // Allow the component to handle the flow
+    }
 };
 
-const handleAuthenticationChecks = (location: any) => {
-        // Check if the route requires authentication
-        const isPublicRoute = publicRoutes.some((route) => location.pathname.startsWith(route));
+const handleAuthenticationChecks = (location: { pathname: string }) => {
+    // Check if the route requires authentication
+    const isPublicRoute = publicRoutes.some((route) => location.pathname.startsWith(route));
 
-        // If it's not a public route and user is not authenticated,
-        // redirect to login with the intended destination
-        if (!isPublicRoute && !isAuthenticated()) {
-            throw redirect({
-                to: '/login',
-                search: {
-                    redirect: location.pathname,
-                },
-            });
-        }
+    // If it's not a public route and user is not authenticated,
+    // redirect to login with the intended destination
+    if (!isPublicRoute && !isAuthenticated()) {
+        throw redirect({
+            to: '/login',
+            search: {
+                redirect: location.pathname,
+            },
+        });
+    }
 };
 
-const handleAuthenticatedUserLoginAccess = (location: any) => {
-        // If user is authenticated and tries to access login page,
-        // check for redirect parameter and handle accordingly (unless showing institute selection)
-        if (isAuthenticated() && location.pathname.startsWith('/login')) {
-            // Also check if search is an object with the parameter
-            if (
-                typeof location.search === 'object' &&
-                location.search &&
-                'showInstituteSelection' in location.search
-            ) {
-                return;
-            }
-
-            const searchParams = new URLSearchParams(location.search);
-            const redirectParam = searchParams.get('redirect');
-
-            if (redirectParam === '/auth-transfer') {
-                // If redirecting to auth-transfer, go to study library instead
-                throw redirect({ to: '/study-library/courses' });
-            } else if (redirectParam && redirectParam.startsWith('/')) {
-                // If there's a valid redirect parameter, use it
-                throw redirect({ to: redirectParam as string });
-            } else {
-                // Default redirect based on role display settings if available
-                const accessToken = getTokenFromCookie(TokenKey.accessToken);
-                const roles = getUserRoles(accessToken);
-                const isAdminRole = roles.includes('ADMIN');
-                const roleKey = isAdminRole
-                    ? ADMIN_DISPLAY_SETTINGS_KEY
-                    : TEACHER_DISPLAY_SETTINGS_KEY;
-                const fromCache = getDisplaySettingsFromCache(roleKey);
-                const to = fromCache?.postLoginRedirectRoute || '/dashboard';
-                throw redirect({ to });
-            }
+const handleAuthenticatedUserLoginAccess = (location: {
+    pathname: string;
+    search: string | Record<string, unknown>;
+}) => {
+    // If user is authenticated and tries to access login page,
+    // check for redirect parameter and handle accordingly (unless showing institute selection)
+    if (isAuthenticated() && location.pathname.startsWith('/login')) {
+        // Also check if search is an object with the parameter
+        if (
+            typeof location.search === 'object' &&
+            location.search &&
+            'showInstituteSelection' in location.search
+        ) {
+            return;
         }
+
+        const searchParams = new URLSearchParams(location.search as string);
+        const redirectParam = searchParams.get('redirect');
+
+        if (redirectParam === '/auth-transfer') {
+            // If redirecting to auth-transfer, go to study library instead
+            throw redirect({ to: '/study-library/courses' });
+        } else if (redirectParam && redirectParam.startsWith('/')) {
+            // If there's a valid redirect parameter, use it
+            throw redirect({ to: redirectParam as string });
+        } else {
+            // Default redirect based on role display settings if available
+            const accessToken = getTokenFromCookie(TokenKey.accessToken);
+            const roles = getUserRoles(accessToken);
+            const isAdminRole = roles.includes('ADMIN');
+            const roleKey = isAdminRole ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+            const fromCache = getDisplaySettingsFromCache(roleKey);
+            const to = fromCache?.postLoginRedirectRoute || '/dashboard';
+            throw redirect({ to });
+        }
+    }
 };
+
+function RootComponent() {
+    // Ensure the global title is maintained across all pages
+    usePageTitle();
+
+    return (
+        <>
+            <Outlet />
+            <Suspense>
+                <TanStackRouterDevtools />
+            </Suspense>
+            <ReactQueryDevtools initialIsOpen={false} />
+        </>
+    );
+}
 
 export const Route = createRootRouteWithContext<{
     queryClient: QueryClient;
@@ -162,18 +176,5 @@ export const Route = createRootRouteWithContext<{
         handleAuthenticatedUserLoginAccess(location);
     },
 
-    component: () => {
-        // Ensure the global title is maintained across all pages
-        usePageTitle();
-
-        return (
-            <>
-                <Outlet />
-                <Suspense>
-                    <TanStackRouterDevtools />
-                </Suspense>
-                <ReactQueryDevtools initialIsOpen={false} />
-            </>
-        );
-    },
+    component: RootComponent,
 });
