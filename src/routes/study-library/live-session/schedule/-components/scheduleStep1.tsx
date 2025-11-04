@@ -2169,7 +2169,7 @@ export default function ScheduleStep1() {
                             <div className="rounded-lg bg-primary-50 p-4">
                                 <p className="text-sm font-medium text-gray-900">
                                     Copying from:{' '}
-                                    <span className="text-primary-600 font-semibold">
+                                    <span className="font-semibold text-primary-600">
                                         {WEEK_DAYS[copySourceSession.dayIndex]?.value || 'Unknown'}
                                     </span>
                                 </p>
