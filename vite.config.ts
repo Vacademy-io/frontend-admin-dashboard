@@ -119,17 +119,14 @@ export default defineConfig({
                 if (warning.code === 'INVALID_ANNOTATION') return;
                 warn(warning);
             },
+            maxParallelFileOps: 2, // Reduce parallel operations to save memory
         },
         target: 'esnext',
-        minify: 'terser',
-        terserOptions: {
-            compress: {
-                drop_console: true,
-                drop_debugger: true,
-            },
-        },
+        minify: 'esbuild', // Use esbuild instead of terser for faster, less memory-intensive builds
         chunkSizeWarningLimit: 1000,
         assetsInlineLimit: 0, // Disable asset inlining to prevent issues
+        sourcemap: false, // Disable sourcemaps in production to save memory
+        reportCompressedSize: false, // Skip compressed size reporting to save memory
         // Worker-specific options are configured at the top-level `worker` field if needed
     },
     resolve: {
