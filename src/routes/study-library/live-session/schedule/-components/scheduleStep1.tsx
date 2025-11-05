@@ -74,6 +74,10 @@ export default function ScheduleStep1() {
     const [isLoadingEditData, setIsLoadingEditData] = useState(false);
     // Ref to track if we're in edit mode - this should NEVER change during component lifecycle
     const isEditModeRef = useRef<boolean>(false);
+    // State for default link copy dialog
+    const [isDefaultLinkDialogOpen, setIsDefaultLinkDialogOpen] = useState(false);
+    const [pendingDefaultLink, setPendingDefaultLink] = useState<string>('');
+    const [selectedDaysForLink, setSelectedDaysForLink] = useState<string[]>([]);
     // State for copy to days dialog
     const [isCopyDialogOpen, setIsCopyDialogOpen] = useState(false);
     const [copySourceSession, setCopySourceSession] = useState<{
@@ -233,42 +237,32 @@ export default function ScheduleStep1() {
         prevSelectedDaysRef.current = selectedDays;
     }, [recurringSchedule, form, isFormInitialized]);
 
-    // Watch form values and auto-fill recurring schedule sessions
-    const durationHours = form.watch('durationHours');
-    const durationMinutes = form.watch('durationMinutes');
+    // Watch default link
     const defaultLink = form.watch('defaultLink');
-    const startTimeValue = form.watch('startTime');
 
+    // Debounced effect to show dialog when default link changes (CREATE mode only)
     useEffect(() => {
-        // NEVER auto-fill in edit mode - user's existing session times should be preserved
-        // This includes when user manually updates the main start date/time field
+        // Only in CREATE mode
         if (isEditModeRef.current) return;
-
-        // Skip if form is still being initialized
         if (!isFormInitialized) return;
+        if (!defaultLink) return;
 
-        const timeValue = startTimeValue?.split('T')[1] || '';
-        const updatedSchedule = form.getValues('recurringSchedule')?.map((day) => {
-            if (!day.isSelect) return day;
-            return {
-                ...day,
-                sessions: day.sessions.map((session, idx) =>
-                    idx === 0
-                        ? {
-                              ...session,
-                              startTime: timeValue,
-                              durationHours: durationHours || '0',
-                              durationMinutes: durationMinutes || '30',
-                              link: defaultLink || '',
-                          }
-                        : session
-                ),
-            };
-        });
-        if (updatedSchedule) {
-            form.setValue('recurringSchedule', updatedSchedule);
-        }
-    }, [durationHours, durationMinutes, defaultLink, startTimeValue, form, isFormInitialized]);
+        // Check if there are any selected days with sessions
+        const activeDays =
+            recurringSchedule?.filter((day) => day.isSelect && day.sessions?.length > 0) || [];
+        if (activeDays.length === 0) return;
+
+        // Debounce: wait for user to finish typing
+        const timer = setTimeout(() => {
+            // Pre-select all active days
+            const dayNames = activeDays.map((day) => day.day);
+            setSelectedDaysForLink(dayNames);
+            setPendingDefaultLink(defaultLink);
+            setIsDefaultLinkDialogOpen(true);
+        }, 800); // 800ms debounce
+
+        return () => clearTimeout(timer);
+    }, [defaultLink, isFormInitialized, recurringSchedule]);
 
     // Auto-detect platform from link
     useEffect(() => {
@@ -417,9 +411,35 @@ export default function ScheduleStep1() {
 
             const transformedSchedules = WEEK_DAYS.map((day) => {
                 // Find ALL matching schedules for this day
-                const matchingSchedules = schedule.added_schedules.filter(
+                const allMatchingSchedules = schedule.added_schedules.filter(
                     (scheduleItem) => scheduleItem.day.toLowerCase() === day.label.toLowerCase()
                 );
+
+                // Group by startTime - the API returns multiple entries for each week occurrence
+                // We display ONE UI field but keep ALL IDs so updates apply to all occurrences
+                const sessionsByTime = new Map<
+                    string,
+                    Array<(typeof schedule.added_schedules)[0]>
+                >();
+                allMatchingSchedules.forEach((session) => {
+                    if (!sessionsByTime.has(session.startTime)) {
+                        sessionsByTime.set(session.startTime, []);
+                    }
+                    sessionsByTime.get(session.startTime)!.push(session);
+                });
+
+                const matchingSchedules = Array.from(sessionsByTime.entries())
+                    .sort((a, b) => a[0].localeCompare(b[0])) // Sort by time
+                    .map(([startTime, sessions]) => {
+                        // Take the first session's data for display
+                        const firstSession = sessions[0];
+                        // Store ALL IDs as a comma-separated string
+                        const allIds = sessions.map((s) => s.id).join(',');
+                        return {
+                            ...firstSession,
+                            id: allIds, // Store all IDs together
+                        };
+                    });
 
                 return {
                     day: day.label,
@@ -427,7 +447,7 @@ export default function ScheduleStep1() {
                     sessions:
                         matchingSchedules.length > 0
                             ? matchingSchedules.map((matchingSchedule) => {
-                                  const duration = parseInt(matchingSchedule.duration) || 0;
+                                  const duration = parseInt(matchingSchedule.duration || '0') || 0;
                                   return {
                                       id: matchingSchedule.id,
                                       startTime: matchingSchedule.startTime,
@@ -1005,6 +1025,38 @@ export default function ScheduleStep1() {
     };
 
     // Manual copy function to copy session data to selected days
+    const applyDefaultLinkToSelectedDays = () => {
+        if (!pendingDefaultLink) return;
+
+        const currentSchedule = form.getValues('recurringSchedule') || [];
+
+        selectedDaysForLink.forEach((dayName) => {
+            const dayIndex = currentSchedule.findIndex((d) => d.day === dayName);
+            if (dayIndex === -1) return;
+
+            const day = currentSchedule[dayIndex];
+            if (!day || !day.sessions) return;
+
+            // Update ALL sessions for this day
+            day.sessions.forEach((session, sessionIndex) => {
+                form.setValue(
+                    `recurringSchedule.${dayIndex}.sessions.${sessionIndex}.link`,
+                    pendingDefaultLink
+                );
+            });
+        });
+
+        setIsDefaultLinkDialogOpen(false);
+        setSelectedDaysForLink([]);
+        setPendingDefaultLink('');
+    };
+
+    const handleToggleDayForLink = (dayName: string) => {
+        setSelectedDaysForLink((prev) =>
+            prev.includes(dayName) ? prev.filter((d) => d !== dayName) : [...prev, dayName]
+        );
+    };
+
     const copySessionToSelectedDays = () => {
         if (!copySourceSession) return;
 
@@ -2150,6 +2202,88 @@ export default function ScheduleStep1() {
                     </form>
                 </FormProvider>
             )}
+
+            {/* Default Link Copy Dialog */}
+            <MyDialog
+                open={isDefaultLinkDialogOpen}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setIsDefaultLinkDialogOpen(false);
+                        setSelectedDaysForLink([]);
+                        setPendingDefaultLink('');
+                    }
+                }}
+                heading="Update Link for Sessions"
+            >
+                <div className="space-y-4">
+                    <div className="rounded-md bg-blue-50 p-3 text-sm text-blue-800">
+                        <p className="font-medium">
+                            Do you want to apply this link to all sessions?
+                        </p>
+                        <p className="mt-1 text-xs">
+                            Link: <span className="break-all font-mono">{pendingDefaultLink}</span>
+                        </p>
+                    </div>
+
+                    <div className="space-y-3">
+                        <p className="text-sm font-medium text-gray-700">Select days to update:</p>
+                        <div className="max-h-64 space-y-2 overflow-y-auto">
+                            {recurringSchedule
+                                ?.filter((day) => day.isSelect && day.sessions?.length > 0)
+                                .map((day) => {
+                                    const sessionCount = day.sessions?.length || 0;
+                                    return (
+                                        <div
+                                            key={day.day}
+                                            className="flex items-center justify-between rounded-md border border-gray-200 p-3 hover:bg-gray-50"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <Checkbox
+                                                    checked={selectedDaysForLink.includes(day.day)}
+                                                    onCheckedChange={() =>
+                                                        handleToggleDayForLink(day.day)
+                                                    }
+                                                />
+                                                <div>
+                                                    <p className="font-medium text-gray-900">
+                                                        {day.day}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">
+                                                        {sessionCount} session
+                                                        {sessionCount !== 1 ? 's' : ''}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 border-t pt-4">
+                        <MyButton
+                            type="button"
+                            buttonType="secondary"
+                            onClick={() => {
+                                setIsDefaultLinkDialogOpen(false);
+                                setSelectedDaysForLink([]);
+                                setPendingDefaultLink('');
+                            }}
+                        >
+                            Cancel
+                        </MyButton>
+                        <MyButton
+                            type="button"
+                            buttonType="primary"
+                            onClick={applyDefaultLinkToSelectedDays}
+                            disable={selectedDaysForLink.length === 0}
+                        >
+                            Update {selectedDaysForLink.length} day
+                            {selectedDaysForLink.length !== 1 ? 's' : ''}
+                        </MyButton>
+                    </div>
+                </div>
+            </MyDialog>
 
             {/* Copy to Days Dialog */}
             <MyDialog

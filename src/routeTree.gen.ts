@@ -81,6 +81,7 @@ import { Route as AiCenterAiToolsVsmartFeedbackIndexRouteImport } from "./routes
 import { Route as AiCenterAiToolsVsmartExtractIndexRouteImport } from "./routes/ai-center/ai-tools/vsmart-extract/index"
 import { Route as AiCenterAiToolsVsmartChatIndexRouteImport } from "./routes/ai-center/ai-tools/vsmart-chat/index"
 import { Route as AiCenterAiToolsVsmartAudioIndexRouteImport } from "./routes/ai-center/ai-tools/vsmart-audio/index"
+import { Route as StudyLibraryLiveSessionViewSessionIdRouteImport } from "./routes/study-library/live-session/view/$sessionId"
 import { Route as StudyLibraryLiveSessionScheduleStep2IndexRouteImport } from "./routes/study-library/live-session/schedule/step2/index"
 import { Route as StudyLibraryLiveSessionScheduleStep1IndexRouteImport } from "./routes/study-library/live-session/schedule/step1/index"
 import { Route as StudyLibraryCoursesCourseDetailsSubjectsIndexRouteImport } from "./routes/study-library/courses/course-details/subjects/index"
@@ -517,6 +518,12 @@ const AiCenterAiToolsVsmartAudioIndexRoute =
     path: "/ai-center/ai-tools/vsmart-audio/",
     getParentRoute: () => rootRouteImport,
   } as any)
+const StudyLibraryLiveSessionViewSessionIdRoute =
+  StudyLibraryLiveSessionViewSessionIdRouteImport.update({
+    id: "/study-library/live-session/view/$sessionId",
+    path: "/study-library/live-session/view/$sessionId",
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const StudyLibraryLiveSessionScheduleStep2IndexRoute =
   StudyLibraryLiveSessionScheduleStep2IndexRouteImport.update({
     id: "/study-library/live-session/schedule/step2/",
@@ -659,6 +666,7 @@ export interface FileRoutesByFullPath {
   "/user-tags/link": typeof UserTagsLinkIndexRoute
   "/workflow/$workflowId": typeof WorkflowWorkflowIdIndexRoute
   "/workflow/list": typeof WorkflowListIndexRoute
+  "/study-library/live-session/view/$sessionId": typeof StudyLibraryLiveSessionViewSessionIdRoute
   "/ai-center/ai-tools/vsmart-audio": typeof AiCenterAiToolsVsmartAudioIndexRoute
   "/ai-center/ai-tools/vsmart-chat": typeof AiCenterAiToolsVsmartChatIndexRoute
   "/ai-center/ai-tools/vsmart-extract": typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -746,6 +754,7 @@ export interface FileRoutesByTo {
   "/user-tags/link": typeof UserTagsLinkIndexRoute
   "/workflow/$workflowId": typeof WorkflowWorkflowIdIndexRoute
   "/workflow/list": typeof WorkflowListIndexRoute
+  "/study-library/live-session/view/$sessionId": typeof StudyLibraryLiveSessionViewSessionIdRoute
   "/ai-center/ai-tools/vsmart-audio": typeof AiCenterAiToolsVsmartAudioIndexRoute
   "/ai-center/ai-tools/vsmart-chat": typeof AiCenterAiToolsVsmartChatIndexRoute
   "/ai-center/ai-tools/vsmart-extract": typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -835,6 +844,7 @@ export interface FileRoutesById {
   "/user-tags/link/": typeof UserTagsLinkIndexRoute
   "/workflow/$workflowId/": typeof WorkflowWorkflowIdIndexRoute
   "/workflow/list/": typeof WorkflowListIndexRoute
+  "/study-library/live-session/view/$sessionId": typeof StudyLibraryLiveSessionViewSessionIdRoute
   "/ai-center/ai-tools/vsmart-audio/": typeof AiCenterAiToolsVsmartAudioIndexRoute
   "/ai-center/ai-tools/vsmart-chat/": typeof AiCenterAiToolsVsmartChatIndexRoute
   "/ai-center/ai-tools/vsmart-extract/": typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -925,6 +935,7 @@ export interface FileRouteTypes {
     | "/user-tags/link"
     | "/workflow/$workflowId"
     | "/workflow/list"
+    | "/study-library/live-session/view/$sessionId"
     | "/ai-center/ai-tools/vsmart-audio"
     | "/ai-center/ai-tools/vsmart-chat"
     | "/ai-center/ai-tools/vsmart-extract"
@@ -1012,6 +1023,7 @@ export interface FileRouteTypes {
     | "/user-tags/link"
     | "/workflow/$workflowId"
     | "/workflow/list"
+    | "/study-library/live-session/view/$sessionId"
     | "/ai-center/ai-tools/vsmart-audio"
     | "/ai-center/ai-tools/vsmart-chat"
     | "/ai-center/ai-tools/vsmart-extract"
@@ -1100,6 +1112,7 @@ export interface FileRouteTypes {
     | "/user-tags/link/"
     | "/workflow/$workflowId/"
     | "/workflow/list/"
+    | "/study-library/live-session/view/$sessionId"
     | "/ai-center/ai-tools/vsmart-audio/"
     | "/ai-center/ai-tools/vsmart-chat/"
     | "/ai-center/ai-tools/vsmart-extract/"
@@ -1188,6 +1201,7 @@ export interface RootRouteChildren {
   UserTagsLinkIndexRoute: typeof UserTagsLinkIndexRoute
   WorkflowWorkflowIdIndexRoute: typeof WorkflowWorkflowIdIndexRoute
   WorkflowListIndexRoute: typeof WorkflowListIndexRoute
+  StudyLibraryLiveSessionViewSessionIdRoute: typeof StudyLibraryLiveSessionViewSessionIdRoute
   AiCenterAiToolsVsmartAudioIndexRoute: typeof AiCenterAiToolsVsmartAudioIndexRoute
   AiCenterAiToolsVsmartChatIndexRoute: typeof AiCenterAiToolsVsmartChatIndexRoute
   AiCenterAiToolsVsmartExtractIndexRoute: typeof AiCenterAiToolsVsmartExtractIndexRoute
@@ -1738,6 +1752,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AiCenterAiToolsVsmartAudioIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/study-library/live-session/view/$sessionId": {
+      id: "/study-library/live-session/view/$sessionId"
+      path: "/study-library/live-session/view/$sessionId"
+      fullPath: "/study-library/live-session/view/$sessionId"
+      preLoaderRoute: typeof StudyLibraryLiveSessionViewSessionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/study-library/live-session/schedule/step2/": {
       id: "/study-library/live-session/schedule/step2/"
       path: "/study-library/live-session/schedule/step2"
@@ -1899,6 +1920,8 @@ const rootRouteChildren: RootRouteChildren = {
   UserTagsLinkIndexRoute: UserTagsLinkIndexRoute,
   WorkflowWorkflowIdIndexRoute: WorkflowWorkflowIdIndexRoute,
   WorkflowListIndexRoute: WorkflowListIndexRoute,
+  StudyLibraryLiveSessionViewSessionIdRoute:
+    StudyLibraryLiveSessionViewSessionIdRoute,
   AiCenterAiToolsVsmartAudioIndexRoute: AiCenterAiToolsVsmartAudioIndexRoute,
   AiCenterAiToolsVsmartChatIndexRoute: AiCenterAiToolsVsmartChatIndexRoute,
   AiCenterAiToolsVsmartExtractIndexRoute:

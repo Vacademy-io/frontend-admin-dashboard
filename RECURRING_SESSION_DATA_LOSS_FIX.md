@@ -136,6 +136,8 @@ This prevents accidental data loss during editing!
 - [ ] **Edit Mode Tests:**
   - [ ] Open edit mode - verify "Start Date/Time" field is pre-filled (not blank)
   - [ ] Edit a recurring session with multiple days and different times per day
+  - [ ] Verify NO duplicate sessions are shown (e.g., Monday should show each time slot only once, not 9 times)
+  - [ ] Verify sessions are sorted chronologically (6:00 AM before 7:00 AM before 8:00 AM, etc.)
   - [ ] Verify start date doesn't change to current date
   - [ ] Verify end date is preserved
   - [ ] Verify each weekday's session times remain unchanged
@@ -222,6 +224,115 @@ if (schedule.start_time) {
 
 Now the field is correctly pre-filled with the datetime from the API!
 
+## Additional Fix: Duplicate Sessions Showing in Edit Mode
+
+### Problem
+When opening edit mode for a recurring session, each day was showing many duplicate sessions. For example, Monday would show:
+- 9 entries for 6:00 AM
+- 9 entries for 7:00 AM
+- 9 entries for 8:00 AM
+- etc.
+
+This was because the API returns ALL occurrences of the recurring sessions across all weeks (Nov 1, Nov 8, Nov 15, Nov 22, etc.), and the UI was displaying all of them instead of just the unique time slots.
+
+### Root Cause
+The API's `added_schedules` array contains one entry for EACH occurrence of EACH session. For a weekly recurring schedule with 9 weeks and 6 time slots per day:
+- Monday 6:00 AM appears 9 times (one for each week)
+- Monday 7:00 AM appears 9 times
+- etc.
+
+The code was displaying all these entries without deduplication.
+
+### Solution
+Added deduplication logic using a `Map` to keep only unique time slots per day:
+
+```typescript
+// Find ALL matching schedules for this day
+const allMatchingSchedules = schedule.added_schedules.filter(
+    (scheduleItem) => scheduleItem.day.toLowerCase() === day.label.toLowerCase()
+);
+
+// Deduplicate by startTime - the API returns multiple entries for each week occurrence
+// We only want ONE entry per unique time slot
+const uniqueSessionsMap = new Map<string, (typeof schedule.added_schedules)[0]>();
+allMatchingSchedules.forEach((session) => {
+    if (!uniqueSessionsMap.has(session.startTime)) {
+        uniqueSessionsMap.set(session.startTime, session);
+    }
+});
+
+const matchingSchedules = Array.from(uniqueSessionsMap.values()).sort((a, b) => {
+    // Sort by startTime in ascending order
+    return a.startTime.localeCompare(b.startTime);
+});
+```
+
+Now each day shows only the unique time slots (e.g., 6:00 AM, 7:00 AM, 8:00 AM, etc.) in chronological order!
+
+### CRITICAL: Keeping ALL Session IDs
+
+**The deduplication was causing data loss!** When Monday 6:00 AM appeared 9 times (one per week), we were only keeping the first ID. When users edited it, only week 1 got updated, weeks 2-9 remained unchanged!
+
+**Fix:** Now we keep ALL IDs as a comma-separated string:
+```typescript
+const allIds = sessions.map((s) => s.id).join(',');
+// Stores: "id1,id2,id3,id4,id5,id6,id7,id8,id9"
+```
+
+When submitting, we split and send each ID as a separate update:
+```typescript
+const sessionIds = session.id.split(',');
+sessionIds.forEach((sessionId) => {
+    updated_schedules.push({ id: sessionId, ...sessionData });
+});
+// Results in 9 update entries, one for each week
+```
+
+**Result:** Changing Monday 6:00 AM now correctly updates ALL 9 Monday occurrences! ✅
+
+See `CRITICAL_DEDUPLICATION_FIX.md` for detailed explanation.
+
+## Critical Bug Fix: Edit Mode Sending All Sessions as New
+
+### Problem
+When editing a recurring session and changing a specific day's session (e.g., changing Monday 7:00 AM's link), the transformation logic was incorrectly sending ALL sessions as NEW (`added_schedules`) instead of UPDATES (`updated_schedules`).
+
+### Root Cause
+The `transformFormToDTOStep1` function in `helper.ts` was checking `dayBlock.id` (which never exists) instead of `session.id`:
+
+```typescript
+// WRONG - dayBlock.id doesn't exist!
+if (dayBlock.id && originalScheduleMap.has(dayBlock.id)) {
+    updated_schedules.push(baseSchedule);
+} else {
+    added_schedules.push(baseSchedule);  // Everything went here!
+}
+```
+
+### Solution
+Changed the logic to check `session.id` (which comes from the API):
+
+```typescript
+// CORRECT - check session.id
+if (session.id) {
+    updated_schedules.push(baseSchedule);  // Existing sessions
+    if (originalScheduleMap.has(session.id)) {
+        originalScheduleMap.delete(session.id);
+    }
+} else {
+    added_schedules.push(baseSchedule);  // New sessions only
+}
+```
+
+### Impact
+- ✅ Edit mode now correctly sends existing sessions as UPDATES
+- ✅ Only new sessions go to `added_schedules`
+- ✅ Deleted sessions go to `deleted_schedule_ids`
+- ✅ Follows the API contract properly
+- ✅ Prevents potential duplicate session creation
+
+See `EDIT_MODE_API_FLOW_EXPLANATION.md` for detailed explanation of how the API flow works.
+
 ## Files Modified
 
 - `src/routes/study-library/live-session/schedule/-components/scheduleStep1.tsx`
@@ -230,6 +341,11 @@ Now the field is correctly pre-filled with the datetime from the API!
   - Lines 201, 245: Changed auto-fill guards to use `isEditModeRef.current`
   - Lines 234, 271: Cleaned up effect dependencies (removed `sessionDetails`, `isLoadingEditData`)
   - Lines 338-386: Fixed start time parsing to handle both full datetime and time-only formats
+  - Lines 424-448: **CRITICAL FIX** - Changed deduplication to keep ALL session IDs (comma-separated) instead of just first one, ensuring edits apply to all week occurrences
+
+- `src/routes/study-library/live-session/-constants/helper.ts`
+  - Lines 179-216: **CRITICAL FIX** - Split comma-separated session IDs and create separate update entry for each, ensuring ALL week occurrences get updated
+  - Fixed to check `session.id` instead of `dayBlock.id` for proper separation of added vs updated schedules
 
 ## Impact
 

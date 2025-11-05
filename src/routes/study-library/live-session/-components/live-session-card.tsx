@@ -39,6 +39,7 @@ import { getTerminology } from '@/components/common/layout-container/sidebar/uti
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 import { useServerTime } from '@/hooks/use-server-time';
+import { DashboardLoader } from '@/components/core/dashboard-loader';
 
 interface LiveSessionCardProps {
     session: LiveSession;
@@ -227,8 +228,18 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
         toast.success('Attendance report downloaded successfully.');
     };
 
+    const handleCardClick = () => {
+        navigate({
+            to: '/study-library/live-session/view/$sessionId',
+            params: { sessionId: session?.session_id || '' },
+        });
+    };
+
     return (
-        <div className="my-6 flex cursor-pointer flex-col gap-4 rounded-xl border bg-neutral-50 p-4">
+        <div
+            className="my-6 flex cursor-pointer flex-col gap-4 rounded-xl border bg-neutral-50 p-4 transition-shadow hover:shadow-md"
+            onClick={handleCardClick}
+        >
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <h1 className="font-semibold">{session.title}</h1>
@@ -238,7 +249,7 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                     </Badge>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
                     <DropdownMenu>
                         <DropdownMenuTrigger>
                             <MyButton
@@ -267,10 +278,18 @@ export default function LiveSessionCard({ session, isDraft = false }: LiveSessio
                             </DropdownMenuItem>
                             <DropdownMenuItem
                                 className="cursor-pointer"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEditSession();
+                                onClick={() => {
+                                    navigate({
+                                        to: '/study-library/live-session/view/$sessionId',
+                                        params: { sessionId: session?.session_id || '' },
+                                    });
                                 }}
+                            >
+                                View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                className="cursor-pointer"
+                                onClick={handleEditSession}
                             >
                                 Edit Live Session
                             </DropdownMenuItem>
