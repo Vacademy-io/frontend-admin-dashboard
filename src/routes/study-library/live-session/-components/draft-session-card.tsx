@@ -71,8 +71,18 @@ export default function DraftSessionCard({ session }: DraftSessionCardProps) {
         setDeleteDialogOpen(false);
     };
 
+    const handleCardClick = () => {
+        navigate({
+            to: '/study-library/live-session/view/$sessionId',
+            params: { sessionId: session?.session_id || '' },
+        });
+    };
+
     return (
-        <div className="my-6 flex cursor-pointer flex-col gap-4 rounded-xl border bg-neutral-50 p-4">
+        <div
+            className="my-6 flex cursor-pointer flex-col gap-4 rounded-xl border bg-neutral-50 p-4 transition-shadow hover:shadow-md"
+            onClick={handleCardClick}
+        >
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <h1 className="font-semibold">{session.title}</h1>
@@ -82,7 +92,7 @@ export default function DraftSessionCard({ session }: DraftSessionCardProps) {
                     </Badge> */}
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
                     {/* <Badge className="rounded-md border border-primary-200 bg-primary-50 py-1.5 shadow-none">
                         {batchIdsList[0]}
                     </Badge> */}
@@ -101,10 +111,18 @@ export default function DraftSessionCard({ session }: DraftSessionCardProps) {
                         <DropdownMenuContent>
                             <DropdownMenuItem
                                 className="cursor-pointer"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEditSession();
+                                onClick={() => {
+                                    navigate({
+                                        to: '/study-library/live-session/view/$sessionId',
+                                        params: { sessionId: session?.session_id || '' },
+                                    });
                                 }}
+                            >
+                                View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                className="cursor-pointer"
+                                onClick={handleEditSession}
                             >
                                 Edit Live Session
                             </DropdownMenuItem>

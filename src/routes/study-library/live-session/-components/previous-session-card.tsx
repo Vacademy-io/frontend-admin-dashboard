@@ -4,6 +4,7 @@ import { LiveSession } from '../schedule/-services/utils';
 import React, { useMemo, useState } from 'react';
 import Papa from 'papaparse';
 import { toast } from 'sonner';
+import { useNavigate } from '@tanstack/react-router';
 import { DownloadSimple } from 'phosphor-react';
 import { MyDialog } from '@/components/design-system/dialog';
 import { fetchSessionDetails, SessionDetailsResponse } from '../-hooks/useSessionDetails';
@@ -38,6 +39,7 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
     const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
     const [selectedStudents, setSelectedStudents] = useState<StudentTable[]>([]);
     // using Sonner toast for notifications
+    const navigate = useNavigate();
 
     const { mutate: fetchReport, data: reportResponse, isPending, error } = useLiveSessionReport();
     const { openBulkSendMessageDialog, openBulkSendEmailDialog } = useDialogStore();
@@ -278,9 +280,19 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
         }
     }, [scheduledSessionDetails]);
 
+    const handleCardClick = () => {
+        navigate({
+            to: '/study-library/live-session/view/$sessionId',
+            params: { sessionId: session?.session_id || '' },
+        });
+    };
+
     const formattedDateTime = `${session.meeting_date} ${session.start_time}`;
     return (
-        <div className="my-6 flex cursor-pointer flex-col gap-4 rounded-xl border bg-neutral-50 p-4">
+        <div
+            className="my-6 flex cursor-pointer flex-col gap-4 rounded-xl border bg-neutral-50 p-4 transition-shadow hover:shadow-md"
+            onClick={handleCardClick}
+        >
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <h1 className="font-semibold">{session.title}</h1>
@@ -308,7 +320,23 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
                     <span className="text-black">End Time:</span>
                     <span>{session.last_entry_time}</span>
                 </div>
-                <div className="flex items-center gap-2 text-primary-500">
+                <div
+                    className="flex items-center gap-4 text-primary-500"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <button
+                        type="button"
+                        className="flex items-center gap-2 rounded-sm text-primary-500 transition-colors hover:text-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                        onClick={() => {
+                            navigate({
+                                to: '/study-library/live-session/view/$sessionId',
+                                params: { sessionId: session?.session_id || '' },
+                            });
+                        }}
+                    >
+                        <span>View Session Details</span>
+                    </button>
+                    <span className="text-gray-300">|</span>
                     <button
                         type="button"
                         className="flex items-center gap-2 rounded-sm text-primary-500 transition-colors hover:text-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"

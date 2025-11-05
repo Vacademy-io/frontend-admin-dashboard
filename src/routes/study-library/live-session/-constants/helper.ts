@@ -176,20 +176,42 @@ export function transformFormToDTOStep1(
                 }) => {
                     const duration =
                         Number(session.durationHours) * 60 + Number(session.durationMinutes);
-                    const baseSchedule: ScheduleDTO = {
-                        id: session.id,
-                        day: dayBlock.day,
-                        start_time: session.startTime ? `${session.startTime}:00` : '',
-                        duration: String(duration),
-                        link: session.link || '',
-                        thumbnail_file_id: session.thumbnailFileId || '',
-                        daily_attendance: session.countAttendanceDaily || false,
-                    };
+                    // Check if session has an ID - if yes, it's an update; if no, it's new
+                    if (session.id) {
+                        // Session ID might be comma-separated string containing multiple IDs
+                        // (one for each week occurrence of the same time slot)
+                        const sessionIds = session.id.split(',').filter((id) => id.trim());
 
-                    if (dayBlock.id && originalScheduleMap.has(dayBlock.id)) {
-                        updated_schedules.push(baseSchedule);
-                        originalScheduleMap.delete(dayBlock.id); // processed
+                        // Create an update entry for EACH ID
+                        sessionIds.forEach((sessionId) => {
+                            const baseSchedule: ScheduleDTO = {
+                                id: sessionId.trim(),
+                                day: dayBlock.day,
+                                start_time: session.startTime ? `${session.startTime}:00` : '',
+                                duration: String(duration),
+                                link: session.link || '',
+                                thumbnail_file_id: session.thumbnailFileId || '',
+                                daily_attendance: session.countAttendanceDaily || false,
+                            };
+
+                            updated_schedules.push(baseSchedule);
+
+                            // Remove from originalScheduleMap to track processed sessions
+                            if (originalScheduleMap.has(sessionId.trim())) {
+                                originalScheduleMap.delete(sessionId.trim());
+                            }
+                        });
                     } else {
+                        // New session without ID
+                        const baseSchedule: ScheduleDTO = {
+                            id: undefined,
+                            day: dayBlock.day,
+                            start_time: session.startTime ? `${session.startTime}:00` : '',
+                            duration: String(duration),
+                            link: session.link || '',
+                            thumbnail_file_id: session.thumbnailFileId || '',
+                            daily_attendance: session.countAttendanceDaily || false,
+                        };
                         added_schedules.push(baseSchedule);
                     }
                 }
