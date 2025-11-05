@@ -1,5 +1,5 @@
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
-import { RE_ENROLL_STUDENT_MANUALLY } from '@/constants/urls';
+import { ENROLL_STUDENT_MANUALLY } from '@/constants/urls';
 import { EnrollStudentRequest } from '@/types/students/type-enroll-student-manually';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
@@ -57,7 +57,7 @@ export const reEnrollStudent = async ({ formData }: EnrollStudentRequest): Promi
         };
 
         const response = await authenticatedAxiosInstance.post(
-            RE_ENROLL_STUDENT_MANUALLY,
+            ENROLL_STUDENT_MANUALLY,
             requestBody
         );
 

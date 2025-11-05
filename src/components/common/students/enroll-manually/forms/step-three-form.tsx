@@ -292,14 +292,14 @@ export const StepThreeForm = ({
                                 )}
                             />
 
-                            {/* Access Days */}
-                            <FormField
+                            {/* Access Days - commenting for temporary removal */}
+                            {/* <FormField
                                 control={form.control}
                                 name="access_days"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel className="text-subtitle font-semibold">
-                                            Access Days
+                                            Access Days-
                                         </FormLabel>
                                         <FormControl>
                                             <input
@@ -311,7 +311,7 @@ export const StepThreeForm = ({
                                         </FormControl>
                                     </FormItem>
                                 )}
-                            />
+                            /> */}
                         </div>
                     </form>
                 </Form>

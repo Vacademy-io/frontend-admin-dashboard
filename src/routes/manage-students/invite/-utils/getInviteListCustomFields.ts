@@ -4,14 +4,16 @@ import { getFieldsForLocation } from '@/lib/custom-fields/utils';
  * Interface for invite form custom field
  */
 export interface InviteFormCustomField {
-    id: string;
+    id: string; // Form-level ID (can be numeric string or UUID)
     type: 'text' | 'dropdown' | 'number';
     name: string;
     oldKey: boolean;
     isRequired: boolean;
     key: string;
     order: number;
-    options?: Array<{ id: string; value: string; disabled: boolean }>;
+    options?: Array<{ id: string; value: string; disabled?: boolean }>;
+    _id?: string; // Custom field ID from localStorage (for API payload)
+    status?: 'ACTIVE' | 'DELETED';
 }
 
 /**
@@ -56,19 +58,21 @@ export const getInviteListCustomFields = (): InviteFormCustomField[] => {
             const fieldKey = generateKeyFromName(field.name);
 
             const transformedField: InviteFormCustomField = {
-                id: field.id,
+                id: String(index), // Use index as string ID for form
                 type: mapFieldType(field.type || 'text'),
                 name: field.name,
                 oldKey: isOldKey,
                 isRequired: field.required || false,
                 key: fieldKey,
                 order: index,
+                _id: field.id, // Store the actual custom field ID from localStorage
+                status: 'ACTIVE',
             };
 
             // Add options if it's a dropdown field
             if (field.type === 'dropdown' && field.options && field.options.length > 0) {
                 transformedField.options = field.options.map((option, optIndex) => ({
-                    id: `${field.id}_option_${optIndex}`,
+                    id: `${index}_option_${optIndex}`,
                     value: option,
                     disabled: true,
                 }));
@@ -97,6 +101,7 @@ const getDefaultInviteFields = (): InviteFormCustomField[] => {
             isRequired: true,
             key: 'full_name',
             order: 0,
+            status: 'ACTIVE',
         },
         {
             id: '1',
@@ -106,6 +111,7 @@ const getDefaultInviteFields = (): InviteFormCustomField[] => {
             isRequired: true,
             key: 'email',
             order: 1,
+            status: 'ACTIVE',
         },
         {
             id: '2',
@@ -115,6 +121,7 @@ const getDefaultInviteFields = (): InviteFormCustomField[] => {
             isRequired: true,
             key: 'phone_number',
             order: 2,
+            status: 'ACTIVE',
         },
     ];
 };

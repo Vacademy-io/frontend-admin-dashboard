@@ -175,7 +175,7 @@ function transformCustomFields(customFields: CustomField[], instituteId: string)
             type_id: '',
             custom_field: {
                 guestId: '',
-                id: field.id,
+                id: field._id || '', // Use _id from localStorage (custom field ID)
                 fieldKey: toSnakeCase(field.name),
                 fieldName: field.name,
                 fieldType: field.type,
