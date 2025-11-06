@@ -44,6 +44,7 @@ export const reEnrollStudent = async ({ formData }: EnrollStudentRequest): Promi
                 password: formData.stepFiveData?.password || '',
                 gender: formData.stepTwoData?.gender || undefined,
                 date_of_birth: formData.stepTwoData?.date_of_birth || undefined,
+                roles: ['STUDENT'],
             },
             institute_id: INSTITUTE_ID,
             learner_package_session_enroll: {

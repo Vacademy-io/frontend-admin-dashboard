@@ -3,6 +3,9 @@ import {
     SAVE_PAYMENT_OPTION,
     GET_PAYMENT_OPTIONS,
     MAKE_DEFAULT_PAYMENT_OPTION,
+    GET_INVITE_BY_PAYMENT_OPTION_ID_URL,
+    UPDATE_INVITE_PAYMENT_OPTION_URL,
+    DELETE_PAYMENT_OPTION_URL,
 } from '@/constants/urls';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
@@ -15,6 +18,7 @@ import {
     PaymentPlans,
 } from '@/types/payment';
 import { DAYS_IN_MONTH } from '@/routes/settings/-constants/terms';
+import { InviteLinkDataInterface } from '@/schemas/study-library/invite-links-schema';
 
 export interface SavePaymentOptionRequest {
     name: string;
@@ -33,6 +37,27 @@ export interface GetPaymentOptionsRequest {
     source_id: string;
     require_approval?: boolean;
     not_require_approval?: boolean;
+}
+
+export interface EnrollInvite {
+    id: string;
+    package_session_id?: string;
+    status?: string;
+    [key: string]: unknown;
+}
+
+export interface UpdatePaymentOptionRequest {
+    enroll_invite_id: string;
+    update_payment_options: Array<{
+        old_package_session_payment_option_id: string;
+        new_package_session_payment_option: {
+            package_session_id: string;
+            id: string;
+            payment_option: PaymentOptionApi;
+            enroll_invite_id: string;
+            status: string;
+        };
+    }>;
 }
 
 // Get institute ID from token
@@ -277,6 +302,67 @@ export const makeDefaultPaymentOption = async ({
         return response.data;
     } catch (error) {
         console.error('Error making default payment option:', error);
+        throw error;
+    }
+};
+
+// Get invites by payment option ID
+export const getInvitesByPaymentOptionId = async (
+    paymentOptionIds: string[]
+): Promise<InviteLinkDataInterface[]> => {
+    try {
+        const instituteId = getInstituteId();
+
+        const response = await authenticatedAxiosInstance.post(
+            GET_INVITE_BY_PAYMENT_OPTION_ID_URL,
+            paymentOptionIds,
+            {
+                params: { instituteId },
+            }
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error('Error getting invites by payment option ID:', error);
+        throw error;
+    }
+};
+
+// Update invite payment option
+export const updateInvitePaymentOption = async (
+    updateRequests: UpdatePaymentOptionRequest[]
+): Promise<unknown> => {
+    try {
+        const instituteId = getInstituteId();
+
+        const response = await authenticatedAxiosInstance.put(
+            UPDATE_INVITE_PAYMENT_OPTION_URL,
+            updateRequests,
+            {
+                params: { instituteId },
+            }
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error('Error updating invite payment option:', error);
+        throw error;
+    }
+};
+
+// Delete payment option
+export const deletePaymentOption = async (paymentOptionIds: string[]): Promise<unknown> => {
+    try {
+        const instituteId = getInstituteId();
+
+        const response = await authenticatedAxiosInstance.delete(DELETE_PAYMENT_OPTION_URL, {
+            data: paymentOptionIds,
+            params: { instituteId },
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error('Error deleting payment option:', error);
         throw error;
     }
 };

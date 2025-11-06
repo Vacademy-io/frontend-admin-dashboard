@@ -24,6 +24,7 @@ import {
     makeDefaultPaymentOption,
     transformLocalPlanToApiFormatArray,
 } from '@/services/payment-options';
+import { DeletePaymentOptionDialog } from './DeletePaymentOptionDialog';
 import { toast } from 'sonner';
 import { currencyOptions } from '../../-constants/payments';
 import { getInstituteId } from '@/constants/helper';
@@ -64,7 +65,8 @@ const PaymentSettings = () => {
     const [featuresGlobal, setFeaturesGlobal] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [deletingPlanId, setDeletingPlanId] = useState<string | null>(null);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [planToDelete, setPlanToDelete] = useState<PaymentPlan | null>(null);
     const previewDialogRef = useRef<HTMLDivElement>(null);
     const [requireApproval, setRequireApproval] = useState(false);
 
@@ -283,6 +285,7 @@ const PaymentSettings = () => {
 
     useEffect(() => {
         loadPaymentOptions();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleError = (error: unknown, operation: string) => {
@@ -306,16 +309,20 @@ const PaymentSettings = () => {
         }
     };
 
-    const handleDeletePlan = async (planId: string) => {
-        setDeletingPlanId(planId);
-        try {
-            setPaymentPlans((plans) => plans.filter((plan) => plan.id !== planId));
-            toast.success('Payment plan deleted successfully');
-        } catch (error) {
-            handleError(error, 'delete plan');
-        } finally {
-            setDeletingPlanId(null);
+    const handleDeletePlan = (planId: string) => {
+        const planToDelete = paymentPlans.find((plan) => plan.id === planId);
+        if (planToDelete) {
+            setPlanToDelete(planToDelete);
+            setShowDeleteDialog(true);
         }
+    };
+
+    const handleDeleteConfirmed = () => {
+        if (planToDelete?.id) {
+            setPaymentPlans((plans) => plans.filter((plan) => plan.id !== planToDelete.id));
+        }
+        setShowDeleteDialog(false);
+        setPlanToDelete(null);
     };
 
     const handleEditPlan = (plan: PaymentPlan) => {
@@ -590,7 +597,6 @@ const PaymentSettings = () => {
                                 onDelete={handleDeletePlan}
                                 onSetDefault={handleSetDefaultPlan}
                                 onPreview={handlePreviewPlan}
-                                deletingPlanId={deletingPlanId}
                             />
                         )}
                     </div>
@@ -618,7 +624,6 @@ const PaymentSettings = () => {
                                 onDelete={handleDeletePlan}
                                 onSetDefault={handleSetDefaultPlan}
                                 onPreview={handlePreviewPlan}
-                                deletingPlanId={deletingPlanId}
                             />
                         )}
                     </div>
@@ -657,6 +662,17 @@ const PaymentSettings = () => {
                     <div className="mt-4">{renderPlanPreview()}</div>
                 </DialogContent>
             </Dialog>
+
+            <DeletePaymentOptionDialog
+                isOpen={showDeleteDialog}
+                onClose={() => {
+                    setShowDeleteDialog(false);
+                    setPlanToDelete(null);
+                }}
+                paymentOption={planToDelete}
+                allPaymentOptions={paymentPlans}
+                onDeleted={handleDeleteConfirmed}
+            />
         </>
     );
 };
