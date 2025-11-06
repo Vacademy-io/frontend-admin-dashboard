@@ -170,7 +170,6 @@ interface PaymentPlanListProps {
     onDelete?: (planId: string) => void;
     onSetDefault?: (planId: string) => void;
     onPreview?: (plan: PaymentPlan) => void;
-    deletingPlanId?: string | null;
 }
 
 export const PaymentPlanList: React.FC<PaymentPlanListProps> = ({
@@ -179,7 +178,6 @@ export const PaymentPlanList: React.FC<PaymentPlanListProps> = ({
     onDelete,
     onSetDefault,
     onPreview,
-    deletingPlanId,
 }) => {
     return (
         <Card className="w-full">
@@ -259,13 +257,8 @@ export const PaymentPlanList: React.FC<PaymentPlanListProps> = ({
                                                     size="sm"
                                                     onClick={() => onDelete(plan.id)}
                                                     className="text-red-600 hover:text-red-700"
-                                                    disabled={deletingPlanId === plan.id}
                                                 >
-                                                    {deletingPlanId === plan.id ? (
-                                                        <div className="size-4 animate-spin rounded-full border-b-2 border-red-600"></div>
-                                                    ) : (
-                                                        <Trash2 className="size-4" />
-                                                    )}
+                                                    <Trash2 className="size-4" />
                                                 </Button>
                                             )}
                                         </div>

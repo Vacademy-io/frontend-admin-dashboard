@@ -64,6 +64,7 @@ export const useReEnrollStudent = () => {
                     password: stepFiveData?.password || '',
                     gender: stepTwoData?.gender || undefined,
                     date_of_birth: stepTwoData?.date_of_birth || undefined,
+                    roles: ['STUDENT'],
                 },
                 institute_id: INSTITUTE_ID,
                 learner_package_session_enroll: {

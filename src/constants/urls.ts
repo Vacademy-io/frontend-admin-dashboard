@@ -114,6 +114,8 @@ export const INIT_STUDY_LIBRARY = `${BASE_URL}/admin-core-service/v1/study-libra
 export const GET_MODULES_WITH_CHAPTERS = `${BASE_URL}/admin-core-service/v1/study-library/modules-with-chapters`;
 export const ENROLL_INVITE_URL = `${BASE_URL}/admin-core-service/v1/enroll-invite`;
 export const GET_PAYMENTS_URL = `${BASE_URL}/admin-core-service/v1/payment-option/get-payment-options`;
+export const GET_INVITE_BY_PAYMENT_OPTION_ID_URL = `${BASE_URL}/admin-core-service/v1/enroll-invite/get-by-payment-option-ids`;
+export const UPDATE_INVITE_PAYMENT_OPTION_URL = `${BASE_URL}/admin-core-service/v1/enroll-invite/enroll-invite-payment-option`;
 
 export const ADD_LEVEL = `${BASE_URL}/admin-core-service/level/v1/add-level`;
 export const UPDATE_LEVEL = `${BASE_URL}/admin-core-service/level/v1/update-level`;
@@ -325,6 +327,7 @@ export const GET_NOTIFICATION_DEFAULT_TEMPLATE = `${NOTIFICATION_SETTINGS_BASE}/
 export const SAVE_PAYMENT_OPTION = `${BASE_URL}/admin-core-service/v1/payment-option`;
 export const GET_PAYMENT_OPTIONS = `${BASE_URL}/admin-core-service/v1/payment-option/get-payment-options`;
 export const MAKE_DEFAULT_PAYMENT_OPTION = `${BASE_URL}/admin-core-service/v1/payment-option/make-default-payment-option`;
+export const DELETE_PAYMENT_OPTION_URL = SAVE_PAYMENT_OPTION;
 
 export const ANALYTICS_USER_ACTIVITY = `${BASE_URL}/auth-service/v1/analytics/user-activity`;
 export const ANALYTICS_ACTIVE_USERS_REALTIME = `${BASE_URL}/auth-service/v1/analytics/active-users/real-time`;
