@@ -57,11 +57,10 @@ const publicRoutes = [
     '/evaluator-ai',
     '/landing',
     '/pricing',
-    '/auth-transfer', // Allow auth-transfer to process tokens and load settings
 ];
 
 // Helper functions to break down the complex beforeLoad logic
-const handleRootPathRedirect = (location: { pathname: string }) => {
+const handleRootPathRedirect = (location: any) => {
     if (location.pathname === '/') {
         const subdomain =
             typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '';
@@ -70,19 +69,9 @@ const handleRootPathRedirect = (location: { pathname: string }) => {
     }
 };
 
-const handleAuthTransferRoute = (location: { pathname: string }) => {
-    // Let the auth-transfer component handle the full flow including:
-    // - Setting tokens from URL params
-    // - Loading institute settings
-    // - Loading display settings with retry logic
-    // - Determining the correct redirect URL
-    // Don't redirect prematurely here
-    if (location.pathname === '/auth-transfer') {
-        return; // Allow the component to handle the flow
-    }
-};
+// Removed: let /auth-transfer route handle token processing and redirect itself
 
-const handleAuthenticationChecks = (location: { pathname: string }) => {
+const handleAuthenticationChecks = (location: any) => {
     // Check if the route requires authentication
     const isPublicRoute = publicRoutes.some((route) => location.pathname.startsWith(route));
 
@@ -98,10 +87,7 @@ const handleAuthenticationChecks = (location: { pathname: string }) => {
     }
 };
 
-const handleAuthenticatedUserLoginAccess = (location: {
-    pathname: string;
-    search: string | Record<string, unknown>;
-}) => {
+const handleAuthenticatedUserLoginAccess = (location: any) => {
     // If user is authenticated and tries to access login page,
     // check for redirect parameter and handle accordingly (unless showing institute selection)
     if (isAuthenticated() && location.pathname.startsWith('/login')) {
@@ -114,7 +100,7 @@ const handleAuthenticatedUserLoginAccess = (location: {
             return;
         }
 
-        const searchParams = new URLSearchParams(location.search as string);
+        const searchParams = new URLSearchParams(location.search);
         const redirectParam = searchParams.get('redirect');
 
         if (redirectParam === '/auth-transfer') {
@@ -136,21 +122,6 @@ const handleAuthenticatedUserLoginAccess = (location: {
     }
 };
 
-function RootComponent() {
-    // Ensure the global title is maintained across all pages
-    usePageTitle();
-
-    return (
-        <>
-            <Outlet />
-            <Suspense>
-                <TanStackRouterDevtools />
-            </Suspense>
-            <ReactQueryDevtools initialIsOpen={false} />
-        </>
-    );
-}
-
 export const Route = createRootRouteWithContext<{
     queryClient: QueryClient;
 }>()({
@@ -166,8 +137,7 @@ export const Route = createRootRouteWithContext<{
         // Handle root path redirect
         handleRootPathRedirect(location);
 
-        // Handle auth-transfer route
-        handleAuthTransferRoute(location);
+        // Let the /auth-transfer route component handle token processing and redirects itself
 
         // Handle authentication checks
         handleAuthenticationChecks(location);
@@ -176,5 +146,18 @@ export const Route = createRootRouteWithContext<{
         handleAuthenticatedUserLoginAccess(location);
     },
 
-    component: RootComponent,
+    component: () => {
+        // Ensure the global title is maintained across all pages
+        usePageTitle();
+
+        return (
+            <>
+                <Outlet />
+                <Suspense>
+                    <TanStackRouterDevtools />
+                </Suspense>
+                <ReactQueryDevtools initialIsOpen={false} />
+            </>
+        );
+    },
 });
