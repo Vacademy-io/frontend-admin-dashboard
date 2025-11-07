@@ -58,6 +58,22 @@ export const TestReportDialog = ({
         wrongResponse: testReport.question_overall_detail_dto.wrongAttempt,
         skipped: testReport.question_overall_detail_dto.skippedCount,
     };
+    type OptionLike = { option_name?: string };
+    const renderOptions = (options: unknown) => {
+        if (Array.isArray(options) && options.length > 0) {
+            return options.map((option: OptionLike, idx: number) => (
+                <p key={idx}>{parseHtmlToString(option?.option_name ?? '')}</p>
+            ));
+        }
+        if (options && typeof options === 'object') {
+            const option = options as OptionLike;
+            return <p>{parseHtmlToString(option?.option_name ?? '')}</p>;
+        }
+        if (typeof options === 'string') {
+            return <p>{parseHtmlToString(options)}</p>;
+        }
+        return <p>No response</p>;
+    };
     const getExportStudentReportDataPDF = useMutation({
         mutationFn: ({
             assessmentId,
@@ -374,22 +390,8 @@ export const TestReportDialog = ({
                                                     }`}
                                                 >
                                                     <div>
-                                                        {review.student_response_options &&
-                                                        review.student_response_options.length >
-                                                            0 ? (
-                                                            review.student_response_options.map(
-                                                                (option, idx) => {
-                                                                    return (
-                                                                        <p key={idx}>
-                                                                            {parseHtmlToString(
-                                                                                option.option_name
-                                                                            )}
-                                                                        </p>
-                                                                    );
-                                                                }
-                                                            )
-                                                        ) : (
-                                                            <p>No response</p>
+                                                        {renderOptions(
+                                                            review.student_response_options as unknown
                                                         )}
                                                     </div>
                                                 </div>
@@ -427,20 +429,8 @@ export const TestReportDialog = ({
                                                         className={`flex w-[644px] rounded-lg bg-success-50 p-4`}
                                                     >
                                                         <div>
-                                                            {review.correct_options ? (
-                                                                review.correct_options.map(
-                                                                    (option, idx) => {
-                                                                        return (
-                                                                            <p key={idx}>
-                                                                                {parseHtmlToString(
-                                                                                    option.option_name
-                                                                                )}
-                                                                            </p>
-                                                                        );
-                                                                    }
-                                                                )
-                                                            ) : (
-                                                                <p>No response</p>
+                                                            {renderOptions(
+                                                                review.correct_options as unknown
                                                             )}
                                                         </div>
                                                     </div>
