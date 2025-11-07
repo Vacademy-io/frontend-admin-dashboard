@@ -28,8 +28,6 @@ import { useDialogStore } from '@/routes/manage-students/students-list/-hooks/us
 import { useGetStudentDetails } from '@/services/get-student-details';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { StudentTable } from '@/types/student-table-types';
-import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
-import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { getFieldsForLocation, type FieldForLocation } from '@/lib/custom-fields/utils';
 import { getCustomFieldSettingsFromCache } from '@/services/custom-field-settings';
 import type { FieldGroup } from '@/services/custom-field-settings';
@@ -44,6 +42,7 @@ import {
     type TagItem,
 } from '@/services/tag-management';
 import { MonitorPlay } from 'phosphor-react';
+import StudentPlanDetails from './StudentPlanDetails';
 
 export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean }) => {
     const { selectedStudent } = useStudentSidebar();
@@ -244,11 +243,11 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
             <div className="rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 p-3 transition-all duration-200 hover:border-primary-200/50 hover:shadow-md">
                 <div className="mb-2 flex items-center gap-2.5">
                     <div className="rounded-md bg-gradient-to-br from-primary-50 to-primary-100 p-1.5">
-                        <Clock className="text-primary-600 size-4" />
+                        <Clock className="size-4 text-primary-600" />
                     </div>
                     <div className="flex-1">
                         <h4 className="mb-0.5 text-xs font-medium text-neutral-700">
-                            {getTerminology(ContentTerms.Session, SystemTerms.Session)} Expiry
+                            Session Expiry
                         </h4>
                         <div className="flex items-center gap-1.5">
                             <span
@@ -286,6 +285,13 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                     </div>
                 </div>
             </div>
+
+            {/* Plan Details Card */}
+            <StudentPlanDetails
+                userId={
+                    isSubmissionTab ? selectedStudent?.id || '' : selectedStudent?.user_id || ''
+                }
+            />
 
             {/* Compact Notification Section */}
             <div className="rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 p-3 transition-all duration-200 hover:border-primary-200/50 hover:shadow-md">

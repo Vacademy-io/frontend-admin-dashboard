@@ -383,3 +383,6 @@ export const GET_SERVER_TIME = `${BASE_URL}/auth-service/v1/server-time/utc`;
 export const WORKFLOW_SERVICE_BASE = `${BASE_URL}/admin-core-service/v1/workflow`;
 export const GET_ACTIVE_WORKFLOWS_BY_INSTITUTE = `${WORKFLOW_SERVICE_BASE}/institute`;
 export const GET_WORKFLOW_DIAGRAM = `${BASE_URL}/admin-core-service/v1/automations`;
+
+// User Plan URLs
+export const GET_USER_PLANS = `${BASE_URL}/admin-core-service/v1/user-plan/all`;
