@@ -5,7 +5,7 @@ import {
     ReferrerReward,
     RefereeReward,
 } from '@/types/referral';
-import { REFERRAL_API_BASE, REFERRAL_DELETE } from '@/constants/urls';
+import { REFERRAL_API_BASE, REFERRAL_DELETE, REFERRAL_UPDATE } from '@/constants/urls';
 import { getInstituteId } from '@/constants/helper';
 
 // API endpoints
@@ -42,6 +42,7 @@ export interface ReferralOptionRequest {
     referrer_vesting_days: number;
     tag: string | null;
     description: string;
+    setting_json?: string;
 }
 
 export interface ReferralOptionResponse {
@@ -57,6 +58,7 @@ export interface ReferralOptionResponse {
     description: string;
     created_at?: string;
     updated_at?: string;
+    setting_json?: string;
 }
 
 // Helper function to convert reward to new tier-based benefit format
@@ -115,18 +117,12 @@ const convertRewardToBenefit = (reward: ReferrerReward | RefereeReward) => {
             // Use actual delivery mediums from the reward object
             const deliveryMediums: string[] = [];
 
-            console.log('=== DEBUG: Converting bonus_content to API ===');
-            console.log('Full reward object:', JSON.stringify(reward, null, 2));
-            console.log('Reward delivery object:', reward.delivery);
-            console.log('Content delivery object:', reward.content?.content?.delivery);
-
             // Check multiple locations for delivery info - priority order matters
             let effectiveDelivery = null;
 
             // First check reward.delivery (top level)
             if (reward.delivery && (reward.delivery.email || reward.delivery.whatsapp)) {
                 effectiveDelivery = reward.delivery;
-                console.log('Using reward.delivery');
             }
             // Then check content.content.delivery (nested in content)
             else if (
@@ -134,21 +130,14 @@ const convertRewardToBenefit = (reward: ReferrerReward | RefereeReward) => {
                 (reward.content.content.delivery.email || reward.content.content.delivery.whatsapp)
             ) {
                 effectiveDelivery = reward.content.content.delivery;
-                console.log('Using content.content.delivery');
             }
-
-            console.log('Effective delivery object:', effectiveDelivery);
 
             if (effectiveDelivery?.email) {
                 deliveryMediums.push('EMAIL');
-                console.log('Added EMAIL to deliveryMediums');
             }
             if (effectiveDelivery?.whatsapp) {
                 deliveryMediums.push('WHATSAPP');
-                console.log('Added WHATSAPP to deliveryMediums');
             }
-
-            console.log('Final deliveryMediums array:', deliveryMediums);
 
             // Get actual file IDs from content if available
             let fileIds: string[] = [];
@@ -157,15 +146,12 @@ const convertRewardToBenefit = (reward: ReferrerReward | RefereeReward) => {
             if (reward.content?.content?.type === 'link' && reward.content.content.url) {
                 // For external links, use contentUrl
                 contentUrl = reward.content.content.url;
-                console.log('Using external link URL:', contentUrl);
             } else if (reward.content?.content?.fileId) {
                 // Use the actual uploaded file ID for uploads
                 fileIds = [reward.content.content.fileId];
-                console.log('Using uploaded file ID:', fileIds);
             } else if (reward.courseId) {
                 // Fallback to courseId if available
                 fileIds = [reward.courseId];
-                console.log('Using courseId as fileId:', fileIds);
             }
 
             // Get actual template ID from content if available
@@ -189,8 +175,6 @@ const convertRewardToBenefit = (reward: ReferrerReward | RefereeReward) => {
             } else {
                 valueObject.fileIds = fileIds;
             }
-
-            console.log('Final value object for CONTENT:', valueObject);
 
             return {
                 description: reward.content?.content?.title || 'Exclusive bonus content',
@@ -271,7 +255,6 @@ export const convertToApiFormat = (settings: UnifiedReferralSettings): ReferralO
         throw new Error('Missing required fields: label, refereeReward, or referrerRewards');
     }
 
-    console.log('settings', settings.refereeReward, settings.referrerRewards);
     // Convert referrer rewards to new tier-based JSON format
     const referrerTiers = settings.referrerRewards.map((tier: ReferrerTier) => {
         const benefit = convertRewardToBenefit(tier.reward);
@@ -460,9 +443,6 @@ const convertBenefitToReward = (
             };
         case 'CONTENT': {
             const deliveryMediums = benefitValue?.deliveryMediums as string[];
-            console.log('Content delivery mediums:', deliveryMediums);
-            console.log('Full benefit value:', benefitValue);
-            console.log('Full benefit object:', benefit);
 
             // Check for delivery in multiple possible locations
             let delivery = {
@@ -499,14 +479,10 @@ const convertBenefitToReward = (
                 };
             }
 
-            console.log('Generated delivery object:', delivery);
-
             // Extract content data from the benefit value
             const fileIds = benefitValue?.fileIds as string[];
             const contentUrl = benefitValue?.contentUrl as string;
             const templateId = benefitValue?.templateId as string;
-
-            console.log('Content data:', { fileIds, contentUrl, templateId });
 
             // Determine content type and structure based on available data
             let contentOption;
@@ -741,11 +717,11 @@ export const updateReferralOption = async (
     try {
         const apiData = convertToApiFormat(settings);
 
-        const response = await authenticatedAxiosInstance.post<ReferralOptionResponse>(
-            `${REFERRAL_API_BASE}`,
+        const response = await authenticatedAxiosInstance.put<ReferralOptionResponse>(
+            REFERRAL_UPDATE(referralOptionId),
             {
-                ...apiData,
                 id: referralOptionId,
+                ...apiData,
             },
             {
                 headers: {
