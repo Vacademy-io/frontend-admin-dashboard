@@ -345,6 +345,8 @@ export const LIVE_SESSION_ALL_ATTENDANCE = `${BASE_URL}/admin-core-service/live-
 
 // Referral
 export const REFERRAL_API_BASE = `${BASE_URL}/admin-core-service/v1/referral-option`;
+export const REFERRAL_UPDATE = (referralOptionId: string) =>
+    `${BASE_URL}/admin-core-service/v1/referral-option/${referralOptionId}`;
 export const REFERRAL_DELETE = `${BASE_URL}/admin-core-service/v1/referral-option/referral-option`;
 
 export const GET_INSITITUTE_SETTINGS = `${BASE_URL}/admin-core-service/institute/setting/v1/get`;
