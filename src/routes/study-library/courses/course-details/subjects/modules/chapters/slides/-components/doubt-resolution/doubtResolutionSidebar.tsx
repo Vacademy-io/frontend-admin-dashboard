@@ -9,6 +9,8 @@ import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { Doubt as DoubtType } from '../../-types/get-doubts-type';
 import { DoubtList } from './doubtList';
 import { get30DaysAgo, getTomorrow } from '@/utils/dateUtils';
+import { useRouter } from '@tanstack/react-router';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 const TabsTriggerClass =
     'flex-1 rounded-md px-3 py-1.5 text-sm font-medium text-neutral-600 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-primary-50 data-[state=active]:text-primary-600 data-[state=active]:shadow-sm';
@@ -19,6 +21,15 @@ const DoubtResolutionSidebar = () => {
     const observer = useRef<IntersectionObserver | null>(null);
     const [activeTab, setActiveTab] = useState('ALL');
     const sidebarRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
+    const searchParams = router.state.location.search;
+    const { courseId, levelId, sessionId } = searchParams;
+    const { getPackageSessionId } = useInstituteDetailsStore();
+    const packageSessionId = getPackageSessionId({
+        courseId: courseId || '',
+        levelId: levelId || '',
+        sessionId: sessionId || '',
+    });
 
     const [filter, setFilter] = useState<DoubtFilter>({
         name: '',
@@ -37,6 +48,7 @@ const DoubtResolutionSidebar = () => {
         sort_columns: {
             created_at: 'DESC',
         },
+        batch_ids: packageSessionId ? [packageSessionId] : [],
     });
 
     const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
@@ -61,8 +73,9 @@ const DoubtResolutionSidebar = () => {
                     ? activeItem?.document_slide?.type || ''
                     : activeItem?.source_type || '',
             ],
+            batch_ids: packageSessionId ? [packageSessionId] : [],
         }));
-    }, [activeItem]);
+    }, [activeItem, packageSessionId]);
 
     useEffect(() => {
         refetch();

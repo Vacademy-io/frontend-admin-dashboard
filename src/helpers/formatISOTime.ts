@@ -1,5 +1,15 @@
 export function formatISODateTimeReadable(isoString: string): string {
+    // Handle empty or invalid input
+    if (!isoString || isoString.trim() === '') {
+        return '-';
+    }
+
     const date = new Date(isoString);
+
+    // Check if date is invalid
+    if (isNaN(date.getTime())) {
+        return '-';
+    }
 
     const dateOptions: Intl.DateTimeFormatOptions = {
         year: 'numeric',
