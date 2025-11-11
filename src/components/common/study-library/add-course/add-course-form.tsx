@@ -80,7 +80,7 @@ export const AddCourseForm = ({
         initialCourseData ? transformCourseData(initialCourseData) : {}
     );
 
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(!isEdit);
     const [isCreating, setIsCreating] = useState(false);
 
     const handleStep1Submit = (data: Step1Data) => {
@@ -324,33 +324,52 @@ export const AddCourseForm = ({
         setStep(1);
     };
 
+    // For non-edit mode, render the form directly without dialog
+    if (!isEdit) {
+        return (
+            <div className="flex h-full flex-col">
+                <h1 className="bg-primary-50 p-4 font-semibold text-primary-500">
+                    Create {getTerminology(ContentTerms.Course, SystemTerms.Course)} - Step {step}{' '}
+                    of 2
+                </h1>
+                {step === 1 ? (
+                    <AddCourseStep1
+                        onNext={handleStep1Submit}
+                        initialData={formData as Step1Data}
+                        courseSettings={courseSettings}
+                        settingsLoading={settingsLoading}
+                    />
+                ) : (
+                    <AddCourseStep2
+                        onBack={handleBack}
+                        onSubmit={handleStep2Submit}
+                        initialData={formData as Step2Data}
+                        isLoading={isCreating}
+                        disableCreate={isCreating}
+                        isEdit={isEdit}
+                        courseSettings={courseSettings}
+                        settingsLoading={settingsLoading}
+                    />
+                )}
+            </div>
+        );
+    }
+
+    // For edit mode, use the dialog
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger className="flex w-full ">
-                {!isEdit ? (
-                    <MyButton
-                        type="button"
-                        buttonType="secondary"
-                        layoutVariant="default"
-                        scale="large"
-                        id="add-course-button"
-                        className="w-full  font-light"
-                    >
-                        Create {getTerminology(ContentTerms.Course, SystemTerms.Course)} Manually
-                    </MyButton>
-                ) : (
-                    <MyButton
-                        type="button"
-                        buttonType="secondary"
-                        layoutVariant="default"
-                        scale="small"
-                        className="my-6 bg-white py-5 !font-semibold hover:bg-white"
-                    >
-                        Edit {getTerminology(ContentTerms.Course, SystemTerms.Course)}
-                    </MyButton>
-                )}
+                <MyButton
+                    type="button"
+                    buttonType="secondary"
+                    layoutVariant="default"
+                    scale="small"
+                    className="my-6 bg-white py-5 !font-semibold hover:bg-white"
+                >
+                    Edit {getTerminology(ContentTerms.Course, SystemTerms.Course)}
+                </MyButton>
             </DialogTrigger>
-            <DialogContent className="z-[10000] flex !h-[90%] !max-h-[90%] w-[90%] flex-col overflow-hidden p-0">
+            <DialogContent className="z-[10000] flex !h-[97%] !max-h-[97%] w-[97%] flex-col overflow-hidden p-0">
                 <div className="flex h-full flex-col">
                     <h1 className="bg-primary-50 p-4 font-semibold text-primary-500">
                         Create {getTerminology(ContentTerms.Course, SystemTerms.Course)} - Step{' '}
