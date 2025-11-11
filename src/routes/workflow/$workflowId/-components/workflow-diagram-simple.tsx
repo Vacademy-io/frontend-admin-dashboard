@@ -5,9 +5,17 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Minus, Plus, ArrowsOut } from 'phosphor-react';
+import { useQuery } from '@tanstack/react-query';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import { BASE_URL } from '@/constants/urls';
+import { Route } from '../index';
+import { formatISODateTimeReadable } from '@/helpers/formatISOTime';
 
 interface WorkflowDiagramSimpleProps {
     diagram: AutomationDiagram;
+    instituteId?: string;
 }
 
 const getNodeTypeColor = (type: NodeType): string => {
@@ -52,13 +60,135 @@ const getNodeIcon = (type: NodeType): string => {
     return icons[type] || icons.UNKNOWN;
 };
 
-export function WorkflowDiagramSimple({ diagram }: WorkflowDiagramSimpleProps) {
+export function WorkflowDiagramSimple({
+    diagram,
+    instituteId: passedInstituteId,
+}: WorkflowDiagramSimpleProps) {
     const [selectedNode, setSelectedNode] = useState<WorkflowNode | null>(null);
     const [zoom, setZoom] = useState(1);
     const [pan, setPan] = useState({ x: 0, y: 0 });
     const [isPanning, setIsPanning] = useState(false);
     const [startPan, setStartPan] = useState({ x: 0, y: 0 });
     const containerRef = useRef<HTMLDivElement>(null);
+    const { workflowId } = Route.useParams();
+
+    // Execution filters state
+    const toInputValue = (d: Date) => {
+        // YYYY-MM-DDTHH:MM
+        const pad = (n: number) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(
+            d.getMinutes()
+        )}`;
+    };
+    // Convert a datetime-local string (no timezone) to ISO UTC string preserving displayed fields as GMT
+    const dateTimeLocalToIsoZ = (val: string): string => {
+        // Accept forms like YYYY-MM-DDTHH:MM or with seconds/millis, append Z if missing
+        if (!val) return '';
+        // If already ends with Z, trust it
+        if (/Z$/i.test(val)) return val;
+        // If has seconds
+        if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?$/.test(val)) {
+            return `${val}Z`;
+        }
+        // Default add :00.000Z seconds and millis
+        if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(val)) {
+            return `${val}:00.000Z`;
+        }
+        // Fallback to Date parse then toISOString (last resort)
+        try {
+            return new Date(val).toISOString();
+        } catch {
+            return '';
+        }
+    };
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const initialStartInput = toInputValue(weekAgo);
+    const initialEndInput = toInputValue(now);
+    const [startInput, setStartInput] = useState<string>(initialStartInput);
+    const [endInput, setEndInput] = useState<string>(initialEndInput);
+    const [appliedStart, setAppliedStart] = useState<string>(
+        dateTimeLocalToIsoZ(initialStartInput)
+    );
+    const [appliedEnd, setAppliedEnd] = useState<string>(dateTimeLocalToIsoZ(initialEndInput));
+    const [pageNo, setPageNo] = useState<number>(0);
+    const [pageSize] = useState<number>(10);
+
+    // Get current institute id directly from token/local selection without extra queries
+    // Lazy import to avoid circulars
+    const getCurrentInstituteId = (() => {
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const mod = require('@/lib/auth/instituteUtils');
+            return mod.getCurrentInstituteId as () => string | undefined;
+        } catch {
+            return () => undefined;
+        }
+    })();
+    const instituteId = passedInstituteId || getCurrentInstituteId() || '';
+
+    type WorkflowExecution = {
+        id: string;
+        idempotency_key: string;
+        status: string;
+        error_message: string | null;
+        started_at: string | null;
+        completed_at: string | null;
+        created_at: string;
+        updated_at: string;
+        workflow_id: string;
+        workflow_name: string;
+        workflow_schedule_id?: string;
+    };
+
+    type WorkflowExecutionListResponse = {
+        content: WorkflowExecution[];
+        page_number: number;
+        page_size: number;
+        total_elements: number;
+        total_pages: number;
+        last: boolean;
+        first: boolean;
+    };
+
+    const fetchWorkflowExecutions = async (): Promise<WorkflowExecutionListResponse> => {
+        const url = `${BASE_URL}/admin-core-service/v1/workflow-execution/list?pageNo=${pageNo}&pageSize=${pageSize}`;
+        const body = {
+            institute_id: instituteId,
+            workflow_ids: [workflowId],
+            sort_columns: { startedAt: 'desc' },
+            start_date: appliedStart,
+            end_date: appliedEnd,
+        } as const;
+        const response = await authenticatedAxiosInstance<WorkflowExecutionListResponse>({
+            method: 'POST',
+            url,
+            data: body,
+            headers: { 'Content-Type': 'application/json', accept: '*/*' },
+        });
+        return response.data;
+    };
+
+    const {
+        data: executions,
+        isLoading: isExecLoading,
+        isError: isExecError,
+        error: execError,
+        refetch: refetchExecutions,
+    } = useQuery<WorkflowExecutionListResponse, Error>({
+        queryKey: [
+            'WORKFLOW_EXECUTIONS',
+            instituteId,
+            workflowId,
+            appliedStart,
+            appliedEnd,
+            pageNo,
+            pageSize,
+        ],
+        queryFn: fetchWorkflowExecutions,
+        enabled: Boolean(instituteId && workflowId && appliedStart && appliedEnd),
+        staleTime: 60_000,
+    });
 
     // Debug: Log edge information
     useEffect(() => {
@@ -66,7 +196,10 @@ export function WorkflowDiagramSimple({ diagram }: WorkflowDiagramSimpleProps) {
         console.log(`Total Nodes: ${diagram.nodes.length}`);
         console.log(`Total Edges: ${diagram.edges.length}`);
         console.log('Edges:', diagram.edges);
-        console.log('Nodes:', diagram.nodes.map((n) => ({ id: n.id, title: n.title })));
+        console.log(
+            'Nodes:',
+            diagram.nodes.map((n) => ({ id: n.id, title: n.title }))
+        );
     }, [diagram]);
 
     const handleMouseDown = (e: React.MouseEvent) => {
@@ -132,7 +265,7 @@ export function WorkflowDiagramSimple({ diagram }: WorkflowDiagramSimpleProps) {
     const nodeWidth = 280;
     const nodeHeight = 150;
     const horizontalGap = 200;
-    const verticalGap = 50;
+    // const verticalGap = 50; // reserved for future vertical layout
 
     return (
         <div className="space-y-4">
@@ -183,12 +316,7 @@ export function WorkflowDiagramSimple({ diagram }: WorkflowDiagramSimpleProps) {
                 >
                     {/* Background grid pattern */}
                     <defs>
-                        <pattern
-                            id="grid"
-                            width="20"
-                            height="20"
-                            patternUnits="userSpaceOnUse"
-                        >
+                        <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
                             <circle cx="1" cy="1" r="1" fill="#e5e7eb" />
                         </pattern>
                     </defs>
@@ -196,8 +324,12 @@ export function WorkflowDiagramSimple({ diagram }: WorkflowDiagramSimpleProps) {
 
                     {/* Draw connections */}
                     {diagram.edges.map((edge, edgeIndex) => {
-                        const sourceIndex = diagram.nodes.findIndex((n) => n.id === edge.sourceNodeId);
-                        const targetIndex = diagram.nodes.findIndex((n) => n.id === edge.targetNodeId);
+                        const sourceIndex = diagram.nodes.findIndex(
+                            (n) => n.id === edge.sourceNodeId
+                        );
+                        const targetIndex = diagram.nodes.findIndex(
+                            (n) => n.id === edge.targetNodeId
+                        );
 
                         if (sourceIndex === -1 || targetIndex === -1) {
                             console.warn('Edge with missing node:', edge);
@@ -304,10 +436,7 @@ export function WorkflowDiagramSimple({ diagram }: WorkflowDiagramSimpleProps) {
                                         <h3 className="text-sm font-semibold text-neutral-900">
                                             {node.title}
                                         </h3>
-                                        <Badge
-                                            variant="outline"
-                                            className="mt-1 text-xs"
-                                        >
+                                        <Badge variant="outline" className="mt-1 text-xs">
                                             {node.type}
                                         </Badge>
                                         {node.description && (
@@ -331,12 +460,174 @@ export function WorkflowDiagramSimple({ diagram }: WorkflowDiagramSimpleProps) {
                 </p>
             </div>
 
+            {/* Executions Section */}
+            <div className="space-y-3 rounded-lg border border-neutral-200 bg-white p-4">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="text-lg font-semibold text-neutral-800">Executions</h3>
+                        <p className="text-sm text-neutral-600">
+                            {executions?.total_elements ?? 0} execution
+                            {(executions?.total_elements ?? 0) !== 1 ? 's' : ''}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Filters */}
+                <div className="flex flex-wrap items-end gap-3">
+                    <div className="flex min-w-[240px] flex-col gap-1">
+                        <Label htmlFor="startDateTime">Start date & time</Label>
+                        <Input
+                            id="startDateTime"
+                            type="datetime-local"
+                            value={startInput}
+                            onChange={(e) => setStartInput(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex min-w-[240px] flex-col gap-1">
+                        <Label htmlFor="endDateTime">End date & time</Label>
+                        <Input
+                            id="endDateTime"
+                            type="datetime-local"
+                            value={endInput}
+                            onChange={(e) => setEndInput(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="default"
+                            onClick={() => {
+                                // Convert inputs to ISO Z (GMT) preserving entered fields
+                                const startIso = dateTimeLocalToIsoZ(startInput);
+                                const endIso = dateTimeLocalToIsoZ(endInput);
+                                setAppliedStart(startIso);
+                                setAppliedEnd(endIso);
+                                setPageNo(0);
+                                void refetchExecutions();
+                            }}
+                        >
+                            Search
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                const s = toInputValue(weekAgo);
+                                const e = toInputValue(now);
+                                setStartInput(s);
+                                setEndInput(e);
+                                setAppliedStart(dateTimeLocalToIsoZ(s));
+                                setAppliedEnd(dateTimeLocalToIsoZ(e));
+                                setPageNo(0);
+                                void refetchExecutions();
+                            }}
+                        >
+                            Reset
+                        </Button>
+                    </div>
+                </div>
+                <p className="text-xs text-neutral-500">
+                    Times are sent as GMT/UTC in the request.
+                </p>
+
+                {/* Results */}
+                <div className="rounded-md border border-neutral-200">
+                    <div className="grid grid-cols-12 gap-2 border-b border-neutral-200 bg-neutral-50 p-2 text-xs font-medium text-neutral-600">
+                        <div className="col-span-3">Started</div>
+                        <div className="col-span-3">Completed</div>
+                        <div className="col-span-2">Status</div>
+                        <div className="col-span-4">Idempotency Key</div>
+                    </div>
+                    {isExecLoading && (
+                        <div className="p-4 text-sm text-neutral-500">Loading executions…</div>
+                    )}
+                    {isExecError && (
+                        <div className="p-4 text-sm text-red-600">
+                            {execError instanceof Error
+                                ? execError.message
+                                : 'Failed to load executions'}
+                        </div>
+                    )}
+                    {!isExecLoading && !isExecError && (executions?.content?.length ?? 0) === 0 && (
+                        <div className="p-4 text-sm text-neutral-500">
+                            No executions found for the selected range.
+                        </div>
+                    )}
+                    {!isExecLoading && !isExecError && (executions?.content?.length ?? 0) > 0 && (
+                        <div className="divide-y divide-neutral-200">
+                            {executions!.content.map((ex: WorkflowExecution) => (
+                                <div key={ex.id} className="grid grid-cols-12 gap-2 p-3 text-sm">
+                                    <div className="col-span-3 text-neutral-800">
+                                        {ex.started_at
+                                            ? formatISODateTimeReadable(ex.started_at)
+                                            : '—'}
+                                    </div>
+                                    <div className="col-span-3 text-neutral-800">
+                                        {ex.completed_at
+                                            ? formatISODateTimeReadable(ex.completed_at)
+                                            : '—'}
+                                    </div>
+                                    <div className="col-span-2">
+                                        <Badge
+                                            variant="outline"
+                                            className={cn(
+                                                'text-xs',
+                                                ex.status === 'COMPLETED'
+                                                    ? 'border-green-500 bg-green-50 text-green-700'
+                                                    : ex.status === 'FAILED'
+                                                      ? 'border-red-500 bg-red-50 text-red-700'
+                                                      : 'border-neutral-400 bg-neutral-50 text-neutral-700'
+                                            )}
+                                        >
+                                            {ex.status}
+                                        </Badge>
+                                    </div>
+                                    <div className="col-span-4 break-words text-neutral-700">
+                                        {ex.idempotency_key}
+                                        {ex.error_message && (
+                                            <div className="mt-1 text-xs text-red-600">
+                                                {ex.error_message}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Pagination */}
+                {executions && executions.total_pages > 1 && (
+                    <div className="flex items-center justify-between pt-2">
+                        <span className="text-xs text-neutral-500">
+                            Page {executions.page_number + 1} of {executions.total_pages}
+                        </span>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={executions.first || pageNo === 0}
+                                onClick={() => setPageNo((p) => Math.max(0, p - 1))}
+                            >
+                                Previous
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={executions.last}
+                                onClick={() => setPageNo((p) => p + 1)}
+                            >
+                                Next
+                            </Button>
+                        </div>
+                    </div>
+                )}
+            </div>
+
             {/* Debug Info - Remove this after testing */}
             {process.env.NODE_ENV === 'development' && (
                 <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
-                    <p className="text-xs font-mono text-blue-900">
-                        <strong>Debug:</strong> Rendering {diagram.edges.length} edges. Open
-                        console to see edge details.
+                    <p className="font-mono text-xs text-blue-900">
+                        <strong>Debug:</strong> Rendering {diagram.edges.length} edges. Open console
+                        to see edge details.
                     </p>
                 </div>
             )}
