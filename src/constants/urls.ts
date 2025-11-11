@@ -345,6 +345,8 @@ export const LIVE_SESSION_ALL_ATTENDANCE = `${BASE_URL}/admin-core-service/live-
 
 // Referral
 export const REFERRAL_API_BASE = `${BASE_URL}/admin-core-service/v1/referral-option`;
+export const REFERRAL_UPDATE = (referralOptionId: string) =>
+    `${BASE_URL}/admin-core-service/v1/referral-option/${referralOptionId}`;
 export const REFERRAL_DELETE = `${BASE_URL}/admin-core-service/v1/referral-option/referral-option`;
 
 export const GET_INSITITUTE_SETTINGS = `${BASE_URL}/admin-core-service/institute/setting/v1/get`;
@@ -385,3 +387,6 @@ export const GET_ACTIVE_WORKFLOWS_BY_INSTITUTE = `${WORKFLOW_SERVICE_BASE}/insti
 export const GET_WORKFLOW_DIAGRAM = `${BASE_URL}/admin-core-service/v1/automations`;
 // Workflows with schedules (paginated list)
 export const LIST_WORKFLOWS_WITH_SCHEDULES = `${WORKFLOW_SERVICE_BASE}/institute/workflows-with-schedules/list`;
+
+// User Plan URLs
+export const GET_USER_PLANS = `${BASE_URL}/admin-core-service/v1/user-plan/all`;

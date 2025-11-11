@@ -8,12 +8,22 @@ import { BatchCell } from '../-components/doubt-table/batch-cell';
 import { TypeCell } from '../-components/doubt-table/type-cell';
 import { AssigneeCell } from '../-components/doubt-table/assignee-cell';
 import { ActionsCell } from '../-components/doubt-table/actions-cell';
+import { NavigateCell } from '../-components/doubt-table/navigate-cell';
 
 export const useDoubtTableColumns = () => {
     const { refetch } = useDoubtTable();
     const { userDetailsRecord } = useDoubtTable();
 
     const columns: ColumnDef<Doubt>[] = [
+        {
+            accessorKey: 'navigate',
+            header: '',
+            cell: ({ row }) => {
+                const doubt = row.original;
+                return <NavigateCell doubt={doubt} />;
+            },
+            size: 50,
+        },
         {
             accessorKey: 'doubt',
             header: 'Doubt',
@@ -61,7 +71,11 @@ export const useDoubtTableColumns = () => {
             accessorKey: 'resolved',
             header: 'Resolved',
             cell: ({ row }) => (
-                <div>{formatISODateTimeReadable(row.original.resolved_time || '')}</div>
+                <div>
+                    {row.original.resolved_time
+                        ? formatISODateTimeReadable(row.original.resolved_time)
+                        : '-'}
+                </div>
             ),
         },
         {

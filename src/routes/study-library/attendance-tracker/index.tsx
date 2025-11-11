@@ -214,7 +214,7 @@ const StudentDetailsSidebar = () => {
                                 <div className="relative flex size-16 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-neutral-100 to-neutral-200 transition-transform duration-300 group-hover:scale-105">
                                     {/* Animated ring */}
                                     <div className="absolute inset-0 rounded-full ring-2 ring-primary-500/20 ring-offset-2 ring-offset-white transition-all duration-300 group-hover:ring-primary-500/40"></div>
-                                    <div className="text-primary-600 flex size-full items-center justify-center bg-neutral-100 text-2xl font-bold">
+                                    <div className="flex size-full items-center justify-center bg-neutral-100 text-2xl font-bold text-primary-600">
                                         {selectedStudent.name
                                             .split(' ')
                                             .map((n) => n[0])
@@ -266,14 +266,14 @@ const StudentDetailsSidebar = () => {
                             <div className="rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 p-3 transition-all duration-200 hover:border-primary-200/50 hover:shadow-md">
                                 <div className="mb-2 flex items-center gap-2.5">
                                     <div className="rounded-md bg-gradient-to-br from-primary-50 to-primary-100 p-1.5">
-                                        <Clock className="text-primary-600 size-4" />
+                                        <Clock className="size-4 text-primary-600" />
                                     </div>
                                     <div className="flex-1">
                                         <h4 className="mb-0.5 text-xs font-medium text-neutral-700">
                                             Session Expiry
                                         </h4>
                                         <div className="flex items-center gap-1.5">
-                                            <span className="text-primary-600 text-base font-bold">
+                                            <span className="text-base font-bold text-primary-600">
                                                 {daysUntilExpiry}
                                             </span>
                                             <span className="text-xs text-neutral-500">days</span>
@@ -346,7 +346,7 @@ const StudentDetailsSidebar = () => {
                             <div className="rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 p-3 transition-all duration-200 hover:border-primary-200/50 hover:shadow-md">
                                 <div className="mb-2 flex items-center gap-2.5">
                                     <div className="rounded-md bg-gradient-to-br from-primary-50 to-primary-100 p-1.5">
-                                        <GraduationCap className="text-primary-600 size-4" />
+                                        <GraduationCap className="size-4 text-primary-600" />
                                     </div>
                                     <h4 className="text-xs font-medium text-neutral-700">
                                         General Details
@@ -1241,7 +1241,7 @@ function RouteComponent() {
                                                             criteria
                                                         </p>
                                                         <button
-                                                            className="text-primary-600 mt-4 rounded-md bg-primary-50 px-4 py-2 text-sm font-medium hover:bg-primary-100"
+                                                            className="mt-4 rounded-md bg-primary-50 px-4 py-2 text-sm font-medium text-primary-600 hover:bg-primary-100"
                                                             onClick={clearFilters}
                                                         >
                                                             Clear all filters
@@ -1439,7 +1439,7 @@ function BatchDropdown({ label, value, options, onSelect }: BatchDropdownProps) 
                                 key={opt.value || 'all'}
                                 onClick={() => onSelect(opt.value)}
                                 className={`w-full rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-left text-xs hover:border-neutral-300 hover:bg-neutral-50 ${
-                                    value === opt.label ? 'text-primary-600 bg-primary-50' : ''
+                                    value === opt.label ? 'bg-primary-50 text-primary-600' : ''
                                 }`}
                             >
                                 {opt.label}
