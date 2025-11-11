@@ -385,6 +385,8 @@ export const GET_SERVER_TIME = `${BASE_URL}/auth-service/v1/server-time/utc`;
 export const WORKFLOW_SERVICE_BASE = `${BASE_URL}/admin-core-service/v1/workflow`;
 export const GET_ACTIVE_WORKFLOWS_BY_INSTITUTE = `${WORKFLOW_SERVICE_BASE}/institute`;
 export const GET_WORKFLOW_DIAGRAM = `${BASE_URL}/admin-core-service/v1/automations`;
+// Workflows with schedules (paginated list)
+export const LIST_WORKFLOWS_WITH_SCHEDULES = `${WORKFLOW_SERVICE_BASE}/institute/workflows-with-schedules/list`;
 
 // User Plan URLs
 export const GET_USER_PLANS = `${BASE_URL}/admin-core-service/v1/user-plan/all`;

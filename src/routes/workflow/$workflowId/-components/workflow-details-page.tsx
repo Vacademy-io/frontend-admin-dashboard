@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { getWorkflowDiagramQuery, getActiveWorkflowsQuery } from '@/services/workflow-service';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
@@ -16,7 +16,6 @@ import { formatDistanceToNow } from 'date-fns';
 interface WorkflowDetailsPageProps {
     workflowId: string;
 }
-
 export function WorkflowDetailsPage({ workflowId }: WorkflowDetailsPageProps) {
     const navigate = useNavigate();
     const { setNavHeading } = useNavHeadingStore();
@@ -73,7 +72,9 @@ export function WorkflowDetailsPage({ workflowId }: WorkflowDetailsPageProps) {
         return (
             <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
                 <div className="text-center">
-                    <p className="text-lg font-medium text-red-600">Failed to load workflow diagram</p>
+                    <p className="text-lg font-medium text-red-600">
+                        Failed to load workflow diagram
+                    </p>
                     <p className="mt-2 text-sm text-neutral-500">
                         {error instanceof Error ? error.message : 'An error occurred'}
                     </p>
@@ -89,7 +90,7 @@ export function WorkflowDetailsPage({ workflowId }: WorkflowDetailsPageProps) {
                 <div className="text-center">
                     <p className="text-lg font-medium text-neutral-600">Workflow not found</p>
                     <p className="mt-2 text-sm text-neutral-500">
-                        The workflow you're looking for doesn't exist or has been removed.
+                        The workflow you&apos;re looking for doesn&apos;t exist or has been removed.
                     </p>
                 </div>
                 <Button onClick={() => navigate({ to: '/workflow/list' })}>
@@ -119,7 +120,7 @@ export function WorkflowDetailsPage({ workflowId }: WorkflowDetailsPageProps) {
                         <div className="mt-4 flex flex-wrap items-center gap-6">
                             <div className="flex items-center gap-2">
                                 <span className="text-sm text-neutral-500">Type:</span>
-                                <Badge variant="outline" className="font-medium text-primary-700">
+                                <Badge variant="outline" className="font-medium text-neutral-700">
                                     {formatWorkflowType(workflow.workflow_type)}
                                 </Badge>
                             </div>
@@ -137,8 +138,7 @@ export function WorkflowDetailsPage({ workflowId }: WorkflowDetailsPageProps) {
             </div>
 
             {/* Workflow Diagram */}
-            <WorkflowDiagramSimple diagram={diagram} />
+            <WorkflowDiagramSimple diagram={diagram} instituteId={instituteDetails?.id} />
         </div>
     );
 }
-

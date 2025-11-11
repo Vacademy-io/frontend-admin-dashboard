@@ -36,6 +36,7 @@ import { Route as StudyLibraryDoubtManagementIndexRouteImport } from "./routes/s
 import { Route as StudyLibraryCoursesIndexRouteImport } from "./routes/study-library/courses/index"
 import { Route as StudyLibraryAttendanceTrackerIndexRouteImport } from "./routes/study-library/attendance-tracker/index"
 import { Route as StudyLibraryAiCourseBuilderIndexRouteImport } from "./routes/study-library/ai-course-builder/index"
+import { Route as StudyLibraryAiCopilotIndexRouteImport } from "./routes/study-library/ai-copilot/index"
 import { Route as SignupOnboardingIndexRouteImport } from "./routes/signup/onboarding/index"
 import { Route as ManageStudentsStudentsListIndexRouteImport } from "./routes/manage-students/students-list/index"
 import { Route as ManageStudentsInviteIndexRouteImport } from "./routes/manage-students/invite/index"
@@ -253,6 +254,12 @@ const StudyLibraryAiCourseBuilderIndexRoute =
   StudyLibraryAiCourseBuilderIndexRouteImport.update({
     id: "/study-library/ai-course-builder/",
     path: "/study-library/ai-course-builder/",
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const StudyLibraryAiCopilotIndexRoute =
+  StudyLibraryAiCopilotIndexRouteImport.update({
+    id: "/study-library/ai-copilot/",
+    path: "/study-library/ai-copilot/",
     getParentRoute: () => rootRouteImport,
   } as any)
 const SignupOnboardingIndexRoute = SignupOnboardingIndexRouteImport.update({
@@ -654,6 +661,7 @@ export interface FileRoutesByFullPath {
   "/manage-students/invite": typeof ManageStudentsInviteIndexRoute
   "/manage-students/students-list": typeof ManageStudentsStudentsListIndexRoute
   "/signup/onboarding": typeof SignupOnboardingIndexRoute
+  "/study-library/ai-copilot": typeof StudyLibraryAiCopilotIndexRoute
   "/study-library/ai-course-builder": typeof StudyLibraryAiCourseBuilderIndexRoute
   "/study-library/attendance-tracker": typeof StudyLibraryAttendanceTrackerIndexRoute
   "/study-library/courses": typeof StudyLibraryCoursesIndexRoute
@@ -742,6 +750,7 @@ export interface FileRoutesByTo {
   "/manage-students/invite": typeof ManageStudentsInviteIndexRoute
   "/manage-students/students-list": typeof ManageStudentsStudentsListIndexRoute
   "/signup/onboarding": typeof SignupOnboardingIndexRoute
+  "/study-library/ai-copilot": typeof StudyLibraryAiCopilotIndexRoute
   "/study-library/ai-course-builder": typeof StudyLibraryAiCourseBuilderIndexRoute
   "/study-library/attendance-tracker": typeof StudyLibraryAttendanceTrackerIndexRoute
   "/study-library/courses": typeof StudyLibraryCoursesIndexRoute
@@ -832,6 +841,7 @@ export interface FileRoutesById {
   "/manage-students/invite/": typeof ManageStudentsInviteIndexRoute
   "/manage-students/students-list/": typeof ManageStudentsStudentsListIndexRoute
   "/signup/onboarding/": typeof SignupOnboardingIndexRoute
+  "/study-library/ai-copilot/": typeof StudyLibraryAiCopilotIndexRoute
   "/study-library/ai-course-builder/": typeof StudyLibraryAiCourseBuilderIndexRoute
   "/study-library/attendance-tracker/": typeof StudyLibraryAttendanceTrackerIndexRoute
   "/study-library/courses/": typeof StudyLibraryCoursesIndexRoute
@@ -923,6 +933,7 @@ export interface FileRouteTypes {
     | "/manage-students/invite"
     | "/manage-students/students-list"
     | "/signup/onboarding"
+    | "/study-library/ai-copilot"
     | "/study-library/ai-course-builder"
     | "/study-library/attendance-tracker"
     | "/study-library/courses"
@@ -1011,6 +1022,7 @@ export interface FileRouteTypes {
     | "/manage-students/invite"
     | "/manage-students/students-list"
     | "/signup/onboarding"
+    | "/study-library/ai-copilot"
     | "/study-library/ai-course-builder"
     | "/study-library/attendance-tracker"
     | "/study-library/courses"
@@ -1100,6 +1112,7 @@ export interface FileRouteTypes {
     | "/manage-students/invite/"
     | "/manage-students/students-list/"
     | "/signup/onboarding/"
+    | "/study-library/ai-copilot/"
     | "/study-library/ai-course-builder/"
     | "/study-library/attendance-tracker/"
     | "/study-library/courses/"
@@ -1189,6 +1202,7 @@ export interface RootRouteChildren {
   ManageStudentsInviteIndexRoute: typeof ManageStudentsInviteIndexRoute
   ManageStudentsStudentsListIndexRoute: typeof ManageStudentsStudentsListIndexRoute
   SignupOnboardingIndexRoute: typeof SignupOnboardingIndexRoute
+  StudyLibraryAiCopilotIndexRoute: typeof StudyLibraryAiCopilotIndexRoute
   StudyLibraryAiCourseBuilderIndexRoute: typeof StudyLibraryAiCourseBuilderIndexRoute
   StudyLibraryAttendanceTrackerIndexRoute: typeof StudyLibraryAttendanceTrackerIndexRoute
   StudyLibraryCoursesIndexRoute: typeof StudyLibraryCoursesIndexRoute
@@ -1435,6 +1449,13 @@ declare module "@tanstack/react-router" {
       path: "/study-library/ai-course-builder"
       fullPath: "/study-library/ai-course-builder"
       preLoaderRoute: typeof StudyLibraryAiCourseBuilderIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/study-library/ai-copilot/": {
+      id: "/study-library/ai-copilot/"
+      path: "/study-library/ai-copilot"
+      fullPath: "/study-library/ai-copilot"
+      preLoaderRoute: typeof StudyLibraryAiCopilotIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/signup/onboarding/": {
@@ -1907,6 +1928,7 @@ const rootRouteChildren: RootRouteChildren = {
   ManageStudentsInviteIndexRoute: ManageStudentsInviteIndexRoute,
   ManageStudentsStudentsListIndexRoute: ManageStudentsStudentsListIndexRoute,
   SignupOnboardingIndexRoute: SignupOnboardingIndexRoute,
+  StudyLibraryAiCopilotIndexRoute: StudyLibraryAiCopilotIndexRoute,
   StudyLibraryAiCourseBuilderIndexRoute: StudyLibraryAiCourseBuilderIndexRoute,
   StudyLibraryAttendanceTrackerIndexRoute:
     StudyLibraryAttendanceTrackerIndexRoute,

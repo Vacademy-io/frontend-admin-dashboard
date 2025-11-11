@@ -452,7 +452,7 @@ export const AddCourseStep1 = ({
                                                     {filteredTags.map((tag, index) => (
                                                         <span
                                                             key={index}
-                                                            className="hover:text-primary-600 cursor-pointer select-none rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700 transition-colors hover:bg-primary-100"
+                                                            className="cursor-pointer select-none rounded-full bg-neutral-100 px-2 py-1 text-xs text-neutral-700 transition-colors hover:bg-primary-100 hover:text-primary-600"
                                                             onClick={(e) => addTag(e, tag)}
                                                         >
                                                             {tag}

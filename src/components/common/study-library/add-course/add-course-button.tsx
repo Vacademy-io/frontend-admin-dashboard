@@ -1,7 +1,7 @@
 import { MyButton } from '@/components/design-system/button';
 import { MyDialog } from '@/components/design-system/dialog';
 import { useState } from 'react';
-import CourseTypeButtons from './course-type-buttons';
+import { AddCourseForm } from './add-course-form';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '../../layout-container/sidebar/utils';
 
@@ -25,7 +25,7 @@ export const AddCourseButton = () => {
             onOpenChange={handleOpenChange}
             isTour
         >
-            <CourseTypeButtons />
+            <AddCourseForm isEdit={false} />
         </MyDialog>
     );
 };
