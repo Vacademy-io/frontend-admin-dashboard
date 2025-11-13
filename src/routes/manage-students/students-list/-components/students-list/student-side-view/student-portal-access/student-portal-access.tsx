@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Key, Copy, Check, Shield, MonitorPlay, Mail } from '@phosphor-icons/react';
+import { Key, Copy, Check, Shield, MonitorPlay, Envelope } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { MyButton } from '@/components/design-system/button';
 import { useStudentSidebar } from '../../../../-context/selected-student-sidebar-context';
@@ -86,7 +86,7 @@ export const StudentPortalAccess = ({ isSubmissionTab }: { isSubmissionTab?: boo
                             <div className="rounded-md bg-gradient-to-br from-primary-50 to-primary-100 p-1 transition-transform duration-200 group-hover:scale-105">
                                 <Key className="size-3.5 text-primary-600" />
                             </div>
-                            <h3 className="text-xs font-semibold text-neutral-700 transition-colors duration-200 group-hover:text-primary-700">
+                            <h3 className="group-hover:text-primary-700 text-xs font-semibold text-neutral-700 transition-colors duration-200">
                                 Account Credentials
                             </h3>
                         </div>
@@ -120,9 +120,13 @@ export const StudentPortalAccess = ({ isSubmissionTab }: { isSubmissionTab?: boo
                                     {selectedStudent?.username && (
                                         <button
                                             type="button"
-                                            onClick={() =>
-                                                handleCopy(selectedStudent.username, 'Username')
-                                            }
+                                            onClick={() => {
+                                                selectedStudent.username &&
+                                                    handleCopy(
+                                                        selectedStudent.username,
+                                                        'Username'
+                                                    );
+                                            }}
                                             className="ml-2 cursor-pointer rounded-md p-1 hover:bg-neutral-200"
                                             style={{ pointerEvents: 'auto' }}
                                         >
@@ -201,7 +205,7 @@ export const StudentPortalAccess = ({ isSubmissionTab }: { isSubmissionTab?: boo
                     <div className="rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-green-50/30 p-3 transition-all duration-200 hover:border-green-200/50 hover:shadow-md">
                         <div className="mb-2 flex items-center gap-2">
                             <div className="rounded-md bg-gradient-to-br from-green-50 to-green-100 p-1.5">
-                                <Mail className="size-4 text-green-600" />
+                                <Envelope className="size-4 text-green-600" />
                             </div>
                             <div className="flex-1">
                                 <h4 className="text-xs font-medium text-neutral-700">
@@ -221,7 +225,7 @@ export const StudentPortalAccess = ({ isSubmissionTab }: { isSubmissionTab?: boo
                             className="w-full cursor-pointer border-green-200 text-xs text-green-700 hover:border-green-300 hover:bg-green-50"
                             style={{ pointerEvents: 'auto', zIndex: 10 }}
                         >
-                            <Mail className="mr-1.5 size-3.5" />
+                            <Envelope className="mr-1.5 size-3.5" />
                             Send Reset Password Email
                         </MyButton>
                     </div>
@@ -234,7 +238,9 @@ export const StudentPortalAccess = ({ isSubmissionTab }: { isSubmissionTab?: boo
                 !learnerSettings?.allowSendResetPasswordMail && (
                     <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-neutral-200 bg-neutral-50/50 py-12">
                         <Shield className="mb-2 size-8 text-neutral-400" />
-                        <p className="text-sm text-neutral-500">No portal access features enabled</p>
+                        <p className="text-sm text-neutral-500">
+                            No portal access features enabled
+                        </p>
                         <p className="text-xs text-neutral-400">
                             Contact admin to enable portal access settings
                         </p>
