@@ -261,7 +261,6 @@ export const AddCourseStep2 = ({
     const existingBatches = instituteDetails?.batches_for_sessions || [];
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
-    console.log('initialData-->', courseSettings);
     const instituteId = getInstituteId();
 
     // Determine initial values based on course settings
@@ -1092,7 +1091,7 @@ export const AddCourseStep2 = ({
                 }
             })
             .catch((err) => {
-                console.log(err);
+                console.error(err);
             });
     }, [tokenData?.email, isEdit]);
 
