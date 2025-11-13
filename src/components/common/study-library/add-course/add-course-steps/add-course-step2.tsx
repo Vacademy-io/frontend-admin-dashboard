@@ -261,7 +261,6 @@ export const AddCourseStep2 = ({
     const existingBatches = instituteDetails?.batches_for_sessions || [];
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
-
     const instituteId = getInstituteId();
 
     // Determine initial values based on course settings
@@ -416,15 +415,26 @@ export const AddCourseStep2 = ({
 
     const form = useForm<Step2Data>({
         resolver: zodResolver(step2Schema),
-        defaultValues: initialData || {
-            levelStructure: 2,
-            hasLevels: 'yes',
-            hasSessions: 'yes',
-            sessions: [],
-            selectedInstructors: [],
-            instructors: [],
-            publishToCatalogue: false,
-        },
+        defaultValues: initialData
+            ? {
+                  ...initialData,
+                  levelStructure: courseSettings?.courseStructure?.defaultDepth || 2,
+                  hasLevels: 'yes',
+                  hasSessions: 'yes',
+                  sessions: [],
+                  selectedInstructors: [],
+                  instructors: [],
+                  publishToCatalogue: false,
+              }
+            : {
+                  levelStructure: 2,
+                  hasLevels: 'yes',
+                  hasSessions: 'yes',
+                  sessions: [],
+                  selectedInstructors: [],
+                  instructors: [],
+                  publishToCatalogue: false,
+              },
     });
 
     // Session management functions
@@ -1081,7 +1091,7 @@ export const AddCourseStep2 = ({
                 }
             })
             .catch((err) => {
-                console.log(err);
+                console.error(err);
             });
     }, [tokenData?.email, isEdit]);
 
