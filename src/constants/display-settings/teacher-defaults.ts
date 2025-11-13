@@ -96,5 +96,24 @@ export const DEFAULT_TEACHER_DISPLAY_SETTINGS: DisplaySettingsData = {
         showCopyTo: true,
         showMoveTo: true,
     },
+    courseCreation: {
+        showCreateCourseWithAI: false,
+        requirePackageSelectionForNewChapter: true,
+    },
+    studentSideView: {
+        overviewTab: true,
+        testTab: true,
+        progressTab: true,
+        notificationTab: false,
+        membershipTab: false,
+        userTaggingTab: false,
+        fileTab: false,
+        portalAccessTab: false,
+    },
+    learnerManagement: {
+        allowPortalAccess: true,
+        allowViewPassword: true,
+        allowSendResetPasswordMail: true,
+    },
     postLoginRedirectRoute: '/dashboard',
 };

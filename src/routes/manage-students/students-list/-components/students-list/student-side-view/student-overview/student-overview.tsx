@@ -9,9 +9,6 @@ import {
     Users,
     Clock,
     TrendUp,
-    Shield,
-    Bell,
-    WhatsappLogo,
     Copy,
     Check,
     HandCoinsIcon,
@@ -23,8 +20,6 @@ import { OverViewData, OverviewDetailsType } from './overview';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { EditStudentDetails } from './EditStudentDetails';
 import { useStudentCredentialsStore } from '@/stores/students/students-list/useStudentCredentialsStore';
-import { MyButton } from '@/components/design-system/button';
-import { useDialogStore } from '@/routes/manage-students/students-list/-hooks/useDialogStore';
 import { useGetStudentDetails } from '@/services/get-student-details';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { StudentTable } from '@/types/student-table-types';
@@ -32,17 +27,7 @@ import { getFieldsForLocation, type FieldForLocation } from '@/lib/custom-fields
 import { getCustomFieldSettingsFromCache } from '@/services/custom-field-settings';
 import type { FieldGroup } from '@/services/custom-field-settings';
 import { Tag, Folders } from '@phosphor-icons/react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-    addUsersToTagByName,
-    getUserTags,
-    deactivateUserTags,
-    type TagItem,
-} from '@/services/tag-management';
 import { MonitorPlay } from 'phosphor-react';
-import StudentPlanDetails from './StudentPlanDetails';
 
 export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean }) => {
     const { selectedStudent } = useStudentSidebar();
@@ -56,22 +41,11 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
     const { data: studentDetails, isLoading, isError, error } = useGetStudentDetails(userId || '');
 
     const { getDetailsFromPackageSessionId, instituteDetails } = useInstituteDetailsStore();
-
     const { getCredentials } = useStudentCredentialsStore();
     const [password, setPassword] = useState(
         getCredentials(isSubmissionTab ? selectedStudent?.id || '' : selectedStudent?.user_id || '')
             ?.password || 'password not found'
     );
-    const [userTags, setUserTags] = useState<{ active: TagItem[]; inactive: TagItem[] } | null>(
-        null
-    );
-    const [newTagInput, setNewTagInput] = useState('');
-    const [tagsLoading, setTagsLoading] = useState(false);
-    const {
-        openIndividualShareCredentialsDialog,
-        openIndividualSendEmailDialog,
-        openIndividualSendMessageDialog,
-    } = useDialogStore();
 
     // Load custom fields and groups for Learner Profile location
     useEffect(() => {
@@ -205,24 +179,6 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
         }
     }, [selectedStudent, instituteDetails, password, studentDetails]);
 
-    useEffect(() => {
-        const loadUserTags = async () => {
-            const id = isSubmissionTab ? selectedStudent?.id : selectedStudent?.user_id;
-            if (!id) return;
-            setTagsLoading(true);
-            try {
-                const res = await getUserTags(id);
-                setUserTags({ active: res.activeTags || [], inactive: res.inactiveTags || [] });
-            } catch (e) {
-                setUserTags({ active: [], inactive: [] });
-            } finally {
-                setTagsLoading(false);
-            }
-        };
-        loadUserTags();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedStudent?.id, selectedStudent?.user_id]);
-
     if (isLoading) {
         return <DashboardLoader />;
     }
@@ -286,196 +242,13 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                 </div>
             </div>
 
-            {/* Plan Details Card */}
-            <StudentPlanDetails
-                userId={
-                    isSubmissionTab ? selectedStudent?.id || '' : selectedStudent?.user_id || ''
-                }
-            />
-
-            {/* Compact Notification Section */}
-            <div className="rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 p-3 transition-all duration-200 hover:border-primary-200/50 hover:shadow-md">
-                <div className="mb-2 flex items-center gap-2.5">
-                    <div className="rounded-md bg-gradient-to-br from-blue-50 to-blue-100 p-1.5">
-                        <Bell className="size-4 text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                        <h4 className="text-xs font-medium text-neutral-700">Send Notification</h4>
-                        <p className="text-[10px] text-neutral-500">Email or WhatsApp message</p>
-                    </div>
-                </div>
-
-                {/* Notification action buttons */}
-                <div className="flex gap-2">
-                    <MyButton
-                        type="button"
-                        buttonType="secondary"
-                        scale="small"
-                        disable={false}
-                        onClick={() => {
-                            if (selectedStudent) {
-                                openIndividualSendEmailDialog(selectedStudent);
-                            }
-                        }}
-                        className="group flex flex-1 cursor-pointer items-center justify-center gap-1.5 border border-blue-200 bg-white text-xs text-blue-700 transition-all duration-200 hover:scale-100 hover:border-blue-300 hover:bg-blue-50"
-                        style={{ pointerEvents: 'auto', zIndex: 10 }}
-                    >
-                        <Envelope className="size-3 transition-transform duration-200 group-hover:scale-110" />
-                        Email
-                    </MyButton>
-
-                    <MyButton
-                        type="button"
-                        buttonType="secondary"
-                        scale="small"
-                        disable={false}
-                        onClick={() => {
-                            if (selectedStudent) {
-                                openIndividualSendMessageDialog(selectedStudent);
-                            }
-                        }}
-                        className="group flex flex-1 cursor-pointer items-center justify-center gap-1.5 border border-green-200 bg-white text-xs text-green-700 transition-all duration-200 hover:scale-100 hover:border-green-300 hover:bg-green-50"
-                        style={{ pointerEvents: 'auto', zIndex: 10 }}
-                    >
-                        <WhatsappLogo className="size-3 transition-transform duration-200 group-hover:scale-110" />
-                        WhatsApp
-                    </MyButton>
-                </div>
-            </div>
-
             {/* Compact overview sections */}
             <div className="space-y-2.5">
-                {/* User Tags section */}
-                <div className="rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 p-3">
-                    <div className="mb-2 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <Users className="size-4 text-purple-600" />
-                            <h4 className="text-xs font-semibold text-neutral-700">User Tags</h4>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Label className="text-[10px] text-neutral-500">Add tag by name</Label>
-                            <Input
-                                className="h-7 w-40 text-xs"
-                                placeholder="e.g. VIP Student"
-                                value={newTagInput}
-                                onChange={(e) => setNewTagInput(e.target.value)}
-                            />
-                            <Button
-                                size="sm"
-                                disabled={tagsLoading || !newTagInput.trim() || !selectedStudent}
-                                onClick={async () => {
-                                    if (!selectedStudent || !newTagInput.trim()) return;
-                                    setTagsLoading(true);
-                                    try {
-                                        await addUsersToTagByName(newTagInput.trim(), [
-                                            isSubmissionTab
-                                                ? selectedStudent.id
-                                                : selectedStudent.user_id,
-                                        ]);
-                                        const res = await getUserTags(
-                                            isSubmissionTab
-                                                ? selectedStudent.id
-                                                : selectedStudent.user_id
-                                        );
-                                        setUserTags({
-                                            active: res.activeTags || [],
-                                            inactive: res.inactiveTags || [],
-                                        });
-                                        setNewTagInput('');
-                                        toast.success('Tag added');
-                                    } catch (e) {
-                                        toast.error('Failed to add tag');
-                                    } finally {
-                                        setTagsLoading(false);
-                                    }
-                                }}
-                            >
-                                Add
-                            </Button>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                        <div>
-                            <div className="mb-1 text-[11px] font-medium text-neutral-600">
-                                Active Tags
-                            </div>
-                            {tagsLoading ? (
-                                <div className="text-xs text-neutral-500">Loading...</div>
-                            ) : userTags && userTags.active.length > 0 ? (
-                                <div className="flex flex-wrap gap-1.5">
-                                    {userTags.active.map((t) => (
-                                        <div
-                                            key={t.id}
-                                            className="flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-1 text-[11px]"
-                                        >
-                                            <span>{t.tagName}</span>
-                                            {!t.defaultTag && (
-                                                <button
-                                                    type="button"
-                                                    className="text-neutral-500 hover:text-neutral-700"
-                                                    onClick={async () => {
-                                                        if (!selectedStudent) return;
-                                                        setTagsLoading(true);
-                                                        try {
-                                                            await deactivateUserTags(
-                                                                isSubmissionTab
-                                                                    ? selectedStudent.id
-                                                                    : selectedStudent.user_id,
-                                                                [t.id]
-                                                            );
-                                                            const res = await getUserTags(
-                                                                isSubmissionTab
-                                                                    ? selectedStudent.id
-                                                                    : selectedStudent.user_id
-                                                            );
-                                                            setUserTags({
-                                                                active: res.activeTags || [],
-                                                                inactive: res.inactiveTags || [],
-                                                            });
-                                                            toast.success('Tag removed');
-                                                        } catch (err) {
-                                                            toast.error('Failed to remove tag');
-                                                        } finally {
-                                                            setTagsLoading(false);
-                                                        }
-                                                    }}
-                                                    aria-label="Remove tag"
-                                                >
-                                                    ×
-                                                </button>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-xs text-neutral-500">No active tags</div>
-                            )}
-                        </div>
-                        <div>
-                            <div className="mb-1 text-[11px] font-medium text-neutral-600">
-                                Inactive Tags
-                            </div>
-                            {tagsLoading ? (
-                                <div className="text-xs text-neutral-500">Loading...</div>
-                            ) : userTags && userTags.inactive.length > 0 ? (
-                                <div className="flex flex-wrap gap-1.5">
-                                    {userTags.inactive.map((t) => (
-                                        <div
-                                            key={t.id}
-                                            className="flex items-center gap-1 rounded-full bg-neutral-50 px-2 py-1 text-[11px] text-neutral-500"
-                                        >
-                                            <span>{t.tagName}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-xs text-neutral-500">No inactive tags</div>
-                            )}
-                        </div>
-                    </div>
-                </div>
                 {selectedStudent != null ? (
                     overviewData?.map((studentDetail, key) => {
+                        // Skip Account Credentials (key === 0) as it's moved to Portal Access tab
+                        if (key === 0) return null;
+
                         // Define icons and colors for each section
                         const sectionConfig = {
                             0: {
@@ -538,28 +311,6 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                                                 {studentDetail.heading}
                                             </h3>
                                         </div>
-
-                                        {/* Compact share button for credentials */}
-                                        {key === 0 && (
-                                            <MyButton
-                                                type="button"
-                                                buttonType="secondary"
-                                                scale="small"
-                                                disable={false}
-                                                onClick={() => {
-                                                    if (selectedStudent) {
-                                                        openIndividualShareCredentialsDialog(
-                                                            selectedStudent
-                                                        );
-                                                    }
-                                                }}
-                                                className="h-auto min-h-0 cursor-pointer px-2 py-1 text-[10px]"
-                                                style={{ pointerEvents: 'auto', zIndex: 10 }}
-                                            >
-                                                <Shield className="mr-1 size-2.5" />
-                                                Share
-                                            </MyButton>
-                                        )}
                                     </div>
 
                                     {/* Compact content grid */}
