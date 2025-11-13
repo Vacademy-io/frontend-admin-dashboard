@@ -1,18 +1,32 @@
 import { Sidebar, SidebarContent, SidebarHeader } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 import { X } from '@phosphor-icons/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { DummyProfile } from '@/assets/svgs';
 import { StatusChips } from '@/components/design-system/chips';
 import { StudentOverview } from './student-overview/student-overview';
 import { StudentLearningProgress } from './student-learning-progress/student-learning-progress';
 import { StudentTestRecord } from './student-test-records/student-test-record';
 import { StudentEmailNotifications } from './student-email-notifications/student-email-notifications';
+import { StudentMembership } from './student-membership/student-membership';
+import { StudentUserTagging } from './student-user-tagging/student-user-tagging';
+import { StudentFiles } from './student-files/student-files';
+import { StudentPortalAccess } from './student-portal-access/student-portal-access';
 import { getPublicUrl } from '@/services/upload_file';
 import { ErrorBoundary } from '@/components/core/dashboard-loader';
 import { useStudentSidebar } from '../../../-context/selected-student-sidebar-context';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { isUserAdmin } from '@/utils/userDetails';
+import {
+    getDisplaySettingsWithFallback,
+    getDisplaySettingsFromCache,
+} from '@/services/display-settings';
+import {
+    ADMIN_DISPLAY_SETTINGS_KEY,
+    TEACHER_DISPLAY_SETTINGS_KEY,
+    type StudentSideViewSettings,
+} from '@/types/display-settings';
 
 export const StudentSidebar = ({
     selectedTab,
@@ -33,6 +47,9 @@ export const StudentSidebar = ({
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [faceLoader, setFaceLoader] = useState(false);
     const { selectedStudent } = useStudentSidebar();
+    const [tabSettings, setTabSettings] = useState<StudentSideViewSettings | null>(null);
+    const tabContainerRef = useRef<HTMLDivElement>(null);
+    const activeTabRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
         if (state == 'expanded') {
@@ -47,25 +64,74 @@ export const StudentSidebar = ({
         };
     }, [state]);
 
-    const fetchImageUrl = async () => {
-        if (selectedStudent?.face_file_id) {
-            try {
-                setFaceLoader(true);
-                const url = await getPublicUrl(selectedStudent.face_file_id);
-                setImageUrl(url);
-                setFaceLoader(false);
-            } catch (error) {
-                console.error('Failed to fetch image URL:', error);
-                setFaceLoader(false);
+    useEffect(() => {
+        const fetchTabSettings = async () => {
+            const isAdmin = isUserAdmin();
+            const roleKey = isAdmin ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+
+            // Try cache first
+            const cachedSettings = getDisplaySettingsFromCache(roleKey);
+            const settings =
+                cachedSettings?.studentSideView ||
+                (await getDisplaySettingsWithFallback(roleKey)).studentSideView;
+
+            if (settings) {
+                setTabSettings(settings);
+
+                // Set default category to first visible tab
+                if (settings.overviewTab) {
+                    setCategory('overview');
+                } else if (settings.progressTab) {
+                    setCategory('learningProgress');
+                } else if (settings.testTab) {
+                    setCategory('testRecord');
+                } else if (settings.notificationTab) {
+                    setCategory('notifications');
+                } else if (settings.membershipTab) {
+                    setCategory('membership');
+                } else if (settings.userTaggingTab) {
+                    setCategory('userTagging');
+                } else if (settings.fileTab) {
+                    setCategory('files');
+                } else if (settings.portalAccessTab) {
+                    setCategory('portalAccess');
+                }
             }
-        } else {
-            setImageUrl(null);
-        }
-    };
+        };
+
+        fetchTabSettings();
+    }, []);
 
     useEffect(() => {
+        const fetchImageUrl = async () => {
+            if (selectedStudent?.face_file_id) {
+                try {
+                    setFaceLoader(true);
+                    const url = await getPublicUrl(selectedStudent.face_file_id);
+                    setImageUrl(url);
+                    setFaceLoader(false);
+                } catch (error) {
+                    console.error('Failed to fetch image URL:', error);
+                    setFaceLoader(false);
+                }
+            } else {
+                setImageUrl(null);
+            }
+        };
+
         fetchImageUrl();
     }, [selectedStudent, selectedStudent?.face_file_id]);
+
+    // Auto-scroll active tab into view
+    useEffect(() => {
+        if (activeTabRef.current && tabContainerRef.current) {
+            activeTabRef.current.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest',
+                inline: 'center',
+            });
+        }
+    }, [category]);
 
     return (
         <Sidebar side="right">
@@ -94,82 +160,169 @@ export const StudentSidebar = ({
                         </div>
 
                         {/* Enhanced tab navigation with modern design */}
-                        {!isEnrollRequestStudentList && (
-                            <div className="relative flex gap-1 rounded-xl bg-gradient-to-r from-neutral-50 to-neutral-100 p-1.5 shadow-inner">
-                                {/* Animated background indicator */}
+                        {!isEnrollRequestStudentList && tabSettings && (
+                            <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-neutral-50 to-neutral-100 p-1.5 shadow-inner">
+                                {/* Scrollable tabs container */}
                                 <div
-                                    className={`absolute inset-y-1.5 rounded-lg bg-white shadow-lg transition-all duration-300 ease-out ${
-                                        category === 'overview'
-                                            ? 'left-1.5 w-[calc(25%-0.375rem)]'
-                                            : category === 'learningProgress'
-                                              ? 'left-[calc(25%+0.125rem)] w-[calc(25%-0.25rem)]'
-                                              : category === 'testRecord'
-                                                ? 'left-[calc(50%+0.5rem)] w-[calc(25%-0.25rem)]'
-                                                : 'left-[calc(75%+0.875rem)] w-[calc(25%-0.375rem)]'
-                                    }`}
-                                ></div>
+                                    ref={tabContainerRef}
+                                    className="scrollbar-hide flex gap-1 overflow-x-auto scroll-smooth"
+                                >
+                                    {tabSettings.overviewTab && (
+                                        <button
+                                            ref={category === 'overview' ? activeTabRef : null}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'overview'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                            }`}
+                                            onClick={() => setCategory('overview')}
+                                        >
+                                            <span className="relative">
+                                                Overview
+                                                {category === 'overview' && (
+                                                    <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
+                                                )}
+                                            </span>
+                                        </button>
+                                    )}
 
-                                <button
-                                    className={`group relative z-10 flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
-                                        category === 'overview'
-                                            ? 'scale-105 text-primary-500'
-                                            : 'text-neutral-600 hover:scale-100 hover:text-neutral-800'
-                                    }`}
-                                    onClick={() => setCategory('overview')}
-                                >
-                                    <span className="relative">
-                                        Overview
-                                        {category === 'overview' && (
-                                            <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
-                                        )}
-                                    </span>
-                                </button>
+                                    {tabSettings.progressTab && (
+                                        <button
+                                            ref={
+                                                category === 'learningProgress'
+                                                    ? activeTabRef
+                                                    : null
+                                            }
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'learningProgress'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                            }`}
+                                            onClick={() => setCategory('learningProgress')}
+                                        >
+                                            <span className="relative">
+                                                Progress
+                                                {category === 'learningProgress' && (
+                                                    <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
+                                                )}
+                                            </span>
+                                        </button>
+                                    )}
 
-                                <button
-                                    className={`group relative z-10 flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
-                                        category === 'learningProgress'
-                                            ? 'scale-105 text-primary-500'
-                                            : 'text-neutral-600 hover:scale-100 hover:text-neutral-800'
-                                    }`}
-                                    onClick={() => setCategory('learningProgress')}
-                                >
-                                    <span className="relative">
-                                        Progress
-                                        {category === 'learningProgress' && (
-                                            <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
-                                        )}
-                                    </span>
-                                </button>
-                                <button
-                                    className={`group relative z-10 flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
-                                        category === 'testRecord'
-                                            ? 'scale-105 text-primary-500'
-                                            : 'text-neutral-600 hover:scale-100 hover:text-neutral-800'
-                                    }`}
-                                    onClick={() => setCategory('testRecord')}
-                                >
-                                    <span className="relative">
-                                        Tests
-                                        {category === 'testRecord' && (
-                                            <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
-                                        )}
-                                    </span>
-                                </button>
-                                <button
-                                    className={`group relative z-10 flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
-                                        category === 'notifications'
-                                            ? 'scale-105 text-primary-500'
-                                            : 'text-neutral-600 hover:scale-100 hover:text-neutral-800'
-                                    }`}
-                                    onClick={() => setCategory('notifications')}
-                                >
-                                    <span className="relative">
-                                        Notifications
-                                        {category === 'notifications' && (
-                                            <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
-                                        )}
-                                    </span>
-                                </button>
+                                    {tabSettings.testTab && (
+                                        <button
+                                            ref={category === 'testRecord' ? activeTabRef : null}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'testRecord'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                            }`}
+                                            onClick={() => setCategory('testRecord')}
+                                        >
+                                            <span className="relative">
+                                                Tests
+                                                {category === 'testRecord' && (
+                                                    <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
+                                                )}
+                                            </span>
+                                        </button>
+                                    )}
+
+                                    {tabSettings.notificationTab && (
+                                        <button
+                                            ref={category === 'notifications' ? activeTabRef : null}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'notifications'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                            }`}
+                                            onClick={() => setCategory('notifications')}
+                                        >
+                                            <span className="relative">
+                                                Notifications
+                                                {category === 'notifications' && (
+                                                    <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
+                                                )}
+                                            </span>
+                                        </button>
+                                    )}
+
+                                    {tabSettings.membershipTab && (
+                                        <button
+                                            ref={category === 'membership' ? activeTabRef : null}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'membership'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                            }`}
+                                            onClick={() => setCategory('membership')}
+                                        >
+                                            <span className="relative">
+                                                Membership
+                                                {category === 'membership' && (
+                                                    <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
+                                                )}
+                                            </span>
+                                        </button>
+                                    )}
+
+                                    {tabSettings.userTaggingTab && (
+                                        <button
+                                            ref={category === 'userTagging' ? activeTabRef : null}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'userTagging'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                            }`}
+                                            onClick={() => setCategory('userTagging')}
+                                        >
+                                            <span className="relative">
+                                                User Tagging
+                                                {category === 'userTagging' && (
+                                                    <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
+                                                )}
+                                            </span>
+                                        </button>
+                                    )}
+
+                                    {tabSettings.fileTab && (
+                                        <button
+                                            ref={category === 'files' ? activeTabRef : null}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'files'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                            }`}
+                                            onClick={() => setCategory('files')}
+                                        >
+                                            <span className="relative">
+                                                Files
+                                                {category === 'files' && (
+                                                    <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
+                                                )}
+                                            </span>
+                                        </button>
+                                    )}
+
+                                    {tabSettings.portalAccessTab && (
+                                        <button
+                                            ref={category === 'portalAccess' ? activeTabRef : null}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'portalAccess'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                            }`}
+                                            onClick={() => setCategory('portalAccess')}
+                                        >
+                                            <span className="relative">
+                                                Portal Access
+                                                {category === 'portalAccess' && (
+                                                    <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
+                                                )}
+                                            </span>
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -233,22 +386,44 @@ export const StudentSidebar = ({
                         </div>
                     </div>
                     <ErrorBoundary>
-                        {category === 'overview' && (
+                        {category === 'overview' && tabSettings?.overviewTab && (
                             <StudentOverview isSubmissionTab={isSubmissionTab} />
                         )}
-                        {category === 'learningProgress' && !isEnrollRequestStudentList && (
-                            <StudentLearningProgress isSubmissionTab={isSubmissionTab} />
-                        )}
-                        {category === 'testRecord' && !isEnrollRequestStudentList && (
-                            <StudentTestRecord
-                                selectedTab={selectedTab || ''}
-                                examType={examType || ''}
-                                isStudentList={isStudentList || false}
-                            />
-                        )}
-                        {category === 'notifications' && !isEnrollRequestStudentList && (
-                            <StudentEmailNotifications />
-                        )}
+                        {category === 'learningProgress' &&
+                            tabSettings?.progressTab &&
+                            !isEnrollRequestStudentList && (
+                                <StudentLearningProgress isSubmissionTab={isSubmissionTab} />
+                            )}
+                        {category === 'testRecord' &&
+                            tabSettings?.testTab &&
+                            !isEnrollRequestStudentList && (
+                                <StudentTestRecord
+                                    selectedTab={selectedTab || ''}
+                                    examType={examType || ''}
+                                    isStudentList={isStudentList || false}
+                                />
+                            )}
+                        {category === 'notifications' &&
+                            tabSettings?.notificationTab &&
+                            !isEnrollRequestStudentList && <StudentEmailNotifications />}
+                        {category === 'membership' &&
+                            tabSettings?.membershipTab &&
+                            !isEnrollRequestStudentList && (
+                                <StudentMembership isSubmissionTab={isSubmissionTab} />
+                            )}
+                        {category === 'userTagging' &&
+                            tabSettings?.userTaggingTab &&
+                            !isEnrollRequestStudentList && (
+                                <StudentUserTagging isSubmissionTab={isSubmissionTab} />
+                            )}
+                        {category === 'files' &&
+                            tabSettings?.fileTab &&
+                            !isEnrollRequestStudentList && <StudentFiles />}
+                        {category === 'portalAccess' &&
+                            tabSettings?.portalAccessTab &&
+                            !isEnrollRequestStudentList && (
+                                <StudentPortalAccess isSubmissionTab={isSubmissionTab} />
+                            )}
                     </ErrorBoundary>
                 </div>
             </SidebarContent>

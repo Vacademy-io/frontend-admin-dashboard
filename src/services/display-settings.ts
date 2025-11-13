@@ -324,6 +324,59 @@ function mergeDisplayWithDefaults(
         showMoveTo: incoming?.slideView?.showMoveTo ?? defSlideView.showMoveTo,
     };
 
+    const defCourseCreation = defaults.courseCreation || {
+        showCreateCourseWithAI: false,
+        requirePackageSelectionForNewChapter: true,
+    };
+    merged.courseCreation = {
+        showCreateCourseWithAI:
+            incoming?.courseCreation?.showCreateCourseWithAI ??
+            defCourseCreation.showCreateCourseWithAI,
+        requirePackageSelectionForNewChapter:
+            incoming?.courseCreation?.requirePackageSelectionForNewChapter ??
+            defCourseCreation.requirePackageSelectionForNewChapter,
+    };
+
+    const defStudentSideView = defaults.studentSideView || {
+        overviewTab: true,
+        testTab: true,
+        progressTab: true,
+        notificationTab: false,
+        membershipTab: false,
+        userTaggingTab: false,
+        fileTab: false,
+        portalAccessTab: false,
+    };
+    merged.studentSideView = {
+        overviewTab: incoming?.studentSideView?.overviewTab ?? defStudentSideView.overviewTab,
+        testTab: incoming?.studentSideView?.testTab ?? defStudentSideView.testTab,
+        progressTab: incoming?.studentSideView?.progressTab ?? defStudentSideView.progressTab,
+        notificationTab:
+            incoming?.studentSideView?.notificationTab ?? defStudentSideView.notificationTab,
+        membershipTab:
+            incoming?.studentSideView?.membershipTab ?? defStudentSideView.membershipTab,
+        userTaggingTab:
+            incoming?.studentSideView?.userTaggingTab ?? defStudentSideView.userTaggingTab,
+        fileTab: incoming?.studentSideView?.fileTab ?? defStudentSideView.fileTab,
+        portalAccessTab:
+            incoming?.studentSideView?.portalAccessTab ?? defStudentSideView.portalAccessTab,
+    };
+
+    const defLearnerManagement = defaults.learnerManagement || {
+        allowPortalAccess: true,
+        allowViewPassword: true,
+        allowSendResetPasswordMail: true,
+    };
+    merged.learnerManagement = {
+        allowPortalAccess:
+            incoming?.learnerManagement?.allowPortalAccess ?? defLearnerManagement.allowPortalAccess,
+        allowViewPassword:
+            incoming?.learnerManagement?.allowViewPassword ?? defLearnerManagement.allowViewPassword,
+        allowSendResetPasswordMail:
+            incoming?.learnerManagement?.allowSendResetPasswordMail ??
+            defLearnerManagement.allowSendResetPasswordMail,
+    };
+
     // Final sort by order
     merged.sidebar.sort((a, b) => (a.order || 0) - (b.order || 0));
     merged.sidebar.forEach((t) => t.subTabs?.sort((a, b) => (a.order || 0) - (b.order || 0)));
