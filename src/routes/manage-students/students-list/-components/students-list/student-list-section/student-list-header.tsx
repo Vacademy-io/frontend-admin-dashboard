@@ -66,7 +66,7 @@ const InviteLinksDialog = ({
             ) : isError ? (
                 <RootErrorComponent />
             ) : (
-                <div className="flex max-h-[60vh] flex-col gap-4 overflow-y-auto">
+                <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto">
                     {currentSession?.id ? (
                         data?.flatMap((batch) =>
                             batch.batches.map((b, index) => {
@@ -84,42 +84,42 @@ const InviteLinksDialog = ({
 
                                 return (
                                     <div
-                                        className="animate-fadeIn group flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-4 transition-all duration-200 hover:border-primary-200 hover:shadow-md"
+                                        className="animate-fadeIn group flex flex-col gap-2 rounded-lg border border-neutral-200 bg-white p-2.5 transition-all duration-200 hover:border-primary-200 hover:shadow-md"
                                         key={index}
                                         style={{ animationDelay: `${index * 0.1}s` }}
                                     >
                                         {/* Enhanced header with course info */}
-                                        <div className="flex items-start justify-between gap-3">
+                                        <div className="flex items-start justify-between gap-2">
                                             <div className="flex-1">
-                                                <div className="mb-2 flex items-center gap-2">
-                                                    <div className="rounded-md bg-primary-100 p-1.5 transition-colors duration-200 group-hover:bg-primary-200">
-                                                        <Users className="text-primary-600 size-4" />
+                                                <div className="mb-1.5 flex items-center gap-1.5">
+                                                    <div className="rounded-md bg-primary-100 p-1 transition-colors duration-200 group-hover:bg-primary-200">
+                                                        <Users className="size-3 text-primary-600" />
                                                     </div>
-                                                    <h3 className="text-primary-600 group-hover:text-primary-700 text-sm font-semibold transition-colors duration-200">
+                                                    <h3 className="group-hover:text-primary-700 text-xs font-semibold text-primary-600 transition-colors duration-200">
                                                         {b.batch_name}
                                                     </h3>
                                                 </div>
 
                                                 {/* Course, Level, Session info */}
-                                                <div className="ml-6 space-y-1.5 text-xs text-neutral-600">
-                                                    <div className="flex items-center gap-2">
-                                                        <GraduationCap className="size-3.5 text-neutral-400" />
+                                                <div className="ml-4 space-y-1 text-xs text-neutral-600">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <GraduationCap className="size-3 text-neutral-400" />
                                                         <span className="font-medium">Course:</span>
                                                         <span className="text-neutral-700">
                                                             {courseName}
                                                         </span>
                                                     </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="flex size-3.5 items-center justify-center rounded bg-blue-100">
-                                                            <div className="size-2 rounded bg-blue-500"></div>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <div className="flex size-3 items-center justify-center rounded bg-blue-100">
+                                                            <div className="size-1.5 rounded bg-blue-500"></div>
                                                         </div>
                                                         <span className="font-medium">Level:</span>
                                                         <span className="text-neutral-700">
                                                             {levelName}
                                                         </span>
                                                     </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <Calendar className="size-3.5 text-neutral-400" />
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Calendar className="size-3 text-neutral-400" />
                                                         <span className="font-medium">
                                                             Session:
                                                         </span>
@@ -132,8 +132,8 @@ const InviteLinksDialog = ({
                                         </div>
 
                                         {/* Invite link section */}
-                                        <div className="border-t border-neutral-100 pl-6 pt-2">
-                                            <div className="mb-2 text-xs font-medium text-neutral-600">
+                                        <div className="border-t border-neutral-100 pl-4 pt-1.5">
+                                            <div className="mb-1 text-xs font-medium text-neutral-600">
                                                 Invite Link:
                                             </div>
                                             <InviteLink inviteCode={b.invite_code} />
@@ -143,9 +143,9 @@ const InviteLinksDialog = ({
                             })
                         )
                     ) : (
-                        <div className="py-6 text-center">
-                            <div className="mx-auto mb-2 w-fit rounded-full bg-neutral-100 p-2">
-                                <Users className="size-4 text-neutral-400" />
+                        <div className="py-4 text-center">
+                            <div className="mx-auto mb-1.5 w-fit rounded-full bg-neutral-100 p-1.5">
+                                <Users className="size-3 text-neutral-400" />
                             </div>
                             <p className="text-xs text-neutral-500">
                                 No batches found for this session
@@ -174,34 +174,31 @@ export const StudentListHeader = ({
     };
 
     return (
-        <div className="animate-slideInRight flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
+        <div className="animate-slideInRight flex flex-col justify-between gap-2 lg:flex-row lg:items-center">
             {/* Compact professional title */}
-            <div className="flex items-center gap-2.5">
-                <div className="rounded-lg bg-gradient-to-br from-primary-100 to-primary-200 p-1.5 shadow-sm">
-                    <Users className="size-4 text-primary-500" />
+            <div className="flex items-center gap-2">
+                <div className="rounded-md bg-gradient-to-br from-primary-100 to-primary-200 p-1 shadow-sm">
+                    <Users className="size-3.5 text-primary-500" />
                 </div>
-                <div className="flex flex-col">
-                    <h1
-                        className={cn(
-                            'font-semibold text-neutral-700',
-                            titleSize ? titleSize : 'text-lg lg:text-xl'
-                        )}
-                    >
-                        {getTerminology(RoleTerms.Learner, SystemTerms.Learner)} Management
-                    </h1>
-                    <div className="h-0.5 w-8 rounded-full bg-gradient-to-r from-primary-400 to-primary-500"></div>
-                </div>
+                <h1
+                    className={cn(
+                        'font-semibold text-neutral-700',
+                        titleSize ? titleSize : 'text-base lg:text-lg'
+                    )}
+                >
+                    {getTerminology(RoleTerms.Learner, SystemTerms.Learner)} Management
+                </h1>
             </div>
 
             {/* Compact professional action buttons */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
                 <MyButton
                     onClick={() => setOpenInviteLinksDialog(true)}
                     scale="small"
                     buttonType="secondary"
-                    className="group flex items-center gap-1.5 border border-blue-200 bg-white text-xs text-blue-700 transition-all duration-200 hover:scale-100 hover:border-blue-300 hover:bg-blue-50"
+                    className="group flex items-center gap-1 border border-blue-200 bg-white px-2.5 py-1 text-xs text-blue-700 transition-all duration-200 hover:scale-100 hover:border-blue-300 hover:bg-blue-50"
                 >
-                    <UserPlus className="size-3.5 transition-transform duration-200 group-hover:scale-110" />
+                    <UserPlus className="size-3 transition-transform duration-200 group-hover:scale-110" />
                     <span className="hidden sm:inline">Invite</span>
                 </MyButton>
 
@@ -215,15 +212,15 @@ export const StudentListHeader = ({
                             trigger={
                                 <MyButton
                                     scale="small"
-                                    className="hover:scale-102 bg-primary-600 hover:bg-primary-700 group flex items-center gap-1.5 border-0 text-xs text-white shadow-sm transition-all duration-200 hover:shadow-md"
+                                    className="hover:scale-102 hover:bg-primary-700 group flex items-center gap-1 border-0 bg-primary-600 px-2.5 py-1 text-xs text-white shadow-sm transition-all duration-200 hover:shadow-md"
                                 >
-                                    <Users className="size-3.5 transition-transform duration-200 group-hover:scale-110" />
+                                    <Users className="size-3 transition-transform duration-200 group-hover:scale-110" />
                                     <span className="hidden sm:inline">Enroll</span>
                                 </MyButton>
                             }
                         />
                     ) : (
-                        <div className="[&>button]:scale-90 [&>button]:px-3 [&>button]:py-1.5 [&>button]:text-xs">
+                        <div className="[&>button]:scale-90 [&>button]:px-2.5 [&>button]:py-1 [&>button]:text-xs">
                             <EnrollStudentsButton />
                         </div>
                     )}
