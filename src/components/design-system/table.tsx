@@ -1,11 +1,12 @@
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+// Safari compatibility: Using native HTML elements instead of wrapped components
+// import {
+//     Table,
+//     TableBody,
+//     TableCell,
+//     TableHead,
+//     TableHeader,
+//     TableRow,
+// } from '@/components/ui/table';
 import {
     flexRender,
     getCoreRowModel,
@@ -236,30 +237,52 @@ export function MyTable<T>({
             )}
 
             <div className="relative w-full rounded-lg border">
-                <div className="max-h-[70vh] overflow-auto">
-                    <Table
-                        className="w-full"
+                <div
+                    className="max-h-[70vh] overflow-auto"
+                    style={{
+                        WebkitOverflowScrolling: 'touch',
+                        transform: 'translate3d(0, 0, 0)',
+                        WebkitTransform: 'translate3d(0, 0, 0)',
+                        willChange: 'scroll-position',
+                        isolation: 'isolate',
+                    }}
+                >
+                    <table
+                        className="w-full caption-bottom text-sm"
                         style={{
                             width: table?.getCenterTotalSize?.() || 'auto',
                             minWidth: table?.getCenterTotalSize?.() || '100%',
+                            transform: 'translate3d(0, 0, 0)',
+                            WebkitTransform: 'translate3d(0, 0, 0)',
+                            borderCollapse: 'collapse',
+                            tableLayout: 'fixed',
                         }}
                     >
-                        <TableHeader className="sticky top-0 z-30 border-b border-neutral-300 bg-primary-200 shadow-sm">
-                            {/* Ensure header background is solid to prevent content showing through */}
-                            <div className="absolute inset-0 -z-10 bg-primary-200"></div>
+                        <thead
+                            className="sticky top-0 z-30 border-b border-neutral-300 bg-primary-200 shadow-sm [&_tr]:border-b"
+                            style={{
+                                transform: 'translate3d(0, 0, 0)',
+                                WebkitTransform: 'translate3d(0, 0, 0)',
+                                backfaceVisibility: 'hidden',
+                                WebkitBackfaceVisibility: 'hidden',
+                            }}
+                        >
                             {table &&
                                 table?.getHeaderGroups()?.length > 0 &&
                                 table?.getHeaderGroups()?.map((headerGroup) => (
-                                    <TableRow key={headerGroup.id} className="hover:bg-primary-200">
+                                    <tr
+                                        key={headerGroup.id}
+                                        className="border-b transition-colors hover:bg-primary-200"
+                                    >
                                         {/* Left pinned headers */}
                                         {headerGroup.headers
                                             .filter(
                                                 (header) => header.column.getIsPinned() === 'left'
                                             )
                                             .map((header) => (
-                                                <TableHead
+                                                <th
                                                     key={header.id}
-                                                    className={`${headerTextCss} sticky left-0 z-40 overflow-visible border-r-2 border-primary-300 bg-primary-100 text-subtitle font-semibold text-neutral-600 ${
+                                                    className={`${headerTextCss} sticky left-0 z-40 h-10 overflow-visible border-r-2 border-primary-300 bg-primary-100 px-2 text-left align-middle text-subtitle font-semibold text-neutral-600 ${
                                                         columnWidths?.[header.column.id] || ''
                                                     }`}
                                                     style={{
@@ -272,6 +295,10 @@ export function MyTable<T>({
                                                             maxColumnWidth,
                                                         left: `${header.column.getStart('left')}px`,
                                                         position: 'sticky',
+                                                        transform: 'translate3d(0, 0, 0)',
+                                                        WebkitTransform: 'translate3d(0, 0, 0)',
+                                                        backfaceVisibility: 'hidden',
+                                                        WebkitBackfaceVisibility: 'hidden',
                                                     }}
                                                     onClick={(e) => {
                                                         // Prevent click when resizing
@@ -301,16 +328,16 @@ export function MyTable<T>({
                                                             />
                                                         )}
                                                     </div>
-                                                </TableHead>
+                                                </th>
                                             ))}
 
                                         {/* Regular headers */}
                                         {headerGroup.headers
                                             .filter((header) => !header.column.getIsPinned())
                                             .map((header) => (
-                                                <TableHead
+                                                <th
                                                     key={header.id}
-                                                    className={`${headerTextCss} relative overflow-visible bg-primary-100 text-subtitle font-semibold text-neutral-600 ${
+                                                    className={`${headerTextCss} relative h-10 overflow-visible bg-primary-100 px-2 text-left align-middle text-subtitle font-semibold text-neutral-600 ${
                                                         columnWidths?.[header.column.id] || ''
                                                     }`}
                                                     style={{
@@ -322,6 +349,10 @@ export function MyTable<T>({
                                                             header?.column?.columnDef?.maxSize ||
                                                             maxColumnWidth,
                                                         position: 'relative',
+                                                        transform: 'translate3d(0, 0, 0)',
+                                                        WebkitTransform: 'translate3d(0, 0, 0)',
+                                                        backfaceVisibility: 'hidden',
+                                                        WebkitBackfaceVisibility: 'hidden',
                                                     }}
                                                     onClick={(e) => {
                                                         // Prevent click when resizing
@@ -351,19 +382,36 @@ export function MyTable<T>({
                                                             />
                                                         )}
                                                     </div>
-                                                </TableHead>
+                                                </th>
                                             ))}
-                                    </TableRow>
+                                    </tr>
                                 ))}
-                        </TableHeader>
-                        <TableBody>
+                        </thead>
+                        <tbody
+                            className="[&_tr:last-child]:border-0"
+                            style={{
+                                transform: 'translate3d(0, 0, 0)',
+                                WebkitTransform: 'translate3d(0, 0, 0)',
+                                backfaceVisibility: 'hidden',
+                                WebkitBackfaceVisibility: 'hidden',
+                            }}
+                        >
                             {table.getRowModel().rows.map((row) => (
-                                <TableRow key={row.id} className="cursor-pointer hover:bg-white">
+                                <tr
+                                    key={row.id}
+                                    className="cursor-pointer border-b transition-colors hover:bg-white data-[state=selected]:bg-muted"
+                                    style={{
+                                        transform: 'translate3d(0, 0, 0)',
+                                        WebkitTransform: 'translate3d(0, 0, 0)',
+                                        backfaceVisibility: 'hidden',
+                                        WebkitBackfaceVisibility: 'hidden',
+                                    }}
+                                >
                                     {/* Left pinned cells */}
                                     {row.getLeftVisibleCells().map((cell) => (
-                                        <TableCell
+                                        <td
                                             key={cell.id}
-                                            className={`${cellCommonCss} sticky left-0 z-30 border-r-2 border-neutral-200 bg-white text-body font-regular text-neutral-600 ${
+                                            className={`${cellCommonCss} sticky left-0 z-30 border-r-2 border-neutral-200 bg-white p-2 align-middle text-body font-regular text-neutral-600 ${
                                                 columnWidths?.[cell.column.id] || ''
                                             }`}
                                             style={{
@@ -376,6 +424,10 @@ export function MyTable<T>({
                                                     maxColumnWidth,
                                                 left: `${cell.column.getStart('left')}px`,
                                                 position: 'sticky',
+                                                transform: 'translate3d(0, 0, 0)',
+                                                WebkitTransform: 'translate3d(0, 0, 0)',
+                                                backfaceVisibility: 'hidden',
+                                                WebkitBackfaceVisibility: 'hidden',
                                             }}
                                             onClick={() => {
                                                 if (onCellClick) {
@@ -390,14 +442,14 @@ export function MyTable<T>({
                                                 cell.column.columnDef.cell,
                                                 cell.getContext()
                                             )}
-                                        </TableCell>
+                                        </td>
                                     ))}
 
                                     {/* Regular cells */}
                                     {row.getCenterVisibleCells().map((cell) => (
-                                        <TableCell
+                                        <td
                                             key={cell.id}
-                                            className={`${cellCommonCss} z-10 bg-white text-body font-regular text-neutral-600 ${
+                                            className={`${cellCommonCss} z-10 bg-white p-2 align-middle text-body font-regular text-neutral-600 ${
                                                 columnWidths?.[cell.column.id] || ''
                                             }`}
                                             style={{
@@ -408,6 +460,10 @@ export function MyTable<T>({
                                                 maxWidth:
                                                     cell?.column?.columnDef?.maxSize ||
                                                     maxColumnWidth,
+                                                transform: 'translate3d(0, 0, 0)',
+                                                WebkitTransform: 'translate3d(0, 0, 0)',
+                                                backfaceVisibility: 'hidden',
+                                                WebkitBackfaceVisibility: 'hidden',
                                             }}
                                             onClick={() => {
                                                 if (onCellClick) {
@@ -422,12 +478,12 @@ export function MyTable<T>({
                                                 cell.column.columnDef.cell,
                                                 cell.getContext()
                                             )}
-                                        </TableCell>
+                                        </td>
                                     ))}
-                                </TableRow>
+                                </tr>
                             ))}
-                        </TableBody>
-                    </Table>
+                        </tbody>
+                    </table>
                 </div>
             </div>
             <ChangeBatchDialog

@@ -227,31 +227,31 @@ export const StudentsListSection = () => {
 
     // Enhanced empty state component
     const EmptyState = () => (
-        <div className="animate-fadeIn flex flex-col items-center justify-center px-4 py-16 text-center">
-            <div className="mb-6 rounded-full bg-gradient-to-br from-neutral-100 to-neutral-200 p-6 shadow-inner">
-                <EmptyStudentListImage className="size-16 opacity-50" />
+        <div className="animate-fadeIn flex flex-col items-center justify-center px-3 py-8 text-center">
+            <div className="mb-3 rounded-full bg-gradient-to-br from-neutral-100 to-neutral-200 p-3 shadow-inner">
+                <EmptyStudentListImage className="size-12 opacity-50" />
             </div>
-            <h3 className="mb-3 text-xl font-semibold text-neutral-700">
+            <h3 className="mb-2 text-base font-semibold text-neutral-700">
                 No {getTerminology(RoleTerms.Learner, SystemTerms.Learner)} Found
             </h3>
-            <p className="mb-6 max-w-md text-sm leading-relaxed text-neutral-500">
+            <p className="mb-4 max-w-md text-xs leading-relaxed text-neutral-500">
                 No {getTerminology(RoleTerms.Learner, SystemTerms.Learner).toLocaleLowerCase()} data
                 matches your current filters. Try adjusting your search criteria or add new{' '}
                 {getTerminology(RoleTerms.Learner, SystemTerms.Learner).toLocaleLowerCase()} to get
                 started.
             </p>
-            <div className="flex flex-col items-center gap-3 sm:flex-row">
+            <div className="flex flex-col items-center gap-2 sm:flex-row">
                 <InviteFormProvider>
-                    <button className="to-primary-600 hover:from-primary-600 hover:to-primary-700 group flex items-center gap-2 rounded-lg bg-gradient-to-r from-primary-500 px-4 py-2 text-white shadow-md transition-all duration-200 hover:scale-105">
-                        <Users className="size-4 transition-transform duration-200 group-hover:scale-110" />
+                    <button className="hover:to-primary-700 group flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-primary-500 to-primary-600 px-3 py-1.5 text-sm text-white shadow-md transition-all duration-200 hover:scale-105 hover:from-primary-600">
+                        <Users className="size-3.5 transition-transform duration-200 group-hover:scale-110" />
                         Invite {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}
                     </button>
                 </InviteFormProvider>
                 <button
                     onClick={handleClearFilters}
-                    className="group flex items-center gap-2 rounded-lg bg-neutral-100 px-4 py-2 text-neutral-700 transition-all duration-200 hover:scale-105 hover:bg-neutral-200"
+                    className="group flex items-center gap-1.5 rounded-lg bg-neutral-100 px-3 py-1.5 text-sm text-neutral-700 transition-all duration-200 hover:scale-105 hover:bg-neutral-200"
                 >
-                    <FileMagnifyingGlass className="size-4 transition-transform duration-200 group-hover:scale-110" />
+                    <FileMagnifyingGlass className="size-3.5 transition-transform duration-200 group-hover:scale-110" />
                     Clear Filters
                 </button>
             </div>
@@ -260,8 +260,8 @@ export const StudentsListSection = () => {
 
     return (
         <ErrorBoundary>
-            <section className="animate-fadeIn flex max-w-full flex-col gap-6 overflow-visible">
-                <div className="flex flex-col gap-5">
+            <section className="animate-fadeIn flex max-w-full flex-col gap-3 overflow-visible">
+                <div className="flex flex-col gap-3">
                     <InviteFormProvider>
                         <StudentListHeader currentSession={currentSession} />
                     </InviteFormProvider>
@@ -289,9 +289,9 @@ export const StudentsListSection = () => {
                     />
 
                     {loadingData ? (
-                        <div className="flex w-full flex-col items-center gap-4 py-12">
+                        <div className="flex w-full flex-col items-center gap-2 py-6">
                             <DashboardLoader />
-                            <p className="animate-pulse text-sm text-neutral-500">
+                            <p className="animate-pulse text-xs text-neutral-500">
                                 Loading{' '}
                                 {getTerminology(
                                     RoleTerms.Learner,
@@ -303,9 +303,9 @@ export const StudentsListSection = () => {
                     ) : !studentTableData || studentTableData.content.length == 0 ? (
                         <EmptyState />
                     ) : (
-                        <div className="animate-slideInRight flex flex-col gap-4">
+                        <div className="animate-slideInRight flex flex-col gap-2">
                             {/* Modern table container */}
-                            <div className="overflow-hidden rounded-xl border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 shadow-sm">
+                            <div className="overflow-hidden rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 shadow-sm">
                                 <div className="max-w-full" ref={tableRef}>
                                     <SidebarProvider
                                         style={{ ['--sidebar-width' as string]: '565px' }}
@@ -351,7 +351,7 @@ export const StudentsListSection = () => {
                             </div>
 
                             {/* Enhanced footer with bulk actions and pagination */}
-                            <div className="flex flex-col justify-between gap-4 rounded-lg border border-neutral-200/50 bg-gradient-to-r from-neutral-50/50 to-white p-4 lg:flex-row lg:items-center">
+                            <div className="flex flex-col justify-between gap-2 rounded-lg border border-neutral-200/50 bg-gradient-to-r from-neutral-50/50 to-white px-3 py-2 lg:flex-row lg:items-center">
                                 <BulkActions
                                     selectedCount={totalSelectedCount}
                                     selectedStudentIds={getSelectedStudentIds()}
