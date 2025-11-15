@@ -1031,8 +1031,15 @@ export const CourseStructureDetails = ({
         if (levelIndex === -1) {
             resetNavigation();
         } else if (levelIndex === 0) {
-            setCurrentNavigationLevel('modules');
-            setSelectedModuleId('');
+            // For course structure 4, level 0 is the module, so we should navigate to subjects and clear module selection
+            if (courseStructure === 4) {
+                setCurrentNavigationLevel('subjects');
+                setSelectedModuleId('');
+            } else {
+                // For course structure 5, level 0 is subject, so navigate to modules
+                setCurrentNavigationLevel('modules');
+                setSelectedModuleId('');
+            }
         } else if (levelIndex === 1) {
             setCurrentNavigationLevel('chapters');
         }
@@ -1583,7 +1590,7 @@ export const CourseStructureDetails = ({
                                                                 }
                                                                 className="group/module"
                                                             >
-                                                                <CollapsibleTrigger className="flex w-full items-center rounded-md px-2 py-1.5 text-left text-sm font-medium text-gray-700 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+                                                                <CollapsibleTrigger className="group/module-trigger flex w-full items-center rounded-md px-2 py-1.5 text-left text-sm font-medium text-gray-700 transition-colors duration-150 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
                                                                     <div className="flex flex-1 items-center gap-2.5">
                                                                         {isModuleOpen ? (
                                                                             <CaretDown
@@ -1621,6 +1628,55 @@ export const CourseStructureDetails = ({
                                                                             )}
                                                                         </span>
                                                                     </div>
+                                                                    {canEditStructure && (
+                                                                        <div className="flex gap-1">
+                                                                            <MyButton
+                                                                                buttonType="secondary"
+                                                                                layoutVariant="icon"
+                                                                                scale="small"
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    openEditDialog(
+                                                                                        'module',
+                                                                                        {
+                                                                                            ...mod.module,
+                                                                                            subjectId:
+                                                                                                subject.id,
+                                                                                        }
+                                                                                    );
+                                                                                }}
+                                                                                className="opacity-0 transition-opacity hover:bg-blue-100 hover:text-blue-600 group-hover/module-trigger:opacity-100"
+                                                                            >
+                                                                                <PencilSimple
+                                                                                    size={14}
+                                                                                />
+                                                                            </MyButton>
+                                                                            <MyButton
+                                                                                buttonType="secondary"
+                                                                                layoutVariant="icon"
+                                                                                scale="small"
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    openDeleteConfirmation(
+                                                                                        'module',
+                                                                                        {
+                                                                                            id: mod
+                                                                                                .module
+                                                                                                .id,
+                                                                                            name: mod
+                                                                                                .module
+                                                                                                .module_name,
+                                                                                            subjectId:
+                                                                                                subject.id,
+                                                                                        }
+                                                                                    );
+                                                                                }}
+                                                                                className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/module-trigger:opacity-100"
+                                                                            >
+                                                                                <Trash size={14} />
+                                                                            </MyButton>
+                                                                        </div>
+                                                                    )}
                                                                 </CollapsibleTrigger>
                                                                 <CollapsibleContent className="py-1 pl-10">
                                                                     <div className="relative space-y-1.5 border-l-2 border-dashed border-gray-200 pl-6">
@@ -1708,41 +1764,72 @@ export const CourseStructureDetails = ({
                                                                                                     )}
                                                                                                 </span>
                                                                                             </div>
-                                                                                            {!readOnly && (
-                                                                                                <MyButton
-                                                                                                    buttonType="secondary"
-                                                                                                    layoutVariant="icon"
-                                                                                                    scale="small"
-                                                                                                    onClick={(
-                                                                                                        e
-                                                                                                    ) => {
-                                                                                                        e.stopPropagation();
-                                                                                                        openDeleteConfirmation(
-                                                                                                            'chapter',
-                                                                                                            {
-                                                                                                                id: ch
-                                                                                                                    .chapter
-                                                                                                                    .id,
-                                                                                                                name: ch
-                                                                                                                    .chapter
-                                                                                                                    .chapter_name,
-                                                                                                                subjectId:
-                                                                                                                    subject.id,
-                                                                                                                moduleId:
-                                                                                                                    mod
-                                                                                                                        .module
-                                                                                                                        .id,
+                                                                                            {canEditStructure && (
+                                                                                                <div className="flex gap-1">
+                                                                                                    <MyButton
+                                                                                                        buttonType="secondary"
+                                                                                                        layoutVariant="icon"
+                                                                                                        scale="small"
+                                                                                                        onClick={(
+                                                                                                            e
+                                                                                                        ) => {
+                                                                                                            e.stopPropagation();
+                                                                                                            openEditDialog(
+                                                                                                                'chapter',
+                                                                                                                {
+                                                                                                                    ...ch.chapter,
+                                                                                                                    subjectId:
+                                                                                                                        subject.id,
+                                                                                                                    moduleId:
+                                                                                                                        mod
+                                                                                                                            .module
+                                                                                                                            .id,
+                                                                                                                }
+                                                                                                            );
+                                                                                                        }}
+                                                                                                        className="opacity-0 transition-opacity hover:bg-blue-100 hover:text-blue-600 group-hover/chapter-trigger:opacity-100"
+                                                                                                    >
+                                                                                                        <PencilSimple
+                                                                                                            size={
+                                                                                                                12
                                                                                                             }
-                                                                                                        );
-                                                                                                    }}
-                                                                                                    className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/chapter-trigger:opacity-100"
-                                                                                                >
-                                                                                                    <Trash
-                                                                                                        size={
-                                                                                                            12
-                                                                                                        }
-                                                                                                    />
-                                                                                                </MyButton>
+                                                                                                        />
+                                                                                                    </MyButton>
+                                                                                                    <MyButton
+                                                                                                        buttonType="secondary"
+                                                                                                        layoutVariant="icon"
+                                                                                                        scale="small"
+                                                                                                        onClick={(
+                                                                                                            e
+                                                                                                        ) => {
+                                                                                                            e.stopPropagation();
+                                                                                                            openDeleteConfirmation(
+                                                                                                                'chapter',
+                                                                                                                {
+                                                                                                                    id: ch
+                                                                                                                        .chapter
+                                                                                                                        .id,
+                                                                                                                    name: ch
+                                                                                                                        .chapter
+                                                                                                                        .chapter_name,
+                                                                                                                    subjectId:
+                                                                                                                        subject.id,
+                                                                                                                    moduleId:
+                                                                                                                        mod
+                                                                                                                            .module
+                                                                                                                            .id,
+                                                                                                                }
+                                                                                                            );
+                                                                                                        }}
+                                                                                                        className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/chapter-trigger:opacity-100"
+                                                                                                    >
+                                                                                                        <Trash
+                                                                                                            size={
+                                                                                                                12
+                                                                                                            }
+                                                                                                        />
+                                                                                                    </MyButton>
+                                                                                                </div>
                                                                                             )}
                                                                                         </CollapsibleTrigger>
                                                                                         <CollapsibleContent className="py-1 pl-9">
@@ -2517,11 +2604,16 @@ export const CourseStructureDetails = ({
                                 <div key={mod.module.id} className="group relative">
                                     <div
                                         onClick={() => {
-                                            // For courseStructure 4, navigate directly to show chapters
-                                            console.log(
-                                                'Navigate to module chapters:',
-                                                mod.module.module_name
-                                            );
+                                            // For courseStructure 4, navigate to show chapters
+                                            setSelectedModuleId(mod.module.id);
+                                            setCurrentNavigationLevel('chapters');
+                                            setNavigationBreadcrumb([
+                                                {
+                                                    level: 'Module',
+                                                    name: mod.module.module_name,
+                                                    id: mod.module.id,
+                                                },
+                                            ]);
                                         }}
                                         className="cursor-pointer rounded-lg border border-gray-200 bg-white p-2 transition-shadow duration-200 hover:shadow-md"
                                     >
@@ -2664,6 +2756,91 @@ export const CourseStructureDetails = ({
                                                         id: ch.chapter.id,
                                                         name: ch.chapter.chapter_name,
                                                         subjectId: selectedSubjectId,
+                                                        moduleId: selectedModuleId,
+                                                    });
+                                                }}
+                                                className="rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
+                                            >
+                                                <Trash size={14} className="text-red-600" />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+
+                    {/* Show Chapters for Course Structure 4 when at chapters level */}
+                    {courseStructure === 4 &&
+                        currentNavigationLevel === 'chapters' &&
+                        selectedModuleId &&
+                        subjects[0] &&
+                        (
+                            subjectModulesMap[subjects[0].id]?.find(
+                                (mod) => mod.module.id === selectedModuleId
+                            )?.chapters ?? []
+                        ).map((ch: ChapterMetadata, chIdx: number) => (
+                            <div key={ch.chapter.id} className="group relative">
+                                <div
+                                    onClick={() => {
+                                        if (readOnly) return;
+                                        // Navigate to chapter slides
+                                        handleChapterNavigation(
+                                            subjects[0]?.id || '',
+                                            selectedModuleId,
+                                            ch.chapter.id
+                                        );
+                                    }}
+                                    className="cursor-pointer rounded-lg border border-gray-200 bg-white p-2 transition-shadow duration-200 hover:shadow-md"
+                                >
+                                    {/* Folder Icon/Image */}
+                                    <ThumbnailImage
+                                        thumbnailId={ch.chapter.file_id}
+                                        fallbackIcon={
+                                            <PresentationChart
+                                                size={96}
+                                                weight="duotone"
+                                                className="text-purple-600"
+                                            />
+                                        }
+                                        fallbackColor="bg-gradient-to-br from-purple-50 to-purple-100"
+                                    />
+
+                                    {/* Folder Title */}
+                                    <h4
+                                        className="mb-1 truncate text-sm font-medium text-gray-800"
+                                        title={ch.chapter.chapter_name}
+                                    >
+                                        {convertCapitalToTitleCase(ch.chapter.chapter_name)}
+                                    </h4>
+
+                                    {/* Chapter Number */}
+                                    {roleDisplay?.coursePage?.viewContentNumbering !== false && (
+                                        <p className="text-xs text-gray-500">Chapter {chIdx + 1}</p>
+                                    )}
+
+                                    {/* Edit and Delete Buttons */}
+                                    {canEditStructure && (
+                                        <div className="absolute right-2 top-2 flex gap-1">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openEditDialog('chapter', {
+                                                        ...ch.chapter,
+                                                        subjectId: subjects[0]?.id || '',
+                                                        moduleId: selectedModuleId,
+                                                    });
+                                                }}
+                                                className="rounded-full p-1 opacity-0 transition-opacity hover:bg-blue-100 group-hover:opacity-100"
+                                            >
+                                                <PencilSimple size={14} className="text-blue-600" />
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openDeleteConfirmation('chapter', {
+                                                        id: ch.chapter.id,
+                                                        name: ch.chapter.chapter_name,
+                                                        subjectId: subjects[0]?.id || '',
                                                         moduleId: selectedModuleId,
                                                     });
                                                 }}
@@ -3005,7 +3182,7 @@ export const CourseStructureDetails = ({
                                 <TabsTrigger
                                     key={tab.value}
                                     value={tab.value}
-                                    className={`data-[state=active]:text-primary-600 relative flex rounded-none border-b-2 border-transparent px-4 py-2 text-sm font-medium !shadow-none transition-colors duration-200 hover:bg-gray-100 data-[state=active]:border-primary-500 data-[state=active]:bg-primary-50`}
+                                    className={`relative flex rounded-none border-b-2 border-transparent px-4 py-2 text-sm font-medium !shadow-none transition-colors duration-200 hover:bg-gray-100 data-[state=active]:border-primary-500 data-[state=active]:bg-primary-50 data-[state=active]:text-primary-600`}
                                 >
                                     {tab.label}
                                 </TabsTrigger>
