@@ -14,7 +14,7 @@ type ThemeContextType = {
 };
 
 const ThemeContext = createContext<ThemeContextType>({
-    primaryColor: 'primary', // Store the theme code instead of hex
+    primaryColor: 'blue', // Store the theme code instead of hex
     setPrimaryColor: () => {},
     getPrimaryColorCode: () => '#ED7424',
 });
@@ -23,9 +23,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const [primaryColor, setPrimaryColor] = useState(() => {
         try {
             const saved = typeof window !== 'undefined' ? localStorage.getItem('theme-code') : null;
-            return saved || 'primary';
+            return saved || 'blue';
         } catch {
-            return 'primary';
+            return 'blue';
         }
     }); // Default theme code
 
