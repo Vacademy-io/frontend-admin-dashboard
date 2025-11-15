@@ -1,12 +1,12 @@
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { getUserId } from '@/utils/userDetails';
 import { getSystemAlertsQuery, stripHtml } from '@/services/notifications/system-alerts';
 import { BellSimple } from 'phosphor-react';
 
 export default function RecentNotificationsWidget({ onSeeAll }: { onSeeAll?: () => void }) {
     const userId = getUserId();
-    const { data, isLoading } = useSuspenseQuery(getSystemAlertsQuery(userId, 5));
+    const { data, isLoading } = useQuery(getSystemAlertsQuery(userId, 5));
 
     return (
         <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50 shadow-none">

@@ -59,13 +59,36 @@ export async function fetchSystemAlerts(params: {
 }): Promise<PagedResponse<SystemAlertItem>> {
     const { userId, page = 0, size = 20 } = params;
     const url = getSystemAlertsUrl(userId);
-    const response = await axios.get(url, {
-        params: {
-            page,
+    try {
+        const response = await axios.get(url, {
+            params: {
+                page,
+                size,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        // Return empty response on error to prevent UI blocking
+        console.error('Failed to fetch system alerts:', error);
+        return {
+            content: [],
+            pageable: {
+                pageNumber: page,
+                pageSize: size,
+                offset: 0,
+                paged: true,
+                unpaged: false,
+            },
+            totalPages: 0,
+            totalElements: 0,
+            last: true,
+            numberOfElements: 0,
+            first: true,
             size,
-        },
-    });
-    return response.data;
+            number: page,
+            empty: true,
+        };
+    }
 }
 
 // Helpers to integrate with @tanstack/react-query

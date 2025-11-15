@@ -26,7 +26,7 @@ import { useSelectedSessionStore } from '@/stores/study-library/selected-session
 import { useContentStore } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { SidebarSimple } from '@phosphor-icons/react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { useSuspenseQuery, useQueryClient } from '@tanstack/react-query';
+import { useSuspenseQuery, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { Separator } from '@/components/ui/separator';
 import EditDashboardProfileComponent from '@/routes/dashboard/-components/EditDashboardProfileComponent';
@@ -98,7 +98,7 @@ export function Navbar() {
     const canEditInstitute = effectiveDS.permissions.canEditInstituteDetails;
 
     // Alerts: last 5
-    const { data: alertsList, isLoading: isAlertsLoading } = useSuspenseQuery<
+    const { data: alertsList, isLoading: isAlertsLoading } = useQuery<
         PagedResponse<SystemAlertItem>
     >(getSystemAlertsQuery(userId, 5));
 
@@ -426,7 +426,7 @@ export function Navbar() {
                                                     <img
                                                         src={adminLogo}
                                                         alt="logo"
-                                                        className="size-48 object-cover rounded-full"
+                                                        className="size-48 rounded-full object-cover"
                                                     />
                                                 )}
                                                 <h1>{adminDetails?.full_name}</h1>
@@ -502,7 +502,7 @@ export function Navbar() {
                                                     <img
                                                         src={instituteLogo}
                                                         alt="logo"
-                                                        className="size-48 object-cover rounded-full"
+                                                        className="size-48 rounded-full object-cover"
                                                     />
                                                 )}
                                                 <h1>{instituteDetails?.institute_name}</h1>
