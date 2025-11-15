@@ -134,6 +134,59 @@ interface Session {
     slides: Slide[];
 }
 
+const createDefaultSlides = (
+    sessionId: string,
+    topics: Topic[],
+    hasQuiz: boolean,
+    hasHomework: boolean
+): Slide[] => {
+    const slides: Slide[] = [
+        {
+            id: `${sessionId}-objectives`,
+            type: 'objectives',
+            title: 'Learning Objectives Overview',
+        },
+    ];
+
+    topics.forEach((topic, index) => {
+        slides.push({
+            id: `${sessionId}-topic-${index + 1}`,
+            type: 'topic',
+            title: topic.title,
+            topicIndex: index,
+            duration: topic.duration,
+        });
+    });
+
+    if (hasQuiz) {
+        slides.push({
+            id: `${sessionId}-quiz`,
+            type: 'quiz',
+            title: 'Session Quiz',
+        });
+    }
+
+    if (hasHomework) {
+        slides.push({
+            id: `${sessionId}-homework`,
+            type: 'homework',
+            title: 'Homework Assignment',
+        });
+        slides.push({
+            id: `${sessionId}-solution`,
+            type: 'solution',
+            title: 'Homework Solution',
+        });
+    }
+
+    return slides;
+};
+
+const createSession = (session: Omit<Session, 'slides'>): Session => ({
+    ...session,
+    slides: createDefaultSlides(session.id, session.topics, session.hasQuiz, session.hasHomework),
+});
+
 interface CourseData {
     title: string;
     subtitle: string;
@@ -180,7 +233,7 @@ const mockCourseData: CourseData = {
         'By the end of this course, you\'ll be equipped to design, build, and deploy sophisticated ML solutions that solve complex business problems.',
     ],
     sessions: [
-        {
+        createSession({
             id: '1',
             title: 'Advanced Supervised Learning',
             learningObjectives: [
@@ -195,8 +248,8 @@ const mockCourseData: CourseData = {
             ],
             hasQuiz: true,
             hasHomework: true,
-        },
-        {
+        }),
+        createSession({
             id: '2',
             title: 'Ensemble Methods',
             learningObjectives: [
@@ -211,8 +264,8 @@ const mockCourseData: CourseData = {
             ],
             hasQuiz: true,
             hasHomework: true,
-        },
-        {
+        }),
+        createSession({
             id: '3',
             title: 'Unsupervised Learning & Clustering',
             learningObjectives: [
@@ -227,8 +280,8 @@ const mockCourseData: CourseData = {
             ],
             hasQuiz: true,
             hasHomework: true,
-        },
-        {
+        }),
+        createSession({
             id: '4',
             title: 'Neural Networks & Deep Learning',
             learningObjectives: [
@@ -243,8 +296,8 @@ const mockCourseData: CourseData = {
             ],
             hasQuiz: true,
             hasHomework: true,
-        },
-        {
+        }),
+        createSession({
             id: '5',
             title: 'CNNs and Computer Vision',
             learningObjectives: [
@@ -259,8 +312,8 @@ const mockCourseData: CourseData = {
             ],
             hasQuiz: true,
             hasHomework: true,
-        },
-        {
+        }),
+        createSession({
             id: '6',
             title: 'NLP with Transformers',
             learningObjectives: [
@@ -275,8 +328,8 @@ const mockCourseData: CourseData = {
             ],
             hasQuiz: true,
             hasHomework: true,
-        },
-        {
+        }),
+        createSession({
             id: '7',
             title: 'Model Deployment',
             learningObjectives: [
@@ -291,8 +344,8 @@ const mockCourseData: CourseData = {
             ],
             hasQuiz: true,
             hasHomework: true,
-        },
-        {
+        }),
+        createSession({
             id: '8',
             title: 'Capstone Project',
             learningObjectives: [
@@ -307,7 +360,7 @@ const mockCourseData: CourseData = {
             ],
             hasQuiz: false,
             hasHomework: true,
-        },
+        }),
     ],
 };
 
@@ -1159,11 +1212,13 @@ function RouteComponent() {
         let sessionLengthValue = '60'; // default
         let customLength = '';
         
-        if (session.topics.length > 0 && session.topics[0].duration) {
+        const firstTopic = session.topics[0];
+        if (firstTopic?.duration) {
             // Try to extract minutes from duration string (e.g., "10 min" -> 10)
-            const durationMatch = session.topics[0].duration.match(/(\d+)/);
-            if (durationMatch) {
-                const minutes = parseInt(durationMatch[1], 10);
+            const durationMatch = firstTopic.duration.match(/(\d+)/);
+            const durationValue = durationMatch?.[1];
+            if (durationValue) {
+                const minutes = parseInt(durationValue, 10);
                 // Check if it matches standard values
                 if (minutes === 45 || minutes === 60 || minutes === 90) {
                     sessionLengthValue = minutes.toString();

@@ -146,6 +146,7 @@ type SlideType =
     | 'doc'
     | 'pdf'
     | 'video'
+    | 'image'
     | 'jupyter'
     | 'code-editor'
     | 'scratch'
@@ -229,6 +230,22 @@ interface SessionProgress {
     slides: SlideGeneration[];
     progress: number;
 }
+
+const extractTopicTitlesFromSlides = (slides: SlideGeneration[]): string[] => {
+    return slides.reduce<string[]>((acc, slide) => {
+        const isTopicSlide = slide.slideType === 'topic' || slide.slideTitle?.startsWith('Topic');
+        if (!isTopicSlide) {
+            return acc;
+        }
+
+        const match = slide.slideTitle?.match(/Topic \d+: (.+)/);
+        const topicTitle = match?.[1]?.trim() ?? slide.slideTitle?.trim();
+        if (topicTitle) {
+            acc.push(topicTitle);
+        }
+        return acc;
+    }, []);
+};
 
 // Sortable Session Item Component
 interface SortableSessionItemProps {
@@ -607,6 +624,7 @@ function RouteComponent() {
     const [selectedQuizAnswers, setSelectedQuizAnswers] = useState<Record<number, string>>(() => ({
         ...DEFAULT_SELECTED_ANSWERS,
     }));
+    const currentQuizQuestion = quizQuestions[currentQuizQuestionIndex];
 
     // Drag and drop sensors
     const sensors = useSensors(
@@ -1074,14 +1092,7 @@ function RouteComponent() {
         setRegeneratingSessionId(sessionId);
         
         // Extract topics from slides (slides with type 'topic' or titles starting with "Topic")
-        const topicSlides = session.slides.filter(slide => 
-            slide.slideType === 'topic' || slide.slideTitle.startsWith('Topic')
-        );
-        const topics = topicSlides.map(slide => {
-            // Extract topic title from "Topic X: Title" format
-            const match = slide.slideTitle.match(/Topic \d+: (.+)/);
-            return match ? match[1] : slide.slideTitle;
-        });
+        const topics = extractTopicTitlesFromSlides(session.slides);
 
         // Pre-fill prompt with a default based on session data
         const defaultPrompt = `Regenerate the session "${session.sessionTitle}"${topics.length > 0 ? ` with the following topics: ${topics.join(', ')}.` : '.'}`;
@@ -1939,7 +1950,7 @@ function RouteComponent() {
                                                 <div className="flex-1">
                                                     <Label className="text-base font-semibold">Question:</Label>
                                                     <p className="mt-2 text-neutral-700">
-                                                        {quizQuestions[currentQuizQuestionIndex]?.question ?? 'No question available'}
+                                                        {currentQuizQuestion?.question ?? 'No question available'}
                                                     </p>
                                                 </div>
                                                 <div className="flex items-center gap-3">
@@ -1968,18 +1979,17 @@ function RouteComponent() {
                                                 </div>
                                             </div>
 
-                                            {quizQuestions.length > 0 ? (
+                                            {quizQuestions.length > 0 && currentQuizQuestion ? (
                                                 <RadioGroup
                                                     value={selectedQuizAnswers[currentQuizQuestionIndex] ?? ''}
                                                     onValueChange={handleQuizAnswerChange}
                                                     className="space-y-3"
                                                 >
-                                                    {quizQuestions[currentQuizQuestionIndex].options.map((option, optionIndex) => {
+                                                    {currentQuizQuestion.options.map((option, optionIndex) => {
                                                         const value = optionIndex.toString();
                                                         const selected = selectedQuizAnswers[currentQuizQuestionIndex] === value;
                                                         const isCorrect =
-                                                            quizQuestions[currentQuizQuestionIndex].correctAnswerIndex?.toString() ===
-                                                            value;
+                                                            currentQuizQuestion.correctAnswerIndex?.toString() === value;
                                                         const highlightClass = selected
                                                             ? isCorrect
                                                                 ? 'border-emerald-300 bg-emerald-50'
@@ -2168,13 +2178,7 @@ function RouteComponent() {
                             // Re-pre-fill when reopening with the same session
                             const session = sessionsWithProgress.find((s) => s.sessionId === regeneratingSessionId);
                             if (session) {
-                                const topicSlides = session.slides.filter(slide => 
-                                    slide.slideType === 'topic' || slide.slideTitle.startsWith('Topic')
-                                );
-                                const topics = topicSlides.map(slide => {
-                                    const match = slide.slideTitle.match(/Topic \d+: (.+)/);
-                                    return match ? match[1] : slide.slideTitle;
-                                });
+                                const topics = extractTopicTitlesFromSlides(session.slides);
                                 const defaultPrompt = `Regenerate the session "${session.sessionTitle}"${topics.length > 0 ? ` with the following topics: ${topics.join(', ')}.` : '.'}`;
                                 setRegenerateSessionPrompt(defaultPrompt);
                                 setRegenerateSessionTopics(topics);
