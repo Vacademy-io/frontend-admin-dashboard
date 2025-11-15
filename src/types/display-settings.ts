@@ -87,6 +87,30 @@ export interface CourseContentTypeSettings {
     scratch: boolean;
 }
 
+export interface CourseCreationSettings {
+    // Whether to expose the "Create Course with AI" entry points
+    showCreateCourseWithAI: boolean;
+    // Require selecting package sessions when creating a new chapter
+    requirePackageSelectionForNewChapter: boolean;
+}
+
+export interface StudentSideViewSettings {
+    overviewTab: boolean;
+    testTab: boolean;
+    progressTab: boolean;
+    notificationTab: boolean;
+    membershipTab: boolean;
+    userTaggingTab: boolean;
+    fileTab: boolean;
+    portalAccessTab: boolean;
+}
+
+export interface LearnerManagementSettings {
+    allowPortalAccess: boolean;
+    allowViewPassword: boolean;
+    allowSendResetPasswordMail: boolean;
+}
+
 export interface DisplaySettingsData {
     // 1) Sidebar tabs and sub-tabs configuration and ordering
     sidebar: SidebarTabConfig[];
@@ -142,6 +166,15 @@ export interface DisplaySettingsData {
         showCopyTo: boolean;
         showMoveTo: boolean;
     };
+
+    // 11) Course creation configuration
+    courseCreation?: CourseCreationSettings;
+
+    // 12) Student portal side-view tab visibility
+    studentSideView?: StudentSideViewSettings;
+
+    // 13) Learner management permissions for admins/teachers
+    learnerManagement?: LearnerManagementSettings;
 }
 
 export const ADMIN_DISPLAY_SETTINGS_KEY = 'ADMIN_DISPLAY_SETTINGS' as const;

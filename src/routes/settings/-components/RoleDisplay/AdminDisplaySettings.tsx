@@ -12,10 +12,96 @@ import {
     type CourseListTabId,
     type CourseDetailsTabId,
     type CourseContentTypeSettings,
+    type CourseCreationSettings,
+    type StudentSideViewSettings,
+    type LearnerManagementSettings,
 } from '@/types/display-settings';
 import { getDisplaySettingsWithFallback, saveDisplaySettings } from '@/services/display-settings';
 import { DEFAULT_ADMIN_DISPLAY_SETTINGS } from '@/constants/display-settings/admin-defaults';
 import { toast } from 'sonner';
+
+const COURSE_CREATION_DEFAULTS: CourseCreationSettings = {
+    showCreateCourseWithAI: false,
+    requirePackageSelectionForNewChapter: true,
+};
+
+const STUDENT_SIDE_VIEW_DEFAULTS: StudentSideViewSettings = {
+    overviewTab: true,
+    testTab: true,
+    progressTab: true,
+    notificationTab: false,
+    membershipTab: false,
+    userTaggingTab: false,
+    fileTab: false,
+    portalAccessTab: false,
+};
+
+const STUDENT_SIDE_VIEW_OPTIONS: Array<{
+    key: keyof StudentSideViewSettings;
+    label: string;
+    defaultValue: boolean;
+}> = [
+    {
+        key: 'overviewTab',
+        label: 'Overview Tab',
+        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.overviewTab,
+    },
+    { key: 'testTab', label: 'Test Tab', defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.testTab },
+    {
+        key: 'progressTab',
+        label: 'Progress Tab',
+        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.progressTab,
+    },
+    {
+        key: 'notificationTab',
+        label: 'Notification Tab',
+        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.notificationTab,
+    },
+    {
+        key: 'membershipTab',
+        label: 'Membership Tab',
+        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.membershipTab,
+    },
+    {
+        key: 'userTaggingTab',
+        label: 'User Tagging Tab',
+        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.userTaggingTab,
+    },
+    { key: 'fileTab', label: 'File Tab', defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.fileTab },
+    {
+        key: 'portalAccessTab',
+        label: 'Portal Access Tab',
+        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.portalAccessTab,
+    },
+];
+
+const LEARNER_MANAGEMENT_DEFAULTS: LearnerManagementSettings = {
+    allowPortalAccess: true,
+    allowViewPassword: true,
+    allowSendResetPasswordMail: true,
+};
+
+const LEARNER_MANAGEMENT_OPTIONS: Array<{
+    key: keyof LearnerManagementSettings;
+    label: string;
+    defaultValue: boolean;
+}> = [
+    {
+        key: 'allowPortalAccess',
+        label: 'Allow Learner Portal Access',
+        defaultValue: LEARNER_MANAGEMENT_DEFAULTS.allowPortalAccess,
+    },
+    {
+        key: 'allowViewPassword',
+        label: 'Allow Viewing Learner Password',
+        defaultValue: LEARNER_MANAGEMENT_DEFAULTS.allowViewPassword,
+    },
+    {
+        key: 'allowSendResetPasswordMail',
+        label: 'Allow Sending Reset Password Mail',
+        defaultValue: LEARNER_MANAGEMENT_DEFAULTS.allowSendResetPasswordMail,
+    },
+];
 
 export default function AdminDisplaySettings() {
     const [settings, setSettings] = useState<DisplaySettingsData | null>(null);
@@ -224,6 +310,60 @@ export default function AdminDisplaySettings() {
                             />
                         </div>
                     ))}
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Course Creation</CardTitle>
+                    <CardDescription>
+                        Configure AI course creation entry points and chapter setup defaults.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                    <div className="flex items-center justify-between rounded border p-3">
+                        <div className="text-sm">Show &quot;Create Course with AI&quot;</div>
+                        <Switch
+                            checked={
+                                settings.courseCreation?.showCreateCourseWithAI ??
+                                COURSE_CREATION_DEFAULTS.showCreateCourseWithAI
+                            }
+                            onCheckedChange={(checked) =>
+                                updateSettings((prev) => ({
+                                    ...prev,
+                                    courseCreation: {
+                                        showCreateCourseWithAI: checked,
+                                        requirePackageSelectionForNewChapter:
+                                            prev.courseCreation
+                                                ?.requirePackageSelectionForNewChapter ??
+                                            COURSE_CREATION_DEFAULTS.requirePackageSelectionForNewChapter,
+                                    },
+                                }))
+                            }
+                        />
+                    </div>
+                    <div className="flex items-center justify-between rounded border p-3">
+                        <div className="text-sm">
+                            Require package session selection when adding a new chapter
+                        </div>
+                        <Switch
+                            checked={
+                                settings.courseCreation?.requirePackageSelectionForNewChapter ??
+                                COURSE_CREATION_DEFAULTS.requirePackageSelectionForNewChapter
+                            }
+                            onCheckedChange={(checked) =>
+                                updateSettings((prev) => ({
+                                    ...prev,
+                                    courseCreation: {
+                                        showCreateCourseWithAI:
+                                            prev.courseCreation?.showCreateCourseWithAI ??
+                                            COURSE_CREATION_DEFAULTS.showCreateCourseWithAI,
+                                        requirePackageSelectionForNewChapter: checked,
+                                    },
+                                }))
+                            }
+                        />
+                    </div>
                 </CardContent>
             </Card>
 
@@ -863,6 +1003,76 @@ export default function AdminDisplaySettings() {
                             />
                         </div>
                     </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Student Side View Options</CardTitle>
+                    <CardDescription>
+                        Configure which tabs are visible in the student side view.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                    {STUDENT_SIDE_VIEW_OPTIONS.map(({ key, label }) => (
+                        <div
+                            key={key}
+                            className="flex items-center justify-between rounded border p-3"
+                        >
+                            <div className="text-sm">{label}</div>
+                            <Switch
+                                checked={
+                                    settings.studentSideView?.[key] ??
+                                    STUDENT_SIDE_VIEW_DEFAULTS[key]
+                                }
+                                onCheckedChange={(checked) =>
+                                    updateSettings((prev) => ({
+                                        ...prev,
+                                        studentSideView: {
+                                            ...STUDENT_SIDE_VIEW_DEFAULTS,
+                                            ...prev.studentSideView,
+                                            [key]: checked,
+                                        },
+                                    }))
+                                }
+                            />
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Learner Management</CardTitle>
+                    <CardDescription>
+                        Configure learner management permissions and access controls.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                    {LEARNER_MANAGEMENT_OPTIONS.map(({ key, label }) => (
+                        <div
+                            key={key}
+                            className="flex items-center justify-between rounded border p-3"
+                        >
+                            <div className="text-sm">{label}</div>
+                            <Switch
+                                checked={
+                                    settings.learnerManagement?.[key] ??
+                                    LEARNER_MANAGEMENT_DEFAULTS[key]
+                                }
+                                onCheckedChange={(checked) =>
+                                    updateSettings((prev) => ({
+                                        ...prev,
+                                        learnerManagement: {
+                                            ...LEARNER_MANAGEMENT_DEFAULTS,
+                                            ...prev.learnerManagement,
+                                            [key]: checked,
+                                        },
+                                    }))
+                                }
+                            />
+                        </div>
+                    ))}
                 </CardContent>
             </Card>
 

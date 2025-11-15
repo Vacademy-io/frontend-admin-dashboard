@@ -1,4 +1,4 @@
-import { Component, ErrorInfo, ReactNode, useEffect, useState } from 'react';
+import { Component, ErrorInfo, ReactNode, useEffect, useRef, useState } from 'react';
 import { Warning, ArrowClockwise } from '@phosphor-icons/react';
 import { MyButton } from '@/components/design-system/button';
 import { useTheme } from '@/providers/theme/theme-provider';
@@ -126,6 +126,11 @@ export const DashboardLoader = ({
     const { getPrimaryColorCode } = useTheme();
     const [messageIndex, setMessageIndex] = useState(0);
     const [dots, setDots] = useState('');
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [containerSize, setContainerSize] = useState<{ width: number; height: number }>({
+        width: 0,
+        height: 0,
+    });
 
     useEffect(() => {
         const messageInterval = setInterval(() => {
@@ -147,10 +152,92 @@ export const DashboardLoader = ({
 
     const containerMinHeight = height || '60vh';
 
+    useEffect(() => {
+        const element = containerRef.current;
+        if (!element || typeof ResizeObserver === 'undefined') return;
+
+        const observer = new ResizeObserver((entries) => {
+            const entry = entries[0];
+            if (!entry) return;
+            const { width, height } = entry.contentRect;
+            setContainerSize({ width, height });
+        });
+
+        observer.observe(element);
+        return () => {
+            observer.disconnect();
+        };
+    }, []);
+
+    // Compact mode when both width and height are small (embedded/small containers)
+    const isCompact =
+        containerSize.width > 0 &&
+        containerSize.height > 0 &&
+        containerSize.width <= 640 &&
+        containerSize.height <= 420;
+
+    if (isCompact) {
+        return (
+            <div
+                className={`${fullscreen ? 'fixed inset-0 overflow-auto' : 'w-full'} bg-slate-50`}
+                style={{ minHeight: containerMinHeight }}
+                ref={containerRef}
+            >
+                <div className="flex min-h-full items-center justify-center p-6">
+                    <div className="text-center">
+                        <ClipLoader
+                            size={size || 32}
+                            color={getPrimaryColorCode()}
+                            speedMultiplier={0.8}
+                        />
+                        <p className="mt-3 text-xs font-medium text-slate-700">
+                            {learningMessages[messageIndex]}
+                            {dots}
+                        </p>
+                    </div>
+                </div>
+                <style
+                    dangerouslySetInnerHTML={{
+                        __html: `
+          @keyframes loadingProgress {
+            0% { width: 20%; }
+            50% { width: 75%; }
+            100% { width: 20%; }
+          }
+
+          @keyframes shimmer {
+            0% {
+              opacity: 1;
+            }
+            50% {
+              opacity: 0.5;
+            }
+            100% {
+              opacity: 1;
+            }
+          }
+
+          .shimmer {
+            background: #e2e8f0;
+            animation: shimmer 1.5s linear infinite;
+          }
+
+          .shimmer-wrapper {
+            position: relative;
+            overflow: hidden;
+          }
+        `,
+                    }}
+                />
+            </div>
+        );
+    }
+
     return (
         <div
             className={`${fullscreen ? 'fixed inset-0 overflow-auto' : 'w-full'} bg-slate-50`}
             style={{ minHeight: containerMinHeight }}
+            ref={containerRef}
         >
             <div className="mx-auto flex min-h-full max-w-screen-2xl flex-col lg:flex-row">
                 {/* Main Content Area with Shimmer Cards */}

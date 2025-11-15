@@ -936,7 +936,7 @@ export function QuickAddView({ search }: { search: ChapterSearchParamsForQuickAd
                         onClick={onAddAll}
                         disabled={staged.length === 0}
                     >
-                        Add All Slides
+                        Publish All Slides
                     </MyButton>
                 </div>
             </div>

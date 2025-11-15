@@ -17,6 +17,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Bell, Envelope, WhatsappLogo } from '@phosphor-icons/react';
+import { MyButton } from '@/components/design-system/button';
+import { useDialogStore } from '@/routes/manage-students/students-list/-hooks/useDialogStore';
 
 const getStatusIcon = (eventType: string) => {
     switch (eventType.toLowerCase()) {
@@ -91,6 +94,10 @@ export const StudentEmailNotifications = () => {
     const [page, setPage] = useState(0);
     const pageSize = 10;
     const [expandedMsg, setExpandedMsg] = useState<Record<string, boolean>>({});
+    const {
+        openIndividualSendEmailDialog,
+        openIndividualSendMessageDialog,
+    } = useDialogStore();
 
     const {
         data: emailData,
@@ -167,6 +174,57 @@ export const StudentEmailNotifications = () => {
 
     return (
         <div className="space-y-6">
+            {/* Send Notification Section */}
+            <div className="rounded-lg border border-neutral-200/50 bg-gradient-to-br from-white to-neutral-50/30 p-3 transition-all duration-200 hover:border-primary-200/50 hover:shadow-md">
+                <div className="mb-2 flex items-center gap-2.5">
+                    <div className="rounded-md bg-gradient-to-br from-blue-50 to-blue-100 p-1.5">
+                        <Bell className="size-4 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                        <h4 className="text-xs font-medium text-neutral-700">Send Notification</h4>
+                        <p className="text-[10px] text-neutral-500">Email or WhatsApp message</p>
+                    </div>
+                </div>
+
+                {/* Notification action buttons */}
+                <div className="flex gap-2">
+                    <MyButton
+                        type="button"
+                        buttonType="secondary"
+                        scale="small"
+                        disable={false}
+                        onClick={() => {
+                            if (selectedStudent) {
+                                openIndividualSendEmailDialog(selectedStudent);
+                            }
+                        }}
+                        className="group flex flex-1 cursor-pointer items-center justify-center gap-1.5 border border-blue-200 bg-white text-xs text-blue-700 transition-all duration-200 hover:scale-100 hover:border-blue-300 hover:bg-blue-50"
+                        style={{ pointerEvents: 'auto', zIndex: 10 }}
+                    >
+                        <Envelope className="size-3 transition-transform duration-200 group-hover:scale-110" />
+                        Email
+                    </MyButton>
+
+                    <MyButton
+                        type="button"
+                        buttonType="secondary"
+                        scale="small"
+                        disable={false}
+                        onClick={() => {
+                            if (selectedStudent) {
+                                openIndividualSendMessageDialog(selectedStudent);
+                            }
+                        }}
+                        className="group flex flex-1 cursor-pointer items-center justify-center gap-1.5 border border-green-200 bg-white text-xs text-green-700 transition-all duration-200 hover:scale-100 hover:border-green-300 hover:bg-green-50"
+                        style={{ pointerEvents: 'auto', zIndex: 10 }}
+                    >
+                        <WhatsappLogo className="size-3 transition-transform duration-200 group-hover:scale-110" />
+                        WhatsApp
+                    </MyButton>
+                </div>
+            </div>
+
+            {/* Recent Notifications */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="h-1 w-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-400"></div>

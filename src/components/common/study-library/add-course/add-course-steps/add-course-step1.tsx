@@ -2,7 +2,7 @@ import { TokenKey } from '@/constants/auth/tokens';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import {
@@ -156,12 +156,141 @@ export const AddCourseStep1 = ({
         },
     });
 
-    // Watch the course field value
+    // Watch all form field values
     const courseValue = form.watch('course');
-    const isNextDisabled =
-        !courseValue ||
-        courseValue.trim() === '' ||
-        Object.values(uploadingStates).some((state) => state);
+    const description = form.watch('description');
+    const learningOutcome = form.watch('learningOutcome');
+    const aboutCourse = form.watch('aboutCourse');
+    const targetAudience = form.watch('targetAudience');
+    const coursePreview = form.watch('coursePreview');
+    const courseBanner = form.watch('courseBanner');
+    const courseMedia = form.watch('courseMedia');
+
+    // Function to check if ONLY REQUIRED fields are filled (for enabling Next button)
+    const areRequiredFieldsFilled = useCallback((): boolean => {
+        // Course name is always required
+        if (!courseValue || courseValue.trim() === '') {
+            return false;
+        }
+
+        // Check if any upload is in progress
+        if (Object.values(uploadingStates).some((state) => state)) {
+            return false;
+        }
+
+        return true;
+    }, [courseValue, uploadingStates]);
+
+    // Function to check if ALL visible fields are filled (for auto-advance)
+    const areAllVisibleFieldsFilled = useCallback((): boolean => {
+        // First check if required fields are filled
+        if (!areRequiredFieldsFilled()) {
+            return false;
+        }
+
+        // Then check all optional/visible fields based on settings
+        const checks = {
+            description: {
+                enabled: courseSettings?.courseInformation?.descriptionRequired,
+                value: description,
+                filled: !!(description && description.trim() !== ''),
+            },
+            tags: {
+                enabled: courseSettings?.courseInformation?.popularTopicsEnabled,
+                value: tags,
+                filled: !!(tags && tags.length > 0),
+            },
+            learningOutcome: {
+                enabled: courseSettings?.courseInformation?.learnerOutcomesRequired,
+                value: learningOutcome,
+                filled: !!(learningOutcome && learningOutcome.trim() !== ''),
+            },
+            aboutCourse: {
+                enabled: courseSettings?.courseInformation?.aboutCourseRequired,
+                value: aboutCourse,
+                filled: !!(aboutCourse && aboutCourse.trim() !== ''),
+            },
+            targetAudience: {
+                enabled: courseSettings?.courseInformation?.targetAudienceRequired,
+                value: targetAudience,
+                filled: !!(targetAudience && targetAudience.trim() !== ''),
+            },
+            coursePreview: {
+                enabled: courseSettings?.courseInformation?.previewImageRequired,
+                value: coursePreview,
+                filled: !!(coursePreview && coursePreview.trim() !== ''),
+            },
+            courseBanner: {
+                enabled: courseSettings?.courseInformation?.bannerImageEnabled,
+                value: courseBanner,
+                filled: !!(courseBanner && courseBanner.trim() !== ''),
+            },
+            courseMedia: {
+                enabled: courseSettings?.courseInformation?.courseMediaEnabled,
+                value: form.watch('courseMedia'),
+                filled: (() => {
+                    const mediaData = form.watch('courseMedia');
+                    return !!(mediaData?.id && mediaData?.type);
+                })(),
+            },
+        };
+
+        // Check description if enabled
+        if (checks.description.enabled && !checks.description.filled) {
+            return false;
+        }
+
+        // Check tags if enabled
+        if (checks.tags.enabled && !checks.tags.filled) {
+            return false;
+        }
+
+        // Check learner outcomes if enabled
+        if (checks.learningOutcome.enabled && !checks.learningOutcome.filled) {
+            return false;
+        }
+
+        // Check about course if enabled
+        if (checks.aboutCourse.enabled && !checks.aboutCourse.filled) {
+            return false;
+        }
+
+        // Check target audience if enabled
+        if (checks.targetAudience.enabled && !checks.targetAudience.filled) {
+            return false;
+        }
+
+        // Check preview image if enabled
+        if (checks.coursePreview.enabled && !checks.coursePreview.filled) {
+            return false;
+        }
+
+        // Check banner image if enabled
+        if (checks.courseBanner.enabled && !checks.courseBanner.filled) {
+            return false;
+        }
+
+        // Check course media if enabled
+        if (checks.courseMedia.enabled && !checks.courseMedia.filled) {
+            return false;
+        }
+
+        return true;
+    }, [
+        areRequiredFieldsFilled,
+        courseSettings,
+        description,
+        tags,
+        learningOutcome,
+        aboutCourse,
+        targetAudience,
+        coursePreview,
+        courseBanner,
+        form,
+    ]);
+
+    // Next button is disabled only if REQUIRED fields are not filled
+    const isNextDisabled = !areRequiredFieldsFilled();
 
     const handleFileUpload = async (
         file: File,
@@ -287,6 +416,23 @@ export const AddCourseStep1 = ({
         form.setValue('tags', updatedTags);
     };
 
+    // Remove image/media handlers
+    const removeCoursePreview = () => {
+        form.setValue('coursePreview', '');
+        form.setValue('coursePreviewBlob', '');
+    };
+
+    const removeCourseBanner = () => {
+        form.setValue('courseBanner', '');
+        form.setValue('courseBannerBlob', '');
+    };
+
+    const removeCourseMedia = () => {
+        form.setValue('courseMedia', { type: '', id: '' });
+        form.setValue('courseMediaBlob', '');
+        setYoutubeUrl('');
+    };
+
     useEffect(() => {
         const fetchAndSetUrls = async () => {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -304,7 +450,76 @@ export const AddCourseStep1 = ({
         if (initialData) {
             fetchAndSetUrls();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialData]);
+
+    useEffect(() => {
+        const refetchBlobUrls = async () => {
+            const previewId = form.getValues('coursePreview');
+            const bannerId = form.getValues('courseBanner');
+            const mediaData = form.getValues('courseMedia');
+
+            // Only fetch if we have file IDs but missing blob URLs
+            if (previewId && !form.getValues('coursePreviewBlob')) {
+                const url = await getPublicUrl(previewId);
+                form.setValue('coursePreviewBlob', url);
+            }
+
+            if (bannerId && !form.getValues('courseBannerBlob')) {
+                const url = await getPublicUrl(bannerId);
+                form.setValue('courseBannerBlob', url);
+            }
+
+            if (mediaData?.id && !form.getValues('courseMediaBlob')) {
+                const url = await getPublicUrl(mediaData.id);
+                form.setValue('courseMediaBlob', url);
+            }
+        };
+
+        refetchBlobUrls();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [coursePreview, courseBanner, courseMedia]);
+
+    // Auto-advance to next step when ALL visible fields are filled
+    useEffect(() => {
+        // Only auto-advance if settings are loaded
+        if (settingsLoading || !courseSettings) {
+            return undefined;
+        }
+        // Do not auto-advance in edit mode
+        if (Object.keys(initialData || {}).length > 0) {
+            return undefined;
+        }
+
+        // Check if ALL visible fields are filled
+        if (areAllVisibleFieldsFilled()) {
+            // Add a small delay to ensure smooth UX and avoid jarring immediate transition
+            const timer = setTimeout(() => {
+                form.handleSubmit(onNext)();
+            }, 300);
+
+            return () => {
+                clearTimeout(timer);
+            };
+        }
+
+        return undefined;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        courseValue,
+        description,
+        learningOutcome,
+        aboutCourse,
+        targetAudience,
+        coursePreview,
+        courseBanner,
+        courseMedia,
+        tags,
+        uploadingStates,
+        courseSettings,
+        settingsLoading,
+        initialData,
+    ]);
 
     // Show loading state if settings are still loading
     if (settingsLoading) {
@@ -409,7 +624,7 @@ export const AddCourseStep1 = ({
                                 {/* Tags Section */}
                                 {courseSettings?.courseInformation?.popularTopicsEnabled && (
                                     <div className="space-y-2 pt-10">
-                                        <Label className="text-normal font-medium text-gray-900">
+                                        <Label className="text-base font-medium text-gray-900">
                                             {getTerminology(
                                                 ContentTerms.Course,
                                                 SystemTerms.Course
@@ -618,6 +833,20 @@ export const AddCourseStep1 = ({
                                                 <PencilSimpleLine />
                                             </MyButton>
                                         </div>
+                                        {/* Remove button for preview image */}
+                                        {form.watch('coursePreview') && (
+                                            <MyButton
+                                                type="button"
+                                                onClick={removeCoursePreview}
+                                                buttonType="secondary"
+                                                layoutVariant="default"
+                                                scale="small"
+                                                className="mt-2 w-full"
+                                            >
+                                                <X className="mr-2 size-4" />
+                                                Remove Preview Image
+                                            </MyButton>
+                                        )}
                                     </div>
                                 )}
 
@@ -680,6 +909,20 @@ export const AddCourseStep1 = ({
                                                 <PencilSimpleLine />
                                             </MyButton>
                                         </div>
+                                        {/* Remove button for banner image */}
+                                        {form.watch('courseBanner') && (
+                                            <MyButton
+                                                type="button"
+                                                onClick={removeCourseBanner}
+                                                buttonType="secondary"
+                                                layoutVariant="default"
+                                                scale="small"
+                                                className="mt-2 w-full"
+                                            >
+                                                <X className="mr-2 size-4" />
+                                                Remove Banner Image
+                                            </MyButton>
+                                        )}
                                     </div>
                                 )}
 
@@ -871,6 +1114,21 @@ export const AddCourseStep1 = ({
                                                 />
                                             </div>
                                         </div>
+                                        {/* Remove button for course media */}
+                                        {(form.watch('courseMedia')?.id ||
+                                            form.watch('courseMedia')?.type === 'youtube') && (
+                                            <MyButton
+                                                type="button"
+                                                onClick={removeCourseMedia}
+                                                buttonType="secondary"
+                                                layoutVariant="default"
+                                                scale="small"
+                                                className="mt-2 w-full"
+                                            >
+                                                <X className="mr-2 size-4" />
+                                                Remove Course Media
+                                            </MyButton>
+                                        )}
                                     </div>
                                 )}
                             </div>

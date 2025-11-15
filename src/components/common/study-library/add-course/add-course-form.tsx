@@ -180,58 +180,86 @@ export const AddCourseForm = ({
                 { requestData: formattedDataUpdate },
                 {
                     onSuccess: async () => {
-                        const instituteDetails = await fetchInstituteDetails();
+                        try {
+                            const instituteDetails = await fetchInstituteDetails();
 
-                        const unmatchedPackageSessionIds = findUnmatchedBatchIds(
-                            previousSessions,
-                            instituteDetails?.batches_for_sessions || [],
-                            formattedDataUpdate.id
-                        );
+                            // Wait for institute details and validate
+                            if (!instituteDetails?.batches_for_sessions) {
+                                console.warn(
+                                    'Institute details not loaded, skipping structure creation'
+                                );
+                                toast.success(
+                                    `${getTerminology(ContentTerms.Course, SystemTerms.Course)} updated successfully`
+                                );
+                                setIsOpen(false);
+                                setStep(1);
+                                setFormData({});
+                                return;
+                            }
 
-                        if (formattedData.course_depth === 2) {
-                            const subjectResponse = await addSubjectMutation.mutateAsync({
-                                subject: newSubject,
-                                packageSessionIds: unmatchedPackageSessionIds.join(','),
-                            });
+                            const unmatchedPackageSessionIds = findUnmatchedBatchIds(
+                                previousSessions,
+                                instituteDetails.batches_for_sessions,
+                                formattedDataUpdate.id
+                            );
 
-                            const moduleResponse = await addModuleMutation.mutateAsync({
-                                subjectId: subjectResponse.data.id,
-                                packageSessionIds: unmatchedPackageSessionIds.join(','),
-                                module: newModule,
-                            });
+                            // Only create structure if there are unmatched batches
+                            if (unmatchedPackageSessionIds.length > 0) {
+                                const packageSessionIdsStr = unmatchedPackageSessionIds.join(',');
 
-                            await addChapterMutation.mutateAsync({
-                                subjectId: subjectResponse.data.id,
-                                moduleId: moduleResponse.data.id,
-                                commaSeparatedPackageSessionIds:
-                                    unmatchedPackageSessionIds.join(','),
-                                chapter: newChapter,
-                            });
-                        } else if (formattedData.course_depth === 3) {
-                            const subjectResponse = await addSubjectMutation.mutateAsync({
-                                subject: newSubject,
-                                packageSessionIds: unmatchedPackageSessionIds.join(','),
-                            });
+                                if (formattedData.course_depth === 2) {
+                                    const subjectResponse = await addSubjectMutation.mutateAsync({
+                                        subject: newSubject,
+                                        packageSessionIds: packageSessionIdsStr,
+                                    });
 
-                            await addModuleMutation.mutateAsync({
-                                subjectId: subjectResponse.data.id,
-                                packageSessionIds: unmatchedPackageSessionIds.join(','),
-                                module: newModule,
-                            });
-                        } else if (formattedData.course_depth === 4) {
-                            await addSubjectMutation.mutateAsync({
-                                subject: newSubject,
-                                packageSessionIds: unmatchedPackageSessionIds.join(','),
-                            });
+                                    const moduleResponse = await addModuleMutation.mutateAsync({
+                                        subjectId: subjectResponse.data.id,
+                                        packageSessionIds: packageSessionIdsStr,
+                                        module: newModule,
+                                    });
+
+                                    await addChapterMutation.mutateAsync({
+                                        subjectId: subjectResponse.data.id,
+                                        moduleId: moduleResponse.data.id,
+                                        commaSeparatedPackageSessionIds: packageSessionIdsStr,
+                                        chapter: newChapter,
+                                    });
+                                } else if (formattedData.course_depth === 3) {
+                                    const subjectResponse = await addSubjectMutation.mutateAsync({
+                                        subject: newSubject,
+                                        packageSessionIds: packageSessionIdsStr,
+                                    });
+
+                                    await addModuleMutation.mutateAsync({
+                                        subjectId: subjectResponse.data.id,
+                                        packageSessionIds: packageSessionIdsStr,
+                                        module: newModule,
+                                    });
+                                } else if (formattedData.course_depth === 4) {
+                                    await addSubjectMutation.mutateAsync({
+                                        subject: newSubject,
+                                        packageSessionIds: packageSessionIdsStr,
+                                    });
+                                }
+                            } else {
+                                console.log(
+                                    'No unmatched batches found - skipping structure creation'
+                                );
+                            }
+
+                            toast.success(
+                                `${getTerminology(ContentTerms.Course, SystemTerms.Course)} updated successfully`
+                            );
+                            setIsOpen(false);
+                            setStep(1);
+                            setFormData({});
+                        } catch (err) {
+                            console.error('Error in course update flow:', err);
+                            toast.error(
+                                `Failed to update ${getTerminology(ContentTerms.Course, SystemTerms.Course)}`
+                            );
                         }
-
-                        toast.success(
-                            `${getTerminology(ContentTerms.Course, SystemTerms.Course)}` +
-                                ' updated successfully'
-                        );
-                        setIsOpen(false);
-                        setStep(1);
-                        setFormData({});
                     },
                     onError: () => {
                         toast.error(
@@ -250,10 +278,18 @@ export const AddCourseForm = ({
                     onSuccess: async (response) => {
                         try {
                             const instituteDetails = await fetchInstituteDetails();
+                            if (!instituteDetails?.batches_for_sessions) {
+                                throw new Error('Institute details not loaded');
+                            }
                             const packageSessionId = findIdByPackageId(
-                                instituteDetails?.batches_for_sessions || [],
+                                instituteDetails.batches_for_sessions,
                                 response.data
                             );
+                            if (!packageSessionId) {
+                                throw new Error(
+                                    'Package session ID not found for the created course'
+                                );
+                            }
 
                             if (formattedData.course_depth === 2) {
                                 const subjectResponse = await addSubjectMutation.mutateAsync({
@@ -302,8 +338,11 @@ export const AddCourseForm = ({
                                 to: `/study-library/courses/course-details?courseId=${response.data}`,
                             });
                         } catch (err) {
+                            console.error('Error in course creation flow:', err);
                             toast.error(
-                                `Failed to create ${getTerminology(ContentTerms.Course, SystemTerms.Course)}`
+                                err instanceof Error
+                                    ? err.message
+                                    : `Error creating ${getTerminology(ContentTerms.Course, SystemTerms.Course)}`
                             );
                         } finally {
                             setIsCreating(false);
