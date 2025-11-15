@@ -154,9 +154,9 @@ export const Route = createRootRouteWithContext<{
             <>
                 <Outlet />
                 <Suspense>
-                    <TanStackRouterDevtools />
+                 {/*   <TanStackRouterDevtools /> */}
                 </Suspense>
-                <ReactQueryDevtools initialIsOpen={false} />
+                {/* <ReactQueryDevtools initialIsOpen={false} />i */}
             </>
         );
     },
