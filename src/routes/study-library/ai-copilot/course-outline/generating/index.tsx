@@ -995,7 +995,7 @@ function RouteComponent() {
         );
 
         setSlides(allSlides);
-        
+
         // Start generation after slides are set
         let currentIndex = 0;
         const generateNextSlide = () => {
@@ -1052,7 +1052,7 @@ function RouteComponent() {
             return;
         }
         setRegenerateSlideDialogOpen(false);
-        
+
         // Update slide to generating status
         setSlides((prev) =>
             prev.map((slide) =>
@@ -1090,7 +1090,7 @@ function RouteComponent() {
         if (!session) return;
 
         setRegeneratingSessionId(sessionId);
-        
+
         // Extract topics from slides (slides with type 'topic' or titles starting with "Topic")
         const topics = extractTopicTitlesFromSlides(session.slides);
 
@@ -1106,11 +1106,11 @@ function RouteComponent() {
         const hasQuiz = session.slides.some(s => s.slideType === 'quiz');
         const hasHomework = session.slides.some(s => s.slideType === 'homework');
         const hasSolution = session.slides.some(s => s.slideType === 'solution');
-        
+
         // Check for code-related slides
-        const hasCodeSlides = session.slides.some(s => 
-            s.slideType === 'code-editor' || 
-            s.slideType === 'video-code-editor' || 
+        const hasCodeSlides = session.slides.some(s =>
+            s.slideType === 'code-editor' ||
+            s.slideType === 'video-code-editor' ||
             s.slideType === 'jupyter' ||
             s.slideType === 'video-jupyter'
         );
@@ -1136,7 +1136,7 @@ function RouteComponent() {
             return;
         }
         setRegenerateSessionDialogOpen(false);
-        
+
         // Update all slides in the session to generating status
         setSlides((prev) =>
             prev.map((slide) =>
@@ -1217,7 +1217,7 @@ function RouteComponent() {
             return;
         }
         setAddSlideDialogOpen(false);
-        
+
         const session = sessionsWithProgress.find((s) => s.sessionId === addingSlideToSessionId);
         if (!session) return;
 
@@ -1289,11 +1289,11 @@ function RouteComponent() {
             return;
         }
         setAddSessionDialogOpen(false);
-        
+
         // Create new session
         const newSessionId = `session-${Date.now()}`;
         const newSessionTitle = 'New Session';
-        
+
         // Create initial slides for the new session
         const newSlides: SlideGeneration[] = [
             {
@@ -1413,7 +1413,7 @@ function RouteComponent() {
 
     const handleSaveSlideContent = () => {
         if (!viewingSlide) return;
-        
+
         // Save content based on slide type
         setSlides((prev) =>
             prev.map((slide) => {
@@ -1471,11 +1471,11 @@ function RouteComponent() {
     useEffect(() => {
         const handleResizeMove = (e: MouseEvent) => {
             if (!isResizing || !resizeContainerRef.current) return;
-            
+
             const container = resizeContainerRef.current;
             const containerRect = container.getBoundingClientRect();
             const newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
-            
+
             // Constrain between 20% and 80%
             const constrainedWidth = Math.max(20, Math.min(80, newWidth));
             setCodeEditorWidth(constrainedWidth);
@@ -1615,7 +1615,7 @@ function RouteComponent() {
     };
 
     return (
-        <LayoutContainer>
+        <LayoutContainer public={true}>
             <Helmet>
                 <title>Generating Course Content</title>
                 <meta name="description" content="AI is generating your course content." />
@@ -1802,12 +1802,12 @@ function RouteComponent() {
                                         viewingSlide.slideType === 'video-code-editor' ||
                                         viewingSlide.slideType === 'video-jupyter' ||
                                         viewingSlide.slideType === 'video-scratch') && (
-                                        <div 
+                                        <div
                                             ref={resizeContainerRef}
                                             className="flex gap-0 h-[600px] relative"
                                         >
                                             {/* Code Editor Section */}
-                                            <div 
+                                            <div
                                                 className="border rounded-l-lg overflow-hidden flex-shrink-0 flex flex-col"
                                                 style={{ width: `${codeEditorWidth}%` }}
                                             >
@@ -1915,7 +1915,7 @@ function RouteComponent() {
                                                     }}
                                                 />
                                             </div>
-                                            
+
                                             {/* Resize Divider */}
                                             <div
                                                 className="w-1 bg-neutral-300 hover:bg-indigo-500 cursor-col-resize flex-shrink-0 transition-colors relative group"
@@ -1926,9 +1926,9 @@ function RouteComponent() {
                                                     <div className="w-1 h-12 bg-neutral-400 group-hover:bg-indigo-500 rounded-full transition-colors" />
                                                 </div>
                                             </div>
-                                            
+
                                             {/* Video Section */}
-                                            <div 
+                                            <div
                                                 className="border rounded-r-lg overflow-hidden bg-black flex-shrink-0 flex items-center justify-center"
                                                 style={{ width: `${100 - codeEditorWidth}%` }}
                                             >
@@ -2186,9 +2186,9 @@ function RouteComponent() {
                                 const hasQuiz = session.slides.some(s => s.slideType === 'quiz');
                                 const hasHomework = session.slides.some(s => s.slideType === 'homework');
                                 const hasSolution = session.slides.some(s => s.slideType === 'solution');
-                                const hasCodeSlides = session.slides.some(s => 
-                                    s.slideType === 'code-editor' || 
-                                    s.slideType === 'video-code-editor' || 
+                                const hasCodeSlides = session.slides.some(s =>
+                                    s.slideType === 'code-editor' ||
+                                    s.slideType === 'video-code-editor' ||
                                     s.slideType === 'jupyter' ||
                                     s.slideType === 'video-jupyter'
                                 );

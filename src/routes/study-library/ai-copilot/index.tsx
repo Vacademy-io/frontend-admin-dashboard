@@ -348,7 +348,7 @@ function RouteComponent() {
 
 
     return (
-        <LayoutContainer>
+        <LayoutContainer public={true}>
             <Helmet>
                 <title>Create Course with AI</title>
                 <meta

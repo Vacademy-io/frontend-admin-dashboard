@@ -22,6 +22,7 @@ export const LayoutContainer = ({
     internalSidebarComponent,
     hasInternalSidebarComponent = false,
     customSidebarControl = false,
+    public: isPublic = false,
 }: {
     children?: React.ReactNode;
     className?: string;
@@ -33,6 +34,7 @@ export const LayoutContainer = ({
     hasInternalSidebarComponent?: boolean;
     internalSidebarComponent?: React.ReactNode;
     customSidebarControl?: boolean;
+    public?: boolean;
 }) => {
     const { open, setOpen } = useSidebar();
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
@@ -40,7 +42,7 @@ export const LayoutContainer = ({
     const isAdmin = roles.includes('ADMIN');
     const roleKey = isAdmin ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
     const roleDisplay = getDisplaySettingsFromCache(roleKey);
-    const showMainSidebar = roleDisplay?.ui?.showSidebar !== false;
+    const showMainSidebar = false;
     useEffect(() => {
         // Skip automatic sidebar control if customSidebarControl is enabled
         if (customSidebarControl) return;
@@ -50,24 +52,8 @@ export const LayoutContainer = ({
     }, [internalSideBar, hasInternalSidebarComponent, customSidebarControl]);
     return (
         <div className={`flex w-full`}>
-            <div className={`flex ${showMainSidebar ? (open ? 'gap-12' : 'gap-16') : 'gap-0'}`}>
-                {showMainSidebar && (
-                    <div>
-                        <MySidebar sidebarComponent={sidebarComponent} />
-                    </div>
-                )}
-                <div className="sticky top-0 h-screen">
-                    {hasInternalSidebarComponent && internalSidebarComponent ? (
-                        <InternalSidebarComponent sidebarComponent={internalSidebarComponent} />
-                    ) : (
-                        internalSideBar && (
-                            <InternalSideBar sideBarList={sideBarList} sideBarData={sideBarData} />
-                        )
-                    )}
-                </div>
-            </div>
             <div className="flex w-full flex-1 flex-col text-neutral-600">
-                <Navbar />
+                {!isPublic && <Navbar />}
                 <StudentSidebarProvider>
                     <div
                         className={cn(

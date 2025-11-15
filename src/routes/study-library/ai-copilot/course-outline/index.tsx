@@ -389,32 +389,32 @@ const isYouTubeUrl = (url: string): boolean => {
 const extractKeywords = (text: string): string[] => {
     // Remove common words and extract meaningful terms
     const commonWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'should', 'could', 'may', 'might', 'must', 'can', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'what', 'which', 'who', 'whom', 'whose', 'where', 'when', 'why', 'how', 'all', 'each', 'every', 'both', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 'just', 'about', 'into', 'through', 'during', 'including', 'against', 'among', 'throughout', 'despite', 'towards', 'upon', 'concerning'];
-    
+
     // Split by spaces, hyphens, and other delimiters, then clean
     const words = text
         .toLowerCase()
         .split(/[\s\-_]+/)
         .map(word => word.replace(/[^a-z0-9]/g, '')) // Remove special chars but keep alphanumeric
-        .filter(word => 
-            word.length > 2 && 
+        .filter(word =>
+            word.length > 2 &&
             !commonWords.includes(word) &&
             /[a-z]/.test(word) // Must contain at least one letter
         );
-    
+
     // Return unique keywords, limit to most relevant ones
     return [...new Set(words)].slice(0, 5);
 };
 
 // Helper function to generate keyword-focused prompt based on session and slide
 const generateOneLinerPrompt = (
-    sessionTitle: string, 
-    slideTitle: string, 
+    sessionTitle: string,
+    slideTitle: string,
     slideType: SlideType,
     session?: Omit<Session, 'slides'>,
     topicTitle?: string
 ): string => {
     const slideName = slideTitle.replace(/^Topic \d+: /, ''); // Remove "Topic X: " prefix if present
-    
+
     switch (slideType) {
         case 'objectives':
             if (session && session.learningObjectives.length > 0) {
@@ -422,27 +422,27 @@ const generateOneLinerPrompt = (
                 const objKeywords = session.learningObjectives
                     .flatMap(obj => extractKeywords(obj))
                     .slice(0, 5);
-                const keywordsStr = objKeywords.length > 0 
-                    ? objKeywords.join(', ') 
+                const keywordsStr = objKeywords.length > 0
+                    ? objKeywords.join(', ')
                     : extractKeywords(sessionTitle).join(', ');
                 return `Focus on: ${keywordsStr}`;
             }
             return `Focus on: ${extractKeywords(sessionTitle).join(', ')}`;
-            
+
         case 'topic':
             // Extract keywords from topic title and session title
             const topicKeywords = extractKeywords(topicTitle || slideName);
             const sessionKeywords = extractKeywords(sessionTitle).slice(0, 2);
             const allKeywords = [...new Set([...topicKeywords, ...sessionKeywords])].slice(0, 5);
             return `Cover: ${allKeywords.join(', ')}`;
-            
+
         case 'image':
             // Extract keywords from slide title and session title
             const imageKeywords = extractKeywords(slideName);
             const imageSessionKeywords = extractKeywords(sessionTitle).slice(0, 2);
             const imageAllKeywords = [...new Set([...imageKeywords, ...imageSessionKeywords])].slice(0, 5);
             return `Show: ${imageAllKeywords.join(', ')}`;
-            
+
         case 'quiz':
             if (session && session.topics.length > 0) {
                 // Extract keywords from all topics
@@ -452,7 +452,7 @@ const generateOneLinerPrompt = (
                 return `Test: ${quizKeywords.join(', ')}`;
             }
             return `Test: ${extractKeywords(sessionTitle).join(', ')}`;
-            
+
         case 'homework':
             if (session && session.topics.length > 0) {
                 // Extract keywords from all topics
@@ -462,7 +462,7 @@ const generateOneLinerPrompt = (
                 return `Practice: ${hwKeywords.join(', ')}`;
             }
             return `Practice: ${extractKeywords(sessionTitle).join(', ')}`;
-            
+
         case 'solution':
             if (session && session.topics.length > 0) {
                 // Extract keywords from all topics
@@ -472,7 +472,7 @@ const generateOneLinerPrompt = (
                 return `Solutions for: ${solKeywords.join(', ')}`;
             }
             return `Solutions for: ${extractKeywords(sessionTitle).join(', ')}`;
-            
+
         default:
             const defaultKeywords = extractKeywords(slideTitle);
             return `Cover: ${defaultKeywords.join(', ')}`;
@@ -903,7 +903,7 @@ const SortableSlideItem = ({ slide, sessionId, onEdit, onDelete, onUpdatePrompt 
                     </>
                 )}
             </div>
-            
+
             {/* Prompt Dialog */}
             <Dialog open={showPromptDialog} onOpenChange={(open) => {
                 setShowPromptDialog(open);
@@ -1112,7 +1112,7 @@ function RouteComponent() {
     const handleRegenerateOutline = () => {
         // Pre-fill all fields from current courseData
         // Note: Some fields may not be available in CourseData, so we'll use defaults or extract what we can
-        
+
         // Extract skill level from courseData.level (e.g., "Advanced" -> "advanced")
         const skillLevelMap: Record<string, string> = {
             'Beginner': 'beginner',
@@ -1120,31 +1120,31 @@ function RouteComponent() {
             'Advanced': 'advanced',
         };
         setRegenerateSkillLevel(skillLevelMap[courseData.level] || '');
-        
+
         // Pre-fill number of sessions
         setRegenerateCourseNumberOfSessions(courseData.totalSessions.toString());
-        
+
         // Check if sessions have quizzes/homework to pre-fill components
         const hasQuizzes = courseData.sessions.some(s => s.hasQuiz);
         const hasHomework = courseData.sessions.some(s => s.hasHomework);
         setRegenerateCourseIncludeQuizzes(hasQuizzes);
         setRegenerateCourseIncludeHomework(hasHomework);
         setRegenerateCourseIncludeSolutions(hasHomework);
-        
+
         // Extract average topics per session
-        const avgTopics = courseData.sessions.length > 0 
+        const avgTopics = courseData.sessions.length > 0
             ? Math.round(courseData.sessions.reduce((sum, s) => sum + s.topics.length, 0) / courseData.sessions.length)
             : 0;
         setRegenerateCourseTopicsPerSession(avgTopics.toString());
-        
+
         // Extract topics from all sessions
         const allTopics = courseData.sessions.flatMap(s => s.topics.map(t => t.title));
         setRegenerateCourseTopics([...new Set(allTopics)]); // Remove duplicates
-        
+
         // Extract course goal and learning outcome from aboutCourse and whatLearnersGain
         setRegenerateCourseGoal(courseData.aboutCourse.join('\n\n') || '');
         setRegenerateLearningOutcome(courseData.whatLearnersGain.join('\n\n') || '');
-        
+
         // Try to extract age range from whoShouldJoin text
         // Look for patterns like "18-25", "25-35", etc.
         let extractedAgeRange = '';
@@ -1156,10 +1156,10 @@ function RouteComponent() {
             }
         }
         setRegenerateAgeRange(extractedAgeRange);
-        
+
         // Reset prompt (should be empty)
         setRegeneratePrompt('');
-        
+
         // Reset other fields to defaults
         setRegeneratePrerequisiteFiles([]);
         setRegeneratePrerequisiteUrls([]);
@@ -1176,7 +1176,7 @@ function RouteComponent() {
         setRegenerateReferenceFiles([]);
         setRegenerateReferenceUrls([]);
         setRegenerateNewReferenceUrl('');
-        
+
         setRegenerateDialogOpen(true);
     };
 
@@ -1201,7 +1201,7 @@ function RouteComponent() {
         if (!session) return;
 
         setRegeneratingSessionId(sessionId);
-        
+
         // Pre-fill prompt with a default based on session data
         const defaultPrompt = `Regenerate the session "${session.title}" with the following topics: ${session.topics.map(t => t.title).join(', ')}. ${session.learningObjectives.length > 0 ? `Learning objectives: ${session.learningObjectives.join('; ')}.` : ''}`;
         setRegenerateSessionPrompt(defaultPrompt);
@@ -1211,7 +1211,7 @@ function RouteComponent() {
         // If topics have durations like "10 min", we can sum them or use a default
         let sessionLengthValue = '60'; // default
         let customLength = '';
-        
+
         const firstTopic = session.topics[0];
         if (firstTopic?.duration) {
             // Try to extract minutes from duration string (e.g., "10 min" -> 10)
@@ -1678,7 +1678,7 @@ function RouteComponent() {
     // Loading state
     if (isInitialLoading) {
         return (
-            <LayoutContainer>
+            <LayoutContainer public={true}>
                 <Helmet>
                     <title>Generating Course Outline...</title>
                 </Helmet>
@@ -1697,7 +1697,7 @@ function RouteComponent() {
     }
 
     return (
-        <LayoutContainer>
+        <LayoutContainer public={true}>
             <Helmet>
                 <title>AI-Generated Course Outline</title>
                 <meta name="description" content="Review and save your AI-generated course outline." />
@@ -2023,7 +2023,7 @@ function RouteComponent() {
                                     </Accordion>
                                 </SortableContext>
                             </DndContext>
-                            
+
                             {/* Add Session Button */}
                             <button
                                 onClick={handleAddSession}
@@ -2719,7 +2719,7 @@ function RouteComponent() {
                             {/* 1. Course Goal and Learning Outcome */}
                             <div className="space-y-4">
                                 <h3 className="text-lg font-semibold text-neutral-900">1. Course Goal and Learning Outcome</h3>
-                                
+
                                 <div className="space-y-4">
                                     <div>
                                         <Label htmlFor="regenerateCourseGoal" className="mb-2 block">
@@ -2752,7 +2752,7 @@ function RouteComponent() {
                             {/* 2. Learner Profile */}
                             <div className="space-y-4">
                                 <h3 className="text-lg font-semibold text-neutral-900">2. Learner Profile</h3>
-                                
+
                                 <div className="space-y-4">
                                     <div>
                                         <Label htmlFor="regenerateAgeRange" className="mb-2 block">
@@ -2874,7 +2874,7 @@ function RouteComponent() {
                             {/* 3. Duration, Format, and Structure */}
                             <div className="space-y-4">
                                 <h3 className="text-lg font-semibold text-neutral-900">3. Duration, Format, and Structure</h3>
-                                
+
                                 <div className="space-y-4">
                                     <div>
                                         <Label htmlFor="regenerateCourseNumberOfSessions" className="mb-2 block">

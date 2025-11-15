@@ -26,7 +26,7 @@ import { useSelectedSessionStore } from '@/stores/study-library/selected-session
 import { useContentStore } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { SidebarSimple } from '@phosphor-icons/react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { useSuspenseQuery, useQueryClient, useQuery } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { Separator } from '@/components/ui/separator';
 import EditDashboardProfileComponent from '@/routes/dashboard/-components/EditDashboardProfileComponent';
@@ -62,8 +62,18 @@ export function Navbar() {
         EVALUATOR: '#F5F0FF',
     };
     const queryClient = useQueryClient();
-    const { data: instituteDetails } = useSuspenseQuery(useInstituteQuery());
-    const { data: adminDetails } = useSuspenseQuery(handleGetAdminDetails());
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const hasAccessToken = !!accessToken;
+
+    // Only fetch institute and admin details if we have an access token (not public routes)
+    const { data: instituteDetails } = useQuery({
+        ...useInstituteQuery(),
+        enabled: hasAccessToken,
+    });
+    const { data: adminDetails } = useQuery({
+        ...handleGetAdminDetails(),
+        enabled: hasAccessToken,
+    });
     const { resetStore } = useInstituteDetailsStore();
     const { resetStudyLibraryStore } = useStudyLibraryStore();
     const { resetInstituteLogo } = useInstituteLogoStore();
@@ -78,7 +88,6 @@ export function Navbar() {
     const { instituteLogo } = useInstituteLogoStore();
     const { getPublicUrl } = useFileUpload();
     const { adminLogo, setAdminLogo, resetAdminLogo } = useAdminLogoStore();
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const roles = getUserRoles(accessToken);
     const userId = getUserId();
     const [showEditAccountDetails, setShowEditAccountDetails] = useState(false);
@@ -432,7 +441,7 @@ export function Navbar() {
                                                 <h1>{adminDetails?.full_name}</h1>
                                                 <div className="flex flex-wrap items-center gap-2">
                                                     <h1 className="whitespace-nowrap">Role Type</h1>
-                                                    {adminDetails.roles?.map((role, idx) => {
+                                                    {adminDetails?.roles?.map((role, idx) => {
                                                         const bgColor =
                                                             roleColors[
                                                                 role.role_name.toUpperCase()
@@ -448,7 +457,7 @@ export function Navbar() {
                                                         );
                                                     })}
                                                 </div>
-                                                {canEditProfile ? (
+                                                {canEditProfile && adminDetails ? (
                                                     <AdminProfile adminDetails={adminDetails} />
                                                 ) : null}
                                             </div>
