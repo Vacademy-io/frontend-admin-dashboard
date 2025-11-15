@@ -29,7 +29,7 @@ export const useTitleStore = create<TitleStore>((set, get) => ({
         try {
             const cached = getCachedInstituteBranding();
             const tabText = cached?.tabText;
-            const title = tabText && tabText.trim() ? tabText.trim() : 'Admin Dashboard';
+            const title = tabText && tabText.trim() ? tabText.trim() : 'Figma Copilot';
             set({ globalTitle: title });
             document.title = title;
 
@@ -40,14 +40,14 @@ export const useTitleStore = create<TitleStore>((set, get) => ({
                 get().ensureCorrectFavicon();
             }
         } catch (error) {
-            set({ globalTitle: 'Admin Dashboard' });
-            document.title = 'Admin Dashboard';
+            set({ globalTitle: 'Figma Copilot' });
+            document.title = 'Figma Copilot';
         }
     },
 
     ensureCorrectTitle: () => {
         const { globalTitle } = get();
-        const finalTitle = globalTitle || 'Admin Dashboard';
+        const finalTitle = globalTitle || 'Figma Copilot';
         document.title = finalTitle;
     },
 

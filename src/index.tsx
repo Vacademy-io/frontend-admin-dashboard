@@ -78,7 +78,7 @@ if (!rootElement.innerHTML) {
             if (cached) {
                 // Set title from cached data with fallback to "Admin Dashboard"
                 const tabText = cached.tabText;
-                const title = tabText && tabText.trim() ? tabText.trim() : 'Admin Dashboard';
+                const title = tabText && tabText.trim() ? tabText.trim() : 'Figma Copilot';
                 titleStore.setGlobalTitle(title);
                 const themeCode = cached.instituteThemeCode ?? cached.theme;
                 if (themeCode) {
@@ -110,7 +110,7 @@ if (!rootElement.innerHTML) {
             const data = await resolveInstituteForCurrentHost();
             if (!data) {
                 // If no data from API, ensure we have a fallback title
-                titleStore.setGlobalTitle('Admin Dashboard');
+                titleStore.setGlobalTitle('Figma Copilot');
                 return;
             }
 
@@ -125,9 +125,9 @@ if (!rootElement.innerHTML) {
                 tabIconUrl: iconUrl || undefined,
             });
 
-            // Set title from API response with fallback to "Admin Dashboard"
+            // Set title from API response with fallback to "Figma Copilot"
             const tabText = data.tabText;
-            const title = tabText && tabText.trim() ? tabText.trim() : 'Admin Dashboard';
+            const title = tabText && tabText.trim() ? tabText.trim() : 'Figma Copilot';
             titleStore.setGlobalTitle(title);
 
             // Set favicon from API response
@@ -159,7 +159,7 @@ if (!rootElement.innerHTML) {
         } catch {
             // ignore branding failures - but ensure we have a fallback title
             const titleStore = useTitleStore.getState();
-            titleStore.setGlobalTitle('Admin Dashboard');
+            titleStore.setGlobalTitle('Figma Copilot');
         }
     };
 
