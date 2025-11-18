@@ -417,17 +417,21 @@ export const AddCourseStep2 = ({
         resolver: zodResolver(step2Schema),
         defaultValues: initialData
             ? {
+                  // Use values from initialData where available. Respect course settings for depth.
                   ...initialData,
-                  levelStructure: courseSettings?.courseStructure?.defaultDepth || 2,
-                  hasLevels: 'yes',
-                  hasSessions: 'yes',
-                  sessions: [],
-                  selectedInstructors: [],
-                  instructors: [],
-                  publishToCatalogue: false,
+                  levelStructure:
+                      courseSettings?.courseStructure?.defaultDepth ??
+                      initialData.levelStructure ??
+                      2,
+                  hasLevels: initialData.hasLevels ?? getInitialHasLevels(),
+                  hasSessions: initialData.hasSessions ?? getInitialHasSessions(),
+                  sessions: initialData.sessions ?? [],
+                  selectedInstructors: initialData.selectedInstructors ?? [],
+                  instructors: initialData.instructors ?? [],
+                  publishToCatalogue: initialData.publishToCatalogue ?? false,
               }
             : {
-                  levelStructure: 2,
+                  levelStructure: courseSettings?.courseStructure?.defaultDepth || 2,
                   hasLevels: 'yes',
                   hasSessions: 'yes',
                   sessions: [],
@@ -963,22 +967,24 @@ export const AddCourseStep2 = ({
             );
             setSelectedInstructors(dedupedSelectedInstructors);
             // Normalize session id for standalone levels
-            const sessionsWithBatchIdLevels =
-                form.getValues('sessions')?.map((session) => ({
-                    ...session,
-                    id: hasSessions !== 'yes' && hasLevels === 'yes' ? 'DEFAULT' : session.id,
-                    name: hasSessions !== 'yes' && hasLevels === 'yes' ? 'DEFAULT' : session.name,
-                    levels: session.levels.map((level) => ({
-                        ...level,
-                        batchId: (level as Level).batchId || level.id,
-                    })),
-                })) || [];
+            // Prefer initialData.sessions when editing; fall back to current form values or state
+            const sourceSessions =
+                (initialData.sessions as any[]) || form.getValues('sessions') || sessions || [];
+            const sessionsWithBatchIdLevels = sourceSessions.map((session) => ({
+                ...session,
+                id: hasSessions !== 'yes' && hasLevels === 'yes' ? 'DEFAULT' : session.id,
+                name: hasSessions !== 'yes' && hasLevels === 'yes' ? 'DEFAULT' : session.name,
+                levels: (session.levels || []).map((level: Level) => ({
+                    ...level,
+                    batchId: (level as Level).batchId || level.id,
+                })),
+            }));
             setSessions(sessionsWithBatchIdLevels);
             // Aggregate instructor mappings from session data
             const instructorMappingsFromSessions: InstructorMapping[] = [];
             sessionsWithBatchIdLevels.forEach((session) => {
-                session.levels?.forEach((level) => {
-                    level.userIds?.forEach((instructor) => {
+                session.levels?.forEach((level: Level) => {
+                    level.userIds?.forEach((instructor: Instructor) => {
                         const sessionLevelMapping = {
                             sessionId: session.id,
                             sessionName: session.name,
@@ -1208,7 +1214,6 @@ export const AddCourseStep2 = ({
                             </div>
 
                             <CardContent className="space-y-6 p-5">
-
                                 {/* Structure Selection */}
                                 {!isEdit && !courseSettings?.courseStructure?.fixCourseDepth && (
                                     <div>
