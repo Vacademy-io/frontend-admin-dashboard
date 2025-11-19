@@ -52,8 +52,8 @@ export const generateCustomFieldColumns = (): ColumnDef<StudentTable>[] => {
 
         // Create a column definition for each custom field
         return customFields.map((field: FieldForLocation) => ({
-            accessorKey: field.id,
-            id: field.id,
+            accessorKey: field.id || field.name,
+            id: field.id || field.name,
             size: 180,
             minSize: 120,
             maxSize: 300,
