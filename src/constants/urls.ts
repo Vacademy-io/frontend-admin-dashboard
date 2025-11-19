@@ -390,3 +390,4 @@ export const LIST_WORKFLOWS_WITH_SCHEDULES = `${WORKFLOW_SERVICE_BASE}/institute
 
 // User Plan URLs
 export const GET_USER_PLANS = `${BASE_URL}/admin-core-service/v1/user-plan/all`;
+export const GET_PAYMENT_LOGS = `${BASE_URL}/admin-core-service/v1/user-plan/payment-logs`;

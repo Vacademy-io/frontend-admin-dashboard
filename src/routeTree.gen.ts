@@ -15,9 +15,11 @@ import { Route as StudyLibraryIndexRouteImport } from "./routes/study-library/in
 import { Route as SignupIndexRouteImport } from "./routes/signup/index"
 import { Route as SettingsIndexRouteImport } from "./routes/settings/index"
 import { Route as ManageStudentsIndexRouteImport } from "./routes/manage-students/index"
+import { Route as ManagePaymentsIndexRouteImport } from "./routes/manage-payments/index"
 import { Route as ManageInstituteIndexRouteImport } from "./routes/manage-institute/index"
 import { Route as LoginIndexRouteImport } from "./routes/login/index"
 import { Route as LearnerInsightsIndexRouteImport } from "./routes/learner-insights/index"
+import { Route as InstructorCopilotIndexRouteImport } from "./routes/instructor-copilot/index"
 import { Route as EvaluatorAiIndexRouteImport } from "./routes/evaluator-ai/index"
 import { Route as EvaluationIndexRouteImport } from "./routes/evaluation/index"
 import { Route as DashboardIndexRouteImport } from "./routes/dashboard/index"
@@ -145,6 +147,11 @@ const ManageStudentsIndexRoute = ManageStudentsIndexRouteImport.update({
   path: "/manage-students/",
   getParentRoute: () => rootRouteImport,
 } as any)
+const ManagePaymentsIndexRoute = ManagePaymentsIndexRouteImport.update({
+  id: "/manage-payments/",
+  path: "/manage-payments/",
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ManageInstituteIndexRoute = ManageInstituteIndexRouteImport.update({
   id: "/manage-institute/",
   path: "/manage-institute/",
@@ -159,6 +166,11 @@ const LearnerInsightsIndexRoute = LearnerInsightsIndexRouteImport.update({
   id: "/",
   path: "/",
   getParentRoute: () => LearnerInsightsLazyRoute,
+} as any)
+const InstructorCopilotIndexRoute = InstructorCopilotIndexRouteImport.update({
+  id: "/instructor-copilot/",
+  path: "/instructor-copilot/",
+  getParentRoute: () => rootRouteImport,
 } as any)
 const EvaluatorAiIndexRoute = EvaluatorAiIndexRouteImport.update({
   id: "/evaluator-ai/",
@@ -624,9 +636,11 @@ export interface FileRoutesByFullPath {
   "/dashboard": typeof DashboardIndexRoute
   "/evaluation": typeof EvaluationIndexRoute
   "/evaluator-ai": typeof EvaluatorAiIndexRoute
+  "/instructor-copilot": typeof InstructorCopilotIndexRoute
   "/learner-insights/": typeof LearnerInsightsIndexRoute
   "/login": typeof LoginIndexRoute
   "/manage-institute": typeof ManageInstituteIndexRoute
+  "/manage-payments": typeof ManagePaymentsIndexRoute
   "/manage-students": typeof ManageStudentsIndexRoute
   "/settings": typeof SettingsIndexRoute
   "/signup": typeof SignupIndexRoute
@@ -713,9 +727,11 @@ export interface FileRoutesByTo {
   "/dashboard": typeof DashboardIndexRoute
   "/evaluation": typeof EvaluationIndexRoute
   "/evaluator-ai": typeof EvaluatorAiIndexRoute
+  "/instructor-copilot": typeof InstructorCopilotIndexRoute
   "/learner-insights": typeof LearnerInsightsIndexRoute
   "/login": typeof LoginIndexRoute
   "/manage-institute": typeof ManageInstituteIndexRoute
+  "/manage-payments": typeof ManagePaymentsIndexRoute
   "/manage-students": typeof ManageStudentsIndexRoute
   "/settings": typeof SettingsIndexRoute
   "/signup": typeof SignupIndexRoute
@@ -804,9 +820,11 @@ export interface FileRoutesById {
   "/dashboard/": typeof DashboardIndexRoute
   "/evaluation/": typeof EvaluationIndexRoute
   "/evaluator-ai/": typeof EvaluatorAiIndexRoute
+  "/instructor-copilot/": typeof InstructorCopilotIndexRoute
   "/learner-insights/": typeof LearnerInsightsIndexRoute
   "/login/": typeof LoginIndexRoute
   "/manage-institute/": typeof ManageInstituteIndexRoute
+  "/manage-payments/": typeof ManagePaymentsIndexRoute
   "/manage-students/": typeof ManageStudentsIndexRoute
   "/settings/": typeof SettingsIndexRoute
   "/signup/": typeof SignupIndexRoute
@@ -896,9 +914,11 @@ export interface FileRouteTypes {
     | "/dashboard"
     | "/evaluation"
     | "/evaluator-ai"
+    | "/instructor-copilot"
     | "/learner-insights/"
     | "/login"
     | "/manage-institute"
+    | "/manage-payments"
     | "/manage-students"
     | "/settings"
     | "/signup"
@@ -985,9 +1005,11 @@ export interface FileRouteTypes {
     | "/dashboard"
     | "/evaluation"
     | "/evaluator-ai"
+    | "/instructor-copilot"
     | "/learner-insights"
     | "/login"
     | "/manage-institute"
+    | "/manage-payments"
     | "/manage-students"
     | "/settings"
     | "/signup"
@@ -1075,9 +1097,11 @@ export interface FileRouteTypes {
     | "/dashboard/"
     | "/evaluation/"
     | "/evaluator-ai/"
+    | "/instructor-copilot/"
     | "/learner-insights/"
     | "/login/"
     | "/manage-institute/"
+    | "/manage-payments/"
     | "/manage-students/"
     | "/settings/"
     | "/signup/"
@@ -1166,8 +1190,10 @@ export interface RootRouteChildren {
   DashboardIndexRoute: typeof DashboardIndexRoute
   EvaluationIndexRoute: typeof EvaluationIndexRoute
   EvaluatorAiIndexRoute: typeof EvaluatorAiIndexRoute
+  InstructorCopilotIndexRoute: typeof InstructorCopilotIndexRoute
   LoginIndexRoute: typeof LoginIndexRoute
   ManageInstituteIndexRoute: typeof ManageInstituteIndexRoute
+  ManagePaymentsIndexRoute: typeof ManagePaymentsIndexRoute
   ManageStudentsIndexRoute: typeof ManageStudentsIndexRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
   SignupIndexRoute: typeof SignupIndexRoute
@@ -1304,6 +1330,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof ManageStudentsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/manage-payments/": {
+      id: "/manage-payments/"
+      path: "/manage-payments"
+      fullPath: "/manage-payments"
+      preLoaderRoute: typeof ManagePaymentsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/manage-institute/": {
       id: "/manage-institute/"
       path: "/manage-institute"
@@ -1324,6 +1357,13 @@ declare module "@tanstack/react-router" {
       fullPath: "/learner-insights/"
       preLoaderRoute: typeof LearnerInsightsIndexRouteImport
       parentRoute: typeof LearnerInsightsLazyRoute
+    }
+    "/instructor-copilot/": {
+      id: "/instructor-copilot/"
+      path: "/instructor-copilot"
+      fullPath: "/instructor-copilot"
+      preLoaderRoute: typeof InstructorCopilotIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     "/evaluator-ai/": {
       id: "/evaluator-ai/"
@@ -1888,8 +1928,10 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardIndexRoute: DashboardIndexRoute,
   EvaluationIndexRoute: EvaluationIndexRoute,
   EvaluatorAiIndexRoute: EvaluatorAiIndexRoute,
+  InstructorCopilotIndexRoute: InstructorCopilotIndexRoute,
   LoginIndexRoute: LoginIndexRoute,
   ManageInstituteIndexRoute: ManageInstituteIndexRoute,
+  ManagePaymentsIndexRoute: ManagePaymentsIndexRoute,
   ManageStudentsIndexRoute: ManageStudentsIndexRoute,
   SettingsIndexRoute: SettingsIndexRoute,
   SignupIndexRoute: SignupIndexRoute,
