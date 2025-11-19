@@ -14,6 +14,7 @@ const LOCATION_TO_VISIBILITY_KEY: Record<string, keyof FieldVisibility> = {
     'Assessment Registration Form': 'assessmentRegistration',
     'Live Session Registration Form': 'liveSessionRegistration',
     'Learner Profile': 'learnerProfile',
+    Campaign: 'campaign',
 };
 
 // Type for fields that can be returned (all field types have common properties we need)

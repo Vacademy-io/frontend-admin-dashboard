@@ -29,6 +29,7 @@ import {
     useSensors,
     DragEndEvent,
 } from '@dnd-kit/core';
+import { MdCampaign } from 'react-icons/md';
 import {
     arrayMove,
     SortableContext,
@@ -93,6 +94,7 @@ const visibilityLabels = [
     { key: 'assessmentRegistration', label: 'Assessment Registration', icon: FileText },
     { key: 'liveSessionRegistration', label: 'Live Session Registration', icon: Calendar },
     { key: 'learnerProfile', label: 'Learner Profile', icon: User },
+    { key: 'campaign', label: 'Campaign', icon: MdCampaign },
 ];
 
 // Sortable Item Components
@@ -216,6 +218,7 @@ const CustomFieldsSettings: React.FC = () => {
             assessmentRegistration: false,
             liveSessionRegistration: false,
             learnerProfile: false,
+            campaign: false,
         },
     });
 
@@ -652,6 +655,7 @@ const CustomFieldsSettings: React.FC = () => {
                     assessmentRegistration: false,
                     liveSessionRegistration: false,
                     learnerProfile: false,
+                    campaign: false,
                 },
             });
             setShowAddModal(false);
@@ -943,6 +947,7 @@ const CustomFieldsSettings: React.FC = () => {
                     assessmentRegistration: false,
                     liveSessionRegistration: false,
                     learnerProfile: false,
+                    campaign: false,
                 },
             });
         }
@@ -2122,6 +2127,7 @@ const CustomFieldsSettings: React.FC = () => {
                                                         assessmentRegistration: false,
                                                         liveSessionRegistration: false,
                                                         learnerProfile: false,
+                                                        campaign: false,
                                                     },
                                                 });
                                             }
