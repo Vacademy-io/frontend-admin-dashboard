@@ -392,3 +392,10 @@ export const LIST_WORKFLOWS_WITH_SCHEDULES = `${WORKFLOW_SERVICE_BASE}/institute
 // User Plan URLs
 export const GET_USER_PLANS = `${BASE_URL}/admin-core-service/v1/user-plan/all`;
 export const GET_PAYMENT_LOGS = `${BASE_URL}/admin-core-service/v1/user-plan/payment-logs`;
+
+// System files
+export const ADD_SYSTEM_FILE = `${BASE_URL}/admin-core-service/system-files/v1/add`;
+export const GET_SYSTEM_FILES = `${BASE_URL}/admin-core-service/system-files/v1/list`;
+export const GET_SYSTEM_FILES_ACCESS = `${BASE_URL}/admin-core-service/system-files/v1/access`;
+export const UPDATE_SYSTEM_FILES_ACCESS = `${BASE_URL}/admin-core-service/system-files/v1/access`;
+export const GET_MY_SYSTEM_FILES = `${BASE_URL}/admin-core-service/system-files/v1/my-files`;
