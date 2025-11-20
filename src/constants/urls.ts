@@ -225,6 +225,7 @@ export const EXPORT_LEARNERS_MODULE_REPORT = `${BASE_URL}/admin-core-service/lea
 
 export const GET_USER_CREDENTIALS = `${BASE_URL}/auth-service/v1/user/user-credentials`;
 export const EDIT_STUDENT_DETAILS = `${BASE_URL}/admin-core-service/learner/info/v1/edit`;
+export const EDIT_LEARNER_DETAILS = `${BASE_URL}/admin-core-service/learner/info/v1/profile`;
 export const USERS_CREDENTIALS = `${BASE_URL}/auth-service/v1/user/users-credential`;
 export const EXPORT_ACCOUNT_DETAILS = `${BASE_URL}/admin-core-service/institute/institute_learner/get/v1/basic-details-csv`;
 

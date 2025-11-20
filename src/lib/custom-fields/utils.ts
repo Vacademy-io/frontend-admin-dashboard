@@ -14,6 +14,7 @@ const LOCATION_TO_VISIBILITY_KEY: Record<string, keyof FieldVisibility> = {
     'Assessment Registration Form': 'assessmentRegistration',
     'Live Session Registration Form': 'liveSessionRegistration',
     'Learner Profile': 'learnerProfile',
+    "Learner's Enrollment": 'learnerEnrollment',
     Campaign: 'campaign',
 };
 
