@@ -298,6 +298,7 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         cell: ({ row }) => <DetailsCell row={row} />,
     },
     {
+        id: 'full_name',
         accessorKey: 'full_name',
         size: 200,
         minSize: 150,
@@ -633,6 +634,7 @@ export const enrollRequestColumns: ColumnDef<StudentTable>[] = [
         cell: ({ row }) => <DetailsCell row={row} />,
     },
     {
+        id: 'full_name',
         accessorKey: 'full_name',
         size: 200,
         minSize: 150,
@@ -877,6 +879,7 @@ export const activityLogColumns: ColumnDef<ActivityLogType>[] = [
         },
     },
     {
+        id: 'lastPageRead',
         accessorKey: 'lastPageRead',
         header: () => <LastPageReadHeader />,
     },
@@ -1072,6 +1075,7 @@ export const leadsColumns: ColumnDef<any>[] = [
         cell: ({ row }) => <LeadDetailsCell row={row} />,
     },
     {
+        id: 'name',
         accessorKey: 'name',
         size: 200,
         minSize: 150,
