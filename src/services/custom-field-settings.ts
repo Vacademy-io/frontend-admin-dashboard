@@ -110,6 +110,7 @@ export interface FieldVisibility {
     assessmentRegistration: boolean;
     liveSessionRegistration: boolean;
     learnerProfile: boolean;
+    campaign: boolean;
 }
 
 export interface CustomField {
@@ -205,6 +206,7 @@ const LOCATION_TO_VISIBILITY_MAP: Record<string, keyof FieldVisibility> = {
     'Assessment Registration Form': 'assessmentRegistration',
     'Live Session Registration Form': 'liveSessionRegistration',
     'Learner Profile': 'learnerProfile',
+    Campaign: 'campaign',
 };
 
 const VISIBILITY_TO_LOCATION_MAP: Record<keyof FieldVisibility, string> = {
@@ -215,6 +217,7 @@ const VISIBILITY_TO_LOCATION_MAP: Record<keyof FieldVisibility, string> = {
     assessmentRegistration: 'Assessment Registration Form',
     liveSessionRegistration: 'Live Session Registration Form',
     learnerProfile: 'Learner Profile',
+    campaign: 'Campaign',
 };
 
 // System field identifiers (fieldName from API)
@@ -410,6 +413,7 @@ const mapLocationsToVisibility = (locations: string[]): FieldVisibility => {
         assessmentRegistration: false,
         liveSessionRegistration: false,
         learnerProfile: false,
+        campaign: false,
     };
 
     locations.forEach((location) => {
@@ -1486,6 +1490,7 @@ export const createNewCustomField = (
             assessmentRegistration: false,
             liveSessionRegistration: false,
             learnerProfile: false,
+            campaign: false,
         },
         required: false,
         order: 999, // Will be updated when added to settings
@@ -1525,6 +1530,7 @@ export const createTempCustomField = (
             assessmentRegistration: false,
             liveSessionRegistration: false,
             learnerProfile: false,
+            campaign: false,
         },
         required: false,
         canBeDeleted: true,

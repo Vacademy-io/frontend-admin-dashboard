@@ -59,6 +59,7 @@ import {
     type DashboardWidgetId,
 } from '@/types/display-settings';
 import { getDisplaySettings, getDisplaySettingsFromCache } from '@/services/display-settings';
+import { getCustomFieldSettings } from '@/services/custom-field-settings';
 
 // Analytics Widgets
 import RealTimeActiveUsersWidget from './-components/analytics-widgets/RealTimeActiveUsersWidget';
@@ -452,6 +453,22 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
             setValue(false);
         }
     }, [location.pathname, setValue]);
+
+    // Cache custom field settings on dashboard mount
+    useEffect(() => {
+        const cacheCustomFieldSettings = async () => {
+            try {
+                // Force refresh to get latest custom field settings from API and cache them
+                await getCustomFieldSettings(true);
+                console.log('✅ Custom field settings cached successfully on dashboard load');
+            } catch (error) {
+                console.error('❌ Failed to cache custom field settings:', error);
+                // Silently fail - don't block dashboard rendering
+            }
+        };
+
+        cacheCustomFieldSettings();
+    }, []); // Run only once on mount
 
     if (isInstituteLoading || isDashboardLoading || isAssessmentCountLoading)
         return <DashboardLoader />;
