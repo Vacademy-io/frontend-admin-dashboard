@@ -9,6 +9,7 @@ import {
 // Location mapping for field visibility
 const LOCATION_TO_VISIBILITY_KEY: Record<string, keyof FieldVisibility> = {
     "Learner's List": 'learnersList',
+    'Campaign': 'campaign',
     'Enroll Request List': 'enrollRequestList',
     'Invite List': 'inviteList',
     'Assessment Registration Form': 'assessmentRegistration',

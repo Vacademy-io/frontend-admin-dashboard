@@ -129,7 +129,8 @@ export function filterMenuListByModules(
                 item.id === 'dashboard' ||
                 item.id === 'settings' ||
                 item.id === 'announcement' ||
-                item.id === 'user-tags'
+                item.id === 'user-tags' ||
+                item.id === 'manage-campaigns' 
             ) {
                 return true;
             }

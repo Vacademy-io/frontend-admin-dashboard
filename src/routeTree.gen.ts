@@ -53,6 +53,7 @@ import { Route as EvaluationEvaluationsIndexRouteImport } from "./routes/evaluat
 import { Route as EvaluationEvaluationToolIndexRouteImport } from "./routes/evaluation/evaluation-tool/index"
 import { Route as CommunityQuestionPaperIndexRouteImport } from "./routes/community/question-paper/index"
 import { Route as CertificateGenerationStudentDataIndexRouteImport } from "./routes/certificate-generation/student-data/index"
+import { Route as AudienceManagerListIndexRouteImport } from "./routes/audience-manager/list/index"
 import { Route as AssessmentQuestionPapersIndexRouteImport } from "./routes/assessment/question-papers/index"
 import { Route as AssessmentAssessmentListIndexRouteImport } from "./routes/assessment/assessment-list/index"
 import { Route as AnnouncementScheduleIndexRouteImport } from "./routes/announcement/schedule/index"
@@ -70,6 +71,7 @@ import { Route as StudyLibraryLiveSessionScheduleIndexRouteImport } from "./rout
 import { Route as StudyLibraryCoursesCourseDetailsIndexRouteImport } from "./routes/study-library/courses/course-details/index"
 import { Route as EvaluatorAiEvaluationStudentSummaryIndexRouteImport } from "./routes/evaluator-ai/evaluation/student-summary/index"
 import { Route as EvaluatorAiAssessmentCreateAssessmentIndexRouteImport } from "./routes/evaluator-ai/assessment/create-assessment/index"
+import { Route as AudienceManagerListCampaignUsersIndexRouteImport } from "./routes/audience-manager/list/campaign-users/index"
 import { Route as AssessmentExportAssessmentIdIndexRouteImport } from "./routes/assessment/export/$assessmentId/index"
 import { Route as AiCenterAiToolsVsmartUploadIndexRouteImport } from "./routes/ai-center/ai-tools/vsmart-upload/index"
 import { Route as AiCenterAiToolsVsmartSorterIndexRouteImport } from "./routes/ai-center/ai-tools/vsmart-sorter/index"
@@ -355,6 +357,12 @@ const CertificateGenerationStudentDataIndexRoute =
     path: "/certificate-generation/student-data/",
     getParentRoute: () => rootRouteImport,
   } as any)
+const AudienceManagerListIndexRoute =
+  AudienceManagerListIndexRouteImport.update({
+    id: "/audience-manager/list/",
+    path: "/audience-manager/list/",
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AssessmentQuestionPapersIndexRoute =
   AssessmentQuestionPapersIndexRouteImport.update({
     id: "/assessment/question-papers/",
@@ -450,6 +458,12 @@ const EvaluatorAiAssessmentCreateAssessmentIndexRoute =
   EvaluatorAiAssessmentCreateAssessmentIndexRouteImport.update({
     id: "/evaluator-ai/assessment/create-assessment/",
     path: "/evaluator-ai/assessment/create-assessment/",
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AudienceManagerListCampaignUsersIndexRoute =
+  AudienceManagerListCampaignUsersIndexRouteImport.update({
+    id: "/audience-manager/list/campaign-users/",
+    path: "/audience-manager/list/campaign-users/",
     getParentRoute: () => rootRouteImport,
   } as any)
 const AssessmentExportAssessmentIdIndexRoute =
@@ -637,6 +651,7 @@ export interface FileRoutesByFullPath {
   "/announcement/schedule": typeof AnnouncementScheduleIndexRoute
   "/assessment/assessment-list": typeof AssessmentAssessmentListIndexRoute
   "/assessment/question-papers": typeof AssessmentQuestionPapersIndexRoute
+  "/audience-manager/list": typeof AudienceManagerListIndexRoute
   "/certificate-generation/student-data": typeof CertificateGenerationStudentDataIndexRoute
   "/community/question-paper": typeof CommunityQuestionPaperIndexRoute
   "/evaluation/evaluation-tool": typeof EvaluationEvaluationToolIndexRoute
@@ -678,6 +693,7 @@ export interface FileRoutesByFullPath {
   "/ai-center/ai-tools/vsmart-sorter": typeof AiCenterAiToolsVsmartSorterIndexRoute
   "/ai-center/ai-tools/vsmart-upload": typeof AiCenterAiToolsVsmartUploadIndexRoute
   "/assessment/export/$assessmentId": typeof AssessmentExportAssessmentIdIndexRoute
+  "/audience-manager/list/campaign-users": typeof AudienceManagerListCampaignUsersIndexRoute
   "/evaluator-ai/assessment/create-assessment": typeof EvaluatorAiAssessmentCreateAssessmentIndexRoute
   "/evaluator-ai/evaluation/student-summary": typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
   "/study-library/courses/course-details": typeof StudyLibraryCoursesCourseDetailsIndexRoute
@@ -725,6 +741,7 @@ export interface FileRoutesByTo {
   "/announcement/schedule": typeof AnnouncementScheduleIndexRoute
   "/assessment/assessment-list": typeof AssessmentAssessmentListIndexRoute
   "/assessment/question-papers": typeof AssessmentQuestionPapersIndexRoute
+  "/audience-manager/list": typeof AudienceManagerListIndexRoute
   "/certificate-generation/student-data": typeof CertificateGenerationStudentDataIndexRoute
   "/community/question-paper": typeof CommunityQuestionPaperIndexRoute
   "/evaluation/evaluation-tool": typeof EvaluationEvaluationToolIndexRoute
@@ -766,6 +783,7 @@ export interface FileRoutesByTo {
   "/ai-center/ai-tools/vsmart-sorter": typeof AiCenterAiToolsVsmartSorterIndexRoute
   "/ai-center/ai-tools/vsmart-upload": typeof AiCenterAiToolsVsmartUploadIndexRoute
   "/assessment/export/$assessmentId": typeof AssessmentExportAssessmentIdIndexRoute
+  "/audience-manager/list/campaign-users": typeof AudienceManagerListCampaignUsersIndexRoute
   "/evaluator-ai/assessment/create-assessment": typeof EvaluatorAiAssessmentCreateAssessmentIndexRoute
   "/evaluator-ai/evaluation/student-summary": typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
   "/study-library/courses/course-details": typeof StudyLibraryCoursesCourseDetailsIndexRoute
@@ -815,6 +833,7 @@ export interface FileRoutesById {
   "/announcement/schedule/": typeof AnnouncementScheduleIndexRoute
   "/assessment/assessment-list/": typeof AssessmentAssessmentListIndexRoute
   "/assessment/question-papers/": typeof AssessmentQuestionPapersIndexRoute
+  "/audience-manager/list/": typeof AudienceManagerListIndexRoute
   "/certificate-generation/student-data/": typeof CertificateGenerationStudentDataIndexRoute
   "/community/question-paper/": typeof CommunityQuestionPaperIndexRoute
   "/evaluation/evaluation-tool/": typeof EvaluationEvaluationToolIndexRoute
@@ -856,6 +875,7 @@ export interface FileRoutesById {
   "/ai-center/ai-tools/vsmart-sorter/": typeof AiCenterAiToolsVsmartSorterIndexRoute
   "/ai-center/ai-tools/vsmart-upload/": typeof AiCenterAiToolsVsmartUploadIndexRoute
   "/assessment/export/$assessmentId/": typeof AssessmentExportAssessmentIdIndexRoute
+  "/audience-manager/list/campaign-users/": typeof AudienceManagerListCampaignUsersIndexRoute
   "/evaluator-ai/assessment/create-assessment/": typeof EvaluatorAiAssessmentCreateAssessmentIndexRoute
   "/evaluator-ai/evaluation/student-summary/": typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
   "/study-library/courses/course-details/": typeof StudyLibraryCoursesCourseDetailsIndexRoute
@@ -906,6 +926,7 @@ export interface FileRouteTypes {
     | "/announcement/schedule"
     | "/assessment/assessment-list"
     | "/assessment/question-papers"
+    | "/audience-manager/list"
     | "/certificate-generation/student-data"
     | "/community/question-paper"
     | "/evaluation/evaluation-tool"
@@ -947,6 +968,7 @@ export interface FileRouteTypes {
     | "/ai-center/ai-tools/vsmart-sorter"
     | "/ai-center/ai-tools/vsmart-upload"
     | "/assessment/export/$assessmentId"
+    | "/audience-manager/list/campaign-users"
     | "/evaluator-ai/assessment/create-assessment"
     | "/evaluator-ai/evaluation/student-summary"
     | "/study-library/courses/course-details"
@@ -994,6 +1016,7 @@ export interface FileRouteTypes {
     | "/announcement/schedule"
     | "/assessment/assessment-list"
     | "/assessment/question-papers"
+    | "/audience-manager/list"
     | "/certificate-generation/student-data"
     | "/community/question-paper"
     | "/evaluation/evaluation-tool"
@@ -1035,6 +1058,7 @@ export interface FileRouteTypes {
     | "/ai-center/ai-tools/vsmart-sorter"
     | "/ai-center/ai-tools/vsmart-upload"
     | "/assessment/export/$assessmentId"
+    | "/audience-manager/list/campaign-users"
     | "/evaluator-ai/assessment/create-assessment"
     | "/evaluator-ai/evaluation/student-summary"
     | "/study-library/courses/course-details"
@@ -1083,6 +1107,7 @@ export interface FileRouteTypes {
     | "/announcement/schedule/"
     | "/assessment/assessment-list/"
     | "/assessment/question-papers/"
+    | "/audience-manager/list/"
     | "/certificate-generation/student-data/"
     | "/community/question-paper/"
     | "/evaluation/evaluation-tool/"
@@ -1124,6 +1149,7 @@ export interface FileRouteTypes {
     | "/ai-center/ai-tools/vsmart-sorter/"
     | "/ai-center/ai-tools/vsmart-upload/"
     | "/assessment/export/$assessmentId/"
+    | "/audience-manager/list/campaign-users/"
     | "/evaluator-ai/assessment/create-assessment/"
     | "/evaluator-ai/evaluation/student-summary/"
     | "/study-library/courses/course-details/"
@@ -1172,6 +1198,7 @@ export interface RootRouteChildren {
   AnnouncementScheduleIndexRoute: typeof AnnouncementScheduleIndexRoute
   AssessmentAssessmentListIndexRoute: typeof AssessmentAssessmentListIndexRoute
   AssessmentQuestionPapersIndexRoute: typeof AssessmentQuestionPapersIndexRoute
+  AudienceManagerListIndexRoute: typeof AudienceManagerListIndexRoute
   CertificateGenerationStudentDataIndexRoute: typeof CertificateGenerationStudentDataIndexRoute
   CommunityQuestionPaperIndexRoute: typeof CommunityQuestionPaperIndexRoute
   EvaluationEvaluationToolIndexRoute: typeof EvaluationEvaluationToolIndexRoute
@@ -1213,6 +1240,7 @@ export interface RootRouteChildren {
   AiCenterAiToolsVsmartSorterIndexRoute: typeof AiCenterAiToolsVsmartSorterIndexRoute
   AiCenterAiToolsVsmartUploadIndexRoute: typeof AiCenterAiToolsVsmartUploadIndexRoute
   AssessmentExportAssessmentIdIndexRoute: typeof AssessmentExportAssessmentIdIndexRoute
+  AudienceManagerListCampaignUsersIndexRoute: typeof AudienceManagerListCampaignUsersIndexRoute
   EvaluatorAiAssessmentCreateAssessmentIndexRoute: typeof EvaluatorAiAssessmentCreateAssessmentIndexRoute
   EvaluatorAiEvaluationStudentSummaryIndexRoute: typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
   StudyLibraryCoursesCourseDetailsIndexRoute: typeof StudyLibraryCoursesCourseDetailsIndexRoute
@@ -1556,6 +1584,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof CertificateGenerationStudentDataIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/audience-manager/list/": {
+      id: "/audience-manager/list/"
+      path: "/audience-manager/list"
+      fullPath: "/audience-manager/list"
+      preLoaderRoute: typeof AudienceManagerListIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/assessment/question-papers/": {
       id: "/assessment/question-papers/"
       path: "/assessment/question-papers"
@@ -1673,6 +1708,13 @@ declare module "@tanstack/react-router" {
       path: "/evaluator-ai/assessment/create-assessment"
       fullPath: "/evaluator-ai/assessment/create-assessment"
       preLoaderRoute: typeof EvaluatorAiAssessmentCreateAssessmentIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/audience-manager/list/campaign-users/": {
+      id: "/audience-manager/list/campaign-users/"
+      path: "/audience-manager/list/campaign-users"
+      fullPath: "/audience-manager/list/campaign-users"
+      preLoaderRoute: typeof AudienceManagerListCampaignUsersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/assessment/export/$assessmentId/": {
@@ -1887,6 +1929,7 @@ const rootRouteChildren: RootRouteChildren = {
   AnnouncementScheduleIndexRoute: AnnouncementScheduleIndexRoute,
   AssessmentAssessmentListIndexRoute: AssessmentAssessmentListIndexRoute,
   AssessmentQuestionPapersIndexRoute: AssessmentQuestionPapersIndexRoute,
+  AudienceManagerListIndexRoute: AudienceManagerListIndexRoute,
   CertificateGenerationStudentDataIndexRoute:
     CertificateGenerationStudentDataIndexRoute,
   CommunityQuestionPaperIndexRoute: CommunityQuestionPaperIndexRoute,
@@ -1938,6 +1981,8 @@ const rootRouteChildren: RootRouteChildren = {
   AiCenterAiToolsVsmartUploadIndexRoute: AiCenterAiToolsVsmartUploadIndexRoute,
   AssessmentExportAssessmentIdIndexRoute:
     AssessmentExportAssessmentIdIndexRoute,
+  AudienceManagerListCampaignUsersIndexRoute:
+    AudienceManagerListCampaignUsersIndexRoute,
   EvaluatorAiAssessmentCreateAssessmentIndexRoute:
     EvaluatorAiAssessmentCreateAssessmentIndexRoute,
   EvaluatorAiEvaluationStudentSummaryIndexRoute:

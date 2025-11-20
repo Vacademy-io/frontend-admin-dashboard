@@ -168,10 +168,9 @@ const CreateInvite = () => {
                             type="button"
                             scale="medium"
                             buttonType="secondary"
-                            className="flex items-center gap-1 border-none bg-gray-100 p-4 py-5 font-semibold hover:bg-gray-200"
-                        >
+                            className="flex items-center gap-1 border-none bg-gray-100 p-4 py-5 font-semibold hover:bg-gray-200">
                             <Plus size={18} weight="fill" />
-                            Create Invite Link
+                            create new invite
                         </MyButton>
                     </DialogTrigger>
                     <DialogContent className="animate-fadeIn min-w-[500px]">

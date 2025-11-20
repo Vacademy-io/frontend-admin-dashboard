@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 interface UsePaginationStateProps {
     initialPage?: number;
@@ -18,9 +18,9 @@ export const usePaginationState = ({
     const [page, setPage] = useState(initialPage);
     const [pageSize] = useState(initialPageSize);
 
-    const handlePageChange = (newPage: number) => {
+    const handlePageChange = useCallback((newPage: number) => {
         setPage(newPage);
-    };
+    }, []);
 
     return {
         page,

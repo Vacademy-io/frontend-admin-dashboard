@@ -104,6 +104,7 @@ export interface SystemField {
 // UI Types (for our components)
 export interface FieldVisibility {
     learnersList: boolean;
+    campaign: boolean;
     learnerEnrollment: boolean;
     enrollRequestList: boolean;
     inviteList: boolean;
@@ -198,6 +199,7 @@ interface CachedCustomFieldSettings {
 
 // Location mapping dictionary
 const LOCATION_TO_VISIBILITY_MAP: Record<string, keyof FieldVisibility> = {
+    'Campaign': 'campaign',
     "Learner's List": 'learnersList',
     "Learner's Enrollment": 'learnerEnrollment',
     'Enroll Request List': 'enrollRequestList',
@@ -208,6 +210,7 @@ const LOCATION_TO_VISIBILITY_MAP: Record<string, keyof FieldVisibility> = {
 };
 
 const VISIBILITY_TO_LOCATION_MAP: Record<keyof FieldVisibility, string> = {
+    campaign: 'Campaign',
     learnersList: "Learner's List",
     learnerEnrollment: "Learner's Enrollment",
     enrollRequestList: 'Enroll Request List',
@@ -403,6 +406,7 @@ export const DEFAULT_SYSTEM_FIELDS: SystemField[] = [
  */
 const mapLocationsToVisibility = (locations: string[]): FieldVisibility => {
     const visibility: FieldVisibility = {
+        campaign: false,
         learnersList: false,
         learnerEnrollment: false,
         enrollRequestList: false,
@@ -1479,6 +1483,7 @@ export const createNewCustomField = (
         type,
         options: type === 'dropdown' ? options || [] : undefined,
         visibility: {
+            campaign: false,
             learnersList: false,
             learnerEnrollment: false,
             enrollRequestList: false,
@@ -1518,6 +1523,7 @@ export const createTempCustomField = (
         type,
         options: type === 'dropdown' ? options || [] : undefined,
         visibility: {
+            campaign: false,
             learnersList: false,
             learnerEnrollment: false,
             enrollRequestList: false,

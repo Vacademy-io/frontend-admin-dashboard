@@ -218,7 +218,7 @@ export const MyDropdown = ({
             if (item.subItems) {
                 return (
                     <DropdownMenuSub key={item.value}>
-                        <DropdownMenuSubTrigger className="flex w-full cursor-pointer items-center justify-between rounded px-3 py-2 text-subtitle text-neutral-600 hover:bg-primary-50 focus:outline-none">
+                        <DropdownMenuSubTrigger className="flex  cursor-pointer items-center justify-between rounded px-3 py-2 text-subtitle text-neutral-600 hover:bg-primary-50 focus:outline-none">
                             <div className="flex items-center gap-2">
                                 {item.icon}
                                 <span>{item.label}</span>

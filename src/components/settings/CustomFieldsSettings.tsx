@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+
 import {
     Eye,
     EyeOff,
@@ -19,7 +20,7 @@ import {
     AlertCircle,
     CheckCircle,
     Database,
-} from 'lucide-react';
+    Megaphone } from 'lucide-react';
 import {
     DndContext,
     closestCenter,
@@ -93,6 +94,7 @@ const visibilityLabels = [
     { key: 'assessmentRegistration', label: 'Assessment Registration', icon: FileText },
     { key: 'liveSessionRegistration', label: 'Live Session Registration', icon: Calendar },
     { key: 'learnerProfile', label: 'Learner Profile', icon: User },
+    { key: 'campaign', label: 'Campaign', icon: Megaphone }
 ];
 
 // Sortable Item Components
@@ -209,6 +211,7 @@ const CustomFieldsSettings: React.FC = () => {
         options: [],
         required: false,
         visibility: {
+            campaign: false,
             learnersList: false,
             learnerEnrollment: false,
             enrollRequestList: false,
@@ -645,6 +648,7 @@ const CustomFieldsSettings: React.FC = () => {
                 options: [],
                 required: false,
                 visibility: {
+                    campaign: false,
                     learnersList: false,
                     learnerEnrollment: false,
                     enrollRequestList: false,
@@ -936,6 +940,7 @@ const CustomFieldsSettings: React.FC = () => {
                 options: [],
                 required: false,
                 visibility: {
+                    campaign: false,
                     learnersList: false,
                     learnerEnrollment: false,
                     enrollRequestList: false,
@@ -2115,6 +2120,7 @@ const CustomFieldsSettings: React.FC = () => {
                                                     options: [],
                                                     required: false,
                                                     visibility: {
+                                                        campaign: false,
                                                         learnersList: false,
                                                         learnerEnrollment: false,
                                                         enrollRequestList: false,

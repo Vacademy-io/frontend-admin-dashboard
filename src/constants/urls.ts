@@ -16,7 +16,11 @@ export const REQUEST_OTP = `${BASE_URL}/auth-service/v1/request-otp`;
 export const LOGIN_OTP = `${BASE_URL}/auth-service/v1/login-otp`;
 export const UPDATE_USER_DETAILS = `${BASE_URL}/auth-service/v1/user-details/update-user`;
 export const CONFIGURE_CERTIFICATE_SETTINGS = `${BASE_URL}/admin-core-service/institute/v1/certificate/update-setting`;
-
+// Add this with your other constants
+export const AUDIENCE_CAMPAIGN = `${BASE_URL}/admin-core-service/v1/audience/campaign`;
+export const AUDIENCE_CAMPAIGNS_LIST = `${BASE_URL}/admin-core-service/v1/audience/campaigns`;
+export const GET_CAMPAIGN_USERS = `${BASE_URL}/admin-core-service/v1/audience/leads`;
+export const GET_CUSTOM_FIELD_SETUP = `${BASE_URL}/admin-core-service/common/custom-fields/setup`;
 // urls
 export const LOGIN_URL = `${BASE_URL}/auth-service/v1/login-root`;
 export const SIGNUP_URL = `${BASE_URL}/auth-service/v1/signup-root`;
