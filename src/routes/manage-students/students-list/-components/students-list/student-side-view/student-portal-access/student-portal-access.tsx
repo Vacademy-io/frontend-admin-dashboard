@@ -15,6 +15,7 @@ import {
     type LearnerManagementSettings,
 } from '@/types/display-settings';
 import { isUserAdmin } from '@/utils/userDetails';
+import { getLearnerPortalAccess, sendResetPasswordEmail } from '@/services/learner-portal-access';
 
 export const StudentPortalAccess = ({ isSubmissionTab }: { isSubmissionTab?: boolean }) => {
     const { selectedStudent } = useStudentSidebar();
@@ -66,14 +67,47 @@ export const StudentPortalAccess = ({ isSubmissionTab }: { isSubmissionTab?: boo
         }
     };
 
-    const handleAccessPortal = () => {
-        toast.info('Access Learner Portal - Coming soon');
-        // TODO: Implement portal access logic
+    const handleAccessPortal = async () => {
+        if (!selectedStudent?.user_id) {
+            toast.error('Student user ID not found');
+            return;
+        }
+
+        try {
+            toast.loading('Accessing learner portal...');
+            const response = await getLearnerPortalAccess(selectedStudent.user_id);
+
+            if (response.redirect_url) {
+                // Open the redirect URL in a new tab
+                window.open(response.redirect_url, '_blank', 'noopener,noreferrer');
+                toast.success('Learner portal opened in new tab');
+            } else {
+                toast.error('No redirect URL received');
+            }
+        } catch (error) {
+            console.error('Error accessing learner portal:', error);
+            toast.error('Failed to access learner portal. Please try again.');
+        } finally {
+            toast.dismiss();
+        }
     };
 
-    const handleSendResetPassword = () => {
-        toast.info('Send Reset Password Email - Coming soon');
-        // TODO: Implement reset password email logic
+    const handleSendResetPassword = async () => {
+        if (!selectedStudent?.user_id) {
+            toast.error('Student user ID not found');
+            return;
+        }
+
+        try {
+            toast.loading('Sending reset password email...');
+            await sendResetPasswordEmail(selectedStudent.user_id);
+            toast.success('Reset password email sent successfully');
+        } catch (error) {
+            console.error('Error sending reset password email:', error);
+            toast.error('Failed to send reset password email. Please try again.');
+        } finally {
+            toast.dismiss();
+        }
     };
 
     return (

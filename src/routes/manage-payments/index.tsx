@@ -6,17 +6,17 @@ import { Helmet } from 'react-helmet';
 import { useQuery } from '@tanstack/react-query';
 import { PaymentFilters } from './-components/PaymentFilters';
 import { PaymentLogsTable } from './-components/PaymentLogsTable';
+import { ActiveFiltersDisplay } from './-components/ActiveFiltersDisplay';
 import { fetchPaymentLogs, getPaymentLogsQueryKey } from '@/services/payment-logs';
 import { fetchInstituteDetails } from '@/services/student-list-section/getInstituteDetails';
 import type { SelectOption } from '@/components/design-system/SelectChips';
 import type {
     PaymentLogsRequest,
-    PaymentLogEntry,
     PackageSessionFilter,
     BatchForSession,
 } from '@/types/payment-logs';
 import { Card } from '@/components/ui/card';
-import { CreditCard, CheckCircle, XCircle, TrendUp } from '@phosphor-icons/react';
+import { CreditCard } from '@phosphor-icons/react';
 
 export const Route = createFileRoute('/manage-payments/')({
     component: () => (
@@ -48,7 +48,7 @@ function ManagePaymentsLayoutPage() {
     const requestFilters: Omit<PaymentLogsRequest, 'institute_id'> = useMemo(() => {
         const filters: Omit<PaymentLogsRequest, 'institute_id'> = {
             sort_columns: {
-                created_at: 'DESC',
+                createdAt: 'DESC',
             },
         };
 
@@ -144,38 +144,41 @@ function ManagePaymentsLayoutPage() {
         setCurrentPage(0);
     };
 
-    // Calculate statistics
-    const stats = useMemo(() => {
-        if (!paymentLogsData || !paymentLogsData.content) {
-            return {
-                totalAmount: 0,
-                paidCount: 0,
-                failedCount: 0,
-                pendingCount: 0,
-            };
+    // Handle clearing individual filters
+    const handleClearFilter = (filterType: string, value?: string) => {
+        switch (filterType) {
+            case 'all':
+                handleClearFilters();
+                break;
+            case 'startDate':
+                setStartDate('');
+                setCurrentPage(0);
+                break;
+            case 'endDate':
+                setEndDate('');
+                setCurrentPage(0);
+                break;
+            case 'paymentStatus':
+                setSelectedPaymentStatuses((prev) =>
+                    prev.filter((status) => status.value !== value)
+                );
+                setCurrentPage(0);
+                break;
+            case 'userPlanStatus':
+                setSelectedUserPlanStatuses((prev) =>
+                    prev.filter((status) => status.value !== value)
+                );
+                setCurrentPage(0);
+                break;
+            case 'packageSession':
+                setPackageSessionFilter({});
+                setCurrentPage(0);
+                break;
         }
+    };
 
-        let totalAmount = 0;
-        let paidCount = 0;
-        let failedCount = 0;
-        let pendingCount = 0;
-
-        paymentLogsData.content.forEach((entry: PaymentLogEntry) => {
-            const status = entry.current_payment_status;
-            const amount = entry.payment_log.payment_amount;
-
-            if (status === 'PAID') {
-                paidCount++;
-                totalAmount += amount;
-            } else if (status === 'FAILED') {
-                failedCount++;
-            } else if (status === 'PAYMENT_PENDING') {
-                pendingCount++;
-            }
-        });
-
-        return { totalAmount, paidCount, failedCount, pendingCount };
-    }, [paymentLogsData]);
+    // Note: Stats are calculated from current page only, not all filtered results
+    // To get accurate stats across all pages, we would need a separate summary API endpoint
 
     return (
         <>
@@ -185,72 +188,53 @@ function ManagePaymentsLayoutPage() {
             </Helmet>
 
             <div className="space-y-6 p-6">
-                {/* Statistics Cards */}
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Card className="p-4">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Total Payments</p>
-                                <p className="mt-2 text-2xl font-bold text-gray-900">
-                                    {paymentLogsData?.total_elements || 0}
-                                </p>
-                            </div>
-                            <div className="rounded-lg bg-primary-100 p-3">
+                {/* Statistics Card - Only showing total count which is accurate across all pages */}
+                <Card className="p-6">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="rounded-lg bg-primary-100 p-4">
                                 <CreditCard
-                                    size={24}
+                                    size={32}
                                     className="text-primary-600"
                                     weight="duotone"
                                 />
                             </div>
-                        </div>
-                    </Card>
-
-                    <Card className="p-4">
-                        <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-sm font-medium text-gray-600">Successful</p>
-                                <p className="mt-2 text-2xl font-bold text-green-600">
-                                    {stats.paidCount}
+                                <p className="text-sm font-medium text-gray-600">
+                                    Total Payment Records
+                                </p>
+                                <p className="mt-1 text-3xl font-bold text-gray-900">
+                                    {paymentLogsData?.totalElements.toLocaleString() || 0}
+                                </p>
+                                <p className="mt-1 text-xs text-gray-500">
+                                    Across all filtered results
                                 </p>
                             </div>
-                            <div className="rounded-lg bg-green-100 p-3">
-                                <CheckCircle
-                                    size={24}
-                                    className="text-green-600"
-                                    weight="duotone"
-                                />
-                            </div>
                         </div>
-                    </Card>
-
-                    <Card className="p-4">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Failed</p>
-                                <p className="mt-2 text-2xl font-bold text-red-600">
-                                    {stats.failedCount}
+                        {paymentLogsData && paymentLogsData.totalElements > 0 && (
+                            <div className="text-right">
+                                <p className="text-sm text-gray-600">
+                                    Showing page {paymentLogsData.number + 1} of{' '}
+                                    {paymentLogsData.totalPages}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                    {paymentLogsData.numberOfElements} records on this page
                                 </p>
                             </div>
-                            <div className="rounded-lg bg-red-100 p-3">
-                                <XCircle size={24} className="text-red-600" weight="duotone" />
-                            </div>
-                        </div>
-                    </Card>
+                        )}
+                    </div>
+                </Card>
 
-                    <Card className="p-4">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                                <p className="mt-2 text-2xl font-bold text-gray-900">
-                                    ${stats.totalAmount.toLocaleString()}
-                                </p>
-                            </div>
-                            <div className="rounded-lg bg-blue-100 p-3">
-                                <TrendUp size={24} className="text-blue-600" weight="duotone" />
-                            </div>
-                        </div>
-                    </Card>
-                </div>
+                {/* Active Filters Display */}
+                <ActiveFiltersDisplay
+                    startDate={startDate}
+                    endDate={endDate}
+                    selectedPaymentStatuses={selectedPaymentStatuses}
+                    selectedUserPlanStatuses={selectedUserPlanStatuses}
+                    packageSessionFilter={packageSessionFilter}
+                    batchesForSessions={batchesForSessions}
+                    onClearFilter={handleClearFilter}
+                />
 
                 {/* Filters */}
                 <PaymentFilters

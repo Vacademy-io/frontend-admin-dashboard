@@ -51,24 +51,26 @@ export const generateCustomFieldColumns = (): ColumnDef<StudentTable>[] => {
         }
 
         // Create a column definition for each custom field
-        return customFields.map((field: FieldForLocation) => ({
-            accessorKey: field.id,
-            id: field.id,
-            size: 180,
-            minSize: 120,
-            maxSize: 300,
-            header: convertToUpperCase(field.name), // Use the field name from settings as the column header
-            cell: ({ row }: { row: Row<StudentTable> }) => (
-                <CustomFieldCell row={row} customFieldId={field.id} />
-            ),
-            enableHiding: true,
-            // Add metadata to help identify custom field columns
-            meta: {
-                isCustomField: true,
-                customFieldId: field.id,
-                customFieldType: field.type,
-            },
-        }));
+        return customFields
+            .filter((field) => field.id && field.name) // Only include fields with valid id and name
+            .map((field: FieldForLocation) => ({
+                accessorKey: field.id,
+                id: field.id,
+                size: 180,
+                minSize: 120,
+                maxSize: 300,
+                header: convertToUpperCase(field.name), // Use the field name from settings as the column header
+                cell: ({ row }: { row: Row<StudentTable> }) => (
+                    <CustomFieldCell row={row} customFieldId={field.id} />
+                ),
+                enableHiding: true,
+                // Add metadata to help identify custom field columns
+                meta: {
+                    isCustomField: true,
+                    customFieldId: field.id,
+                    customFieldType: field.type,
+                },
+            }));
     } catch (error) {
         console.error('Error generating custom field columns:', error);
         return [];

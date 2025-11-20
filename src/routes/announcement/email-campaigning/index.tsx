@@ -4,10 +4,8 @@ import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore
 import { useEffect, useMemo, useState } from 'react';
 import {
     AnnouncementService,
-    InstituteAnnouncementSettingsService,
     type CreateAnnouncementRequest,
     type ModeType,
-    type MediumType,
 } from '@/services/announcement';
 import { getUserId, getUserName } from '@/utils/userDetails';
 import { Button } from '@/components/ui/button';
@@ -24,8 +22,6 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { TokenKey } from '@/constants/auth/tokens';
-import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
 import useLocalStorage from '@/hooks/use-local-storage';
 import TipTapEditor from '@/components/tiptap/TipTapEditor';
 import {
@@ -36,22 +32,25 @@ import {
     DialogFooter,
     DialogDescription,
 } from '@/components/ui/dialog';
-import {
-    Smartphone,
-    Tablet,
-    Laptop,
-    Plus,
-} from 'lucide-react';
+import { Smartphone, Tablet, Laptop, Plus } from 'lucide-react';
 import { MultiSelect, type OptionType } from '@/components/design-system/multi-select';
 import { TIMEZONE_OPTIONS } from '@/routes/study-library/live-session/schedule/-constants/options';
 import { getInstituteTags, getUserCountsByTags, type TagItem } from '@/services/tag-management';
 import { getInstituteId } from '@/constants/helper';
+import { getUserRoleForInstitute } from '@/lib/auth/instituteUtils';
 import { getMessageTemplates } from '@/services/message-template-service';
 import type { MessageTemplate } from '@/types/message-template-types';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
-import { getEmailConfigurations, type EmailConfiguration } from '@/services/email-configuration-service';
-import { getCustomFieldSettings, type CustomField, type FixedField, type GroupField } from '@/services/custom-field-settings';
+import {
+    getEmailConfigurations,
+    type EmailConfiguration,
+} from '@/services/email-configuration-service';
+import {
+    getCustomFieldSettings,
+    type CustomField,
+    type FixedField,
+    type GroupField,
+} from '@/services/custom-field-settings';
 
 export const Route = createFileRoute('/announcement/email-campaigning/')({
     component: () => (
@@ -65,12 +64,10 @@ function EmailCampaigningPage() {
     const { setNavHeading } = useNavHeadingStore();
     const { toast } = useToast();
     const navigate = useNavigate();
-    
+
     // Institute details for package sessions
-    const instituteQuery = useInstituteQuery();
     const { instituteDetails } = useInstituteDetailsStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [loadingPermissions, setLoadingPermissions] = useState(true);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     // Basic state
@@ -86,7 +83,6 @@ function EmailCampaigningPage() {
     };
 
     // Only SYSTEM_ALERT mode for email campaigning (general announcement)
-    const [selectedModes] = useState<ModeType[]>(['SYSTEM_ALERT']);
     const [modeSettings, setModeSettings] = useState<Record<ModeType, Record<string, unknown>>>({
         SYSTEM_ALERT: { priority: 'MEDIUM', expiresAt: '' },
         DASHBOARD_PIN: {},
@@ -96,14 +92,11 @@ function EmailCampaigningPage() {
         COMMUNITY: {},
         TASKS: {},
     });
-    
-    // Only EMAIL medium
-    const [selectedMediums] = useState<MediumType[]>(['EMAIL']);
-    
+
     const [recipients, setRecipients] = useState<CreateAnnouncementRequest['recipients']>([
         { recipientType: 'ROLE', recipientId: 'STUDENT' },
     ]);
-    
+
     // For TAG recipient rows
     const [tagSelections, setTagSelections] = useState<Record<number, string[]>>({});
     const [tagOptions, setTagOptions] = useState<OptionType[]>([]);
@@ -112,26 +105,33 @@ function EmailCampaigningPage() {
     const [estimatedUsers, setEstimatedUsers] = useState<number | null>(null);
     const [estimatingUsers, setEstimatingUsers] = useState(false);
     const [rowTagEstimates, setRowTagEstimates] = useState<Record<number, number | null>>({});
-    
+
     // For CUSTOM_FIELD recipient rows
-    const [customFieldOptions, setCustomFieldOptions] = useState<Array<{
-        id: string;
-        name: string;
-        type: 'text' | 'dropdown' | 'number';
-        options?: string[];
-    }>>([]);
-    const [customFieldFilters, setCustomFieldFilters] = useState<Record<number, Array<{
-        fieldId: string;
-        fieldName: string;
-        fieldType: 'text' | 'dropdown' | 'number';
-        filterValue?: string | string[];
-        operator?: 'equals' | 'contains' | 'starts_with' | 'ends_with';
-    }>>>({});
-    
+    const [customFieldOptions, setCustomFieldOptions] = useState<
+        Array<{
+            id: string;
+            name: string;
+            type: 'text' | 'dropdown' | 'number';
+            options?: string[];
+        }>
+    >([]);
+    const [customFieldFilters, setCustomFieldFilters] = useState<
+        Record<
+            number,
+            Array<{
+                fieldId: string;
+                fieldName: string;
+                fieldType: 'text' | 'dropdown' | 'number';
+                filterValue?: string | string[];
+                operator?: 'equals' | 'contains' | 'starts_with' | 'ends_with';
+            }>
+        >
+    >({});
+
     const [scheduleType, setScheduleType] = useState<'IMMEDIATE' | 'ONE_TIME' | 'RECURRING'>(
         'IMMEDIATE'
     );
-    
+
     // Persist timezone in localStorage
     const defaultTz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Kolkata';
     const { getValue: getSavedTz, setValue: setSavedTz } = useLocalStorage<string>(
@@ -156,25 +156,23 @@ function EmailCampaigningPage() {
     const [emailConfigsLoading, setEmailConfigsLoading] = useState(false);
 
     // Package session selection state
-    const [packageSessionOptions, setPackageSessionOptions] = useState<Array<{
-        id: string;
-        label: string;
-    }>>([]);
+    const [packageSessionOptions, setPackageSessionOptions] = useState<
+        Array<{
+            id: string;
+            label: string;
+        }>
+    >([]);
 
     // Exclusion state
-    const [exclusions, setExclusions] = useState<Array<{
-        id: string;
-        recipientType: 'ROLE' | 'USER' | 'PACKAGE_SESSION' | 'TAG';
-        recipientId: string;
-        recipientName: string;
-    }>>([]);
+    const [exclusions, setExclusions] = useState<
+        Array<{
+            id: string;
+            recipientType: 'ROLE' | 'USER' | 'PACKAGE_SESSION' | 'TAG';
+            recipientId: string;
+            recipientName: string;
+        }>
+    >([]);
     const [showExclusionSection, setShowExclusionSection] = useState(false);
-
-    // Permissions
-    const [allowedModes, setAllowedModes] = useState<Record<ModeType, boolean>>({} as Record<ModeType, boolean>);
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const userRoles = useMemo(() => getUserRoles(accessToken), [accessToken]);
-    const primaryRole = userRoles?.[0] ?? 'TEACHER';
 
     useEffect(() => {
         setNavHeading('Email Campaigning');
@@ -268,7 +266,7 @@ function EmailCampaigningPage() {
     // Load email templates
     const loadEmailTemplates = async () => {
         if (emailTemplates.length > 0 || templatesLoading) return;
-        
+
         setTemplatesLoading(true);
         setTemplatesError(null);
         try {
@@ -291,11 +289,17 @@ function EmailCampaigningPage() {
             try {
                 const configs = await getEmailConfigurations();
                 setEmailConfigurations(configs);
-                
+
                 if (configs.length > 0) {
-                    const persistedEmail = typeof window !== 'undefined' ? localStorage.getItem('selectedFromEmail') : null;
-                    
-                    if (persistedEmail && configs.find(c => `${c.email}-${c.name}` === persistedEmail)) {
+                    const persistedEmail =
+                        typeof window !== 'undefined'
+                            ? localStorage.getItem('selectedFromEmail')
+                            : null;
+
+                    if (
+                        persistedEmail &&
+                        configs.find((c) => `${c.email}-${c.name}` === persistedEmail)
+                    ) {
                         setSelectedFromEmail(persistedEmail);
                     } else {
                         const defaultValue = `${configs[0]?.email}-${configs[0]?.name}`;
@@ -378,34 +382,13 @@ function EmailCampaigningPage() {
         });
     }, [tagSelections, tagMapById]);
 
-    // Load permissions
-    useEffect(() => {
-        (async () => {
-            setLoadingPermissions(true);
-            try {
-                const allowed: Record<ModeType, boolean> = {
-                    SYSTEM_ALERT: true, // Always allowed for email campaigning
-                    DASHBOARD_PIN: false,
-                    DM: false,
-                    STREAM: false,
-                    RESOURCES: false,
-                    COMMUNITY: false,
-                    TASKS: false,
-                };
-                setAllowedModes(allowed);
-            } finally {
-                setLoadingPermissions(false);
-            }
-        })();
-    }, [primaryRole]);
-
     // Persist timezone changes to localStorage
     useEffect(() => {
         setSavedTz(timezone);
     }, [timezone, setSavedTz]);
 
     const handleTemplateSelection = (templateId: string) => {
-        const template = emailTemplates.find(t => t.id === templateId);
+        const template = emailTemplates.find((t) => t.id === templateId);
         if (template) {
             setSelectedTemplateId(templateId);
             if (template.subject) {
@@ -439,19 +422,19 @@ function EmailCampaigningPage() {
         if (firstBatch) {
             setRecipients((prev) => [
                 ...prev,
-                { 
-                    recipientType: 'PACKAGE_SESSION', 
-                    recipientId: firstBatch.id, 
-                    recipientName: firstBatch.label 
+                {
+                    recipientType: 'PACKAGE_SESSION',
+                    recipientId: firstBatch.id,
+                    recipientName: firstBatch.label,
                 },
             ]);
         } else {
             setRecipients((prev) => [
                 ...prev,
-                { 
-                    recipientType: 'PACKAGE_SESSION', 
-                    recipientId: '', 
-                    recipientName: '' 
+                {
+                    recipientType: 'PACKAGE_SESSION',
+                    recipientId: '',
+                    recipientName: '',
                 },
             ]);
         }
@@ -464,26 +447,37 @@ function EmailCampaigningPage() {
                 id: `exclusion-${Date.now()}`,
                 recipientType: 'ROLE',
                 recipientId: '',
-                recipientName: ''
-            }
+                recipientName: '',
+            },
         ]);
     };
 
     const removeExclusion = (id: string) => {
-        setExclusions((prev) => prev.filter(e => e.id !== id));
+        setExclusions((prev) => prev.filter((e) => e.id !== id));
     };
 
-    const updateExclusion = (id: string, field: 'recipientType' | 'recipientId' | 'recipientName', value: string) => {
-        setExclusions((prev) => prev.map(e => {
-            if (e.id === id) {
-                // If changing recipientType, reset recipientId and recipientName
-                if (field === 'recipientType') {
-                    return { ...e, [field]: value as 'ROLE' | 'USER' | 'PACKAGE_SESSION' | 'TAG', recipientId: '', recipientName: '' };
+    const updateExclusion = (
+        id: string,
+        field: 'recipientType' | 'recipientId' | 'recipientName',
+        value: string
+    ) => {
+        setExclusions((prev) =>
+            prev.map((e) => {
+                if (e.id === id) {
+                    // If changing recipientType, reset recipientId and recipientName
+                    if (field === 'recipientType') {
+                        return {
+                            ...e,
+                            [field]: value as 'ROLE' | 'USER' | 'PACKAGE_SESSION' | 'TAG',
+                            recipientId: '',
+                            recipientName: '',
+                        };
+                    }
+                    return { ...e, [field]: value };
                 }
-                return { ...e, [field]: value };
-            }
-            return e;
-        }));
+                return e;
+            })
+        );
     };
 
     const removeRecipientAtIndex = (idx: number) => {
@@ -602,16 +596,23 @@ function EmailCampaigningPage() {
             } else if (r.recipientType === 'CUSTOM_FIELD_FILTER') {
                 const filters = customFieldFilters[idx] || [];
                 const filterText = filters
-                    .filter(f => f.fieldId && f.filterValue)
-                    .map(f => `${f.fieldName}: ${Array.isArray(f.filterValue) ? f.filterValue.join(', ') : f.filterValue}`)
+                    .filter((f) => f.fieldId && f.filterValue)
+                    .map(
+                        (f) =>
+                            `${f.fieldName}: ${Array.isArray(f.filterValue) ? f.filterValue.join(', ') : f.filterValue}`
+                    )
                     .join('; ');
                 items.push({ type: 'CUSTOM_FIELD_FILTER', text: filterText || '—' });
             } else {
                 items.push({
                     type: r.recipientType === 'PACKAGE_SESSION' ? 'Batch' : r.recipientType,
-                    text: r.recipientType === 'PACKAGE_SESSION' 
-                        ? packageSessionOptions.find(opt => opt.id === r.recipientId)?.label || r.recipientId || '—'
-                        : r.recipientId || r.recipientName || '—'
+                    text:
+                        r.recipientType === 'PACKAGE_SESSION'
+                            ? packageSessionOptions.find((opt) => opt.id === r.recipientId)
+                                  ?.label ||
+                              r.recipientId ||
+                              '—'
+                            : r.recipientId || r.recipientName || '—',
                 });
             }
         });
@@ -625,7 +626,7 @@ function EmailCampaigningPage() {
             const fieldErrors: Record<string, string> = {};
             const trimmedTitle = title.trim();
             const trimmedContent = htmlContent.trim();
-            
+
             if (!trimmedTitle) {
                 validationErrors.push('Title is required');
                 fieldErrors.title = 'Title is required';
@@ -694,19 +695,20 @@ function EmailCampaigningPage() {
             }
 
             // Validate CUSTOM_FIELD_FILTER recipients
-            const anyCustomFieldRow = recipients.some((r) => r.recipientType === 'CUSTOM_FIELD_FILTER');
+            const anyCustomFieldRow = recipients.some(
+                (r) => r.recipientType === 'CUSTOM_FIELD_FILTER'
+            );
             if (anyCustomFieldRow) {
-                const missingFilters = recipients.some(
-                    (r, idx) => {
-                        if (r.recipientType !== 'CUSTOM_FIELD_FILTER') return false;
-                        const filters = customFieldFilters[idx];
-                        return !filters || !filters.some(f => f.fieldId && f.filterValue);
-                    }
-                );
+                const missingFilters = recipients.some((r, idx) => {
+                    if (r.recipientType !== 'CUSTOM_FIELD_FILTER') return false;
+                    const filters = customFieldFilters[idx];
+                    return !filters || !filters.some((f) => f.fieldId && f.filterValue);
+                });
                 if (missingFilters) {
                     toast({
                         title: 'Configure custom field filters',
-                        description: 'You have a Custom Field Filter recipient without any configured filters.',
+                        description:
+                            'You have a Custom Field Filter recipient without any configured filters.',
                         variant: 'destructive',
                     });
                     return;
@@ -728,22 +730,24 @@ function EmailCampaigningPage() {
                     });
                 } else if (r.recipientType === 'CUSTOM_FIELD_FILTER') {
                     const filters = customFieldFilters[idx] || [];
-                    if (filters.length > 0 && filters.some(f => f.fieldId && f.filterValue)) {
+                    if (filters.length > 0 && filters.some((f) => f.fieldId && f.filterValue)) {
                         // Only add if at least one filter is configured
                         expandedRecipients.push({
                             recipientType: 'CUSTOM_FIELD_FILTER',
-                            filters: filters.filter(f => f.fieldId && f.filterValue).map(f => {
-                                // Convert fieldValue to string for API (array for dropdown becomes comma-separated string or stays as array)
-                                const fieldValue = Array.isArray(f.filterValue) 
-                                    ? f.filterValue 
-                                    : (f.filterValue || '');
-                                
-                                return {
-                                    customFieldId: f.fieldId, // This is the customFieldId from API
-                                    fieldValue: fieldValue,
-                                    operator: f.operator,
-                                };
-                            }),
+                            filters: filters
+                                .filter((f) => f.fieldId && f.filterValue)
+                                .map((f) => {
+                                    // Convert fieldValue to string for API (array for dropdown becomes comma-separated string or stays as array)
+                                    const fieldValue = Array.isArray(f.filterValue)
+                                        ? f.filterValue
+                                        : f.filterValue || '';
+
+                                    return {
+                                        customFieldId: f.fieldId, // This is the customFieldId from API
+                                        fieldValue: fieldValue,
+                                        operator: f.operator,
+                                    };
+                                }),
                         });
                     }
                 } else if (r.recipientType && r.recipientId) {
@@ -756,35 +760,46 @@ function EmailCampaigningPage() {
             });
 
             setIsSubmitting(true);
-            const selectedConfig = emailConfigurations.find(c => `${c.email}-${c.name}` === selectedFromEmail);
+            const selectedConfig = emailConfigurations.find(
+                (c) => `${c.email}-${c.name}` === selectedFromEmail
+            );
             const emailType = selectedConfig?.type || 'UTILITY_EMAIL';
-            
+
             // Filter out exclusions without recipientId
-            const validExclusions = exclusions.filter(e => e.recipientId && e.recipientId.trim() !== '');
-            
-            const payload: any = {
+            const validExclusions = exclusions.filter(
+                (e) => e.recipientId && e.recipientId.trim() !== ''
+            );
+
+            const primaryRole = getUserRoleForInstitute(getInstituteId() || '') || 'UNKNOWN';
+
+            const payload: CreateAnnouncementRequest = {
                 title,
                 content: { type: 'html', content: htmlContent },
+                instituteId: getInstituteId() || '',
                 createdBy: getUserId(),
                 createdByName: getUserName(),
                 createdByRole: primaryRole,
                 recipients: expandedRecipients,
-                exclusions: validExclusions.map(exclusion => ({
+                exclusions: validExclusions.map((exclusion) => ({
                     recipientType: exclusion.recipientType,
                     recipientId: exclusion.recipientId,
-                    recipientName: exclusion.recipientName
+                    recipientName: exclusion.recipientName,
                 })),
-                modes: [{
-                    modeType: 'SYSTEM_ALERT',
-                    settings: modeSettings.SYSTEM_ALERT ?? {},
-                }],
-                mediums: [{
-                    mediumType: 'EMAIL',
-                    config: {
-                        subject: title,
-                        emailType: emailType,
-                    }
-                }],
+                modes: [
+                    {
+                        modeType: 'SYSTEM_ALERT',
+                        settings: modeSettings.SYSTEM_ALERT ?? {},
+                    },
+                ],
+                mediums: [
+                    {
+                        mediumType: 'EMAIL',
+                        config: {
+                            subject: title,
+                            emailType: emailType,
+                        },
+                    },
+                ],
                 scheduling:
                     scheduleType === 'IMMEDIATE'
                         ? { scheduleType, timezone }
@@ -802,16 +817,16 @@ function EmailCampaigningPage() {
                                 cronExpression: cronExpression || undefined,
                             },
             };
-            
+
             await AnnouncementService.create(payload);
-            
+
             try {
                 const { toast: sonnerToast } = await import('sonner');
                 sonnerToast.success('Email campaign created successfully');
             } catch {
                 toast({ title: 'Email campaign created successfully' });
             }
-            
+
             // Reset fields
             setTitle('');
             setHtmlContent('');
@@ -890,7 +905,9 @@ function EmailCampaigningPage() {
                             </div>
                             <div>
                                 <div className="text-sm font-medium">Mode</div>
-                                <div className="text-sm text-neutral-700">SYSTEM_ALERT (General Announcement)</div>
+                                <div className="text-sm text-neutral-700">
+                                    SYSTEM_ALERT (General Announcement)
+                                </div>
                             </div>
                             <div>
                                 <div className="text-sm font-medium">Medium</div>
@@ -949,7 +966,7 @@ function EmailCampaigningPage() {
                                 size="sm"
                                 onClick={() => setPreviewDevice('mobile')}
                             >
-                                <Smartphone className="mr-1 h-4 w-4" />
+                                <Smartphone className="mr-1 size-4" />
                                 Mobile
                             </Button>
                             <Button
@@ -957,7 +974,7 @@ function EmailCampaigningPage() {
                                 size="sm"
                                 onClick={() => setPreviewDevice('tablet')}
                             >
-                                <Tablet className="mr-1 h-4 w-4" />
+                                <Tablet className="mr-1 size-4" />
                                 Tablet
                             </Button>
                             <Button
@@ -965,7 +982,7 @@ function EmailCampaigningPage() {
                                 size="sm"
                                 onClick={() => setPreviewDevice('laptop')}
                             >
-                                <Laptop className="mr-1 h-4 w-4" />
+                                <Laptop className="mr-1 size-4" />
                                 Laptop
                             </Button>
                         </div>
@@ -975,11 +992,15 @@ function EmailCampaigningPage() {
                                 className="border bg-white p-4 shadow-sm"
                             >
                                 <div className="mb-2 border-b pb-2">
-                                    <div className="text-sm font-semibold">{title || 'Email Subject'}</div>
+                                    <div className="text-sm font-semibold">
+                                        {title || 'Email Subject'}
+                                    </div>
                                 </div>
                                 <div
                                     className="prose prose-sm max-w-none"
-                                    dangerouslySetInnerHTML={{ __html: htmlContent || '<p>No content</p>' }}
+                                    dangerouslySetInnerHTML={{
+                                        __html: htmlContent || '<p>No content</p>',
+                                    }}
                                 />
                             </div>
                         </div>
@@ -999,7 +1020,7 @@ function EmailCampaigningPage() {
                         className={errors.title ? 'border-red-500' : ''}
                     />
                     {errors.title && <p className="text-xs text-red-600">{errors.title}</p>}
-                    
+
                     <Label>Email Content</Label>
                     <div className="flex items-center gap-2 self-end">
                         <Button
@@ -1057,7 +1078,7 @@ function EmailCampaigningPage() {
                 {/* Email Template Section */}
                 <section className="grid gap-3">
                     <h3 className="text-lg font-medium">Email Template</h3>
-                    
+
                     <div className="mb-4 flex items-center gap-2">
                         <Checkbox
                             id="use-template"
@@ -1085,7 +1106,10 @@ function EmailCampaigningPage() {
                                 value={selectedTemplateId}
                                 onValueChange={(value) => {
                                     if (value === 'add-new-template') {
-                                        navigate({ to: '/settings', search: { selectedTab: 'templates' } });
+                                        navigate({
+                                            to: '/settings',
+                                            search: { selectedTab: 'templates' },
+                                        });
                                     } else {
                                         handleTemplateSelection(value);
                                     }
@@ -1093,24 +1117,37 @@ function EmailCampaigningPage() {
                                 disabled={templatesLoading}
                             >
                                 <SelectTrigger className="w-full">
-                                    <SelectValue placeholder={
-                                        templatesLoading 
-                                            ? "Loading templates..." 
-                                            : "Select a template"
-                                    } />
+                                    <SelectValue
+                                        placeholder={
+                                            templatesLoading
+                                                ? 'Loading templates...'
+                                                : 'Select a template'
+                                        }
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {emailTemplates.length > 0 ? (
                                         <>
-                                            {emailTemplates.map((template) => (
-                                                <SelectItem key={template.id} value={template.id}>
-                                                    {template.name}
-                                                </SelectItem>
-                                            ))}
+                                            {emailTemplates
+                                                .filter(
+                                                    (template) =>
+                                                        template.id && template.id.trim() !== ''
+                                                )
+                                                .map((template) => (
+                                                    <SelectItem
+                                                        key={template.id}
+                                                        value={template.id}
+                                                    >
+                                                        {template.name}
+                                                    </SelectItem>
+                                                ))}
                                             <Separator className="my-1" />
-                                            <SelectItem value="add-new-template" className="text-primary-600 font-medium">
+                                            <SelectItem
+                                                value="add-new-template"
+                                                className="font-medium text-primary-600"
+                                            >
                                                 <div className="flex items-center gap-2">
-                                                    <Plus className="h-4 w-4" />
+                                                    <Plus className="size-4" />
                                                     <span>Add New Template</span>
                                                 </div>
                                             </SelectItem>
@@ -1121,9 +1158,12 @@ function EmailCampaigningPage() {
                                                 No templates available
                                             </SelectItem>
                                             <Separator className="my-1" />
-                                            <SelectItem value="add-new-template" className="text-primary-600 font-medium">
+                                            <SelectItem
+                                                value="add-new-template"
+                                                className="font-medium text-primary-600"
+                                            >
                                                 <div className="flex items-center gap-2">
-                                                    <Plus className="h-4 w-4" />
+                                                    <Plus className="size-4" />
                                                     <span>Add New Template</span>
                                                 </div>
                                             </SelectItem>
@@ -1133,22 +1173,19 @@ function EmailCampaigningPage() {
                             </Select>
                             {selectedTemplateId && selectedTemplateId !== 'add-new-template' && (
                                 <div className="mt-2 text-xs text-neutral-600">
-                                    Template selected: {emailTemplates.find(t => t.id === selectedTemplateId)?.name}
+                                    Template selected:{' '}
+                                    {emailTemplates.find((t) => t.id === selectedTemplateId)?.name}
                                 </div>
                             )}
                             {templatesError && (
-                                <div className="mt-2 text-xs text-red-600">
-                                    {templatesError}
-                                </div>
+                                <div className="mt-2 text-xs text-red-600">{templatesError}</div>
                             )}
                         </div>
                     )}
 
                     {/* From Email selection */}
                     <div className="mb-4">
-                        <Label className="mb-2 block text-sm font-medium">
-                            From Email
-                        </Label>
+                        <Label className="mb-2 block text-sm font-medium">From Email</Label>
                         <Select
                             value={selectedFromEmail || ''}
                             onValueChange={(value) => {
@@ -1159,22 +1196,29 @@ function EmailCampaigningPage() {
                             disabled={emailConfigsLoading}
                         >
                             <SelectTrigger className="w-full">
-                                <SelectValue placeholder={
-                                    emailConfigsLoading 
-                                        ? "Loading email configurations..." 
-                                        : "Select from email"
-                                } />
+                                <SelectValue
+                                    placeholder={
+                                        emailConfigsLoading
+                                            ? 'Loading email configurations...'
+                                            : 'Select from email'
+                                    }
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 {emailConfigurations.length > 0 ? (
-                                    emailConfigurations.map((config, index) => {
-                                        const uniqueValue = `${config.email}-${config.name}`;
-                                        return (
-                                            <SelectItem key={`${config.email}-${index}`} value={uniqueValue}>
-                                                {config.name} ({config.email})
-                                            </SelectItem>
-                                        );
-                                    })
+                                    emailConfigurations
+                                        .filter((config) => config.email && config.name)
+                                        .map((config, index) => {
+                                            const uniqueValue = `${config.email}-${config.name}`;
+                                            return (
+                                                <SelectItem
+                                                    key={`${config.email}-${index}`}
+                                                    value={uniqueValue}
+                                                >
+                                                    {config.name} ({config.email})
+                                                </SelectItem>
+                                            );
+                                        })
                                 ) : (
                                     <SelectItem value="no-configs" disabled>
                                         No email configurations available
@@ -1184,16 +1228,20 @@ function EmailCampaigningPage() {
                         </Select>
                         {selectedFromEmail && (
                             <div className="mt-2 text-xs text-neutral-600">
-                                From: {emailConfigurations.find(c => `${c.email}-${c.name}` === selectedFromEmail)?.email}
+                                From:{' '}
+                                {
+                                    emailConfigurations.find(
+                                        (c) => `${c.email}-${c.name}` === selectedFromEmail
+                                    )?.email
+                                }
                             </div>
                         )}
                     </div>
 
                     <p className="text-sm text-neutral-600">
-                        {useTemplate 
-                            ? "Template content will be applied to Title and Content above."
-                            : "Subject and body will use the Title and Content provided above."
-                        }
+                        {useTemplate
+                            ? 'Template content will be applied to Title and Content above.'
+                            : 'Subject and body will use the Title and Content provided above.'}
                     </p>
                 </section>
 
@@ -1220,11 +1268,7 @@ function EmailCampaigningPage() {
                         >
                             + All Teachers
                         </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={addBatchRecipient}
-                        >
+                        <Button variant="outline" size="sm" onClick={addBatchRecipient}>
                             + Batch
                         </Button>
                         <Button
@@ -1262,21 +1306,31 @@ function EmailCampaigningPage() {
                                     size="sm"
                                     onClick={() => {
                                         const newRecipientIdx = recipients.length;
-                                setRecipients((prev) => [
-                                    ...prev,
-                                    { recipientType: 'CUSTOM_FIELD_FILTER', recipientId: '', recipientName: '' },
-                                ]);
+                                        setRecipients((prev) => [
+                                            ...prev,
+                                            {
+                                                recipientType: 'CUSTOM_FIELD_FILTER',
+                                                recipientId: '',
+                                                recipientName: '',
+                                            },
+                                        ]);
                                         // Add initial filter for this field
                                         // field.id is the customFieldId from API
                                         setCustomFieldFilters((prev) => ({
                                             ...prev,
-                                            [newRecipientIdx]: [{
-                                                fieldId: field.id, // This is customFieldId from API
-                                                fieldName: field.name,
-                                                fieldType: field.type,
-                                                filterValue: field.type === 'dropdown' ? [] : '',
-                                                operator: field.type === 'text' ? 'equals' : undefined,
-                                            }],
+                                            [newRecipientIdx]: [
+                                                {
+                                                    fieldId: field.id, // This is customFieldId from API
+                                                    fieldName: field.name,
+                                                    fieldType: field.type,
+                                                    filterValue:
+                                                        field.type === 'dropdown' ? [] : '',
+                                                    operator:
+                                                        field.type === 'text'
+                                                            ? 'equals'
+                                                            : undefined,
+                                                },
+                                            ],
                                         }));
                                     }}
                                 >
@@ -1295,7 +1349,12 @@ function EmailCampaigningPage() {
                                         setRecipients((prev) => {
                                             const copy = [...prev];
                                             copy[idx] = {
-                                                recipientType: v as 'ROLE' | 'USER' | 'PACKAGE_SESSION' | 'TAG' | 'CUSTOM_FIELD_FILTER',
+                                                recipientType: v as
+                                                    | 'ROLE'
+                                                    | 'USER'
+                                                    | 'PACKAGE_SESSION'
+                                                    | 'TAG'
+                                                    | 'CUSTOM_FIELD_FILTER',
                                                 recipientId: '',
                                                 recipientName: '',
                                             };
@@ -1320,7 +1379,9 @@ function EmailCampaigningPage() {
                                         <SelectItem value="PACKAGE_SESSION">Batch</SelectItem>
                                         <SelectItem value="TAG">Tag</SelectItem>
                                         {customFieldOptions.length > 0 && (
-                                            <SelectItem value="CUSTOM_FIELD_FILTER">Custom Field Filter</SelectItem>
+                                            <SelectItem value="CUSTOM_FIELD_FILTER">
+                                                Custom Field Filter
+                                            </SelectItem>
                                         )}
                                     </SelectContent>
                                 </Select>
@@ -1329,9 +1390,13 @@ function EmailCampaigningPage() {
                                         value={r.recipientId}
                                         onValueChange={(v) => {
                                             setRecipients((prev) =>
-                                                prev.map((item, i) => 
-                                                    i === idx 
-                                                        ? { recipientType: 'ROLE' as const, recipientId: v, recipientName: '' }
+                                                prev.map((item, i) =>
+                                                    i === idx
+                                                        ? {
+                                                              recipientType: 'ROLE' as const,
+                                                              recipientId: v,
+                                                              recipientName: '',
+                                                          }
                                                         : item
                                                 )
                                             );
@@ -1353,9 +1418,13 @@ function EmailCampaigningPage() {
                                         value={r.recipientId}
                                         onChange={(e) => {
                                             setRecipients((prev) =>
-                                                prev.map((item, i) => 
-                                                    i === idx 
-                                                        ? { recipientType: 'USER' as const, recipientId: e.target.value, recipientName: '' }
+                                                prev.map((item, i) =>
+                                                    i === idx
+                                                        ? {
+                                                              recipientType: 'USER' as const,
+                                                              recipientId: e.target.value,
+                                                              recipientName: '',
+                                                          }
                                                         : item
                                                 )
                                             );
@@ -1366,14 +1435,17 @@ function EmailCampaigningPage() {
                                     <Select
                                         value={r.recipientId}
                                         onValueChange={(v) => {
-                                            const option = packageSessionOptions.find(opt => opt.id === v);
-                                            setRecipients((prev) => 
-                                                prev.map((item, i) => 
-                                                    i === idx 
-                                                        ? { 
-                                                            recipientType: 'PACKAGE_SESSION' as const,
-                                                            recipientId: v, 
-                                                            recipientName: option?.label || '' 
+                                            const option = packageSessionOptions.find(
+                                                (opt) => opt.id === v
+                                            );
+                                            setRecipients((prev) =>
+                                                prev.map((item, i) =>
+                                                    i === idx
+                                                        ? {
+                                                              recipientType:
+                                                                  'PACKAGE_SESSION' as const,
+                                                              recipientId: v,
+                                                              recipientName: option?.label || '',
                                                           }
                                                         : item
                                                 )
@@ -1384,11 +1456,15 @@ function EmailCampaigningPage() {
                                             <SelectValue placeholder="Select batch" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {packageSessionOptions.map((option) => (
-                                                <SelectItem key={option.id} value={option.id}>
-                                                    {option.label}
-                                                </SelectItem>
-                                            ))}
+                                            {packageSessionOptions
+                                                .filter(
+                                                    (option) => option.id && option.id.trim() !== ''
+                                                )
+                                                .map((option) => (
+                                                    <SelectItem key={option.id} value={option.id}>
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ))}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -1424,112 +1500,221 @@ function EmailCampaigningPage() {
                                 )}
                                 {r.recipientType === 'CUSTOM_FIELD_FILTER' && (
                                     <div className="flex-1 space-y-3">
-                                        <div className="text-xs text-muted-foreground mb-2">
-                                            Filter users based on custom field values. Add multiple filters to narrow down the audience.
+                                        <div className="mb-2 text-xs text-muted-foreground">
+                                            Filter users based on custom field values. Add multiple
+                                            filters to narrow down the audience.
                                         </div>
-                                        {(customFieldFilters[idx] || []).map((filter, filterIdx) => {
-                                            const selectedField = customFieldOptions.find(f => f.id === filter.fieldId);
-                                            return (
-                                                <div key={filterIdx} className="border rounded-md p-3 space-y-2">
-                                                    <div className="flex items-start gap-2">
-                                                        <div className="flex-1 space-y-2">
-                                                            <Select
-                                                                value={filter.fieldId}
-                                                                onValueChange={(fieldId) => {
-                                                                    const field = customFieldOptions.find(f => f.id === fieldId);
-                                                                    updateCustomFieldFilter(idx, filterIdx, {
-                                                                        fieldId,
-                                                                        fieldName: field?.name || '',
-                                                                        fieldType: field?.type || 'text',
-                                                                        filterValue: field?.type === 'dropdown' ? [] : '',
-                                                                        operator: field?.type === 'text' ? 'equals' : undefined,
-                                                                    });
-                                                                }}
+                                        {(customFieldFilters[idx] || []).map(
+                                            (filter, filterIdx) => {
+                                                const selectedField = customFieldOptions.find(
+                                                    (f) => f.id === filter.fieldId
+                                                );
+                                                return (
+                                                    <div
+                                                        key={filterIdx}
+                                                        className="space-y-2 rounded-md border p-3"
+                                                    >
+                                                        <div className="flex items-start gap-2">
+                                                            <div className="flex-1 space-y-2">
+                                                                <Select
+                                                                    value={filter.fieldId}
+                                                                    onValueChange={(fieldId) => {
+                                                                        const field =
+                                                                            customFieldOptions.find(
+                                                                                (f) =>
+                                                                                    f.id === fieldId
+                                                                            );
+                                                                        updateCustomFieldFilter(
+                                                                            idx,
+                                                                            filterIdx,
+                                                                            {
+                                                                                fieldId,
+                                                                                fieldName:
+                                                                                    field?.name ||
+                                                                                    '',
+                                                                                fieldType:
+                                                                                    field?.type ||
+                                                                                    'text',
+                                                                                filterValue:
+                                                                                    field?.type ===
+                                                                                    'dropdown'
+                                                                                        ? []
+                                                                                        : '',
+                                                                                operator:
+                                                                                    field?.type ===
+                                                                                    'text'
+                                                                                        ? 'equals'
+                                                                                        : undefined,
+                                                                            }
+                                                                        );
+                                                                    }}
+                                                                >
+                                                                    <SelectTrigger className="w-full">
+                                                                        <SelectValue placeholder="Select custom field" />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {customFieldOptions
+                                                                            .filter(
+                                                                                (field) =>
+                                                                                    field.id &&
+                                                                                    field.id.trim() !==
+                                                                                        ''
+                                                                            )
+                                                                            .map((field) => (
+                                                                                <SelectItem
+                                                                                    key={field.id}
+                                                                                    value={field.id}
+                                                                                >
+                                                                                    {field.name} (
+                                                                                    {field.type})
+                                                                                </SelectItem>
+                                                                            ))}
+                                                                    </SelectContent>
+                                                                </Select>
+
+                                                                {selectedField &&
+                                                                    selectedField.type ===
+                                                                        'text' && (
+                                                                        <div className="space-y-2">
+                                                                            <Select
+                                                                                value={
+                                                                                    filter.operator ||
+                                                                                    'equals'
+                                                                                }
+                                                                                onValueChange={(
+                                                                                    op
+                                                                                ) =>
+                                                                                    updateCustomFieldFilter(
+                                                                                        idx,
+                                                                                        filterIdx,
+                                                                                        {
+                                                                                            operator:
+                                                                                                op as
+                                                                                                    | 'equals'
+                                                                                                    | 'contains'
+                                                                                                    | 'starts_with'
+                                                                                                    | 'ends_with',
+                                                                                        }
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                <SelectTrigger className="w-full">
+                                                                                    <SelectValue />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    <SelectItem value="equals">
+                                                                                        Equals
+                                                                                    </SelectItem>
+                                                                                    <SelectItem value="contains">
+                                                                                        Contains
+                                                                                    </SelectItem>
+                                                                                    <SelectItem value="starts_with">
+                                                                                        Starts with
+                                                                                    </SelectItem>
+                                                                                    <SelectItem value="ends_with">
+                                                                                        Ends with
+                                                                                    </SelectItem>
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                            <Input
+                                                                                placeholder="Enter filter value"
+                                                                                value={
+                                                                                    typeof filter.filterValue ===
+                                                                                    'string'
+                                                                                        ? filter.filterValue
+                                                                                        : ''
+                                                                                }
+                                                                                onChange={(e) =>
+                                                                                    updateCustomFieldFilter(
+                                                                                        idx,
+                                                                                        filterIdx,
+                                                                                        {
+                                                                                            filterValue:
+                                                                                                e
+                                                                                                    .target
+                                                                                                    .value,
+                                                                                        }
+                                                                                    )
+                                                                                }
+                                                                            />
+                                                                        </div>
+                                                                    )}
+
+                                                                {selectedField &&
+                                                                    selectedField.type ===
+                                                                        'dropdown' && (
+                                                                        <MultiSelect
+                                                                            options={(
+                                                                                selectedField.options ||
+                                                                                []
+                                                                            ).map((opt) => ({
+                                                                                label: opt,
+                                                                                value: opt,
+                                                                            }))}
+                                                                            selected={
+                                                                                Array.isArray(
+                                                                                    filter.filterValue
+                                                                                )
+                                                                                    ? filter.filterValue
+                                                                                    : []
+                                                                            }
+                                                                            onChange={(vals) =>
+                                                                                updateCustomFieldFilter(
+                                                                                    idx,
+                                                                                    filterIdx,
+                                                                                    {
+                                                                                        filterValue:
+                                                                                            vals,
+                                                                                    }
+                                                                                )
+                                                                            }
+                                                                            placeholder="Select values"
+                                                                        />
+                                                                    )}
+
+                                                                {selectedField &&
+                                                                    selectedField.type ===
+                                                                        'number' && (
+                                                                        <Input
+                                                                            type="number"
+                                                                            placeholder="Enter number"
+                                                                            value={
+                                                                                typeof filter.filterValue ===
+                                                                                'string'
+                                                                                    ? filter.filterValue
+                                                                                    : ''
+                                                                            }
+                                                                            onChange={(e) =>
+                                                                                updateCustomFieldFilter(
+                                                                                    idx,
+                                                                                    filterIdx,
+                                                                                    {
+                                                                                        filterValue:
+                                                                                            e.target
+                                                                                                .value,
+                                                                                    }
+                                                                                )
+                                                                            }
+                                                                        />
+                                                                    )}
+                                                            </div>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() =>
+                                                                    removeCustomFieldFilter(
+                                                                        idx,
+                                                                        filterIdx
+                                                                    )
+                                                                }
                                                             >
-                                                                <SelectTrigger className="w-full">
-                                                                    <SelectValue placeholder="Select custom field" />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    {customFieldOptions.map((field) => (
-                                                                        <SelectItem key={field.id} value={field.id}>
-                                                                            {field.name} ({field.type})
-                                                                        </SelectItem>
-                                                                    ))}
-                                                                </SelectContent>
-                                                            </Select>
-
-                                                            {selectedField && selectedField.type === 'text' && (
-                                                                <div className="space-y-2">
-                                                                    <Select
-                                                                        value={filter.operator || 'equals'}
-                                                                        onValueChange={(op) =>
-                                                                            updateCustomFieldFilter(idx, filterIdx, {
-                                                                                operator: op as 'equals' | 'contains' | 'starts_with' | 'ends_with',
-                                                                            })
-                                                                        }
-                                                                    >
-                                                                        <SelectTrigger className="w-full">
-                                                                            <SelectValue />
-                                                                        </SelectTrigger>
-                                                                        <SelectContent>
-                                                                            <SelectItem value="equals">Equals</SelectItem>
-                                                                            <SelectItem value="contains">Contains</SelectItem>
-                                                                            <SelectItem value="starts_with">Starts with</SelectItem>
-                                                                            <SelectItem value="ends_with">Ends with</SelectItem>
-                                                                        </SelectContent>
-                                                                    </Select>
-                                                                    <Input
-                                                                        placeholder="Enter filter value"
-                                                                        value={typeof filter.filterValue === 'string' ? filter.filterValue : ''}
-                                                                        onChange={(e) =>
-                                                                            updateCustomFieldFilter(idx, filterIdx, {
-                                                                                filterValue: e.target.value,
-                                                                            })
-                                                                        }
-                                                                    />
-                                                                </div>
-                                                            )}
-
-                                                            {selectedField && selectedField.type === 'dropdown' && (
-                                                                <MultiSelect
-                                                                    options={(selectedField.options || []).map(opt => ({
-                                                                        label: opt,
-                                                                        value: opt,
-                                                                    }))}
-                                                                    selected={Array.isArray(filter.filterValue) ? filter.filterValue : []}
-                                                                    onChange={(vals) =>
-                                                                        updateCustomFieldFilter(idx, filterIdx, {
-                                                                            filterValue: vals,
-                                                                        })
-                                                                    }
-                                                                    placeholder="Select values"
-                                                                />
-                                                            )}
-
-                                                            {selectedField && selectedField.type === 'number' && (
-                                                                <Input
-                                                                    type="number"
-                                                                    placeholder="Enter number"
-                                                                    value={typeof filter.filterValue === 'string' ? filter.filterValue : ''}
-                                                                    onChange={(e) =>
-                                                                        updateCustomFieldFilter(idx, filterIdx, {
-                                                                            filterValue: e.target.value,
-                                                                        })
-                                                                    }
-                                                                />
-                                                            )}
+                                                                ×
+                                                            </Button>
                                                         </div>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => removeCustomFieldFilter(idx, filterIdx)}
-                                                        >
-                                                            ×
-                                                        </Button>
                                                     </div>
-                                                </div>
-                                            );
-                                        })}
+                                                );
+                                            }
+                                        )}
                                         <Button
                                             variant="outline"
                                             size="sm"
@@ -1590,13 +1775,18 @@ function EmailCampaigningPage() {
                                         className="inline-flex items-center gap-2 rounded-full border px-2 py-0.5"
                                     >
                                         <span className="font-medium">
-                                            {r.recipientType === 'PACKAGE_SESSION' ? 'Batch' : r.recipientType}
+                                            {r.recipientType === 'PACKAGE_SESSION'
+                                                ? 'Batch'
+                                                : r.recipientType}
                                         </span>
                                         <span className="text-neutral-600">
-                                            {r.recipientType === 'PACKAGE_SESSION' 
-                                                ? packageSessionOptions.find(opt => opt.id === r.recipientId)?.label || r.recipientId || '—'
-                                                : r.recipientId || r.recipientName || '—'
-                                            }
+                                            {r.recipientType === 'PACKAGE_SESSION'
+                                                ? packageSessionOptions.find(
+                                                      (opt) => opt.id === r.recipientId
+                                                  )?.label ||
+                                                  r.recipientId ||
+                                                  '—'
+                                                : r.recipientId || r.recipientName || '—'}
                                         </span>
                                         <button
                                             type="button"
@@ -1634,32 +1824,37 @@ function EmailCampaigningPage() {
                                 {showExclusionSection ? 'Hide' : 'Show'} Exclusions
                             </Button>
                             {showExclusionSection && (
-                                <Button
-                                    variant="secondary"
-                                    onClick={addExclusion}
-                                >
+                                <Button variant="secondary" onClick={addExclusion}>
                                     + Add Exclusion
                                 </Button>
                             )}
                         </div>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                        Exclude specific users, roles, batches, or tags from receiving this email campaign.
+                        Exclude specific users, roles, batches, or tags from receiving this email
+                        campaign.
                     </div>
-                    
+
                     {showExclusionSection && (
                         <div className="grid gap-3">
                             {exclusions.length === 0 ? (
-                                <div className="text-sm text-muted-foreground text-center py-4 border rounded-md">
+                                <div className="rounded-md border py-4 text-center text-sm text-muted-foreground">
                                     No exclusions added yet
                                 </div>
                             ) : (
                                 exclusions.map((exclusion) => (
-                                    <div key={exclusion.id} className="flex items-center gap-2 p-3 border rounded-md">
+                                    <div
+                                        key={exclusion.id}
+                                        className="flex items-center gap-2 rounded-md border p-3"
+                                    >
                                         <Select
                                             value={exclusion.recipientType}
-                                            onValueChange={(value) => 
-                                                updateExclusion(exclusion.id, 'recipientType', value)
+                                            onValueChange={(value) =>
+                                                updateExclusion(
+                                                    exclusion.id,
+                                                    'recipientType',
+                                                    value
+                                                )
                                             }
                                         >
                                             <SelectTrigger className="w-32">
@@ -1668,7 +1863,9 @@ function EmailCampaigningPage() {
                                             <SelectContent>
                                                 <SelectItem value="ROLE">Role</SelectItem>
                                                 <SelectItem value="USER">User</SelectItem>
-                                                <SelectItem value="PACKAGE_SESSION">Batch</SelectItem>
+                                                <SelectItem value="PACKAGE_SESSION">
+                                                    Batch
+                                                </SelectItem>
                                                 <SelectItem value="TAG">Tag</SelectItem>
                                             </SelectContent>
                                         </Select>
@@ -1677,8 +1874,16 @@ function EmailCampaigningPage() {
                                             <Select
                                                 value={exclusion.recipientId}
                                                 onValueChange={(value) => {
-                                                    updateExclusion(exclusion.id, 'recipientId', value);
-                                                    updateExclusion(exclusion.id, 'recipientName', value);
+                                                    updateExclusion(
+                                                        exclusion.id,
+                                                        'recipientId',
+                                                        value
+                                                    );
+                                                    updateExclusion(
+                                                        exclusion.id,
+                                                        'recipientName',
+                                                        value
+                                                    );
                                                 }}
                                             >
                                                 <SelectTrigger className="w-32">
@@ -1694,10 +1899,20 @@ function EmailCampaigningPage() {
                                             <Select
                                                 value={exclusion.recipientId}
                                                 onValueChange={(value) => {
-                                                    const option = packageSessionOptions.find(opt => opt.id === value);
-                                                    updateExclusion(exclusion.id, 'recipientId', value);
+                                                    const option = packageSessionOptions.find(
+                                                        (opt) => opt.id === value
+                                                    );
+                                                    updateExclusion(
+                                                        exclusion.id,
+                                                        'recipientId',
+                                                        value
+                                                    );
                                                     if (option) {
-                                                        updateExclusion(exclusion.id, 'recipientName', option.label);
+                                                        updateExclusion(
+                                                            exclusion.id,
+                                                            'recipientName',
+                                                            option.label
+                                                        );
                                                     }
                                                 }}
                                             >
@@ -1705,11 +1920,19 @@ function EmailCampaigningPage() {
                                                     <SelectValue placeholder="Select batch" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {packageSessionOptions.map((option) => (
-                                                        <SelectItem key={option.id} value={option.id}>
-                                                            {option.label}
-                                                        </SelectItem>
-                                                    ))}
+                                                    {packageSessionOptions
+                                                        .filter(
+                                                            (option) =>
+                                                                option.id && option.id.trim() !== ''
+                                                        )
+                                                        .map((option) => (
+                                                            <SelectItem
+                                                                key={option.id}
+                                                                value={option.id}
+                                                            >
+                                                                {option.label}
+                                                            </SelectItem>
+                                                        ))}
                                                 </SelectContent>
                                             </Select>
                                         ) : exclusion.recipientType === 'TAG' ? (
@@ -1717,9 +1940,17 @@ function EmailCampaigningPage() {
                                                 value={exclusion.recipientId}
                                                 onValueChange={(value) => {
                                                     const tag = tagMapById[value];
-                                                    updateExclusion(exclusion.id, 'recipientId', value);
+                                                    updateExclusion(
+                                                        exclusion.id,
+                                                        'recipientId',
+                                                        value
+                                                    );
                                                     if (tag) {
-                                                        updateExclusion(exclusion.id, 'recipientName', tag.tagName);
+                                                        updateExclusion(
+                                                            exclusion.id,
+                                                            'recipientName',
+                                                            tag.tagName
+                                                        );
                                                     }
                                                 }}
                                             >
@@ -1727,19 +1958,32 @@ function EmailCampaigningPage() {
                                                     <SelectValue placeholder="Select tag" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {tagOptions.map((option) => (
-                                                        <SelectItem key={option.value} value={option.value}>
-                                                            {option.label}
-                                                        </SelectItem>
-                                                    ))}
+                                                    {tagOptions
+                                                        .filter(
+                                                            (option) =>
+                                                                option.value &&
+                                                                option.value.trim() !== ''
+                                                        )
+                                                        .map((option) => (
+                                                            <SelectItem
+                                                                key={option.value}
+                                                                value={option.value}
+                                                            >
+                                                                {option.label}
+                                                            </SelectItem>
+                                                        ))}
                                                 </SelectContent>
                                             </Select>
                                         ) : (
                                             <Input
                                                 placeholder="User ID or email"
                                                 value={exclusion.recipientId}
-                                                onChange={(e) => 
-                                                    updateExclusion(exclusion.id, 'recipientId', e.target.value)
+                                                onChange={(e) =>
+                                                    updateExclusion(
+                                                        exclusion.id,
+                                                        'recipientId',
+                                                        e.target.value
+                                                    )
                                                 }
                                                 className="w-48"
                                             />
@@ -1775,11 +2019,13 @@ function EmailCampaigningPage() {
                             <div>
                                 <Label>Priority</Label>
                                 <Select
-                                    value={(modeSettings.SYSTEM_ALERT?.priority as string) || 'MEDIUM'}
-                                    onValueChange={(v) => 
+                                    value={
+                                        (modeSettings.SYSTEM_ALERT?.priority as string) || 'MEDIUM'
+                                    }
+                                    onValueChange={(v) =>
                                         setModeSettings((prev) => ({
                                             ...prev,
-                                            SYSTEM_ALERT: { ...prev.SYSTEM_ALERT, priority: v }
+                                            SYSTEM_ALERT: { ...prev.SYSTEM_ALERT, priority: v },
                                         }))
                                     }
                                 >
@@ -1803,10 +2049,13 @@ function EmailCampaigningPage() {
                                 <Input
                                     type="datetime-local"
                                     value={(modeSettings.SYSTEM_ALERT?.expiresAt as string) || ''}
-                                    onChange={(e) => 
+                                    onChange={(e) =>
                                         setModeSettings((prev) => ({
                                             ...prev,
-                                            SYSTEM_ALERT: { ...prev.SYSTEM_ALERT, expiresAt: e.target.value }
+                                            SYSTEM_ALERT: {
+                                                ...prev.SYSTEM_ALERT,
+                                                expiresAt: e.target.value,
+                                            },
                                         }))
                                     }
                                 />
@@ -1890,7 +2139,9 @@ function EmailCampaigningPage() {
                                 className={errors['schedule.startDate'] ? 'border-red-500' : ''}
                             />
                             {errors['schedule.startDate'] && (
-                                <p className="text-xs text-red-600">{errors['schedule.startDate']}</p>
+                                <p className="text-xs text-red-600">
+                                    {errors['schedule.startDate']}
+                                </p>
                             )}
                         </div>
                     )}
@@ -1901,7 +2152,9 @@ function EmailCampaigningPage() {
                                 placeholder="0 0 9 * * ?"
                                 value={cronExpression}
                                 onChange={(e) => setCronExpression(e.target.value)}
-                                className={errors['schedule.cronExpression'] ? 'border-red-500' : ''}
+                                className={
+                                    errors['schedule.cronExpression'] ? 'border-red-500' : ''
+                                }
                             />
                             {errors['schedule.cronExpression'] && (
                                 <p className="text-xs text-red-600">
@@ -1937,10 +2190,7 @@ function EmailCampaigningPage() {
 
                 {/* Submit */}
                 <div className="flex gap-2">
-                    <Button
-                        onClick={handleSubmit}
-                        disabled={isSubmitting}
-                    >
+                    <Button onClick={handleSubmit} disabled={isSubmitting}>
                         {isSubmitting ? 'Sending…' : 'Send Email Campaign'}
                     </Button>
                     <Button
