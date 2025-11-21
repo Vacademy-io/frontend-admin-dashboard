@@ -633,7 +633,7 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
             campaign_name: data.campaign_name.trim(),
             campaign_type: data.campaign_type.trim(),
             description: data.description?.trim() || '',
-            campaign_objective: data.campaign_objective.trim(),
+            campaign_objective: data.campaign_objective?.trim() || '',
             to_notify: emails.join(', '),
             send_respondent_email: Boolean(data.send_respondent_email),
             json_web_metadata: data.json_web_metadata?.trim() || '',
@@ -746,7 +746,8 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
                 {/* CampaignObjective */}
                 <div>
                     <label className="block text-sm font-semibold text-neutral-700">
-                        Campaign Objective <span className="text-red-500">*</span>
+                        Campaign Objective 
+                        {/* <span className="text-red-500">*</span> */}
                     </label>
                     <input
                         type="text"
@@ -754,11 +755,11 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
                         {...register('campaign_objective')}
                         className="mt-2 w-full rounded-lg border border-neutral-300 px-4 py-2.5 text-sm transition-all focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                     />
-                    {errors.campaign_objective && (
+                    {/* {errors.campaign_objective && (
                         <span className="mt-1 block text-sm text-red-500">
                             {errors.campaign_objective.message as string}
                         </span>
-                    )}
+                    )} */}
                 </div>
             </div>
 

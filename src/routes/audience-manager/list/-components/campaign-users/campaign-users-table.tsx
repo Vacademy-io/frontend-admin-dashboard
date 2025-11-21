@@ -5,7 +5,7 @@ import { EmptyInvitePage } from '@/assets/svgs';
 import { MyPagination } from '@/components/design-system/pagination';
 import { useCampaignUsers } from '../../-hooks/useCampaignUsers';
 import { campaignUsersColumns, CampaignUserTable, generateDynamicColumns } from './campaign-users-columns';
-import { getDateFromUTCString } from '@/constants/helper';
+import { convertToLocalDateTime } from '@/constants/helper';
 import { useCustomFieldSetup } from '../../-hooks/useCustomFieldSetup';
 import { CustomFieldSetupItem } from '../../-services/get-custom-field-setup';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
@@ -90,14 +90,9 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
 
     const { data: usersResponse, isLoading, error } = useCampaignUsers(leadsPayload);
 
-    const columns = useMemo(() => {
-        console.log('🔄 [CampaignUsersTable] Regenerating columns for campaign:', campaignId);
-        console.log('🔄 [CampaignUsersTable] customFields count:', customFields.length);
-        console.log('🔄 [CampaignUsersTable] usersResponse available:', !!usersResponse);
-        
-        // Collect all unique field IDs from:
-        // 1. Campaign customFields (from campaign's institute_custom_fields)
-        // 2. API response custom_field_values (from all users - these are the actual field IDs used)
+    // Collect ALL unique field IDs from ALL users in the API response
+    // This ensures we show ALL fields that exist in the leads API, even if some users don't have data
+    const allFieldIdsFromAllUsers = useMemo(() => {
         const allFieldIds = new Set<string>();
 
         // Add field IDs from campaign customFields
@@ -110,31 +105,34 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
                     campaignField.field_id;
                 if (fieldId) {
                     allFieldIds.add(fieldId);
-                    console.log('📋 [CampaignUsersTable] Added field ID from campaign:', fieldId);
                 }
             });
         }
 
-        // Add field IDs from API response custom_field_values
-        // THIS IS CRITICAL: These are the actual field IDs that have data
+        // Add field IDs from API response custom_field_values from ALL users
+        // This collects ALL fields that exist in ANY user's response
         if (usersResponse && usersResponse.content) {
             usersResponse.content.forEach((lead: any) => {
                 const customValues = lead.custom_field_values || {};
                 Object.keys(customValues).forEach((fieldId) => {
-                    if (fieldId !== 'name' && fieldId !== 'email' && fieldId !== 'full_name') {
-                        allFieldIds.add(fieldId);
-                        console.log('📋 [CampaignUsersTable] Added field ID from API response:', fieldId);
-                    }
+                    allFieldIds.add(fieldId);
                 });
             });
         }
 
         const collectedFieldIds = Array.from(allFieldIds);
-        console.log('📊 [CampaignUsersTable] Total collected field IDs:', collectedFieldIds.length);
-        console.log('📊 [CampaignUsersTable] Collected field IDs:', collectedFieldIds);
+        console.log('📊 [CampaignUsersTable] All field IDs from all users:', collectedFieldIds.length, 'fields');
+        console.log('📊 [CampaignUsersTable] Field IDs:', collectedFieldIds);
+        return collectedFieldIds;
+    }, [customFields, usersResponse]);
 
-        // Convert to array and create field objects for column generation
-        const allCustomFieldsArray = collectedFieldIds.map(fieldId => ({
+    const columns = useMemo(() => {
+        console.log('🔄 [CampaignUsersTable] Regenerating columns for campaign:', campaignId);
+        console.log('🔄 [CampaignUsersTable] customFields count:', customFields.length);
+        console.log('🔄 [CampaignUsersTable] usersResponse available:', !!usersResponse);
+        
+        // Convert collected field IDs to array and create field objects for column generation
+        const allCustomFieldsArray = allFieldIdsFromAllUsers.map(fieldId => ({
             id: fieldId,
             _id: fieldId,
             field_id: fieldId,
@@ -160,55 +158,34 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
             };
         }));
         return generatedColumns;
-    }, [campaignId, customFields, usersResponse, customFieldSetup]); // Include custom field setup dependency
+    }, [campaignId, customFields, allFieldIdsFromAllUsers, customFieldSetup, customFieldMap]); // Include custom field setup dependency
 
     // Create a unique key for the table to force re-render when columns change
     // This key must include field IDs from both campaign and API response
     const tableKey = useMemo(() => {
-        const fieldIds: string[] = [];
-        
-        // Add field IDs from campaign
-        if (customFields.length > 0) {
-            customFields.forEach((f: any) => {
-                const id = f.custom_field?.id || f.id || f._id || f.field_id;
-                if (id) fieldIds.push(id);
-            });
-        }
-        
-        // Add field IDs from API response
-        if (usersResponse && usersResponse.content) {
-            usersResponse.content.forEach((lead: any) => {
-                const customValues = lead.custom_field_values || {};
-                Object.keys(customValues).forEach((fieldId) => {
-                    if (fieldId !== 'name' && fieldId !== 'email' && fieldId !== 'full_name' && !fieldIds.includes(fieldId)) {
-                        fieldIds.push(fieldId);
-                    }
-                });
-            });
-        }
-        
-        const fieldIdsKey = fieldIds.length > 0 ? fieldIds.sort().join('-') : 'default';
+        const fieldIdsKey = allFieldIdsFromAllUsers.length > 0 
+            ? allFieldIdsFromAllUsers.sort().join('-') 
+            : 'default';
         return `campaign-users-table-${campaignId}-${fieldIdsKey}`;
-    }, [campaignId, customFields, usersResponse]);
+    }, [campaignId, allFieldIdsFromAllUsers]);
 
     // Map API response data to table rows
     // This will regenerate whenever usersResponse or customFields change
+    // CRITICAL: Ensure ALL fields from allFieldIdsFromAllUsers are present in each row
     const tableData = useMemo(() => {
         if (!usersResponse || !usersResponse.content || usersResponse.content.length === 0) {
             return undefined;
         }
 
         console.log('🔄 [CampaignUsersTable] Mapping', usersResponse.content.length, 'users to table data');
-        console.log('🔄 [CampaignUsersTable] Custom fields count:', customFields.length);
-        console.log('🔄 [CampaignUsersTable] First user custom_field_values keys:', 
-            usersResponse.content[0]?.custom_field_values ? Object.keys(usersResponse.content[0].custom_field_values) : 'none');
+        console.log('🔄 [CampaignUsersTable] All field IDs to include:', allFieldIdsFromAllUsers.length);
 
         return {
             content: usersResponse.content.map((lead, index) => {
                 const user = lead.user || {};
                 const customValues = lead.custom_field_values || {};
                 const submittedAt = lead.submitted_at_local
-                    ? getDateFromUTCString(lead.submitted_at_local)
+                    ? convertToLocalDateTime(lead.submitted_at_local)
                     : '-';
 
                 // Build dynamic row data - start with base fields
@@ -218,28 +195,9 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
                     index: page * pageSize + index,
                 };
 
-                // 1. ALWAYS ADD MANDATORY FIELDS: Name and Email
-                // Name - try multiple sources
-                rowData.name = user.full_name || (user as any).name || customValues.name || customValues.full_name || '-';
-                
-                // Email - try multiple sources
-                rowData.email = user.email || customValues.email || '-';
-
-                // 2. Map ALL custom field values from API response
-                // The API response has custom_field_values with field IDs as keys
-                // We need to map ALL field IDs from custom_field_values, not just from campaign customFields
-                const allFieldIdsFromAPI = Object.keys(customValues);
-                
-                console.log('🔄 [CampaignUsersTable] Field IDs from API custom_field_values:', allFieldIdsFromAPI);
-
-                // Process all field IDs from the API response
-                // CRITICAL: Map each field ID to its value and add to rowData
-                allFieldIdsFromAPI.forEach((fieldId) => {
-                    // Skip if it's name or email (already added)
-                    if (fieldId === 'name' || fieldId === 'email' || fieldId === 'full_name') {
-                        return;
-                    }
-
+                // CRITICAL: Process ALL field IDs from ALL users (not just this user's fields)
+                // This ensures every row has ALL fields, with null/- if the user doesn't have that field
+                allFieldIdsFromAllUsers.forEach((fieldId) => {
                     // Get field info from API setup map
                     let fieldInfo =
                         customFieldMap.get(fieldId) ||
@@ -247,10 +205,10 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
                         customFieldMap.get(fieldId.toUpperCase());
 
                     // Get value from custom_field_values (primary source)
-                    // This is the actual value from the API response
+                    // This is the actual value from the API response for THIS user
                     let value: any = customValues[fieldId];
 
-                    // If value is empty, try user object
+                    // If value is empty or not present for this user, try user object
                     if (value === undefined || value === null || value === '') {
                         if (fieldInfo && fieldInfo.field_key) {
                             const fieldKey = fieldInfo.field_key;
@@ -262,24 +220,25 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
                                     value = user.mobile_number;
                                 } else if (fieldKey === 'phone' && user.mobile_number) {
                                     value = user.mobile_number;
+                                } else if (fieldKey === 'full_name' && user.full_name) {
+                                    value = user.full_name;
+                                } else if (fieldKey === 'email' && user.email) {
+                                    value = user.email;
                                 }
+                            }
+                        } else {
+                            // Fallback: try common field names directly from user object
+                            if (fieldId === 'full_name' || fieldId === 'name') {
+                                value = user.full_name || (user as any).name;
+                            } else if (fieldId === 'email') {
+                                value = user.email;
                             }
                         }
                     }
 
-                    // Skip Name and Email fields (already added as mandatory)
-                    if (fieldInfo) {
-                        const fieldKey =
-                            fieldInfo.field_key ||
-                            generateKeyFromName(fieldInfo.field_name || fieldId);
-                        if (fieldKey === 'name' || fieldKey === 'email' || fieldKey === 'full_name') {
-                            return; // Skip, already added
-                        }
-                    }
-
-                    // ALWAYS store value using field ID as key (matches column accessorKey)
-                    // This ensures the column can find the value even if fieldInfo is not found
-                    rowData[fieldId] = value !== undefined && value !== null && value !== '' ? value : '-';
+                    // Store value using field ID as key (matches column accessorKey)
+                    // If value is not present for this user, set to null (user requested null, but we'll use '-' for display)
+                    rowData[fieldId] = value !== undefined && value !== null && value !== '' ? value : null;
                     
                     // Debug first row
                     if (index === 0) {
@@ -287,7 +246,7 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
                             '📝 [CampaignUsersTable] Mapped field:',
                             fieldId,
                             '->',
-                            value,
+                            value !== undefined && value !== null && value !== '' ? value : 'null',
                             '(found in API setup:',
                             !!fieldInfo,
                             ')'
@@ -295,57 +254,11 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
                     }
                 });
 
-                // 3. Also process custom fields from campaign (in case they're not in API response yet)
-                // This ensures we have columns for all campaign fields, even if no data yet
-                if (customFields && customFields.length > 0) {
-                    customFields.forEach((campaignField: any) => {
-                        // Extract field ID from campaign field structure
-                        const fieldId = 
-                            campaignField.custom_field?.id || 
-                            campaignField.id || 
-                            campaignField._id ||
-                            campaignField.field_id;
-
-                        if (!fieldId) return;
-
-                        // Skip if already processed from API response
-                        if (rowData.hasOwnProperty(fieldId)) {
-                            return;
-                        }
-
-                        // Skip Name and Email (already added as mandatory)
-                        const fieldInfo =
-                            customFieldMap.get(fieldId) ||
-                            customFieldMap.get(fieldId.toLowerCase()) ||
-                            customFieldMap.get(fieldId.toUpperCase());
-                        if (fieldInfo) {
-                            const fieldKey =
-                                fieldInfo.field_key ||
-                                generateKeyFromName(fieldInfo.field_name || fieldId);
-                            if (fieldKey === 'name' || fieldKey === 'email' || fieldKey === 'full_name') {
-                                return; // Skip, already added
-                            }
-                        }
-
-                        // Try to get value from custom_field_values
-                        let value: any = customValues[fieldId];
-
-                        // If not found, try user object
-                        if (value === undefined || value === null || value === '') {
-                            if (fieldInfo && fieldInfo.field_key) {
-                                const fieldKey = fieldInfo.field_key;
-                                value = (user as any)[fieldKey];
-                            }
-                        }
-
-                        // Store value using field ID as key (matches column accessorKey)
-                        rowData[fieldId] = value !== undefined && value !== null && value !== '' ? value : '-';
-                    });
-                }
-
                 // Debug: log first row data keys
                 if (index === 0) {
                     console.log('🔄 [CampaignUsersTable] First row data keys:', Object.keys(rowData));
+                    console.log('🔄 [CampaignUsersTable] First row null values:', 
+                        Object.entries(rowData).filter(([_, v]) => v === null).map(([k]) => k));
                 }
 
                 return rowData as CampaignUserTable;
@@ -356,7 +269,7 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
             total_elements: usersResponse.totalElements,
             last: usersResponse.last,
         };
-    }, [usersResponse, customFields, customFieldSetup, page, pageSize, customFieldMap]);
+    }, [usersResponse, allFieldIdsFromAllUsers, customFieldMap, page, pageSize]);
 
     // Debug: Log when campaignId changes (new campaign selected)
     useEffect(() => {

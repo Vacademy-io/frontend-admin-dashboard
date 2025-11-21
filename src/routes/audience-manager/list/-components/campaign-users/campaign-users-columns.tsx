@@ -29,11 +29,6 @@ const indexColumn: ColumnDef<CampaignUserTable> = {
     ),
 };
 
-const isMandatoryFieldKey = (fieldKey?: string) => {
-    if (!fieldKey) return false;
-    const normalized = fieldKey.toLowerCase();
-    return normalized === 'name' || normalized === 'full_name' || normalized === 'email';
-};
 
 const getFieldFromLookup = (
     lookup: Map<string, CustomFieldSetupItem> | undefined,
@@ -46,11 +41,11 @@ const getFieldFromLookup = (
 /**
  * Generate dynamic columns based on custom fields from the campaign
  * This function:
- * 1. Always includes Name and Email as mandatory columns first
- * 2. Extracts field IDs from campaign's institute_custom_fields
- * 3. Maps field IDs to field names using the custom field setup API response
- * 4. Creates table columns with field names as headers
- * 5. Uses field IDs as accessorKeys to get values from custom_field_values
+ * 1. Extracts field IDs from campaign's institute_custom_fields
+ * 2. Maps field IDs to field names using the custom field setup API response
+ * 3. Creates table columns with field names as headers
+ * 4. Uses field IDs as accessorKeys to get values from custom_field_values
+ * All fields (including Name and Email) are treated dynamically from the API response
  */
 export const generateDynamicColumns = (
     campaignCustomFields: any[] = [],
@@ -60,54 +55,10 @@ export const generateDynamicColumns = (
 
     try {
         const lookup = fieldLookup ?? new Map<string, CustomFieldSetupItem>();
-        // 1. ALWAYS ADD MANDATORY COLUMNS: Name and Email first
-        const nameFieldInfo =
-            getFieldFromLookup(lookup, 'full_name') ||
-            getFieldFromLookup(lookup, 'name') ||
-            getFieldFromLookup(lookup, 'fullname');
-        const emailFieldInfo = getFieldFromLookup(lookup, 'email');
-
-        // Add Name column (mandatory)
-        columns.push({
-            accessorKey: 'name', // Use 'name' as accessorKey
-            header: nameFieldInfo?.field_name || 'Name',
-            size: 220,
-            minSize: 180,
-            maxSize: 300,
-            enablePinning: true,
-            cell: ({ row }) => {
-                const value = row.original.name || row.original.full_name || row.original.fullName || '-';
-                return (
-                    <div className="p-3 text-sm font-medium text-neutral-900">
-                        {value && value !== '-' && value !== 'N/A' && value !== '' ? String(value) : '-'}
-                    </div>
-                );
-            },
-        });
-
-        // Add Email column (mandatory)
-        columns.push({
-            accessorKey: 'email', // Use 'email' as accessorKey
-            header: emailFieldInfo?.field_name || 'Email',
-            size: 200,
-            minSize: 150,
-            maxSize: 300,
-            enablePinning: true,
-            cell: ({ row }) => {
-                const value = row.original.email || '-';
-                return (
-                    <div className="p-3 text-sm text-neutral-700">
-                        {value && value !== '-' && value !== 'N/A' && value !== '' ? String(value) : '-'}
-                    </div>
-                );
-            },
-        });
-
-        // 2. ADD OTHER CUSTOM FIELDS by looping through API response data
+        
+        // Collect all field IDs from campaign/API that we need to create columns for
         const fieldMappings: Array<{ id: string; name: string; key: string }> = [];
         const processedFieldIds = new Set<string>(); // Track processed field IDs to avoid duplicates
-
-        // Collect all field IDs from campaign/API that we need to create columns for
         const fieldIdsToProcess = new Set<string>();
         
         if (campaignCustomFields && campaignCustomFields.length > 0) {
@@ -123,31 +74,30 @@ export const generateDynamicColumns = (
             });
         }
 
-        // Loop through API response to find matching field IDs
+        // Process all field IDs from campaign - treat all fields dynamically (including Name and Email)
         fieldIdsToProcess.forEach((fieldId) => {
             if (!processedFieldIds.has(fieldId)) {
-                const fieldInfo =
+                const fieldInfo = 
                     getFieldFromLookup(lookup, fieldId) || getFieldFromLookup(lookup, fieldId?.toLowerCase());
-                const fieldName =
-                    fieldInfo?.field_name || fieldInfo?.field_key || fieldId || `Field ${fieldMappings.length + 1}`;
-                const fieldKey =
-                    fieldInfo?.field_key || generateKeyFromName(fieldInfo?.field_name || fieldId || 'field');
+                
+                // Only create column if field info is found in lookup
+                if (fieldInfo) {
+                    const fieldName = fieldInfo.field_name 
+                        ? fieldInfo.field_name.charAt(0).toUpperCase() + fieldInfo.field_name.slice(1)
+                        : fieldInfo.field_key || fieldId;
+                    const fieldKey = fieldInfo.field_key || generateKeyFromName(fieldInfo.field_name || fieldId);
 
-                if (isMandatoryFieldKey(fieldKey)) {
+                    fieldMappings.push({
+                        id: fieldId,
+                        name: fieldName,
+                        key: fieldKey,
+                    });
                     processedFieldIds.add(fieldId);
-                    return;
                 }
-
-                fieldMappings.push({
-                    id: fieldId,
-                    name: fieldName,
-                    key: fieldKey,
-                });
-                processedFieldIds.add(fieldId);
             }
         });
 
-        // Create columns for each additional custom field mapping
+        // Create columns for each field mapping (all fields are treated equally)
         fieldMappings.forEach((fieldMapping) => {
             const { id: fieldId, name: fieldName, key: fieldKey } = fieldMapping;
 
@@ -162,10 +112,15 @@ export const generateDynamicColumns = (
                 maxSize: isNameField ? 300 : 250,
                 cell: ({ row }) => {
                     // Get value directly from row data using field ID
+                    // Value can be null if the user doesn't have data for this field
                     const value = row.original[fieldId];
+                    // Display null as '-' for better UX, but the data is stored as null
+                    const displayValue = value !== null && value !== undefined && value !== '' && value !== '-' && value !== 'N/A' 
+                        ? String(value) 
+                        : '-';
                     return (
-                        <div className={`p-3 text-sm ${isNameField ? 'font-medium text-neutral-900' : 'text-neutral-700'}`}>
-                            {value && value !== '-' && value !== 'N/A' && value !== '' ? String(value) : '-'}
+                        <div className={`p-3 text-sm  ${isNameField ? 'font-medium text-neutral-900' : 'text-neutral-700'}`}>
+                            {displayValue}
                         </div>
                     );
                 },
@@ -180,9 +135,9 @@ export const generateDynamicColumns = (
     columns.push({
         accessorKey: 'submittedAt',
         header: 'Submitted On',
-        size: 200,
-        minSize: 180,
-        maxSize: 250,
+        size: 250,
+        minSize: 220,
+        maxSize: 300,
         cell: ({ row }) => (
             <div className="p-3 text-sm text-neutral-700">{row.original.submittedAt || '-'}</div>
         ),

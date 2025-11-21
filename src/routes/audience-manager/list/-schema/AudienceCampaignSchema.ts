@@ -33,7 +33,7 @@ export const audienceCampaignSchema = z.object({
         .min(3, 'Name must be at least 3 characters'),
     campaign_type: z.string().toUpperCase().min(1, 'Campaign type is required'),
     description: z.string().optional(),
-    campaign_objective: z.string().min(1, 'Campaign objective is required'),
+    campaign_objective: z.string().optional().default(''),
     to_notify: z.string().optional(),
     send_respondent_email: z.boolean().optional(),
     start_date_local: z.string().min(1, 'Start date is required'),
