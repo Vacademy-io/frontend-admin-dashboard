@@ -128,6 +128,7 @@ export interface StudentPermissions {
     canViewProfile: boolean;
     canEditProfile: boolean;
     canDeleteProfile: boolean;
+    canViewFiles: boolean;
 }
 
 // Certificates

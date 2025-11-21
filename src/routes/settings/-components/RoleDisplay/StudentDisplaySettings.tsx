@@ -688,19 +688,24 @@ export default function StudentDisplaySettings(): JSX.Element {
                     <CardDescription>Profile permissions</CardDescription>
                 </CardHeader>
                 <div className="space-y-2 p-4 pt-0">
-                    {(['canViewProfile', 'canEditProfile', 'canDeleteProfile'] as const).map(
-                        (k) => (
-                            <div key={k} className="flex items-center gap-2">
-                                <Switch
-                                    checked={settings.permissions[k]}
-                                    onCheckedChange={(v) =>
-                                        update('permissions', { ...settings.permissions, [k]: v })
-                                    }
-                                />
-                                <Label className="text-xs">{k}</Label>
-                            </div>
-                        )
-                    )}
+                    {(
+                        [
+                            'canViewProfile',
+                            'canEditProfile',
+                            'canDeleteProfile',
+                            'canViewFiles',
+                        ] as const
+                    ).map((k) => (
+                        <div key={k} className="flex items-center gap-2">
+                            <Switch
+                                checked={settings.permissions[k]}
+                                onCheckedChange={(v) =>
+                                    update('permissions', { ...settings.permissions, [k]: v })
+                                }
+                            />
+                            <Label className="text-xs">{k}</Label>
+                        </div>
+                    ))}
                 </div>
             </Card>
 

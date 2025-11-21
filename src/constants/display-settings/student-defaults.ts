@@ -84,6 +84,7 @@ export const DEFAULT_STUDENT_DISPLAY_SETTINGS: StudentDisplaySettingsData = {
         canViewProfile: true,
         canEditProfile: true,
         canDeleteProfile: false,
+        canViewFiles: false,
     },
     courseDetails: {
         tabs: [
