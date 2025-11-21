@@ -91,6 +91,8 @@ import { Route as StudyLibraryAiCopilotCourseOutlineGeneratingIndexRouteImport }
 import { Route as HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRouteImport } from "./routes/homework-creation/create-assessment/$assessmentId/$examtype/index"
 import { Route as AssessmentCreateAssessmentAssessmentIdExamtypeIndexRouteImport } from "./routes/assessment/create-assessment/$assessmentId/$examtype/index"
 import { Route as StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRouteImport } from "./routes/study-library/courses/course-details/subjects/modules/index"
+import { Route as StudyLibraryAiCopilotCourseOutlineGeneratingViewerIndexRouteImport } from "./routes/study-library/ai-copilot/course-outline/generating/viewer/index"
+import { Route as StudyLibraryAiCopilotCourseOutlineGeneratingProcessingIndexRouteImport } from "./routes/study-library/ai-copilot/course-outline/generating/processing/index"
 import { Route as EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRouteImport } from "./routes/evaluation/evaluate/$assessmentId/$attemptId/$examType/index"
 import { Route as StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexRouteImport } from "./routes/study-library/courses/course-details/subjects/modules/chapters/index"
 import { Route as EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRouteImport } from "./routes/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/index"
@@ -581,6 +583,20 @@ const StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRoute =
     path: "/study-library/courses/course-details/subjects/modules/",
     getParentRoute: () => rootRouteImport,
   } as any)
+const StudyLibraryAiCopilotCourseOutlineGeneratingViewerIndexRoute =
+  StudyLibraryAiCopilotCourseOutlineGeneratingViewerIndexRouteImport.update({
+    id: "/study-library/ai-copilot/course-outline/generating/viewer/",
+    path: "/study-library/ai-copilot/course-outline/generating/viewer/",
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const StudyLibraryAiCopilotCourseOutlineGeneratingProcessingIndexRoute =
+  StudyLibraryAiCopilotCourseOutlineGeneratingProcessingIndexRouteImport.update(
+    {
+      id: "/study-library/ai-copilot/course-outline/generating/processing/",
+      path: "/study-library/ai-copilot/course-outline/generating/processing/",
+      getParentRoute: () => rootRouteImport,
+    } as any,
+  )
 const EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRoute =
   EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRouteImport.update({
     id: "/evaluation/evaluate/$assessmentId/$attemptId/$examType/",
@@ -713,6 +729,8 @@ export interface FileRoutesByFullPath {
   "/study-library/live-session/schedule/step1": typeof StudyLibraryLiveSessionScheduleStep1IndexRoute
   "/study-library/live-session/schedule/step2": typeof StudyLibraryLiveSessionScheduleStep2IndexRoute
   "/evaluation/evaluate/$assessmentId/$attemptId/$examType": typeof EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRoute
+  "/study-library/ai-copilot/course-outline/generating/processing": typeof StudyLibraryAiCopilotCourseOutlineGeneratingProcessingIndexRoute
+  "/study-library/ai-copilot/course-outline/generating/viewer": typeof StudyLibraryAiCopilotCourseOutlineGeneratingViewerIndexRoute
   "/study-library/courses/course-details/subjects/modules": typeof StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRoute
   "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType": typeof EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute
   "/study-library/courses/course-details/subjects/modules/chapters": typeof StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexRoute
@@ -804,6 +822,8 @@ export interface FileRoutesByTo {
   "/study-library/live-session/schedule/step1": typeof StudyLibraryLiveSessionScheduleStep1IndexRoute
   "/study-library/live-session/schedule/step2": typeof StudyLibraryLiveSessionScheduleStep2IndexRoute
   "/evaluation/evaluate/$assessmentId/$attemptId/$examType": typeof EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRoute
+  "/study-library/ai-copilot/course-outline/generating/processing": typeof StudyLibraryAiCopilotCourseOutlineGeneratingProcessingIndexRoute
+  "/study-library/ai-copilot/course-outline/generating/viewer": typeof StudyLibraryAiCopilotCourseOutlineGeneratingViewerIndexRoute
   "/study-library/courses/course-details/subjects/modules": typeof StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRoute
   "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType": typeof EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute
   "/study-library/courses/course-details/subjects/modules/chapters": typeof StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexRoute
@@ -897,6 +917,8 @@ export interface FileRoutesById {
   "/study-library/live-session/schedule/step1/": typeof StudyLibraryLiveSessionScheduleStep1IndexRoute
   "/study-library/live-session/schedule/step2/": typeof StudyLibraryLiveSessionScheduleStep2IndexRoute
   "/evaluation/evaluate/$assessmentId/$attemptId/$examType/": typeof EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRoute
+  "/study-library/ai-copilot/course-outline/generating/processing/": typeof StudyLibraryAiCopilotCourseOutlineGeneratingProcessingIndexRoute
+  "/study-library/ai-copilot/course-outline/generating/viewer/": typeof StudyLibraryAiCopilotCourseOutlineGeneratingViewerIndexRoute
   "/study-library/courses/course-details/subjects/modules/": typeof StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRoute
   "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/": typeof EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute
   "/study-library/courses/course-details/subjects/modules/chapters/": typeof StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexRoute
@@ -991,6 +1013,8 @@ export interface FileRouteTypes {
     | "/study-library/live-session/schedule/step1"
     | "/study-library/live-session/schedule/step2"
     | "/evaluation/evaluate/$assessmentId/$attemptId/$examType"
+    | "/study-library/ai-copilot/course-outline/generating/processing"
+    | "/study-library/ai-copilot/course-outline/generating/viewer"
     | "/study-library/courses/course-details/subjects/modules"
     | "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType"
     | "/study-library/courses/course-details/subjects/modules/chapters"
@@ -1082,6 +1106,8 @@ export interface FileRouteTypes {
     | "/study-library/live-session/schedule/step1"
     | "/study-library/live-session/schedule/step2"
     | "/evaluation/evaluate/$assessmentId/$attemptId/$examType"
+    | "/study-library/ai-copilot/course-outline/generating/processing"
+    | "/study-library/ai-copilot/course-outline/generating/viewer"
     | "/study-library/courses/course-details/subjects/modules"
     | "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType"
     | "/study-library/courses/course-details/subjects/modules/chapters"
@@ -1174,6 +1200,8 @@ export interface FileRouteTypes {
     | "/study-library/live-session/schedule/step1/"
     | "/study-library/live-session/schedule/step2/"
     | "/evaluation/evaluate/$assessmentId/$attemptId/$examType/"
+    | "/study-library/ai-copilot/course-outline/generating/processing/"
+    | "/study-library/ai-copilot/course-outline/generating/viewer/"
     | "/study-library/courses/course-details/subjects/modules/"
     | "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/"
     | "/study-library/courses/course-details/subjects/modules/chapters/"
@@ -1266,6 +1294,8 @@ export interface RootRouteChildren {
   StudyLibraryLiveSessionScheduleStep1IndexRoute: typeof StudyLibraryLiveSessionScheduleStep1IndexRoute
   StudyLibraryLiveSessionScheduleStep2IndexRoute: typeof StudyLibraryLiveSessionScheduleStep2IndexRoute
   EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRoute: typeof EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRoute
+  StudyLibraryAiCopilotCourseOutlineGeneratingProcessingIndexRoute: typeof StudyLibraryAiCopilotCourseOutlineGeneratingProcessingIndexRoute
+  StudyLibraryAiCopilotCourseOutlineGeneratingViewerIndexRoute: typeof StudyLibraryAiCopilotCourseOutlineGeneratingViewerIndexRoute
   StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRoute: typeof StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRoute
   EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute: typeof EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute
   StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexRoute: typeof StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexRoute
@@ -1864,6 +1894,20 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/study-library/ai-copilot/course-outline/generating/viewer/": {
+      id: "/study-library/ai-copilot/course-outline/generating/viewer/"
+      path: "/study-library/ai-copilot/course-outline/generating/viewer"
+      fullPath: "/study-library/ai-copilot/course-outline/generating/viewer"
+      preLoaderRoute: typeof StudyLibraryAiCopilotCourseOutlineGeneratingViewerIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/study-library/ai-copilot/course-outline/generating/processing/": {
+      id: "/study-library/ai-copilot/course-outline/generating/processing/"
+      path: "/study-library/ai-copilot/course-outline/generating/processing"
+      fullPath: "/study-library/ai-copilot/course-outline/generating/processing"
+      preLoaderRoute: typeof StudyLibraryAiCopilotCourseOutlineGeneratingProcessingIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/evaluation/evaluate/$assessmentId/$attemptId/$examType/": {
       id: "/evaluation/evaluate/$assessmentId/$attemptId/$examType/"
       path: "/evaluation/evaluate/$assessmentId/$attemptId/$examType"
@@ -2027,6 +2071,10 @@ const rootRouteChildren: RootRouteChildren = {
     StudyLibraryLiveSessionScheduleStep2IndexRoute,
   EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRoute:
     EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRoute,
+  StudyLibraryAiCopilotCourseOutlineGeneratingProcessingIndexRoute:
+    StudyLibraryAiCopilotCourseOutlineGeneratingProcessingIndexRoute,
+  StudyLibraryAiCopilotCourseOutlineGeneratingViewerIndexRoute:
+    StudyLibraryAiCopilotCourseOutlineGeneratingViewerIndexRoute,
   StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRoute:
     StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRoute,
   EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute:

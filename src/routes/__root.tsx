@@ -3,8 +3,15 @@ import { createRootRouteWithContext, Outlet, redirect } from '@tanstack/react-ro
 import React, { Suspense } from 'react';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { usePageTitle } from '@/hooks/use-page-title';
-import { setAuthorizationCookie } from '@/lib/auth/sessionUtility';
+import {
+    getTokenFromCookie,
+    isTokenExpired,
+    setAuthorizationCookie,
+} from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
+import { getUserRoles } from '@/lib/auth/sessionUtility';
+import { ADMIN_DISPLAY_SETTINGS_KEY, TEACHER_DISPLAY_SETTINGS_KEY } from '@/types/display-settings';
+import { getDisplaySettingsFromCache } from '@/services/display-settings';
 
 const TanStackRouterDevtools =
     process.env.NODE_ENV === 'production'
@@ -18,6 +25,12 @@ const TanStackRouterDevtools =
                       default: () => null,
                   }))
           );
+
+const isAuthenticated = () => {
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const refreshToken = getTokenFromCookie(TokenKey.refreshToken);
+    return accessToken && refreshToken && !isTokenExpired(accessToken);
+};
 
 // Function to handle SSO tokens from URL parameters
 const handleSSOTokens = (search: string) => {
@@ -34,26 +47,79 @@ const handleSSOTokens = (search: string) => {
 
     return false;
 };
+
+// List of public routes that don't require authentication
+const publicRoutes = [
+    '/login',
+    '/login/forgot-password',
+    '/login/oauth/redirect',
+    '/signup',
+    '/evaluator-ai',
+    '/landing',
+    '/pricing',
+];
+
 // Helper functions to break down the complex beforeLoad logic
 const handleRootPathRedirect = (location: any) => {
     if (location.pathname === '/') {
-        throw redirect({ to: '/study-library/ai-copilot' });
+        const subdomain =
+            typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '';
+        const isVoltSubdomain = subdomain === 'volt';
+        throw redirect({ to: isVoltSubdomain ? '/landing' : '/login' });
     }
 };
 
 // Removed: let /auth-transfer route handle token processing and redirect itself
 
 const handleAuthenticationChecks = (location: any) => {
-    // Check if this is an AI copilot route
-    const isAiCopilotRoute = location.pathname.startsWith('/study-library/ai-copilot');
+    // Check if the route requires authentication
+    const isPublicRoute = publicRoutes.some((route) => location.pathname.startsWith(route));
 
-    // If it's not an AI copilot route, block it by redirecting to AI copilot
-    if (!isAiCopilotRoute) {
-        throw redirect({ to: '/study-library/ai-copilot' });
+    // If it's not a public route and user is not authenticated,
+    // redirect to login with the intended destination
+    if (!isPublicRoute && !isAuthenticated()) {
+        throw redirect({
+            to: '/login',
+            search: {
+                redirect: location.pathname,
+            },
+        });
     }
+};
 
-    // AI copilot routes are public, so no authentication required
-    // All other routes have been blocked above
+const handleAuthenticatedUserLoginAccess = (location: any) => {
+    // If user is authenticated and tries to access login page,
+    // check for redirect parameter and handle accordingly (unless showing institute selection)
+    if (isAuthenticated() && location.pathname.startsWith('/login')) {
+        // Also check if search is an object with the parameter
+        if (
+            typeof location.search === 'object' &&
+            location.search &&
+            'showInstituteSelection' in location.search
+        ) {
+            return;
+        }
+
+        const searchParams = new URLSearchParams(location.search);
+        const redirectParam = searchParams.get('redirect');
+
+        if (redirectParam === '/auth-transfer') {
+            // If redirecting to auth-transfer, go to study library instead
+            throw redirect({ to: '/study-library/courses' });
+        } else if (redirectParam && redirectParam.startsWith('/')) {
+            // If there's a valid redirect parameter, use it
+            throw redirect({ to: redirectParam as string });
+        } else {
+            // Default redirect based on role display settings if available
+            const accessToken = getTokenFromCookie(TokenKey.accessToken);
+            const roles = getUserRoles(accessToken);
+            const isAdminRole = roles.includes('ADMIN');
+            const roleKey = isAdminRole ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+            const fromCache = getDisplaySettingsFromCache(roleKey);
+            const to = fromCache?.postLoginRedirectRoute || '/dashboard';
+            throw redirect({ to });
+        }
+    }
 };
 
 export const Route = createRootRouteWithContext<{
@@ -75,6 +141,9 @@ export const Route = createRootRouteWithContext<{
 
         // Handle authentication checks
         handleAuthenticationChecks(location);
+
+        // Handle authenticated user accessing login page
+        handleAuthenticatedUserLoginAccess(location);
     },
 
     component: () => {
@@ -84,7 +153,9 @@ export const Route = createRootRouteWithContext<{
         return (
             <>
                 <Outlet />
-                <Suspense>{/*   <TanStackRouterDevtools /> */}</Suspense>
+                <Suspense>
+                 {/*   <TanStackRouterDevtools /> */}
+                </Suspense>
                 {/* <ReactQueryDevtools initialIsOpen={false} />i */}
             </>
         );

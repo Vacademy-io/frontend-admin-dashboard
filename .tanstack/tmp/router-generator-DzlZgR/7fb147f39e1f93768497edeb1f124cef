@@ -1,0 +1,13 @@
+import { createFileRoute } from "@tanstack/react-router"
+
+export const Route = createFileRoute(
+  "/study-library/ai-copilot/course-outline/generating/",
+)({
+  component: RouteComponent,
+})
+
+function RouteComponent() {
+  return (
+    <div>Hello "/study-library/ai-copilot/course-outline/generating/"!</div>
+  )
+}

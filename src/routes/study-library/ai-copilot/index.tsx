@@ -9,8 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useDropzone } from 'react-dropzone';
-import { X, FileText, Paperclip, Lightbulb, Target, Puzzle, Settings, Sparkles, Upload, Link } from 'lucide-react';
+import { X, FileText, Paperclip, Lightbulb, Target, Puzzle, Settings, Sparkles, Upload, Link, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
@@ -20,17 +21,10 @@ export const Route = createFileRoute('/study-library/ai-copilot/')({
 
 
 const examplePrompts = [
-    'Create a 4-week Web Design course for beginners',
-    'Design an Advanced Machine Learning curriculum',
-    'Build a Photography Basics course for creative teens',
-    'Develop a Data Analysis course using Excel and Power BI',
-];
-
-const tips = [
-    { icon: FileText, text: 'Be specific about your subject & audience' },
-    { icon: Target, text: 'Include learning objectives or key topics' },
-    { icon: Puzzle, text: 'Mention course level (beginner, intermediate, advanced)' },
-    { icon: Settings, text: 'Add any prerequisites or background knowledge' },
+    'Create a beginner-level Python Programming course for aspiring developers',
+    'Design an end-to-end Machine Learning curriculum using Python and Scikit-Learn',
+    'Build a Cloud Computing Fundamentals course covering AWS, Azure, and GCP basics',
+    'Develop a Data Engineering course focusing on ETL pipelines and SQL concepts',
 ];
 
 // AI Illustration Component
@@ -173,6 +167,7 @@ function RouteComponent() {
     const [referenceFiles, setReferenceFiles] = useState<PrerequisiteFile[]>([]);
     const [referenceUrls, setReferenceUrls] = useState<PrerequisiteUrl[]>([]);
     const [newReferenceUrl, setNewReferenceUrl] = useState('');
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
     useEffect(() => {
         setNavHeading('Create with Ai');
@@ -183,29 +178,6 @@ function RouteComponent() {
     };
 
 
-    const handleNextStep = () => {
-        if (currentStep === 1) {
-            // Validate Step 1: Course Goal is required
-            if (!courseGoal.trim()) {
-                alert('Please enter a course goal');
-                return;
-            }
-            setCurrentStep(2);
-        } else if (currentStep === 2) {
-            // Step 2 is optional, can skip
-            setCurrentStep(3);
-        }
-    };
-
-    const handleSkipStep2 = () => {
-        setCurrentStep(3);
-    };
-
-    const handleBackStep = () => {
-        if (currentStep > 1) {
-            setCurrentStep(currentStep - 1);
-        }
-    };
 
     const handleAddPrerequisiteUrl = () => {
         if (newPrerequisiteUrl.trim()) {
@@ -297,6 +269,11 @@ function RouteComponent() {
             return;
         }
 
+        // Show confirmation dialog
+        setShowConfirmDialog(true);
+    };
+
+    const handleConfirmGenerate = () => {
         // Get session length (use default if not provided)
         const finalSessionLength = sessionLength === 'custom' ? customSessionLength : (sessionLength || '60');
 
@@ -342,7 +319,8 @@ function RouteComponent() {
         };
 
         console.log('Generating course with config:', courseConfig);
-        // Navigate to course outline page
+        // Close dialog and navigate to course outline page
+        setShowConfirmDialog(false);
         navigate({ to: '/study-library/ai-copilot/course-outline' });
     };
 
@@ -385,35 +363,33 @@ function RouteComponent() {
                         </p>
                     </motion.div>
 
-                    {/* Tips Section - Moved Above Input */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.15 }}
-                        className="mb-4"
-                    >
-                        <div className="mb-3 flex items-center gap-2">
-                            <Sparkles className="h-4 w-4 text-indigo-600" />
-                            <h3 className="text-sm font-semibold text-neutral-800">Course Creation Tips</h3>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2.5 rounded-xl bg-indigo-50 p-3.5">
-                            {tips.map((tip, index) => {
-                                const Icon = tip.icon;
-                                return (
-                                    <motion.div
+                    {/* Example Prompts Section - Above Course Goal */}
+                    {currentStep === 1 && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.15 }}
+                            className="mb-4"
+                        >
+                            <h2 className="mb-3 text-center text-sm font-medium text-neutral-700">
+                                Try one of these to get started
+                            </h2>
+                            <div className="grid grid-cols-2 gap-2">
+                                {examplePrompts.map((examplePrompt, index) => (
+                                    <motion.button
                                         key={index}
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ duration: 0.3, delay: 0.2 + index * 0.1 }}
-                                        className="flex items-start gap-2 rounded-lg bg-white/60 p-2"
+                                        type="button"
+                                        onClick={() => handleExamplePromptClick(examplePrompt)}
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-left text-xs font-medium text-neutral-700 shadow-sm transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-md"
                                     >
-                                        <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-600" />
-                                        <span className="text-xs text-neutral-600">{tip.text}</span>
-                                    </motion.div>
-                                );
-                            })}
-                        </div>
-                    </motion.div>
+                                        {examplePrompt}
+                                    </motion.button>
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
 
                     {/* Multi-Step Form */}
                     <motion.div
@@ -422,7 +398,7 @@ function RouteComponent() {
                         transition={{ duration: 0.5 }}
                         className="mb-4 rounded-2xl border border-indigo-100/50 bg-white/70 p-6 shadow-lg shadow-indigo-100/60 backdrop-blur-sm"
                     >
-                            {/* Step 1: Course Goal and Learning Outcome */}
+                            {/* Step 1: Course Goal, Learning Outcome, Duration, Format, and Structure */}
                             {currentStep === 1 && (
                                 <div className="space-y-6">
                                     <div>
@@ -459,125 +435,71 @@ function RouteComponent() {
                                         </div>
                                     </div>
 
-                                    <div className="flex justify-end gap-3">
-                                        <MyButton
-                                            buttonType="primary"
-                                            onClick={handleNextStep}
-                                            disabled={!courseGoal.trim()}
-                                        >
-                                            Next
-                                        </MyButton>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Step 2: Learner Profile */}
-                            {currentStep === 2 && (
-                                <div className="space-y-6">
-                                    <div>
-                                        <h3 className="mb-4 text-xl font-semibold text-neutral-900">
-                                            Learner Profile
-                                        </h3>
-                                        
-                                        <div className="space-y-4">
-                                            <div>
-                                                <Label htmlFor="ageRange" className="mb-2 block">
-                                                    Age Range
-                                                </Label>
-                                                <Input
-                                                    id="ageRange"
-                                                    value={ageRange}
-                                                    onChange={(e) => setAgeRange(e.target.value)}
-                                                    placeholder="e.g., 18-25, 25-35, etc. (Optional)"
-                                                    className="w-full"
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <Label htmlFor="skillLevel" className="mb-2 block">
-                                                    Skill Level
-                                                </Label>
-                                                <Select value={skillLevel} onValueChange={setSkillLevel}>
-                                                    <SelectTrigger id="skillLevel" className="w-full">
-                                                        <SelectValue placeholder="Select skill level (Optional)" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="beginner">Beginner</SelectItem>
-                                                        <SelectItem value="intermediate">Intermediate</SelectItem>
-                                                        <SelectItem value="advanced">Advanced</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                    </div>
-                                </div>
-                            </div>
-
-                                    <div className="flex justify-end gap-3">
-                                        <MyButton
-                                            buttonType="secondary"
-                                            onClick={handleBackStep}
-                                        >
-                                            Back
-                                        </MyButton>
-                                        <MyButton
-                                            buttonType="primary"
-                                            onClick={handleNextStep}
-                                        >
-                                            Next
-                                        </MyButton>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Step 3: Format and Structure */}
-                            {currentStep === 3 && (
-                                <div className="space-y-6">
+                                    {/* Duration, Format, and Structure Section */}
                                     <div>
                                         <h3 className="mb-4 text-xl font-semibold text-neutral-900">
                                             Duration, Format, and Structure
                                         </h3>
                                         
                                         <div className="space-y-4">
-                                            <div>
-                                                <Label htmlFor="numberOfSessions" className="mb-2 block">
-                                                    Number of Sessions
-                                                </Label>
-                                                <Input
-                                                    id="numberOfSessions"
-                                                    type="number"
-                                                    min="1"
-                                                    value={numberOfSessions}
-                                                    onChange={(e) => setNumberOfSessions(e.target.value)}
-                                                    placeholder="e.g., 8"
-                                                    className="w-full"
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <Label htmlFor="sessionLength" className="mb-2 block">
-                                                    Session Length
-                                                </Label>
-                                                <div className="space-y-2">
-                                                    <Select value={sessionLength} onValueChange={handleSessionLengthChange}>
-                                                        <SelectTrigger id="sessionLength" className="w-full">
-                                                            <SelectValue placeholder="Select session length" />
+                                            {/* First Row: Skill Level, Number of Sessions, Session Length */}
+                                            <div className="grid grid-cols-3 gap-4">
+                                                <div>
+                                                    <Label htmlFor="skillLevel" className="mb-2 block">
+                                                        Skill Level
+                                                    </Label>
+                                                    <Select value={skillLevel} onValueChange={setSkillLevel}>
+                                                        <SelectTrigger id="skillLevel" className="w-full">
+                                                            <SelectValue placeholder="Select skill level (Optional)" />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            <SelectItem value="45">45 minutes</SelectItem>
-                                                            <SelectItem value="60">60 minutes</SelectItem>
-                                                            <SelectItem value="90">90 minutes</SelectItem>
-                                                            <SelectItem value="custom">Custom</SelectItem>
+                                                            <SelectItem value="beginner">Beginner</SelectItem>
+                                                            <SelectItem value="intermediate">Intermediate</SelectItem>
+                                                            <SelectItem value="advanced">Advanced</SelectItem>
                                                         </SelectContent>
                                                     </Select>
-                                                    {sessionLength === 'custom' && (
-                                                        <Input
-                                                            type="number"
-                                                            min="1"
-                                                            value={customSessionLength}
-                                                            onChange={(e) => setCustomSessionLength(e.target.value)}
-                                                            placeholder="Enter custom length in minutes"
-                                                            className="w-full"
-                                                        />
-                                                    )}
+                                                </div>
+                                                <div>
+                                                    <Label htmlFor="numberOfSessions" className="mb-2 block">
+                                                        Number of Sessions
+                                                    </Label>
+                                                    <Input
+                                                        id="numberOfSessions"
+                                                        type="number"
+                                                        min="1"
+                                                        value={numberOfSessions}
+                                                        onChange={(e) => setNumberOfSessions(e.target.value)}
+                                                        placeholder="e.g., 8"
+                                                        className="w-full"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label htmlFor="sessionLength" className="mb-2 block">
+                                                        Session Length
+                                                    </Label>
+                                                    <div className="space-y-2">
+                                                        <Select value={sessionLength} onValueChange={handleSessionLengthChange}>
+                                                            <SelectTrigger id="sessionLength" className="w-full">
+                                                                <SelectValue placeholder="Select session length" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="45">45 minutes</SelectItem>
+                                                                <SelectItem value="60">60 minutes</SelectItem>
+                                                                <SelectItem value="90">90 minutes</SelectItem>
+                                                                <SelectItem value="custom">Custom</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                        {sessionLength === 'custom' && (
+                                                            <Input
+                                                                type="number"
+                                                                min="1"
+                                                                value={customSessionLength}
+                                                                onChange={(e) => setCustomSessionLength(e.target.value)}
+                                                                placeholder="Enter custom length in minutes"
+                                                                className="w-full"
+                                                            />
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -635,7 +557,7 @@ function RouteComponent() {
                                                             onCheckedChange={(checked) => setIncludeHomework(checked === true)}
                                                         />
                                                         <Label htmlFor="includeHomework" className="cursor-pointer">
-                                                            Include homework
+                                                            Include assignments
                                                         </Label>
                                                     </div>
 
@@ -701,208 +623,220 @@ function RouteComponent() {
                                                 )}
                                             </div>
 
-                                            <div>
-                                                <Label htmlFor="topicsPerSession" className="mb-2 block">
-                                                    Topics per Session
-                                                </Label>
-                                                <Input
-                                                    id="topicsPerSession"
-                                                    type="number"
-                                                    min="1"
-                                                    value={topicsPerSession}
-                                                    onChange={(e) => setTopicsPerSession(e.target.value)}
-                                                    placeholder="e.g., 2, 3, 4, etc."
-                                                    className="w-full"
-                                                />
+                                            {/* Second Row: Topics per Session and Topics (Optional) */}
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <Label htmlFor="topicsPerSession" className="mb-2 block">
+                                                        Topics per Session
+                                                    </Label>
+                                                    <Input
+                                                        id="topicsPerSession"
+                                                        type="number"
+                                                        min="1"
+                                                        value={topicsPerSession}
+                                                        onChange={(e) => setTopicsPerSession(e.target.value)}
+                                                        placeholder="e.g., 2, 3, 4, etc."
+                                                        className="w-full"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <Label className="mb-2 block">Topics (Optional)</Label>
+                                                    <div className="space-y-3">
+                                                        <div className="flex gap-2">
+                                                            <Input
+                                                                value={newTopic}
+                                                                onChange={(e) => setNewTopic(e.target.value)}
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter' && newTopic.trim()) {
+                                                                        e.preventDefault();
+                                                                        if (!topics.includes(newTopic.trim())) {
+                                                                            setTopics([...topics, newTopic.trim()]);
+                                                                        }
+                                                                        setNewTopic('');
+                                                                    }
+                                                                }}
+                                                                placeholder="Enter a topic and press Enter"
+                                                                className="flex-1"
+                                                            />
+                                                            <MyButton
+                                                                buttonType="secondary"
+                                                                onClick={() => {
+                                                                    if (newTopic.trim() && !topics.includes(newTopic.trim())) {
+                                                                        setTopics([...topics, newTopic.trim()]);
+                                                                        setNewTopic('');
+                                                                    }
+                                                                }}
+                                                                disabled={!newTopic.trim() || topics.includes(newTopic.trim())}
+                                                            >
+                                                                Add
+                                                            </MyButton>
+                                                        </div>
+
+                                                        {topics.length > 0 && (
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {topics.map((topic, index) => (
+                                                                    <div
+                                                                        key={index}
+                                                                        className="flex items-center gap-1.5 rounded-md bg-indigo-50 px-2.5 py-1.5 text-xs text-indigo-700"
+                                                                    >
+                                                                        <span>{topic}</span>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => setTopics(topics.filter((_, i) => i !== index))}
+                                                                            className="ml-0.5 rounded-full p-0.5 hover:bg-indigo-100"
+                                                                        >
+                                                                            <X className="h-3 w-3" />
+                                                                        </button>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </div>
 
+                                            {/* References (Optional) - Full Width Below */}
                                             <div>
-                                                <Label className="mb-2 block">Topics (Optional)</Label>
+                                                <Label className="mb-2 block">References (Optional)</Label>
                                                 <div className="space-y-3">
                                                     <div className="flex gap-2">
                                                         <Input
-                                                            value={newTopic}
-                                                            onChange={(e) => setNewTopic(e.target.value)}
+                                                            value={newReferenceUrl}
+                                                            onChange={(e) => setNewReferenceUrl(e.target.value)}
                                                             onKeyDown={(e) => {
-                                                                if (e.key === 'Enter' && newTopic.trim()) {
+                                                                if (e.key === 'Enter') {
                                                                     e.preventDefault();
-                                                                    if (!topics.includes(newTopic.trim())) {
-                                                                        setTopics([...topics, newTopic.trim()]);
-                                                                    }
-                                                                    setNewTopic('');
+                                                                    handleAddReferenceUrl();
                                                                 }
                                                             }}
-                                                            placeholder="Enter a topic and press Enter"
+                                                            placeholder="Enter URL (e.g., https://example.com/course)"
                                                             className="flex-1"
                                                         />
                                                         <MyButton
                                                             buttonType="secondary"
-                                                            onClick={() => {
-                                                                if (newTopic.trim() && !topics.includes(newTopic.trim())) {
-                                                                    setTopics([...topics, newTopic.trim()]);
-                                                                    setNewTopic('');
-                                                                }
-                                                            }}
-                                                            disabled={!newTopic.trim() || topics.includes(newTopic.trim())}
+                                                            onClick={handleAddReferenceUrl}
+                                                            disabled={!newReferenceUrl.trim()}
                                                         >
-                                                            Add
+                                                            <Link className="h-4 w-4 mr-1" />
+                                                            Add URL
                                                         </MyButton>
                                                     </div>
 
-                                                    {topics.length > 0 && (
+                                                    {referenceUrls.length > 0 && (
                                                         <div className="flex flex-wrap gap-2">
-                                                            {topics.map((topic, index) => (
+                                                            {referenceUrls.map((url) => (
                                                                 <div
-                                                                    key={index}
+                                                                    key={url.id}
                                                                     className="flex items-center gap-1.5 rounded-md bg-indigo-50 px-2.5 py-1.5 text-xs text-indigo-700"
                                                                 >
-                                                                    <span>{topic}</span>
-                                            <button
-                                                type="button"
-                                                                        onClick={() => setTopics(topics.filter((_, i) => i !== index))}
-                                                className="ml-0.5 rounded-full p-0.5 hover:bg-indigo-100"
-                                            >
-                                                <X className="h-3 w-3" />
-                                            </button>
+                                                                    <Link className="h-3.5 w-3.5" />
+                                                                    <span className="max-w-[200px] truncate">{url.url}</span>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleRemoveReferenceUrl(url.id)}
+                                                                        className="ml-0.5 rounded-full p-0.5 hover:bg-indigo-100"
+                                                                    >
+                                                                        <X className="h-3 w-3" />
+                                                                    </button>
                                                                 </div>
-                                    ))}
-                                </div>
-                            )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <Label className="mb-2 block">References (Optional)</Label>
-                                        <div className="space-y-3">
-                                            <div className="flex gap-2">
-                                                <Input
-                                                    value={newReferenceUrl}
-                                                    onChange={(e) => setNewReferenceUrl(e.target.value)}
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === 'Enter') {
-                                                            e.preventDefault();
-                                                            handleAddReferenceUrl();
-                                                        }
-                                                    }}
-                                                    placeholder="Enter URL (e.g., https://example.com/course)"
-                                                    className="flex-1"
-                                                />
-                                                <MyButton
-                                                    buttonType="secondary"
-                                                    onClick={handleAddReferenceUrl}
-                                                    disabled={!newReferenceUrl.trim()}
-                                                >
-                                                    <Link className="h-4 w-4 mr-1" />
-                                                    Add URL
-                                                </MyButton>
-                                            </div>
-
-                                            {referenceUrls.length > 0 && (
-                                                <div className="flex flex-wrap gap-2">
-                                                    {referenceUrls.map((url) => (
-                                                        <div
-                                                            key={url.id}
-                                                            className="flex items-center gap-1.5 rounded-md bg-indigo-50 px-2.5 py-1.5 text-xs text-indigo-700"
-                                                        >
-                                                            <Link className="h-3.5 w-3.5" />
-                                                            <span className="max-w-[200px] truncate">{url.url}</span>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleRemoveReferenceUrl(url.id)}
-                                                                className="ml-0.5 rounded-full p-0.5 hover:bg-indigo-100"
-                                                            >
-                                                                <X className="h-3 w-3" />
-                                                            </button>
+                                                            ))}
                                                         </div>
-                                                    ))}
-                                                </div>
-                                            )}
+                                                    )}
 
-                                            <div
-                                                {...getReferenceRootProps()}
-                                                className={cn(
-                                                    'flex h-24 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed transition-all duration-200',
-                                                    isReferenceDragActive
-                                                        ? 'border-indigo-400 bg-indigo-50'
-                                                        : 'border-neutral-300 bg-neutral-50 hover:border-indigo-300 hover:bg-indigo-50'
-                                                )}
-                                            >
-                                                <input {...getReferenceInputProps()} className="hidden" />
-                                                <Upload className={cn('h-5 w-5', isReferenceDragActive ? 'text-indigo-600' : 'text-neutral-500')} />
-                                                <span className="text-xs font-medium text-neutral-600">
-                                                    Attach PDF or DOCX files
-                                                </span>
-                                            </div>
+                                                    <div
+                                                        {...getReferenceRootProps()}
+                                                        className={cn(
+                                                            'flex h-24 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed transition-all duration-200',
+                                                            isReferenceDragActive
+                                                                ? 'border-indigo-400 bg-indigo-50'
+                                                                : 'border-neutral-300 bg-neutral-50 hover:border-indigo-300 hover:bg-indigo-50'
+                                                        )}
+                                                    >
+                                                        <input {...getReferenceInputProps()} className="hidden" />
+                                                        <Upload className={cn('h-5 w-5', isReferenceDragActive ? 'text-indigo-600' : 'text-neutral-500')} />
+                                                        <span className="text-xs font-medium text-neutral-600">
+                                                            Attach PDF or DOCX files
+                                                        </span>
+                                                    </div>
 
-                                            {referenceFiles.length > 0 && (
-                                                <div className="flex flex-wrap gap-2">
-                                                    {referenceFiles.map((file) => (
-                                                        <div
-                                                            key={file.id}
-                                                            className="flex items-center gap-1.5 rounded-md bg-indigo-50 px-2.5 py-1.5 text-xs text-indigo-700"
-                                                        >
-                                                            <FileText className="h-3.5 w-3.5" />
-                                                            <span className="max-w-[150px] truncate">{file.file.name}</span>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleRemoveReferenceFile(file.id)}
-                                                                className="ml-0.5 rounded-full p-0.5 hover:bg-indigo-100"
-                                                            >
-                                                                <X className="h-3 w-3" />
-                                                            </button>
+                                                    {referenceFiles.length > 0 && (
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {referenceFiles.map((file) => (
+                                                                <div
+                                                                    key={file.id}
+                                                                    className="flex items-center gap-1.5 rounded-md bg-indigo-50 px-2.5 py-1.5 text-xs text-indigo-700"
+                                                                >
+                                                                    <FileText className="h-3.5 w-3.5" />
+                                                                    <span className="max-w-[150px] truncate">{file.file.name}</span>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleRemoveReferenceFile(file.id)}
+                                                                        className="ml-0.5 rounded-full p-0.5 hover:bg-indigo-100"
+                                                                    >
+                                                                        <X className="h-3 w-3" />
+                                                                    </button>
+                                                                </div>
+                                                            ))}
                                                         </div>
-                                                    ))}
+                                                    )}
                                                 </div>
-                                            )}
+                                            </div>
                                         </div>
                                     </div>
 
                                     <div className="flex justify-end gap-3">
                                         <MyButton
-                                            buttonType="secondary"
-                                            onClick={handleBackStep}
-                                        >
-                                            Back
-                                        </MyButton>
-                                        <MyButton
                                             buttonType="primary"
                                             onClick={handleSubmitCourseConfig}
+                                            disabled={!courseGoal.trim()}
                                         >
-                                            Generate Course
+                                            Generate Outline
                                         </MyButton>
                                     </div>
                                 </div>
                             )}
                     </motion.div>
-
-                    {/* Example Prompts Section - 2 Lines Grid */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.3 }}
-                    >
-                        <h2 className="mb-3 text-center text-sm font-medium text-neutral-700">
-                            Try one of these to get started
-                        </h2>
-                        <div className="grid grid-cols-2 gap-2">
-                            {examplePrompts.map((examplePrompt, index) => (
-                                <motion.button
-                                    key={index}
-                                    type="button"
-                                    onClick={() => handleExamplePromptClick(examplePrompt)}
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-left text-xs font-medium text-neutral-700 shadow-sm transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-md"
-                                >
-                                    {examplePrompt}
-                                </motion.button>
-                            ))}
-                        </div>
-                    </motion.div>
                 </div>
             </div>
+
+            {/* Confirmation Dialog */}
+            <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
+                                <AlertTriangle className="h-5 w-5 text-amber-600" />
+                            </div>
+                            <DialogTitle className="text-xl font-semibold text-neutral-900">
+                                Review Before Proceeding
+                            </DialogTitle>
+                        </div>
+                        <DialogDescription className="text-sm text-neutral-600 pt-2">
+                            <p className="mb-2">
+                                Once you move to the Course Outline step, you won't be able to return and edit this information.
+                            </p>
+                            <p>
+                                To make changes, you will need to restart the course creation.
+                            </p>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="mt-6">
+                        <MyButton
+                            buttonType="secondary"
+                            onClick={() => setShowConfirmDialog(false)}
+                        >
+                            Review Inputs
+                        </MyButton>
+                        <MyButton
+                            buttonType="primary"
+                            onClick={handleConfirmGenerate}
+                        >
+                            Proceed to Outline
+                        </MyButton>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </LayoutContainer>
     );
 }
