@@ -65,15 +65,40 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
         customFieldSetup.forEach((field) => {
             const registerKey = (key?: string) => {
                 if (!key) return;
+                // Register multiple variations for better lookup
                 map.set(key, field);
                 map.set(key.toLowerCase(), field);
+                map.set(key.toUpperCase(), field);
+                // Also try without special characters
+                const normalized = key.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+                if (normalized && normalized !== key.toLowerCase()) {
+                    map.set(normalized, field);
+                }
             };
 
+            // Register all possible identifiers
             registerKey(field.custom_field_id);
             registerKey(field.field_key);
+            // Also register field_name as a potential lookup key
+            if (field.field_name) {
+                const nameKey = generateKeyFromName(field.field_name);
+                registerKey(nameKey);
+            }
         });
 
         console.log('📋 [CampaignUsersTable] Loaded custom field setup from API, count:', customFieldSetup.length);
+        
+        // Log sample fields for debugging
+        if (customFieldSetup.length > 0) {
+            console.log('📋 [CampaignUsersTable] Sample fields from setup API:', customFieldSetup.slice(0, 5).map(f => ({
+                custom_field_id: f.custom_field_id,
+                field_key: f.field_key,
+                field_name: f.field_name
+            })));
+        }
+        
+        console.log('📋 [CampaignUsersTable] Lookup map size:', map.size);
+        console.log('📋 [CampaignUsersTable] Lookup map keys (first 10):', Array.from(map.keys()).slice(0, 10));
         return map;
     }, [customFieldSetup]);
 
@@ -123,14 +148,58 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
         const collectedFieldIds = Array.from(allFieldIds);
         console.log('📊 [CampaignUsersTable] All field IDs from all users:', collectedFieldIds.length, 'fields');
         console.log('📊 [CampaignUsersTable] Field IDs:', collectedFieldIds);
+        
+        // Log sample field IDs for debugging
+        if (collectedFieldIds.length > 0) {
+            console.log('📊 [CampaignUsersTable] Sample field IDs (first 5):', collectedFieldIds.slice(0, 5));
+        }
+        
         return collectedFieldIds;
     }, [customFields, usersResponse]);
+
+    // Create a map from campaign's custom fields for field name lookup
+    const campaignFieldsMap = useMemo(() => {
+        const map = new Map<string, { name: string; key?: string }>();
+        if (!customFields || customFields.length === 0) {
+            return map;
+        }
+
+        customFields.forEach((campaignField: any) => {
+            const fieldId = 
+                campaignField.custom_field?.id || 
+                campaignField.id || 
+                campaignField._id ||
+                campaignField.field_id;
+            
+            if (fieldId) {
+                const meta = campaignField.custom_field || {};
+                const fieldName = meta.fieldName || meta.field_name || campaignField.field_name || '';
+                const fieldKey = meta.fieldKey || meta.field_key || generateKeyFromName(fieldName);
+                
+                if (fieldName) {
+                    // Register multiple variations
+                    map.set(fieldId, { name: fieldName, key: fieldKey });
+                    map.set(fieldId.toLowerCase(), { name: fieldName, key: fieldKey });
+                    map.set(fieldId.toUpperCase(), { name: fieldName, key: fieldKey });
+                }
+            }
+        });
+
+        console.log('📋 [CampaignUsersTable] Created campaign fields map, size:', map.size);
+        if (map.size > 0) {
+            console.log('📋 [CampaignUsersTable] Campaign fields map entries:', Array.from(map.entries()).slice(0, 5));
+        }
+        return map;
+    }, [customFields]);
 
     const columns = useMemo(() => {
         console.log('🔄 [CampaignUsersTable] Regenerating columns for campaign:', campaignId);
         console.log('🔄 [CampaignUsersTable] customFields count:', customFields.length);
         console.log('🔄 [CampaignUsersTable] usersResponse available:', !!usersResponse);
-        
+        console.log('🔄 [CampaignUsersTable] allFieldIdsFromAllUsers count:', allFieldIdsFromAllUsers.length);
+        console.log('🔄 [CampaignUsersTable] customFieldMap size:', customFieldMap.size);
+        console.log('🔄 [CampaignUsersTable] campaignFieldsMap size:', campaignFieldsMap.size);
+
         // Convert collected field IDs to array and create field objects for column generation
         const allCustomFieldsArray = allFieldIdsFromAllUsers.map(fieldId => ({
             id: fieldId,
@@ -144,11 +213,29 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
         }
 
         console.log('📊 [CampaignUsersTable] Field IDs to use for columns:', allCustomFieldsArray.map(f => f.id));
+        console.log('📊 [CampaignUsersTable] Checking lookup for field IDs...');
+        
+        // Check which field IDs are in the lookup
+        const fieldsInLookup: string[] = [];
+        const fieldsNotInLookup: string[] = [];
+        allFieldIdsFromAllUsers.forEach(fieldId => {
+            const found = customFieldMap.has(fieldId) || 
+                         customFieldMap.has(fieldId.toLowerCase()) || 
+                         customFieldMap.has(fieldId.toUpperCase());
+            if (found) {
+                fieldsInLookup.push(fieldId);
+            } else {
+                fieldsNotInLookup.push(fieldId);
+            }
+        });
+        console.log('📊 [CampaignUsersTable] Fields found in lookup:', fieldsInLookup.length, fieldsInLookup);
+        console.log('📊 [CampaignUsersTable] Fields NOT in lookup:', fieldsNotInLookup.length, fieldsNotInLookup);
 
         // Use all collected field IDs to generate columns
         // This maps each field ID to its name using the custom-field setup API response
+        // Pass campaignFieldsMap as fallback for field names
         const fieldIdsToUse = allCustomFieldsArray.length > 0 ? allCustomFieldsArray : customFields;
-        const generatedColumns = generateDynamicColumns(fieldIdsToUse, customFieldMap);
+        const generatedColumns = generateDynamicColumns(fieldIdsToUse, customFieldMap, campaignFieldsMap);
         console.log('📊 [CampaignUsersTable] Generated dynamic columns:', generatedColumns.length, 'columns');
         console.log('📊 [CampaignUsersTable] Column headers:', generatedColumns.map(col => {
             const colAny = col as any;
@@ -158,7 +245,7 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
             };
         }));
         return generatedColumns;
-    }, [campaignId, customFields, allFieldIdsFromAllUsers, customFieldSetup, customFieldMap]); // Include custom field setup dependency
+    }, [campaignId, customFields, allFieldIdsFromAllUsers, customFieldSetup, customFieldMap, campaignFieldsMap]); // Include custom field setup dependency
 
     // Create a unique key for the table to force re-render when columns change
     // This key must include field IDs from both campaign and API response
@@ -198,11 +285,29 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
                 // CRITICAL: Process ALL field IDs from ALL users (not just this user's fields)
                 // This ensures every row has ALL fields, with null/- if the user doesn't have that field
                 allFieldIdsFromAllUsers.forEach((fieldId) => {
-                    // Get field info from API setup map
+                    // Get field info from API setup map - try multiple lookup strategies
                     let fieldInfo =
                         customFieldMap.get(fieldId) ||
                         customFieldMap.get(fieldId.toLowerCase()) ||
-                        customFieldMap.get(fieldId.toUpperCase());
+                        customFieldMap.get(fieldId.toUpperCase()) ||
+                        customFieldMap.get(fieldId.replace(/[^a-zA-Z0-9]/g, '').toLowerCase());
+                    
+                    // If not found, try to find by iterating through all fields
+                    if (!fieldInfo && customFieldMap.size > 0) {
+                        for (const [key, field] of customFieldMap.entries()) {
+                            const customFieldId = field.custom_field_id?.toLowerCase();
+                            const fieldKey = field.field_key?.toLowerCase();
+                            const searchId = fieldId.toLowerCase();
+                            
+                            if (customFieldId === searchId || 
+                                fieldKey === searchId ||
+                                customFieldId?.replace(/[^a-zA-Z0-9]/g, '') === searchId.replace(/[^a-zA-Z0-9]/g, '') ||
+                                fieldKey?.replace(/[^a-zA-Z0-9]/g, '') === searchId.replace(/[^a-zA-Z0-9]/g, '')) {
+                                fieldInfo = field;
+                                break;
+                            }
+                        }
+                    }
 
                     // Get value from custom_field_values (primary source)
                     // This is the actual value from the API response for THIS user

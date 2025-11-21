@@ -156,7 +156,11 @@ const getCampaignIdentifier = (campaign?: CampaignItem | null) =>
 
 const buildInitialFormValues = (campaign?: CampaignItem | null): AudienceCampaignForm | undefined => {
     if (!campaign) return undefined;
-    return {
+    
+    // Convert existing custom fields from campaign
+    const existingCustomFields = convertExistingCustomFields(campaign.institute_custom_fields);
+    
+    const initialValues = {
         ...defaultFormValues,
         campaign_name: campaign.campaign_name || '',
         campaign_type: campaign.campaign_type || '',
@@ -175,7 +179,18 @@ const buildInitialFormValues = (campaign?: CampaignItem | null): AudienceCampaig
             defaultFormValues.end_date_local,
         status: campaign.status?.toUpperCase?.() || defaultFormValues.status,
         json_web_metadata: campaign.json_web_metadata || '',
+        // Include existing custom fields in initial values
+        custom_fields: existingCustomFields && existingCustomFields.length > 0 
+            ? existingCustomFields 
+            : defaultFormValues.custom_fields,
     };
+    
+    console.log('📋 [buildInitialFormValues] Building initial values for edit mode');
+    console.log('📋 [buildInitialFormValues] Raw institute_custom_fields:', campaign.institute_custom_fields);
+    console.log('📋 [buildInitialFormValues] Converted custom_fields:', initialValues.custom_fields.length, 'fields');
+    console.log('📋 [buildInitialFormValues] Custom fields:', initialValues.custom_fields.map(f => ({ name: f.name, key: f.key })));
+    
+    return initialValues;
 };
 
 interface CreateCampaignFormProps {
@@ -284,10 +299,17 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
     useEffect(() => {
         if (initialFormValues) {
             form.reset(initialFormValues);
+            // If we have existing custom fields in initial values, ensure they're set
+            if (isEditMode && initialFormValues.custom_fields && initialFormValues.custom_fields.length > 0) {
+                setValue('custom_fields', initialFormValues.custom_fields, {
+                    shouldDirty: false,
+                    shouldTouch: false,
+                });
+            }
         } else {
             form.reset(defaultFormValues);
         }
-    }, [form, initialFormValues]);
+    }, [form, initialFormValues, isEditMode, setValue]);
 
     // Custom fields array management
     const { fields: customFieldsArray, move: moveCustomField } = useFieldArray({
@@ -352,17 +374,29 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
     );
 
     useEffect(() => {
+        // Only apply custom fields if form has been initialized
+        // This prevents overriding the initial values set in buildInitialFormValues
+        if (!initialFormValues) {
+            if (!isEditMode) {
+                applyDefaultCustomFields();
+            }
+            return;
+        }
+
         if (isEditMode) {
+            // In edit mode, use existing custom fields from campaign
+            // They should already be in initialFormValues, but ensure they're set
             if (existingCustomFields && existingCustomFields.length > 0) {
-                // console.log('📋 [CreateCampaignForm] Loading existing custom fields for edit:', existingCustomFields.length, 'fields');
-                // console.log('📋 [CreateCampaignForm] Existing fields:', existingCustomFields.map(f => ({ name: f.name, key: f.key, oldKey: f.oldKey })));
+                console.log('📋 [CreateCampaignForm] Loading existing custom fields for edit:', existingCustomFields.length, 'fields');
+                console.log('📋 [CreateCampaignForm] Existing fields:', existingCustomFields.map(f => ({ name: f.name, key: f.key, oldKey: f.oldKey })));
                 setCustomFieldsFromExisting(existingCustomFields);
             } else {
-                // console.log('📋 [CreateCampaignForm] No existing custom fields, using defaults');
+                console.log('📋 [CreateCampaignForm] No existing custom fields, using defaults');
                 applyDefaultCustomFields();
             }
         } else {
-            // console.log('📋 [CreateCampaignForm] Create mode - applying default fields (Full Name, Email only)');
+            // In create mode, use default fields
+            console.log('📋 [CreateCampaignForm] Create mode - applying default fields (Full Name, Email only)');
             applyDefaultCustomFields();
         }
     }, [
@@ -370,6 +404,7 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
         existingCustomFields,
         isEditMode,
         setCustomFieldsFromExisting,
+        initialFormValues,
     ]);
 
     const handleFormReset = () => {

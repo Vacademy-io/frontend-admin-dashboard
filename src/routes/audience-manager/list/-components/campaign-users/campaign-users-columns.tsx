@@ -38,6 +38,25 @@ const getFieldFromLookup = (
     return lookup.get(identifier) || lookup.get(identifier.toLowerCase());
 };
 
+// Helper to check if a field is Name (full_name or name)
+const isNameField = (fieldKey?: string, fieldName?: string): boolean => {
+    if (!fieldKey && !fieldName) return false;
+    const normalizedKey = fieldKey?.toLowerCase() || '';
+    const normalizedName = fieldName?.toLowerCase() || '';
+    return normalizedKey === 'full_name' || 
+           normalizedKey === 'name' || 
+           normalizedName === 'full name' ||
+           normalizedName === 'name';
+};
+
+// Helper to check if a field is Email
+const isEmailField = (fieldKey?: string, fieldName?: string): boolean => {
+    if (!fieldKey && !fieldName) return false;
+    const normalizedKey = fieldKey?.toLowerCase() || '';
+    const normalizedName = fieldName?.toLowerCase() || '';
+    return normalizedKey === 'email' || normalizedName === 'email';
+};
+
 /**
  * Generate dynamic columns based on custom fields from the campaign
  * This function:
@@ -97,19 +116,45 @@ export const generateDynamicColumns = (
             }
         });
 
-        // Create columns for each field mapping (all fields are treated equally)
-        fieldMappings.forEach((fieldMapping) => {
+        // Sort field mappings to prioritize Name and Email first
+        // Priority order: Name (full_name/name) -> Email -> Other fields
+        const sortedFieldMappings = fieldMappings.sort((a, b) => {
+            const aIsName = isNameField(a.key, a.name);
+            const bIsName = isNameField(b.key, b.name);
+            const aIsEmail = isEmailField(a.key, a.name);
+            const bIsEmail = isEmailField(b.key, b.name);
+            
+            // Priority: Name (1) > Email (2) > Others (3)
+            const getPriority = (isName: boolean, isEmail: boolean) => {
+                if (isName) return 1;
+                if (isEmail) return 2;
+                return 3;
+            };
+            
+            const aPriority = getPriority(aIsName, aIsEmail);
+            const bPriority = getPriority(bIsName, bIsEmail);
+            
+            // If same priority, maintain original order
+            if (aPriority === bPriority) {
+                return 0;
+            }
+            
+            return aPriority - bPriority;
+        });
+
+        // Create columns for each field mapping (Name and Email first, then others)
+        sortedFieldMappings.forEach((fieldMapping) => {
             const { id: fieldId, name: fieldName, key: fieldKey } = fieldMapping;
 
             // Determine cell styling based on field type
-            const isNameField = fieldKey === 'full_name' || fieldKey === 'name';
+            const isNameFieldCell = isNameField(fieldKey, fieldName);
             
             columns.push({
                 accessorKey: fieldId, // Use field ID as accessorKey to match custom_field_values
                 header: fieldName,
-                size: isNameField ? 220 : 200,
-                minSize: isNameField ? 180 : 150,
-                maxSize: isNameField ? 300 : 250,
+                size: isNameFieldCell ? 220 : 200,
+                minSize: isNameFieldCell ? 180 : 150,
+                maxSize: isNameFieldCell ? 300 : 250,
                 cell: ({ row }) => {
                     // Get value directly from row data using field ID
                     // Value can be null if the user doesn't have data for this field
@@ -119,7 +164,7 @@ export const generateDynamicColumns = (
                         ? String(value) 
                         : '-';
                     return (
-                        <div className={`p-3 text-sm  ${isNameField ? 'font-medium text-neutral-900' : 'text-neutral-700'}`}>
+                        <div className={`p-3 text-sm  ${isNameFieldCell ? 'font-medium text-neutral-900' : 'text-neutral-700'}`}>
                             {displayValue}
                         </div>
                     );
