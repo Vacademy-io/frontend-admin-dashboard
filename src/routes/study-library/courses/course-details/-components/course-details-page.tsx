@@ -893,7 +893,8 @@ export const CourseDetailsPage = () => {
                             {showSelectors && (
                                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center lg:gap-4">
                                     {sessionOptions.length === 1 ? (
-                                        sessionOptions[0]?.label !== 'default' && (
+                                        sessionOptions[0]?.label.toLocaleLowerCase() !==
+                                            'default' && (
                                             <div className="flex flex-col gap-1">
                                                 <label className="text-xs font-medium text-gray-700">
                                                     {sessionOptions[0]?.label}
@@ -936,7 +937,8 @@ export const CourseDetailsPage = () => {
                                         </div>
                                     )}
                                     {levelOptions.length === 1 ? (
-                                        levelOptions[0]?.label !== 'default' && (
+                                        levelOptions[0]?.label.toLocaleLowerCase() !==
+                                            'default' && (
                                             <div className="flex flex-col gap-1">
                                                 <label className="text-xs font-medium text-gray-700">
                                                     {levelOptions[0]?.label}

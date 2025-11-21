@@ -9,9 +9,10 @@ import {
     ChartLineUp,
     Tag,
     FlowArrow,
+    CreditCard,
 } from '@phosphor-icons/react';
 import { SidebarItemsType } from '../../../../types/layout-container/layout-container-types';
-import { GearSix, Lightning, NotePencil, UsersFour } from 'phosphor-react';
+import { ChalkboardTeacher, GearSix, Lightning, NotePencil, UsersFour } from 'phosphor-react';
 import { StorageKey } from '@/constants/storage/storage';
 import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { NamingSettingsType, SettingsTabs } from '@/routes/settings/-constants/terms';
@@ -139,6 +140,12 @@ export const SidebarItemsData: SidebarItemsType[] = [
         ],
     },
     
+    {
+        icon: CreditCard,
+        title: 'Manage Payments',
+        id: 'manage-payments',
+        to: '/manage-payments',
+    },
     {
         icon: BookOpen,
         title: 'Learning Center',
@@ -281,6 +288,12 @@ export const SidebarItemsData: SidebarItemsType[] = [
                 subItemId: 'my-resources',
             },
         ],
+    },
+    {
+        icon: ChalkboardTeacher,
+        id: 'instructor-copilot',
+        title: 'Instructor Copilot',
+        to: '/instructor-copilot',
     },
     {
         icon: GearSix,

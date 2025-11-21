@@ -10,7 +10,6 @@ import {
 } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { Student } from 'phosphor-react';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 interface SSOSwitcherProps {
@@ -77,21 +76,11 @@ export function SSOSwitcher({ variant = 'button', className = '' }: SSOSwitcherP
         return (
             <div className={className}>
                 {showLearnerSwitch && (
-                    <Tooltip delayDuration={0}>
-                        <TooltipTrigger>
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={switchToLearnerPlatform}
-                                className="size-10 rounded-full p-2"
-                            >
-                                <Student />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent className="bg-primary-400 text-white" side="left">
-                            <p>Switch to Learner</p>
-                        </TooltipContent>
-                    </Tooltip>
+                    <Button variant="outline" onClick={switchToLearnerPlatform} className="text-xs">
+                        <Student className="mr-1 size-3" />
+                        Switch to Learner
+                        <ExternalLink className="ml-1 size-3" />
+                    </Button>
                 )}
             </div>
         );

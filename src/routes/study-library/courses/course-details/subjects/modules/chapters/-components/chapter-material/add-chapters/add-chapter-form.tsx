@@ -19,8 +19,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { levelsWithPackageDetails } from '@/schemas/student/student-list/institute-schema';
 import { ImageCropperDialog } from '@/components/design-system/image-cropper-dialog';
 import { useFileUpload } from '@/hooks/use-file-upload';
-import { getUserId } from '@/utils/userDetails';
+import { getUserId, isUserAdmin } from '@/utils/userDetails';
 import { Upload, X } from 'lucide-react';
+import { getDisplaySettingsWithFallback } from '@/services/display-settings';
+import { ADMIN_DISPLAY_SETTINGS_KEY, TEACHER_DISPLAY_SETTINGS_KEY } from '@/types/display-settings';
 
 const formSchema = z.object({
     chapterName: z.string().min(1, 'Chapter name is required'),
@@ -76,6 +78,9 @@ export const AddChapterForm = ({
     // State for complete chapter visibility data
     const [completeChapterData, setCompleteChapterData] = useState<ChapterWithSlides | null>(null);
     const [isLoadingCompleteData, setIsLoadingCompleteData] = useState(false);
+
+    // State for display settings
+    const [requirePackageSelection, setRequirePackageSelection] = useState(true);
 
     // Get courses from current sessionId
     const currentSessionCourses = getPackageWiseLevels({
@@ -185,9 +190,7 @@ export const AddChapterForm = ({
                                           courseId
                                       );
 
-                                      (visibilityMap[courseId] ??= []).push(
-                                          package_session_id
-                                      );
+                                      (visibilityMap[courseId] ??= []).push(package_session_id);
                                   }
                               }
                           }
@@ -288,6 +291,27 @@ export const AddChapterForm = ({
                       },
         },
     });
+
+    // Fetch display settings based on user role
+    useEffect(() => {
+        const loadDisplaySettings = async () => {
+            const isAdmin = isUserAdmin();
+            const roleKey = isAdmin ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+
+            try {
+                const displaySettings = await getDisplaySettingsWithFallback(roleKey);
+                setRequirePackageSelection(
+                    displaySettings.courseCreation?.requirePackageSelectionForNewChapter ?? true
+                );
+            } catch (error) {
+                console.error('Error loading display settings:', error);
+                // Default to true on error
+                setRequirePackageSelection(true);
+            }
+        };
+
+        loadDisplaySettings();
+    }, []);
 
     // Fetch complete chapter data when in edit mode
     useEffect(() => {
@@ -497,9 +521,17 @@ export const AddChapterForm = ({
     const onSubmit = useCallback(
         async (data: FormValues) => {
             try {
-                const selectedPackageSessionIds = Object.values(data.visibility).flat().join(',');
+                // Use current package session if selection is not required, otherwise use selected packages
+                const selectedPackageSessionIds = requirePackageSelection
+                    ? Object.values(data.visibility).flat().join(',')
+                    : package_session_id;
+
                 if (!selectedPackageSessionIds) {
-                    toast.error('Please select at least one package for visibility');
+                    toast.error(
+                        requirePackageSelection
+                            ? 'Please select at least one package for visibility'
+                            : 'Package session not found'
+                    );
                     return;
                 }
 
@@ -558,6 +590,8 @@ export const AddChapterForm = ({
             subjectId,
             moduleId,
             onSubmitSuccess,
+            requirePackageSelection,
+            package_session_id,
         ]
     );
 
@@ -682,179 +716,191 @@ export const AddChapterForm = ({
                         </FormItem>
                     )}
                 />
-                <div className="flex flex-col gap-2 overflow-y-auto">
-                    <div className="text-subtitle font-semibold">
-                        {getTerminology(ContentTerms.Chapters, SystemTerms.Chapters)} Visibility
-                    </div>
-                    <div className="text-body text-neutral-500">
-                        Select the levels you want to grant access to this chapter. Only the chosen
-                        levels will be able to view the content. You can update visibility at any
-                        time.
-                    </div>
 
-                    <div className="grid grid-cols-3 gap-6">
-                        {coursesWithLevels
-                            .sort((a, b) => {
-                                // Get current form values for visibility
-                                const formValues = form.getValues();
+                {/* Conditionally render Chapter Visibility section based on display settings */}
+                {requirePackageSelection && (
+                    <div className="flex flex-col gap-2 overflow-y-auto">
+                        <div className="text-subtitle font-semibold">
+                            {getTerminology(ContentTerms.Chapters, SystemTerms.Chapters)} Visibility
+                        </div>
+                        <div className="text-body text-neutral-500">
+                            Select the levels you want to grant access to this chapter. Only the
+                            chosen levels will be able to view the content. You can update
+                            visibility at any time.
+                        </div>
 
-                                // Check if course A has any selected levels
-                                const courseASelected =
-                                    (formValues.visibility[a.package_dto.id] || []).length > 0;
+                        <div className="grid grid-cols-3 gap-6">
+                            {coursesWithLevels
+                                .sort((a, b) => {
+                                    // Get current form values for visibility
+                                    const formValues = form.getValues();
 
-                                // Check if course B has any selected levels
-                                const courseBSelected =
-                                    (formValues.visibility[b.package_dto.id] || []).length > 0;
+                                    // Check if course A has any selected levels
+                                    const courseASelected =
+                                        (formValues.visibility[a.package_dto.id] || []).length > 0;
 
-                                // Sort: selected courses first, then unselected
-                                if (courseASelected && !courseBSelected) return -1;
-                                if (!courseASelected && courseBSelected) return 1;
-                                return 0; // Keep original order for courses with same selection status
-                            })
-                            .map((course) => {
-                                // Determine if this course is from DEFAULT session
-                                const isDefaultSessionCourse = defaultSessionCourses.some(
-                                    (defaultCourse) =>
-                                        defaultCourse.package_dto.id === course.package_dto.id
-                                );
+                                    // Check if course B has any selected levels
+                                    const courseBSelected =
+                                        (formValues.visibility[b.package_dto.id] || []).length > 0;
 
-                                return (
-                                    <FormField
-                                        key={course.package_dto.id}
-                                        control={form.control}
-                                        name={`visibility.${course.package_dto.id}`}
-                                        render={({ field }) => {
-                                            // Use the appropriate sessionId based on course source
-                                            const courseSessionId = isDefaultSessionCourse
-                                                ? 'DEFAULT'
-                                                : sessionId;
+                                    // Sort: selected courses first, then unselected
+                                    if (courseASelected && !courseBSelected) return -1;
+                                    if (!courseASelected && courseBSelected) return 1;
+                                    return 0; // Keep original order for courses with same selection status
+                                })
+                                .map((course) => {
+                                    // Determine if this course is from DEFAULT session
+                                    const isDefaultSessionCourse = defaultSessionCourses.some(
+                                        (defaultCourse) =>
+                                            defaultCourse.package_dto.id === course.package_dto.id
+                                    );
 
-                                            const levelPackageSessionIds = course.level
-                                                .map((level) =>
-                                                    getPackageSessionId({
-                                                        courseId: course.package_dto.id,
-                                                        sessionId: courseSessionId,
-                                                        levelId: level.level_dto.id,
-                                                    })
-                                                )
-                                                .filter((id): id is string => id !== null);
+                                    return (
+                                        <FormField
+                                            key={course.package_dto.id}
+                                            control={form.control}
+                                            name={`visibility.${course.package_dto.id}`}
+                                            render={({ field }) => {
+                                                // Use the appropriate sessionId based on course source
+                                                const courseSessionId = isDefaultSessionCourse
+                                                    ? 'DEFAULT'
+                                                    : sessionId;
 
-                                            const allSelected = levelPackageSessionIds.every(
-                                                (psId) => field.value?.includes(psId)
-                                            );
+                                                const levelPackageSessionIds = course.level
+                                                    .map((level) =>
+                                                        getPackageSessionId({
+                                                            courseId: course.package_dto.id,
+                                                            sessionId: courseSessionId,
+                                                            levelId: level.level_dto.id,
+                                                        })
+                                                    )
+                                                    .filter((id): id is string => id !== null);
 
-                                            return (
-                                                <FormItem
-                                                    key={course.package_dto.id}
-                                                    className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-4"
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <Checkbox
-                                                            className="bg-white"
-                                                            checked={allSelected}
-                                                            onCheckedChange={() => {
-                                                                handleSelectAllForCourse(
-                                                                    course.package_dto.id,
-                                                                    course.level,
-                                                                    field,
-                                                                    isDefaultSessionCourse
-                                                                );
-                                                            }}
-                                                            disabled={isFormDisabled}
-                                                            aria-label="Select all"
-                                                        />
-                                                        <span className="font-semibold">
-                                                            {course.package_dto.package_name}
-                                                            {isDefaultSessionCourse && ' (Default)'}
-                                                        </span>
-                                                    </div>
+                                                const allSelected = levelPackageSessionIds.every(
+                                                    (psId) => field.value?.includes(psId)
+                                                );
 
-                                                    {/* Only show level checkboxes for non-DEFAULT session courses */}
-                                                    {!isDefaultSessionCourse && (
-                                                        <FormControl>
-                                                            <div className="flex flex-col gap-2 pl-6">
-                                                                {course.level.map((level) => {
-                                                                    const packageSessionId =
-                                                                        getPackageSessionId({
-                                                                            courseId:
-                                                                                course.package_dto
-                                                                                    .id,
-                                                                            sessionId:
-                                                                                courseSessionId,
-                                                                            levelId:
-                                                                                level.level_dto.id,
-                                                                        });
+                                                return (
+                                                    <FormItem
+                                                        key={course.package_dto.id}
+                                                        className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-4"
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <Checkbox
+                                                                className="bg-white"
+                                                                checked={allSelected}
+                                                                onCheckedChange={() => {
+                                                                    handleSelectAllForCourse(
+                                                                        course.package_dto.id,
+                                                                        course.level,
+                                                                        field,
+                                                                        isDefaultSessionCourse
+                                                                    );
+                                                                }}
+                                                                disabled={isFormDisabled}
+                                                                aria-label="Select all"
+                                                            />
+                                                            <span className="font-semibold">
+                                                                {course.package_dto.package_name}
+                                                                {isDefaultSessionCourse &&
+                                                                    ' (Default)'}
+                                                            </span>
+                                                        </div>
 
-                                                                    return (
-                                                                        <label
-                                                                            key={level.level_dto.id}
-                                                                            className="flex items-center gap-2"
-                                                                        >
-                                                                            <Checkbox
-                                                                                checked={
-                                                                                    packageSessionId
-                                                                                        ? (
-                                                                                              field.value ||
-                                                                                              []
-                                                                                          ).includes(
-                                                                                              packageSessionId
-                                                                                          )
-                                                                                        : false
+                                                        {/* Only show level checkboxes for non-DEFAULT session courses */}
+                                                        {!isDefaultSessionCourse && (
+                                                            <FormControl>
+                                                                <div className="flex flex-col gap-2 pl-6">
+                                                                    {course.level.map((level) => {
+                                                                        const packageSessionId =
+                                                                            getPackageSessionId({
+                                                                                courseId:
+                                                                                    course
+                                                                                        .package_dto
+                                                                                        .id,
+                                                                                sessionId:
+                                                                                    courseSessionId,
+                                                                                levelId:
+                                                                                    level.level_dto
+                                                                                        .id,
+                                                                            });
+
+                                                                        return (
+                                                                            <label
+                                                                                key={
+                                                                                    level.level_dto
+                                                                                        .id
                                                                                 }
-                                                                                disabled={
-                                                                                    isFormDisabled
-                                                                                }
-                                                                                onCheckedChange={(
-                                                                                    checked: boolean
-                                                                                ) => {
-                                                                                    if (
-                                                                                        !packageSessionId
-                                                                                    )
-                                                                                        return;
-
-                                                                                    const newValue =
-                                                                                        checked
-                                                                                            ? [
-                                                                                                  ...(field.value ||
-                                                                                                      []),
-                                                                                                  packageSessionId,
-                                                                                              ]
-                                                                                            : (
+                                                                                className="flex items-center gap-2"
+                                                                            >
+                                                                                <Checkbox
+                                                                                    checked={
+                                                                                        packageSessionId
+                                                                                            ? (
                                                                                                   field.value ||
                                                                                                   []
-                                                                                              ).filter(
-                                                                                                  (
-                                                                                                      id
-                                                                                                  ) =>
-                                                                                                      id !==
-                                                                                                      packageSessionId
-                                                                                              );
+                                                                                              ).includes(
+                                                                                                  packageSessionId
+                                                                                              )
+                                                                                            : false
+                                                                                    }
+                                                                                    disabled={
+                                                                                        isFormDisabled
+                                                                                    }
+                                                                                    onCheckedChange={(
+                                                                                        checked: boolean
+                                                                                    ) => {
+                                                                                        if (
+                                                                                            !packageSessionId
+                                                                                        )
+                                                                                            return;
 
-                                                                                    field.onChange(
-                                                                                        newValue
-                                                                                    );
-                                                                                }}
-                                                                            />
-                                                                            <span className="text-sm">
-                                                                                {
-                                                                                    level.level_dto
-                                                                                        .level_name
-                                                                                }
-                                                                            </span>
-                                                                        </label>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        </FormControl>
-                                                    )}
-                                                </FormItem>
-                                            );
-                                        }}
-                                    />
-                                );
-                            })}
+                                                                                        const newValue =
+                                                                                            checked
+                                                                                                ? [
+                                                                                                      ...(field.value ||
+                                                                                                          []),
+                                                                                                      packageSessionId,
+                                                                                                  ]
+                                                                                                : (
+                                                                                                      field.value ||
+                                                                                                      []
+                                                                                                  ).filter(
+                                                                                                      (
+                                                                                                          id
+                                                                                                      ) =>
+                                                                                                          id !==
+                                                                                                          packageSessionId
+                                                                                                  );
+
+                                                                                        field.onChange(
+                                                                                            newValue
+                                                                                        );
+                                                                                    }}
+                                                                                />
+                                                                                <span className="text-sm">
+                                                                                    {
+                                                                                        level
+                                                                                            .level_dto
+                                                                                            .level_name
+                                                                                    }
+                                                                                </span>
+                                                                            </label>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            </FormControl>
+                                                        )}
+                                                    </FormItem>
+                                                );
+                                            }}
+                                        />
+                                    );
+                                })}
+                        </div>
                     </div>
-                </div>
+                )}
+
                 {/* Submit button - conditionally hidden and only shown after data is loaded */}
                 {!hideSubmitButton && (
                     <div className="flex w-full items-center justify-start bg-white">

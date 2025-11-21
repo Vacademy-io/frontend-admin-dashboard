@@ -51,7 +51,6 @@ export const ENROLL_STUDENT_MANUALLY = `${BASE_URL}/admin-core-service/institute
 export const RE_ENROLL_STUDENT_MANUALLY = `${BASE_URL}/admin-core-service/institute/institute_learner-operation/v1/re-enroll-learner`;
 export const ENROLL_REQUESTS_LISTS = `${BASE_URL}/admin-core-service/institute/institute_learner/get/v2/all`;
 export const APPROVE_ENROLL_REQUESTS = `${BASE_URL}/admin-core-service/institute/learner-batch/v1/approve-learner-request-bulk`;
-export const LEADS_MANAGEMENT_LISTS = `${BASE_URL}/admin-core-service/institute/institute_learner/get/v2/all-leads`;
 
 export const INIT_CSV_BULK = `${BASE_URL}/admin-core-service/institute/institute_learner-bulk/v1/init-institute_learner-upload`;
 export const STUDENT_UPDATE_OPERATION = `${BASE_URL}/admin-core-service/institute/institute_learner-operation/v1/update`;
@@ -229,6 +228,7 @@ export const EXPORT_LEARNERS_MODULE_REPORT = `${BASE_URL}/admin-core-service/lea
 
 export const GET_USER_CREDENTIALS = `${BASE_URL}/auth-service/v1/user/user-credentials`;
 export const EDIT_STUDENT_DETAILS = `${BASE_URL}/admin-core-service/learner/info/v1/edit`;
+export const EDIT_LEARNER_DETAILS = `${BASE_URL}/admin-core-service/learner/info/v1/profile`;
 export const USERS_CREDENTIALS = `${BASE_URL}/auth-service/v1/user/users-credential`;
 export const EXPORT_ACCOUNT_DETAILS = `${BASE_URL}/admin-core-service/institute/institute_learner/get/v1/basic-details-csv`;
 
@@ -389,6 +389,13 @@ export const GET_SERVER_TIME = `${BASE_URL}/auth-service/v1/server-time/utc`;
 export const WORKFLOW_SERVICE_BASE = `${BASE_URL}/admin-core-service/v1/workflow`;
 export const GET_ACTIVE_WORKFLOWS_BY_INSTITUTE = `${WORKFLOW_SERVICE_BASE}/institute`;
 export const GET_WORKFLOW_DIAGRAM = `${BASE_URL}/admin-core-service/v1/automations`;
+// Workflows with schedules (paginated list)
+export const LIST_WORKFLOWS_WITH_SCHEDULES = `${WORKFLOW_SERVICE_BASE}/institute/workflows-with-schedules/list`;
 
 // User Plan URLs
 export const GET_USER_PLANS = `${BASE_URL}/admin-core-service/v1/user-plan/all`;
+export const GET_PAYMENT_LOGS = `${BASE_URL}/admin-core-service/v1/user-plan/payment-logs`;
+
+// Learner Portal Access
+export const GET_LEARNER_PORTAL_ACCESS = `${BASE_URL}/admin-core-service/admin/learner-portal/v1/access`;
+export const SEND_LEARNER_RESET_PASSWORD = `${BASE_URL}/admin-core-service/admin/learner-portal/v1/send-cred`;

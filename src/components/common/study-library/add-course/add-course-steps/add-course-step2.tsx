@@ -261,7 +261,6 @@ export const AddCourseStep2 = ({
     const existingBatches = instituteDetails?.batches_for_sessions || [];
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
-
     const instituteId = getInstituteId();
 
     // Determine initial values based on course settings
@@ -416,15 +415,30 @@ export const AddCourseStep2 = ({
 
     const form = useForm<Step2Data>({
         resolver: zodResolver(step2Schema),
-        defaultValues: initialData || {
-            levelStructure: 2,
-            hasLevels: 'yes',
-            hasSessions: 'yes',
-            sessions: [],
-            selectedInstructors: [],
-            instructors: [],
-            publishToCatalogue: false,
-        },
+        defaultValues: initialData
+            ? {
+                  // Use values from initialData where available. Respect course settings for depth.
+                  ...initialData,
+                  levelStructure:
+                      courseSettings?.courseStructure?.defaultDepth ??
+                      initialData.levelStructure ??
+                      2,
+                  hasLevels: initialData.hasLevels ?? getInitialHasLevels(),
+                  hasSessions: initialData.hasSessions ?? getInitialHasSessions(),
+                  sessions: initialData.sessions ?? [],
+                  selectedInstructors: initialData.selectedInstructors ?? [],
+                  instructors: initialData.instructors ?? [],
+                  publishToCatalogue: initialData.publishToCatalogue ?? false,
+              }
+            : {
+                  levelStructure: courseSettings?.courseStructure?.defaultDepth || 2,
+                  hasLevels: 'yes',
+                  hasSessions: 'yes',
+                  sessions: [],
+                  selectedInstructors: [],
+                  instructors: [],
+                  publishToCatalogue: false,
+              },
     });
 
     // Session management functions
@@ -953,22 +967,24 @@ export const AddCourseStep2 = ({
             );
             setSelectedInstructors(dedupedSelectedInstructors);
             // Normalize session id for standalone levels
-            const sessionsWithBatchIdLevels =
-                form.getValues('sessions')?.map((session) => ({
-                    ...session,
-                    id: hasSessions !== 'yes' && hasLevels === 'yes' ? 'DEFAULT' : session.id,
-                    name: hasSessions !== 'yes' && hasLevels === 'yes' ? 'DEFAULT' : session.name,
-                    levels: session.levels.map((level) => ({
-                        ...level,
-                        batchId: (level as Level).batchId || level.id,
-                    })),
-                })) || [];
+            // Prefer initialData.sessions when editing; fall back to current form values or state
+            const sourceSessions =
+                (initialData.sessions as any[]) || form.getValues('sessions') || sessions || [];
+            const sessionsWithBatchIdLevels = sourceSessions.map((session) => ({
+                ...session,
+                id: hasSessions !== 'yes' && hasLevels === 'yes' ? 'DEFAULT' : session.id,
+                name: hasSessions !== 'yes' && hasLevels === 'yes' ? 'DEFAULT' : session.name,
+                levels: (session.levels || []).map((level: Level) => ({
+                    ...level,
+                    batchId: (level as Level).batchId || level.id,
+                })),
+            }));
             setSessions(sessionsWithBatchIdLevels);
             // Aggregate instructor mappings from session data
             const instructorMappingsFromSessions: InstructorMapping[] = [];
             sessionsWithBatchIdLevels.forEach((session) => {
-                session.levels?.forEach((level) => {
-                    level.userIds?.forEach((instructor) => {
+                session.levels?.forEach((level: Level) => {
+                    level.userIds?.forEach((instructor: Instructor) => {
                         const sessionLevelMapping = {
                             sessionId: session.id,
                             sessionName: session.name,
@@ -1081,7 +1097,7 @@ export const AddCourseStep2 = ({
                 }
             })
             .catch((err) => {
-                console.log(err);
+                console.error(err);
             });
     }, [tokenData?.email, isEdit]);
 
@@ -1141,9 +1157,13 @@ export const AddCourseStep2 = ({
     const prevHasLevelsRef = useRef<string>(hasLevels);
 
     useEffect(() => {
-        // When sessions are turned on by the user, open Add Session panel and choose tab
+        // When sessions are turned on by the user, or already enabled on mount, open Add Session panel and choose tab
         const prevHasSessions = prevHasSessionsRef.current;
-        if (!isEdit && prevHasSessions !== 'yes' && hasSessions === 'yes') {
+        if (
+            !isEdit &&
+            hasSessions === 'yes' &&
+            (prevHasSessions !== 'yes' || sessions.length === 0)
+        ) {
             const hasExistingOptions =
                 hasLevels === 'yes'
                     ? availableExistingBatches.length > 0
@@ -1156,9 +1176,14 @@ export const AddCourseStep2 = ({
     }, [hasSessions, hasLevels, availableExistingBatches.length]);
 
     useEffect(() => {
-        // When levels-only mode is turned on by the user, open Add Level panel and choose tab
+        // When levels-only mode is turned on by the user, or already enabled on mount, open Add Level panel and choose tab
         const prevHasLevels = prevHasLevelsRef.current;
-        if (!isEdit && hasSessions !== 'yes' && prevHasLevels !== 'yes' && hasLevels === 'yes') {
+        if (
+            !isEdit &&
+            hasSessions !== 'yes' &&
+            hasLevels === 'yes' &&
+            (prevHasLevels !== 'yes' || sessions.length === 0)
+        ) {
             const hasExistingLevels = availableExistingBatchesForStandalone.length > 0;
             setShowAddLevel(true);
             setAddLevelMode(hasExistingLevels ? 'existing' : 'new');
@@ -1189,31 +1214,6 @@ export const AddCourseStep2 = ({
                             </div>
 
                             <CardContent className="space-y-6 p-5">
-                                {/* Warning Note */}
-                                {!isEdit && (
-                                    <div className="rounded-lg border border-red-200 bg-red-50 p-3">
-                                        <p className="text-sm text-red-700">
-                                            <strong>Note:</strong> Once you create the{' '}
-                                            {getTerminology(
-                                                ContentTerms.Course,
-                                                SystemTerms.Course
-                                            )}{' '}
-                                            , its structure—including{' '}
-                                            {getTerminology(
-                                                ContentTerms.Session,
-                                                SystemTerms.Session
-                                            ).toLocaleLowerCase()}
-                                            s and{' '}
-                                            {getTerminology(
-                                                ContentTerms.Level,
-                                                SystemTerms.Level
-                                            ).toLocaleLowerCase()}
-                                            s cannot be changed. Please review carefully before
-                                            proceeding.
-                                        </p>
-                                    </div>
-                                )}
-
                                 {/* Structure Selection */}
                                 {!isEdit && !courseSettings?.courseStructure?.fixCourseDepth && (
                                     <div>
@@ -3892,6 +3892,13 @@ const SessionCard: React.FC<{
     const [selectedExistingLevelBatchIds, setSelectedExistingLevelBatchIds] = useState<string[]>(
         []
     );
+
+    // Auto-open Add Level dialog on mount if hasLevels is true
+    useEffect(() => {
+        if (hasLevels) {
+            setShowAddLevel(true);
+        }
+    }, [hasLevels]);
 
     const handleAddLevel = () => {
         if (newLevelName.trim()) {

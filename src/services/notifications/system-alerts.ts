@@ -58,14 +58,37 @@ export async function fetchSystemAlerts(params: {
     size?: number;
 }): Promise<PagedResponse<SystemAlertItem>> {
     const { userId, page = 0, size = 20 } = params;
-    const url = getSystemAlertsUrl(userId);
-    const response = await axios.get(url, {
-        params: {
-            page,
-            size,
-        },
-    });
-    return response.data;
+    try {
+        const url = getSystemAlertsUrl(userId);
+        const response = await axios.get(url, {
+            params: {
+                page,
+                size,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        // Return empty response when notification service is down to prevent UI crashes
+        console.warn('Failed to fetch system alerts, notification service may be down:', error);
+        return {
+            content: [],
+            pageable: {
+                pageNumber: page,
+                pageSize: size,
+                offset: page * size,
+                paged: true,
+                unpaged: false,
+            },
+            totalPages: 0,
+            totalElements: 0,
+            last: true,
+            numberOfElements: 0,
+            first: page === 0,
+            size: size,
+            number: page,
+            empty: true,
+        };
+    }
 }
 
 // Helpers to integrate with @tanstack/react-query
@@ -74,6 +97,7 @@ export function getSystemAlertsQuery(userId: string, size = 5) {
         queryKey: ['SYSTEM_ALERTS', userId, size] as const,
         queryFn: () => fetchSystemAlerts({ userId, page: 0, size }),
         staleTime: 60_000,
+        retry: false, // Don't retry since we handle errors gracefully in fetchSystemAlerts
     };
 }
 
@@ -86,6 +110,7 @@ export function getInfiniteSystemAlertsQuery(userId: string, pageSize = 20) {
             lastPage.last ? undefined : lastPage.number + 1,
         initialPageParam: 0,
         staleTime: 30_000,
+        retry: false, // Don't retry since we handle errors gracefully in fetchSystemAlerts
     };
 }
 

@@ -219,6 +219,7 @@ const CustomFieldsSettings: React.FC = () => {
             assessmentRegistration: false,
             liveSessionRegistration: false,
             learnerProfile: false,
+            campaign: false,
         },
     });
 
@@ -656,6 +657,7 @@ const CustomFieldsSettings: React.FC = () => {
                     assessmentRegistration: false,
                     liveSessionRegistration: false,
                     learnerProfile: false,
+                    campaign: false,
                 },
             });
             setShowAddModal(false);
@@ -948,6 +950,7 @@ const CustomFieldsSettings: React.FC = () => {
                     assessmentRegistration: false,
                     liveSessionRegistration: false,
                     learnerProfile: false,
+                    campaign: false,
                 },
             });
         }
@@ -2128,6 +2131,7 @@ const CustomFieldsSettings: React.FC = () => {
                                                         assessmentRegistration: false,
                                                         liveSessionRegistration: false,
                                                         learnerProfile: false,
+                                                        campaign: false,
                                                     },
                                                 });
                                             }

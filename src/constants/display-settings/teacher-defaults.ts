@@ -16,7 +16,12 @@ function mapSidebarToTeacherConfig(menu: SidebarItemsType[]): SidebarTabConfig[]
             order: index + 1,
             // By default, show everything except tabs which are inherently admin-only filtered elsewhere;
             // allow the settings engine to toggle visibility later
-            visible: item.id !== 'manage-institute' && item.id !== 'user-tags' ? true : false,
+            visible:
+                item.id !== 'manage-institute' &&
+                item.id !== 'user-tags' &&
+                item.id !== 'manage-payments'
+                    ? true
+                    : false,
             subTabs:
                 item.subItems?.map((sub, subIndex) => ({
                     id: sub.subItemId || sub.subItem || `${item.id}-${subIndex + 1}`,
@@ -95,6 +100,25 @@ export const DEFAULT_TEACHER_DISPLAY_SETTINGS: DisplaySettingsData = {
     slideView: {
         showCopyTo: true,
         showMoveTo: true,
+    },
+    courseCreation: {
+        showCreateCourseWithAI: false,
+        requirePackageSelectionForNewChapter: true,
+    },
+    studentSideView: {
+        overviewTab: true,
+        testTab: true,
+        progressTab: true,
+        notificationTab: false,
+        membershipTab: false,
+        userTaggingTab: false,
+        fileTab: false,
+        portalAccessTab: false,
+    },
+    learnerManagement: {
+        allowPortalAccess: true,
+        allowViewPassword: true,
+        allowSendResetPasswordMail: true,
     },
     postLoginRedirectRoute: '/dashboard',
 };

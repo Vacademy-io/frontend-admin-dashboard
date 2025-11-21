@@ -7,7 +7,7 @@ import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, FormProvider } from 'react-hook-form';
 import { z } from 'zod';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { EnrollFormUploadImage } from '@/assets/svgs';
 import { FileUploadComponent } from '@/components/design-system/file-upload';
 import { useFileUpload } from '@/hooks/use-file-upload';
@@ -22,13 +22,17 @@ import { Menu, Transition } from '@headlessui/react';
 import { Pencil, Upload, Trash2 } from 'lucide-react';
 import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { getCustomFieldSettingsFromCache, type CustomField, type FieldGroup } from '@/services/custom-field-settings';
+import { getFieldsForLocation } from '@/lib/custom-fields/utils';
 
 const EditStudentDetailsFormSchema = z.object({
     user_id: z.string().min(1, 'This field is required'),
+    username: z.string().optional(),
     email: z.string().email('Invalid email address'),
     full_name: z.string().min(1, 'This field is required'),
     contact_number: z.string().min(1, 'This field is required'),
     gender: z.string().min(1, 'This field is required'),
+    date_of_birth: z.string().optional(),
     address_line: z.string().optional(),
     state: z.string().optional(),
     city: z.string().optional(),
@@ -41,6 +45,7 @@ const EditStudentDetailsFormSchema = z.object({
     mother_mobile_number: z.string().optional(),
     mother_email: z.string().email('Invalid email').optional().or(z.literal('')),
     face_file_id: z.string().optional().or(z.literal('')),
+    custom_fields: z.record(z.string()).optional(),
 });
 
 export type EditStudentDetailsFormValues = z.infer<typeof EditStudentDetailsFormSchema>;
@@ -70,6 +75,54 @@ export const EditStudentDetails = () => {
     const [openDialog, setOpenDialog] = useState(false);
     const [removedImage, setRemovedImage] = useState(false); // 🆕 new state for tracking unsaved removal
 
+    // Fetch custom fields for both Learner List and Learner Enrollment locations
+    const customFieldsData = useMemo(() => {
+        const learnerListFields = getFieldsForLocation("Learner's List");
+        const learnerEnrollmentFields = getFieldsForLocation("Learner's Enrollment");
+        
+        // Merge and deduplicate by field ID
+        const allFieldsMap = new Map();
+        [...learnerListFields, ...learnerEnrollmentFields].forEach(field => {
+            allFieldsMap.set(field.id, field);
+        });
+        const customFields = Array.from(allFieldsMap.values());
+
+        // Get the full settings to access groups
+        const settings = getCustomFieldSettingsFromCache();
+        
+        if (!settings) {
+            return { customFields, fieldGroups: [], individualFields: customFields };
+        }
+
+        // Get visibility keys for both locations
+        const visibilityKeys = ['learnerList', 'learnerEnrollment'];
+
+        // Filter groups that have at least one field visible in either location
+        const visibleGroups = settings.fieldGroups.filter((group) => {
+            return group.fields.some((field) => 
+                visibilityKeys.some(key => field.visibility[key as keyof typeof field.visibility])
+            );
+        });
+
+        // For each visible group, filter to only include fields visible in either location
+        const filteredGroups = visibleGroups.map((group) => ({
+            ...group,
+            fields: group.fields.filter((field) => 
+                visibilityKeys.some(key => field.visibility[key as keyof typeof field.visibility])
+            ),
+        }));
+
+        // Get field IDs that are in groups
+        const fieldIdsInGroups = new Set(
+            filteredGroups.flatMap((group) => group.fields.map((f) => f.id))
+        );
+
+        // Filter out fields that are already in groups
+        const individualFields = customFields.filter((field) => !fieldIdsInGroups.has(field.id));
+
+        return { customFields, fieldGroups: filteredGroups, individualFields };
+    }, []);
+
     const loadImage = async (fileId: string) => {
         if (fileId) {
             const url = await getPublicUrl(fileId);
@@ -79,12 +132,24 @@ export const EditStudentDetails = () => {
 
     useEffect(() => {
         if (selectedStudent && openDialog) {
+            // Prepare custom fields object from selectedStudent
+            const customFieldsValues: Record<string, string> = {};
+            if (selectedStudent.custom_fields) {
+                Object.entries(selectedStudent.custom_fields).forEach(([key, value]) => {
+                    if (value !== null) {
+                        customFieldsValues[key] = value;
+                    }
+                });
+            }
+
             form.reset({
                 user_id: selectedStudent?.user_id || '',
+                username: selectedStudent?.username || '',
                 email: selectedStudent?.email || '',
                 full_name: selectedStudent?.full_name || '',
                 contact_number: selectedStudent?.mobile_number || '',
                 gender: selectedStudent?.gender || '',
+                date_of_birth: selectedStudent?.date_of_birth || '',
                 address_line: selectedStudent?.address_line || '',
                 city: selectedStudent?.city || '',
                 state: selectedStudent?.region || '',
@@ -97,6 +162,7 @@ export const EditStudentDetails = () => {
                 mother_mobile_number: selectedStudent?.mother_mobile_number || '',
                 mother_email: selectedStudent?.mother_email || '',
                 face_file_id: selectedStudent?.face_file_id || '',
+                custom_fields: customFieldsValues,
             });
 
             if (selectedStudent.face_file_id && !removedImage) {
@@ -607,6 +673,202 @@ export const EditStudentDetails = () => {
                             </FormItem>
                         )}
                     />
+
+                    {/* Custom Fields Section */}
+                    {(customFieldsData.fieldGroups.length > 0 || customFieldsData.individualFields.length > 0) && (
+                        <>
+                            <div className="mt-6 w-full border-t pt-6">
+                                <h3 className="text-h6 mb-4 font-semibold text-neutral-700">
+                                    Additional Information
+                                </h3>
+                            </div>
+
+                            {/* Field Groups */}
+                            {customFieldsData.fieldGroups.map((group: FieldGroup) => (
+                                <div key={group.id} className="mb-6 w-full">
+                                    <h4 className="text-sm font-semibold text-neutral-600 mb-3">
+                                        {group.name}
+                                    </h4>
+                                    <div className="flex flex-col gap-4 pl-2 border-l-2 border-neutral-200 w-full">
+                                        {group.fields.map((customField: CustomField) => {
+                                            if (customField.type === 'dropdown') {
+                                                const dropdownOptions = customField.options?.map((option) => ({
+                                                    id: option,
+                                                    name: option,
+                                                })) || [];
+
+                                                return (
+                                                    <FormField
+                                                        key={customField.id}
+                                                        control={form.control}
+                                                        name="custom_fields"
+                                                        render={({ field }) => {
+                                                            const currentValue = field.value?.[customField.id];
+                                                            const selectedOption = currentValue
+                                                                ? { id: currentValue, name: currentValue }
+                                                                : undefined;
+
+                                                            return (
+                                                                <FormItem className="w-full">
+                                                                    <FormControl>
+                                                                        <div className="flex flex-col gap-1">
+                                                                            <label className="text-sm font-medium">
+                                                                                {customField.name}
+                                                                                {customField.required && (
+                                                                                    <span className="ml-1 text-danger-600">*</span>
+                                                                                )}
+                                                                            </label>
+                                                                            <MyDropdown
+                                                                                currentValue={selectedOption}
+                                                                                dropdownList={dropdownOptions}
+                                                                                handleChange={(value) => {
+                                                                                    if (typeof value === 'object' && 'id' in value) {
+                                                                                        const newCustomFields = {
+                                                                                            ...(field.value || {}),
+                                                                                            [customField.id]: value.id,
+                                                                                        };
+                                                                                        field.onChange(newCustomFields);
+                                                                                    }
+                                                                                }}
+                                                                                placeholder={`Select ${customField.name}`}
+                                                                                required={customField.required}
+                                                                                disable={false}
+                                                                            />
+                                                                        </div>
+                                                                    </FormControl>
+                                                                </FormItem>
+                                                            );
+                                                        }}
+                                                    />
+                                                );
+                                            }
+
+                                            // Text/Number custom fields
+                                            return (
+                                                <FormField
+                                                    key={customField.id}
+                                                    control={form.control}
+                                                    name="custom_fields"
+                                                    render={({ field }) => (
+                                                        <FormItem className="w-full">
+                                                            <FormControl>
+                                                                <MyInput
+                                                                    inputType={customField.type === 'number' ? 'number' : 'text'}
+                                                                    label={customField.name}
+                                                                    inputPlaceholder={`Enter ${customField.name}`}
+                                                                    input={field.value?.[customField.id] || ''}
+                                                                    onChangeFunction={(e) => {
+                                                                        const newCustomFields = {
+                                                                            ...(field.value || {}),
+                                                                            [customField.id]: e.target.value,
+                                                                        };
+                                                                        field.onChange(newCustomFields);
+                                                                    }}
+                                                                    required={customField.required}
+                                                                    size="large"
+                                                                    className="w-full"
+                                                                />
+                                                            </FormControl>
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ))}
+
+                            {/* Individual Custom Fields */}
+                            {customFieldsData.individualFields.length > 0 && (
+                                <div className="flex flex-col gap-4 w-full">
+                                    {customFieldsData.individualFields.map((customField: CustomField) => {
+                                        if (customField.type === 'dropdown') {
+                                            const dropdownOptions = customField.options?.map((option) => ({
+                                                id: option,
+                                                name: option,
+                                            })) || [];
+
+                                            return (
+                                                <FormField
+                                                    key={customField.id}
+                                                    control={form.control}
+                                                    name="custom_fields"
+                                                    render={({ field }) => {
+                                                        const currentValue = field.value?.[customField.id];
+                                                        const selectedOption = currentValue
+                                                            ? { id: currentValue, name: currentValue }
+                                                            : undefined;
+
+                                                        return (
+                                                            <FormItem className="w-full">
+                                                                <FormControl>
+                                                                    <div className="flex flex-col gap-1">
+                                                                        <label className="text-sm font-medium">
+                                                                            {customField.name}
+                                                                            {customField.required && (
+                                                                                <span className="ml-1 text-danger-600">*</span>
+                                                                            )}
+                                                                        </label>
+                                                                        <MyDropdown
+                                                                            currentValue={selectedOption}
+                                                                            dropdownList={dropdownOptions}
+                                                                            handleChange={(value) => {
+                                                                                if (typeof value === 'object' && 'id' in value) {
+                                                                                    const newCustomFields = {
+                                                                                        ...(field.value || {}),
+                                                                                        [customField.id]: value.id,
+                                                                                    };
+                                                                                    field.onChange(newCustomFields);
+                                                                                }
+                                                                            }}
+                                                                            placeholder={`Select ${customField.name}`}
+                                                                            required={customField.required}
+                                                                            disable={false}
+                                                                        />
+                                                                    </div>
+                                                                </FormControl>
+                                                            </FormItem>
+                                                        );
+                                                    }}
+                                                />
+                                            );
+                                        }
+
+                                        // Text/Number custom fields
+                                        return (
+                                            <FormField
+                                                key={customField.id}
+                                                control={form.control}
+                                                name="custom_fields"
+                                                render={({ field }) => (
+                                                    <FormItem className="w-full">
+                                                        <FormControl>
+                                                            <MyInput
+                                                                inputType={customField.type === 'number' ? 'number' : 'text'}
+                                                                label={customField.name}
+                                                                inputPlaceholder={`Enter ${customField.name}`}
+                                                                input={field.value?.[customField.id] || ''}
+                                                                onChangeFunction={(e) => {
+                                                                    const newCustomFields = {
+                                                                        ...(field.value || {}),
+                                                                        [customField.id]: e.target.value,
+                                                                    };
+                                                                    field.onChange(newCustomFields);
+                                                                }}
+                                                                required={customField.required}
+                                                                size="large"
+                                                                className="w-full"
+                                                            />
+                                                        </FormControl>
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </>
+                    )}
                 </form>
             </FormProvider>
         </MyDialog>
