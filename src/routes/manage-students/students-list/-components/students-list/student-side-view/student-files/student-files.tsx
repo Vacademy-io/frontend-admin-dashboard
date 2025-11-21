@@ -290,7 +290,6 @@ export const StudentFiles = () => {
                     null,
                     selectedStudent.user_id,
                     selectedStudent.institute_id,
-
                     fileData,
                     setIsUploading
                 );
@@ -303,25 +302,38 @@ export const StudentFiles = () => {
                     return;
                 }
 
-                await createHtmlSystemFile(selectedStudent.institute_id, {
-                    html: htmlContent,
-                    name: fileName,
-                    folder_name: folderName || undefined,
-                    view_access: [
-                        {
-                            level: 'user',
-                            level_id: selectedStudent.user_id,
-                        },
-                    ],
-                    edit_access: grantEditAccess
-                        ? [
-                              {
-                                  level: 'user',
-                                  level_id: selectedStudent.user_id,
-                              },
-                          ]
-                        : [],
-                });
+                await createHtmlSystemFile(
+                    selectedStudent.institute_id,
+                    {
+                        html: htmlContent,
+                        name: fileName,
+                        folder_name: folderName || undefined,
+                        view_access: [
+                            {
+                                level: 'user',
+                                level_id: selectedStudent.user_id,
+                            },
+                        ],
+                        edit_access: grantEditAccess
+                            ? [
+                                  {
+                                      level: 'user',
+                                      level_id: selectedStudent.user_id,
+                                  },
+                                  {
+                                      level: 'role',
+                                      level_id: 'Admin',
+                                  },
+                              ]
+                            : [
+                                  {
+                                      level: 'role',
+                                      level_id: 'Admin',
+                                  },
+                              ],
+                    },
+                    selectedStudent.user_id // Pass studentId for notification
+                );
 
                 toast.success('Note created successfully');
             }
@@ -527,22 +539,44 @@ export const StudentFiles = () => {
                     <MyButton
                         onClick={(e) => {
                             e.stopPropagation();
+                            setFileTypeTab('File');
                             setShowAddDialog(true);
                         }}
                         buttonType="primary"
                     >
-                        <Plus className="mr-2 size-4" />
-                        Add File
+                        <Upload className="mr-2 size-4" />
+                        File
+                    </MyButton>
+                    <MyButton
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setFileTypeTab('Url');
+                            setShowAddDialog(true);
+                        }}
+                        buttonType="secondary"
+                    >
+                        <Link2 className="mr-2 size-4" />
+                        URL
+                    </MyButton>
+                    <MyButton
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setFileTypeTab('Note');
+                            setShowAddDialog(true);
+                        }}
+                        buttonType="secondary"
+                    >
+                        <StickyNote className="mr-2 size-4" />
+                        Note
                     </MyButton>
                     <Button
                         variant="outline"
-                        size="default"
+                        size="icon"
                         onClick={handleRefresh}
                         disabled={isRefreshing || isLoading}
                         className="gap-2"
                     >
                         <RefreshCw className={`size-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                        Refresh
                     </Button>
                 </div>
             </div>
@@ -569,6 +603,7 @@ export const StudentFiles = () => {
                         <MyButton
                             onClick={(e) => {
                                 e.stopPropagation();
+                                setFileTypeTab('File');
                                 setShowAddDialog(true);
                             }}
                             buttonType="secondary"
@@ -607,6 +642,7 @@ export const StudentFiles = () => {
                                             e.stopPropagation();
                                             setFolderName(displayFolderName);
                                             setIsFolderNameReadonly(true);
+                                            setFileTypeTab('File');
                                             setShowAddDialog(true);
                                         }}
                                         className="gap-1 text-gray-600 hover:text-blue-600"

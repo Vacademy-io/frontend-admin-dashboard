@@ -7,7 +7,9 @@ import {
     GET_MY_SYSTEM_FILES,
 } from '@/constants/urls';
 import { UploadFileInS3 } from './upload_file';
-import { getUserId } from '@/utils/userDetails';
+import { getUserId, getUserName } from '@/utils/userDetails';
+import { AnnouncementService } from './announcement';
+import { getUserRoleForInstitute } from '@/lib/auth/instituteUtils';
 
 // ========================================
 // Type Definitions
@@ -323,9 +325,10 @@ export const createUrlSystemFile = async (
 };
 
 /**
- * Create an HTML content system file
+ * Create an HTML content system file for a student
  * @param instituteId - Institute ID
  * @param fileData - File metadata including HTML content
+ * @param studentId - Optional student ID to send notification to
  * @returns Created system file ID
  */
 export const createHtmlSystemFile = async (
@@ -337,7 +340,8 @@ export const createHtmlSystemFile = async (
         view_access?: AccessPermission[];
         edit_access?: AccessPermission[];
         thumbnail_file_id?: string;
-    }
+    },
+    studentId?: string
 ): Promise<string> => {
     try {
         const systemFileData: AddSystemFileRequest = {
@@ -352,6 +356,12 @@ export const createHtmlSystemFile = async (
         };
 
         const response = await addSystemFile(instituteId, systemFileData);
+
+        // Send notification if studentId is provided
+        if (studentId) {
+            await sendFileAddedNotification(studentId, instituteId);
+        }
+
         return response.id;
     } catch (error) {
         console.error('Error creating HTML system file:', error);
@@ -602,6 +612,64 @@ export const grantInstituteAccess = async (
 // ========================================
 
 /**
+ * Send notification to student when a file is added
+ * @param studentId - Student user ID
+ * @param instituteId - Institute ID
+ */
+const sendFileAddedNotification = async (studentId: string, instituteId: string): Promise<void> => {
+    try {
+        const currentDate = new Date();
+        const endOfDay = new Date(currentDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        await AnnouncementService.create({
+            title: 'File',
+            content: {
+                type: 'html',
+                content: '<p>New file has been added</p>',
+            },
+            createdBy: getUserId(),
+            createdByName: getUserName(),
+            createdByRole: getUserRoleForInstitute(instituteId) || 'ADMIN',
+            recipients: [
+                {
+                    recipientType: 'USER',
+                    recipientId: studentId,
+                    recipientName: '',
+                },
+            ],
+            exclusions: [],
+            modes: [
+                {
+                    modeType: 'SYSTEM_ALERT',
+                    settings: {
+                        priority: 'HIGH',
+                        expiresAt: endOfDay.toISOString(),
+                    },
+                },
+            ],
+            mediums: [
+                {
+                    mediumType: 'PUSH_NOTIFICATION',
+                    config: {
+                        title: 'File',
+                        body: 'New file has been added',
+                    },
+                },
+            ],
+            scheduling: {
+                scheduleType: 'IMMEDIATE',
+                timezone: 'Asia/Calcutta',
+            },
+            instituteId: instituteId,
+        });
+    } catch (error) {
+        console.error('Error sending file notification:', error);
+        // Don't throw - notification failure shouldn't block file creation
+    }
+};
+
+/**
  * Add a file for a specific student (grants view access to that student)
  * @param file - File to upload (if file_type is 'File')
  * @param studentId - Student user ID
@@ -629,12 +697,17 @@ export const addFileForStudent = async (
             level: 'user',
             level_id: studentId,
         };
+        const adminAccess: AccessPermission = {
+            level: 'role',
+            level_id: 'Admin',
+        };
 
         const fileType = fileData.file_type || 'File';
+        let fileId: string;
 
         if (fileType === 'File' && file) {
             // Upload file and create system file
-            return await uploadAndCreateSystemFile(
+            fileId = await uploadAndCreateSystemFile(
                 file,
                 instituteId,
                 {
@@ -642,23 +715,28 @@ export const addFileForStudent = async (
                     folder_name: fileData.folder_name,
                     media_type: fileData.media_type,
                     view_access: [studentAccess],
-                    edit_access: [], // Only creator has edit access by default
+                    edit_access: [adminAccess], // all admins have edit access by default
                 },
                 setIsUploading
             );
         } else if (fileType === 'Url' && fileData.url) {
             // Create URL-based system file
-            return await createUrlSystemFile(instituteId, {
+            fileId = await createUrlSystemFile(instituteId, {
                 url: fileData.url,
                 name: fileData.name,
                 folder_name: fileData.folder_name,
                 media_type: fileData.media_type,
                 view_access: [studentAccess],
-                edit_access: [],
+                edit_access: [adminAccess],
             });
         } else {
             throw new Error('Invalid file type or missing file/URL');
         }
+
+        // Send notification to student
+        await sendFileAddedNotification(studentId, instituteId);
+
+        return fileId;
     } catch (error) {
         console.error('Error adding file for student:', error);
         throw error;
