@@ -8,25 +8,102 @@ export interface PaymentLog {
     date: string;
     currency: string;
     payment_amount: number;
-    payment_specific_data: string;
+    payment_specific_data: string | null;
+    transaction_id?: string;
+}
+
+export interface EnrollInvite {
+    id: string;
+    name: string;
+    start_date: string | null;
+    end_date: string | null;
+    invite_code: string;
+    status: string;
+    institute_id: string;
+    vendor: string;
+    vendor_id: string;
+    currency: string;
+    tag: string;
+    learner_access_days: number | null;
+    web_page_meta_data_json: string;
+    is_bundled: boolean;
+    institute_custom_fields: string | null;
+    package_session_to_payment_options: string | null;
+    setting_json: string;
+}
+
+export interface PaymentOption {
+    id: string;
+    name: string;
+    status: string;
+    source: string;
+    source_id: string;
+    tag: string | null;
+    type: string;
+    require_approval: boolean;
+    unit: string | null;
+    payment_plans: string | null;
+    payment_option_metadata_json: string;
+}
+
+export interface PaymentPlanDto {
+    id: string;
+    name: string;
+    status: string;
+    validity_in_days: number;
+    actual_price: number;
+    elevated_price: number;
+    currency: string;
+    description: string;
+    tag: string;
+    feature_json: string;
+    referral_option: string | null;
+    referral_option_smapping_status: string | null;
+}
+
+export interface User {
+    id: string;
+    username: string;
+    email: string;
+    full_name: string;
+    address_line: string;
+    city: string;
+    region: string | null;
+    pin_code: string;
+    mobile_number: string;
+    date_of_birth: string | null;
+    gender: string;
+    password: string | null;
+    profile_pic_file_id: string | null;
+    roles: string[];
+    last_login_time: string | null;
+    root_user: boolean;
 }
 
 export interface UserPlan {
     id: string;
     user_id: string;
     payment_plan_id: string;
+    plan_json: string | null;
     applied_coupon_discount_id: string | null;
+    applied_coupon_discount_json: string | null;
     enroll_invite_id: string;
     payment_option_id: string;
+    payment_option_json: string | null;
     status: string;
     created_at: string;
     updated_at: string;
+    payment_logs: string | null;
+    enroll_invite: EnrollInvite;
+    payment_option: PaymentOption;
+    payment_plan_dto: PaymentPlanDto;
 }
 
 export interface PaymentLogEntry {
     payment_log: PaymentLog;
     user_plan: UserPlan;
     current_payment_status: 'PAID' | 'FAILED' | 'NOT_INITIATED' | string;
+    user: User;
 }
 
 export interface PaymentLogsResponse {
@@ -43,8 +120,8 @@ export interface PaymentLogsResponse {
         paged: boolean;
         unpaged: boolean;
     };
-    total_pages: number;
-    total_elements: number;
+    totalPages: number;
+    totalElements: number;
     last: boolean;
     size: number;
     number: number;
@@ -53,7 +130,7 @@ export interface PaymentLogsResponse {
         sorted: boolean;
         unsorted: boolean;
     };
-    number_of_elements: number;
+    numberOfElements: number;
     first: boolean;
     empty: boolean;
 }

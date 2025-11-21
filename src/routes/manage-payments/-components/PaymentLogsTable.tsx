@@ -73,10 +73,10 @@ export function PaymentLogsTable({
         if (!data) return undefined;
         return {
             content: data.content,
-            total_pages: data.total_pages,
+            total_pages: data.totalPages,
             page_no: data.number,
             page_size: data.size,
-            total_elements: data.total_elements,
+            total_elements: data.totalElements,
             last: data.last,
         };
     }, [data]);
@@ -86,9 +86,9 @@ export function PaymentLogsTable({
             {
                 id: 'payment_date',
                 header: 'Date & Time',
-                accessorFn: (row) => row.payment_log.date,
+                accessorFn: (row) => row?.payment_log?.date || '',
                 cell: ({ row }) => {
-                    const date = row.original.payment_log.date;
+                    const date = row.original?.payment_log?.date;
                     return (
                         <div className="space-y-1">
                             <div className="font-medium text-gray-900">{formatDate(date)}</div>
@@ -99,23 +99,29 @@ export function PaymentLogsTable({
                 size: 180,
             },
             {
-                id: 'user_id',
-                header: 'User ID',
-                accessorFn: (row) => row.payment_log.user_id,
-                cell: ({ row }) => (
-                    <div className="font-mono text-sm text-gray-700">
-                        {row.original.payment_log.user_id?.slice(0, 8)}...
-                    </div>
-                ),
-                size: 120,
+                id: 'user_info',
+                header: 'User',
+                accessorFn: (row) => row?.user?.full_name || row?.user?.email || '',
+                cell: ({ row }) => {
+                    const user = row.original?.user;
+                    return (
+                        <div className="space-y-1">
+                            <div className="font-medium text-gray-900">
+                                {user?.full_name || '-'}
+                            </div>
+                            <div className="text-xs text-gray-500">{user?.email || '-'}</div>
+                        </div>
+                    );
+                },
+                size: 200,
             },
             {
                 id: 'amount',
                 header: 'Amount',
-                accessorFn: (row) => row.payment_log.payment_amount,
+                accessorFn: (row) => row?.payment_log?.payment_amount || 0,
                 cell: ({ row }) => {
-                    const amount = row.original.payment_log.payment_amount;
-                    const currency = row.original.payment_log.currency;
+                    const amount = row.original?.payment_log?.payment_amount || 0;
+                    const currency = row.original?.payment_log?.currency || 'USD';
                     return (
                         <div className="font-semibold text-gray-900">
                             {formatCurrency(amount, currency)}
@@ -127,12 +133,12 @@ export function PaymentLogsTable({
             {
                 id: 'current_payment_status',
                 header: 'Payment Status',
-                accessorFn: (row) => row.current_payment_status,
+                accessorFn: (row) => row?.current_payment_status || '',
                 cell: ({ row }) => {
-                    const status = row.original.current_payment_status;
+                    const status = row.original?.current_payment_status;
                     return (
                         <Badge variant={getStatusBadgeVariant(status)} className="font-medium">
-                            {status?.replace(/_/g, ' ')}
+                            {status?.replace(/_/g, ' ') || '-'}
                         </Badge>
                     );
                 },
@@ -141,9 +147,9 @@ export function PaymentLogsTable({
             {
                 id: 'vendor',
                 header: 'Payment Method',
-                accessorFn: (row) => row.payment_log.vendor,
+                accessorFn: (row) => row?.payment_log?.vendor || '',
                 cell: ({ row }) => {
-                    const vendor = row.original.payment_log.vendor;
+                    const vendor = row.original?.payment_log?.vendor;
                     return (
                         <div className="flex items-center gap-2">
                             <span className="text-sm text-gray-700">{vendor || '-'}</span>
@@ -155,39 +161,66 @@ export function PaymentLogsTable({
             {
                 id: 'user_plan_status',
                 header: 'Plan Status',
-                accessorFn: (row) => row.user_plan.status,
+                accessorFn: (row) => row?.user_plan?.status || '',
                 cell: ({ row }) => {
-                    const status = row.original.user_plan.status;
+                    const status = row.original?.user_plan?.status;
                     return (
                         <Badge variant="outline" className="font-normal">
-                            {status?.replace(/_/g, ' ')}
+                            {status?.replace(/_/g, ' ') || '-'}
                         </Badge>
                     );
                 },
                 size: 130,
             },
             {
-                id: 'package_session',
-                header: 'Session',
-                accessorFn: (row) => row.user_plan.enroll_invite_id,
+                id: 'enroll_invite',
+                header: 'Course/Membership',
+                accessorFn: (row) => row?.user_plan?.enroll_invite?.name || '',
                 cell: ({ row }) => {
-                    const enrollInviteId = row.original.user_plan.enroll_invite_id;
-                    // We'll get package session from the enroll invite
+                    const enrollInvite = row.original?.user_plan?.enroll_invite;
                     return (
-                        <div className="text-sm text-gray-600">
-                            {enrollInviteId ? enrollInviteId.slice(0, 12) + '...' : '-'}
+                        <div className="space-y-1">
+                            <div className="font-medium text-gray-900">
+                                {enrollInvite?.name || '-'}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                                Code: {enrollInvite?.invite_code || '-'}
+                            </div>
                         </div>
                     );
                 },
-                size: 150,
+                size: 200,
             },
             {
                 id: 'transaction_id',
                 header: 'Transaction ID',
-                accessorFn: (row) => row.payment_log.vendor_id,
+                accessorFn: (row) => row?.payment_log?.transaction_id || '',
                 cell: ({ row }) => {
-                    const vendorId = row.original.payment_log.vendor_id;
-                    return <div className="font-mono text-xs text-gray-500">{vendorId || '-'}</div>;
+                    const transactionId = row.original?.payment_log?.transaction_id;
+                    return (
+                        <div className="font-mono text-xs text-gray-500">
+                            {transactionId || '-'}
+                        </div>
+                    );
+                },
+                size: 140,
+            },
+            {
+                id: 'payment_plan',
+                header: 'Payment Plan',
+                accessorFn: (row) => row?.user_plan?.payment_plan_dto?.name || '',
+                cell: ({ row }) => {
+                    const paymentPlan = row.original?.user_plan?.payment_plan_dto;
+                    return (
+                        <div className="space-y-1">
+                            <div className="text-sm text-gray-900">{paymentPlan?.name || '-'}</div>
+                            <div className="text-xs text-gray-500">
+                                {paymentPlan?.validity_in_days
+                                    ? `${paymentPlan.validity_in_days} days`
+                                    : ''}
+                            </div>
+                        </div>
+                    );
                 },
                 size: 180,
             },
@@ -214,7 +247,11 @@ export function PaymentLogsTable({
         );
     }
 
-    if (!tableData || tableData.content.length === 0) {
+    if (!tableData) {
+        return null;
+    }
+
+    if (tableData.content.length === 0) {
         return (
             <div className="rounded-lg border border-gray-200 bg-gray-50 p-12 text-center">
                 <p className="text-lg font-medium text-gray-600">No payment records found</p>
@@ -231,11 +268,12 @@ export function PaymentLogsTable({
                 <MyTable
                     data={tableData}
                     columns={columns}
-                    isLoading={isLoading}
-                    error={error}
+                    isLoading={false}
+                    error={null}
                     currentPage={currentPage}
                     scrollable={true}
                     enableColumnResizing={true}
+                    enableColumnPinning={false}
                 />
             </div>
 

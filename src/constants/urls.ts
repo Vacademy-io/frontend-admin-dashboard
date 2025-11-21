@@ -47,7 +47,6 @@ export const ENROLL_STUDENT_MANUALLY = `${BASE_URL}/admin-core-service/institute
 export const RE_ENROLL_STUDENT_MANUALLY = `${BASE_URL}/admin-core-service/institute/institute_learner-operation/v1/re-enroll-learner`;
 export const ENROLL_REQUESTS_LISTS = `${BASE_URL}/admin-core-service/institute/institute_learner/get/v2/all`;
 export const APPROVE_ENROLL_REQUESTS = `${BASE_URL}/admin-core-service/institute/learner-batch/v1/approve-learner-request-bulk`;
-export const LEADS_MANAGEMENT_LISTS = `${BASE_URL}/admin-core-service/institute/institute_learner/get/v2/all-leads`;
 
 export const INIT_CSV_BULK = `${BASE_URL}/admin-core-service/institute/institute_learner-bulk/v1/init-institute_learner-upload`;
 export const STUDENT_UPDATE_OPERATION = `${BASE_URL}/admin-core-service/institute/institute_learner-operation/v1/update`;
@@ -393,9 +392,15 @@ export const LIST_WORKFLOWS_WITH_SCHEDULES = `${WORKFLOW_SERVICE_BASE}/institute
 export const GET_USER_PLANS = `${BASE_URL}/admin-core-service/v1/user-plan/all`;
 export const GET_PAYMENT_LOGS = `${BASE_URL}/admin-core-service/v1/user-plan/payment-logs`;
 
+
 // System files
 export const ADD_SYSTEM_FILE = `${BASE_URL}/admin-core-service/system-files/v1/add`;
 export const GET_SYSTEM_FILES = `${BASE_URL}/admin-core-service/system-files/v1/list`;
 export const GET_SYSTEM_FILES_ACCESS = `${BASE_URL}/admin-core-service/system-files/v1/access`;
 export const UPDATE_SYSTEM_FILES_ACCESS = `${BASE_URL}/admin-core-service/system-files/v1/access`;
 export const GET_MY_SYSTEM_FILES = `${BASE_URL}/admin-core-service/system-files/v1/my-files`;
+
+// Learner Portal Access
+export const GET_LEARNER_PORTAL_ACCESS = `${BASE_URL}/admin-core-service/admin/learner-portal/v1/access`;
+export const SEND_LEARNER_RESET_PASSWORD = `${BASE_URL}/admin-core-service/admin/learner-portal/v1/send-cred`;
+
