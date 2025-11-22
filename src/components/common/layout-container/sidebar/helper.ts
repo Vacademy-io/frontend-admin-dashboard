@@ -130,8 +130,7 @@ export function filterMenuListByModules(
                 item.id === 'settings' ||
                 item.id === 'announcement' ||
                 item.id === 'user-tags' ||
-                item.id === 'instructor-copilot' ||
-                item.id === 'manage-payments'
+                item.id === 'manage-campaigns' 
             ) {
                 return true;
             }

@@ -66,6 +66,9 @@ export const SUB_MODULE_SIDEBAR_MAPPING: Record<
     VSMART_TEAM_MANAGMENT: { itemId: 'manage-institute', subItemIds: ['teams'] },
     VSMART_COMMUNITY_CENTRE: { itemId: 'community-centre', subItemIds: [] },
     VSMART_AI_TOOLS: { itemId: 'ai-center', subItemIds: ['ai-tools', 'my-resources'] },
+
+    CAMPAIGNS_MANAGEMENT: { itemId: 'manage-campaigns', subItemIds: ['campaigns-list', 'campaigns-invite'] },
+
 };
 
 export const controlledTabs = [
@@ -76,6 +79,9 @@ export const controlledTabs = [
     'evaluations',
     'evaluation-tool',
     'community-centre',
+    'manage-campaigns',
+    'list',
+    'invite',
 ];
 
 export const modules = ['ASSESS', 'ENGAGE', 'VOLT', 'VSMART_AI_TOOLS'];

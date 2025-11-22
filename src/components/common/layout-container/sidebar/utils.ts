@@ -126,6 +126,20 @@ export const SidebarItemsData: SidebarItemsType[] = [
             },
         ],
     },
+
+    {
+        icon:Users ,
+        title: 'Manage Campaigns',
+        id: 'manage-campaigns',
+        subItems: [
+            {
+                subItem: 'Campaign List',
+                subItemLink: '/audience-manager/list',
+                subItemId: 'list'
+            }
+        ],
+    },
+    
     {
         icon: CreditCard,
         title: 'Manage Payments',

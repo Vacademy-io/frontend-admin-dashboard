@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+
 import {
     Eye,
     EyeOff,
@@ -211,6 +212,7 @@ const CustomFieldsSettings: React.FC = () => {
         options: [],
         required: false,
         visibility: {
+            campaign: false,
             learnersList: false,
             learnerEnrollment: false,
             enrollRequestList: false,
@@ -218,7 +220,6 @@ const CustomFieldsSettings: React.FC = () => {
             assessmentRegistration: false,
             liveSessionRegistration: false,
             learnerProfile: false,
-            campaign: false,
         },
     });
 
@@ -648,6 +649,7 @@ const CustomFieldsSettings: React.FC = () => {
                 options: [],
                 required: false,
                 visibility: {
+                    campaign: false,
                     learnersList: false,
                     learnerEnrollment: false,
                     enrollRequestList: false,
@@ -655,7 +657,6 @@ const CustomFieldsSettings: React.FC = () => {
                     assessmentRegistration: false,
                     liveSessionRegistration: false,
                     learnerProfile: false,
-                    campaign: false,
                 },
             });
             setShowAddModal(false);
@@ -940,6 +941,7 @@ const CustomFieldsSettings: React.FC = () => {
                 options: [],
                 required: false,
                 visibility: {
+                    campaign: false,
                     learnersList: false,
                     learnerEnrollment: false,
                     enrollRequestList: false,
@@ -947,7 +949,6 @@ const CustomFieldsSettings: React.FC = () => {
                     assessmentRegistration: false,
                     liveSessionRegistration: false,
                     learnerProfile: false,
-                    campaign: false,
                 },
             });
         }
@@ -2120,6 +2121,7 @@ const CustomFieldsSettings: React.FC = () => {
                                                     options: [],
                                                     required: false,
                                                     visibility: {
+                                                        campaign: false,
                                                         learnersList: false,
                                                         learnerEnrollment: false,
                                                         enrollRequestList: false,
@@ -2127,7 +2129,6 @@ const CustomFieldsSettings: React.FC = () => {
                                                         assessmentRegistration: false,
                                                         liveSessionRegistration: false,
                                                         learnerProfile: false,
-                                                        campaign: false,
                                                     },
                                                 });
                                             }
