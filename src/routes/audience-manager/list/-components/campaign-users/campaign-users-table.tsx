@@ -258,7 +258,7 @@ export const CampaignUsersTable = ({
         const generatedColumns = generateDynamicColumns(
             fieldIdsToUse,
             customFieldMap,
-            campaignFieldsMap
+            // campaignFieldsMap
         );
         return generatedColumns;
     }, [
