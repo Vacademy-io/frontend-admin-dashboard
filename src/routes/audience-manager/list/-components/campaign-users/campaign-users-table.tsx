@@ -4,7 +4,11 @@ import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { EmptyInvitePage } from '@/assets/svgs';
 import { MyPagination } from '@/components/design-system/pagination';
 import { useCampaignUsers } from '../../-hooks/useCampaignUsers';
-import { campaignUsersColumns, CampaignUserTable, generateDynamicColumns } from './campaign-users-columns';
+import {
+    campaignUsersColumns,
+    CampaignUserTable,
+    generateDynamicColumns,
+} from './campaign-users-columns';
 import { convertToLocalDateTime } from '@/constants/helper';
 import { useCustomFieldSetup } from '../../-hooks/useCustomFieldSetup';
 import { CustomFieldSetupItem } from '../../-services/get-custom-field-setup';
@@ -23,7 +27,11 @@ interface CampaignUsersTableProps {
     customFieldsJson?: string;
 }
 
-export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson }: CampaignUsersTableProps) => {
+export const CampaignUsersTable = ({
+    campaignId,
+    campaignName,
+    customFieldsJson,
+}: CampaignUsersTableProps) => {
     const [page, setPage] = useState(0);
     const pageSize = 10;
     const { instituteDetails } = useInstituteDetailsStore();
@@ -42,7 +50,11 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
         try {
             const parsed = JSON.parse(customFieldsJson);
             const fields = Array.isArray(parsed) ? parsed : [];
-            console.log('🔄 [CampaignUsersTable] Parsed custom fields from campaign:', fields.length, 'fields');
+            console.log(
+                '🔄 [CampaignUsersTable] Parsed custom fields from campaign:',
+                fields.length,
+                'fields'
+            );
             return fields;
         } catch (error) {
             console.error('Error parsing custom fields:', error);
@@ -86,19 +98,28 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
             }
         });
 
-        console.log('📋 [CampaignUsersTable] Loaded custom field setup from API, count:', customFieldSetup.length);
-        
+        console.log(
+            '📋 [CampaignUsersTable] Loaded custom field setup from API, count:',
+            customFieldSetup.length
+        );
+
         // Log sample fields for debugging
         if (customFieldSetup.length > 0) {
-            console.log('📋 [CampaignUsersTable] Sample fields from setup API:', customFieldSetup.slice(0, 5).map(f => ({
-                custom_field_id: f.custom_field_id,
-                field_key: f.field_key,
-                field_name: f.field_name
-            })));
+            console.log(
+                '📋 [CampaignUsersTable] Sample fields from setup API:',
+                customFieldSetup.slice(0, 5).map((f) => ({
+                    custom_field_id: f.custom_field_id,
+                    field_key: f.field_key,
+                    field_name: f.field_name,
+                }))
+            );
         }
-        
+
         console.log('📋 [CampaignUsersTable] Lookup map size:', map.size);
-        console.log('📋 [CampaignUsersTable] Lookup map keys (first 10):', Array.from(map.keys()).slice(0, 10));
+        console.log(
+            '📋 [CampaignUsersTable] Lookup map keys (first 10):',
+            Array.from(map.keys()).slice(0, 10)
+        );
         return map;
     }, [customFieldSetup]);
 
@@ -123,9 +144,9 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
         // Add field IDs from campaign customFields
         if (customFields && customFields.length > 0) {
             customFields.forEach((campaignField: any) => {
-                const fieldId = 
-                    campaignField.custom_field?.id || 
-                    campaignField.id || 
+                const fieldId =
+                    campaignField.custom_field?.id ||
+                    campaignField.id ||
                     campaignField._id ||
                     campaignField.field_id;
                 if (fieldId) {
@@ -146,14 +167,21 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
         }
 
         const collectedFieldIds = Array.from(allFieldIds);
-        console.log('📊 [CampaignUsersTable] All field IDs from all users:', collectedFieldIds.length, 'fields');
+        console.log(
+            '📊 [CampaignUsersTable] All field IDs from all users:',
+            collectedFieldIds.length,
+            'fields'
+        );
         console.log('📊 [CampaignUsersTable] Field IDs:', collectedFieldIds);
-        
+
         // Log sample field IDs for debugging
         if (collectedFieldIds.length > 0) {
-            console.log('📊 [CampaignUsersTable] Sample field IDs (first 5):', collectedFieldIds.slice(0, 5));
+            console.log(
+                '📊 [CampaignUsersTable] Sample field IDs (first 5):',
+                collectedFieldIds.slice(0, 5)
+            );
         }
-        
+
         return collectedFieldIds;
     }, [customFields, usersResponse]);
 
@@ -165,17 +193,18 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
         }
 
         customFields.forEach((campaignField: any) => {
-            const fieldId = 
-                campaignField.custom_field?.id || 
-                campaignField.id || 
+            const fieldId =
+                campaignField.custom_field?.id ||
+                campaignField.id ||
                 campaignField._id ||
                 campaignField.field_id;
-            
+
             if (fieldId) {
                 const meta = campaignField.custom_field || {};
-                const fieldName = meta.fieldName || meta.field_name || campaignField.field_name || '';
+                const fieldName =
+                    meta.fieldName || meta.field_name || campaignField.field_name || '';
                 const fieldKey = meta.fieldKey || meta.field_key || generateKeyFromName(fieldName);
-                
+
                 if (fieldName) {
                     // Register multiple variations
                     map.set(fieldId, { name: fieldName, key: fieldKey });
@@ -187,72 +216,67 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
 
         console.log('📋 [CampaignUsersTable] Created campaign fields map, size:', map.size);
         if (map.size > 0) {
-            console.log('📋 [CampaignUsersTable] Campaign fields map entries:', Array.from(map.entries()).slice(0, 5));
+            console.log(
+                '📋 [CampaignUsersTable] Campaign fields map entries:',
+                Array.from(map.entries()).slice(0, 5)
+            );
         }
         return map;
     }, [customFields]);
 
     const columns = useMemo(() => {
-        console.log('🔄 [CampaignUsersTable] Regenerating columns for campaign:', campaignId);
-        console.log('🔄 [CampaignUsersTable] customFields count:', customFields.length);
-        console.log('🔄 [CampaignUsersTable] usersResponse available:', !!usersResponse);
-        console.log('🔄 [CampaignUsersTable] allFieldIdsFromAllUsers count:', allFieldIdsFromAllUsers.length);
-        console.log('🔄 [CampaignUsersTable] customFieldMap size:', customFieldMap.size);
-        console.log('🔄 [CampaignUsersTable] campaignFieldsMap size:', campaignFieldsMap.size);
-
         // Convert collected field IDs to array and create field objects for column generation
-        const allCustomFieldsArray = allFieldIdsFromAllUsers.map(fieldId => ({
+        const allCustomFieldsArray = allFieldIdsFromAllUsers.map((fieldId) => ({
             id: fieldId,
             _id: fieldId,
             field_id: fieldId,
         }));
 
         if (allCustomFieldsArray.length === 0 && customFields.length === 0) {
-            console.log('📊 [CampaignUsersTable] No custom fields, using default columns');
             return campaignUsersColumns;
         }
 
-        console.log('📊 [CampaignUsersTable] Field IDs to use for columns:', allCustomFieldsArray.map(f => f.id));
-        console.log('📊 [CampaignUsersTable] Checking lookup for field IDs...');
-        
         // Check which field IDs are in the lookup
         const fieldsInLookup: string[] = [];
         const fieldsNotInLookup: string[] = [];
-        allFieldIdsFromAllUsers.forEach(fieldId => {
-            const found = customFieldMap.has(fieldId) || 
-                         customFieldMap.has(fieldId.toLowerCase()) || 
-                         customFieldMap.has(fieldId.toUpperCase());
+        allFieldIdsFromAllUsers.forEach((fieldId) => {
+            const found =
+                customFieldMap.has(fieldId) ||
+                customFieldMap.has(fieldId.toLowerCase()) ||
+                customFieldMap.has(fieldId.toUpperCase());
             if (found) {
                 fieldsInLookup.push(fieldId);
             } else {
                 fieldsNotInLookup.push(fieldId);
             }
         });
-        console.log('📊 [CampaignUsersTable] Fields found in lookup:', fieldsInLookup.length, fieldsInLookup);
-        console.log('📊 [CampaignUsersTable] Fields NOT in lookup:', fieldsNotInLookup.length, fieldsNotInLookup);
 
         // Use all collected field IDs to generate columns
         // This maps each field ID to its name using the custom-field setup API response
         // Pass campaignFieldsMap as fallback for field names
         const fieldIdsToUse = allCustomFieldsArray.length > 0 ? allCustomFieldsArray : customFields;
-        const generatedColumns = generateDynamicColumns(fieldIdsToUse, customFieldMap, campaignFieldsMap);
-        console.log('📊 [CampaignUsersTable] Generated dynamic columns:', generatedColumns.length, 'columns');
-        console.log('📊 [CampaignUsersTable] Column headers:', generatedColumns.map(col => {
-            const colAny = col as any;
-            return {
-                accessorKey: colAny.accessorKey || colAny.id || 'no-key',
-                header: typeof colAny.header === 'function' ? 'function' : colAny.header
-            };
-        }));
+        const generatedColumns = generateDynamicColumns(
+            fieldIdsToUse,
+            customFieldMap,
+            campaignFieldsMap
+        );
         return generatedColumns;
-    }, [campaignId, customFields, allFieldIdsFromAllUsers, customFieldSetup, customFieldMap, campaignFieldsMap]); // Include custom field setup dependency
+    }, [
+        campaignId,
+        customFields,
+        allFieldIdsFromAllUsers,
+        customFieldSetup,
+        customFieldMap,
+        campaignFieldsMap,
+    ]); // Include custom field setup dependency
 
     // Create a unique key for the table to force re-render when columns change
     // This key must include field IDs from both campaign and API response
     const tableKey = useMemo(() => {
-        const fieldIdsKey = allFieldIdsFromAllUsers.length > 0 
-            ? allFieldIdsFromAllUsers.sort().join('-') 
-            : 'default';
+        const fieldIdsKey =
+            allFieldIdsFromAllUsers.length > 0
+                ? allFieldIdsFromAllUsers.sort().join('-')
+                : 'default';
         return `campaign-users-table-${campaignId}-${fieldIdsKey}`;
     }, [campaignId, allFieldIdsFromAllUsers]);
 
@@ -263,9 +287,6 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
         if (!usersResponse || !usersResponse.content || usersResponse.content.length === 0) {
             return undefined;
         }
-
-        console.log('🔄 [CampaignUsersTable] Mapping', usersResponse.content.length, 'users to table data');
-        console.log('🔄 [CampaignUsersTable] All field IDs to include:', allFieldIdsFromAllUsers.length);
 
         return {
             content: usersResponse.content.map((lead, index) => {
@@ -291,18 +312,22 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
                         customFieldMap.get(fieldId.toLowerCase()) ||
                         customFieldMap.get(fieldId.toUpperCase()) ||
                         customFieldMap.get(fieldId.replace(/[^a-zA-Z0-9]/g, '').toLowerCase());
-                    
+
                     // If not found, try to find by iterating through all fields
                     if (!fieldInfo && customFieldMap.size > 0) {
                         for (const [key, field] of customFieldMap.entries()) {
                             const customFieldId = field.custom_field_id?.toLowerCase();
                             const fieldKey = field.field_key?.toLowerCase();
                             const searchId = fieldId.toLowerCase();
-                            
-                            if (customFieldId === searchId || 
+
+                            if (
+                                customFieldId === searchId ||
                                 fieldKey === searchId ||
-                                customFieldId?.replace(/[^a-zA-Z0-9]/g, '') === searchId.replace(/[^a-zA-Z0-9]/g, '') ||
-                                fieldKey?.replace(/[^a-zA-Z0-9]/g, '') === searchId.replace(/[^a-zA-Z0-9]/g, '')) {
+                                customFieldId?.replace(/[^a-zA-Z0-9]/g, '') ===
+                                    searchId.replace(/[^a-zA-Z0-9]/g, '') ||
+                                fieldKey?.replace(/[^a-zA-Z0-9]/g, '') ===
+                                    searchId.replace(/[^a-zA-Z0-9]/g, '')
+                            ) {
                                 fieldInfo = field;
                                 break;
                             }
@@ -318,7 +343,7 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
                         if (fieldInfo && fieldInfo.field_key) {
                             const fieldKey = fieldInfo.field_key;
                             value = (user as any)[fieldKey];
-                            
+
                             // Try common field mappings
                             if (value === undefined || value === null) {
                                 if (fieldKey === 'phone_number' && user.mobile_number) {
@@ -343,8 +368,9 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
 
                     // Store value using field ID as key (matches column accessorKey)
                     // If value is not present for this user, set to null (user requested null, but we'll use '-' for display)
-                    rowData[fieldId] = value !== undefined && value !== null && value !== '' ? value : null;
-                    
+                    rowData[fieldId] =
+                        value !== undefined && value !== null && value !== '' ? value : null;
+
                     // Debug first row
                     if (index === 0) {
                         console.log(
@@ -361,9 +387,16 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
 
                 // Debug: log first row data keys
                 if (index === 0) {
-                    console.log('🔄 [CampaignUsersTable] First row data keys:', Object.keys(rowData));
-                    console.log('🔄 [CampaignUsersTable] First row null values:', 
-                        Object.entries(rowData).filter(([_, v]) => v === null).map(([k]) => k));
+                    console.log(
+                        '🔄 [CampaignUsersTable] First row data keys:',
+                        Object.keys(rowData)
+                    );
+                    console.log(
+                        '🔄 [CampaignUsersTable] First row null values:',
+                        Object.entries(rowData)
+                            .filter(([_, v]) => v === null)
+                            .map(([k]) => k)
+                    );
                 }
 
                 return rowData as CampaignUserTable;
@@ -379,35 +412,51 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
     // Debug: Log when campaignId changes (new campaign selected)
     useEffect(() => {
         console.log('🔄 [CampaignUsersTable] Campaign changed to:', campaignId);
-        console.log('🔄 [CampaignUsersTable] Custom fields for this campaign:', customFields.length);
+        console.log(
+            '🔄 [CampaignUsersTable] Custom fields for this campaign:',
+            customFields.length
+        );
     }, [campaignId, customFields]);
 
     // Debug: Log when columns change
     useEffect(() => {
         console.log('🔄 [CampaignUsersTable] Columns changed, count:', columns.length);
-        console.log('🔄 [CampaignUsersTable] Column accessorKeys:', columns.map(col => {
-            const colAny = col as any;
-            return colAny.accessorKey || colAny.id || 'no-key';
-        }));
-        console.log('🔄 [CampaignUsersTable] Column headers:', columns.map(col => {
-            const colAny = col as any;
-            return typeof colAny.header === 'function' ? 'function' : colAny.header;
-        }));
+        console.log(
+            '🔄 [CampaignUsersTable] Column accessorKeys:',
+            columns.map((col) => {
+                const colAny = col as any;
+                return colAny.accessorKey || colAny.id || 'no-key';
+            })
+        );
+        console.log(
+            '🔄 [CampaignUsersTable] Column headers:',
+            columns.map((col) => {
+                const colAny = col as any;
+                return typeof colAny.header === 'function' ? 'function' : colAny.header;
+            })
+        );
     }, [columns]);
 
     // Debug: Log when tableData changes
     useEffect(() => {
         if (tableData && tableData.content && tableData.content.length > 0) {
-            console.log('🔄 [CampaignUsersTable] Table data changed, rows:', tableData.content.length);
+            console.log(
+                '🔄 [CampaignUsersTable] Table data changed, rows:',
+                tableData.content.length
+            );
             const firstRow = tableData.content[0];
             if (firstRow) {
                 console.log('🔄 [CampaignUsersTable] First row keys:', Object.keys(firstRow));
-                console.log('🔄 [CampaignUsersTable] First row sample values:', 
-                    Object.entries(firstRow).slice(0, 10).map(([key, value]) => `${key}: ${value}`));
+                console.log(
+                    '🔄 [CampaignUsersTable] First row sample values:',
+                    Object.entries(firstRow)
+                        .slice(0, 10)
+                        .map(([key, value]) => `${key}: ${value}`)
+                );
             }
         }
     }, [tableData]);
-    
+
     // Debug: Log when tableKey changes
     useEffect(() => {
         console.log('🔄 [CampaignUsersTable] Table key changed:', tableKey);
@@ -449,8 +498,9 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-h3 font-semibold">{campaignName}</h2>
-                        <p className="text-sm text-neutral-600 mt-1">
-                            Total Users: <span className="font-semibold">{tableData.total_elements}</span>
+                        <p className="mt-1 text-sm text-neutral-600">
+                            Total Users:{' '}
+                            <span className="font-semibold">{tableData.total_elements}</span>
                         </p>
                     </div>
                 </div>
@@ -480,4 +530,3 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
         </div>
     );
 };
-
