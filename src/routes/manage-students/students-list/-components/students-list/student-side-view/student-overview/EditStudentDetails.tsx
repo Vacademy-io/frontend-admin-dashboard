@@ -22,7 +22,11 @@ import { Menu, Transition } from '@headlessui/react';
 import { Pencil, Upload, Trash2 } from 'lucide-react';
 import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
-import { getCustomFieldSettingsFromCache, type CustomField, type FieldGroup } from '@/services/custom-field-settings';
+import {
+    getCustomFieldSettingsFromCache,
+    type CustomField,
+    type FieldGroup,
+} from '@/services/custom-field-settings';
 import { getFieldsForLocation } from '@/lib/custom-fields/utils';
 
 const EditStudentDetailsFormSchema = z.object({
@@ -79,17 +83,17 @@ export const EditStudentDetails = () => {
     const customFieldsData = useMemo(() => {
         const learnerListFields = getFieldsForLocation("Learner's List");
         const learnerEnrollmentFields = getFieldsForLocation("Learner's Enrollment");
-        
+
         // Merge and deduplicate by field ID
         const allFieldsMap = new Map();
-        [...learnerListFields, ...learnerEnrollmentFields].forEach(field => {
+        [...learnerListFields, ...learnerEnrollmentFields].forEach((field) => {
             allFieldsMap.set(field.id, field);
         });
         const customFields = Array.from(allFieldsMap.values());
 
         // Get the full settings to access groups
         const settings = getCustomFieldSettingsFromCache();
-        
+
         if (!settings) {
             return { customFields, fieldGroups: [], individualFields: customFields };
         }
@@ -99,16 +103,16 @@ export const EditStudentDetails = () => {
 
         // Filter groups that have at least one field visible in either location
         const visibleGroups = settings.fieldGroups.filter((group) => {
-            return group.fields.some((field) => 
-                visibilityKeys.some(key => field.visibility[key as keyof typeof field.visibility])
+            return group.fields.some((field) =>
+                visibilityKeys.some((key) => field.visibility[key as keyof typeof field.visibility])
             );
         });
 
         // For each visible group, filter to only include fields visible in either location
         const filteredGroups = visibleGroups.map((group) => ({
             ...group,
-            fields: group.fields.filter((field) => 
-                visibilityKeys.some(key => field.visibility[key as keyof typeof field.visibility])
+            fields: group.fields.filter((field) =>
+                visibilityKeys.some((key) => field.visibility[key as keyof typeof field.visibility])
             ),
         }));
 
@@ -363,7 +367,6 @@ export const EditStudentDetails = () => {
                             </div>
                         )}
                     </div>
-
                     {/* Form Fields */}
                     <FormField
                         control={form.control}
@@ -385,7 +388,6 @@ export const EditStudentDetails = () => {
                             </FormItem>
                         )}
                     />
-
                     <FormField
                         control={form.control}
                         name="email"
@@ -406,7 +408,6 @@ export const EditStudentDetails = () => {
                             </FormItem>
                         )}
                     />
-
                     <FormField
                         control={form.control}
                         name="contact_number"
@@ -430,32 +431,53 @@ export const EditStudentDetails = () => {
                             </FormItem>
                         )}
                     />
-
                     <FormField
                         control={form.control}
                         name="gender"
-                        render={({ field }) => (
-                            <FormItem className="w-full">
-                                <FormControl>
-                                    <div className="flex flex-col gap-1">
-                                        <div>
-                                            Gender{' '}
-                                            <span className="text-subtitle text-danger-600">*</span>
-                                        </div>
-                                        <MyDropdown
-                                            currentValue={field.value}
-                                            dropdownList={genderList}
-                                            handleChange={field.onChange}
-                                            placeholder="Select Gender"
-                                            error={form.formState.errors.gender?.message}
-                                            required={true}
-                                        />
-                                    </div>
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
+                        render={({ field }) => {
+                            const selectedGender = field.value
+                                ? genderList.find(
+                                      (g) =>
+                                          (typeof g === 'object' &&
+                                              'name' in g &&
+                                              g.name === field.value) ||
+                                          g === field.value
+                                  )
+                                : undefined;
 
+                            return (
+                                <FormItem className="w-full">
+                                    <FormControl>
+                                        <div className="flex flex-col gap-1">
+                                            <div>
+                                                Gender{' '}
+                                                <span className="text-subtitle text-danger-600">
+                                                    *
+                                                </span>
+                                            </div>
+                                            <MyDropdown
+                                                currentValue={selectedGender}
+                                                dropdownList={genderList}
+                                                handleChange={(value) => {
+                                                    if (
+                                                        typeof value === 'object' &&
+                                                        'name' in value
+                                                    ) {
+                                                        field.onChange(value.name);
+                                                    } else if (typeof value === 'string') {
+                                                        field.onChange(value);
+                                                    }
+                                                }}
+                                                placeholder="Select Gender"
+                                                error={form.formState.errors.gender?.message}
+                                                required={true}
+                                            />
+                                        </div>
+                                    </FormControl>
+                                </FormItem>
+                            );
+                        }}
+                    />{' '}
                     <FormField
                         control={form.control}
                         name="address_line"
@@ -494,7 +516,6 @@ export const EditStudentDetails = () => {
                             </FormItem>
                         )}
                     />
-
                     <FormField
                         control={form.control}
                         name="state"
@@ -514,7 +535,6 @@ export const EditStudentDetails = () => {
                             </FormItem>
                         )}
                     />
-
                     <FormField
                         control={form.control}
                         name="pin_code"
@@ -536,7 +556,6 @@ export const EditStudentDetails = () => {
                             </FormItem>
                         )}
                     />
-
                     <FormField
                         control={form.control}
                         name="institute_name"
@@ -556,7 +575,6 @@ export const EditStudentDetails = () => {
                             </FormItem>
                         )}
                     />
-
                     <FormField
                         control={form.control}
                         name="father_name"
@@ -576,7 +594,6 @@ export const EditStudentDetails = () => {
                             </FormItem>
                         )}
                     />
-
                     <FormField
                         control={form.control}
                         name="mother_name"
@@ -614,7 +631,6 @@ export const EditStudentDetails = () => {
                             </FormItem>
                         )}
                     />
-
                     <FormField
                         control={form.control}
                         name="father_email"
@@ -634,7 +650,6 @@ export const EditStudentDetails = () => {
                             </FormItem>
                         )}
                     />
-
                     <FormField
                         control={form.control}
                         name="mother_mobile_number"
@@ -653,7 +668,6 @@ export const EditStudentDetails = () => {
                             </FormItem>
                         )}
                     />
-
                     <FormField
                         control={form.control}
                         name="mother_email"
@@ -673,9 +687,9 @@ export const EditStudentDetails = () => {
                             </FormItem>
                         )}
                     />
-
                     {/* Custom Fields Section */}
-                    {(customFieldsData.fieldGroups.length > 0 || customFieldsData.individualFields.length > 0) && (
+                    {(customFieldsData.fieldGroups.length > 0 ||
+                        customFieldsData.individualFields.length > 0) && (
                         <>
                             <div className="mt-6 w-full border-t pt-6">
                                 <h3 className="text-h6 mb-4 font-semibold text-neutral-700">
@@ -686,16 +700,17 @@ export const EditStudentDetails = () => {
                             {/* Field Groups */}
                             {customFieldsData.fieldGroups.map((group: FieldGroup) => (
                                 <div key={group.id} className="mb-6 w-full">
-                                    <h4 className="text-sm font-semibold text-neutral-600 mb-3">
+                                    <h4 className="mb-3 text-sm font-semibold text-neutral-600">
                                         {group.name}
                                     </h4>
-                                    <div className="flex flex-col gap-4 pl-2 border-l-2 border-neutral-200 w-full">
+                                    <div className="flex w-full flex-col gap-4 border-l-2 border-neutral-200 pl-2">
                                         {group.fields.map((customField: CustomField) => {
                                             if (customField.type === 'dropdown') {
-                                                const dropdownOptions = customField.options?.map((option) => ({
-                                                    id: option,
-                                                    name: option,
-                                                })) || [];
+                                                const dropdownOptions =
+                                                    customField.options?.map((option) => ({
+                                                        id: option,
+                                                        name: option,
+                                                    })) || [];
 
                                                 return (
                                                     <FormField
@@ -703,9 +718,13 @@ export const EditStudentDetails = () => {
                                                         control={form.control}
                                                         name="custom_fields"
                                                         render={({ field }) => {
-                                                            const currentValue = field.value?.[customField.id];
+                                                            const currentValue =
+                                                                field.value?.[customField.id];
                                                             const selectedOption = currentValue
-                                                                ? { id: currentValue, name: currentValue }
+                                                                ? {
+                                                                      id: currentValue,
+                                                                      name: currentValue,
+                                                                  }
                                                                 : undefined;
 
                                                             return (
@@ -715,23 +734,43 @@ export const EditStudentDetails = () => {
                                                                             <label className="text-sm font-medium">
                                                                                 {customField.name}
                                                                                 {customField.required && (
-                                                                                    <span className="ml-1 text-danger-600">*</span>
+                                                                                    <span className="ml-1 text-danger-600">
+                                                                                        *
+                                                                                    </span>
                                                                                 )}
                                                                             </label>
                                                                             <MyDropdown
-                                                                                currentValue={selectedOption}
-                                                                                dropdownList={dropdownOptions}
-                                                                                handleChange={(value) => {
-                                                                                    if (typeof value === 'object' && 'id' in value) {
-                                                                                        const newCustomFields = {
-                                                                                            ...(field.value || {}),
-                                                                                            [customField.id]: value.id,
-                                                                                        };
-                                                                                        field.onChange(newCustomFields);
+                                                                                currentValue={
+                                                                                    selectedOption
+                                                                                }
+                                                                                dropdownList={
+                                                                                    dropdownOptions
+                                                                                }
+                                                                                handleChange={(
+                                                                                    value
+                                                                                ) => {
+                                                                                    if (
+                                                                                        typeof value ===
+                                                                                            'object' &&
+                                                                                        'id' in
+                                                                                            value
+                                                                                    ) {
+                                                                                        const newCustomFields =
+                                                                                            {
+                                                                                                ...(field.value ||
+                                                                                                    {}),
+                                                                                                [customField.id]:
+                                                                                                    value.id,
+                                                                                            };
+                                                                                        field.onChange(
+                                                                                            newCustomFields
+                                                                                        );
                                                                                     }
                                                                                 }}
                                                                                 placeholder={`Select ${customField.name}`}
-                                                                                required={customField.required}
+                                                                                required={
+                                                                                    customField.required
+                                                                                }
                                                                                 disable={false}
                                                                             />
                                                                         </div>
@@ -753,16 +792,28 @@ export const EditStudentDetails = () => {
                                                         <FormItem className="w-full">
                                                             <FormControl>
                                                                 <MyInput
-                                                                    inputType={customField.type === 'number' ? 'number' : 'text'}
+                                                                    inputType={
+                                                                        customField.type ===
+                                                                        'number'
+                                                                            ? 'number'
+                                                                            : 'text'
+                                                                    }
                                                                     label={customField.name}
                                                                     inputPlaceholder={`Enter ${customField.name}`}
-                                                                    input={field.value?.[customField.id] || ''}
+                                                                    input={
+                                                                        field.value?.[
+                                                                            customField.id
+                                                                        ] || ''
+                                                                    }
                                                                     onChangeFunction={(e) => {
                                                                         const newCustomFields = {
                                                                             ...(field.value || {}),
-                                                                            [customField.id]: e.target.value,
+                                                                            [customField.id]:
+                                                                                e.target.value,
                                                                         };
-                                                                        field.onChange(newCustomFields);
+                                                                        field.onChange(
+                                                                            newCustomFields
+                                                                        );
                                                                     }}
                                                                     required={customField.required}
                                                                     size="large"
@@ -780,91 +831,130 @@ export const EditStudentDetails = () => {
 
                             {/* Individual Custom Fields */}
                             {customFieldsData.individualFields.length > 0 && (
-                                <div className="flex flex-col gap-4 w-full">
-                                    {customFieldsData.individualFields.map((customField: CustomField) => {
-                                        if (customField.type === 'dropdown') {
-                                            const dropdownOptions = customField.options?.map((option) => ({
-                                                id: option,
-                                                name: option,
-                                            })) || [];
+                                <div className="flex w-full flex-col gap-4">
+                                    {customFieldsData.individualFields.map(
+                                        (customField: CustomField) => {
+                                            if (customField.type === 'dropdown') {
+                                                const dropdownOptions =
+                                                    customField.options?.map((option) => ({
+                                                        id: option,
+                                                        name: option,
+                                                    })) || [];
 
+                                                return (
+                                                    <FormField
+                                                        key={customField.id}
+                                                        control={form.control}
+                                                        name="custom_fields"
+                                                        render={({ field }) => {
+                                                            const currentValue =
+                                                                field.value?.[customField.id];
+                                                            const selectedOption = currentValue
+                                                                ? {
+                                                                      id: currentValue,
+                                                                      name: currentValue,
+                                                                  }
+                                                                : undefined;
+
+                                                            return (
+                                                                <FormItem className="w-full">
+                                                                    <FormControl>
+                                                                        <div className="flex flex-col gap-1">
+                                                                            <label className="text-sm font-medium">
+                                                                                {customField.name}
+                                                                                {customField.required && (
+                                                                                    <span className="ml-1 text-danger-600">
+                                                                                        *
+                                                                                    </span>
+                                                                                )}
+                                                                            </label>
+                                                                            <MyDropdown
+                                                                                currentValue={
+                                                                                    selectedOption
+                                                                                }
+                                                                                dropdownList={
+                                                                                    dropdownOptions
+                                                                                }
+                                                                                handleChange={(
+                                                                                    value
+                                                                                ) => {
+                                                                                    if (
+                                                                                        typeof value ===
+                                                                                            'object' &&
+                                                                                        'id' in
+                                                                                            value
+                                                                                    ) {
+                                                                                        const newCustomFields =
+                                                                                            {
+                                                                                                ...(field.value ||
+                                                                                                    {}),
+                                                                                                [customField.id]:
+                                                                                                    value.id,
+                                                                                            };
+                                                                                        field.onChange(
+                                                                                            newCustomFields
+                                                                                        );
+                                                                                    }
+                                                                                }}
+                                                                                placeholder={`Select ${customField.name}`}
+                                                                                required={
+                                                                                    customField.required
+                                                                                }
+                                                                                disable={false}
+                                                                            />
+                                                                        </div>
+                                                                    </FormControl>
+                                                                </FormItem>
+                                                            );
+                                                        }}
+                                                    />
+                                                );
+                                            }
+
+                                            // Text/Number custom fields
                                             return (
                                                 <FormField
                                                     key={customField.id}
                                                     control={form.control}
                                                     name="custom_fields"
-                                                    render={({ field }) => {
-                                                        const currentValue = field.value?.[customField.id];
-                                                        const selectedOption = currentValue
-                                                            ? { id: currentValue, name: currentValue }
-                                                            : undefined;
-
-                                                        return (
-                                                            <FormItem className="w-full">
-                                                                <FormControl>
-                                                                    <div className="flex flex-col gap-1">
-                                                                        <label className="text-sm font-medium">
-                                                                            {customField.name}
-                                                                            {customField.required && (
-                                                                                <span className="ml-1 text-danger-600">*</span>
-                                                                            )}
-                                                                        </label>
-                                                                        <MyDropdown
-                                                                            currentValue={selectedOption}
-                                                                            dropdownList={dropdownOptions}
-                                                                            handleChange={(value) => {
-                                                                                if (typeof value === 'object' && 'id' in value) {
-                                                                                    const newCustomFields = {
-                                                                                        ...(field.value || {}),
-                                                                                        [customField.id]: value.id,
-                                                                                    };
-                                                                                    field.onChange(newCustomFields);
-                                                                                }
-                                                                            }}
-                                                                            placeholder={`Select ${customField.name}`}
-                                                                            required={customField.required}
-                                                                            disable={false}
-                                                                        />
-                                                                    </div>
-                                                                </FormControl>
-                                                            </FormItem>
-                                                        );
-                                                    }}
+                                                    render={({ field }) => (
+                                                        <FormItem className="w-full">
+                                                            <FormControl>
+                                                                <MyInput
+                                                                    inputType={
+                                                                        customField.type ===
+                                                                        'number'
+                                                                            ? 'number'
+                                                                            : 'text'
+                                                                    }
+                                                                    label={customField.name}
+                                                                    inputPlaceholder={`Enter ${customField.name}`}
+                                                                    input={
+                                                                        field.value?.[
+                                                                            customField.id
+                                                                        ] || ''
+                                                                    }
+                                                                    onChangeFunction={(e) => {
+                                                                        const newCustomFields = {
+                                                                            ...(field.value || {}),
+                                                                            [customField.id]:
+                                                                                e.target.value,
+                                                                        };
+                                                                        field.onChange(
+                                                                            newCustomFields
+                                                                        );
+                                                                    }}
+                                                                    required={customField.required}
+                                                                    size="large"
+                                                                    className="w-full"
+                                                                />
+                                                            </FormControl>
+                                                        </FormItem>
+                                                    )}
                                                 />
                                             );
                                         }
-
-                                        // Text/Number custom fields
-                                        return (
-                                            <FormField
-                                                key={customField.id}
-                                                control={form.control}
-                                                name="custom_fields"
-                                                render={({ field }) => (
-                                                    <FormItem className="w-full">
-                                                        <FormControl>
-                                                            <MyInput
-                                                                inputType={customField.type === 'number' ? 'number' : 'text'}
-                                                                label={customField.name}
-                                                                inputPlaceholder={`Enter ${customField.name}`}
-                                                                input={field.value?.[customField.id] || ''}
-                                                                onChangeFunction={(e) => {
-                                                                    const newCustomFields = {
-                                                                        ...(field.value || {}),
-                                                                        [customField.id]: e.target.value,
-                                                                    };
-                                                                    field.onChange(newCustomFields);
-                                                                }}
-                                                                required={customField.required}
-                                                                size="large"
-                                                                className="w-full"
-                                                            />
-                                                        </FormControl>
-                                                    </FormItem>
-                                                )}
-                                            />
-                                        );
-                                    })}
+                                    )}
                                 </div>
                             )}
                         </>
