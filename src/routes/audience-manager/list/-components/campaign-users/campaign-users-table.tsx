@@ -236,14 +236,7 @@ export const CampaignUsersTable = ({ campaignId, campaignName, customFieldsJson 
         // Pass campaignFieldsMap as fallback for field names
         const fieldIdsToUse = allCustomFieldsArray.length > 0 ? allCustomFieldsArray : customFields;
         const generatedColumns = generateDynamicColumns(fieldIdsToUse, customFieldMap, campaignFieldsMap);
-        console.log('📊 [CampaignUsersTable] Generated dynamic columns:', generatedColumns.length, 'columns');
-        console.log('📊 [CampaignUsersTable] Column headers:', generatedColumns.map(col => {
-            const colAny = col as any;
-            return {
-                accessorKey: colAny.accessorKey || colAny.id || 'no-key',
-                header: typeof colAny.header === 'function' ? 'function' : colAny.header
-            };
-        }));
+       
         return generatedColumns;
     }, [campaignId, customFields, allFieldIdsFromAllUsers, customFieldSetup, customFieldMap, campaignFieldsMap]); // Include custom field setup dependency
 
