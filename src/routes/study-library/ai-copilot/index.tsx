@@ -162,8 +162,6 @@ function RouteComponent() {
     const [includeHomework, setIncludeHomework] = useState(false);
     const [includeSolutions, setIncludeSolutions] = useState(false);
     const [topicsPerSession, setTopicsPerSession] = useState('');
-    const [topics, setTopics] = useState<string[]>([]);
-    const [newTopic, setNewTopic] = useState('');
     const [referenceFiles, setReferenceFiles] = useState<PrerequisiteFile[]>([]);
     const [referenceUrls, setReferenceUrls] = useState<PrerequisiteUrl[]>([]);
     const [newReferenceUrl, setNewReferenceUrl] = useState('');
@@ -193,21 +191,68 @@ function RouteComponent() {
         setPrerequisiteUrls((prev) => prev.filter((url) => url.id !== id));
     };
 
-    const onPrerequisiteDrop = useCallback((acceptedFiles: File[]) => {
-        const newFiles: PrerequisiteFile[] = acceptedFiles.map((file) => ({
+    const onPrerequisiteDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
+        // Check for rejected files and show errors
+        if (rejectedFiles.length > 0) {
+            rejectedFiles.forEach((rejection) => {
+                if (rejection.errors) {
+                    rejection.errors.forEach((error: any) => {
+                        if (error.code === 'file-too-large') {
+                            alert(`File "${rejection.file.name}" exceeds the maximum size of 512 MB`);
+                        } else if (error.code === 'file-invalid-type') {
+                            alert(`File "${rejection.file.name}" is not a valid type. Only PDF, DOC, DOCX, CSV, and XLSX files are allowed.`);
+                        } else {
+                            alert(`Error with file "${rejection.file.name}": ${error.message}`);
+                        }
+                    });
+                }
+            });
+        }
+
+        // Validate file size (512 MB = 512 * 1024 * 1024 bytes)
+        const maxFileSize = 512 * 1024 * 1024; // 512 MB
+        const validFiles = acceptedFiles.filter((file) => {
+            if (file.size > maxFileSize) {
+                alert(`File "${file.name}" exceeds the maximum size of 512 MB`);
+                return false;
+            }
+            return true;
+        });
+
+        // Check if adding these files would exceed the limit of 5
+        const currentFileCount = prerequisiteFiles.length;
+        const newFileCount = validFiles.length;
+        if (currentFileCount + newFileCount > 5) {
+            const remainingSlots = 5 - currentFileCount;
+            if (remainingSlots > 0) {
+                alert(`You can only upload up to 5 files. ${remainingSlots} slot(s) remaining. Only the first ${remainingSlots} file(s) will be added.`);
+                validFiles.splice(remainingSlots);
+            } else {
+                alert('You have already reached the maximum limit of 5 files. Please remove some files before adding new ones.');
+                return;
+            }
+        }
+
+        const newFiles: PrerequisiteFile[] = validFiles.map((file) => ({
             file,
             id: `${Date.now()}-${Math.random()}`,
         }));
         setPrerequisiteFiles((prev) => [...prev, ...newFiles]);
-    }, []);
+    }, [prerequisiteFiles]);
 
     const { getRootProps: getPrerequisiteRootProps, getInputProps: getPrerequisiteInputProps, isDragActive: isPrerequisiteDragActive } = useDropzone({
         onDrop: onPrerequisiteDrop,
         accept: {
             'application/pdf': ['.pdf'],
+            'application/msword': ['.doc'],
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+            'text/csv': ['.csv'],
+            'application/vnd.ms-excel': ['.xls'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
         },
         multiple: true,
+        maxSize: 512 * 1024 * 1024, // 512 MB
+        maxFiles: 5,
     });
 
     const handleRemovePrerequisiteFile = (id: string) => {
@@ -228,21 +273,68 @@ function RouteComponent() {
         setReferenceUrls((prev) => prev.filter((url) => url.id !== id));
     };
 
-    const onReferenceDrop = useCallback((acceptedFiles: File[]) => {
-        const newFiles: PrerequisiteFile[] = acceptedFiles.map((file) => ({
+    const onReferenceDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
+        // Check for rejected files and show errors
+        if (rejectedFiles.length > 0) {
+            rejectedFiles.forEach((rejection) => {
+                if (rejection.errors) {
+                    rejection.errors.forEach((error: any) => {
+                        if (error.code === 'file-too-large') {
+                            alert(`File "${rejection.file.name}" exceeds the maximum size of 512 MB`);
+                        } else if (error.code === 'file-invalid-type') {
+                            alert(`File "${rejection.file.name}" is not a valid type. Only PDF, DOC, DOCX, CSV, and XLSX files are allowed.`);
+                        } else {
+                            alert(`Error with file "${rejection.file.name}": ${error.message}`);
+                        }
+                    });
+                }
+            });
+        }
+
+        // Validate file size (512 MB = 512 * 1024 * 1024 bytes)
+        const maxFileSize = 512 * 1024 * 1024; // 512 MB
+        const validFiles = acceptedFiles.filter((file) => {
+            if (file.size > maxFileSize) {
+                alert(`File "${file.name}" exceeds the maximum size of 512 MB`);
+                return false;
+            }
+            return true;
+        });
+
+        // Check if adding these files would exceed the limit of 5
+        const currentFileCount = referenceFiles.length;
+        const newFileCount = validFiles.length;
+        if (currentFileCount + newFileCount > 5) {
+            const remainingSlots = 5 - currentFileCount;
+            if (remainingSlots > 0) {
+                alert(`You can only upload up to 5 files. ${remainingSlots} slot(s) remaining. Only the first ${remainingSlots} file(s) will be added.`);
+                validFiles.splice(remainingSlots);
+            } else {
+                alert('You have already reached the maximum limit of 5 files. Please remove some files before adding new ones.');
+                return;
+            }
+        }
+
+        const newFiles: PrerequisiteFile[] = validFiles.map((file) => ({
             file,
             id: `${Date.now()}-${Math.random()}`,
         }));
         setReferenceFiles((prev) => [...prev, ...newFiles]);
-    }, []);
+    }, [referenceFiles]);
 
     const { getRootProps: getReferenceRootProps, getInputProps: getReferenceInputProps, isDragActive: isReferenceDragActive } = useDropzone({
         onDrop: onReferenceDrop,
         accept: {
             'application/pdf': ['.pdf'],
+            'application/msword': ['.doc'],
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+            'text/csv': ['.csv'],
+            'application/vnd.ms-excel': ['.xls'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
         },
         multiple: true,
+        maxSize: 512 * 1024 * 1024, // 512 MB
+        maxFiles: 5,
     });
 
     const handleRemoveReferenceFile = (id: string) => {
@@ -306,7 +398,6 @@ function RouteComponent() {
                 includeHomework,
                 includeSolutions,
                 topicsPerSession: topicsPerSession ? parseInt(topicsPerSession) : undefined,
-                topics: topics.length > 0 ? topics : undefined,
             },
             references: {
                 files: referenceFiles.map((f) => ({
@@ -623,82 +714,26 @@ function RouteComponent() {
                                                 )}
                                             </div>
 
-                                            {/* Second Row: Topics per Session and Topics (Optional) */}
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div>
-                                                    <Label htmlFor="topicsPerSession" className="mb-2 block">
-                                                        Topics per Session
-                                                    </Label>
-                                                    <Input
-                                                        id="topicsPerSession"
-                                                        type="number"
-                                                        min="1"
-                                                        value={topicsPerSession}
-                                                        onChange={(e) => setTopicsPerSession(e.target.value)}
-                                                        placeholder="e.g., 2, 3, 4, etc."
-                                                        className="w-full"
-                                                    />
-                                                </div>
-
-                                                <div>
-                                                    <Label className="mb-2 block">Topics (Optional)</Label>
-                                                    <div className="space-y-3">
-                                                        <div className="flex gap-2">
-                                                            <Input
-                                                                value={newTopic}
-                                                                onChange={(e) => setNewTopic(e.target.value)}
-                                                                onKeyDown={(e) => {
-                                                                    if (e.key === 'Enter' && newTopic.trim()) {
-                                                                        e.preventDefault();
-                                                                        if (!topics.includes(newTopic.trim())) {
-                                                                            setTopics([...topics, newTopic.trim()]);
-                                                                        }
-                                                                        setNewTopic('');
-                                                                    }
-                                                                }}
-                                                                placeholder="Enter a topic and press Enter"
-                                                                className="flex-1"
-                                                            />
-                                                            <MyButton
-                                                                buttonType="secondary"
-                                                                onClick={() => {
-                                                                    if (newTopic.trim() && !topics.includes(newTopic.trim())) {
-                                                                        setTopics([...topics, newTopic.trim()]);
-                                                                        setNewTopic('');
-                                                                    }
-                                                                }}
-                                                                disabled={!newTopic.trim() || topics.includes(newTopic.trim())}
-                                                            >
-                                                                Add
-                                                            </MyButton>
-                                                        </div>
-
-                                                        {topics.length > 0 && (
-                                                            <div className="flex flex-wrap gap-2">
-                                                                {topics.map((topic, index) => (
-                                                                    <div
-                                                                        key={index}
-                                                                        className="flex items-center gap-1.5 rounded-md bg-indigo-50 px-2.5 py-1.5 text-xs text-indigo-700"
-                                                                    >
-                                                                        <span>{topic}</span>
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => setTopics(topics.filter((_, i) => i !== index))}
-                                                                            className="ml-0.5 rounded-full p-0.5 hover:bg-indigo-100"
-                                                                        >
-                                                                            <X className="h-3 w-3" />
-                                                                        </button>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
+                                            {/* Topics per Session */}
+                                            <div>
+                                                <Label htmlFor="topicsPerSession" className="mb-2 block">
+                                                    Topics per Session
+                                                </Label>
+                                                <Input
+                                                    id="topicsPerSession"
+                                                    type="number"
+                                                    min="1"
+                                                    value={topicsPerSession}
+                                                    onChange={(e) => setTopicsPerSession(e.target.value)}
+                                                    placeholder="e.g., 2, 3, 4, etc."
+                                                    className="w-full"
+                                                />
                                             </div>
 
                                             {/* References (Optional) - Full Width Below */}
                                             <div>
                                                 <Label className="mb-2 block">References (Optional)</Label>
+                                                <p className="mb-3 text-xs text-neutral-500">You can add multiple URLs</p>
                                                 <div className="space-y-3">
                                                     <div className="flex gap-2">
                                                         <Input
@@ -756,7 +791,10 @@ function RouteComponent() {
                                                         <input {...getReferenceInputProps()} className="hidden" />
                                                         <Upload className={cn('h-5 w-5', isReferenceDragActive ? 'text-indigo-600' : 'text-neutral-500')} />
                                                         <span className="text-xs font-medium text-neutral-600">
-                                                            Attach PDF or DOCX files
+                                                            Attach PDF, DOC, DOCX, CSV, or XLSX files
+                                                        </span>
+                                                        <span className="text-xs text-neutral-500">
+                                                            Maximum 512 MB per file • Upload up to 5 files
                                                         </span>
                                                     </div>
 
@@ -802,37 +840,143 @@ function RouteComponent() {
 
             {/* Confirmation Dialog */}
             <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-                <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader>
+                <DialogContent className="w-[90vw] max-w-[900px] max-h-[80vh] flex flex-col p-0">
+                    <DialogHeader className="sticky top-0 bg-white z-10 border-b border-neutral-200 px-6 pt-6 pb-4">
                         <div className="flex items-center gap-3 mb-2">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
                                 <AlertTriangle className="h-5 w-5 text-amber-600" />
                             </div>
                             <DialogTitle className="text-xl font-semibold text-neutral-900">
-                                Review Before Proceeding
+                                Review Course Goal
                             </DialogTitle>
                         </div>
                         <DialogDescription className="text-sm text-neutral-600 pt-2">
                             <p className="mb-2">
-                                Once you move to the Course Outline step, you won't be able to return and edit this information.
-                            </p>
-                            <p>
-                                To make changes, you will need to restart the course creation.
+                                Please review your course configuration below. Once you proceed, you won't be able to return and edit this information.
                             </p>
                         </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter className="mt-6">
+                    
+                    {/* Summary Section - Scrollable */}
+                    <div className="flex-1 overflow-y-auto px-6">
+                        <div className="space-y-4 py-4">
+                        {/* Course Goal */}
+                        <div>
+                            <h4 className="text-sm font-semibold text-neutral-900 mb-2">Course Goal</h4>
+                            <p className="text-sm text-neutral-600 bg-neutral-50 rounded-md p-3 border border-neutral-200">
+                                {courseGoal || 'Not provided'}
+                            </p>
+                        </div>
+
+                        {/* Learning Outcome */}
+                        {learningOutcome && (
+                            <div>
+                                <h4 className="text-sm font-semibold text-neutral-900 mb-2">Learning Outcome</h4>
+                                <p className="text-sm text-neutral-600 bg-neutral-50 rounded-md p-3 border border-neutral-200">
+                                    {learningOutcome}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Course Details */}
+                        <div className="grid grid-cols-2 gap-4">
+                            {skillLevel && (
+                                <div>
+                                    <h4 className="text-sm font-semibold text-neutral-900 mb-1">Skill Level</h4>
+                                    <p className="text-sm text-neutral-600 capitalize">{skillLevel}</p>
+                                </div>
+                            )}
+                            {numberOfSessions && (
+                                <div>
+                                    <h4 className="text-sm font-semibold text-neutral-900 mb-1">Number of Sessions</h4>
+                                    <p className="text-sm text-neutral-600">{numberOfSessions}</p>
+                                </div>
+                            )}
+                            {(sessionLength || customSessionLength) && (
+                                <div>
+                                    <h4 className="text-sm font-semibold text-neutral-900 mb-1">Session Length</h4>
+                                    <p className="text-sm text-neutral-600">
+                                        {sessionLength === 'custom' ? `${customSessionLength} minutes` : sessionLength ? `${sessionLength} minutes` : ''}
+                                    </p>
+                                </div>
+                            )}
+                            {topicsPerSession && (
+                                <div>
+                                    <h4 className="text-sm font-semibold text-neutral-900 mb-1">Topics per Session</h4>
+                                    <p className="text-sm text-neutral-600">{topicsPerSession}</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* What to Include */}
+                        {(includeDiagrams || includeCodeSnippets || includePracticeProblems || includeQuizzes || 
+                          includeHomework || includeSolutions || includeYouTubeVideo || includeAIGeneratedVideo) && (
+                            <div>
+                                <h4 className="text-sm font-semibold text-neutral-900 mb-2">What to Include</h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {includeDiagrams && (
+                                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Diagrams</span>
+                                    )}
+                                    {includeCodeSnippets && (
+                                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">
+                                            Code Snippets{programmingLanguage ? ` (${programmingLanguage})` : ''}
+                                        </span>
+                                    )}
+                                    {includePracticeProblems && (
+                                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Practice Problems</span>
+                                    )}
+                                    {includeQuizzes && (
+                                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Quizzes</span>
+                                    )}
+                                    {includeHomework && (
+                                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Assignments</span>
+                                    )}
+                                    {includeSolutions && (
+                                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Solutions</span>
+                                    )}
+                                    {includeYouTubeVideo && (
+                                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">YouTube Video</span>
+                                    )}
+                                    {includeAIGeneratedVideo && (
+                                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">AI Generated Video</span>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* References */}
+                        {(referenceUrls.length > 0 || referenceFiles.length > 0) && (
+                            <div>
+                                <h4 className="text-sm font-semibold text-neutral-900 mb-2">References</h4>
+                                <div className="space-y-2">
+                                    {referenceUrls.length > 0 && (
+                                        <p className="text-sm text-neutral-600">
+                                            <span className="font-medium">{referenceUrls.length}</span> URL{referenceUrls.length !== 1 ? 's' : ''} added
+                                        </p>
+                                    )}
+                                    {referenceFiles.length > 0 && (
+                                        <p className="text-sm text-neutral-600">
+                                            <span className="font-medium">{referenceFiles.length}</span> file{referenceFiles.length !== 1 ? 's' : ''} uploaded
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                        </div>
+                    </div>
+
+                    <DialogFooter className="sticky bottom-0 bg-white z-10 border-t border-neutral-200 px-6 py-4">
                         <MyButton
                             buttonType="secondary"
                             onClick={() => setShowConfirmDialog(false)}
                         >
-                            Review Inputs
+                            Go back and Edit
                         </MyButton>
                         <MyButton
                             buttonType="primary"
                             onClick={handleConfirmGenerate}
                         >
-                            Proceed to Outline
+                            Continue
                         </MyButton>
                     </DialogFooter>
                 </DialogContent>

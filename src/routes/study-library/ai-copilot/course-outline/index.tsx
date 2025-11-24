@@ -3215,40 +3215,166 @@ const getDefaultSlideTitle = (type: SlideType): string => {
 
             {/* Generate Page Content Confirmation Dialog */}
             <Dialog open={showGenerateConfirmDialog} onOpenChange={setShowGenerateConfirmDialog}>
-                <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader>
+                <DialogContent className="w-[90vw] max-w-[900px] max-h-[80vh] flex flex-col p-0">
+                    <DialogHeader className="sticky top-0 bg-white z-10 border-b border-neutral-200 px-6 pt-6 pb-4">
                         <div className="flex items-center gap-3 mb-2">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
                                 <AlertTriangle className="h-5 w-5 text-amber-600" />
                             </div>
                             <DialogTitle className="text-xl font-semibold text-neutral-900">
-                                Review Before Proceeding
+                                Review Course Outline
                             </DialogTitle>
                         </div>
                         <DialogDescription className="text-sm text-neutral-600 pt-2">
                             <p className="mb-2">
-                                Please review your course outline before proceeding.
-                            </p>
-                            <p className="mb-2">
-                                After this step, AI will start generating the actual page content in text format.
+                                Please review your course outline below. After this step, AI will start generating the actual page content in text format.
                             </p>
                             <p>
                                 The course outline cannot be changed after this step.
                             </p>
                         </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter className="mt-6">
+                    
+                    {/* Summary Section - Scrollable */}
+                    <div className="flex-1 overflow-y-auto px-6">
+                        <div className="space-y-4 py-4">
+                        {/* Course Basic Info */}
+                        <div>
+                            <h4 className="text-sm font-semibold text-neutral-900 mb-2">Course Information</h4>
+                            <div className="space-y-2">
+                                <div>
+                                    <span className="text-xs font-medium text-neutral-500">Title:</span>
+                                    <p className="text-sm text-neutral-700 font-medium">{courseData.title}</p>
+                                </div>
+                                {courseData.subtitle && (
+                                    <div>
+                                        <span className="text-xs font-medium text-neutral-500">Subtitle:</span>
+                                        <p className="text-sm text-neutral-600">{courseData.subtitle}</p>
+                                    </div>
+                                )}
+                                <div className="grid grid-cols-3 gap-4 mt-3">
+                                    <div>
+                                        <span className="text-xs font-medium text-neutral-500">Level</span>
+                                        <p className="text-sm text-neutral-700 font-medium">{courseData.level}</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-xs font-medium text-neutral-500">Total Sessions</span>
+                                        <p className="text-sm text-neutral-700 font-medium">{courseData.totalSessions}</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-xs font-medium text-neutral-500">Duration</span>
+                                        <p className="text-sm text-neutral-700 font-medium">{courseData.totalDuration}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Sessions Summary */}
+                        <div>
+                            <h4 className="text-sm font-semibold text-neutral-900 mb-3">Sessions Overview</h4>
+                            <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                                {courseData.sessions.map((session, index) => (
+                                    <div
+                                        key={session.id}
+                                        className="bg-neutral-50 rounded-md p-3 border border-neutral-200"
+                                    >
+                                        <div className="flex items-start justify-between mb-2">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
+                                                        Session {index + 1}
+                                                    </span>
+                                                    <span className="text-sm font-semibold text-neutral-900">
+                                                        {session.title}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-3 mt-2 text-xs">
+                                            <div>
+                                                <span className="text-neutral-500">Topics:</span>
+                                                <span className="ml-1 font-medium text-neutral-700">{session.topics.length}</span>
+                                            </div>
+                                            <div>
+                                                <span className="text-neutral-500">Slides:</span>
+                                                <span className="ml-1 font-medium text-neutral-700">{session.slides.length}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                {session.hasQuiz && (
+                                                    <span className="bg-green-50 text-green-700 px-2 py-0.5 rounded text-xs font-medium">
+                                                        Quiz
+                                                    </span>
+                                                )}
+                                                {session.hasHomework && (
+                                                    <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-medium">
+                                                        Homework
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {session.topics.length > 0 && (
+                                            <div className="mt-2 pt-2 border-t border-neutral-200">
+                                                <span className="text-xs text-neutral-500">Topics:</span>
+                                                <div className="flex flex-wrap gap-1.5 mt-1">
+                                                    {session.topics.map((topic, topicIndex) => (
+                                                        <span
+                                                            key={topicIndex}
+                                                            className="text-xs bg-white text-neutral-600 px-2 py-0.5 rounded border border-neutral-200"
+                                                        >
+                                                            {topic.title}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Total Statistics */}
+                        <div className="bg-indigo-50 rounded-md p-3 border border-indigo-200">
+                            <h4 className="text-sm font-semibold text-indigo-900 mb-2">Total Content</h4>
+                            <div className="grid grid-cols-4 gap-4 text-xs">
+                                <div>
+                                    <span className="text-indigo-600 font-medium">Sessions:</span>
+                                    <p className="text-sm font-semibold text-indigo-900">{courseData.sessions.length}</p>
+                                </div>
+                                <div>
+                                    <span className="text-indigo-600 font-medium">Topics:</span>
+                                    <p className="text-sm font-semibold text-indigo-900">
+                                        {courseData.sessions.reduce((sum, s) => sum + s.topics.length, 0)}
+                                    </p>
+                                </div>
+                                <div>
+                                    <span className="text-indigo-600 font-medium">Slides:</span>
+                                    <p className="text-sm font-semibold text-indigo-900">
+                                        {courseData.sessions.reduce((sum, s) => sum + s.slides.length, 0)}
+                                    </p>
+                                </div>
+                                <div>
+                                    <span className="text-indigo-600 font-medium">Quizzes:</span>
+                                    <p className="text-sm font-semibold text-indigo-900">
+                                        {courseData.sessions.filter(s => s.hasQuiz).length}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+
+                    <DialogFooter className="sticky bottom-0 bg-white z-10 border-t border-neutral-200 px-6 py-4">
                         <MyButton
                             buttonType="secondary"
                             onClick={() => setShowGenerateConfirmDialog(false)}
                         >
-                            Review Outline
+                            Go back and Edit
                         </MyButton>
                         <MyButton
                             buttonType="primary"
                             onClick={handleConfirmGenerate}
                         >
-                            Proceed to Generate
+                            Continue
                         </MyButton>
                     </DialogFooter>
                 </DialogContent>
