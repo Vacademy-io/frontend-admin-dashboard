@@ -5049,6 +5049,15 @@ for word, count in word_count.items():
                                     )}
                                 </SortableContext>
                             </DndContext>
+
+                            {/* Add Session Button */}
+                            <button
+                                onClick={handleAddSession}
+                                className="mt-4 flex w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-sm font-medium text-neutral-600 transition-colors hover:border-indigo-400 hover:bg-indigo-50"
+                            >
+                                <Plus className="h-4 w-4" />
+                                Add Session
+                            </button>
                         </motion.div>
 
                         {/* Right Column - Course Metadata */}
@@ -5113,9 +5122,17 @@ for word, count in word_count.items():
                                     <div className="mb-3 flex items-center justify-between">
                                         <label className="text-base font-bold text-neutral-900">Description</label>
                                         <div className="flex gap-2">
-                                            {editingMetadataField !== 'about_the_course_html' && (
+                                            {editingMetadataField !== 'description' && (
                                                 <button
-                                                    onClick={() => handleEditMetadataField('about_the_course_html', courseMetadata.about_the_course_html)}
+                                                    onClick={() => {
+                                                        // Extract first paragraph or 2-3 sentences from about_the_course_html
+                                                        const tempDiv = document.createElement('div');
+                                                        tempDiv.innerHTML = courseMetadata.about_the_course_html;
+                                                        const textContent = tempDiv.textContent || tempDiv.innerText || '';
+                                                        const sentences = textContent.match(/[^.!?]+[.!?]+/g) || [];
+                                                        const shortDescription = sentences.slice(0, 3).join(' ');
+                                                        handleEditMetadataField('description', courseMetadata.description || shortDescription);
+                                                    }}
                                                     className="rounded p-1 text-xs text-indigo-600 hover:bg-indigo-50"
                                                     title="Edit"
                                                 >
@@ -5124,18 +5141,18 @@ for word, count in word_count.items():
                                             )}
                                         </div>
                                     </div>
-                                    {editingMetadataField === 'about_the_course_html' ? (
+                                    {editingMetadataField === 'description' ? (
                                         <div className="space-y-2">
                                             <Textarea
-                                                value={metadataEditValues.about_the_course_html || ''}
-                                                onChange={(e) => setMetadataEditValues({ about_the_course_html: e.target.value })}
+                                                value={metadataEditValues.description || ''}
+                                                onChange={(e) => setMetadataEditValues({ description: e.target.value })}
                                                 className="min-h-[80px] text-sm"
                                             />
                                             <div className="flex gap-2">
                                                 <MyButton
                                                     buttonType="primary"
                                                     scale="small"
-                                                    onClick={() => handleSaveMetadataEdit('about_the_course_html')}
+                                                    onClick={() => handleSaveMetadataEdit('description')}
                                                 >
                                                     Save
                                                 </MyButton>
@@ -5149,13 +5166,46 @@ for word, count in word_count.items():
                                             </div>
                                         </div>
                                     ) : (
-                                        <div 
-                                            className="text-sm text-neutral-700 prose prose-sm max-w-none"
-                                            dangerouslySetInnerHTML={{ 
-                                                __html: courseMetadata.about_the_course_html
-                                            }}
-                                        />
+                                        <p className="text-sm text-neutral-700">
+                                            {(() => {
+                                                // If description exists, use it
+                                                if (courseMetadata.description) {
+                                                    return courseMetadata.description;
+                                                }
+                                                // Otherwise extract first paragraph or 2-3 sentences from about_the_course_html
+                                                const tempDiv = document.createElement('div');
+                                                tempDiv.innerHTML = courseMetadata.about_the_course_html;
+                                                const textContent = tempDiv.textContent || tempDiv.innerText || '';
+                                                const sentences = textContent.match(/[^.!?]+[.!?]+/g) || [];
+                                                return sentences.slice(0, 3).join(' ');
+                                            })()}
+                                        </p>
                                     )}
+                                </div>
+                            )}
+
+                            {/* Level */}
+                            {courseMetadata && (
+                                <div className="rounded-xl bg-white p-4 shadow-md">
+                                    <div className="mb-3 flex items-center justify-between">
+                                        <label className="text-base font-bold text-neutral-900">Level</label>
+                                    </div>
+                                    <Select
+                                        value={courseMetadata.level || 'Beginner'}
+                                        onValueChange={(value) => {
+                                            setCourseMetadata((prev: any) => ({ ...prev, level: value }));
+                                        }}
+                                    >
+                                        <SelectTrigger className="w-full text-sm">
+                                            <SelectValue placeholder="Select level" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Beginner">Beginner</SelectItem>
+                                            <SelectItem value="Basic">Basic</SelectItem>
+                                            <SelectItem value="Intermediate">Intermediate</SelectItem>
+                                            <SelectItem value="Advanced">Advanced</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                             )}
 
@@ -5546,11 +5596,11 @@ for word, count in word_count.items():
                                 </div>
                             </div>
 
-                            {/* Why Learn Section */}
+                            {/* What learners will gain Section */}
                             {courseMetadata?.why_learn_html && (
                                 <div className="rounded-xl bg-white p-4 shadow-md">
                                     <div className="mb-3 flex items-center justify-between">
-                                        <label className="text-base font-bold text-neutral-900">Why Learn This?</label>
+                                        <label className="text-base font-bold text-neutral-900">What learners will gain</label>
                                         <div className="flex gap-2">
                                             {editingMetadataField !== 'why_learn_html' && (
                                                 <button
@@ -5596,11 +5646,11 @@ for word, count in word_count.items():
                                 </div>
                             )}
 
-                            {/* Who Should Learn Section */}
+                            {/* Who Should Join Section */}
                             {courseMetadata?.who_should_learn_html && (
                                 <div className="rounded-xl bg-white p-4 shadow-md">
                                     <div className="mb-3 flex items-center justify-between">
-                                        <label className="text-base font-bold text-neutral-900">Who Should Learn?</label>
+                                        <label className="text-base font-bold text-neutral-900">Who Should Join</label>
                                         <div className="flex gap-2">
                                             {editingMetadataField !== 'who_should_learn_html' && (
                                                 <button
@@ -5641,6 +5691,58 @@ for word, count in word_count.items():
                                         <div 
                                             className="text-sm text-neutral-700 prose prose-sm max-w-none"
                                             dangerouslySetInnerHTML={{ __html: courseMetadata.who_should_learn_html }}
+                                        />
+                                    )}
+                                </div>
+                            )}
+
+                            {/* About the Course Section */}
+                            {courseMetadata?.about_the_course_html && (
+                                <div className="rounded-xl bg-white p-4 shadow-md">
+                                    <div className="mb-3 flex items-center justify-between">
+                                        <label className="text-base font-bold text-neutral-900">About the Course</label>
+                                        <div className="flex gap-2">
+                                            {editingMetadataField !== 'about_the_course_html' && (
+                                                <button
+                                                    onClick={() => handleEditMetadataField('about_the_course_html', courseMetadata.about_the_course_html)}
+                                                    className="rounded p-1 text-xs text-indigo-600 hover:bg-indigo-50"
+                                                    title="Edit"
+                                                >
+                                                    <Pencil className="h-3 w-3" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                    {editingMetadataField === 'about_the_course_html' ? (
+                                        <div className="space-y-2">
+                                            <Textarea
+                                                value={metadataEditValues.about_the_course_html || ''}
+                                                onChange={(e) => setMetadataEditValues({ about_the_course_html: e.target.value })}
+                                                className="min-h-[80px] text-sm"
+                                            />
+                                            <div className="flex gap-2">
+                                                <MyButton
+                                                    buttonType="primary"
+                                                    scale="small"
+                                                    onClick={() => handleSaveMetadataEdit('about_the_course_html')}
+                                                >
+                                                    Save
+                                                </MyButton>
+                                                <MyButton
+                                                    buttonType="secondary"
+                                                    scale="small"
+                                                    onClick={handleCancelMetadataEdit}
+                                                >
+                                                    Cancel
+                                                </MyButton>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div 
+                                            className="text-sm text-neutral-700 prose prose-sm max-w-none"
+                                            dangerouslySetInnerHTML={{ 
+                                                __html: courseMetadata.about_the_course_html
+                                            }}
                                         />
                                     )}
                                 </div>
