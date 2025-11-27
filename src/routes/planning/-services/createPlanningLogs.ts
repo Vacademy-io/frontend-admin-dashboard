@@ -3,15 +3,13 @@ import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { CREATE_PLANNING_LOGS } from '@/constants/urls';
 import { toast } from 'sonner';
 import { getInstituteId } from '@/constants/helper';
-import type {
-    CreatePlanningLogsRequest,
-    CreatePlanningLogsResponse,
-} from '../-types/types';
-import { useNavigate } from '@tanstack/react-router';
+import type { CreatePlanningLogsRequest, CreatePlanningLogsResponse } from '../-types/types';
+import { useNavigate, useRouter } from '@tanstack/react-router';
 
 export const useCreatePlanningLogs = () => {
     const queryClient = useQueryClient();
     const navigate = useNavigate();
+    const router = useRouter();
 
     return useMutation({
         mutationFn: async (data: CreatePlanningLogsRequest) => {
@@ -26,14 +24,14 @@ export const useCreatePlanningLogs = () => {
             return response.data;
         },
         onSuccess: (data) => {
-            toast.success(data.message || 'Planning logs created successfully');
+            toast.success('Created successfully');
             // Invalidate planning logs list cache
             queryClient.invalidateQueries({ queryKey: ['planning-logs'] });
-            navigate({ to: '/planning/list' });
+            router.history.back();
+            // navigate({ to: '/planning/list' });
         },
         onError: (error: any) => {
-            const errorMessage =
-                error?.response?.data?.message || 'Failed to create planning logs';
+            const errorMessage = error?.response?.data?.message || 'Failed to create planning logs';
             toast.error(errorMessage);
             console.error('Error creating planning logs:', error);
         },

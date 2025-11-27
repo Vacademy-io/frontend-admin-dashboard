@@ -41,8 +41,8 @@ import { Route as StudyLibraryAttendanceTrackerIndexRouteImport } from "./routes
 import { Route as StudyLibraryAiCourseBuilderIndexRouteImport } from "./routes/study-library/ai-course-builder/index"
 import { Route as StudyLibraryAiCopilotIndexRouteImport } from "./routes/study-library/ai-copilot/index"
 import { Route as SignupOnboardingIndexRouteImport } from "./routes/signup/onboarding/index"
-import { Route as PlanningListIndexRouteImport } from "./routes/planning/list/index"
-import { Route as PlanningCreateIndexRouteImport } from "./routes/planning/create/index"
+import { Route as PlanningPlanningIndexRouteImport } from "./routes/planning/planning/index"
+import { Route as PlanningActivityLogsIndexRouteImport } from "./routes/planning/activity-logs/index"
 import { Route as ManageStudentsStudentsListIndexRouteImport } from "./routes/manage-students/students-list/index"
 import { Route as ManageStudentsInviteIndexRouteImport } from "./routes/manage-students/invite/index"
 import { Route as ManageStudentsEnrollRequestsIndexRouteImport } from "./routes/manage-students/enroll-requests/index"
@@ -71,11 +71,14 @@ import { Route as AiCenterMyResourcesIndexRouteImport } from "./routes/ai-center
 import { Route as AiCenterAiToolsIndexRouteImport } from "./routes/ai-center/ai-tools/index"
 import { Route as TemplatesEditTemplateIdRouteImport } from "./routes/templates/edit/$templateId"
 import { Route as SignupOauthCallbackRouteImport } from "./routes/signup/oauth/callback"
-import { Route as PlanningListLogIdRouteImport } from "./routes/planning/list/$logId"
+import { Route as PlanningPlanningLogIdRouteImport } from "./routes/planning/planning/$logId"
+import { Route as PlanningActivityLogsLogIdRouteImport } from "./routes/planning/activity-logs/$logId"
 import { Route as LoginOauthRedirectRouteImport } from "./routes/login/oauth/redirect"
 import { Route as StudyLibraryVoltAddIndexRouteImport } from "./routes/study-library/volt/add/index"
 import { Route as StudyLibraryLiveSessionScheduleIndexRouteImport } from "./routes/study-library/live-session/schedule/index"
 import { Route as StudyLibraryCoursesCourseDetailsIndexRouteImport } from "./routes/study-library/courses/course-details/index"
+import { Route as PlanningPlanningCreateIndexRouteImport } from "./routes/planning/planning/create/index"
+import { Route as PlanningActivityLogsCreateIndexRouteImport } from "./routes/planning/activity-logs/create/index"
 import { Route as EvaluatorAiEvaluationStudentSummaryIndexRouteImport } from "./routes/evaluator-ai/evaluation/student-summary/index"
 import { Route as EvaluatorAiAssessmentCreateAssessmentIndexRouteImport } from "./routes/evaluator-ai/assessment/create-assessment/index"
 import { Route as AudienceManagerListCampaignUsersIndexRouteImport } from "./routes/audience-manager/list/campaign-users/index"
@@ -290,16 +293,17 @@ const SignupOnboardingIndexRoute = SignupOnboardingIndexRouteImport.update({
   path: "/signup/onboarding/",
   getParentRoute: () => rootRouteImport,
 } as any)
-const PlanningListIndexRoute = PlanningListIndexRouteImport.update({
-  id: "/planning/list/",
-  path: "/planning/list/",
+const PlanningPlanningIndexRoute = PlanningPlanningIndexRouteImport.update({
+  id: "/planning/planning/",
+  path: "/planning/planning/",
   getParentRoute: () => rootRouteImport,
 } as any)
-const PlanningCreateIndexRoute = PlanningCreateIndexRouteImport.update({
-  id: "/planning/create/",
-  path: "/planning/create/",
-  getParentRoute: () => rootRouteImport,
-} as any)
+const PlanningActivityLogsIndexRoute =
+  PlanningActivityLogsIndexRouteImport.update({
+    id: "/planning/activity-logs/",
+    path: "/planning/activity-logs/",
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ManageStudentsStudentsListIndexRoute =
   ManageStudentsStudentsListIndexRouteImport.update({
     id: "/manage-students/students-list/",
@@ -463,11 +467,17 @@ const SignupOauthCallbackRoute = SignupOauthCallbackRouteImport.update({
   path: "/signup/oauth/callback",
   getParentRoute: () => rootRouteImport,
 } as any)
-const PlanningListLogIdRoute = PlanningListLogIdRouteImport.update({
-  id: "/planning/list/$logId",
-  path: "/planning/list/$logId",
+const PlanningPlanningLogIdRoute = PlanningPlanningLogIdRouteImport.update({
+  id: "/planning/planning/$logId",
+  path: "/planning/planning/$logId",
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlanningActivityLogsLogIdRoute =
+  PlanningActivityLogsLogIdRouteImport.update({
+    id: "/planning/activity-logs/$logId",
+    path: "/planning/activity-logs/$logId",
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LoginOauthRedirectRoute = LoginOauthRedirectRouteImport.update({
   id: "/login/oauth/redirect",
   path: "/login/oauth/redirect",
@@ -489,6 +499,18 @@ const StudyLibraryCoursesCourseDetailsIndexRoute =
   StudyLibraryCoursesCourseDetailsIndexRouteImport.update({
     id: "/study-library/courses/course-details/",
     path: "/study-library/courses/course-details/",
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const PlanningPlanningCreateIndexRoute =
+  PlanningPlanningCreateIndexRouteImport.update({
+    id: "/planning/planning/create/",
+    path: "/planning/planning/create/",
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const PlanningActivityLogsCreateIndexRoute =
+  PlanningActivityLogsCreateIndexRouteImport.update({
+    id: "/planning/activity-logs/create/",
+    path: "/planning/activity-logs/create/",
     getParentRoute: () => rootRouteImport,
   } as any)
 const EvaluatorAiEvaluationStudentSummaryIndexRoute =
@@ -686,7 +708,8 @@ export interface FileRoutesByFullPath {
   "/study-library": typeof StudyLibraryIndexRoute
   "/assessment": typeof AssessmentIndexLazyRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
-  "/planning/list/$logId": typeof PlanningListLogIdRoute
+  "/planning/activity-logs/$logId": typeof PlanningActivityLogsLogIdRoute
+  "/planning/planning/$logId": typeof PlanningPlanningLogIdRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/templates/edit/$templateId": typeof TemplatesEditTemplateIdRoute
   "/ai-center/ai-tools": typeof AiCenterAiToolsIndexRoute
@@ -715,8 +738,8 @@ export interface FileRoutesByFullPath {
   "/manage-students/enroll-requests": typeof ManageStudentsEnrollRequestsIndexRoute
   "/manage-students/invite": typeof ManageStudentsInviteIndexRoute
   "/manage-students/students-list": typeof ManageStudentsStudentsListIndexRoute
-  "/planning/create": typeof PlanningCreateIndexRoute
-  "/planning/list": typeof PlanningListIndexRoute
+  "/planning/activity-logs": typeof PlanningActivityLogsIndexRoute
+  "/planning/planning": typeof PlanningPlanningIndexRoute
   "/signup/onboarding": typeof SignupOnboardingIndexRoute
   "/study-library/ai-copilot": typeof StudyLibraryAiCopilotIndexRoute
   "/study-library/ai-course-builder": typeof StudyLibraryAiCourseBuilderIndexRoute
@@ -746,6 +769,8 @@ export interface FileRoutesByFullPath {
   "/audience-manager/list/campaign-users": typeof AudienceManagerListCampaignUsersIndexRoute
   "/evaluator-ai/assessment/create-assessment": typeof EvaluatorAiAssessmentCreateAssessmentIndexRoute
   "/evaluator-ai/evaluation/student-summary": typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
+  "/planning/activity-logs/create": typeof PlanningActivityLogsCreateIndexRoute
+  "/planning/planning/create": typeof PlanningPlanningCreateIndexRoute
   "/study-library/courses/course-details": typeof StudyLibraryCoursesCourseDetailsIndexRoute
   "/study-library/live-session/schedule": typeof StudyLibraryLiveSessionScheduleIndexRoute
   "/study-library/volt/add": typeof StudyLibraryVoltAddIndexRoute
@@ -783,7 +808,8 @@ export interface FileRoutesByTo {
   "/study-library": typeof StudyLibraryIndexRoute
   "/assessment": typeof AssessmentIndexLazyRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
-  "/planning/list/$logId": typeof PlanningListLogIdRoute
+  "/planning/activity-logs/$logId": typeof PlanningActivityLogsLogIdRoute
+  "/planning/planning/$logId": typeof PlanningPlanningLogIdRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/templates/edit/$templateId": typeof TemplatesEditTemplateIdRoute
   "/ai-center/ai-tools": typeof AiCenterAiToolsIndexRoute
@@ -812,8 +838,8 @@ export interface FileRoutesByTo {
   "/manage-students/enroll-requests": typeof ManageStudentsEnrollRequestsIndexRoute
   "/manage-students/invite": typeof ManageStudentsInviteIndexRoute
   "/manage-students/students-list": typeof ManageStudentsStudentsListIndexRoute
-  "/planning/create": typeof PlanningCreateIndexRoute
-  "/planning/list": typeof PlanningListIndexRoute
+  "/planning/activity-logs": typeof PlanningActivityLogsIndexRoute
+  "/planning/planning": typeof PlanningPlanningIndexRoute
   "/signup/onboarding": typeof SignupOnboardingIndexRoute
   "/study-library/ai-copilot": typeof StudyLibraryAiCopilotIndexRoute
   "/study-library/ai-course-builder": typeof StudyLibraryAiCourseBuilderIndexRoute
@@ -843,6 +869,8 @@ export interface FileRoutesByTo {
   "/audience-manager/list/campaign-users": typeof AudienceManagerListCampaignUsersIndexRoute
   "/evaluator-ai/assessment/create-assessment": typeof EvaluatorAiAssessmentCreateAssessmentIndexRoute
   "/evaluator-ai/evaluation/student-summary": typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
+  "/planning/activity-logs/create": typeof PlanningActivityLogsCreateIndexRoute
+  "/planning/planning/create": typeof PlanningPlanningCreateIndexRoute
   "/study-library/courses/course-details": typeof StudyLibraryCoursesCourseDetailsIndexRoute
   "/study-library/live-session/schedule": typeof StudyLibraryLiveSessionScheduleIndexRoute
   "/study-library/volt/add": typeof StudyLibraryVoltAddIndexRoute
@@ -882,7 +910,8 @@ export interface FileRoutesById {
   "/study-library/": typeof StudyLibraryIndexRoute
   "/assessment/": typeof AssessmentIndexLazyRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
-  "/planning/list/$logId": typeof PlanningListLogIdRoute
+  "/planning/activity-logs/$logId": typeof PlanningActivityLogsLogIdRoute
+  "/planning/planning/$logId": typeof PlanningPlanningLogIdRoute
   "/signup/oauth/callback": typeof SignupOauthCallbackRoute
   "/templates/edit/$templateId": typeof TemplatesEditTemplateIdRoute
   "/ai-center/ai-tools/": typeof AiCenterAiToolsIndexRoute
@@ -911,8 +940,8 @@ export interface FileRoutesById {
   "/manage-students/enroll-requests/": typeof ManageStudentsEnrollRequestsIndexRoute
   "/manage-students/invite/": typeof ManageStudentsInviteIndexRoute
   "/manage-students/students-list/": typeof ManageStudentsStudentsListIndexRoute
-  "/planning/create/": typeof PlanningCreateIndexRoute
-  "/planning/list/": typeof PlanningListIndexRoute
+  "/planning/activity-logs/": typeof PlanningActivityLogsIndexRoute
+  "/planning/planning/": typeof PlanningPlanningIndexRoute
   "/signup/onboarding/": typeof SignupOnboardingIndexRoute
   "/study-library/ai-copilot/": typeof StudyLibraryAiCopilotIndexRoute
   "/study-library/ai-course-builder/": typeof StudyLibraryAiCourseBuilderIndexRoute
@@ -942,6 +971,8 @@ export interface FileRoutesById {
   "/audience-manager/list/campaign-users/": typeof AudienceManagerListCampaignUsersIndexRoute
   "/evaluator-ai/assessment/create-assessment/": typeof EvaluatorAiAssessmentCreateAssessmentIndexRoute
   "/evaluator-ai/evaluation/student-summary/": typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
+  "/planning/activity-logs/create/": typeof PlanningActivityLogsCreateIndexRoute
+  "/planning/planning/create/": typeof PlanningPlanningCreateIndexRoute
   "/study-library/courses/course-details/": typeof StudyLibraryCoursesCourseDetailsIndexRoute
   "/study-library/live-session/schedule/": typeof StudyLibraryLiveSessionScheduleIndexRoute
   "/study-library/volt/add/": typeof StudyLibraryVoltAddIndexRoute
@@ -982,7 +1013,8 @@ export interface FileRouteTypes {
     | "/study-library"
     | "/assessment"
     | "/login/oauth/redirect"
-    | "/planning/list/$logId"
+    | "/planning/activity-logs/$logId"
+    | "/planning/planning/$logId"
     | "/signup/oauth/callback"
     | "/templates/edit/$templateId"
     | "/ai-center/ai-tools"
@@ -1011,8 +1043,8 @@ export interface FileRouteTypes {
     | "/manage-students/enroll-requests"
     | "/manage-students/invite"
     | "/manage-students/students-list"
-    | "/planning/create"
-    | "/planning/list"
+    | "/planning/activity-logs"
+    | "/planning/planning"
     | "/signup/onboarding"
     | "/study-library/ai-copilot"
     | "/study-library/ai-course-builder"
@@ -1042,6 +1074,8 @@ export interface FileRouteTypes {
     | "/audience-manager/list/campaign-users"
     | "/evaluator-ai/assessment/create-assessment"
     | "/evaluator-ai/evaluation/student-summary"
+    | "/planning/activity-logs/create"
+    | "/planning/planning/create"
     | "/study-library/courses/course-details"
     | "/study-library/live-session/schedule"
     | "/study-library/volt/add"
@@ -1079,7 +1113,8 @@ export interface FileRouteTypes {
     | "/study-library"
     | "/assessment"
     | "/login/oauth/redirect"
-    | "/planning/list/$logId"
+    | "/planning/activity-logs/$logId"
+    | "/planning/planning/$logId"
     | "/signup/oauth/callback"
     | "/templates/edit/$templateId"
     | "/ai-center/ai-tools"
@@ -1108,8 +1143,8 @@ export interface FileRouteTypes {
     | "/manage-students/enroll-requests"
     | "/manage-students/invite"
     | "/manage-students/students-list"
-    | "/planning/create"
-    | "/planning/list"
+    | "/planning/activity-logs"
+    | "/planning/planning"
     | "/signup/onboarding"
     | "/study-library/ai-copilot"
     | "/study-library/ai-course-builder"
@@ -1139,6 +1174,8 @@ export interface FileRouteTypes {
     | "/audience-manager/list/campaign-users"
     | "/evaluator-ai/assessment/create-assessment"
     | "/evaluator-ai/evaluation/student-summary"
+    | "/planning/activity-logs/create"
+    | "/planning/planning/create"
     | "/study-library/courses/course-details"
     | "/study-library/live-session/schedule"
     | "/study-library/volt/add"
@@ -1177,7 +1214,8 @@ export interface FileRouteTypes {
     | "/study-library/"
     | "/assessment/"
     | "/login/oauth/redirect"
-    | "/planning/list/$logId"
+    | "/planning/activity-logs/$logId"
+    | "/planning/planning/$logId"
     | "/signup/oauth/callback"
     | "/templates/edit/$templateId"
     | "/ai-center/ai-tools/"
@@ -1206,8 +1244,8 @@ export interface FileRouteTypes {
     | "/manage-students/enroll-requests/"
     | "/manage-students/invite/"
     | "/manage-students/students-list/"
-    | "/planning/create/"
-    | "/planning/list/"
+    | "/planning/activity-logs/"
+    | "/planning/planning/"
     | "/signup/onboarding/"
     | "/study-library/ai-copilot/"
     | "/study-library/ai-course-builder/"
@@ -1237,6 +1275,8 @@ export interface FileRouteTypes {
     | "/audience-manager/list/campaign-users/"
     | "/evaluator-ai/assessment/create-assessment/"
     | "/evaluator-ai/evaluation/student-summary/"
+    | "/planning/activity-logs/create/"
+    | "/planning/planning/create/"
     | "/study-library/courses/course-details/"
     | "/study-library/live-session/schedule/"
     | "/study-library/volt/add/"
@@ -1275,7 +1315,8 @@ export interface RootRouteChildren {
   StudyLibraryIndexRoute: typeof StudyLibraryIndexRoute
   AssessmentIndexLazyRoute: typeof AssessmentIndexLazyRoute
   LoginOauthRedirectRoute: typeof LoginOauthRedirectRoute
-  PlanningListLogIdRoute: typeof PlanningListLogIdRoute
+  PlanningActivityLogsLogIdRoute: typeof PlanningActivityLogsLogIdRoute
+  PlanningPlanningLogIdRoute: typeof PlanningPlanningLogIdRoute
   SignupOauthCallbackRoute: typeof SignupOauthCallbackRoute
   TemplatesEditTemplateIdRoute: typeof TemplatesEditTemplateIdRoute
   AiCenterAiToolsIndexRoute: typeof AiCenterAiToolsIndexRoute
@@ -1304,8 +1345,8 @@ export interface RootRouteChildren {
   ManageStudentsEnrollRequestsIndexRoute: typeof ManageStudentsEnrollRequestsIndexRoute
   ManageStudentsInviteIndexRoute: typeof ManageStudentsInviteIndexRoute
   ManageStudentsStudentsListIndexRoute: typeof ManageStudentsStudentsListIndexRoute
-  PlanningCreateIndexRoute: typeof PlanningCreateIndexRoute
-  PlanningListIndexRoute: typeof PlanningListIndexRoute
+  PlanningActivityLogsIndexRoute: typeof PlanningActivityLogsIndexRoute
+  PlanningPlanningIndexRoute: typeof PlanningPlanningIndexRoute
   SignupOnboardingIndexRoute: typeof SignupOnboardingIndexRoute
   StudyLibraryAiCopilotIndexRoute: typeof StudyLibraryAiCopilotIndexRoute
   StudyLibraryAiCourseBuilderIndexRoute: typeof StudyLibraryAiCourseBuilderIndexRoute
@@ -1335,6 +1376,8 @@ export interface RootRouteChildren {
   AudienceManagerListCampaignUsersIndexRoute: typeof AudienceManagerListCampaignUsersIndexRoute
   EvaluatorAiAssessmentCreateAssessmentIndexRoute: typeof EvaluatorAiAssessmentCreateAssessmentIndexRoute
   EvaluatorAiEvaluationStudentSummaryIndexRoute: typeof EvaluatorAiEvaluationStudentSummaryIndexRoute
+  PlanningActivityLogsCreateIndexRoute: typeof PlanningActivityLogsCreateIndexRoute
+  PlanningPlanningCreateIndexRoute: typeof PlanningPlanningCreateIndexRoute
   StudyLibraryCoursesCourseDetailsIndexRoute: typeof StudyLibraryCoursesCourseDetailsIndexRoute
   StudyLibraryLiveSessionScheduleIndexRoute: typeof StudyLibraryLiveSessionScheduleIndexRoute
   StudyLibraryVoltAddIndexRoute: typeof StudyLibraryVoltAddIndexRoute
@@ -1592,18 +1635,18 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof SignupOnboardingIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    "/planning/list/": {
-      id: "/planning/list/"
-      path: "/planning/list"
-      fullPath: "/planning/list"
-      preLoaderRoute: typeof PlanningListIndexRouteImport
+    "/planning/planning/": {
+      id: "/planning/planning/"
+      path: "/planning/planning"
+      fullPath: "/planning/planning"
+      preLoaderRoute: typeof PlanningPlanningIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    "/planning/create/": {
-      id: "/planning/create/"
-      path: "/planning/create"
-      fullPath: "/planning/create"
-      preLoaderRoute: typeof PlanningCreateIndexRouteImport
+    "/planning/activity-logs/": {
+      id: "/planning/activity-logs/"
+      path: "/planning/activity-logs"
+      fullPath: "/planning/activity-logs"
+      preLoaderRoute: typeof PlanningActivityLogsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/manage-students/students-list/": {
@@ -1802,11 +1845,18 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof SignupOauthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    "/planning/list/$logId": {
-      id: "/planning/list/$logId"
-      path: "/planning/list/$logId"
-      fullPath: "/planning/list/$logId"
-      preLoaderRoute: typeof PlanningListLogIdRouteImport
+    "/planning/planning/$logId": {
+      id: "/planning/planning/$logId"
+      path: "/planning/planning/$logId"
+      fullPath: "/planning/planning/$logId"
+      preLoaderRoute: typeof PlanningPlanningLogIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/planning/activity-logs/$logId": {
+      id: "/planning/activity-logs/$logId"
+      path: "/planning/activity-logs/$logId"
+      fullPath: "/planning/activity-logs/$logId"
+      preLoaderRoute: typeof PlanningActivityLogsLogIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/login/oauth/redirect": {
@@ -1835,6 +1885,20 @@ declare module "@tanstack/react-router" {
       path: "/study-library/courses/course-details"
       fullPath: "/study-library/courses/course-details"
       preLoaderRoute: typeof StudyLibraryCoursesCourseDetailsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/planning/planning/create/": {
+      id: "/planning/planning/create/"
+      path: "/planning/planning/create"
+      fullPath: "/planning/planning/create"
+      preLoaderRoute: typeof PlanningPlanningCreateIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/planning/activity-logs/create/": {
+      id: "/planning/activity-logs/create/"
+      path: "/planning/activity-logs/create"
+      fullPath: "/planning/activity-logs/create"
+      preLoaderRoute: typeof PlanningActivityLogsCreateIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/evaluator-ai/evaluation/student-summary/": {
@@ -2061,7 +2125,8 @@ const rootRouteChildren: RootRouteChildren = {
   StudyLibraryIndexRoute: StudyLibraryIndexRoute,
   AssessmentIndexLazyRoute: AssessmentIndexLazyRoute,
   LoginOauthRedirectRoute: LoginOauthRedirectRoute,
-  PlanningListLogIdRoute: PlanningListLogIdRoute,
+  PlanningActivityLogsLogIdRoute: PlanningActivityLogsLogIdRoute,
+  PlanningPlanningLogIdRoute: PlanningPlanningLogIdRoute,
   SignupOauthCallbackRoute: SignupOauthCallbackRoute,
   TemplatesEditTemplateIdRoute: TemplatesEditTemplateIdRoute,
   AiCenterAiToolsIndexRoute: AiCenterAiToolsIndexRoute,
@@ -2094,8 +2159,8 @@ const rootRouteChildren: RootRouteChildren = {
     ManageStudentsEnrollRequestsIndexRoute,
   ManageStudentsInviteIndexRoute: ManageStudentsInviteIndexRoute,
   ManageStudentsStudentsListIndexRoute: ManageStudentsStudentsListIndexRoute,
-  PlanningCreateIndexRoute: PlanningCreateIndexRoute,
-  PlanningListIndexRoute: PlanningListIndexRoute,
+  PlanningActivityLogsIndexRoute: PlanningActivityLogsIndexRoute,
+  PlanningPlanningIndexRoute: PlanningPlanningIndexRoute,
   SignupOnboardingIndexRoute: SignupOnboardingIndexRoute,
   StudyLibraryAiCopilotIndexRoute: StudyLibraryAiCopilotIndexRoute,
   StudyLibraryAiCourseBuilderIndexRoute: StudyLibraryAiCourseBuilderIndexRoute,
@@ -2135,6 +2200,8 @@ const rootRouteChildren: RootRouteChildren = {
     EvaluatorAiAssessmentCreateAssessmentIndexRoute,
   EvaluatorAiEvaluationStudentSummaryIndexRoute:
     EvaluatorAiEvaluationStudentSummaryIndexRoute,
+  PlanningActivityLogsCreateIndexRoute: PlanningActivityLogsCreateIndexRoute,
+  PlanningPlanningCreateIndexRoute: PlanningPlanningCreateIndexRoute,
   StudyLibraryCoursesCourseDetailsIndexRoute:
     StudyLibraryCoursesCourseDetailsIndexRoute,
   StudyLibraryLiveSessionScheduleIndexRoute:

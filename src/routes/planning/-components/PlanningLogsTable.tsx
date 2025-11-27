@@ -18,13 +18,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, Eye, Edit, Trash2, Search, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useListPlanningLogs } from '../../-services/listPlanningLogs';
-import { useDeletePlanningLog } from '../../-services/updatePlanningLog';
-import type { PlanningLog, PlanningLogFilters } from '../../-types/types';
+import { useListPlanningLogs } from '../-services/listPlanningLogs';
+import { useDeletePlanningLog } from '../-services/updatePlanningLog';
+import type { PlanningLog, PlanningLogFilters } from '../-types/types';
 import { getUserId } from '@/utils/userDetails';
 import { format } from 'date-fns';
-import { formatIntervalTypeId } from '../../-utils/intervalTypeIdFormatter';
-import { usePlanningLogStore } from '../../-stores/planning-log-store';
+import { formatIntervalTypeId } from '../-utils/intervalTypeIdFormatter';
+import { usePlanningLogStore } from '../-stores/planning-log-store';
 import { toast } from 'sonner';
 
 interface PlanningLogsTableProps {
@@ -33,6 +33,7 @@ interface PlanningLogsTableProps {
     currentPage: number;
     onPageChange: (page: number) => void;
     searchQuery: string;
+    logType: 'planning' | 'diary';
 }
 
 export default function PlanningLogsTable({
@@ -41,6 +42,7 @@ export default function PlanningLogsTable({
     currentPage,
     onPageChange,
     searchQuery,
+    logType,
 }: PlanningLogsTableProps) {
     const navigate = useNavigate();
     const deleteMutation = useDeletePlanningLog();
@@ -49,10 +51,17 @@ export default function PlanningLogsTable({
 
     const handleView = (log: PlanningLog) => {
         setSelectedLog(log);
-        navigate({ 
-            to: '/planning/list/$logId', 
-            params: { logId: log.id },
-        });
+        if (logType === 'planning') {
+            navigate({
+                to: '/planning/planning/$logId',
+                params: { logId: log.id },
+            });
+        } else {
+            navigate({
+                to: '/planning/activity-logs/$logId',
+                params: { logId: log.id },
+            });
+        }
     };
 
     const handleDelete = async (log: PlanningLog) => {
@@ -76,9 +85,11 @@ export default function PlanningLogsTable({
         const parts = text.split(regex);
         return (
             <span>
-                {parts.map((part, i) => 
+                {parts.map((part, i) =>
                     regex.test(part) ? (
-                        <span key={i} className="bg-yellow-200 dark:text-black">{part}</span>
+                        <span key={i} className="bg-yellow-200 dark:text-black">
+                            {part}
+                        </span>
                     ) : (
                         part
                     )
@@ -102,7 +113,6 @@ export default function PlanningLogsTable({
                     <TableHeader>
                         <TableRow>
                             <TableHead>Title</TableHead>
-                            <TableHead>Type</TableHead>
                             <TableHead>Interval</TableHead>
                             <TableHead>Created By</TableHead>
                             <TableHead>Status</TableHead>
@@ -119,33 +129,42 @@ export default function PlanningLogsTable({
                             </TableRow>
                         ) : (
                             data.map((log) => (
-                                <TableRow 
-                                    key={log.id} 
+                                <TableRow
+                                    key={log.id}
                                     className="cursor-pointer hover:bg-muted/50"
                                     onClick={() => handleView(log)}
                                 >
                                     <TableCell className="font-medium">
                                         {highlightText(log.title, searchQuery)}
                                     </TableCell>
-                                    <TableCell className="capitalize">
-                                        <Badge variant="outline">{log.log_type.replace("_", " ").split(" ")[0]}</Badge>
-                                    </TableCell>
+
                                     <TableCell>
                                         <div className="flex flex-col">
-                                            <span className="text-xs text-muted-foreground capitalize">{log.interval_type}</span>
-                                            <span>{formatIntervalTypeId(log.interval_type_id)}</span>
+                                            <span className="text-xs capitalize text-muted-foreground">
+                                                {log.interval_type}
+                                            </span>
+                                            <span>
+                                                {formatIntervalTypeId(log.interval_type_id)}
+                                            </span>
                                         </div>
                                     </TableCell>
-                             
+
                                     <TableCell>{log.created_by}</TableCell>
                                     <TableCell>
-                                        <Badge variant={log.status === 'ACTIVE' ? 'default' : 'secondary'}>
+                                        <Badge
+                                            variant={
+                                                log.status === 'ACTIVE' ? 'default' : 'secondary'
+                                            }
+                                        >
                                             {log.status}
                                         </Badge>
                                     </TableCell>
                                     <TableCell>{formatDate(log.created_at)}</TableCell>
                                     <TableCell className="text-right">
-                                        <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+                                        <div
+                                            className="flex justify-end"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button variant="ghost" className="h-8 w-8 p-0">
@@ -154,11 +173,13 @@ export default function PlanningLogsTable({
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => handleView(log)}>
+                                                    <DropdownMenuItem
+                                                        onClick={() => handleView(log)}
+                                                    >
                                                         <Eye className="mr-2 h-4 w-4" />
                                                         View
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem 
+                                                    <DropdownMenuItem
                                                         onClick={() => handleDelete(log)}
                                                         className="text-destructive focus:text-destructive"
                                                     >

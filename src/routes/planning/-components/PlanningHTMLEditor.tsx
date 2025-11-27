@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { loadPlanningTemplate, unwrapContentFromHTML } from '../../-utils/templateLoader';
+import { useEffect, useState, useMemo } from 'react';
+import { loadPlanningTemplate, unwrapContentFromHTML } from '../-utils/templateLoader';
 import TipTapEditor from '@/components/tiptap/TipTapEditor';
 import { Button } from '@/components/ui/button';
 import { Eye, Code, Plus } from 'lucide-react';
@@ -13,6 +13,12 @@ export default function PlanningHTMLEditor({ value, onChange }: PlanningHTMLEdit
     const [isLoading, setIsLoading] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
     const [addTableRowTrigger, setAddTableRowTrigger] = useState<{ nonce: number } | undefined>();
+
+    // Check if content contains a table
+    const hasTable = useMemo(() => {
+        if (!value) return false;
+        return value.includes('<table') || value.includes('<TABLE');
+    }, [value]);
 
     // Load template on first render if value is empty
     useEffect(() => {
@@ -34,7 +40,7 @@ export default function PlanningHTMLEditor({ value, onChange }: PlanningHTMLEdit
     const handleAddRow = () => {
         // Trigger table row insertion in TipTap
         setAddTableRowTrigger({
-            nonce: Date.now()
+            nonce: Date.now(),
         });
     };
 
@@ -46,17 +52,15 @@ export default function PlanningHTMLEditor({ value, onChange }: PlanningHTMLEdit
         <div className="space-y-2">
             <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">
-                    Fill in the planning template below. Use the "Add Row" button to add more lessons.
+                    {hasTable
+                        ? 'Fill in the planning template below. Use the "Add Row" button to add more lessons.'
+                        : 'Fill in the planning template below.'}
                 </p>
                 <div className="flex gap-2">
-                    {!showPreview && (
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={handleAddRow}
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
+                    {/* Only show Add Row button if content has a table and not in preview mode */}
+                    {!showPreview && hasTable && (
+                        <Button type="button" variant="outline" size="sm" onClick={handleAddRow}>
+                            <Plus className="mr-2 h-4 w-4" />
                             Add Row
                         </Button>
                     )}
@@ -68,12 +72,12 @@ export default function PlanningHTMLEditor({ value, onChange }: PlanningHTMLEdit
                     >
                         {showPreview ? (
                             <>
-                                <Code className="h-4 w-4 mr-2" />
+                                <Code className="mr-2 h-4 w-4" />
                                 Edit
                             </>
                         ) : (
                             <>
-                                <Eye className="h-4 w-4 mr-2" />
+                                <Eye className="mr-2 h-4 w-4" />
                                 Preview
                             </>
                         )}
@@ -82,7 +86,7 @@ export default function PlanningHTMLEditor({ value, onChange }: PlanningHTMLEdit
             </div>
 
             {showPreview ? (
-                <div className="border rounded-md">
+                <div className="rounded-md border">
                     <TipTapEditor
                         value={unwrapContentFromHTML(value)}
                         editable={false}
@@ -90,7 +94,7 @@ export default function PlanningHTMLEditor({ value, onChange }: PlanningHTMLEdit
                     />
                 </div>
             ) : (
-                <div className="border rounded-md">
+                <div className="rounded-md border">
                     <TipTapEditor
                         value={value}
                         onChange={(html: string) => onChange(html)}

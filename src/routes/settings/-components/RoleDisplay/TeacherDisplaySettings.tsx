@@ -493,6 +493,8 @@ export default function TeacherDisplaySettings() {
                             'LEARNER',
                             'TEACHER',
                             'ASSESSMENT',
+                            'PLANNING',
+                            'ACTIVITY',
                         ] as CourseDetailsTabId[]
                     ).map((id) => {
                         const cfg = settings.courseDetails?.tabs.find((t) => t.id === id) || {

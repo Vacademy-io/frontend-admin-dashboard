@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Label } from '@/components/ui/label';
-import type { PlanningFormData, IntervalType } from '../../-types/types';
-import { generateIntervalTypeId } from '../../-utils/intervalTypeIdGenerator';
+import type { PlanningFormData, IntervalType } from '../-types/types';
+import { generateIntervalTypeId } from '../-utils/intervalTypeIdGenerator';
 import PlanningHTMLEditor from './PlanningHTMLEditor';
 import IntervalSelector from './IntervalSelector';
 import { MyDropdown } from '@/components/design-system/dropdown';
@@ -37,8 +37,15 @@ export default function PlanningFormSection2({ data, onChange }: PlanningFormSec
         try {
             setIsUploading(true);
             const userId = getUserId();
-            const fileId = await UploadFileInS3(file, () => {}, userId, 'PLANNING', 'PLANNING_LOGS', true);
-            
+            const fileId = await UploadFileInS3(
+                file,
+                () => {},
+                userId,
+                'PLANNING',
+                'PLANNING_LOGS',
+                true
+            );
+
             if (fileId) {
                 const newFile = { id: fileId, name: file.name };
                 setUploadedFiles([...uploadedFiles, newFile]);
@@ -74,46 +81,6 @@ export default function PlanningFormSection2({ data, onChange }: PlanningFormSec
 
     return (
         <div className="grid gap-4">
-            {/* Interval Type */}
-            <div className="space-y-2">
-                <MyLabel required>Interval</MyLabel>
-                <MyDropdown
-                    currentValue={currentInterval?.label}
-                    handleChange={(value) => onChange({ interval_type: value as IntervalType })}
-                    dropdownList={intervalOptions}
-                    placeholder="Select interval"
-                    className="w-full"
-                />
-            </div>
-
-            {/* Dynamic Interval Selector */}
-            {data.interval_type && (
-                <div className="space-y-2">
-                    <IntervalSelector
-                        intervalType={data.interval_type}
-                        selectedDate={data.selectedDate}
-                        onChange={(date) => onChange({ selectedDate: date })}
-                    />
-                </div>
-            )}
-
-            {/* Interval Type ID (Read-only) */}
-            <div className="space-y-2">
-                <MyInput
-                    label="Interval Type ID"
-                    inputType="text"
-                    inputPlaceholder=""
-                    input={data.interval_type_id}
-                    onChangeFunction={() => {}}
-                    disabled
-                    className="w-full"
-                    size="medium"
-                />
-                <p className="text-sm text-muted-foreground">
-                    Auto-generated based on interval type and date
-                </p>
-            </div>
-
             {/* Content HTML Editor */}
             <div className="space-y-2">
                 <MyLabel required>Content</MyLabel>
@@ -135,7 +102,7 @@ export default function PlanningFormSection2({ data, onChange }: PlanningFormSec
                 />
                 <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed rounded-lg p-6 cursor-pointer hover:border-primary transition-colors"
+                    className="hover:border-primary cursor-pointer rounded-lg border-2 border-dashed p-6 transition-colors"
                 >
                     <div className="flex flex-col items-center justify-center gap-2">
                         {isUploading ? (
@@ -155,13 +122,13 @@ export default function PlanningFormSection2({ data, onChange }: PlanningFormSec
                 </div>
 
                 {uploadedFiles.length > 0 && (
-                    <div className="space-y-2 mt-4">
+                    <div className="mt-4 space-y-2">
                         <p className="text-sm font-medium">Uploaded Files:</p>
                         <div className="space-y-1">
                             {uploadedFiles.map((file, index) => (
                                 <div
                                     key={file.id}
-                                    className="flex items-center justify-between p-2 border rounded-md bg-muted/50"
+                                    className="flex items-center justify-between rounded-md border bg-muted/50 p-2"
                                 >
                                     <div className="flex items-center gap-2">
                                         <FileIcon className="h-4 w-4 text-muted-foreground" />

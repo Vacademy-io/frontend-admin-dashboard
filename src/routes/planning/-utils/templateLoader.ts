@@ -63,13 +63,13 @@ export function extractTextareaValues(html: string): Record<string, string> {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
     const textareas = doc.querySelectorAll('textarea');
-    
+
     const values: Record<string, string> = {};
     textareas.forEach((textarea, index) => {
         const placeholder = textarea.getAttribute('placeholder') || `field_${index}`;
         values[placeholder] = textarea.value || '';
     });
-    
+
     return values;
 }
 
@@ -170,7 +170,7 @@ export function wrapContentInHTML(content: string): string {
     if (content.includes('<!DOCTYPE html>') || content.includes('<html')) {
         return content;
     }
-    
+
     return `${HTML_TEMPLATE_HEAD}${content}${HTML_TEMPLATE_FOOTER}`;
 }
 
@@ -181,13 +181,13 @@ export function wrapContentInHTML(content: string): string {
  */
 export function unwrapContentFromHTML(html: string): string {
     if (!html) return '';
-    
+
     // Simple regex to extract content between <body> and </body>
     const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
     if (bodyMatch && bodyMatch[1]) {
         return bodyMatch[1].trim();
     }
-    
+
     // Fallback: if no body tag found, return as is (might be already a fragment)
     // But check if it has doctype/html tags and strip them if possible to avoid issues
     if (html.includes('<!DOCTYPE html>') || html.includes('<html')) {
@@ -196,6 +196,6 @@ export function unwrapContentFromHTML(html: string): string {
         const doc = parser.parseFromString(html, 'text/html');
         return doc.body.innerHTML;
     }
-    
+
     return html;
 }

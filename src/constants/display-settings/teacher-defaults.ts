@@ -73,6 +73,8 @@ export const DEFAULT_TEACHER_DISPLAY_SETTINGS: DisplaySettingsData = {
             { id: 'LEARNER', order: 3, visible: true },
             { id: 'TEACHER', order: 4, visible: true },
             { id: 'ASSESSMENT', order: 5, visible: true },
+            { id: 'PLANNING', order: 6, visible: false },
+            { id: 'ACTIVITY', order: 7, visible: false },
         ],
         defaultTab: 'CONTENT_STRUCTURE',
     },

@@ -45,6 +45,8 @@ import {
 } from 'phosphor-react';
 import Students from './student-list';
 import Assessments from './assessment-list';
+import Planning from './planning';
+import Activity from './activity';
 import { getIcon } from '../modules/chapters/slides/-components/slides-sidebar/slides-sidebar-slides';
 import { MyButton } from '@/components/design-system/button';
 import { useContentStore } from '../modules/chapters/slides/-stores/chapter-sidebar-store';
@@ -837,6 +839,16 @@ export const SubjectMaterial = () => {
                 </div>
             </div>
         ),
+        [TabType.PLANNING]: (
+            <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
+                <Planning packageSessionId={packageSessionIds ?? ''} />
+            </div>
+        ),
+        [TabType.ACTIVITY]: (
+            <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
+                <Activity packageSessionId={packageSessionIds ?? ''} />
+            </div>
+        ),
     };
 
     if (courseId === '' || levelId === '') {
@@ -878,7 +890,7 @@ export const SubjectMaterial = () => {
                             <TabsTrigger
                                 key={tab.value}
                                 value={tab.value}
-                                className={`data-[state=active]:text-primary-600 relative flex rounded-none border-b-2 border-transparent px-4 py-2 text-sm font-medium !shadow-none transition-colors duration-200 hover:bg-gray-100 data-[state=active]:border-primary-500 data-[state=active]:bg-primary-50`}
+                                className={`relative flex rounded-none border-b-2 border-transparent px-4 py-2 text-sm font-medium !shadow-none transition-colors duration-200 hover:bg-gray-100 data-[state=active]:border-primary-500 data-[state=active]:bg-primary-50 data-[state=active]:text-primary-600`}
                             >
                                 {tab.label}
                             </TabsTrigger>

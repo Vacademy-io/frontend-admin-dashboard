@@ -1,6 +1,6 @@
 import { MyInput } from '@/components/design-system/input';
 import { MyDropdown } from '@/components/design-system/dropdown';
-import type { IntervalType } from '../../-types/types';
+import type { IntervalType } from '../-types/types';
 
 interface IntervalSelectorProps {
     intervalType: IntervalType;
@@ -8,7 +8,11 @@ interface IntervalSelectorProps {
     onChange: (date: Date) => void;
 }
 
-export default function IntervalSelector({ intervalType, selectedDate, onChange }: IntervalSelectorProps) {
+export default function IntervalSelector({
+    intervalType,
+    selectedDate,
+    onChange,
+}: IntervalSelectorProps) {
     const formatDateForInput = (date: Date | null): string => {
         if (!date) return '';
         const year = date.getFullYear();
@@ -51,7 +55,7 @@ export default function IntervalSelector({ intervalType, selectedDate, onChange 
         ];
 
         const currentDay = selectedDate ? selectedDate.getDay().toString() : '1';
-        const currentDayLabel = daysOfWeek.find(d => d.value === currentDay)?.label || 'Monday';
+        const currentDayLabel = daysOfWeek.find((d) => d.value === currentDay)?.label || 'Monday';
 
         const handleDayChange = (value: string) => {
             const dayOfWeek = parseInt(value);
@@ -108,7 +112,7 @@ export default function IntervalSelector({ intervalType, selectedDate, onChange 
         ];
 
         const currentMonth = selectedDate ? selectedDate.getMonth().toString() : '0';
-        const currentMonthLabel = months.find(m => m.value === currentMonth)?.label || 'January';
+        const currentMonthLabel = months.find((m) => m.value === currentMonth)?.label || 'January';
 
         const handleMonthChange = (value: string) => {
             const month = parseInt(value);
@@ -138,8 +142,11 @@ export default function IntervalSelector({ intervalType, selectedDate, onChange 
             { label: 'Q4 (Oct - Dec)', value: '3' },
         ];
 
-        const currentQuarter = selectedDate ? Math.floor(selectedDate.getMonth() / 3).toString() : '0';
-        const currentQuarterLabel = quarters.find(q => q.value === currentQuarter)?.label || 'Q1 (Jan - Mar)';
+        const currentQuarter = selectedDate
+            ? Math.floor(selectedDate.getMonth() / 3).toString()
+            : '0';
+        const currentQuarterLabel =
+            quarters.find((q) => q.value === currentQuarter)?.label || 'Q1 (Jan - Mar)';
 
         const handleQuarterChange = (value: string) => {
             const quarter = parseInt(value);

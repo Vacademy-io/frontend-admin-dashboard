@@ -15,7 +15,6 @@ import { MyLabel } from '@/components/design-system/my-lable';
 import { Textarea } from '@/components/ui/textarea';
 import { useUpdatePlanningLog } from '../-services/updatePlanningLog';
 import { getPublicUrl } from '@/services/upload_file';
-
 import { usePlanningLogStore } from '../-stores/planning-log-store';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { MyButton } from '@/components/design-system/button';
@@ -23,35 +22,34 @@ import { getTerminology } from '@/components/common/layout-container/sidebar/uti
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
-// ... (imports)
-
-export const Route = createFileRoute('/planning/list/$logId')({
-    component: PlanningLogDetailPage,
+export const Route = createFileRoute('/planning/activity-logs/$logId')({
+    component: ActivityLogDetailPage,
 });
 
-function PlanningLogDetailPage() {
+function ActivityLogDetailPage() {
     const navigate = useNavigate();
-     const { setNavHeading } = useNavHeadingStore();
+    const { setNavHeading } = useNavHeadingStore();
     const selectedLog = usePlanningLogStore((state) => state.selectedLog);
     const setSelectedLog = usePlanningLogStore((state) => state.setSelectedLog);
-       const { instituteDetails } = useInstituteDetailsStore();
-    
-        const packageSessionOptions =
-            instituteDetails?.batches_for_sessions?.map((batch) => ({
-                label: `${batch.package_dto.package_name} - ${batch.level.level_name} - ${batch.session.session_name}`,
-                value: batch.id,
-            })) || [];
-    
+    const { instituteDetails } = useInstituteDetailsStore();
+
+    const packageSessionOptions =
+        instituteDetails?.batches_for_sessions?.map((batch) => ({
+            label: `${batch.package_dto.package_name} - ${batch.level.level_name} - ${batch.session.session_name}`,
+            value: batch.id,
+        })) || [];
+
     const [log, setLog] = useState<PlanningLog | null>(selectedLog);
     const [courseName, setCourseName] = useState('');
     const [isEditing, setIsEditing] = useState(false);
     const [editedTitle, setEditedTitle] = useState('');
     const [editedDescription, setEditedDescription] = useState('');
     const [editedContent, setEditedContent] = useState('');
-    
+
     useEffect(() => {
-        setNavHeading(`Planning Details`);
+        setNavHeading(`Activity Log Details`);
     }, [setNavHeading]);
+
     const updateMutation = useUpdatePlanningLog();
 
     // Initialize edit state when log loads
@@ -60,7 +58,9 @@ function PlanningLogDetailPage() {
             setEditedTitle(log.title);
             setEditedDescription(log.description || '');
             setEditedContent(unwrapContentFromHTML(log.content_html));
-            const courseName = packageSessionOptions.find((option) => option.value === log.entity_id)?.label;
+            const courseName = packageSessionOptions.find(
+                (option) => option.value === log.entity_id
+            )?.label;
             setCourseName(courseName || '');
         }
     }, [log]);
@@ -68,7 +68,7 @@ function PlanningLogDetailPage() {
     // If no log data, redirect back to list
     useEffect(() => {
         if (!log) {
-            navigate({ to: '/planning/list' });
+            navigate({ to: '/planning/activity-logs', search: { packageSessionId: '' } });
         }
     }, [log, navigate]);
 
@@ -98,7 +98,7 @@ function PlanningLogDetailPage() {
                     content_html: wrappedContent,
                 },
             });
-            
+
             // Update local state with new values
             setLog({
                 ...log,
@@ -108,7 +108,7 @@ function PlanningLogDetailPage() {
             });
             setIsEditing(false);
         } catch (error) {
-            console.error('Failed to update planning log:', error);
+            console.error('Failed to update activity log:', error);
         }
     };
 
@@ -138,14 +138,19 @@ function PlanningLogDetailPage() {
 
     return (
         <LayoutContainer>
-            <div className="p-2 space-y-2">
+            <div className="space-y-2 p-2">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => navigate({ to: '/planning/list' })}
+                            onClick={() =>
+                                navigate({
+                                    to: '/planning/activity-logs',
+                                    search: { packageSessionId: log.entity_id },
+                                })
+                            }
                         >
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
@@ -153,17 +158,13 @@ function PlanningLogDetailPage() {
                             <h1 className="text-lg font-semibold">
                                 {isEditing ? 'Edit Details' : 'View Details'}
                             </h1>
-                            <div className="flex items-center gap-2 mt-1">
-                                <Badge variant="outline" className="capitalize">
-                                    {log.log_type.replace('_', ' ')}
-                                </Badge>
-                                <Badge variant="outline" className="capitalize">
-                                    {log.interval_type}
-                                </Badge>
+                            <div className="mt-1 flex items-center gap-2">
                                 <Badge variant="outline">
                                     {formatIntervalTypeId(log.interval_type_id)}
                                 </Badge>
-                                <Badge variant={log.status === 'ACTIVE' ? 'default' : 'destructive'}>
+                                <Badge
+                                    variant={log.status === 'ACTIVE' ? 'default' : 'destructive'}
+                                >
                                     {log.status}
                                 </Badge>
                             </div>
@@ -177,20 +178,17 @@ function PlanningLogDetailPage() {
                                     onClick={handleCancel}
                                     disabled={updateMutation.isPending}
                                 >
-                                    <X className="h-4 w-4 mr-2" />
+                                    <X className="mr-2 h-4 w-4" />
                                     Cancel
                                 </MyButton>
-                                <MyButton
-                                    onClick={handleSave}
-                                    disabled={updateMutation.isPending}
-                                >
-                                    <Save className="h-4 w-4 mr-2" />
+                                <MyButton onClick={handleSave} disabled={updateMutation.isPending}>
+                                    <Save className="mr-2 h-4 w-4" />
                                     {updateMutation.isPending ? 'Saving...' : 'Save'}
                                 </MyButton>
                             </>
                         ) : (
                             <MyButton onClick={handleEdit}>
-                                <Edit className="h-4 w-4 mr-2" />
+                                <Edit className="mr-2 h-4 w-4" />
                                 <span className="ml-2">Edit</span>
                             </MyButton>
                         )}
@@ -198,25 +196,29 @@ function PlanningLogDetailPage() {
                 </div>
                 <Separator />
 
-                 {/* Metadata */}
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <span className="font-medium">Created By:</span>{' '}
-                            <span className="text-muted-foreground">{log.created_by}</span>
-                        </div>                       
-                        <div>
-                            <span className="font-medium">{getTerminology(ContentTerms.Course, SystemTerms.Course)}:</span>{' '}
-                            <span className="text-muted-foreground capitalize">{courseName ?? "Loading..."}</span>
-                        </div>
-                        <div>
-                            <span className="font-medium">Created:</span>{' '}
-                            <span className="text-muted-foreground">{formatDate(log.created_at)}</span>
-                        </div>
-                        <div>
-                            <span className="font-medium">Updated:</span>{' '}
-                            <span className="text-muted-foreground">{formatDate(log.updated_at)}</span>
-                        </div>
+                {/* Metadata */}
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span className="font-medium">Created By:</span>{' '}
+                        <span className="text-muted-foreground">{log.created_by}</span>
                     </div>
+                    <div>
+                        <span className="font-medium">
+                            {getTerminology(ContentTerms.Course, SystemTerms.Course)}:
+                        </span>{' '}
+                        <span className="capitalize text-muted-foreground">
+                            {courseName ?? 'Loading...'}
+                        </span>
+                    </div>
+                    <div>
+                        <span className="font-medium">Created:</span>{' '}
+                        <span className="text-muted-foreground">{formatDate(log.created_at)}</span>
+                    </div>
+                    <div>
+                        <span className="font-medium">Updated:</span>{' '}
+                        <span className="text-muted-foreground">{formatDate(log.updated_at)}</span>
+                    </div>
+                </div>
 
                 <Separator />
 
@@ -237,7 +239,7 @@ function PlanningLogDetailPage() {
                         ) : (
                             <>
                                 <MyLabel>Title</MyLabel>
-                                <p className="text-lg font-medium mt-1">{log.title}</p>
+                                <p className="mt-1 text-lg font-medium">{log.title}</p>
                             </>
                         )}
                     </div>
@@ -258,7 +260,7 @@ function PlanningLogDetailPage() {
                         ) : log.description ? (
                             <>
                                 <MyLabel>Description</MyLabel>
-                                <p className="text-muted-foreground mt-1">{log.description}</p>
+                                <p className="mt-1 text-muted-foreground">{log.description}</p>
                             </>
                         ) : null}
                     </div>
@@ -294,22 +296,27 @@ function PlanningLogDetailPage() {
                             <div>
                                 <MyLabel>Files</MyLabel>
                                 <div className="mt-2 space-y-2">
-                                    {log.comma_separated_file_ids.split(',').filter(Boolean).map((fileId: string) => (
-                                        <div
-                                            key={fileId}
-                                            className="flex items-center justify-between p-3 border rounded-md hover:bg-muted/50 transition-colors"
-                                        >
-                                            <span className="text-sm font-medium">{fileId}</span>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handleDownload(fileId)}
+                                    {log.comma_separated_file_ids
+                                        .split(',')
+                                        .filter(Boolean)
+                                        .map((fileId: string) => (
+                                            <div
+                                                key={fileId}
+                                                className="flex items-center justify-between rounded-md border p-3 transition-colors hover:bg-muted/50"
                                             >
-                                                <Download className="h-4 w-4 mr-2" />
-                                                Download
-                                            </Button>
-                                        </div>
-                                    ))}
+                                                <span className="text-sm font-medium">
+                                                    {fileId}
+                                                </span>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handleDownload(fileId)}
+                                                >
+                                                    <Download className="mr-2 h-4 w-4" />
+                                                    Download
+                                                </Button>
+                                            </div>
+                                        ))}
                                 </div>
                             </div>
                         </>
