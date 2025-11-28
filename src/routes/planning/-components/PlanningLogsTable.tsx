@@ -20,7 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, Eye, Edit, Trash2, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useListPlanningLogs } from '../-services/listPlanningLogs';
 import { useDeletePlanningLog } from '../-services/updatePlanningLog';
-import type { PlanningLog, PlanningLogFilters } from '../-types/types';
+import type { LogType, PlanningLog, PlanningLogFilters } from '../-types/types';
 import { getUserId } from '@/utils/userDetails';
 import { format } from 'date-fns';
 import { formatIntervalTypeId } from '../-utils/intervalTypeIdFormatter';
@@ -33,7 +33,7 @@ interface PlanningLogsTableProps {
     currentPage: number;
     onPageChange: (page: number) => void;
     searchQuery: string;
-    logType: 'planning' | 'diary';
+    logType: LogType;
 }
 
 export default function PlanningLogsTable({

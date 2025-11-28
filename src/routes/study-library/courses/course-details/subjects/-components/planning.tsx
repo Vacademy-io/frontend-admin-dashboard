@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useListPlanningLogs } from '@/routes/planning/-services/listPlanningLogs';
-import SimplePlanningTable from '@/routes/planning/-components/SimplePlanningTable';
+import PlanningLogsTimeline from '@/routes/planning/-components/PlanningLogsTimeline';
 import CreatePlanningDialog from '@/routes/planning/-components/CreatePlanningDialog';
 import ViewPlanningDialog from '@/routes/planning/-components/ViewPlanningDialog';
 import type { PlanningLog } from '@/routes/planning/-types/types';
@@ -18,9 +18,9 @@ export default function Planning({ packageSessionId }: PlanningProps) {
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [viewDialogOpen, setViewDialogOpen] = useState(false);
     const [selectedLog, setSelectedLog] = useState<PlanningLog | null>(null);
+    const [pageNo, setPageNo] = useState(0);
     const deleteMutation = useDeletePlanningLog();
     const navigate = useNavigate();
-    const pageNo = 0;
     const pageSize = 10;
     const { data, isLoading, refetch } = useListPlanningLogs({
         pageNo,
@@ -49,6 +49,10 @@ export default function Planning({ packageSessionId }: PlanningProps) {
         refetch();
     };
 
+    const handlePageChange = (newPage: number) => {
+        setPageNo(newPage);
+    };
+
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -71,12 +75,22 @@ export default function Planning({ packageSessionId }: PlanningProps) {
                 </div>
             </div>
 
-            <SimplePlanningTable
-                data={data?.content || []}
-                onView={handleView}
-                onDelete={handleDelete}
-                isLoading={isLoading}
-            />
+            {isLoading ? (
+                <div className="py-8 text-center">
+                    <p className="text-muted-foreground">Loading plannings...</p>
+                </div>
+            ) : (
+                <PlanningLogsTimeline
+                    data={data?.content || []}
+                    totalPages={data?.totalPages || 0}
+                    currentPage={pageNo}
+                    onPageChange={handlePageChange}
+                    searchQuery=""
+                    logType="planning"
+                    onView={handleView}
+                    onCreateClick={() => setCreateDialogOpen(true)}
+                />
+            )}
 
             <CreatePlanningDialog
                 packageSessionId={packageSessionId}

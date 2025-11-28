@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { X } from 'lucide-react';
 import type {
     ListPlanningLogsRequest,
@@ -16,12 +14,14 @@ interface PlanningFiltersProps {
     filters: ListPlanningLogsRequest;
     onChange: (filters: ListPlanningLogsRequest) => void;
     hideLogTypeFilter?: boolean; // When true, hides the log type filter
+    logType: LogType;
 }
 
 export default function PlanningFilters({
     filters,
     onChange,
     hideLogTypeFilter,
+    logType,
 }: PlanningFiltersProps) {
     const [localFilters, setLocalFilters] = useState<ListPlanningLogsRequest>(filters);
     const { instituteDetails } = useInstituteDetailsStore();
@@ -169,20 +169,24 @@ export default function PlanningFilters({
                 )}
 
                 {/* Interval Type Filter */}
-
-                <FilterChips
-                    label="Interval"
-                    filterList={intervalTypeOptions}
-                    selectedFilters={
-                        localFilters.interval_types?.map((type) => ({
-                            id: type,
-                            label:
-                                intervalTypeOptions.find((opt) => opt.id === type)?.label || type,
-                        })) || []
-                    }
-                    handleSelect={handleIntervalTypeChange}
-                    handleClearFilters={handleClearIntervalTypeFilter}
-                />
+                {logType === 'planning' && (
+                    <FilterChips
+                        label="Interval"
+                        filterList={intervalTypeOptions.filter(
+                            (opt) => logType === 'planning' && opt.id !== 'daily'
+                        )}
+                        selectedFilters={
+                            localFilters.interval_types?.map((type) => ({
+                                id: type,
+                                label:
+                                    intervalTypeOptions.find((opt) => opt.id === type)?.label ||
+                                    type,
+                            })) || []
+                        }
+                        handleSelect={handleIntervalTypeChange}
+                        handleClearFilters={handleClearIntervalTypeFilter}
+                    />
+                )}
 
                 {/* Status Filter */}
 
