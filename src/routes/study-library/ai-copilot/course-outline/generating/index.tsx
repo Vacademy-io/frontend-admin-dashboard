@@ -2,9 +2,17 @@ import { LayoutContainer } from '@/components/common/layout-container/layout-con
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Helmet } from 'react-helmet';
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useSidebar } from '@/components/ui/sidebar';
 import { MyButton } from '@/components/design-system/button';
 import { BASE_URL } from '@/constants/urls';
 import { getInstituteId } from '@/constants/helper';
+import { CircularProgress, SortableSessionItem } from './components';
+import { useCourseGeneration } from './hooks/useCourseGeneration';
+import { getSessionsWithProgress } from './utils/sessionUtils';
+import { extractSlideTitlesFromSlides } from '../../shared/utils/slides';
+import { isYouTubeUrl, getYouTubeEmbedUrl } from '../../shared/utils/youtube';
+import { SlideGeneration, SlideType, QuizQuestion, SessionProgress } from '../../shared/types';
+import { DEFAULT_QUIZ_QUESTIONS, DEFAULT_SELECTED_ANSWERS, DEFAULT_SOLUTION_CODE } from '../../shared/constants';
 import {
     ArrowLeft,
     RefreshCw,
@@ -95,346 +103,15 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-// Circular Progress Component
-interface CircularProgressProps {
-    value: number;
-    size?: number;
-    strokeWidth?: number;
-    className?: string;
-}
-
-const CircularProgress = ({ value, size = 24, strokeWidth = 3, className = '' }: CircularProgressProps) => {
-    const radius = (size - strokeWidth) / 2;
-    const circumference = radius * 2 * Math.PI;
-    const offset = circumference - (value / 100) * circumference;
-
-    return (
-        <div className={`relative inline-flex items-center justify-center ${className}`}>
-            <svg width={size} height={size} className="transform -rotate-90">
-                <circle
-                    cx={size / 2}
-                    cy={size / 2}
-                    r={radius}
-                    stroke="currentColor"
-                    strokeWidth={strokeWidth}
-                    fill="none"
-                    className="text-neutral-200"
-                />
-                <circle
-                    cx={size / 2}
-                    cy={size / 2}
-                    r={radius}
-                    stroke="currentColor"
-                    strokeWidth={strokeWidth}
-                    fill="none"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={offset}
-                    strokeLinecap="round"
-                    className="text-indigo-600 transition-all duration-300"
-                />
-            </svg>
-            {value < 100 && (
-                <span className="absolute text-[10px] font-semibold text-indigo-600">
-                    {Math.round(value)}%
-                </span>
-            )}
-        </div>
-    );
-};
-
-// Helper function to extract YouTube video ID
-const extractYouTubeVideoId = (url: string): string | null => {
-    const regExp = /^.*(?:youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(regExp);
-    return match && match[1] && match[1].length === 11 ? match[1] : null;
-};
-
-// Helper function to convert YouTube URL to embed URL
-const getYouTubeEmbedUrl = (url: string): string | null => {
-    const videoId = extractYouTubeVideoId(url);
-    if (videoId) {
-        return `https://www.youtube.com/embed/${videoId}`;
-    }
-    return null;
-};
-
-// Helper function to check if URL is YouTube
-const isYouTubeUrl = (url: string): boolean => {
-    return /(?:youtube\.com|youtu\.be)/.test(url);
-};
+// YouTube and utility functions are now imported from shared/utils
 
 export const Route = createFileRoute('/study-library/ai-copilot/course-outline/generating/')({
     component: RouteComponent,
 });
 
-type SlideType =
-    | 'objectives'
-    | 'topic'
-    | 'quiz'
-    | 'homework'
-    | 'solution'
-    | 'doc'
-    | 'pdf'
-    | 'video'
-    | 'image'
-    | 'jupyter'
-    | 'code-editor'
-    | 'scratch'
-    | 'video-jupyter'
-    | 'video-code-editor'
-    | 'video-scratch'
-    | 'assignment';
+// Types, interfaces, and constants are now imported from shared modules
 
-interface QuizQuestion {
-    question: string;
-    options: string[];
-    correctAnswerIndex?: number;
-    explanation?: string;
-}
-
-const DEFAULT_QUIZ_QUESTIONS: QuizQuestion[] = [
-    {
-        question: 'What is the primary purpose of machine learning?',
-        options: [
-            'To create databases',
-            'To enable computers to learn from data',
-            'To design user interfaces',
-            'To manage network security',
-        ],
-        correctAnswerIndex: 1,
-    },
-    {
-        question: 'Which ensemble method combines multiple weak learners sequentially?',
-        options: ['Bagging', 'Boosting', 'Stacking', 'Random Forest'],
-        correctAnswerIndex: 1,
-    },
-    {
-        question: 'What does PCA stand for in dimensionality reduction?',
-        options: [
-            'Principal Component Analysis',
-            'Primary Correlation Assessment',
-            'Progressive Component Algorithm',
-            'Practical Classification Approach',
-        ],
-        correctAnswerIndex: 0,
-    },
-];
-
-const DEFAULT_SELECTED_ANSWERS: Record<number, string> = DEFAULT_QUIZ_QUESTIONS.reduce(
-    (acc, question, index) => {
-        if (question.correctAnswerIndex !== undefined) {
-            acc[index] = question.correctAnswerIndex.toString();
-        }
-        return acc;
-    },
-    {} as Record<number, string>
-);
-
-const DEFAULT_SOLUTION_CODE = `// Sample solution implementation
-function solveHomeworkProblem(input) {
-    // Replace this with the real solution logic
-    const processed = input.map((value) => value * 2);
-    return processed;
-}
-
-const sampleInput = [1, 2, 3, 4];
-const output = solveHomeworkProblem(sampleInput);
-
-console.log('Input:', sampleInput);
-console.log('Output:', output);`;
-
-interface SlideGeneration {
-    id: string;
-    sessionId: string;
-    sessionTitle: string;
-    slideTitle: string;
-    slideType: SlideType;
-    status: 'pending' | 'generating' | 'completed';
-    progress: number;
-    content?: string; // Generated content for the slide
-    regenerationCount?: number; // Number of times this slide has been regenerated
-    topicIndex?: number; // Index of the topic slide
-    prompt?: string; // AI generation prompt for the slide (from API)
-}
-
-interface SessionProgress {
-    sessionId: string;
-    sessionTitle: string;
-    slides: SlideGeneration[];
-    progress: number;
-}
-
-const extractTopicTitlesFromSlides = (slides: SlideGeneration[]): string[] => {
-    return slides.reduce<string[]>((acc, slide) => {
-        const isTopicSlide = slide.slideType === 'topic' || slide.slideTitle?.startsWith('Topic');
-        if (!isTopicSlide) {
-            return acc;
-        }
-
-        const match = slide.slideTitle?.match(/Topic \d+: (.+)/);
-        const topicTitle = match?.[1]?.trim() ?? slide.slideTitle?.trim();
-        if (topicTitle) {
-            acc.push(topicTitle);
-        }
-        return acc;
-    }, []);
-};
-
-// Sortable Session Item Component
-interface SortableSessionItemProps {
-    session: SessionProgress;
-    sessionIndex: number;
-    onEdit: (sessionId: string, newTitle: string) => void;
-    onDelete: (sessionId: string) => void;
-    onRegenerate: (sessionId: string) => void;
-    editingSessionId: string | null;
-    editSessionTitle: string;
-    onStartEdit: (sessionId: string, currentTitle: string) => void;
-    onCancelEdit: () => void;
-    onSaveEdit: (sessionId: string) => void;
-    setEditSessionTitle: (title: string) => void;
-    children: React.ReactNode;
-}
-
-const SortableSessionItem = ({
-    session,
-    sessionIndex,
-    onEdit,
-    onDelete,
-    onRegenerate,
-    editingSessionId,
-    editSessionTitle,
-    onStartEdit,
-    onCancelEdit,
-    onSaveEdit,
-    setEditSessionTitle,
-    children,
-}: SortableSessionItemProps) => {
-    const isEditing = editingSessionId === session.sessionId;
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-        isDragging,
-    } = useSortable({ id: session.sessionId });
-
-    const style = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.5 : 1,
-    };
-
-    const handleSaveEdit = () => {
-        if (editSessionTitle.trim()) {
-            onSaveEdit(session.sessionId);
-        }
-    };
-
-    const completedCount = session.slides.filter((s) => s.status === 'completed').length;
-
-    return (
-        <div ref={setNodeRef} style={style}>
-            <AccordionItem
-                value={session.sessionId}
-                className="border-b border-neutral-200 last:border-b-0"
-            >
-                <AccordionTrigger className="group py-4 text-left hover:no-underline [&>svg]:hidden">
-                    <div className="flex items-center justify-between w-full pr-4">
-                        <div className="flex items-center gap-2 flex-1">
-                            <button
-                                {...attributes}
-                                {...listeners}
-                                className="cursor-grab active:cursor-grabbing text-neutral-400 hover:text-neutral-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <GripVertical className="h-4 w-4" />
-                            </button>
-                            {isEditing ? (
-                                <Input
-                                    value={editSessionTitle}
-                                    onChange={(e) => setEditSessionTitle(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') handleSaveEdit();
-                                        if (e.key === 'Escape') onCancelEdit();
-                                    }}
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="h-7 text-sm flex-1"
-                                    autoFocus
-                                />
-                            ) : (
-                                <h3 className="text-base font-semibold text-neutral-900">
-                                    Session {sessionIndex + 1}: {session.sessionTitle}
-                                </h3>
-                            )}
-                        </div>
-                        <div className="flex items-center gap-4">
-                            {!isEditing && (
-                                <div className="flex items-center gap-1">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onStartEdit(session.sessionId, session.sessionTitle);
-                                        }}
-                                        className="rounded p-1 text-xs text-indigo-600 hover:bg-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        title="Edit"
-                                    >
-                                        <Edit2 className="h-3.5 w-3.5" />
-                                    </button>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onDelete(session.sessionId);
-                                        }}
-                                        className="rounded p-1 text-xs text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        title="Delete"
-                                    >
-                                        <Trash2 className="h-3.5 w-3.5" />
-                                    </button>
-                                </div>
-                            )}
-                            {isEditing && (
-                                <div className="flex items-center gap-1">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleSaveEdit();
-                                        }}
-                                        className="rounded p-1 text-xs text-indigo-600 hover:bg-indigo-50"
-                                        title="Save"
-                                    >
-                                        <CheckCircle className="h-3.5 w-3.5" />
-                                    </button>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onCancelEdit();
-                                        }}
-                                        className="rounded p-1 text-xs text-neutral-600 hover:bg-neutral-100"
-                                        title="Cancel"
-                                    >
-                                        <X className="h-3.5 w-3.5" />
-                                    </button>
-                                </div>
-                            )}
-                            <div className="text-xs text-neutral-500">
-                                {completedCount}/{session.slides.length} pages
-                            </div>
-                            {session.progress < 100 && (
-                                <CircularProgress value={session.progress} size={32} strokeWidth={3} />
-                            )}
-                            {session.progress === 100 && (
-                                <CheckCircle className="h-6 w-6 text-green-600" />
-                            )}
-                        </div>
-                    </div>
-                </AccordionTrigger>
-                {children}
-            </AccordionItem>
-        </div>
-    );
-};
+// SortableSessionItem is now imported from ./components
 
 // Sortable Slide Item Component
 interface SortableSlideItemProps {
@@ -1007,10 +684,10 @@ const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlideIcon, o
         let html = '';
         questions.forEach((q, index) => {
             html += `<h3>Question ${index + 1}</h3>`;
-            html += `<p>${q.question || ''}</p>`;
+            html += `<p>${q.question || ``}</p>`;
             html += '<ol>';
             (q.options || []).forEach((option) => {
-                html += `<li>${option || ''}</li>`;
+                html += `<li>${option || ``}</li>`;
             });
             html += '</ol>';
             // Show correct answer below the options
@@ -1376,10 +1053,10 @@ const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlideIcon, o
                                 <div key={idx} className="bg-neutral-50 rounded-md border border-neutral-200 p-4">
                                     <div className="flex items-center justify-between mb-3">
                                         <div className="flex items-center gap-2">
-                                            {section.type === 'video-script' && <Video className="h-4 w-4 text-red-600" />}
-                                            {section.type === 'code' && <Code className="h-4 w-4 text-green-600" />}
-                                            {section.type === 'mermaid' && <Layers className="h-4 w-4 text-purple-600" />}
-                                            {section.type === 'text' && <FileText className="h-4 w-4 text-blue-600" />}
+                                            {section.type === 'video-script' && <Video className='h-4 w-4 text-red-600' />}
+                                            {section.type === 'code' && <Code className='h-4 w-4 text-green-600' />}
+                                            {section.type === 'mermaid' && <Layers className='h-4 w-4 text-purple-600' />}
+                                            {section.type === 'text' && <FileText className='h-4 w-4 text-blue-600' />}
                                             <Label className="text-sm font-semibold text-neutral-900">{section.label}</Label>
                                         </div>
                                         {onRegenerate && (
@@ -1444,10 +1121,10 @@ const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlideIcon, o
                             <div key={idx} className="bg-neutral-50 rounded-md border border-neutral-200 p-4">
                                 <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-2">
-                                        {section.type === 'video-script' && <Video className="h-4 w-4 text-red-600" />}
-                                        {section.type === 'code' && <Code className="h-4 w-4 text-green-600" />}
-                                        {section.type === 'mermaid' && <Layers className="h-4 w-4 text-purple-600" />}
-                                        {section.type === 'text' && <FileText className="h-4 w-4 text-blue-600" />}
+                                        {section.type === 'video-script' && <Video className='h-4 w-4 text-red-600' />}
+                                        {section.type === 'code' && <Code className='h-4 w-4 text-green-600' />}
+                                        {section.type === 'mermaid' && <Layers className='h-4 w-4 text-purple-600' />}
+                                        {section.type === 'text' && <FileText className='h-4 w-4 text-blue-600' />}
                                         <Label className="text-sm font-semibold text-neutral-900">{section.label}</Label>
                                     </div>
                                     {onRegenerate && (
@@ -1674,7 +1351,13 @@ const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlideIcon, o
 
 function RouteComponent() {
     const navigate = useNavigate();
+    const { setOpen } = useSidebar();
     const [slides, setSlides] = useState<SlideGeneration[]>([]);
+    
+    // Collapse sidebar on mount
+    useEffect(() => {
+        setOpen(false);
+    }, [setOpen]);
     const [isGenerating, setIsGenerating] = useState(true);
     const [generationProgress, setGenerationProgress] = useState<string>('Initializing...');
     const [courseMetadata, setCourseMetadata] = useState<any>(null);
@@ -1702,18 +1385,7 @@ function RouteComponent() {
     const [selectedAddSlideType, setSelectedAddSlideType] = useState<SlideType | null>(null);
     const addSlidePromptTextareaRef = useRef<HTMLTextAreaElement>(null);
     const [addSessionDialogOpen, setAddSessionDialogOpen] = useState(false);
-    const [addSessionPrompt, setAddSessionPrompt] = useState('');
-    const addSessionPromptTextareaRef = useRef<HTMLTextAreaElement>(null);
-    const [addSessionLength, setAddSessionLength] = useState<string>('60');
-    const [addCustomSessionLength, setAddCustomSessionLength] = useState<string>('');
-    const [addIncludeDiagrams, setAddIncludeDiagrams] = useState(false);
-    const [addIncludeCodeSnippets, setAddIncludeCodeSnippets] = useState(false);
-    const [addIncludePracticeProblems, setAddIncludePracticeProblems] = useState(false);
-    const [addIncludeQuizzes, setAddIncludeQuizzes] = useState(false);
-    const [addIncludeHomework, setAddIncludeHomework] = useState(false);
-    const [addIncludeSolutions, setAddIncludeSolutions] = useState(false);
-    const [addSessionTopics, setAddSessionTopics] = useState<string[]>([]);
-    const [addSessionNumberOfTopics, setAddSessionNumberOfTopics] = useState<string>('');
+    const [addSessionName, setAddSessionName] = useState('');
     const [regenerateSessionLength, setRegenerateSessionLength] = useState<string>('60');
     const [regenerateCustomSessionLength, setRegenerateCustomSessionLength] = useState<string>('');
     const [regenerateIncludeDiagrams, setRegenerateIncludeDiagrams] = useState(false);
@@ -1749,41 +1421,13 @@ function RouteComponent() {
         useSensor(KeyboardSensor)
     );
 
-    // Calculate session progress
-    const getSessionProgress = (sessionSlides: SlideGeneration[]): number => {
-        if (sessionSlides.length === 0) return 0;
-        const completedCount = sessionSlides.filter((s) => s.status === 'completed').length;
-        const generatingSlide = sessionSlides.find((s) => s.status === 'generating');
-        let totalProgress = completedCount * 100;
-        if (generatingSlide) {
-            totalProgress += generatingSlide.progress;
-        }
-        return Math.round(totalProgress / sessionSlides.length);
-    };
-
-    // Group slides by session
-    const getSessionsWithProgress = (): SessionProgress[] => {
-        const sessionMap = new Map<string, SlideGeneration[]>();
-        slides.forEach((slide) => {
-            if (!sessionMap.has(slide.sessionId)) {
-                sessionMap.set(slide.sessionId, []);
-            }
-            sessionMap.get(slide.sessionId)!.push(slide);
-        });
-
-        return Array.from(sessionMap.entries()).map(([sessionId, sessionSlides]) => ({
-            sessionId,
-            sessionTitle: sessionSlides[0]?.sessionTitle || 'Unknown Session',
-            slides: sessionSlides,
-            progress: getSessionProgress(sessionSlides),
-        }));
-    };
+    // getSessionProgress and getSessionsWithProgress are now imported from ./utils/sessionUtils
 
 
     // Memoize sessions with progress - ensure it's always an array
     const sessionsWithProgress = useMemo(() => {
         try {
-            return getSessionsWithProgress();
+            return getSessionsWithProgress(slides);
         } catch (error) {
             console.error('Error getting sessions with progress:', error);
             return [];
@@ -1843,17 +1487,6 @@ function RouteComponent() {
         }
     }, [addSlideDialogOpen]);
 
-    // Set cursor to end of textarea when add session dialog opens
-    useEffect(() => {
-        if (addSessionDialogOpen && addSessionPromptTextareaRef.current) {
-            const textarea = addSessionPromptTextareaRef.current;
-            setTimeout(() => {
-                textarea.focus();
-                const length = textarea.value.length;
-                textarea.setSelectionRange(length, length);
-            }, 0);
-        }
-    }, [addSessionDialogOpen]);
 
     // Check if all sessions are 100% completed
     const allSessionsCompleted = useMemo(() => {
@@ -2016,7 +1649,7 @@ print("Python is simple and powerful!")
 <p>This simple program demonstrates Python's clean syntax. Just two lines of code to display messages!</p>
 
 <h3>Video Script:</h3>
-<p>Welcome to Python! Python is a powerful, beginner-friendly programming language created in 1991. It's known for its simple syntax - no complex symbols needed. Python is versatile, used in web development, data science, AI, and more. It's also open-source and free. Let's see it in action with a simple "Hello, Python!" program. Notice how clean and readable the code is - that's Python's strength!</p>`,
+<p>Welcome to Python! Python is a powerful, beginner-friendly programming language created in 1991. It's known for its simple syntax - no complex symbols needed. Python is versatile, used in web development, data science, AI, and more. It's also open-source and free. Let's see it in action with a simple 'Hello, Python!' program. Notice how clean and readable the code is - that's Python's strength!</p>`,
                 'Topic 2: Setting Up Python': `<h2>Setting Up Python</h2>
 <p>To start programming in Python, you need to install it on your computer and set up a development environment.</p>
 
@@ -2045,7 +1678,7 @@ print("Hello, World!")
 <p>Run it in your IDE or from the command line. If you see "Hello, World!" printed, Python is installed correctly!</p>
 
 <h3>Video Script:</h3>
-<p>Welcome to Python setup! We'll install Python and set up your development environment. Navigate to python.org, download the installer, and run it. Remember to check "Add Python to PATH". Install Thonny as it's beginner-friendly. You can also use VS Code if you prefer. Create a simple "Hello, World!" program and run it to verify everything works. You're now ready to start coding in Python!</p>`,
+<p>Welcome to Python setup! We'll install Python and set up your development environment. Navigate to python.org, download the installer, and run it. Remember to check 'Add Python to PATH'. Install Thonny as it's beginner-friendly. You can also use VS Code if you prefer. Create a simple 'Hello, World!' program and run it to verify everything works. You're now ready to start coding in Python!</p>`,
                 'Topic 3: Writing Your First Program': `<h2>Writing Your First Program</h2>
 <p>Now that Python is installed, let's write your first program!</p>
 
@@ -2186,7 +1819,7 @@ print(f"Hello, ${"{ name }"}!")
 <li>Nothing</li>
 </ol>
 <p><strong style="color: #10b981;">Correct Answer: Hello, Alex!</strong></p>`,
-                'Assignment': `Write a Python program that prints a short introduction about yourself.`,
+                'Assignment': 'Write a Python program that prints a short introduction about yourself.',
                 'Assignment Solution': `# Solution: Introduction Program
 
 # Get user information
@@ -2289,7 +1922,7 @@ is_active = False
 <pre><code class="language-python">
 print(type(25))        # <class 'int'>
 print(type(3.14))      # <class 'float'>
-print(type("Hello"))   # <class 'str'>
+print(type("Hello"))   # <class "str">
 print(type(True))      # <class 'bool'>
 \`\`\`
 
@@ -2424,7 +2057,7 @@ print(f"The sum of ${"{ num1 }"} and ${"{ num2 }"} is ${"{ sum_result }"}")
                         }
                     ]
                 }),
-                'Assignment': `Write a Python program that accepts your name and age as inputs, and prints them in a complete sentence.`,
+                'Assignment': 'Write a Python program that accepts your name and age as inputs, and prints them in a complete sentence.',
                 'Assignment Solution': `# Solution: Name and Age Program
 
 # Get user's name and age
@@ -2655,7 +2288,7 @@ else:
                         }
                     ]
                 }),
-                'Assignment': `Write a program that asks the user for three favorite foods and prints them in a single sentence.`,
+                'Assignment': 'Write a program that asks the user for three favorite foods and prints them in a single sentence.',
                 'Assignment Solution': `# Solution: Favorite Foods Program
 
 # Get three favorite foods
@@ -3134,7 +2767,7 @@ while count < 10:
                         }
                     ]
                 }),
-                'Assignment': `Write a Python program to display the sum of the first 20 natural numbers using a loop.`,
+                'Assignment': 'Write a Python program to display the sum of the first 20 natural numbers using a loop.',
                 'Assignment Solution': `# Solution: Sum of First 20 Natural Numbers
 
 # Using a for loop
@@ -3363,7 +2996,7 @@ print(f"The largest number is ${"{ result }"}")  # Output: The largest number is
                         }
                     ]
                 }),
-                'Assignment': `Write a Python program with a function that calculates the factorial of a number. Bonus: Create a function that accepts a list of numbers and returns the average.`,
+                'Assignment': 'Write a Python program with a function that calculates the factorial of a number. Bonus: Create a function that accepts a list of numbers and returns the average.',
                 'Assignment Solution': `# Solution: Factorial and Average Functions
 
 # Function to calculate factorial
@@ -3549,7 +3182,7 @@ graph TD
                         }
                     ]
                 }),
-                'Assignment': `Write a Python program to create a list of five numbers and calculate their sum. Bonus: Create a tuple of five cities and display them in reverse order.`,
+                'Assignment': 'Write a Python program to create a list of five numbers and calculate their sum. Bonus: Create a tuple of five cities and display them in reverse order.',
                 'Assignment Solution': `# Solution: List Sum and Tuple Cities
 
 # Create a list of five numbers
@@ -3634,9 +3267,9 @@ for key, value in student.items():
 <pre><code class="language-mermaid">
 graph LR
     A[Dictionary] --> B[Key-Value Pairs]
-    B --> C["name: 'John'"]
+    B --> C["name: "John""]
     B --> D["age: 20"]
-    B --> E["grade: 'A'"]
+    B --> E["grade: "A""]
 \`\`\`
 
 <p><em>Image source: https://pynative.com/python-dictionaries/</em></p>
@@ -3963,7 +3596,7 @@ for word, count in word_count.items():
                 // Build API payload
                 const numChapters = courseConfig.durationFormatStructure?.numberOfSessions;
                 const topicsPerSession = courseConfig.durationFormatStructure?.topicsPerSession;
-                // Calculate total slides: topics per session * number of sessions
+                // Calculate total slides: slides per chapter * number of chapters
                 const totalSlides = numChapters && topicsPerSession 
                     ? parseInt(numChapters) * parseInt(topicsPerSession)
                     : null;
@@ -3986,7 +3619,7 @@ for word, count in word_count.items():
                 }
 
                 console.log('=== API Request ===');
-                console.log('URL:', `${BASE_URL}/ai-service/course/ai/v1/generate?institute_id=${instituteId}`);
+                console.log('URL:', '${BASE_URL}/ai-service/course/ai/v1/generate?institute_id=${instituteId}');
                 console.log('Payload:', JSON.stringify(payload, null, 2));
                 
                 setGenerationProgress('Connecting to AI service...');
@@ -4090,7 +3723,7 @@ for word, count in word_count.items():
                                     console.error('Error:', e);
                                     console.error('Raw data:', data);
                                     setIsGenerating(false);
-                                    alert(`Failed to process course data: ${e instanceof Error ? e.message : 'Unknown error'}`);
+                                    alert(`Failed to process course data: ${e instanceof Error ? e.message : `Unknown error`}`);
                                 }
                             }
                         }
@@ -4105,7 +3738,7 @@ for word, count in word_count.items():
                 }
                 setSlides([]);
                 setIsGenerating(false);
-                alert(`Failed to generate course outline: ${error instanceof Error ? error.message : 'Unknown error'}. Check console for details.`);
+                alert(`Failed to generate course outline: ${error instanceof Error ? error.message : `Unknown error`}. Check console for details.`);
             }
         };
 
@@ -4298,14 +3931,14 @@ for word, count in word_count.items():
 
         setRegeneratingSessionId(sessionId);
 
-        // Extract topics from slides (slides with type 'topic' or titles starting with "Topic")
-        const topics = extractTopicTitlesFromSlides(session.slides);
+        // Extract slide titles from slides (slides with type 'topic' or titles starting with 'Topic')
+        const slideTitles = extractSlideTitlesFromSlides(session.slides);
 
-        // Pre-fill prompt with a default based on session data
-        const defaultPrompt = `Regenerate the session "${session.sessionTitle}"${topics.length > 0 ? ` with the following topics: ${topics.join(', ')}.` : '.'}`;
+        // Pre-fill prompt with a default based on chapter data
+        const defaultPrompt = `Regenerate the chapter "${session.sessionTitle}"${slideTitles.length > 0 ? ` with the following slides: ${slideTitles.join(", ")}.` : `.`}`;
         setRegenerateSessionPrompt(defaultPrompt);
 
-        // Default session length (we don't have duration info in SessionProgress)
+        // Default chapter length (we don't have duration info in SessionProgress)
         setRegenerateSessionLength('60');
         setRegenerateCustomSessionLength('');
 
@@ -4329,11 +3962,11 @@ for word, count in word_count.items():
         setRegenerateIncludeHomework(hasHomework);
         setRegenerateIncludeSolutions(hasSolution || hasHomework);
 
-        // Pre-fill topics from session slides
-        setRegenerateSessionTopics(topics);
+        // Pre-fill slides from session slides
+        setRegenerateSessionTopics(slideTitles);
 
-        // Pre-fill number of topics
-        setRegenerateSessionNumberOfTopics(topics.length.toString());
+        // Pre-fill number of slides
+        setRegenerateSessionNumberOfTopics(slideTitles.length.toString());
 
         setRegenerateSessionDialogOpen(true);
     };
@@ -4440,7 +4073,13 @@ for word, count in word_count.items():
             progress: 0,
         };
 
-        setSlides((prev) => [...prev, newSlide]);
+        setSlides((prev) => {
+            // Remove placeholder slides from this session when adding a real slide
+            const withoutPlaceholders = prev.filter(
+                s => !(s.sessionId === addingSlideToSessionId && s.slideTitle === '_placeholder_')
+            );
+            return [...withoutPlaceholders, newSlide];
+        });
 
         // TODO: Call API to generate slide based on the prompt
         // For now, simulate generation
@@ -4470,79 +4109,42 @@ for word, count in word_count.items():
 
     const handleAddSession = () => {
         // Reset form fields
-        setAddSessionPrompt('');
-        setAddSessionLength('60');
-        setAddCustomSessionLength('');
-        setAddIncludeDiagrams(false);
-        setAddIncludeCodeSnippets(false);
-        setAddIncludePracticeProblems(false);
-        setAddIncludeQuizzes(false);
-        setAddIncludeHomework(false);
-        setAddIncludeSolutions(false);
-        setAddSessionTopics([]);
-        setAddSessionNumberOfTopics('');
+        setAddSessionName('');
         setAddSessionDialogOpen(true);
     };
 
-    const handleAddSessionLengthChange = (value: string) => {
-        setAddSessionLength(value);
-        if (value !== 'custom') {
-            setAddCustomSessionLength('');
-        }
-    };
-
     const handleConfirmAddSession = () => {
-        if (!addSessionPrompt.trim()) {
+        if (!addSessionName.trim()) {
             return;
         }
         setAddSessionDialogOpen(false);
 
-        // Create new session
+        // Create new chapter with the provided name
         const newSessionId = `session-${Date.now()}`;
-        const newSessionTitle = 'New Session';
+        const newSessionTitle = addSessionName.trim();
 
-        // Create initial slides for the new session
-        const newSlides: SlideGeneration[] = [
-            {
-                id: `${newSessionId}-objectives`,
-                sessionId: newSessionId,
-                sessionTitle: newSessionTitle,
-                slideTitle: 'Learning Objectives',
-                slideType: 'objectives',
-                status: 'generating',
-                progress: 0,
-            },
-        ];
+        // Create a placeholder slide so the chapter appears in the list
+        // This slide acts as a marker for the session
+        const placeholderSlide: SlideGeneration = {
+            id: `${newSessionId}-placeholder-${Date.now()}`,
+            sessionId: newSessionId,
+            sessionTitle: newSessionTitle,
+            slideTitle: '_placeholder_',
+            slideType: 'doc',
+            status: 'completed',
+            progress: 100,
+            content: '',
+            prompt: '',
+        };
 
-        setSlides((prev) => [...prev, ...newSlides]);
-
-        // TODO: Call API to generate session based on the prompt
-        // For now, simulate generation
-        let progress = 0;
-        const progressInterval = setInterval(() => {
-            progress += Math.random() * 15;
-            if (progress >= 100) {
-                progress = 100;
-                clearInterval(progressInterval);
-                setSlides((prev) =>
-                    prev.map((slide) =>
-                        slide.sessionId === newSessionId
-                            ? { ...slide, status: 'completed', progress: 100 }
-                            : slide
-                    )
-                );
-                setAddSessionPrompt('');
-                setAddSessionTopics([]);
-            } else {
-                setSlides((prev) =>
-                    prev.map((slide) =>
-                        slide.sessionId === newSessionId
-                            ? { ...slide, progress: Math.round(progress) }
-                            : slide
-                    )
-                );
-            }
-        }, 200);
+        // Add the placeholder slide
+        setSlides((prev) => [...prev, placeholderSlide]);
+        
+        // Reset the form
+        setAddSessionName('');
+        
+        // Expand the new session so user can add pages
+        setExpandedSessions(prev => new Set([...prev, newSessionId]));
     };
 
     const handleView = (slideId: string) => {
@@ -4615,7 +4217,25 @@ for word, count in word_count.items():
     };
 
     const handleDelete = (slideId: string) => {
-        setSlides((prev) => prev.filter((slide) => slide.id !== slideId));
+        setSlides((prev) => {
+            const updatedSlides = prev.filter((slide) => slide.id !== slideId);
+            
+            // Check if the deleted slide's session now only has a placeholder
+            const deletedSlide = prev.find(s => s.id === slideId);
+            if (deletedSlide) {
+                const remainingSlidesInSession = updatedSlides.filter(s => s.sessionId === deletedSlide.sessionId);
+                const onlyPlaceholder = remainingSlidesInSession.length === 1 && 
+                                       remainingSlidesInSession[0]?.slideTitle === '_placeholder_';
+                
+                // If only placeholder remains, keep it so session stays visible
+                // User can still add pages or delete the session
+                if (onlyPlaceholder) {
+                    return updatedSlides;
+                }
+            }
+            
+            return updatedSlides;
+        });
     };
 
     const handleSaveSlideContent = () => {
@@ -4838,7 +4458,7 @@ for word, count in word_count.items():
 
     const handleDiscardCourse = () => {
         setBackToLibraryDialogOpen(false);
-        navigate({ to: '/study-library/ai-copilot/course-outline' });
+        navigate({ to: '/study-library/ai-copilot' });
     };
 
     const handleSaveToDrafts = () => {
@@ -4890,7 +4510,6 @@ for word, count in word_count.items():
                 <title>Review Course Outline</title>
                 <meta name="description" content="Review and refine your AI-generated course outline." />
             </Helmet>
-
             <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-white to-purple-50">
                 <div className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">
                     {/* Header */}
@@ -5012,21 +4631,23 @@ for word, count in word_count.items():
                                                                 onDragEnd={(event) => handleSlideDragEnd(event, session.sessionId)}
                                                             >
                                                                 <SortableContext
-                                                                    items={session.slides.map((s) => s.id)}
+                                                                    items={session.slides.filter(s => s.slideTitle !== '_placeholder_').map((s) => s.id)}
                                                                     strategy={verticalListSortingStrategy}
                                                                 >
                                                                     <div className="space-y-2">
-                                                                        {session.slides.map((slide) => (
-                                                                            <SortableSlideItem
-                                                                                key={slide.id}
-                                                                                slide={slide}
-                                                                                onEdit={handleSlideEdit}
-                                                                                onDelete={handleDelete}
-                                                                                getSlideIcon={getSlideIcon}
-                                                                                onRegenerate={handleRegenerate}
-                                                                                onContentEdit={handleSlideContentEdit}
-                                                                            />
-                                                                        ))}
+                                                                        {session.slides
+                                                                            .filter(slide => slide.slideTitle !== '_placeholder_')
+                                                                            .map((slide) => (
+                                                                                <SortableSlideItem
+                                                                                    key={slide.id}
+                                                                                    slide={slide}
+                                                                                    onEdit={handleSlideEdit}
+                                                                                    onDelete={handleDelete}
+                                                                                    getSlideIcon={getSlideIcon}
+                                                                                    onRegenerate={handleRegenerate}
+                                                                                    onContentEdit={handleSlideContentEdit}
+                                                                                />
+                                                                            ))}
                                                                         {/* Add Page Button */}
                                                                         <button 
                                                                             className="flex w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-sm font-medium text-neutral-600 transition-colors hover:border-indigo-400 hover:bg-indigo-50"
@@ -5050,13 +4671,13 @@ for word, count in word_count.items():
                                 </SortableContext>
                             </DndContext>
 
-                            {/* Add Session Button */}
+                            {/* Add Chapter Button */}
                             <button
                                 onClick={handleAddSession}
                                 className="mt-4 flex w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-sm font-medium text-neutral-600 transition-colors hover:border-indigo-400 hover:bg-indigo-50"
                             >
                                 <Plus className="h-4 w-4" />
-                                Add Session
+                                Add Chapter
                             </button>
                         </motion.div>
 
@@ -5286,7 +4907,7 @@ for word, count in word_count.items():
                                 <div className="space-y-2">
                                     {courseMetadata?.previewImageUrl ? (
                                         <div className="relative">
-                                            <div className="w-full aspect-[4/3] rounded-lg overflow-hidden">
+                                            <div className="w-full aspect-[16/9] rounded-lg overflow-hidden">
                                                 <img
                                                     src={courseMetadata.previewImageUrl}
                                                     alt="Course preview"
@@ -5362,7 +4983,7 @@ for word, count in word_count.items():
                                 <div className="space-y-2">
                                     {courseMetadata?.bannerImageUrl ? (
                                         <div className="relative">
-                                            <div className="w-full aspect-[3/1] rounded-lg overflow-hidden">
+                                            <div className="w-full aspect-[16/9] rounded-lg overflow-hidden">
                                                 <img
                                                     src={courseMetadata.bannerImageUrl}
                                                     alt="Course banner"
@@ -5438,24 +5059,30 @@ for word, count in word_count.items():
                                     {(courseMetadata?.courseMedia || courseMetadata?.mediaImageUrl || courseMetadata?.bannerImageUrl || courseMetadata?.previewImageUrl) ? (
                                         <div className="relative">
                                             {courseMetadata?.courseMedia && courseMetadata.courseMediaType === 'youtube' ? (
-                                                <iframe
-                                                    src={courseMetadata.courseMedia}
-                                                    className="h-32 w-full rounded-lg"
-                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                    allowFullScreen
-                                                />
+                                                <div className="w-full aspect-[16/9] rounded-lg overflow-hidden">
+                                                    <iframe
+                                                        src={courseMetadata.courseMedia}
+                                                        className="w-full h-full rounded-lg"
+                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                        allowFullScreen
+                                                    />
+                                                </div>
                                             ) : courseMetadata?.courseMedia && courseMetadata.courseMediaType === 'video' ? (
-                                                <video
-                                                    src={courseMetadata.courseMedia}
-                                                    className="h-32 w-full rounded-lg object-cover"
-                                                    controls
-                                                />
+                                                <div className="w-full aspect-[16/9] rounded-lg overflow-hidden">
+                                                    <video
+                                                        src={courseMetadata.courseMedia}
+                                                        className="w-full h-full object-cover"
+                                                        controls
+                                                    />
+                                                </div>
                                             ) : (
-                                                <img
-                                                    src={courseMetadata?.courseMedia || courseMetadata?.mediaImageUrl || courseMetadata?.bannerImageUrl || courseMetadata?.previewImageUrl}
-                                                    alt="Course media"
-                                                    className="h-32 w-full rounded-lg object-cover"
-                                                />
+                                                <div className="w-full aspect-[16/9] rounded-lg overflow-hidden">
+                                                    <img
+                                                        src={courseMetadata?.courseMedia || courseMetadata?.mediaImageUrl || courseMetadata?.bannerImageUrl || courseMetadata?.previewImageUrl}
+                                                        alt="Course media"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
                                             )}
                                             <button
                                                 onClick={() =>
@@ -6156,21 +5783,21 @@ for word, count in word_count.items():
                         </DialogContent>
                     </Dialog>
 
-                    {/* Regenerate Session Dialog */}
+                    {/* Regenerate Chapter Dialog */}
                     <Dialog open={regenerateSessionDialogOpen} onOpenChange={(open) => {
                         setRegenerateSessionDialogOpen(open);
                         if (!open) {
                             // Reset form when closing
                             setRegeneratingSessionId(null);
                         } else if (regeneratingSessionId) {
-                            // Re-pre-fill when reopening with the same session
+                            // Re-pre-fill when reopening with the same chapter
                             const session = sessionsWithProgress.find((s) => s.sessionId === regeneratingSessionId);
                             if (session) {
-                                const topics = extractTopicTitlesFromSlides(session.slides);
-                                const defaultPrompt = `Regenerate the session "${session.sessionTitle}"${topics.length > 0 ? ` with the following topics: ${topics.join(', ')}.` : '.'}`;
+                                const slideTitles = extractSlideTitlesFromSlides(session.slides);
+                                const defaultPrompt = `Regenerate the chapter "${session.sessionTitle}"${slideTitles.length > 0 ? ` with the following slides: ${slideTitles.join(", ")}.` : `.`}`;
                                 setRegenerateSessionPrompt(defaultPrompt);
-                                setRegenerateSessionTopics(topics);
-                                setRegenerateSessionNumberOfTopics(topics.length.toString());
+                                setRegenerateSessionTopics(slideTitles);
+                                setRegenerateSessionNumberOfTopics(slideTitles.length.toString());
                                 const hasQuiz = session.slides.some(s => s.slideType === 'quiz');
                                 const hasHomework = session.slides.some(s => s.slideType === 'homework');
                                 const hasSolution = session.slides.some(s => s.slideType === 'solution');
@@ -6190,7 +5817,7 @@ for word, count in word_count.items():
                         <DialogContent className="w-[80vw] max-w-[80vw] max-h-[90vh] flex flex-col p-0">
                             <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0 border-b">
                                 <DialogTitle>
-                                    Regenerate Session{' '}
+                                    Regenerate Chapter{' '}
                                     {regeneratingSessionId &&
                                         sessionsWithProgress.find((s) => s.sessionId === regeneratingSessionId) &&
                                         `: ${sessionsWithProgress.find((s) => s.sessionId === regeneratingSessionId)?.sessionTitle}`}
@@ -6210,7 +5837,7 @@ for word, count in word_count.items():
 
                                 <div>
                                     <Label htmlFor="regenerateSessionLength" className="mb-2 block">
-                                        Session Length
+                                        Chapter Length
                                     </Label>
                                     <div className="space-y-2">
                                         <Select value={regenerateSessionLength} onValueChange={handleRegenerateSessionLengthChange}>
@@ -6305,7 +5932,7 @@ for word, count in word_count.items():
 
                                 <div>
                                     <Label htmlFor="regenerateSessionNumberOfTopics" className="mb-2 block">
-                                        Number of Topics
+                                        Number of Slides
                                     </Label>
                                     <Input
                                         id="regenerateSessionNumberOfTopics"
@@ -6319,7 +5946,7 @@ for word, count in word_count.items():
                                 </div>
 
                                 <div>
-                                    <Label className="mb-2 block">Topics in Session (Optional)</Label>
+                                    <Label className="mb-2 block">Slides in Chapter (Optional)</Label>
                                     <TagInput
                                         tags={regenerateSessionTopics}
                                         onChange={setRegenerateSessionTopics}
@@ -6491,156 +6118,49 @@ for word, count in word_count.items():
                         </DialogContent>
                     </Dialog>
 
-                    {/* Add Session Dialog */}
+                    {/* Add Chapter Dialog */}
                     <Dialog open={addSessionDialogOpen} onOpenChange={(open) => {
                         setAddSessionDialogOpen(open);
                         if (!open) {
-                            setAddSessionPrompt('');
-                            setAddSessionNumberOfTopics('');
+                            setAddSessionName('');
                         }
                     }}>
-                        <DialogContent className="w-[80vw] max-w-[80vw] max-h-[90vh] flex flex-col p-0">
-                            <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0 border-b">
-                                <DialogTitle>Add Session</DialogTitle>
+                        <DialogContent className="sm:max-w-[500px]">
+                            <DialogHeader>
+                                <DialogTitle>Add New Chapter</DialogTitle>
                             </DialogHeader>
-                            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                            <div className="space-y-4 py-4">
                                 <div>
-                                    <Label className="mb-2 block">Prompt</Label>
-                                    <Textarea
-                                        ref={addSessionPromptTextareaRef}
-                                        value={addSessionPrompt}
-                                        onChange={(e) => setAddSessionPrompt(e.target.value)}
-                                        placeholder="Enter a prompt describing the session you want to create..."
-                                        className="min-h-[150px] text-sm"
-                                    />
-                                </div>
-
-                                <div>
-                                    <Label htmlFor="addSessionLength" className="mb-2 block">
-                                        Session Length
-                                    </Label>
-                                    <div className="space-y-2">
-                                        <Select value={addSessionLength} onValueChange={handleAddSessionLengthChange}>
-                                            <SelectTrigger id="addSessionLength" className="w-full">
-                                                <SelectValue placeholder="Select session length" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="45">45 minutes</SelectItem>
-                                                <SelectItem value="60">60 minutes</SelectItem>
-                                                <SelectItem value="90">90 minutes</SelectItem>
-                                                <SelectItem value="custom">Custom</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        {addSessionLength === 'custom' && (
-                                            <Input
-                                                type="number"
-                                                min="1"
-                                                value={addCustomSessionLength}
-                                                onChange={(e) => setAddCustomSessionLength(e.target.value)}
-                                                placeholder="Enter custom length in minutes"
-                                                className="w-full"
-                                            />
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <Label className="mb-2 block">Session Components</Label>
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox
-                                                id="addIncludeDiagrams"
-                                                checked={addIncludeDiagrams}
-                                                onCheckedChange={(checked) => setAddIncludeDiagrams(checked === true)}
-                                            />
-                                            <Label htmlFor="addIncludeDiagrams" className="cursor-pointer">
-                                                Include diagrams
-                                            </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox
-                                                id="addIncludeCodeSnippets"
-                                                checked={addIncludeCodeSnippets}
-                                                onCheckedChange={(checked) => setAddIncludeCodeSnippets(checked === true)}
-                                            />
-                                            <Label htmlFor="addIncludeCodeSnippets" className="cursor-pointer">
-                                                Include code snippets
-                                            </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox
-                                                id="addIncludePracticeProblems"
-                                                checked={addIncludePracticeProblems}
-                                                onCheckedChange={(checked) => setAddIncludePracticeProblems(checked === true)}
-                                            />
-                                            <Label htmlFor="addIncludePracticeProblems" className="cursor-pointer">
-                                                Include practice problems
-                                            </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox
-                                                id="addIncludeQuizzes"
-                                                checked={addIncludeQuizzes}
-                                                onCheckedChange={(checked) => setAddIncludeQuizzes(checked === true)}
-                                            />
-                                            <Label htmlFor="addIncludeQuizzes" className="cursor-pointer">
-                                                Include quizzes
-                                            </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox
-                                                id="addIncludeHomework"
-                                                checked={addIncludeHomework}
-                                                onCheckedChange={(checked) => setAddIncludeHomework(checked === true)}
-                                            />
-                                            <Label htmlFor="addIncludeHomework" className="cursor-pointer">
-                                                Include assignments
-                                            </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox
-                                                id="addIncludeSolutions"
-                                                checked={addIncludeSolutions}
-                                                onCheckedChange={(checked) => setAddIncludeSolutions(checked === true)}
-                                            />
-                                            <Label htmlFor="addIncludeSolutions" className="cursor-pointer">
-                                                Include solutions
-                                            </Label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <Label htmlFor="addSessionNumberOfTopics" className="mb-2 block">
-                                        Number of Topics
+                                    <Label htmlFor="sessionName" className="mb-2 block">
+                                        Chapter Name
                                     </Label>
                                     <Input
-                                        id="addSessionNumberOfTopics"
-                                        type="number"
-                                        min="1"
-                                        value={addSessionNumberOfTopics}
-                                        onChange={(e) => setAddSessionNumberOfTopics(e.target.value)}
-                                        placeholder="e.g., 3, 4, 5, etc."
-                                        className="w-full"
-                                    />
-                                </div>
-
-                                <div>
-                                    <Label className="mb-2 block">Topics in Session (Optional)</Label>
-                                    <TagInput
-                                        tags={addSessionTopics}
-                                        onChange={setAddSessionTopics}
-                                        placeholder="Enter a topic and press Enter"
+                                        id="sessionName"
+                                        value={addSessionName}
+                                        onChange={(e) => setAddSessionName(e.target.value)}
+                                        placeholder="Enter chapter name"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && addSessionName.trim()) {
+                                                handleConfirmAddSession();
+                                            }
+                                        }}
+                                        autoFocus
                                     />
                                 </div>
                             </div>
-                            <div className="px-6 py-4 flex-shrink-0 border-t flex justify-end">
+                            <div className="flex justify-end gap-3">
+                                <MyButton
+                                    buttonType="secondary"
+                                    onClick={() => setAddSessionDialogOpen(false)}
+                                >
+                                    Cancel
+                                </MyButton>
                                 <MyButton
                                     buttonType="primary"
                                     onClick={handleConfirmAddSession}
-                                    disabled={!addSessionPrompt.trim()}
+                                    disabled={!addSessionName.trim()}
                                 >
-                                    Create Session
+                                    Add Chapter
                                 </MyButton>
                             </div>
                         </DialogContent>
@@ -6695,27 +6215,29 @@ for word, count in word_count.items():
                         <DialogContent className="max-w-md">
                             <DialogHeader>
                                 <DialogTitle>Go Back to Course Library?</DialogTitle>
-                                <DialogDescription>
+                                <DialogDescription className="text-neutral-600">
                                     Are you sure you want to go back to course library? You can either discard your current course or save it to drafts.
                                 </DialogDescription>
                             </DialogHeader>
-                            <div className="flex justify-end gap-3 mt-6">
+                            <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-neutral-200">
                                 <MyButton
                                     buttonType="secondary"
                                     onClick={() => setBackToLibraryDialogOpen(false)}
+                                    className="min-w-[100px]"
                                 >
                                     Cancel
                                 </MyButton>
                                 <MyButton
                                     buttonType="secondary"
                                     onClick={handleDiscardCourse}
-                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    className="min-w-[120px] border-red-300 text-red-600 hover:text-red-700 hover:bg-red-50 hover:border-red-400"
                                 >
                                     Discard Course
                                 </MyButton>
                                 <MyButton
                                     buttonType="primary"
                                     onClick={handleSaveToDrafts}
+                                    className="min-w-[130px]"
                                 >
                                     Save to Drafts
                                 </MyButton>
@@ -6725,5 +6247,5 @@ for word, count in word_count.items():
                 </div>
             </div>
         </LayoutContainer>
-    );
+    )
 }

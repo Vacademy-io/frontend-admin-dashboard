@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Helmet } from 'react-helmet';
 import { useState, useCallback, useEffect } from 'react';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
+import { useSidebar } from '@/components/ui/sidebar';
 import { MyButton } from '@/components/design-system/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +15,7 @@ import { useDropzone } from 'react-dropzone';
 import { X, FileText, Paperclip, Lightbulb, Target, Puzzle, Settings, Sparkles, Upload, Link, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { getCourseSettings } from '@/services/course-settings';
 
 export const Route = createFileRoute('/study-library/ai-copilot/')({
     component: RouteComponent,
@@ -139,7 +141,13 @@ interface PrerequisiteUrl {
 function RouteComponent() {
     const navigate = useNavigate();
     const { setNavHeading } = useNavHeadingStore();
+    const { setOpen } = useSidebar();
     const [currentStep, setCurrentStep] = useState(1);
+    
+    // Collapse sidebar on mount
+    useEffect(() => {
+        setOpen(false);
+    }, [setOpen]);
 
     // Form state
     const [ageRange, setAgeRange] = useState('');
@@ -155,13 +163,16 @@ function RouteComponent() {
     const [includeYouTubeVideo, setIncludeYouTubeVideo] = useState(false);
     const [includeAIGeneratedVideo, setIncludeAIGeneratedVideo] = useState(false);
     const [programmingLanguage, setProgrammingLanguage] = useState('');
-    const [numberOfSessions, setNumberOfSessions] = useState('');
-    const [sessionLength, setSessionLength] = useState('');
-    const [customSessionLength, setCustomSessionLength] = useState('');
+    const [numberOfChapters, setNumberOfChapters] = useState('');
+    const [chapterLength, setChapterLength] = useState('');
+    const [customChapterLength, setCustomChapterLength] = useState('');
     const [includeQuizzes, setIncludeQuizzes] = useState(false);
     const [includeHomework, setIncludeHomework] = useState(false);
     const [includeSolutions, setIncludeSolutions] = useState(false);
-    const [topicsPerSession, setTopicsPerSession] = useState('');
+    const [slidesPerChapter, setSlidesPerChapter] = useState('');
+    const [numberOfSubjects, setNumberOfSubjects] = useState('');
+    const [numberOfModules, setNumberOfModules] = useState('');
+    const [courseDepth, setCourseDepth] = useState<number>(3);
     const [referenceFiles, setReferenceFiles] = useState<PrerequisiteFile[]>([]);
     const [referenceUrls, setReferenceUrls] = useState<PrerequisiteUrl[]>([]);
     const [newReferenceUrl, setNewReferenceUrl] = useState('');
@@ -170,6 +181,22 @@ function RouteComponent() {
     useEffect(() => {
         setNavHeading('Create with Ai');
     }, [setNavHeading]);
+
+    // Fetch course settings to get default course depth
+    useEffect(() => {
+        const fetchCourseDepth = async () => {
+            try {
+                const settings = await getCourseSettings();
+                const defaultDepth = settings?.courseStructure?.defaultDepth || 3;
+                setCourseDepth(defaultDepth);
+            } catch (error) {
+                console.error('Error fetching course settings:', error);
+                // Default to 3 if there's an error
+                setCourseDepth(3);
+            }
+        };
+        fetchCourseDepth();
+    }, []);
 
     const handleExamplePromptClick = (examplePrompt: string) => {
         setCourseGoal(examplePrompt);
@@ -341,10 +368,10 @@ function RouteComponent() {
         setReferenceFiles((prev) => prev.filter((f) => f.id !== id));
     };
 
-    const handleSessionLengthChange = (value: string) => {
-        setSessionLength(value);
+    const handleChapterLengthChange = (value: string) => {
+        setChapterLength(value);
         if (value !== 'custom') {
-            setCustomSessionLength('');
+            setCustomChapterLength('');
         }
     };
 
@@ -366,8 +393,8 @@ function RouteComponent() {
     };
 
     const handleConfirmGenerate = () => {
-        // Get session length (use default if not provided)
-        const finalSessionLength = sessionLength === 'custom' ? customSessionLength : (sessionLength || '60');
+        // Get chapter length (use default if not provided)
+        const finalChapterLength = chapterLength === 'custom' ? customChapterLength : (chapterLength || '60');
 
         const courseConfig = {
             prompt: courseGoal, // Using courseGoal as the main prompt
@@ -383,7 +410,7 @@ function RouteComponent() {
             },
             courseGoal,
             learningOutcome: learningOutcome || undefined,
-            courseDepth: {
+            courseDepthOptions: {
                 includeDiagrams,
                 includeCodeSnippets,
                 includePracticeProblems,
@@ -392,13 +419,16 @@ function RouteComponent() {
                 programmingLanguage: includeCodeSnippets ? programmingLanguage : undefined,
             },
             durationFormatStructure: {
-                numberOfSessions: numberOfSessions ? parseInt(numberOfSessions) : undefined,
-                sessionLength: finalSessionLength,
+                numberOfSessions: numberOfChapters ? parseInt(numberOfChapters) : undefined,
+                sessionLength: finalChapterLength,
                 includeQuizzes,
                 includeHomework,
                 includeSolutions,
-                topicsPerSession: topicsPerSession ? parseInt(topicsPerSession) : undefined,
+                topicsPerSession: slidesPerChapter ? parseInt(slidesPerChapter) : undefined,
+                numberOfSubjects: numberOfSubjects ? parseInt(numberOfSubjects) : undefined,
+                numberOfModules: numberOfModules ? parseInt(numberOfModules) : undefined,
             },
+            courseDepth: courseDepth,
             references: {
                 files: referenceFiles.map((f) => ({
                     name: f.file.name,
@@ -537,7 +567,7 @@ function RouteComponent() {
                                         </h3>
                                         
                                         <div className="space-y-4">
-                                            {/* First Row: Skill Level, Number of Sessions, Session Length */}
+                                            {/* First Row: Skill Level, Number of Chapters, Chapter Length */}
                                             <div className="grid grid-cols-3 gap-4">
                                                 <div>
                                                     <Label htmlFor="skillLevel" className="mb-2 block">
@@ -555,18 +585,18 @@ function RouteComponent() {
                                                     </Select>
                                                 </div>
                                                 <div>
-                                                    <Label htmlFor="numberOfSessions" className="mb-2 block">
-                                                        Number of Sessions
+                                                    <Label htmlFor="numberOfChapters" className="mb-2 block">
+                                                        Number of Chapters
                                                     </Label>
                                                     <Input
-                                                        id="numberOfSessions"
+                                                        id="numberOfChapters"
                                                         type="text"
-                                                        value={numberOfSessions}
+                                                        value={numberOfChapters}
                                                         onChange={(e) => {
                                                             const value = e.target.value;
                                                             // Only allow numbers
                                                             if (value === '' || /^\d+$/.test(value)) {
-                                                                setNumberOfSessions(value);
+                                                                setNumberOfChapters(value);
                                                             }
                                                         }}
                                                         placeholder="e.g., 8"
@@ -574,13 +604,13 @@ function RouteComponent() {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <Label htmlFor="sessionLength" className="mb-2 block">
-                                                        Session Length
+                                                    <Label htmlFor="chapterLength" className="mb-2 block">
+                                                        Chapter Length
                                                     </Label>
                                                     <div className="space-y-2">
-                                                        <Select value={sessionLength} onValueChange={handleSessionLengthChange}>
-                                                            <SelectTrigger id="sessionLength" className="w-full">
-                                                                <SelectValue placeholder="Select session length" />
+                                                        <Select value={chapterLength} onValueChange={handleChapterLengthChange}>
+                                                            <SelectTrigger id="chapterLength" className="w-full">
+                                                                <SelectValue placeholder="Select chapter length" />
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 <SelectItem value="45">45 minutes</SelectItem>
@@ -589,15 +619,15 @@ function RouteComponent() {
                                                                 <SelectItem value="custom">Custom</SelectItem>
                                                             </SelectContent>
                                                         </Select>
-                                                        {sessionLength === 'custom' && (
+                                                        {chapterLength === 'custom' && (
                                                             <Input
                                                                 type="text"
-                                                                value={customSessionLength}
+                                                                value={customChapterLength}
                                                                 onChange={(e) => {
                                                                     const value = e.target.value;
                                                                     // Only allow numbers
                                                                     if (value === '' || /^\d+$/.test(value)) {
-                                                                        setCustomSessionLength(value);
+                                                                        setCustomChapterLength(value);
                                                                     }
                                                                 }}
                                                                 placeholder="Enter custom length in minutes"
@@ -728,20 +758,66 @@ function RouteComponent() {
                                                 )}
                                             </div>
 
-                                            {/* Topics per Session */}
+                                            {/* Number of Subjects - Show if depth > 4 */}
+                                            {courseDepth > 4 && (
+                                                <div>
+                                                    <Label htmlFor="numberOfSubjects" className="mb-2 block">
+                                                        Number of Subjects
+                                                    </Label>
+                                                    <Input
+                                                        id="numberOfSubjects"
+                                                        type="text"
+                                                        value={numberOfSubjects}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value;
+                                                            // Only allow numbers
+                                                            if (value === '' || /^\d+$/.test(value)) {
+                                                                setNumberOfSubjects(value);
+                                                            }
+                                                        }}
+                                                        placeholder="e.g., 2, 3, 4, etc."
+                                                        className="w-full"
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {/* Number of Modules - Show if depth > 3 */}
+                                            {courseDepth > 3 && (
+                                                <div>
+                                                    <Label htmlFor="numberOfModules" className="mb-2 block">
+                                                        Number of Modules
+                                                    </Label>
+                                                    <Input
+                                                        id="numberOfModules"
+                                                        type="text"
+                                                        value={numberOfModules}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value;
+                                                            // Only allow numbers
+                                                            if (value === '' || /^\d+$/.test(value)) {
+                                                                setNumberOfModules(value);
+                                                            }
+                                                        }}
+                                                        placeholder="e.g., 2, 3, 4, etc."
+                                                        className="w-full"
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {/* Slides per Chapter */}
                                             <div>
-                                                <Label htmlFor="topicsPerSession" className="mb-2 block">
-                                                    Topics per Session
+                                                <Label htmlFor="slidesPerChapter" className="mb-2 block">
+                                                    Slides per Chapter
                                                 </Label>
                                                 <Input
-                                                    id="topicsPerSession"
+                                                    id="slidesPerChapter"
                                                     type="text"
-                                                    value={topicsPerSession}
+                                                    value={slidesPerChapter}
                                                     onChange={(e) => {
                                                         const value = e.target.value;
                                                         // Only allow numbers
                                                         if (value === '' || /^\d+$/.test(value)) {
-                                                            setTopicsPerSession(value);
+                                                            setSlidesPerChapter(value);
                                                         }
                                                     }}
                                                     placeholder="e.g., 2, 3, 4, etc."
@@ -905,24 +981,36 @@ function RouteComponent() {
                                     <p className="text-sm text-neutral-600 capitalize">{skillLevel}</p>
                                 </div>
                             )}
-                            {numberOfSessions && (
+                            {numberOfSubjects && (
                                 <div>
-                                    <h4 className="text-sm font-semibold text-neutral-900 mb-1">Number of Sessions</h4>
-                                    <p className="text-sm text-neutral-600">{numberOfSessions}</p>
+                                    <h4 className="text-sm font-semibold text-neutral-900 mb-1">Number of Subjects</h4>
+                                    <p className="text-sm text-neutral-600">{numberOfSubjects}</p>
                                 </div>
                             )}
-                            {(sessionLength || customSessionLength) && (
+                            {numberOfModules && (
                                 <div>
-                                    <h4 className="text-sm font-semibold text-neutral-900 mb-1">Session Length</h4>
+                                    <h4 className="text-sm font-semibold text-neutral-900 mb-1">Number of Modules</h4>
+                                    <p className="text-sm text-neutral-600">{numberOfModules}</p>
+                                </div>
+                            )}
+                            {numberOfChapters && (
+                                <div>
+                                    <h4 className="text-sm font-semibold text-neutral-900 mb-1">Number of Chapters</h4>
+                                    <p className="text-sm text-neutral-600">{numberOfChapters}</p>
+                                </div>
+                            )}
+                            {(chapterLength || customChapterLength) && (
+                                <div>
+                                    <h4 className="text-sm font-semibold text-neutral-900 mb-1">Chapter Length</h4>
                                     <p className="text-sm text-neutral-600">
-                                        {sessionLength === 'custom' ? `${customSessionLength} minutes` : sessionLength ? `${sessionLength} minutes` : ''}
+                                        {chapterLength === 'custom' ? `${customChapterLength} minutes` : chapterLength ? `${chapterLength} minutes` : ''}
                                     </p>
                                 </div>
                             )}
-                            {topicsPerSession && (
+                            {slidesPerChapter && (
                                 <div>
-                                    <h4 className="text-sm font-semibold text-neutral-900 mb-1">Topics per Session</h4>
-                                    <p className="text-sm text-neutral-600">{topicsPerSession}</p>
+                                    <h4 className="text-sm font-semibold text-neutral-900 mb-1">Slides per Chapter</h4>
+                                    <p className="text-sm text-neutral-600">{slidesPerChapter}</p>
                                 </div>
                             )}
                         </div>

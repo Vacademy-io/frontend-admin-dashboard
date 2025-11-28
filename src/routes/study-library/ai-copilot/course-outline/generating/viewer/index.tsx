@@ -1729,7 +1729,7 @@ function RouteComponent() {
 
     const handleDiscardCourse = () => {
         setBackToLibraryDialogOpen(false);
-        navigate({ to: '/study-library' });
+        navigate({ to: '/study-library/ai-copilot' });
     };
 
     const handleSaveToDrafts = () => {
@@ -2353,27 +2353,29 @@ function RouteComponent() {
                 <DialogContent className="max-w-md">
                     <DialogHeader>
                         <DialogTitle>Go Back to Course Library?</DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription className="text-neutral-600">
                             Are you sure you want to go back to course library? You can either discard your current course or save it to drafts.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="flex justify-end gap-3 mt-6">
+                    <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-neutral-200">
                         <MyButton
                             buttonType="secondary"
                             onClick={() => setBackToLibraryDialogOpen(false)}
+                            className="min-w-[100px]"
                         >
                             Cancel
                         </MyButton>
                         <MyButton
                             buttonType="secondary"
                             onClick={handleDiscardCourse}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="min-w-[120px] border-red-300 text-red-600 hover:text-red-700 hover:bg-red-50 hover:border-red-400"
                         >
                             Discard Course
                         </MyButton>
                         <MyButton
                             buttonType="primary"
                             onClick={handleSaveToDrafts}
+                            className="min-w-[130px]"
                         >
                             Save to Drafts
                         </MyButton>

@@ -1995,13 +1995,13 @@ const getDefaultSlideTitle = (type: SlideType): string => {
                                 </SortableContext>
                             </DndContext>
 
-                            {/* Add Session Button */}
+                            {/* Add Chapter Button */}
                             <button
                                 onClick={handleAddSession}
                                 className="mt-4 flex w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-sm font-medium text-neutral-600 transition-colors hover:border-indigo-400 hover:bg-indigo-50"
                             >
                                 <Plus className="h-4 w-4" />
-                                Add Session
+                                Add Chapter
                             </button>
                         </motion.div>
 
@@ -2839,7 +2839,7 @@ const getDefaultSlideTitle = (type: SlideType): string => {
                                 <div className="space-y-4">
                                     <div>
                                         <Label htmlFor="regenerateCourseNumberOfSessions" className="mb-2 block">
-                                            Number of Sessions
+                                            Number of Chapters
                                         </Label>
                                         <Input
                                             id="regenerateCourseNumberOfSessions"
@@ -3165,7 +3165,7 @@ const getDefaultSlideTitle = (type: SlideType): string => {
                 </DialogContent>
             </Dialog>
 
-            {/* Add Session Dialog */}
+            {/* Add Chapter Dialog */}
             <Dialog open={addSessionDialogOpen} onOpenChange={(open) => {
                 setAddSessionDialogOpen(open);
                 if (!open) {
@@ -3174,18 +3174,18 @@ const getDefaultSlideTitle = (type: SlideType): string => {
             }}>
                 <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
-                        <DialogTitle>Add New Session</DialogTitle>
+                        <DialogTitle>Add New Chapter</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div>
                             <Label htmlFor="addSessionName" className="mb-2 block">
-                                Session Name
+                                Chapter Name
                             </Label>
                             <Input
                                 id="addSessionName"
                                 value={addSessionName}
                                 onChange={(e) => setAddSessionName(e.target.value)}
-                                placeholder="Enter session name"
+                                placeholder="Enter chapter name"
                                 className="w-full"
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' && addSessionName.trim()) {
@@ -3207,7 +3207,7 @@ const getDefaultSlideTitle = (type: SlideType): string => {
                             onClick={handleConfirmAddSession}
                             disabled={!addSessionName.trim()}
                         >
-                            Add Session
+                            Add Chapter
                         </MyButton>
                     </div>
                 </DialogContent>
