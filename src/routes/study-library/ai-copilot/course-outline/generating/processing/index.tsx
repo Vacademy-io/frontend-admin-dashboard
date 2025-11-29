@@ -78,7 +78,7 @@ function RouteComponent() {
     };
 
     return (
-        <LayoutContainer public={true}>
+        <LayoutContainer>
             <Helmet>
                 <title>Processing Course Assets</title>
                 <meta name="description" content="AI is crafting your course content." />

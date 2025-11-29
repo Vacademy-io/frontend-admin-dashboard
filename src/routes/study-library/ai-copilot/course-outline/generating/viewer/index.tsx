@@ -2113,7 +2113,7 @@ function RouteComponent() {
     };
 
     return (
-        <LayoutContainer public={true}>
+        <LayoutContainer>
             <Helmet>
                 <title>Course Content Viewer</title>
                 <meta name="description" content="View your generated course content" />

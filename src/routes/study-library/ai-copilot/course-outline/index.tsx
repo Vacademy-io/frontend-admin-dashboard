@@ -1607,7 +1607,7 @@ const getDefaultSlideTitle = (type: SlideType): string => {
     // Loading state
     if (isInitialLoading) {
         return (
-            <LayoutContainer public={true}>
+            <LayoutContainer>
                 <Helmet>
                     <title>Generating Course Outline...</title>
                 </Helmet>
@@ -1626,7 +1626,7 @@ const getDefaultSlideTitle = (type: SlideType): string => {
     }
 
     return (
-        <LayoutContainer public={true}>
+        <LayoutContainer>
             <Helmet>
                 <title>AI-Generated Course Outline</title>
                 <meta name="description" content="Review and save your AI-generated course outline." />

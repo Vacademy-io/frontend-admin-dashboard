@@ -760,11 +760,11 @@ function RouteComponent() {
 
                                             {/* Number of Subjects - Show if depth > 4 */}
                                             {courseDepth > 4 && (
-                                                <div>
+                                            <div>
                                                     <Label htmlFor="numberOfSubjects" className="mb-2 block">
                                                         Number of Subjects
-                                                    </Label>
-                                                    <Input
+                                                </Label>
+                                                <Input
                                                         id="numberOfSubjects"
                                                         type="text"
                                                         value={numberOfSubjects}
