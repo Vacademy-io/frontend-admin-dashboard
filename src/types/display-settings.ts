@@ -92,6 +92,10 @@ export interface CourseCreationSettings {
     showCreateCourseWithAI: boolean;
     // Require selecting package sessions when creating a new chapter
     requirePackageSelectionForNewChapter: boolean;
+    // Toggle visibility of advanced options inside course creation flows
+    showAdvancedSettings: boolean;
+    // Restrict the course hierarchy to a single level (no nested modules)
+    limitToSingleLevel: boolean;
 }
 
 export interface StudentSideViewSettings {

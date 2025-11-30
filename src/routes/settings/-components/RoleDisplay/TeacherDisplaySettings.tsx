@@ -22,6 +22,8 @@ import type {
 const COURSE_CREATION_DEFAULTS: CourseCreationSettings = {
     showCreateCourseWithAI: false,
     requirePackageSelectionForNewChapter: true,
+    showAdvancedSettings: true,
+    limitToSingleLevel: false,
 };
 
 const STUDENT_SIDE_VIEW_DEFAULTS: StudentSideViewSettings = {
@@ -341,6 +343,12 @@ export default function TeacherDisplaySettings() {
                                             prev.courseCreation
                                                 ?.requirePackageSelectionForNewChapter ??
                                             COURSE_CREATION_DEFAULTS.requirePackageSelectionForNewChapter,
+                                        showAdvancedSettings:
+                                            prev.courseCreation?.showAdvancedSettings ??
+                                            COURSE_CREATION_DEFAULTS.showAdvancedSettings,
+                                        limitToSingleLevel:
+                                            prev.courseCreation?.limitToSingleLevel ??
+                                            COURSE_CREATION_DEFAULTS.limitToSingleLevel,
                                     },
                                 }))
                             }
@@ -363,6 +371,66 @@ export default function TeacherDisplaySettings() {
                                             prev.courseCreation?.showCreateCourseWithAI ??
                                             COURSE_CREATION_DEFAULTS.showCreateCourseWithAI,
                                         requirePackageSelectionForNewChapter: checked,
+                                        showAdvancedSettings:
+                                            prev.courseCreation?.showAdvancedSettings ??
+                                            COURSE_CREATION_DEFAULTS.showAdvancedSettings,
+                                        limitToSingleLevel:
+                                            prev.courseCreation?.limitToSingleLevel ??
+                                            COURSE_CREATION_DEFAULTS.limitToSingleLevel,
+                                    },
+                                }))
+                            }
+                        />
+                    </div>
+                    <div className="flex items-center justify-between rounded border p-3">
+                        <div className="text-sm">Show Advanced Settings</div>
+                        <Switch
+                            checked={
+                                settings.courseCreation?.showAdvancedSettings ??
+                                COURSE_CREATION_DEFAULTS.showAdvancedSettings
+                            }
+                            onCheckedChange={(checked) =>
+                                updateSettings((prev) => ({
+                                    ...prev,
+                                    courseCreation: {
+                                        showCreateCourseWithAI:
+                                            prev.courseCreation?.showCreateCourseWithAI ??
+                                            COURSE_CREATION_DEFAULTS.showCreateCourseWithAI,
+                                        requirePackageSelectionForNewChapter:
+                                            prev.courseCreation
+                                                ?.requirePackageSelectionForNewChapter ??
+                                            COURSE_CREATION_DEFAULTS.requirePackageSelectionForNewChapter,
+                                        showAdvancedSettings: checked,
+                                        limitToSingleLevel:
+                                            prev.courseCreation?.limitToSingleLevel ??
+                                            COURSE_CREATION_DEFAULTS.limitToSingleLevel,
+                                    },
+                                }))
+                            }
+                        />
+                    </div>
+                    <div className="flex items-center justify-between rounded border p-3">
+                        <div className="text-sm">Limit Course To Single Level</div>
+                        <Switch
+                            checked={
+                                settings.courseCreation?.limitToSingleLevel ??
+                                COURSE_CREATION_DEFAULTS.limitToSingleLevel
+                            }
+                            onCheckedChange={(checked) =>
+                                updateSettings((prev) => ({
+                                    ...prev,
+                                    courseCreation: {
+                                        showCreateCourseWithAI:
+                                            prev.courseCreation?.showCreateCourseWithAI ??
+                                            COURSE_CREATION_DEFAULTS.showCreateCourseWithAI,
+                                        requirePackageSelectionForNewChapter:
+                                            prev.courseCreation
+                                                ?.requirePackageSelectionForNewChapter ??
+                                            COURSE_CREATION_DEFAULTS.requirePackageSelectionForNewChapter,
+                                        showAdvancedSettings:
+                                            prev.courseCreation?.showAdvancedSettings ??
+                                            COURSE_CREATION_DEFAULTS.showAdvancedSettings,
+                                        limitToSingleLevel: checked,
                                     },
                                 }))
                             }

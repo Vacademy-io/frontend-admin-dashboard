@@ -1,5 +1,5 @@
 // add-course-form.tsx
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { MyButton } from '@/components/design-system/button';
@@ -26,6 +26,17 @@ import { CourseDetailsFormValues } from '@/routes/study-library/courses/course-d
 import { useUpdateCourse } from '@/services/study-library/course-operations/update-course';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useCourseSettings } from '@/hooks/useCourseSettings';
+import {
+    ADMIN_DISPLAY_SETTINGS_KEY,
+    TEACHER_DISPLAY_SETTINGS_KEY,
+    type DisplaySettingsData,
+} from '@/types/display-settings';
+import {
+    getDisplaySettingsFromCache,
+    getDisplaySettingsWithFallback,
+} from '@/services/display-settings';
+import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 export interface Level {
     id: string;
@@ -63,6 +74,41 @@ export const AddCourseForm = ({
     const addModuleMutation = useAddModule();
     const addChapterMutation = useAddChapter();
     const { settings: courseSettings, loading: settingsLoading } = useCourseSettings();
+    const [roleDisplaySettings, setRoleDisplaySettings] = useState<DisplaySettingsData | null>(
+        null
+    );
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadDisplaySettings = async () => {
+            try {
+                const accessToken = getTokenFromCookie(TokenKey.accessToken);
+                const roles = getUserRoles(accessToken);
+                const roleKey = roles.includes('ADMIN')
+                    ? ADMIN_DISPLAY_SETTINGS_KEY
+                    : TEACHER_DISPLAY_SETTINGS_KEY;
+
+                const cached = getDisplaySettingsFromCache(roleKey);
+                if (cached && isMounted) {
+                    setRoleDisplaySettings(cached);
+                }
+
+                const latest = await getDisplaySettingsWithFallback(roleKey);
+                if (isMounted) {
+                    setRoleDisplaySettings(latest);
+                }
+            } catch (error) {
+                console.error('Failed to load display settings for course creation', error);
+            }
+        };
+
+        loadDisplaySettings();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     const navigate = useNavigate();
     const addCourseMutation = useAddCourse();
@@ -388,6 +434,7 @@ export const AddCourseForm = ({
                         isEdit={isEdit}
                         courseSettings={courseSettings}
                         settingsLoading={settingsLoading}
+                        courseCreationDisplay={roleDisplaySettings?.courseCreation}
                     />
                 )}
             </div>
@@ -431,6 +478,7 @@ export const AddCourseForm = ({
                             isEdit={isEdit}
                             courseSettings={courseSettings}
                             settingsLoading={settingsLoading}
+                            courseCreationDisplay={roleDisplaySettings?.courseCreation}
                         />
                     )}
                 </div>

@@ -327,6 +327,8 @@ function mergeDisplayWithDefaults(
     const defCourseCreation = defaults.courseCreation || {
         showCreateCourseWithAI: false,
         requirePackageSelectionForNewChapter: true,
+        showAdvancedSettings: true,
+        limitToSingleLevel: false,
     };
     merged.courseCreation = {
         showCreateCourseWithAI:
@@ -335,6 +337,11 @@ function mergeDisplayWithDefaults(
         requirePackageSelectionForNewChapter:
             incoming?.courseCreation?.requirePackageSelectionForNewChapter ??
             defCourseCreation.requirePackageSelectionForNewChapter,
+        showAdvancedSettings:
+            incoming?.courseCreation?.showAdvancedSettings ??
+            defCourseCreation.showAdvancedSettings,
+        limitToSingleLevel:
+            incoming?.courseCreation?.limitToSingleLevel ?? defCourseCreation.limitToSingleLevel,
     };
 
     const defStudentSideView = defaults.studentSideView || {
@@ -353,8 +360,7 @@ function mergeDisplayWithDefaults(
         progressTab: incoming?.studentSideView?.progressTab ?? defStudentSideView.progressTab,
         notificationTab:
             incoming?.studentSideView?.notificationTab ?? defStudentSideView.notificationTab,
-        membershipTab:
-            incoming?.studentSideView?.membershipTab ?? defStudentSideView.membershipTab,
+        membershipTab: incoming?.studentSideView?.membershipTab ?? defStudentSideView.membershipTab,
         userTaggingTab:
             incoming?.studentSideView?.userTaggingTab ?? defStudentSideView.userTaggingTab,
         fileTab: incoming?.studentSideView?.fileTab ?? defStudentSideView.fileTab,
@@ -369,9 +375,11 @@ function mergeDisplayWithDefaults(
     };
     merged.learnerManagement = {
         allowPortalAccess:
-            incoming?.learnerManagement?.allowPortalAccess ?? defLearnerManagement.allowPortalAccess,
+            incoming?.learnerManagement?.allowPortalAccess ??
+            defLearnerManagement.allowPortalAccess,
         allowViewPassword:
-            incoming?.learnerManagement?.allowViewPassword ?? defLearnerManagement.allowViewPassword,
+            incoming?.learnerManagement?.allowViewPassword ??
+            defLearnerManagement.allowViewPassword,
         allowSendResetPasswordMail:
             incoming?.learnerManagement?.allowSendResetPasswordMail ??
             defLearnerManagement.allowSendResetPasswordMail,
