@@ -100,6 +100,8 @@ export const DEFAULT_ADMIN_DISPLAY_SETTINGS: DisplaySettingsData = {
     courseCreation: {
         showCreateCourseWithAI: false,
         requirePackageSelectionForNewChapter: true,
+        showAdvancedSettings: true,
+        limitToSingleLevel: false,
     },
     studentSideView: {
         overviewTab: true,
