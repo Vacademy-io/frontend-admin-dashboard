@@ -252,7 +252,7 @@ export const EnrollBulkDialog = () => {
                                                     </span>
                                                 </div>
                                                 <MyDropdown
-                                                    currentValue={value.name}
+                                                    currentValue={value?.name ?? ''}
                                                     dropdownList={courseList}
                                                     handleChange={onChange}
                                                     placeholder={`Select ${getTerminology(
@@ -289,7 +289,7 @@ export const EnrollBulkDialog = () => {
                                                     </span>
                                                 </div>
                                                 <MyDropdown
-                                                    currentValue={value.name}
+                                                    currentValue={value?.name ?? ''}
                                                     dropdownList={sessionList}
                                                     handleChange={onChange}
                                                     placeholder={`Select ${getTerminology(
@@ -328,7 +328,7 @@ export const EnrollBulkDialog = () => {
                                                     </span>
                                                 </div>
                                                 <MyDropdown
-                                                    currentValue={value.name}
+                                                    currentValue={value?.name ?? ''}
                                                     dropdownList={levelList}
                                                     handleChange={onChange}
                                                     placeholder={`Select ${getTerminology(

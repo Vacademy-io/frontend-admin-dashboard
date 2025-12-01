@@ -1246,7 +1246,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
                                             <FormItem>
                                                 <FormControl>
                                                     <QRCode
-                                                        value={field.value}
+                                                        value={field.value ?? ''}
                                                         className="size-16"
                                                         id="qr-code-svg"
                                                     />
