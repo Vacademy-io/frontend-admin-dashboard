@@ -430,11 +430,11 @@ export function LoginForm() {
                                     {instituteName}
                                 </div>
                             ) : null}
-                            <div className="text-primary-700 rounded-lg border border-primary-200/60 bg-primary-50/60 px-5 py-2 text-center text-sm font-medium">
+                            {/* <div className="text-primary-700 rounded-lg border border-primary-200/60 bg-primary-50/60 px-5 py-2 text-center text-sm font-medium">
                                 Welcome to the{' '}
                                 <span className="font-semibold">{portalRoleLabel} Portal</span> of{' '}
                                 <span className="font-semibold">{portalInstitute}</span>
-                            </div>
+                            </div> */}
                         </div>
 
                         {/* Right side - Login form */}

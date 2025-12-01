@@ -8,8 +8,9 @@ import { CourseCatalog } from '@/svgs';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import type { LevelType } from '@/schemas/student/student-list/institute-schema';
-import { handleGetInstituteUsersForAccessControl } from '@/routes/dashboard/-services/dashboard-services';
+// import { handleGetInstituteUsersForAccessControl } from '@/routes/dashboard/-services/dashboard-services';
 import { useSuspenseQuery, useQuery } from '@tanstack/react-query';
+import { useFacultyCreatorsList } from '@/routes/dashboard/-hooks/useTeacherList';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
@@ -130,15 +131,43 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
     // Image cache hook
     const imageCache = useImageCache();
 
-    const { data: accessControlUsers, isLoading: isUsersLoading } = useSuspenseQuery(
-        handleGetInstituteUsersForAccessControl(instituteDetails?.id, {
-            roles: [
-                { id: '1', name: 'ADMIN' },
-                { id: '5', name: 'TEACHER' },
-            ],
-            status: [{ id: '1', name: 'ACTIVE' }],
-        })
-    );
+    // Use faculty creators API instead of old user roles API
+    const {
+        data: facultyCreators,
+        isLoading: isFacultyLoading,
+        error: facultyError,
+    } = useFacultyCreatorsList(instituteDetails?.id || '', Boolean(instituteDetails?.id));
+
+    // Determine if we should use fallback API
+    const shouldUseFallback = facultyCreators && Array.isArray(facultyCreators) && facultyCreators.length === 0;
+
+    // Fallback to old API only when faculty creators is empty
+    // const { data: fallbackUsers } = useQuery({
+    //     queryKey: ['fallbackUsers', instituteDetails?.id],
+    //     queryFn: () => handleGetInstituteUsersForAccessControl(instituteDetails?.id, {
+    //         roles: [
+    //             { id: '1', name: 'ADMIN' },
+    //             { id: '5', name: 'TEACHER' },
+    //         ],
+    //         status: [{ id: '1', name: 'ACTIVE' }],
+    //     }),
+    //     enabled: Boolean(shouldUseFallback && instituteDetails?.id),
+    // });
+
+    // Use faculty creators or fallback data
+    const accessControlUsers = facultyCreators || [];
+    const isUsersLoading = isFacultyLoading;
+
+    // Debug logging
+    console.log('Faculty Creators Debug:', {
+        facultyCreators,
+        facultyCreatorsLength: facultyCreators?.length,
+        isFacultyLoading,
+        facultyError,
+        shouldUseFallback,
+        instituteId: instituteDetails?.id,
+        accessControlUsers: accessControlUsers?.length > 0 ? accessControlUsers : 'not loaded',
+    });
 
     const { setNavHeading } = useNavHeadingStore();
     const [selectedTab, setSelectedTab] = useState<
