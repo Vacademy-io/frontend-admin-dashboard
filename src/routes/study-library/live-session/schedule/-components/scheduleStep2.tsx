@@ -529,7 +529,7 @@ export default function ScheduleStep2() {
                                 render={({ field }) => (
                                     <MyRadioButton
                                         name="meetingType"
-                                        value={field.value}
+                                        value={field.value ?? ''}
                                         onChange={field.onChange}
                                         disabled={isEditState}
                                         options={[
@@ -733,7 +733,7 @@ export default function ScheduleStep2() {
                                             <FormItem>
                                                 <FormControl>
                                                     <QRCode
-                                                        value={field.value}
+                                                        value={field.value ?? ''}
                                                         className="size-16"
                                                         id="qr-code-svg"
                                                     />
@@ -975,7 +975,7 @@ export default function ScheduleStep2() {
                                     render={({ field }) => (
                                         <MyRadioButton
                                             name="meetingType"
-                                            value={field.value}
+                                            value={field.value ?? ''}
                                             onChange={field.onChange}
                                             options={[
                                                 {

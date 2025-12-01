@@ -369,19 +369,20 @@ export const CreateInviteDialog = ({
                                 <div className="ml-3">
                                     {courseSelectionMode === 'institute' ? (
                                         <div className="grid grid-cols-3 gap-1 text-caption">
-                                            {instituteDetails?.batches_for_sessions.map((batch) => (
+                                            {instituteDetails?.batches_for_sessions?.map((batch) => (
                                                 <FormField
                                                     key={batch.id}
                                                     control={control}
                                                     name="batches.preSelectedCourses"
                                                     render={({ field }) => {
+                                                        const currentValue = field.value ?? [];
                                                         return (
                                                             <FormItem key={batch.id}>
                                                                 <FormControl>
                                                                     <div className="flex items-center gap-2">
                                                                         <Checkbox
                                                                             className="data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
-                                                                            checked={field.value?.some(
+                                                                            checked={currentValue.some(
                                                                                 (item) =>
                                                                                     item.id ===
                                                                                     batch.id
@@ -389,17 +390,16 @@ export const CreateInviteDialog = ({
                                                                             onCheckedChange={(
                                                                                 checked
                                                                             ) => {
-                                                                                const newValue =
-                                                                                    checked
-                                                                                        ? [
-                                                                                              ...field.value,
-                                                                                              batch,
-                                                                                          ]
-                                                                                        : field.value.filter(
-                                                                                              (b) =>
-                                                                                                  b.id !==
-                                                                                                  batch.id
-                                                                                          );
+                                                                                const newValue = checked
+                                                                                    ? [
+                                                                                          ...currentValue,
+                                                                                          batch,
+                                                                                      ]
+                                                                                    : currentValue.filter(
+                                                                                          (b) =>
+                                                                                              b.id !==
+                                                                                              batch.id
+                                                                                      );
                                                                                 field.onChange(
                                                                                     newValue
                                                                                 );
@@ -432,20 +432,21 @@ export const CreateInviteDialog = ({
                                     ) : (
                                         <div className="flex flex-col gap-2 text-caption">
                                             <div className="grid grid-cols-3 gap-x-4 gap-y-1">
-                                                {instituteDetails?.batches_for_sessions.map(
+                                                {instituteDetails?.batches_for_sessions?.map(
                                                     (batch) => (
                                                         <FormField
                                                             key={batch.id}
                                                             control={control}
                                                             name="batches.learnerChoiceCourses"
                                                             render={({ field }) => {
+                                                                const currentValue = field.value ?? [];
                                                                 return (
                                                                     <FormItem key={batch.id}>
                                                                         <FormControl>
                                                                             <div className="flex items-center gap-2">
                                                                                 <Checkbox
                                                                                     className="data-[state=checked]:bg-primary-500 data-[state=checked]:text-white"
-                                                                                    checked={field.value?.some(
+                                                                                    checked={currentValue.some(
                                                                                         (item) =>
                                                                                             item.id ===
                                                                                             batch.id
@@ -456,17 +457,16 @@ export const CreateInviteDialog = ({
                                                                                         const newValue =
                                                                                             checked
                                                                                                 ? [
-                                                                                                      ...field.value,
+                                                                                                      ...currentValue,
                                                                                                       batch,
                                                                                                   ]
-                                                                                                : field.value.filter(
+                                                                                                : currentValue.filter(
                                                                                                       (
                                                                                                           b
                                                                                                       ) =>
                                                                                                           b.id !==
                                                                                                           batch.id
                                                                                                   );
-                                                                                        // form.setValue("batches.learnerChoiceCourses", newValue);
                                                                                         field.onChange(
                                                                                             newValue
                                                                                         );
