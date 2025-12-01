@@ -78,6 +78,7 @@ import {
     type FieldVisibility as ServiceFieldVisibility,
     type SystemField as ServiceSystemField,
 } from '@/services/custom-field-settings';
+import { toast } from 'sonner';
 
 // Use service types for the component
 type FieldVisibility = ServiceFieldVisibility;
@@ -632,6 +633,23 @@ const CustomFieldsSettings: React.FC = () => {
 
     const handleAddCustomField = () => {
         if (newField.name && newField.type) {
+            // Check for duplicate field names (case-insensitive)
+            const newFieldNameLower = newField.name.trim().toLowerCase();
+
+            // Check against all existing field names
+            const allExistingFieldNames = [
+                ...systemFields.map((f) => f.customValue.toLowerCase()),
+                ...fixedFields.map((f) => f.name.toLowerCase()),
+                ...instituteFields.map((f) => f.name.toLowerCase()),
+                ...customFields.map((f) => f.name.toLowerCase()),
+            ];
+
+            // Check if field name already exists
+            if (allExistingFieldNames.includes(newFieldNameLower)) {
+                toast.error('Field name already exists');
+                return; // Don't add the field
+            }
+
             const field = createTempCustomField(
                 newField.name,
                 newField.type,
@@ -680,17 +698,6 @@ const CustomFieldsSettings: React.FC = () => {
                 lastUpdated: new Date().toISOString(),
                 version: 1,
             };
-
-            console.log('🔍 [DEBUG] About to save - Field IDs check:', {
-                fixedFields: settingsData.fixedFields.map((f) => ({ id: f.id, name: f.name })),
-                customFields: settingsData.customFields.map((f) => ({ id: f.id, name: f.name })),
-                instituteFields: settingsData.instituteFields.map((f) => ({
-                    id: f.id,
-                    name: f.name,
-                })),
-                tempFields: settingsData.customFields.filter((f) => isTempField(f)).length,
-                existingFields: settingsData.customFields.filter((f) => !isTempField(f)).length,
-            });
 
             const result = await saveCustomFieldSettings(settingsData);
 

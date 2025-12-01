@@ -542,15 +542,9 @@ const mapApiResponseToUI = (apiResponse: ApiCustomFieldResponse): CustomFieldSet
                 visibility: dto.visibility,
             });
         });
-        console.log(
-            `✅ [DEBUG] Loaded ${systemFields.length} system fields from fixedFieldRenameDtos`
-        );
     } else {
         // First time setup - use default system fields
         systemFields.push(...DEFAULT_SYSTEM_FIELDS);
-        console.log(
-            `📋 [DEBUG] No fixedFieldRenameDtos found, using ${DEFAULT_SYSTEM_FIELDS.length} default system fields`
-        );
     }
 
     // Safety check: ensure currentCustomFieldsAndGroups exists and is an array
@@ -561,8 +555,6 @@ const mapApiResponseToUI = (apiResponse: ApiCustomFieldResponse): CustomFieldSet
 
     // Process individual fields AND build groups from fields with groupName
     const groupsMap = new Map<string, FieldGroup>();
-
-    console.log('🔍 [DEBUG] Processing fields from currentCustomFieldsAndGroups:', fields.length);
 
     fields.forEach((apiField: ApiCustomField) => {
         const isSystemField = SYSTEM_FIELD_NAMES.includes(apiField.fieldName.toLowerCase());
@@ -578,40 +570,39 @@ const mapApiResponseToUI = (apiResponse: ApiCustomFieldResponse): CustomFieldSet
             const customField = mapApiFieldToCustomField(apiField);
             customField.required = isRequired;
             customFields.push(customField);
-            console.log(
-                `✅ [DEBUG] Added custom field: ${customField.name}, groupName: ${customField.groupName || 'none'}`
-            );
         }
 
         // Also process fields that belong to groups
         if (apiField.groupName) {
-            const groupName = apiField.groupName;
+            // Split group names by comma and trim whitespace to handle multi-group fields
+            const groupNames = apiField.groupName
+                .split(',')
+                .map((name) => name.trim())
+                .filter((name) => name.length > 0);
 
-            if (!groupsMap.has(groupName)) {
-                groupsMap.set(groupName, {
-                    id: groupName,
-                    name: groupName,
-                    fields: [],
-                    order: 0,
-                });
-                console.log(`📁 [DEBUG] Created new group: ${groupName}`);
-            }
+            groupNames.forEach((groupName) => {
+                if (!groupsMap.has(groupName)) {
+                    groupsMap.set(groupName, {
+                        id: groupName,
+                        name: groupName,
+                        fields: [],
+                        order: 0,
+                    });
+                }
 
-            const group = groupsMap.get(groupName)!;
-            const mappedGroupField = mapApiGroupFieldToGroupField(apiField);
-            mappedGroupField.required = isRequired;
+                const group = groupsMap.get(groupName)!;
+                const mappedGroupField = mapApiGroupFieldToGroupField(apiField);
+                mappedGroupField.required = isRequired;
 
-            group.fields.push(mappedGroupField);
-            console.log(`  ↳ Added field to group "${groupName}": ${mappedGroupField.name}`);
+                group.fields.push(mappedGroupField);
 
-            // Update group order to minimum field order
-            if (group.order === 0 || apiField.individualOrder < group.order) {
-                group.order = apiField.individualOrder;
-            }
+                // Update group order to minimum field order
+                if (group.order === 0 || apiField.individualOrder < group.order) {
+                    group.order = apiField.individualOrder;
+                }
+            });
         }
     });
-
-    console.log(`📊 [DEBUG] Groups created: ${groupsMap.size}`);
 
     // Also process customGroup data (if it exists)
     Object.entries(customGroupData).forEach(([, apiGroupField]) => {
@@ -932,10 +923,6 @@ const mapUIToApiRequestFresh = (
         fixed_field_rename_dtos,
     };
 
-    console.log(
-        `📤 [DEBUG] Sending ${fixed_field_rename_dtos.length} system fields in fixed_field_rename_dtos`
-    );
-
     return result;
 };
 
@@ -959,12 +946,14 @@ const mapUIToApiRequest = (uiData: CustomFieldSettingsData): ApiCustomFieldReque
 
     // Start with the original data structure and modify only what's changed
     const currentCustomFieldsAndGroups: ApiCustomField[] = [];
-    const customGroup: Record<string, ApiGroupField> = { ...(originalApiData.customGroup || {}) };
+    // FIXED: Start with empty customGroup - will be populated with only current groups
+    let customGroup: Record<string, ApiGroupField> = {};
     const customFieldsNames: string[] = [];
     const compulsoryCustomFields: string[] = [];
     const fixedCustomFields: string[] = [...(originalApiData.fixedCustomFields || [])];
     const allCustomFields: string[] = [];
-    const groupNames: string[] = [...(originalApiData.groupNames || [])];
+    // FIXED: Start with empty groupNames - will be populated with only current group names
+    const groupNames: string[] = [];
 
     // Create a map of original fields for easy lookup
     const originalFieldsMap = new Map<string, ApiCustomField>();
@@ -1102,8 +1091,9 @@ const mapUIToApiRequest = (uiData: CustomFieldSettingsData): ApiCustomFieldReque
         });
     });
 
-    // Merge with preserved group data (for groups that weren't modified)
-    Object.assign(customGroup, updatedCustomGroup);
+    // FIXED: Reassign to only include current groups (not merging with old data)
+    // This ensures deleted groups are not sent in the payload
+    customGroup = updatedCustomGroup;
 
     // Map system fields to fixed_field_rename_dtos
     // Use DEFAULT_SYSTEM_FIELDS if systemFields is not provided
@@ -1127,10 +1117,6 @@ const mapUIToApiRequest = (uiData: CustomFieldSettingsData): ApiCustomFieldReque
         group_names: groupNames.length > 0 ? groupNames : undefined,
         fixed_field_rename_dtos,
     };
-
-    console.log(
-        `📤 [DEBUG] Sending ${fixed_field_rename_dtos.length} system fields in fixed_field_rename_dtos`
-    );
 
     return result;
 };
