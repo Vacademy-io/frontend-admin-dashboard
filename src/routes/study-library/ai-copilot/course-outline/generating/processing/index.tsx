@@ -224,7 +224,7 @@ function RouteComponent() {
                 </div>
             </div>
 
-            {/* Back to study Library Confirmation Dialog */}
+            {/* Back to study Library Prompt Confirmation Dialog */}
             <Dialog
                 open={backToLibraryDialogOpen}
                 onOpenChange={setBackToLibraryDialogOpen}
