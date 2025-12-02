@@ -106,6 +106,8 @@ export const DEFAULT_TEACHER_DISPLAY_SETTINGS: DisplaySettingsData = {
     courseCreation: {
         showCreateCourseWithAI: false,
         requirePackageSelectionForNewChapter: true,
+        showAdvancedSettings: true,
+        limitToSingleLevel: false,
     },
     studentSideView: {
         overviewTab: true,

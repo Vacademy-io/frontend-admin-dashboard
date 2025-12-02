@@ -788,7 +788,7 @@ export const Step2SectionInfo = ({
                                                     if (
                                                         !/[0-9.]/.test(charCode) ||
                                                         (charCode === '.' &&
-                                                            field.value.includes('.'))
+                                                            field.value?.includes('.'))
                                                     ) {
                                                         e.preventDefault(); // Prevent non-numeric and multiple decimals
                                                     }
@@ -844,7 +844,7 @@ export const Step2SectionInfo = ({
                                                         if (
                                                             !/[0-9.]/.test(charCode) ||
                                                             (charCode === '.' &&
-                                                                field.value.includes('.'))
+                                                                field.value?.includes('.'))
                                                         ) {
                                                             e.preventDefault(); // Prevent non-numeric and multiple decimals
                                                         }

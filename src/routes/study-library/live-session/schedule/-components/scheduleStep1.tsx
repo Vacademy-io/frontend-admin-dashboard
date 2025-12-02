@@ -1206,8 +1206,8 @@ export default function ScheduleStep1() {
             name="meetingType"
             render={({ field }) => (
                 <MyRadioButton
-                    name="meetingType"
-                    value={field.value}
+                    name='meetingType'
+                    value={field.value ?? ''}
                     onChange={field.onChange}
                     options={[
                         { label: 'One Time Class', value: RecurringType.ONCE },
@@ -1435,8 +1435,8 @@ export default function ScheduleStep1() {
                     name="sessionType"
                     render={({ field }) => (
                         <MyRadioButton
-                            name="meetingType"
-                            value={field.value}
+                            name='meetingType'
+                            value={field.value ?? ''}
                             onChange={field.onChange}
                             options={[
                                 { label: 'Live', value: SessionType.LIVE },
@@ -1467,8 +1467,8 @@ export default function ScheduleStep1() {
                         name="streamingType"
                         render={({ field }) => (
                             <MyRadioButton
-                                name="streamingType"
-                                value={field.value}
+                                name='streamingType'
+                                value={field.value ?? ''}
                                 onChange={field.onChange}
                                 options={[
                                     {

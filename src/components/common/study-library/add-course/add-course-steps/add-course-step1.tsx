@@ -435,16 +435,33 @@ export const AddCourseStep1 = ({
 
     useEffect(() => {
         const fetchAndSetUrls = async () => {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            const courseMediaImage = JSON.parse(initialData?.courseMedia);
-            const coursePreviewUrl = await getPublicUrl(form.getValues('coursePreview') || '');
-            const courseBannerUrl = await getPublicUrl(form.getValues('courseBanner') || '');
-            const courseMediaUrl = await getPublicUrl(courseMediaImage.id);
+            const rawCourseMedia = initialData?.courseMedia;
+            let courseMediaImage: { id?: string } | null = null;
+            if (rawCourseMedia) {
+                if (typeof rawCourseMedia === 'string') {
+                    try {
+                        courseMediaImage = JSON.parse(rawCourseMedia);
+                    } catch {
+                        courseMediaImage = null;
+                    }
+                } else if (typeof rawCourseMedia === 'object') {
+                    courseMediaImage = rawCourseMedia as { id?: string };
+                }
+            }
 
-            form.setValue('coursePreviewBlob', coursePreviewUrl);
-            form.setValue('courseBannerBlob', courseBannerUrl);
-            form.setValue('courseMediaBlob', courseMediaUrl);
+            const coursePreviewId = form.getValues('coursePreview') || '';
+            const courseBannerId = form.getValues('courseBanner') || '';
+            const courseMediaId = courseMediaImage?.id;
+
+            const [coursePreviewUrl, courseBannerUrl, courseMediaUrl] = await Promise.all([
+                coursePreviewId ? getPublicUrl(coursePreviewId) : Promise.resolve(''),
+                courseBannerId ? getPublicUrl(courseBannerId) : Promise.resolve(''),
+                courseMediaId ? getPublicUrl(courseMediaId) : Promise.resolve(''),
+            ]);
+
+            if (coursePreviewUrl) form.setValue('coursePreviewBlob', coursePreviewUrl);
+            if (courseBannerUrl) form.setValue('courseBannerBlob', courseBannerUrl);
+            if (courseMediaUrl) form.setValue('courseMediaBlob', courseMediaUrl);
         };
 
         if (initialData) {

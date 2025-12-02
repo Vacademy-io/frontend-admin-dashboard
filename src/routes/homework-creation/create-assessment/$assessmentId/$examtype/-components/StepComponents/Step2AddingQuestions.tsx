@@ -444,11 +444,9 @@ const Step2AddingQuestions: React.FC<StepContentProps> = ({
                                                                 );
                                                             }}
                                                             defaultValue={
-                                                                field.value.entireTestDuration
-                                                                    .checked
+                                                                field.value?.entireTestDuration?.checked
                                                                     ? 'ASSESSMENT'
-                                                                    : field.value
-                                                                            .sectionWiseDuration
+                                                                    : field.value?.sectionWiseDuration
                                                                       ? 'SECTION'
                                                                       : 'QUESTION'
                                                             }

@@ -10,7 +10,8 @@ import {
     UPDATE_ADMIN_DETAILS_URL,
     UPDATE_DASHBOARD_URL,
     UPDATE_USER_INVITATION_URL,
-    GET_ALL_FACULTY,
+    // GET_ALL_FACULTY,
+    GET_FACULTY_BY_INSTITUTE_CREATORS_ONLY,
     GET_DOUBTS,
     ANALYTICS_USER_ACTIVITY,
     ANALYTICS_ACTIVE_USERS_REALTIME,
@@ -56,18 +57,31 @@ export const fetchFacultyList = async (
 ) => {
     try {
         const response = await authenticatedAxiosInstance({
-            method: 'POST',
-            url: GET_ALL_FACULTY,
+            method: 'GET',
+            url: GET_FACULTY_BY_INSTITUTE_CREATORS_ONLY,
             params: {
                 instituteId,
-                pageNo,
-                pageSize,
             },
             data: filters,
         });
         return response.data;
     } catch (error) {
         console.error('Error fetching faculty list:', error);
+        throw error;
+    }
+};
+
+// Add the specific function for faculty creators that matches the hook usage
+export const fetchFacultyCreatorsByInstitute = async (instituteId: string) => {
+    try {
+        const response = await authenticatedAxiosInstance({
+            method: 'GET',
+            url: `${GET_FACULTY_BY_INSTITUTE_CREATORS_ONLY}/${instituteId}`,
+        });
+        console.log('Faculty Creators API Response:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching faculty creators list:', error);
         throw error;
     }
 };
