@@ -39,6 +39,12 @@ export default function TitleGeneratorSection({
     const currentPackageSession = packageSessionOptions.find(
         (opt) => opt.value === data.packageSessionId
     );
+
+    // For planning logs (hideIntervalType = false), filter out 'daily' from dropdown
+    const displayIntervalOptions = hideIntervalType
+        ? intervalOptions
+        : intervalOptions.filter((opt) => opt.value !== 'daily');
+
     const currentInterval = intervalOptions.find((opt) => opt.value === data.interval_type);
 
     // Auto-generate title based on interval type, date, and course
@@ -117,7 +123,7 @@ export default function TitleGeneratorSection({
                     <MyDropdown
                         currentValue={currentInterval?.label}
                         handleChange={(value) => onChange({ interval_type: value as IntervalType })}
-                        dropdownList={intervalOptions}
+                        dropdownList={displayIntervalOptions}
                         placeholder="Select interval"
                         className="w-full"
                     />
