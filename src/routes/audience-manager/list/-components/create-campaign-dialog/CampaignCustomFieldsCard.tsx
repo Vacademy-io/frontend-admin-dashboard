@@ -7,11 +7,16 @@ import { DotsSixVertical, PencilSimple, Plus, TrashSimple } from 'phosphor-react
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { MyInput } from '@/components/design-system/input';
-import SelectField from '@/components/design-system/select-field';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 
-interface CustomInviteFormCardProps {
+/**
+ * Props interface for Campaign Custom Fields Card
+ * This component manages custom fields for campaign forms
+ * Fields are dynamically loaded from settings cache and can be managed here
+ */
+interface CampaignCustomFieldsCardProps {
     form: UseFormReturn<AudienceCampaignForm>;
     updateFieldOrders: () => void;
     handleDeleteOpenField: (id: number) => void;
@@ -26,7 +31,23 @@ interface CustomInviteFormCardProps {
     handleAddPhoneNumber?: (type: string, name: string, oldKey: boolean) => void;
 }
 
-const CustomInviteFormCard = ({
+/**
+ * Campaign Custom Fields Card Component
+ * 
+ * This component provides a UI for managing custom fields in campaign forms.
+ * It displays fields loaded from settings (via getCampaignCustomFields) and
+ * allows users to:
+ * - View all custom fields (from settings + manually added)
+ * - Reorder fields via drag-and-drop
+ * - Toggle required status for non-permanent fields
+ * - Add new fields (Gender, State, City, Phone Number, or custom)
+ * - Delete non-permanent fields
+ * - Preview the registration form
+ * 
+ * Fields are dynamically loaded from settings cache, so any changes made
+ * in Custom Fields Settings will automatically reflect here.
+ */
+const CampaignCustomFieldsCard = ({
     form,
     updateFieldOrders,
     handleDeleteOpenField,
@@ -39,26 +60,27 @@ const CustomInviteFormCard = ({
     handleAddDropdownOptions,
     handleCloseDialog,
     handleAddPhoneNumber,
-}: CustomInviteFormCardProps) => {
+}: CampaignCustomFieldsCardProps) => {
     const { control, getValues } = form;
-    const { fields : customFieldsArray, move: moveCustomField } = useFieldArray({
+    const { fields: customFieldsArray, move: moveCustomField } = useFieldArray({
         control,
         name: 'custom_fields',
     });
     const customFields = getValues('custom_fields');
 
     return (
-        <Card className="mb-4 ">
+        <Card className="mb-4">
             <CardHeader>
                 <CardTitle className="flex flex-col text-lg font-semibold">
                     <span className="text-2xl font-bold">Customize Campaign Form</span>
                     <span className="text-sm text-gray-600">
-                        Configure the fields students will fill out
+                        Configure the fields students will fill out. Fields from settings are automatically loaded.
                     </span>
                 </CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="flex w-full flex-col gap-4">
+                    {/* Sortable Fields List */}
                     <div className="flex flex-col gap-4">
                         <Sortable
                             value={customFieldsArray}
@@ -129,6 +151,8 @@ const CustomInviteFormCard = ({
                             </div>
                         </Sortable>
                     </div>
+
+                    {/* Quick Add Buttons */}
                     <div className="mt-2 flex flex-wrap items-center gap-6">
                         {!customFields?.some((field) => field.name === 'Gender') && (
                             <MyButton
@@ -186,20 +210,23 @@ const CustomInviteFormCard = ({
                                 <Plus size={32} /> Add School/College
                             </MyButton>
                         )}
-                        {handleAddPhoneNumber && !customFields?.some((field) => field.name === 'Phone Number') && (
-                            <MyButton
-                                type="button"
-                                scale="medium"
-                                buttonType="secondary"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleAddPhoneNumber('textfield', 'Phone Number', false);
-                                }}
-                            >
-                                <Plus size={32} /> Add Phone Number
-                            </MyButton>
-                        )}
+                        {handleAddPhoneNumber &&
+                            !customFields?.some((field) => field.name === 'Phone Number') && (
+                                <MyButton
+                                    type="button"
+                                    scale="medium"
+                                    buttonType="secondary"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleAddPhoneNumber('textfield', 'Phone Number', false);
+                                    }}
+                                >
+                                    <Plus size={32} /> Add Phone Number
+                                </MyButton>
+                            )}
+
+                        {/* Add Custom Field Dialog */}
                         <Dialog
                             open={form.watch('isDialogOpen')}
                             onOpenChange={(open) => form.setValue('isDialogOpen', open)}
@@ -363,6 +390,8 @@ const CustomInviteFormCard = ({
                             </DialogContent>
                         </Dialog>
                     </div>
+
+                    {/* Preview Dialog */}
                     <Dialog>
                         <DialogTrigger className="flex justify-start">
                             <MyButton
@@ -383,25 +412,37 @@ const CustomInviteFormCard = ({
                                     return (
                                         <div className="flex flex-col items-start gap-4" key={idx}>
                                             {testInputFields.type === 'dropdown' ? (
-                                                <SelectField
-                                                    label={testInputFields.name}
-                                                    labelStyle="font-normal"
-                                                    name={testInputFields.name}
-                                                    options={
-                                                        testInputFields?.options?.map(
-                                                            (option, index) => ({
-                                                                value: option.value,
-                                                                label: option.value,
-                                                                _id: index,
-                                                            })
-                                                        ) || []
-                                                    }
-                                                    control={form.control}
-                                                    className="mt-4 w-full font-thin"
-                                                    required={
-                                                        testInputFields.isRequired ? true : false
-                                                    }
-                                                />
+                                                <div className="flex w-full flex-col gap-[0.4rem]">
+                                                    <h1 className="mt-3 text-sm">
+                                                        {testInputFields.name}
+                                                        {testInputFields.isRequired && (
+                                                            <span className="text-subtitle text-danger-600">
+                                                                *
+                                                            </span>
+                                                        )}
+                                                    </h1>
+                                                    <Select value="" onValueChange={() => {}}>
+                                                        <SelectTrigger className="w-full cursor-pointer">
+                                                            <SelectValue placeholder={`Select ${testInputFields.name}`} />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {testInputFields?.options && testInputFields.options.length > 0 ? (
+                                                                testInputFields.options.map((option, optionIndex) => (
+                                                                    <SelectItem
+                                                                        key={option.id || optionIndex}
+                                                                        value={option.value?.toString() || ''}
+                                                                    >
+                                                                        {option.value}
+                                                                    </SelectItem>
+                                                                ))
+                                                            ) : (
+                                                                <SelectItem value="" disabled>
+                                                                    No options available
+                                                                </SelectItem>
+                                                            )}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
                                             ) : (
                                                 <div className="flex w-full flex-col gap-[0.4rem]">
                                                     <h1 className="mt-3 text-sm">
@@ -435,5 +476,5 @@ const CustomInviteFormCard = ({
     );
 };
 
-export default CustomInviteFormCard;
+export default CampaignCustomFieldsCard;
 
