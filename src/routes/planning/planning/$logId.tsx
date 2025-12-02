@@ -11,7 +11,7 @@ import { wrapContentInHTML, unwrapContentFromHTML } from '../-utils/templateLoad
 import TipTapEditor from '@/components/tiptap/TipTapEditor';
 import { useState, useEffect } from 'react';
 import { MyInput } from '@/components/design-system/input';
-import { MyLabel } from '@/components/design-system/my-lable';
+import { MyLabel } from '@/components/design-system/my-label';
 import { Textarea } from '@/components/ui/textarea';
 import { useUpdatePlanningLog } from '../-services/updatePlanningLog';
 import { getPublicUrl } from '@/services/upload_file';

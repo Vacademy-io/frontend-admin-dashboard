@@ -40,39 +40,6 @@ export async function loadPlanningTemplate(): Promise<string> {
     }
 }
 
-/**
- * Injects data into template for editing existing logs
- * This is used when editing an existing planning log to pre-fill the template
- * @param html - The template HTML
- * @param data - Data object with values to inject
- * @returns HTML with injected data
- */
-export function injectTemplateData(html: string, data: Record<string, string>): string {
-    // For now, we just return the HTML as-is since the template is filled by the user
-    // In the future, this could be enhanced to parse and inject specific values
-    return html;
-}
-
-/**
- * Extracts the content from textareas in the template
- * This can be used for preview or validation purposes
- * @param html - The filled template HTML
- * @returns Object with extracted textarea values
- */
-export function extractTextareaValues(html: string): Record<string, string> {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const textareas = doc.querySelectorAll('textarea');
-
-    const values: Record<string, string> = {};
-    textareas.forEach((textarea, index) => {
-        const placeholder = textarea.getAttribute('placeholder') || `field_${index}`;
-        values[placeholder] = textarea.value || '';
-    });
-
-    return values;
-}
-
 const HTML_TEMPLATE_HEAD = `<!DOCTYPE html>
 <html lang="en">
 <head>

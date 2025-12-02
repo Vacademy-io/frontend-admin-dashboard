@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import type { PlanningLog } from '../-types/types';
 import { MyInput } from '@/components/design-system/input';
-import { MyLabel } from '@/components/design-system/my-lable';
+import { MyLabel } from '@/components/design-system/my-label';
 import { Textarea } from '@/components/ui/textarea';
-import { Edit, Save, X } from 'lucide-react';
+import { Edit, Save, X, Share2 } from 'lucide-react';
 import TipTapEditor from '@/components/tiptap/TipTapEditor';
 import { unwrapContentFromHTML, wrapContentInHTML } from '../-utils/templateLoader';
 import { useUpdatePlanningLog } from '../-services/updatePlanningLog';
@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatIntervalTypeId } from '../-utils/intervalTypeIdFormatter';
 import { MyDialog } from '@/components/design-system/dialog';
 import { MyButton } from '@/components/design-system/button';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface ViewPlanningDialogProps {
     log: PlanningLog | null;
@@ -30,6 +31,7 @@ export default function ViewPlanningDialog({
     const [editedTitle, setEditedTitle] = useState('');
     const [editedDescription, setEditedDescription] = useState('');
     const [editedContent, setEditedContent] = useState('');
+    const [editedIsSharedWithStudent, setEditedIsSharedWithStudent] = useState(false);
 
     const updateMutation = useUpdatePlanningLog();
 
@@ -38,6 +40,7 @@ export default function ViewPlanningDialog({
             setEditedTitle(log.title);
             setEditedDescription(log.description || '');
             setEditedContent(unwrapContentFromHTML(log.content_html));
+            setEditedIsSharedWithStudent(log.is_shared_with_student);
             setIsEditing(false);
         }
     }, [log]);
@@ -53,6 +56,7 @@ export default function ViewPlanningDialog({
                     title: editedTitle,
                     description: editedDescription,
                     content_html: wrappedContent,
+                    is_shared_with_student: editedIsSharedWithStudent,
                 },
             });
 
@@ -68,6 +72,7 @@ export default function ViewPlanningDialog({
             setEditedTitle(log.title);
             setEditedDescription(log.description || '');
             setEditedContent(unwrapContentFromHTML(log.content_html));
+            setEditedIsSharedWithStudent(log.is_shared_with_student);
         }
         setIsEditing(false);
     };
@@ -94,6 +99,12 @@ export default function ViewPlanningDialog({
                         {log.interval_type}
                     </Badge>
                     <Badge variant="outline">{formatIntervalTypeId(log.interval_type_id)}</Badge>
+                    {log.is_shared_with_student && (
+                        <Badge variant="secondary" className="flex items-center gap-1">
+                            <Share2 className="size-3" />
+                            Shared
+                        </Badge>
+                    )}
                     <Badge variant={log.status === 'ACTIVE' ? 'default' : 'destructive'}>
                         {log.status}
                     </Badge>
@@ -107,17 +118,17 @@ export default function ViewPlanningDialog({
                             onClick={handleCancel}
                             disabled={updateMutation.isPending}
                         >
-                            <X className="mr-2 h-4 w-4" />
+                            <X className="mr-2 size-4" />
                             Cancel
                         </MyButton>
                         <MyButton onClick={handleSave} disabled={updateMutation.isPending}>
-                            <Save className="mr-2 h-4 w-4" />
+                            <Save className="mr-2 size-4" />
                             {updateMutation.isPending ? 'Saving...' : 'Save'}
                         </MyButton>
                     </>
                 ) : (
                     <MyButton onClick={() => setIsEditing(true)}>
-                        <Edit className="mr-2 h-4 w-4" />
+                        <Edit className="mr-2 size-4" />
                         Edit
                     </MyButton>
                 )
@@ -176,6 +187,25 @@ export default function ViewPlanningDialog({
                                 <p className="mt-1 text-muted-foreground">{log.description}</p>
                             </>
                         )}
+                    </div>
+                )}
+
+                {/* Share with learner */}
+                {isEditing && (
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="edit-share-with-learner"
+                            checked={editedIsSharedWithStudent}
+                            onCheckedChange={(checked) =>
+                                setEditedIsSharedWithStudent(checked === true)
+                            }
+                        />
+                        <label
+                            htmlFor="edit-share-with-learner"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                            Share with learner
+                        </label>
                     </div>
                 )}
 

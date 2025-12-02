@@ -413,3 +413,4 @@ export const PLANNING_LOGS_BASE = `https://backend-stage.vacademy.io/admin-core-
 export const CREATE_PLANNING_LOGS = `${PLANNING_LOGS_BASE}/create`;
 export const LIST_PLANNING_LOGS = `${PLANNING_LOGS_BASE}/list`;
 export const UPDATE_PLANNING_LOG = (logId: string) => `${PLANNING_LOGS_BASE}/${logId}`;
+export const GENERATE_INTERVAL_TYPE_ID = `${PLANNING_LOGS_BASE}/generate-interval-type-id`;

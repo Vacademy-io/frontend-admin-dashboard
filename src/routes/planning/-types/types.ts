@@ -17,6 +17,7 @@ export interface PlanningLog {
     content_html: string;
     subject_id: string;
     comma_separated_file_ids?: string;
+    is_shared_with_student: boolean;
     status: PlanningLogStatus;
     institute_id: string;
     created_at: string;
@@ -34,6 +35,7 @@ export interface CreatePlanningLogInput {
     content_html: string;
     subject_id: string;
     comma_separated_file_ids?: string;
+    is_shared_with_student: boolean;
 }
 
 export interface CreatePlanningLogsRequest {
@@ -50,6 +52,7 @@ export interface UpdatePlanningLogInput {
     description?: string;
     content_html?: string;
     comma_separated_file_ids?: string;
+    is_shared_with_student?: boolean;
     status?: PlanningLogStatus;
 }
 
@@ -104,7 +107,8 @@ export interface PlanningFormData {
     description: string;
     packageSessionId: string;
     subject_id: string;
-    
+    is_shared_with_student: boolean;
+
     // Section 2
     interval_type: IntervalType;
     selectedDate: Date | null;

@@ -9,6 +9,7 @@ import type {
 import { MyButton } from '@/components/design-system/button';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { FilterChips } from '@/components/design-system/chips';
+import IntervalPeriodSelector from './IntervalPeriodSelector';
 
 interface PlanningFiltersProps {
     filters: ListPlanningLogsRequest;
@@ -39,9 +40,9 @@ export default function PlanningFilters({
 
     const intervalTypeOptions = [
         { id: 'daily', label: 'Daily' },
-        { id: 'weekly', label: 'Weekly' },
-        { id: 'monthly', label: 'Monthly' },
-        { id: 'yearly_month', label: 'Yearly Month' },
+        { id: 'weekly', label: 'Day of week' },
+        { id: 'monthly', label: 'Weekly' },
+        { id: 'yearly_month', label: 'Monthly' },
         { id: 'yearly_quarter', label: 'Quarterly' },
     ];
 
@@ -145,6 +146,13 @@ export default function PlanningFilters({
         setLocalFilters({ ...localFilters, entity_ids: undefined });
     };
 
+    const handleIntervalTypeIdsChange = (intervalTypeIds: string[]) => {
+        setLocalFilters({
+            ...localFilters,
+            interval_type_ids: intervalTypeIds.length > 0 ? intervalTypeIds : undefined,
+        });
+    };
+
     return (
         <>
             <div className="flex gap-2">
@@ -188,9 +196,20 @@ export default function PlanningFilters({
                     />
                 )}
 
+                {/* Interval Period Filter - Shows when interval types are selected */}
+                {logType === 'planning' &&
+                    localFilters.interval_types &&
+                    localFilters.interval_types.length > 0 && (
+                        <IntervalPeriodSelector
+                            intervalTypes={localFilters.interval_types}
+                            selectedIntervalTypeIds={localFilters.interval_type_ids || []}
+                            onChange={handleIntervalTypeIdsChange}
+                        />
+                    )}
+
                 {/* Status Filter */}
 
-                <FilterChips
+                {/* <FilterChips
                     label="Status"
                     filterList={statusOptions}
                     selectedFilters={
@@ -201,7 +220,7 @@ export default function PlanningFilters({
                     }
                     handleSelect={handleStatusChange}
                     handleClearFilters={handleClearStatusFilter}
-                />
+                /> */}
 
                 {/* Course Filter - Multiselect */}
 

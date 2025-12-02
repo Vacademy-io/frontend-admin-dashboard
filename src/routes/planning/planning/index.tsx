@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useListPlanningLogs } from '../-services/listPlanningLogs';
-import { Filter, Table as TableIcon, List } from 'lucide-react';
+import { Table as TableIcon, List } from 'lucide-react';
 import PlanningLogsTable from '../-components/PlanningLogsTable';
 import PlanningLogsTimeline from '../-components/PlanningLogsTimeline';
 import PlanningFilters from '../-components/PlanningFilters';
@@ -79,12 +79,12 @@ function PlanningLogsList() {
                         >
                             {viewMode === 'table' ? (
                                 <>
-                                    <List className="h-4 w-4" />
+                                    <List className="size-4" />
                                     Timeline View
                                 </>
                             ) : (
                                 <>
-                                    <TableIcon className="h-4 w-4" />
+                                    <TableIcon className="size-4" />
                                     Table View
                                 </>
                             )}

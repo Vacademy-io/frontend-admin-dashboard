@@ -11,7 +11,7 @@ export function formatIntervalTypeId(intervalTypeId: string): string {
     // Weekly: YYYY_D0X -> "Mon"
     if (/^\d{4}_D0[1-7]$/.test(intervalTypeId)) {
         const dayNum = parseInt(intervalTypeId.slice(-1));
-        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         return days[dayNum - 1] || intervalTypeId;
     }
 
@@ -23,18 +23,18 @@ export function formatIntervalTypeId(intervalTypeId: string): string {
             const week = parts[2]!.slice(-1);
 
             const monthNames = [
-                'Jan',
-                'Feb',
-                'Mar',
-                'Apr',
+                'January',
+                'February',
+                'March',
+                'April',
                 'May',
-                'Jun',
-                'Jul',
-                'Aug',
-                'Sep',
-                'Oct',
-                'Nov',
-                'Dec',
+                'June',
+                'July',
+                'August',
+                'September',
+                'October',
+                'November',
+                'December',
             ];
 
             return `W${week} ${monthNames[month - 1]}`;
@@ -91,4 +91,21 @@ export function formatIntervalTypeId(intervalTypeId: string): string {
     }
 
     return intervalTypeId;
+}
+
+export function formatIntervalType(intervalType: string): string {
+    switch (intervalType) {
+        case 'daily':
+            return 'Daily';
+        case 'weekly':
+            return 'Day of week';
+        case 'monthly':
+            return 'Week';
+        case 'yearly_month':
+            return 'Month';
+        case 'yearly_quarter':
+            return 'Quarter';
+        default:
+            return intervalType;
+    }
 }

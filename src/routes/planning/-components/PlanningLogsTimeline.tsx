@@ -21,6 +21,8 @@ import { getRelativeTimeLabel } from '../-utils/getRelativeTimeLabel';
 import { usePlanningLogStore } from '../-stores/planning-log-store';
 import { toast } from 'sonner';
 import { MyButton } from '@/components/design-system/button';
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import TimelineLogCard from './TimelineLogCard';
 
 interface PlanningLogsTimelineProps {
     data: PlanningLog[];
@@ -211,70 +213,15 @@ export default function PlanningLogsTimeline({
                                     <TimelineTime className="text-black">{label}</TimelineTime>
                                     <div className="space-y-4">
                                         {logs.map((log) => (
-                                            <div key={log.id} className="rounded-lg border p-4">
-                                                <div className="space-y-2">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-semibold">
-                                                            {highlightText(log.title, searchQuery)}
-                                                        </span>
-                                                        <Badge
-                                                            variant={
-                                                                log.status === 'ACTIVE'
-                                                                    ? 'default'
-                                                                    : 'secondary'
-                                                            }
-                                                        >
-                                                            {log.status}
-                                                        </Badge>
-                                                    </div>
-                                                    <div className="flex flex-col gap-1 text-sm">
-                                                        <div className="flex items-center gap-2">
-                                                            {logType === 'planning' && (
-                                                                <>
-                                                                    <span className="font-medium">
-                                                                        Interval:
-                                                                    </span>
-                                                                    <span className="capitalize text-muted-foreground">
-                                                                        {log.interval_type}
-                                                                    </span>
-                                                                    <span>
-                                                                        {formatIntervalTypeId(
-                                                                            log.interval_type_id
-                                                                        )}
-                                                                    </span>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="font-medium">
-                                                                Created by:
-                                                            </span>
-                                                            <span className="text-muted-foreground">
-                                                                {log.created_by}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex gap-2 pt-2">
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => handleView(log)}
-                                                        >
-                                                            <Eye className="mr-2 h-4 w-4" />
-                                                            View
-                                                        </Button>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => handleDelete(log)}
-                                                            className="text-destructive hover:text-destructive"
-                                                        >
-                                                            <Trash2 className="mr-2 h-4 w-4" />
-                                                            Delete
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <TimelineLogCard
+                                                key={log.id}
+                                                log={log}
+                                                logType={logType}
+                                                searchQuery={searchQuery}
+                                                onView={handleView}
+                                                onDelete={handleDelete}
+                                                highlightText={highlightText}
+                                            />
                                         ))}
 
                                         {/* Add Log button for this timeline group */}

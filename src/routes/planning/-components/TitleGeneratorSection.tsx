@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import type { PlanningFormData, IntervalType } from '../-types/types';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { MyDropdown } from '@/components/design-system/dropdown';
-import { MyLabel } from '@/components/design-system/my-lable';
+import { MyLabel } from '@/components/design-system/my-label';
 import IntervalSelector from './IntervalSelector';
 
 interface TitleGeneratorSectionProps {
@@ -30,8 +30,8 @@ export default function TitleGeneratorSection({
 
     const intervalOptions = [
         { label: 'Daily', value: 'daily' },
-        { label: 'Weekly (Day)', value: 'weekly' },
-        { label: 'Weekly (Week of Month)', value: 'monthly' },
+        { label: 'Day of Week', value: 'weekly' },
+        { label: 'Weekly', value: 'monthly' },
         { label: 'Monthly', value: 'yearly_month' },
         { label: 'Quarterly', value: 'yearly_quarter' },
     ];
@@ -55,16 +55,17 @@ export default function TitleGeneratorSection({
                     // Format: "Sunday" or "Sunday - Course 1"
                     titlePrefix = format(data.selectedDate, 'EEEE');
                     break;
-                case 'monthly':
+                case 'monthly': {
                     // Format: "Week 3" or "Week 3 - Course 1"
                     const weekOfMonth = Math.ceil(data.selectedDate.getDate() / 7);
                     titlePrefix = `Week ${weekOfMonth}`;
                     break;
+                }
                 case 'yearly_month':
                     // Format: "January" or "January - Course 1"
                     titlePrefix = format(data.selectedDate, 'MMMM');
                     break;
-                case 'yearly_quarter':
+                case 'yearly_quarter': {
                     // Format: "Apr-Jun" or "Apr-Jun - Course 1"
                     const month = data.selectedDate.getMonth();
                     const quarters = [
@@ -83,6 +84,7 @@ export default function TitleGeneratorSection({
                     ];
                     titlePrefix = quarters[month] || 'Q1';
                     break;
+                }
                 default:
                     titlePrefix = '';
             }
@@ -122,6 +124,17 @@ export default function TitleGeneratorSection({
                 </div>
             )}
 
+            {/* Dynamic Interval Selector */}
+            {data.interval_type && (
+                <div className="space-y-2">
+                    <IntervalSelector
+                        intervalType={data.interval_type}
+                        selectedDate={data.selectedDate}
+                        onChange={(date) => onChange({ selectedDate: date })}
+                    />
+                </div>
+            )}
+
             {/* Batch Selection - Only show if not hidden (hidden in course details dialogs) */}
             {!hideCourseSelector && (
                 <div className="space-y-2">
@@ -132,17 +145,6 @@ export default function TitleGeneratorSection({
                         dropdownList={packageSessionOptions}
                         placeholder="Select batch"
                         className="w-full"
-                    />
-                </div>
-            )}
-
-            {/* Dynamic Interval Selector */}
-            {data.interval_type && (
-                <div className="space-y-2">
-                    <IntervalSelector
-                        intervalType={data.interval_type}
-                        selectedDate={data.selectedDate}
-                        onChange={(date) => onChange({ selectedDate: date })}
                     />
                 </div>
             )}

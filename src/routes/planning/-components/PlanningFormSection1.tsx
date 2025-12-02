@@ -6,7 +6,10 @@ import { MyInput } from '@/components/design-system/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { MyLabel } from '@/components/design-system/my-lable';
+import { MyLabel } from '@/components/design-system/my-label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 interface PlanningFormSection1Props {
     data: PlanningFormData;
@@ -66,7 +69,6 @@ export default function PlanningFormSection1({
                     </RadioGroup>
                 </div>
             )}
-
             {/* Title - Full width - Editable (auto-generated but can be modified) */}
             <div className="col-span-2 space-y-2">
                 <MyInput
@@ -83,7 +85,6 @@ export default function PlanningFormSection1({
                     Title is auto-generated but you can edit it if needed
                 </p>
             </div>
-
             {/* Subject - Only show if multiple options */}
             {hasMultipleSubjects && (
                 <div className="col-span-2 space-y-2">
@@ -97,7 +98,6 @@ export default function PlanningFormSection1({
                     />
                 </div>
             )}
-
             {/* Description - Full width */}
             <div className="col-span-2 space-y-2">
                 <MyLabel>Description</MyLabel>
@@ -108,6 +108,22 @@ export default function PlanningFormSection1({
                     placeholder="Enter description (optional)"
                     rows={3}
                 />
+            </div>
+            <div className="col-span-2 flex items-center space-x-2">
+                <Checkbox
+                    id="share-with-learner"
+                    checked={data.is_shared_with_student}
+                    onCheckedChange={(checked) =>
+                        onChange({ is_shared_with_student: checked === true })
+                    }
+                />
+                <label
+                    htmlFor="share-with-learner"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                    Share with{' '}
+                    {getTerminology(RoleTerms.Learner, SystemTerms.Learner).toLocaleLowerCase()}
+                </label>
             </div>
         </div>
     );

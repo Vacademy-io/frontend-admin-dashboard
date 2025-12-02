@@ -1,12 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
-import { Label } from '@/components/ui/label';
-import type { PlanningFormData, IntervalType } from '../-types/types';
+import type { PlanningFormData } from '../-types/types';
 import { generateIntervalTypeId } from '../-utils/intervalTypeIdGenerator';
 import PlanningHTMLEditor from './PlanningHTMLEditor';
-import IntervalSelector from './IntervalSelector';
-import { MyDropdown } from '@/components/design-system/dropdown';
-import { MyInput } from '@/components/design-system/input';
-import { MyLabel } from '@/components/design-system/my-lable';
+import { MyLabel } from '@/components/design-system/my-label';
 import { UploadFileInS3 } from '@/services/upload_file';
 import { getUserId } from '@/utils/userDetails';
 import { Button } from '@/components/ui/button';
@@ -68,17 +64,6 @@ export default function PlanningFormSection2({ data, onChange }: PlanningFormSec
         setUploadedFiles(newFiles);
         onChange({ uploadedFileIds: newFileIds });
     };
-
-    const intervalOptions = [
-        { label: 'Daily', value: 'daily' },
-        { label: 'Weekly (Day)', value: 'weekly' },
-        { label: 'Weekly (Week of Month)', value: 'monthly' },
-        { label: 'Monthly', value: 'yearly_month' },
-        { label: 'Quarterly', value: 'yearly_quarter' },
-    ];
-
-    const currentInterval = intervalOptions.find((opt) => opt.value === data.interval_type);
-
     return (
         <div className="grid gap-4">
             {/* Content HTML Editor */}
@@ -107,12 +92,12 @@ export default function PlanningFormSection2({ data, onChange }: PlanningFormSec
                     <div className="flex flex-col items-center justify-center gap-2">
                         {isUploading ? (
                             <>
-                                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                                <Loader2 className="size-8 animate-spin text-muted-foreground" />
                                 <p className="text-sm text-muted-foreground">Uploading...</p>
                             </>
                         ) : (
                             <>
-                                <Upload className="h-8 w-8 text-muted-foreground" />
+                                <Upload className="size-8 text-muted-foreground" />
                                 <p className="text-sm text-muted-foreground">
                                     Click to upload file
                                 </p>
@@ -131,7 +116,7 @@ export default function PlanningFormSection2({ data, onChange }: PlanningFormSec
                                     className="flex items-center justify-between rounded-md border bg-muted/50 p-2"
                                 >
                                     <div className="flex items-center gap-2">
-                                        <FileIcon className="h-4 w-4 text-muted-foreground" />
+                                        <FileIcon className="size-4 text-muted-foreground" />
                                         <span className="text-sm">{file.name}</span>
                                     </div>
                                     <Button
@@ -139,9 +124,9 @@ export default function PlanningFormSection2({ data, onChange }: PlanningFormSec
                                         variant="ghost"
                                         size="icon"
                                         onClick={() => handleRemoveFile(index)}
-                                        className="h-6 w-6"
+                                        className="size-6"
                                     >
-                                        <X className="h-4 w-4" />
+                                        <X className="size-4" />
                                     </Button>
                                 </div>
                             ))}

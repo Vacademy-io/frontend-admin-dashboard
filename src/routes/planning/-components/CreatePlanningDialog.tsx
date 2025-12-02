@@ -4,14 +4,15 @@ import { Save } from 'lucide-react';
 import { useCreatePlanningLogs } from '../-services/createPlanningLogs';
 import { wrapContentInHTML } from '../-utils/templateLoader';
 import { MyInput } from '@/components/design-system/input';
-import { MyLabel } from '@/components/design-system/my-lable';
+import { MyLabel } from '@/components/design-system/my-label';
 import { Textarea } from '@/components/ui/textarea';
 import { MyDropdown } from '@/components/design-system/dropdown';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import PlanningHTMLEditor from './PlanningHTMLEditor';
-import { generateIntervalTypeId } from '../-utils/intervalTypeIdGenerator';
+import { useGenerateIntervalTypeId } from '../-services/generateIntervalTypeId';
 import { MyDialog } from '@/components/design-system/dialog';
 import { MyButton } from '@/components/design-system/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import TitleGeneratorSection from './TitleGeneratorSection';
 
 interface CreatePlanningDialogProps {
@@ -41,6 +42,7 @@ export default function CreatePlanningDialog({
         interval_type_id: '',
         content_html: '',
         uploadedFileIds: [],
+        is_shared_with_student: false,
     });
 
     const subjectOptions =
@@ -51,6 +53,13 @@ export default function CreatePlanningDialog({
 
     const currentSubject = subjectOptions.find((opt) => opt.value === formData.subject_id);
 
+    // Use API to generate interval_type_id
+    const { data: intervalTypeId } = useGenerateIntervalTypeId(
+        formData.interval_type && formData.selectedDate
+            ? { intervalType: formData.interval_type, date: formData.selectedDate }
+            : null
+    );
+
     // Auto-select subject if only one option
     useEffect(() => {
         if (subjectOptions.length === 1 && !formData.subject_id && subjectOptions[0]) {
@@ -58,13 +67,12 @@ export default function CreatePlanningDialog({
         }
     }, [subjectOptions, formData.subject_id]);
 
-    // Auto-generate interval_type_id
+    // Update interval_type_id when API returns data
     useEffect(() => {
-        if (formData.interval_type && formData.selectedDate) {
-            const id = generateIntervalTypeId(formData.interval_type, formData.selectedDate);
-            setFormData((prev) => ({ ...prev, interval_type_id: id }));
+        if (intervalTypeId) {
+            setFormData((prev) => ({ ...prev, interval_type_id: intervalTypeId }));
         }
-    }, [formData.interval_type, formData.selectedDate]);
+    }, [intervalTypeId]);
 
     const handleSave = async () => {
         try {
@@ -81,6 +89,7 @@ export default function CreatePlanningDialog({
                         content_html: wrapContentInHTML(formData.content_html),
                         subject_id: formData.subject_id,
                         comma_separated_file_ids: formData.uploadedFileIds.join(',') || undefined,
+                        is_shared_with_student: formData.is_shared_with_student,
                     },
                 ],
             });
@@ -97,6 +106,7 @@ export default function CreatePlanningDialog({
                 interval_type_id: '',
                 content_html: '',
                 uploadedFileIds: [],
+                is_shared_with_student: false,
             });
 
             onSuccess();
@@ -122,7 +132,7 @@ export default function CreatePlanningDialog({
                         Cancel
                     </MyButton>
                     <MyButton onClick={handleSave} disabled={createMutation.isPending}>
-                        <Save className="mr-2 h-4 w-4" />
+                        <Save className="mr-2 size-4" />
                         {createMutation.isPending ? 'Creating...' : 'Create'}
                     </MyButton>
                 </>
@@ -180,6 +190,23 @@ export default function CreatePlanningDialog({
                         placeholder="Enter description (optional)"
                         rows={3}
                     />
+                </div>
+
+                {/* Share with learner */}
+                <div className="flex items-center space-x-2">
+                    <Checkbox
+                        id="share-with-learner"
+                        checked={formData.is_shared_with_student}
+                        onCheckedChange={(checked) =>
+                            setFormData({ ...formData, is_shared_with_student: checked === true })
+                        }
+                    />
+                    <MyLabel
+                        htmlFor="share-with-learner"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                        Share with learner
+                    </MyLabel>
                 </div>
 
                 {/* Content */}
