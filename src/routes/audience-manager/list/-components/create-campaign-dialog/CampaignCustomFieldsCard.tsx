@@ -90,126 +90,76 @@ const CampaignCustomFieldsCard = ({
                             }}
                         >
                             <div className="flex flex-col gap-4">
-                                {customFieldsArray.map((field, index) => {
-                                    return (
-                                        <SortableItem key={field.id} value={field.id} asChild>
-                                            <div key={index} className="flex items-center gap-4">
-                                                <div className="flex w-3/4 items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-2">
-                                                    <h1 className="text-sm">
-                                                        {field.name}
-                                                        {field.oldKey && (
-                                                            <span className="text-subtitle text-danger-600">
-                                                                *
-                                                            </span>
-                                                        )}
-                                                        {!field.oldKey && field.isRequired && (
-                                                            <span className="text-subtitle text-danger-600">
-                                                                *
-                                                            </span>
-                                                        )}
-                                                    </h1>
-                                                    <div className="flex items-center gap-6">
-                                                        {!field.oldKey && (
-                                                            <MyButton
-                                                                type="button"
-                                                                scale="small"
-                                                                buttonType="secondary"
-                                                                className="min-w-6 !rounded-sm !p-0"
-                                                                onClick={(e) => {
-                                                                    e.preventDefault();
-                                                                    e.stopPropagation();
-                                                                    handleDeleteOpenField(index);
-                                                                }}
+                                {customFieldsArray
+                                    .map((field, index) => {
+                                        // Skip deleted fields from display
+                                        if ((field as any).status === 'DELETED') {
+                                            return null;
+                                        }
+                                        return (
+                                            <SortableItem key={field.id} value={field.id} asChild>
+                                                <div key={field.id} className="flex items-center gap-4">
+                                                    <div className="flex w-3/4 items-center justify-between rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-2">
+                                                        <h1 className="text-sm">
+                                                            {field.name}
+                                                            {field.oldKey && (
+                                                                <span className="text-subtitle text-danger-600">
+                                                                    *
+                                                                </span>
+                                                            )}
+                                                            {!field.oldKey && field.isRequired && (
+                                                                <span className="text-subtitle text-danger-600">
+                                                                    *
+                                                                </span>
+                                                            )}
+                                                        </h1>
+                                                        <div className="flex items-center gap-6">
+                                                            {!field.oldKey && (
+                                                                <MyButton
+                                                                    type="button"
+                                                                    scale="small"
+                                                                    buttonType="secondary"
+                                                                    className="min-w-6 !rounded-sm !p-0"
+                                                                    onClick={(e) => {
+                                                                        e.preventDefault();
+                                                                        e.stopPropagation();
+                                                                        handleDeleteOpenField(index);
+                                                                    }}
+                                                                >
+                                                                    <TrashSimple className="!size-4 text-danger-500" />
+                                                                </MyButton>
+                                                            )}
+                                                            <SortableDragHandle
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="cursor-grab"
                                                             >
-                                                                <TrashSimple className="!size-4 text-danger-500" />
-                                                            </MyButton>
-                                                        )}
-                                                        <SortableDragHandle
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="cursor-grab"
-                                                        >
-                                                            <DotsSixVertical size={20} />
-                                                        </SortableDragHandle>
+                                                                <DotsSixVertical size={20} />
+                                                            </SortableDragHandle>
+                                                        </div>
                                                     </div>
+                                                    {!field.oldKey && (
+                                                        <>
+                                                            <h1 className="text-sm">Required</h1>
+                                                            <Switch
+                                                                checked={field.isRequired}
+                                                                onCheckedChange={() => {
+                                                                    toggleIsRequired(index);
+                                                                }}
+                                                            />
+                                                        </>
+                                                    )}
                                                 </div>
-                                                {!field.oldKey && (
-                                                    <>
-                                                        <h1 className="text-sm">Required</h1>
-                                                        <Switch
-                                                            checked={field.isRequired}
-                                                            onCheckedChange={() => {
-                                                                toggleIsRequired(index);
-                                                            }}
-                                                        />
-                                                    </>
-                                                )}
-                                            </div>
-                                        </SortableItem>
-                                    );
-                                })}
+                                            </SortableItem>
+                                        );
+                                    })
+                                    .filter(Boolean)}
                             </div>
                         </Sortable>
                     </div>
 
                     {/* Quick Add Buttons */}
-                    <div className="mt-2 flex flex-wrap items-center gap-6">
-                        {!customFields?.some((field) => field.name === 'Gender') && (
-                            <MyButton
-                                type="button"
-                                scale="medium"
-                                buttonType="secondary"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleAddGender('dropdown', 'Gender', false);
-                                }}
-                            >
-                                <Plus size={32} /> Add Gender
-                            </MyButton>
-                        )}
-                        {!customFields?.some((field) => field.name === 'State') && (
-                            <MyButton
-                                type="button"
-                                scale="medium"
-                                buttonType="secondary"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleAddOpenFieldValues('textfield', 'State', false);
-                                }}
-                            >
-                                <Plus size={32} /> Add State
-                            </MyButton>
-                        )}
-                        {!customFields?.some((field) => field.name === 'City') && (
-                            <MyButton
-                                type="button"
-                                scale="medium"
-                                buttonType="secondary"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleAddOpenFieldValues('textfield', 'City', false);
-                                }}
-                            >
-                                <Plus size={32} /> Add City
-                            </MyButton>
-                        )}
-                        {!customFields?.some((field) => field.name === 'School/College') && (
-                            <MyButton
-                                type="button"
-                                scale="medium"
-                                buttonType="secondary"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleAddOpenFieldValues('textfield', 'School/College', false);
-                                }}
-                            >
-                                <Plus size={32} /> Add School/College
-                            </MyButton>
-                        )}
+                    <div className="mt-2 flex flex-wrap items-center gap-6">                     
                         {handleAddPhoneNumber &&
                             !customFields?.some((field) => field.name === 'Phone Number') && (
                                 <MyButton

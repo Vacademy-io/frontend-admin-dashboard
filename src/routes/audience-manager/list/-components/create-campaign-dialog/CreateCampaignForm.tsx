@@ -24,6 +24,7 @@ import createCampaignLink from '../../-utils/createCampaignLink';
 import CampaignLink from './CampaignLink';
 import { CampaignItem } from '../../-services/get-campaigns-list';
 import { getCampaignCustomFields } from '../../-utils/getCampaignCustomFields';
+import { useGetCampaignById } from '../../-hooks/useGetCampaignById';
 
 const parseEmailsFromCsv = (value?: string | null) => {
     if (!value) return [];
@@ -104,9 +105,13 @@ const convertExistingCustomFields = (fields?: any[] | string | null) => {
                           .filter(Boolean)
                     : undefined;
 
+            // Preserve status from API - default to ACTIVE if not present
+            const fieldStatus = field.status || 'ACTIVE';
+
             const convertedField = {
                 id: field.id || meta.id || field.field_id || `${index}`,
                 _id: meta.id || field.id || field.field_id,
+                field_id: field.field_id || meta.id || field.id,
                 type: mapApiFieldTypeToUi(meta.fieldType || field.type),
                 name: fieldName,
                 oldKey: false,
@@ -124,11 +129,21 @@ const convertExistingCustomFields = (fields?: any[] | string | null) => {
                           disabled: true,
                       }))
                     : undefined,
+                // Preserve all original field data for payload
+                status: fieldStatus,
+                institute_id: field.institute_id,
+                type_id: field.type_id,
+                group_name: field.group_name || meta.groupName,
+                individual_order: field.individual_order,
+                group_internal_order: field.group_internal_order,
+                // Store full custom_field object for payload
+                custom_field_data: meta,
             };
             
-            console.log('📋 [convertExistingCustomFields] Converted field:', fieldName, '(key:', fieldKey, ')');
+            console.log('📋 [convertExistingCustomFields] Converted field:', fieldName, '(key:', fieldKey, ', status:', fieldStatus, ')');
             return convertedField;
         })
+        .filter((field) => field.status !== 'DELETED') // Filter out deleted fields from display
         .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
         .map((field, index) => ({
             ...field,
@@ -220,8 +235,27 @@ interface CreateCampaignFormProps {
 }
 
 export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSuccess, campaign }) => {
-    const initialFormValues = useMemo(() => buildInitialFormValues(campaign), [campaign]);
-    const [emails, setEmails] = useState<string[]>(() => parseEmailsFromCsv(campaign?.to_notify));
+    const { instituteDetails } = useInstituteDetailsStore();
+    const isEditMode = Boolean(campaign);
+    const editingCampaignId = useMemo(() => getCampaignIdentifier(campaign), [campaign]);
+    
+    // Fetch campaign data when in edit mode
+    const { data: fetchedCampaign, isLoading: isLoadingCampaign } = useGetCampaignById({
+        instituteId: instituteDetails?.id || '',
+        audienceId: editingCampaignId || '',
+        enabled: isEditMode && !!instituteDetails?.id && !!editingCampaignId,
+    });
+
+    // Use fetched campaign data if available, otherwise use passed campaign prop
+    const campaignData = useMemo(() => {
+        if (fetchedCampaign) {
+            return fetchedCampaign as CampaignItem;
+        }
+        return campaign;
+    }, [fetchedCampaign, campaign]);
+
+    const initialFormValues = useMemo(() => buildInitialFormValues(campaignData as CampaignItem), [campaignData]);
+    const [emails, setEmails] = useState<string[]>(() => parseEmailsFromCsv(campaignData?.to_notify as string || ''));
     const [latestCampaignShareLink, setLatestCampaignShareLink] = useState<string | null>(null);
     const { form, handleDateChange, handleSubmit, handleReset, isSubmitting } =
         useAudienceCampaignForm(initialFormValues);
@@ -235,45 +269,42 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
     } = form;
     const createCampaign = useCreateAudienceCampaign();
     const updateCampaign = useUpdateAudienceCampaign();
-    const { instituteDetails } = useInstituteDetailsStore();
-    const isEditMode = Boolean(campaign);
     const existingCustomFields = useMemo(
-        () => convertExistingCustomFields(campaign?.institute_custom_fields),
-        [campaign?.institute_custom_fields]
+        () => convertExistingCustomFields(campaignData?.institute_custom_fields),
+        [campaignData?.institute_custom_fields]
     );
-    const editingCampaignId = useMemo(() => getCampaignIdentifier(campaign), [campaign]);
     const statusValue = watch('status');
     const isStatusActive = statusValue?.toUpperCase?.() === 'ACTIVE';
 
     useEffect(() => {
-        if (campaign) {
-            setEmails(parseEmailsFromCsv(campaign.to_notify));
+        if (campaignData) {
+            setEmails(parseEmailsFromCsv(campaignData.to_notify));
         } else {
             setEmails([]);
         }
-    }, [campaign]);
+    }, [campaignData]);
 
     useEffect(() => {
-        if (campaign && editingCampaignId) {
+        if (campaignData && editingCampaignId) {
             const shareLink = createCampaignLink(
                 editingCampaignId,
                 instituteDetails?.learner_portal_base_url
             );
             setLatestCampaignShareLink(shareLink);
-        } else if (!campaign) {
+        } else if (!campaignData) {
             setLatestCampaignShareLink(null);
         }
-    }, [campaign, editingCampaignId, instituteDetails?.learner_portal_base_url]);
+    }, [campaignData, editingCampaignId, instituteDetails?.learner_portal_base_url]);
 
     // Set start date to today (date only) when form initializes (create mode only)
     useEffect(() => {
-        if (campaign) return;
+        if (campaignData) return;
         const today = new Date();
         const todayDateOnly = today.toISOString().split('T')[0] || today.toISOString().substring(0, 10); // Format: YYYY-MM-DD
         if (todayDateOnly) {
             setValue('start_date_local', todayDateOnly, { shouldValidate: false });
         }
-    }, [campaign, setValue]);
+    }, [campaignData, setValue]);
 
     // File upload setup
     const { uploadFile, getPublicUrl } = useFileUpload();
@@ -317,7 +348,12 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
         }
     };
 
+    // Update form when campaign data is fetched
     useEffect(() => {
+        if (isEditMode && isLoadingCampaign) {
+            return; // Don't update form while loading
+        }
+        
         if (initialFormValues) {
             form.reset(initialFormValues);
             // In edit mode, ensure custom fields are set immediately from initial values
@@ -334,7 +370,7 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
         } else {
             form.reset(defaultFormValues);
         }
-    }, [form, initialFormValues, isEditMode, setValue]);
+    }, [form, initialFormValues, isEditMode, isLoadingCampaign, setValue]);
 
     // Custom fields array management
     const { fields: customFieldsArray, move: moveCustomField } = useFieldArray({
@@ -529,7 +565,7 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
         handleReset();
         if (isEditMode && existingCustomFields && existingCustomFields.length > 0) {
             setCustomFieldsFromExisting(existingCustomFields);
-            setEmails(parseEmailsFromCsv(campaign?.to_notify));
+            setEmails(parseEmailsFromCsv(campaignData?.to_notify));
         } else {
             applyDefaultCustomFields();
             if (!isEditMode) {
@@ -553,12 +589,16 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
     };
 
     const handleDeleteOpenField = (id: number) => {
-        const updatedFields = customFieldsArray
-            .filter((field, idx) => idx !== id)
-            .map((field, index) => ({
-                ...field,
-                order: index,
-            }));
+        // Instead of removing the field, set its status to DELETED
+        const updatedFields = customFieldsArray.map((field, idx) => {
+            if (idx === id) {
+                return {
+                    ...field,
+                    status: 'DELETED',
+                };
+            }
+            return field;
+        });
         setValue('custom_fields', updatedFields);
     };
 
@@ -711,23 +751,50 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
                     ? field.options.map((option: any) => option.value?.trim()).filter(Boolean)
                     : undefined;
 
-            return {
-                institute_id: instituteId,
+            // Use existing field data if available (from API), otherwise create new structure
+            const fieldId = field.id || field._id || field.field_id;
+            const customFieldData = field.custom_field_data || field.custom_field || {};
+            
+            // Build the payload according to the required structure
+            const payload: any = {
+                ...(fieldId && { id: fieldId }),
+                field_id: field.field_id || customFieldData.id || fieldId,
+                institute_id: field.institute_id || instituteId,
+                type: field.type_id || customFieldData.fieldType || mapFieldTypeToPayload(field.type),
+                type_id: field.type_id || customFieldData.fieldType || mapFieldTypeToPayload(field.type),
+                group_name: field.group_name || customFieldData.groupName || '',
+                status: field.status || 'ACTIVE', // Preserve status (ACTIVE or DELETED)
+                individual_order: field.individual_order ?? field.order ?? index,
+                group_internal_order: field.group_internal_order ?? 0,
                 custom_field: {
-                    fieldName: field.name || field.custom_field?.fieldName || `Field ${index + 1}`,
-                    fieldType: mapFieldTypeToPayload(field.type || field.custom_field?.fieldType),
+                    ...(customFieldData.id && { id: customFieldData.id }),
+                    ...(customFieldData.guestId && { guestId: customFieldData.guestId }),
+                    fieldKey: field.key || customFieldData.fieldKey || generateKeyFromName(field.name),
+                    fieldName: field.name || customFieldData.fieldName || `Field ${index + 1}`,
+                    fieldType: mapFieldTypeToPayload(field.type || customFieldData.fieldType),
+                    defaultValue: customFieldData.defaultValue || '',
+                    config: options ? options.join(',') : (customFieldData.config || ''),
+                    formOrder: typeof field.order === 'number' ? field.order + 1 : (customFieldData.formOrder || index + 1),
                     isMandatory: Boolean(
                         typeof field.isRequired === 'boolean'
                             ? field.isRequired
-                            : field.custom_field?.isMandatory
+                            : customFieldData.isMandatory ?? true
                     ),
-                    formOrder:
-                        typeof field.order === 'number'
-                            ? field.order + 1
-                            : field.custom_field?.formOrder || index + 1,
-                    ...(options && { config: options.join(',') }),
+                    isFilter: customFieldData.isFilter ?? false,
+                    isSortable: customFieldData.isSortable ?? false,
+                    isHidden: customFieldData.isHidden ?? false,
+                    ...(customFieldData.createdAt && { createdAt: customFieldData.createdAt }),
+                    ...(customFieldData.updatedAt && { updatedAt: customFieldData.updatedAt }),
+                    ...(customFieldData.sessionId && { sessionId: customFieldData.sessionId }),
+                    ...(customFieldData.liveSessionId && { liveSessionId: customFieldData.liveSessionId }),
+                    customFieldValue: customFieldData.customFieldValue || '',
+                    groupName: field.group_name || customFieldData.groupName || '',
+                    groupInternalOrder: field.group_internal_order ?? 0,
+                    individualOrder: field.individual_order ?? field.order ?? index,
                 },
             };
+
+            return payload;
         });
     };
 
@@ -772,13 +839,19 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
         const customFieldsToSend =
             customFieldsFromJson.length > 0 ? customFieldsFromJson : transformedCustomFields;
 
+        // Include all fields (both ACTIVE and DELETED) in the payload
+        // The API will handle the status updates
+        const allFieldsIncludingDeleted = (data.custom_fields || []).map((field: any) => field);
+        const allCustomFieldsPayload = convertFieldsToPayload(allFieldsIncludingDeleted, instituteDetails.id);
+
         // Debug logging
-        // console.log('Custom Fields Debug:', {
-        //     'data.custom_fields': data.custom_fields,
-        //     transformedCustomFields,
-        //     parsedCustomFields,
-        //     customFieldsToSend,
-        // });
+        console.log('Custom Fields Debug:', {
+            'data.custom_fields': data.custom_fields,
+            transformedCustomFields,
+            parsedCustomFields,
+            customFieldsToSend,
+            allCustomFieldsPayload,
+        });
 
         const payload = {
             id: editingCampaignId || undefined,
@@ -794,7 +867,7 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
             start_date_local: formatDateTimeForPayload(data.start_date_local, false),
             end_date_local: formatDateTimeForPayload(data.end_date_local, true),
             status: data.status?.toUpperCase?.() || data.status,
-            institute_custom_fields: customFieldsToSend,
+            institute_custom_fields: allCustomFieldsPayload.length > 0 ? allCustomFieldsPayload : customFieldsToSend,
         };
 
         try {
@@ -842,6 +915,15 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
         : isSaving
           ? 'Creating...'
           : 'Create Campaign';
+
+    // Show loading state while fetching campaign data
+    if (isEditMode && isLoadingCampaign) {
+        return (
+            <div className="flex items-center justify-center py-8">
+                <DashboardLoader />
+            </div>
+        );
+    }
 
     return (
         <form onSubmit={onFormSubmit} className="w-full space-y-6">
