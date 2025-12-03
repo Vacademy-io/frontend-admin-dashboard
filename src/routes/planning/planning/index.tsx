@@ -34,6 +34,7 @@ function PlanningLogsList() {
         statuses: ['ACTIVE'],
         ...(packageSessionId ? { entity_ids: [packageSessionId] } : {}),
     });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [searchQuery, setSearchQuery] = useState('');
     const { setNavHeading } = useNavHeadingStore();
 

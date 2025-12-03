@@ -30,7 +30,6 @@ function PlanningLogDetailPage() {
     const navigate = useNavigate();
     const { setNavHeading } = useNavHeadingStore();
     const selectedLog = usePlanningLogStore((state) => state.selectedLog);
-    const setSelectedLog = usePlanningLogStore((state) => state.setSelectedLog);
     const { instituteDetails } = useInstituteDetailsStore();
 
     const packageSessionOptions =
@@ -152,7 +151,7 @@ function PlanningLogDetailPage() {
                                 })
                             }
                         >
-                            <ArrowLeft className="h-5 w-5" />
+                            <ArrowLeft className="size-5" />
                         </Button>
                         <div>
                             <h1 className="text-lg font-semibold">
@@ -181,17 +180,17 @@ function PlanningLogDetailPage() {
                                     onClick={handleCancel}
                                     disabled={updateMutation.isPending}
                                 >
-                                    <X className="mr-2 h-4 w-4" />
+                                    <X className="mr-2 size-4" />
                                     Cancel
                                 </MyButton>
                                 <MyButton onClick={handleSave} disabled={updateMutation.isPending}>
-                                    <Save className="mr-2 h-4 w-4" />
+                                    <Save className="mr-2 size-4" />
                                     {updateMutation.isPending ? 'Saving...' : 'Save'}
                                 </MyButton>
                             </>
                         ) : (
                             <MyButton onClick={handleEdit}>
-                                <Edit className="mr-2 h-4 w-4" />
+                                <Edit className="mr-2 size-4" />
                                 <span className="ml-2">Edit</span>
                             </MyButton>
                         )}
@@ -315,7 +314,7 @@ function PlanningLogDetailPage() {
                                                     size="sm"
                                                     onClick={() => handleDownload(fileId)}
                                                 >
-                                                    <Download className="mr-2 h-4 w-4" />
+                                                    <Download className="mr-2 size-4" />
                                                     Download
                                                 </Button>
                                             </div>

@@ -4,11 +4,10 @@ import { CREATE_PLANNING_LOGS } from '@/constants/urls';
 import { toast } from 'sonner';
 import { getInstituteId } from '@/constants/helper';
 import type { CreatePlanningLogsRequest, CreatePlanningLogsResponse } from '../-types/types';
-import { useNavigate, useRouter } from '@tanstack/react-router';
+import { useRouter } from '@tanstack/react-router';
 
 export const useCreatePlanningLogs = () => {
     const queryClient = useQueryClient();
-    const navigate = useNavigate();
     const router = useRouter();
 
     return useMutation({
@@ -23,13 +22,14 @@ export const useCreatePlanningLogs = () => {
             );
             return response.data;
         },
-        onSuccess: (data) => {
+        onSuccess: () => {
             toast.success('Created successfully');
             // Invalidate planning logs list cache
             queryClient.invalidateQueries({ queryKey: ['planning-logs'] });
             router.history.back();
             // navigate({ to: '/planning/list' });
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
             const errorMessage = error?.response?.data?.message || 'Failed to create planning logs';
             toast.error(errorMessage);

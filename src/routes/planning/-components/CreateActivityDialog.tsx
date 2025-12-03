@@ -86,7 +86,10 @@ export default function CreateActivityDialog({
                         description: formData.description || undefined,
                         content_html: wrapContentInHTML(formData.content_html),
                         subject_id: formData.subject_id,
-                        comma_separated_file_ids: formData.uploadedFileIds.join(',') || undefined,
+                        comma_separated_file_ids:
+                            formData.uploadedFileIds.length > 0
+                                ? formData.uploadedFileIds.join(',')
+                                : undefined,
                         is_shared_with_student: formData.is_shared_with_student,
                     },
                 ],

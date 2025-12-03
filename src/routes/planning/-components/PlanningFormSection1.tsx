@@ -69,22 +69,23 @@ export default function PlanningFormSection1({
                     </RadioGroup>
                 </div>
             )}
-            {/* Title - Full width - Editable (auto-generated but can be modified) */}
-            <div className="col-span-2 space-y-2">
-                <MyInput
-                    label="Title"
-                    required
-                    inputType="text"
-                    inputPlaceholder="Auto-generated based on interval and course"
-                    input={data.title}
-                    onChangeFunction={(e) => onChange({ title: e.target.value })}
-                    className="w-full"
-                    size="medium"
-                />
-                <p className="text-sm text-muted-foreground">
-                    Title is auto-generated but you can edit it if needed
-                </p>
-            </div>
+
+            {/* Custom Title Input - Only show when useCustomTitle is true */}
+            {data.useCustomTitle && (
+                <div className="col-span-2 space-y-2">
+                    <MyInput
+                        label="Title"
+                        required
+                        inputType="text"
+                        inputPlaceholder="Enter your custom title"
+                        input={data.title}
+                        onChangeFunction={(e) => onChange({ title: e.target.value })}
+                        className="w-full"
+                        size="medium"
+                    />
+                </div>
+            )}
+
             {/* Subject - Only show if multiple options */}
             {hasMultipleSubjects && (
                 <div className="col-span-2 space-y-2">

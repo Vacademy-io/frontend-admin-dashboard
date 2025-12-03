@@ -1,10 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
 import type { PlanningFormData, IntervalType } from '../-types/types';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { MyDropdown } from '@/components/design-system/dropdown';
 import { MyLabel } from '@/components/design-system/my-label';
 import IntervalSelector from './IntervalSelector';
+import { Switch } from '@/components/ui/switch';
 
 interface TitleGeneratorSectionProps {
     data: PlanningFormData;
@@ -20,7 +21,6 @@ export default function TitleGeneratorSection({
     hideCourseSelector,
 }: TitleGeneratorSectionProps) {
     const { instituteDetails } = useInstituteDetailsStore();
-    const lastGeneratedTitle = useRef<string>('');
 
     const packageSessionOptions =
         instituteDetails?.batches_for_sessions?.map((batch) => ({
@@ -47,72 +47,67 @@ export default function TitleGeneratorSection({
 
     const currentInterval = intervalOptions.find((opt) => opt.value === data.interval_type);
 
-    // Auto-generate title based on interval type, date, and course
-    useEffect(() => {
-        if (data.interval_type && data.selectedDate) {
-            let titlePrefix = '';
+    // Generate title - use useMemo to avoid unnecessary recalculations
+    const generatedTitle = useMemo(() => {
+        if (!data.interval_type || !data.selectedDate) return '';
 
-            switch (data.interval_type) {
-                case 'daily':
-                    // Format: "24 Nov, 2024" or "24 Nov, 2024 - Course 1"
-                    titlePrefix = format(data.selectedDate, 'dd MMM, yyyy');
-                    break;
-                case 'weekly':
-                    // Format: "Sunday" or "Sunday - Course 1"
-                    titlePrefix = format(data.selectedDate, 'EEEE');
-                    break;
-                case 'monthly': {
-                    // Format: "Week 3" or "Week 3 - Course 1"
-                    const weekOfMonth = Math.ceil(data.selectedDate.getDate() / 7);
-                    titlePrefix = `Week ${weekOfMonth}`;
-                    break;
-                }
-                case 'yearly_month':
-                    // Format: "January" or "January - Course 1"
-                    titlePrefix = format(data.selectedDate, 'MMMM');
-                    break;
-                case 'yearly_quarter': {
-                    // Format: "Apr-Jun" or "Apr-Jun - Course 1"
-                    const month = data.selectedDate.getMonth();
-                    const quarters = [
-                        'Jan-Mar',
-                        'Jan-Mar',
-                        'Jan-Mar',
-                        'Apr-Jun',
-                        'Apr-Jun',
-                        'Apr-Jun',
-                        'Jul-Sep',
-                        'Jul-Sep',
-                        'Jul-Sep',
-                        'Oct-Dec',
-                        'Oct-Dec',
-                        'Oct-Dec',
-                    ];
-                    titlePrefix = quarters[month] || 'Q1';
-                    break;
-                }
-                default:
-                    titlePrefix = '';
+        let titlePrefix = '';
+
+        switch (data.interval_type) {
+            case 'daily':
+                titlePrefix = format(data.selectedDate, 'dd MMM, yyyy');
+                break;
+            case 'weekly':
+                titlePrefix = format(data.selectedDate, 'EEEE');
+                break;
+            case 'monthly': {
+                const weekOfMonth = Math.ceil(data.selectedDate.getDate() / 7);
+                titlePrefix = `Week ${weekOfMonth}`;
+                break;
             }
-
-            // Always append course name if packageSessionId is set (even if selector is hidden)
-            let generatedTitle = titlePrefix;
-            if (data.packageSessionId && currentPackageSession) {
-                const courseName = currentPackageSession.label.split(' - ')[0];
-                const sessionName = currentPackageSession.label.split(' - ')[1];
-                const levelName = currentPackageSession.label.split(' - ')[2];
-
-                generatedTitle = `${titlePrefix} - ${courseName}/${levelName}/${sessionName}`;
+            case 'yearly_month':
+                titlePrefix = format(data.selectedDate, 'MMMM');
+                break;
+            case 'yearly_quarter': {
+                const month = data.selectedDate.getMonth();
+                const quarters = [
+                    'Jan-Mar',
+                    'Jan-Mar',
+                    'Jan-Mar',
+                    'Apr-Jun',
+                    'Apr-Jun',
+                    'Apr-Jun',
+                    'Jul-Sep',
+                    'Jul-Sep',
+                    'Jul-Sep',
+                    'Oct-Dec',
+                    'Oct-Dec',
+                    'Oct-Dec',
+                ];
+                titlePrefix = quarters[month] || 'Q1';
+                break;
             }
-
-            // Only update title if it hasn't been manually edited
-            // Check if current title matches the last generated title or is empty
-            if (data.title === lastGeneratedTitle.current || data.title === '') {
-                lastGeneratedTitle.current = generatedTitle;
-                onChange({ title: generatedTitle });
-            }
+            default:
+                titlePrefix = '';
         }
+
+        // Append course name if packageSessionId is set
+        if (data.packageSessionId && currentPackageSession) {
+            const courseName = currentPackageSession.label.split(' - ')[0];
+            const sessionName = currentPackageSession.label.split(' - ')[1];
+            const levelName = currentPackageSession.label.split(' - ')[2];
+            return `${titlePrefix} - ${courseName}/${levelName}/${sessionName}`;
+        }
+
+        return titlePrefix;
     }, [data.interval_type, data.selectedDate, data.packageSessionId, currentPackageSession]);
+
+    // Update title when it changes (only if not using custom title)
+    useEffect(() => {
+        if (!data.useCustomTitle && generatedTitle && generatedTitle !== data.title) {
+            onChange({ title: generatedTitle });
+        }
+    }, [generatedTitle, data.useCustomTitle]);
 
     return (
         <div className="space-y-4">
@@ -152,6 +147,30 @@ export default function TitleGeneratorSection({
                         placeholder="Select batch"
                         className="w-full"
                     />
+                </div>
+            )}
+
+            {/* Title Mode Switch */}
+            <div className="flex items-center justify-between  p-1">
+                <label className="mr-2 text-base">Custom Title</label>
+                <Switch
+                    id="custom-title-switch"
+                    checked={data.useCustomTitle || false}
+                    onCheckedChange={(checked) => {
+                        onChange({ useCustomTitle: checked });
+                        // If switching to auto-generated, set the generated title
+                        if (!checked && generatedTitle) {
+                            onChange({ title: generatedTitle, useCustomTitle: checked });
+                        }
+                    }}
+                />
+            </div>
+
+            {/* Auto-generated Title Display - Only show when NOT using custom */}
+            {!data.useCustomTitle && generatedTitle && (
+                <div className="rounded-lg border bg-muted/30 p-3">
+                    <p className="mb-1 text-xs font-medium text-muted-foreground">Title:</p>
+                    <p className="text-base font-semibold">{generatedTitle}</p>
                 </div>
             )}
         </div>

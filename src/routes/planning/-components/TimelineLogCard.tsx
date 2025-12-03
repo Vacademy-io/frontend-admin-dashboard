@@ -63,20 +63,17 @@ export default function TimelineLogCard({
                             Shared with {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}
                         </Badge>
                     )}
-                    {/* <Badge variant={log.status === 'ACTIVE' ? 'default' : 'secondary'}>
-                        {log.status}
-                    </Badge> */}
                 </div>
 
                 {/* Package Session Name */}
                 {packageSessionName && (
-                    <div className="text-sm font-medium text-muted-foreground">
-                        📚 {packageSessionName}
+                    <div className="text-sm font-medium text-foreground">
+                        {highlightText(packageSessionName, searchQuery)}
                     </div>
                 )}
 
                 {/* Secondary: Title */}
-                <div className="text-base text-foreground">
+                <div className="text-sm text-muted-foreground">
                     {highlightText(log.title, searchQuery)}
                 </div>
 

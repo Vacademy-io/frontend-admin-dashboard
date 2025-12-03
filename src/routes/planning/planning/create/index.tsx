@@ -36,6 +36,7 @@ function CreatePlanningLog() {
             content_html: '',
             uploadedFileIds: [],
             is_shared_with_student: false,
+            useCustomTitle: false, // Default to auto-generated
         },
     ]);
 
@@ -62,6 +63,7 @@ function CreatePlanningLog() {
                 packageSessionId: lastEntry.packageSessionId,
                 subject_id: lastEntry.subject_id,
                 is_shared_with_student: lastEntry.is_shared_with_student,
+                useCustomTitle: lastEntry.useCustomTitle,
                 // Reset Section 2 fields
                 interval_type: 'monthly' as const,
                 selectedDate: new Date(),
@@ -95,19 +97,24 @@ function CreatePlanningLog() {
 
     const handleSave = async () => {
         // Validate all entries
-        const logs = planningEntries.map((entry) => ({
-            log_type: 'planning' as const, // Always planning
-            entity: 'packageSession' as const,
-            entity_id: entry.packageSessionId,
-            interval_type: entry.interval_type,
-            interval_type_id: entry.interval_type_id,
-            title: entry.title,
-            description: entry.description || undefined,
-            content_html: wrapContentInHTML(entry.content_html),
-            subject_id: entry.subject_id,
-            comma_separated_file_ids: entry.uploadedFileIds.join(',') || undefined,
-            is_shared_with_student: entry.is_shared_with_student,
-        }));
+        const logs = planningEntries.map((entry) => {
+            const fileIds =
+                entry.uploadedFileIds.length > 0 ? entry.uploadedFileIds.join(',') : undefined;
+
+            return {
+                log_type: 'planning' as const, // Always planning
+                entity: 'packageSession' as const,
+                entity_id: entry.packageSessionId,
+                interval_type: entry.interval_type,
+                interval_type_id: entry.interval_type_id,
+                title: entry.title,
+                description: entry.description || undefined,
+                content_html: wrapContentInHTML(entry.content_html),
+                subject_id: entry.subject_id,
+                comma_separated_file_ids: fileIds,
+                is_shared_with_student: entry.is_shared_with_student,
+            };
+        });
 
         try {
             await createMutation.mutateAsync({ logs });

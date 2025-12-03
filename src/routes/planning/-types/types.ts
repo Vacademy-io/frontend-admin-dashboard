@@ -108,6 +108,7 @@ export interface PlanningFormData {
     packageSessionId: string;
     subject_id: string;
     is_shared_with_student: boolean;
+    useCustomTitle?: boolean; // Toggle for custom vs auto-generated title
 
     // Section 2
     interval_type: IntervalType;

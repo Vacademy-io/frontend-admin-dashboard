@@ -36,6 +36,7 @@ function CreateActivityLog() {
             content_html: '',
             uploadedFileIds: [],
             is_shared_with_student: false,
+            useCustomTitle: false, // Default to auto-generated
         },
     ]);
 
@@ -62,6 +63,7 @@ function CreateActivityLog() {
                 packageSessionId: lastEntry.packageSessionId,
                 subject_id: lastEntry.subject_id,
                 is_shared_with_student: lastEntry.is_shared_with_student,
+                useCustomTitle: lastEntry.useCustomTitle,
                 // Reset Section 2 fields
                 interval_type: 'daily' as const, // Fixed to daily for activity logs
                 selectedDate: new Date(),
@@ -105,7 +107,8 @@ function CreateActivityLog() {
             description: entry.description || undefined,
             content_html: wrapContentInHTML(entry.content_html),
             subject_id: entry.subject_id,
-            comma_separated_file_ids: entry.uploadedFileIds.join(',') || undefined,
+            comma_separated_file_ids:
+                entry.uploadedFileIds.length > 0 ? entry.uploadedFileIds.join(',') : undefined,
             is_shared_with_student: entry.is_shared_with_student,
         }));
 

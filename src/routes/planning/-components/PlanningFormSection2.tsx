@@ -16,7 +16,8 @@ interface PlanningFormSection2Props {
 export default function PlanningFormSection2({ data, onChange }: PlanningFormSection2Props) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isUploading, setIsUploading] = useState(false);
-    const [uploadedFiles, setUploadedFiles] = useState<Array<{ id: string; name: string }>>([]);
+    // Store file metadata separately with a Map for better tracking
+    const [fileMetadata, setFileMetadata] = useState<Map<string, string>>(new Map());
 
     // Auto-generate interval_type_id when interval type or date changes
     useEffect(() => {
@@ -30,9 +31,13 @@ export default function PlanningFormSection2({ data, onChange }: PlanningFormSec
         const file = e.target.files?.[0];
         if (!file) return;
 
+        const fileName = file.name;
+
         try {
             setIsUploading(true);
             const userId = getUserId();
+            console.log('Starting file upload:', fileName);
+
             const fileId = await UploadFileInS3(
                 file,
                 () => {},
@@ -42,27 +47,45 @@ export default function PlanningFormSection2({ data, onChange }: PlanningFormSec
                 true
             );
 
+            console.log('File uploaded successfully. FileId:', fileId);
+
             if (fileId) {
-                const newFile = { id: fileId, name: file.name };
-                setUploadedFiles([...uploadedFiles, newFile]);
-                onChange({ uploadedFileIds: [...data.uploadedFileIds, fileId] });
+                // Update file metadata map
+                setFileMetadata((prev) => {
+                    const newMap = new Map(prev);
+                    newMap.set(fileId, fileName);
+                    return newMap;
+                });
+
+                // Update parent state with new file ID
+                const updatedFileIds = [...data.uploadedFileIds, fileId];
+                console.log('Calling onChange with uploadedFileIds:', updatedFileIds);
+                onChange({ uploadedFileIds: updatedFileIds });
             }
         } catch (error) {
             console.error('File upload failed:', error);
         } finally {
             setIsUploading(false);
-            // Reset input
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
             }
         }
     };
 
-    const handleRemoveFile = (index: number) => {
-        const newFileIds = data.uploadedFileIds.filter((_, i) => i !== index);
-        const newFiles = uploadedFiles.filter((_, i) => i !== index);
-        setUploadedFiles(newFiles);
-        onChange({ uploadedFileIds: newFileIds });
+    const handleRemoveFile = (fileId: string) => {
+        console.log('Removing file:', fileId);
+
+        // Remove from metadata
+        setFileMetadata((prev) => {
+            const newMap = new Map(prev);
+            newMap.delete(fileId);
+            return newMap;
+        });
+
+        // Update parent state
+        const updatedFileIds = data.uploadedFileIds.filter((id) => id !== fileId);
+        console.log('After removal, uploadedFileIds:', updatedFileIds);
+        onChange({ uploadedFileIds: updatedFileIds });
     };
     return (
         <div className="grid gap-4">
@@ -106,24 +129,28 @@ export default function PlanningFormSection2({ data, onChange }: PlanningFormSec
                     </div>
                 </div>
 
-                {uploadedFiles.length > 0 && (
+                {data.uploadedFileIds.length > 0 && (
                     <div className="mt-4 space-y-2">
-                        <p className="text-sm font-medium">Uploaded Files:</p>
+                        <p className="text-sm font-medium">
+                            Uploaded Files ({data.uploadedFileIds.length}):
+                        </p>
                         <div className="space-y-1">
-                            {uploadedFiles.map((file, index) => (
+                            {data.uploadedFileIds.map((fileId, index) => (
                                 <div
-                                    key={file.id}
+                                    key={fileId}
                                     className="flex items-center justify-between rounded-md border bg-muted/50 p-2"
                                 >
                                     <div className="flex items-center gap-2">
                                         <FileIcon className="size-4 text-muted-foreground" />
-                                        <span className="text-sm">{file.name}</span>
+                                        <span className="text-sm">
+                                            {fileMetadata.get(fileId) || `File ${index + 1}`}
+                                        </span>
                                     </div>
                                     <Button
                                         type="button"
                                         variant="ghost"
                                         size="icon"
-                                        onClick={() => handleRemoveFile(index)}
+                                        onClick={() => handleRemoveFile(fileId)}
                                         className="size-6"
                                     >
                                         <X className="size-4" />
