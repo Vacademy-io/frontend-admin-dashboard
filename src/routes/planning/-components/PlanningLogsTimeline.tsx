@@ -1,27 +1,14 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
-import {
-    Timeline,
-    TimelineBody,
-    TimelineContent,
-    TimelineItem,
-    TimelinePoint,
-    TimelineTime,
-    TimelineTitle,
-} from 'flowbite-react';
+import { Timeline, TimelineContent, TimelineItem, TimelineTime } from 'flowbite-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Eye, Trash2, ChevronDown, ChevronUp, Dot } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { PlanningLog } from '../-types/types';
 import { useDeletePlanningLog } from '../-services/updatePlanningLog';
-import { getUserId } from '@/utils/userDetails';
-import { format } from 'date-fns';
-import { formatIntervalTypeId } from '../-utils/intervalTypeIdFormatter';
 import { getRelativeTimeLabel } from '../-utils/getRelativeTimeLabel';
 import { usePlanningLogStore } from '../-stores/planning-log-store';
 import { toast } from 'sonner';
 import { MyButton } from '@/components/design-system/button';
-import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import TimelineLogCard from './TimelineLogCard';
 
 interface PlanningLogsTimelineProps {
@@ -49,7 +36,6 @@ export default function PlanningLogsTimeline({
     const deleteMutation = useDeletePlanningLog();
     const [showPastLogs, setShowPastLogs] = useState(false);
     const [accumulatedLogs, setAccumulatedLogs] = useState<PlanningLog[]>([]);
-    const currentUserId = getUserId();
     const setSelectedLog = usePlanningLogStore((state) => state.setSelectedLog);
 
     // Accumulate logs when new data arrives
@@ -199,7 +185,7 @@ export default function PlanningLogsTimeline({
                                 onClick={() => setShowPastLogs(true)}
                                 className="w-full max-w-fit"
                             >
-                                <ChevronUp className="mr-2 h-4 w-4" />
+                                <ChevronUp className="mr-2 size-4" />
                                 View Past ({pastLogs.length})
                             </MyButton>
                         </div>
@@ -208,7 +194,7 @@ export default function PlanningLogsTimeline({
                     <Timeline>
                         {sortedGroupedLogs.map(([label, logs]) => (
                             <TimelineItem key={label}>
-                                <TimelinePoint />
+                                {/*   <TimelinePoint /> */}
                                 <TimelineContent>
                                     <TimelineTime className="text-black">{label}</TimelineTime>
                                     <div className="space-y-4">
@@ -262,7 +248,7 @@ export default function PlanningLogsTimeline({
                                 onClick={() => onPageChange(currentPage + 1)}
                                 className="w-full max-w-fit"
                             >
-                                <ChevronDown className="mr-2 h-4 w-4" />
+                                <ChevronDown className="mr-2 size-4" />
                                 View More
                             </MyButton>
                         </div>
