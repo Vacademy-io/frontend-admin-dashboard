@@ -81,6 +81,7 @@ export default function ViewPlanningDialog({
         try {
             return format(new Date(dateString), 'MMMM dd, yyyy');
         } catch {
+            console.error('Invalid date format:', dateString);
             return dateString;
         }
     };
