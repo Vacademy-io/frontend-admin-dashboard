@@ -69,7 +69,9 @@ export default function SessionListPage() {
     const batchOptions = useMemo(() => {
         const batches =
             storeInstituteDetails?.batches_for_sessions?.map((batch) => ({
-                label: `${batch.level.level_name} ${batch.package_dto.package_name}, ${batch.session.session_name}`,
+                label: batch.level.id === 'DEFAULT'
+                    ? `${batch.package_dto.package_name.replace(/^default\s+/i, '')}, ${batch.session.session_name}`.trim()
+                    : `${batch.level.level_name.replace(/^default\s+/i, '')} ${batch.package_dto.package_name.replace(/^default\s+/i, '')}, ${batch.session.session_name}`.trim(),
                 value: batch.id, // This is the package_session_id
             })) || [];
         return [AllBatchesOption, ...batches];

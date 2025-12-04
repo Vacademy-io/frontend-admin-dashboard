@@ -259,7 +259,7 @@ export const QuestionPapersList = ({
                         </p>
                         <p>
                             Subject:{' '}
-                            {instituteDetails &&
+                            {instituteDetails && instituteDetails.subjects &&
                                 getSubjectNameById(
                                     instituteDetails.subjects,
                                     questionsData.subject_id

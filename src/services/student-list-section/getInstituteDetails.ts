@@ -4,13 +4,31 @@ import {
     SubModuleType,
 } from '@/schemas/student/student-list/institute-schema';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { HOLISTIC_INSTITUTE_ID, INIT_INSTITUTE } from '@/constants/urls';
+import { HOLISTIC_INSTITUTE_ID, INIT_INSTITUTE, INIT_INSTITUTE_SETUP } from '@/constants/urls';
 import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
 import { useTheme } from '@/providers/theme/theme-provider';
 import { StorageKey } from '@/constants/storage/storage';
 import useLocalStorage from '@/hooks/use-local-storage';
 import { isNullOrEmptyOrUndefined } from '@/lib/utils';
 import { NamingSettingsType } from '@/routes/settings/-constants/terms';
+
+export const fetchInstituteSetup = async (): Promise<any> => {
+    const INSTITUTE_ID = getCurrentInstituteId();
+    const response = await authenticatedAxiosInstance({
+        method: 'GET',
+        url: `${INIT_INSTITUTE_SETUP}/${INSTITUTE_ID}`,
+    });
+    
+    // Transform the nested response to flat structure
+    const setupData = response.data;
+    const transformedData = {
+        ...setupData.institute_info_dto,
+        sub_org_roles: setupData.sub_org_roles || [],
+        dropdown_custom_fields: setupData.dropdown_custom_fields || [],
+    };
+    
+    return transformedData;
+};
 
 export const fetchInstituteDetails = async (): Promise<InstituteDetailsType> => {
     const INSTITUTE_ID = getCurrentInstituteId();
@@ -20,6 +38,34 @@ export const fetchInstituteDetails = async (): Promise<InstituteDetailsType> => 
     });
     return response.data;
 };
+
+// Fetch both APIs in parallel and merge the results
+export const fetchBothInstituteAPIs = async (): Promise<InstituteDetailsType> => {
+    const [instituteData, setupData] = await Promise.all([
+        fetchInstituteDetails(),
+        fetchInstituteSetup()
+    ]);
+    
+    // Merge: base institute data + setup data overlay (filters from setup take precedence)
+    const mergedData: InstituteDetailsType = {
+        ...instituteData,
+        // Override/add filter-related fields from INIT_INSTITUTE_SETUP
+        sub_org_roles: setupData?.sub_org_roles || [],
+        dropdown_custom_fields: setupData?.dropdown_custom_fields || [],
+        // Keep batches_for_sessions from setup if it has is_org_associated data
+        batches_for_sessions: setupData?.batches_for_sessions || instituteData?.batches_for_sessions || [],
+        // Ensure required arrays are never undefined
+        levels: instituteData?.levels || [],
+        sessions: instituteData?.sessions || [],
+        subjects: instituteData?.subjects || [],
+        session_expiry_days: instituteData?.session_expiry_days || [],
+        student_statuses: instituteData?.student_statuses || [],
+        genders: instituteData?.genders || [],
+        tags: instituteData?.tags || [],
+    };
+    
+    return mergedData;
+}
 
 export const useInstituteQuery = () => {
     const setInstituteDetails = useInstituteDetailsStore((state) => state.setInstituteDetails);
@@ -34,17 +80,23 @@ export const useInstituteQuery = () => {
     const { setPrimaryColor } = useTheme();
 
     return {
-        queryKey: ['GET_INIT_INSTITUTE'],
+        queryKey: ['GET_BOTH_INSTITUTE_APIS', 'v4'],
         queryFn: async () => {
-            const data = await fetchInstituteDetails();
+            const data = await fetchBothInstituteAPIs();
             const INSTITUTE_ID = getCurrentInstituteId();
-            const instituteSettings = JSON.parse(data?.setting || '{}');
+            
+            // Try to parse settings if they exist
             try {
-                if (!isNullOrEmptyOrUndefined(instituteSettings)) {
-                    const namingSettings = instituteSettings.setting.NAMING_SETTING;
-                    setValue(namingSettings.data.data);
+                if (data?.setting) {
+                    const instituteSettings = JSON.parse(data.setting);
+                    if (!isNullOrEmptyOrUndefined(instituteSettings)) {
+                        const namingSettings = instituteSettings.setting?.NAMING_SETTING;
+                        if (namingSettings) {
+                            setValue(namingSettings.data.data);
+                        }
+                    }
                 }
-                if (!isNullOrEmptyOrUndefined(data)) {
+                if (data && !isNullOrEmptyOrUndefined(data.sub_modules)) {
                     setModules(data.sub_modules);
                 }
             } catch (error) {

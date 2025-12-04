@@ -47,7 +47,7 @@ export const ViewQuestionPaper = ({
             createdOn: new Date(),
             yearClass: (instituteDetails && getLevelNameById(instituteDetails.levels, level)) || '',
             subject:
-                (instituteDetails && getSubjectNameById(instituteDetails?.subjects, subject)) || '',
+                (instituteDetails && instituteDetails.subjects && getSubjectNameById(instituteDetails.subjects, subject)) || '',
             questionsType: '',
             optionsType: '',
             answersType: '',
