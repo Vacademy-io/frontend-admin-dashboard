@@ -8,6 +8,7 @@ interface BatchForSession {
     };
     level: {
         level_name: string;
+        id: string;
     };
     package_dto: {
         package_name: string;
@@ -28,7 +29,14 @@ export const usePackageSessionIds = (sessionName: string, batchNames?: string[])
     const matchingBatches = instituteDetails.batches_for_sessions.filter(
         (batch: BatchForSession) => {
             if (batch.session.session_name !== sessionName) return false;
-            const batchNameString = `${batch.level.level_name} ${batch.package_dto.package_name}`;
+            let batchNameString;
+            if (batch.level.id === 'DEFAULT') {
+                batchNameString = batch.package_dto.package_name.replace(/^default\s+/i, '').trim();
+            } else {
+                const levelName = batch.level.level_name.replace(/^default\s+/i, '');
+                const packageName = batch.package_dto.package_name.replace(/^default\s+/i, '');
+                batchNameString = `${levelName} ${packageName}`.trim();
+            }
             return batchNames.includes(batchNameString);
         }
     );

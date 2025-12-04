@@ -823,7 +823,12 @@ export function compareAndUpdateSections(
 export function getBatchNameById(data: BatchDetailsInterface[] | undefined, id: string) {
     const item = data?.find((obj) => obj.id === id);
     if (item && item.level && item.package_dto) {
-        return `${item.level.level_name} ${item.package_dto.package_name}`;
+        if (item.level.id === 'DEFAULT') {
+            return item.package_dto.package_name.replace(/^default\s+/i, '').trim();
+        }
+        const levelName = item.level.level_name.replace(/^default\s+/i, '');
+        const packageName = item.package_dto.package_name.replace(/^default\s+/i, '');
+        return `${levelName} ${packageName}`.trim();
     }
     return '';
 }
@@ -837,9 +842,15 @@ export function getBatchNamesByIds(
     return ids
         .map((id) => {
             const item = data.find((obj) => obj.id === id);
-            return item && item.level && item.package_dto
-                ? `${item.level.level_name} ${item.package_dto.package_name}`
-                : null;
+            if (item && item.level && item.package_dto) {
+                if (item.level.id === 'DEFAULT') {
+                    return item.package_dto.package_name.replace(/^default\s+/i, '').trim();
+                }
+                const levelName = item.level.level_name.replace(/^default\s+/i, '');
+                const packageName = item.package_dto.package_name.replace(/^default\s+/i, '');
+                return `${levelName} ${packageName}`.trim();
+            }
+            return null;
         })
         .filter((name): name is string => name !== null);
 }

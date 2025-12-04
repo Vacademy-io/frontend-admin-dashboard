@@ -7,6 +7,14 @@ export interface StudentFilterRequest {
     gender?: string[];
     session_expiry_days?: number[];
     sort_columns?: Record<string, string>;
+    sub_org_user_types?: string[];
+    payment_statuses?: string[];
+    sources?: string[];
+    types?: string[];
+    type_ids?: string[];
+    destination_package_session_ids?: string[];
+    level_ids?: string[];
+    [key: string]: any; // Allow dynamic custom field properties like customFieldId0, customFieldValues0
 }
 
 export interface StudentAssessmentTable {

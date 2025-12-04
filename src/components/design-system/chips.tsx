@@ -185,7 +185,7 @@ export const FilterChips = ({
                                 <CommandSeparator />
                                 <CommandGroup>
                                     <CommandItem onSelect={handleClearFilters}>
-                                        clear_filters
+                                        Clear Filters
                                     </CommandItem>
                                 </CommandGroup>
                             </>

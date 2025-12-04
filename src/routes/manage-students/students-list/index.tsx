@@ -4,14 +4,27 @@ import { StudentsListSection } from '@/routes/manage-students/students-list/-com
 import { Helmet } from 'react-helmet';
 
 interface StudentListSearchParams {
-    batch?: string;
+    session?: string;
+    batch?: string | string[];
     package_session_id?: string;
+    role?: string | string[];
+    gender?: string | string[];
+    status?: string | string[];
+    sessionExpiry?: number | number[];
+    name?: string;
 }
+
 export const Route = createFileRoute('/manage-students/students-list/')({
     component: StudentsList,
     validateSearch: (search): StudentListSearchParams => ({
-        batch: search.batch as string | undefined,
+        session: search.session as string | undefined,
+        batch: search.batch as string | string[] | undefined,
         package_session_id: search.package_session_id as string | undefined,
+        role: search.role as string | string[] | undefined,
+        gender: search.gender as string | string[] | undefined,
+        status: search.status as string | string[] | undefined,
+        sessionExpiry: search.sessionExpiry as number | number[] | undefined,
+        name: search.name as string | undefined,
     }),
 });
 

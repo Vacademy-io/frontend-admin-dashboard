@@ -33,6 +33,9 @@ export const BatchForSessionSchema = z.object({
     start_time: z.string().nullable(),
     status: z.string(),
     package_dto: PackageSchema,
+    is_org_associated: z.boolean().optional(),
+    group: z.any().nullable().optional(),
+    read_time_in_minutes: z.number().optional(),
 });
 
 const SubjectSchema = z.object({
@@ -46,40 +49,86 @@ const SubjectSchema = z.object({
 
 const InstituteTypeSchema = z.enum(['Coaching Institute', 'School', 'University', 'Corporate']);
 
-const InstituteSchema = z.object({
-    institute_name: z.string(),
+const CustomFieldSchema = z.object({
+    guestId: z.string().nullable(),
     id: z.string(),
-    country: z.string(),
-    state: z.string(),
-    city: z.string(),
-    address: z.string(),
-    pin_code: z.string(),
-    phone: z.string(),
-    email: z.string().email(),
-    website_url: z.string().url(),
-    institute_logo_file_id: z.string().nullable(),
-    institute_theme_code: z.string(),
-    language: z.string().nullable(),
-    description: z.string().nullable(),
-    type: InstituteTypeSchema,
-    held_by: z.string().nullable(),
-    founded_date: z.string().nullable(),
-    sub_modules: z.array(SubModuleSchema),
-    sessions: z.array(SessionSchema),
+    fieldKey: z.string(),
+    fieldName: z.string(),
+    fieldType: z.string(),
+    defaultValue: z.string().nullable(),
+    config: z.string(),
+    formOrder: z.number().nullable(),
+    isMandatory: z.boolean(),
+    isFilter: z.boolean().nullable(),
+    isSortable: z.boolean().nullable(),
+    isHidden: z.boolean().nullable(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+    sessionId: z.string().nullable(),
+    liveSessionId: z.string().nullable(),
+    customFieldValue: z.string().nullable(),
+    groupName: z.string().nullable(),
+    groupInternalOrder: z.number().nullable(),
+    individualOrder: z.number().nullable(),
+    settingRequest: z.any().nullable(),
+});
+
+const InstituteInfoSchema = z.object({
+    module_request_ids: z.any().nullable(),
     batches_for_sessions: z.array(BatchForSessionSchema),
     levels: z.array(LevelSchema),
     genders: z.array(z.enum(['MALE', 'FEMALE', 'OTHER'])),
     student_statuses: z.array(z.enum(['ACTIVE', 'INACTIVE'])),
-    setting: z.string(),
-    subjects: z.array(SubjectSchema),
+    session_expiry_days: z.array(z.number()),
+    package_groups: z.array(z.any()),
+    letter_head_file_id: z.string().nullable(),
+    tags: z.array(z.string()),
+});
+
+const InstituteSetupResponseSchema = z.object({
+    institute_info_dto: InstituteInfoSchema,
+    sub_org_roles: z.array(z.string()).optional(),
+    dropdown_custom_fields: z.array(CustomFieldSchema).optional(),
+});
+
+const InstituteSchema = z.object({
+    institute_name: z.string().optional(),
+    id: z.string().optional(),
+    country: z.string().optional(),
+    state: z.string().optional(),
+    city: z.string().optional(),
+    address: z.string().optional(),
+    pin_code: z.string().optional(),
+    phone: z.string().optional(),
+    email: z.string().email().optional(),
+    website_url: z.string().url().optional(),
+    institute_logo_file_id: z.string().nullable().optional(),
+    institute_theme_code: z.string().optional(),
+    language: z.string().nullable().optional(),
+    description: z.string().nullable().optional(),
+    type: InstituteTypeSchema.optional(),
+    held_by: z.string().nullable().optional(),
+    founded_date: z.string().nullable().optional(),
+    sub_modules: z.array(SubModuleSchema).optional(),
+    sessions: z.array(SessionSchema).optional(),
+    batches_for_sessions: z.array(BatchForSessionSchema),
+    levels: z.array(LevelSchema),
+    genders: z.array(z.enum(['MALE', 'FEMALE', 'OTHER'])),
+    student_statuses: z.array(z.enum(['ACTIVE', 'INACTIVE'])),
+    setting: z.string().optional(),
+    subjects: z.array(SubjectSchema).optional(),
     session_expiry_days: z.array(z.number()),
     tags: z.array(z.string()),
-    learner_portal_base_url: z.string(),
-    admin_portal_base_url: z.string(),
-    teacher_portal_base_url: z.string(),
+    learner_portal_base_url: z.string().optional(),
+    admin_portal_base_url: z.string().optional(),
+    teacher_portal_base_url: z.string().optional(),
+    sub_org_roles: z.array(z.string()).optional(),
+    dropdown_custom_fields: z.array(CustomFieldSchema).optional(),
 });
 
 export type InstituteDetailsType = z.infer<typeof InstituteSchema> | null;
+export type InstituteSetupResponseType = z.infer<typeof InstituteSetupResponseSchema>;
+export type CustomFieldType = z.infer<typeof CustomFieldSchema>;
 export type LevelType = z.infer<typeof LevelSchema>;
 export type SessionType = z.infer<typeof SessionSchema>;
 export type BatchForSessionType = z.infer<typeof BatchForSessionSchema>;
