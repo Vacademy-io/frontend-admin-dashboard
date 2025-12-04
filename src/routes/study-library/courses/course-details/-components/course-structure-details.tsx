@@ -84,6 +84,8 @@ import { AddSubjectForm } from '../subjects/-components/add-subject.tsx/add-subj
 import { AddModulesForm } from '../subjects/modules/-components/add-modules.tsx/add-modules-form';
 import { AddChapterForm } from '../subjects/modules/chapters/-components/chapter-material/add-chapters/add-chapter-form';
 import { MyDialog } from '@/components/design-system/dialog';
+import Planning from '../subjects/-components/planning';
+import Activity from '../subjects/-components/activity';
 
 // Map between DisplaySettings ids and UI tab values
 const mapDisplayIdToUiValue = (id: CourseDetailsTabId): string => {
@@ -3082,6 +3084,16 @@ export const CourseStructureDetails = ({
                             </div>
                         )}
                 </div>
+            </div>
+        ),
+        [TabType.PLANNING]: (
+            <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
+                <Planning packageSessionId={packageSessionIds ?? ''} />
+            </div>
+        ),
+        [TabType.ACTIVITY]: (
+            <div className="rounded-md bg-white p-3 text-sm text-gray-600 shadow-sm">
+                <Activity packageSessionId={packageSessionIds ?? ''} />
             </div>
         ),
     };

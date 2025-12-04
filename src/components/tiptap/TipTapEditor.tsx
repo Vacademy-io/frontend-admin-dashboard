@@ -37,6 +37,9 @@ type TipTapEditorProps = {
   className?: string;
   // Optional: allows parent components to request insertion of raw text/HTML at the current cursor
   insertTextRequest?: { text: string; nonce: number };
+  editable?: boolean;
+  // Optional: trigger to add a table row
+  addTableRow?: { nonce: number };
 };
 
 export function TipTapEditor({
@@ -47,6 +50,8 @@ export function TipTapEditor({
   minHeight = 160,
   className = '',
   insertTextRequest,
+  editable = true,
+  addTableRow,
 }: TipTapEditorProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
@@ -226,6 +231,7 @@ export function TipTapEditor({
   );
 
   const editor = useEditor({
+    editable,
     extensions: [
       // Math inline/block nodes to support import/export of HTML with math
       (Node.create({
@@ -558,6 +564,13 @@ export function TipTapEditor({
     }
   }, [value, editor]);
 
+  // Sync editable prop changes
+  useEffect(() => {
+    if (editor) {
+      editor.setEditable(editable);
+    }
+  }, [editor, editable]);
+
   // Allow parent to insert content (text or HTML) at the current cursor position on demand
   useEffect(() => {
     if (!editor) return;
@@ -570,6 +583,20 @@ export function TipTapEditor({
     // Only react to nonce changes to avoid re-inserting same text unintentionally
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor, insertTextRequest?.nonce]);
+
+  // Handle table row addition
+  useEffect(() => {
+    if (!editor || !addTableRow) return;
+    try {
+      // Check if cursor is in a table
+      if (editor.isActive('table')) {
+        editor.chain().focus().addRowAfter().run();
+      }
+    } catch (e) {
+      console.error('Failed to add table row:', e);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor, addTableRow?.nonce]);
 
   const insertLink = useCallback(() => {
     if (!editor) return;
@@ -693,6 +720,7 @@ export function TipTapEditor({
       className={`rounded-md border bg-white shadow-sm ${className || ''}`.trim()}
       style={{ width: '100%', maxHeight: 'inherit', minHeight: 'inherit' }}
     >
+      {editable && (
       <div className="flex flex-wrap items-center gap-1 overflow-x-auto border-b p-2 text-sm">
         <div className="flex items-center gap-1">
           <button type="button" title="Bold" onClick={() => editor?.chain().focus().toggleBold().run()} className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('bold') ? 'bg-neutral-200' : ''}`}>B</button>
@@ -791,6 +819,7 @@ export function TipTapEditor({
           <button type="button" disabled={!canRedo} onClick={() => editor?.chain().focus().redo().run()} className="rounded px-2 py-1 hover:bg-neutral-100 disabled:opacity-50">Redo</button>
         </span>
       </div>
+      )}
       <div className="p-2" style={{ maxHeight: 'inherit', minHeight: 'inherit', overflowY: 'auto' }}>
         <EditorContent
           editor={editor}

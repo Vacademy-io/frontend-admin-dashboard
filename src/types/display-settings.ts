@@ -62,7 +62,9 @@ export type CourseDetailsTabId =
     | 'CONTENT_STRUCTURE'
     | 'LEARNER'
     | 'TEACHER'
-    | 'ASSESSMENT';
+    | 'ASSESSMENT'
+    | 'PLANNING'
+    | 'ACTIVITY';
 
 export interface CourseDetailsTabConfig {
     id: CourseDetailsTabId;
