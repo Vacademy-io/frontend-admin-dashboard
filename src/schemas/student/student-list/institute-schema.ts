@@ -35,7 +35,6 @@ export const BatchForSessionSchema = z.object({
     package_dto: PackageSchema,
     is_org_associated: z.boolean().optional(),
     group: z.any().nullable().optional(),
-    read_time_in_minutes: z.number().optional(),
 });
 
 const SubjectSchema = z.object({
