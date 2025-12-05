@@ -14,6 +14,7 @@ interface PaymentLogsTableProps {
     currentPage: number;
     onPageChange: (page: number) => void;
     packageSessions?: Record<string, string>;
+    hasOrgAssociatedBatches: boolean; // New prop
 }
 
 const getStatusBadgeVariant = (
@@ -67,6 +68,7 @@ export function PaymentLogsTable({
     error,
     currentPage,
     onPageChange,
+    hasOrgAssociatedBatches, // New prop
 }: PaymentLogsTableProps) {
     // Transform API response to TableData format
     const tableData: TableData<PaymentLogEntry> | undefined = useMemo(() => {
@@ -97,8 +99,7 @@ export function PaymentLogsTable({
                     );
                 },
                 size: 180,
-            },
-            {
+            },            {
                 id: 'user_info',
                 header: 'User',
                 accessorFn: (row) => row?.user?.full_name || row?.user?.email || '',
@@ -114,7 +115,43 @@ export function PaymentLogsTable({
                     );
                 },
                 size: 200,
-            },
+            },            // Conditionally add Organization Name column if institute has org-associated batches
+            ...(hasOrgAssociatedBatches
+                ? [
+                      {
+                          id: 'org_name',
+                          header: 'Organization Name',
+                          accessorFn: (row: PaymentLogEntry) =>
+                              row?.user_plan?.sub_org_details?.name || '',                          cell: ({ row }: { row: { original: PaymentLogEntry } }) => {
+                              const userPlan = row.original?.user_plan;
+                              const source = userPlan?.source;
+                              const orgDetails = userPlan?.sub_org_details;
+
+                              if (source === 'SUB_ORG') {
+                                  if (orgDetails?.name) {
+                                      return (
+                                          <div className="space-y-1">
+                                              <div className="font-medium text-gray-900">
+                                                  {orgDetails.name}
+                                              </div>
+                                              {orgDetails.address && (
+                                                  <div className="text-xs text-gray-500">
+                                                      {orgDetails.address}
+                                                  </div>
+                                              )}
+                                          </div>
+                                      );
+                                  }
+                              }
+                              // For USER source or SUB_ORG without details, show N/A
+                              return (
+                                  <div className="text-xs text-gray-500 italic">N/A</div>
+                              );
+                          },
+                          size: 200,
+                      } as ColumnDef<PaymentLogEntry>,
+                  ]
+                : []),
             {
                 id: 'amount',
                 header: 'Amount',
@@ -221,11 +258,10 @@ export function PaymentLogsTable({
                             </div>
                         </div>
                     );
-                },
-                size: 180,
+                },                size: 180,
             },
         ],
-        []
+        [hasOrgAssociatedBatches] // Add dependency
     );
 
     if (isLoading) {

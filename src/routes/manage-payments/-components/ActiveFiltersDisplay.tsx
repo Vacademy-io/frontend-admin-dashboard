@@ -9,6 +9,7 @@ interface ActiveFiltersDisplayProps {
     endDate: string;
     selectedPaymentStatuses: SelectOption[];
     selectedUserPlanStatuses: SelectOption[];
+    selectedPaymentSources: SelectOption[]; // New prop
     packageSessionFilter: PackageSessionFilter;
     batchesForSessions: BatchForSession[];
     onClearFilter: (filterType: string, value?: string) => void;
@@ -19,6 +20,7 @@ export function ActiveFiltersDisplay({
     endDate,
     selectedPaymentStatuses,
     selectedUserPlanStatuses,
+    selectedPaymentSources, // New prop
     packageSessionFilter,
     batchesForSessions,
     onClearFilter,
@@ -28,6 +30,7 @@ export function ActiveFiltersDisplay({
         endDate ||
         selectedPaymentStatuses.length > 0 ||
         selectedUserPlanStatuses.length > 0 ||
+        selectedPaymentSources.length > 0 || // Include in check
         !!packageSessionFilter.packageId;
 
     if (!hasActiveFilters) {
@@ -135,6 +138,23 @@ export function ActiveFiltersDisplay({
                         <button
                             onClick={() => onClearFilter('userPlanStatus', status.value)}
                             className="hover:text-purple-100"
+                        >
+                            <X size={12} weight="bold" />
+                        </button>
+                    </Badge>
+                ))}
+
+                {/* Payment Source Filters */}
+                {selectedPaymentSources.map((source) => (
+                    <Badge
+                        key={source.value}
+                        variant="default"
+                        className="gap-2 bg-orange-600 text-white hover:bg-orange-700"
+                    >
+                        <span className="text-xs">Source: {source.label}</span>
+                        <button
+                            onClick={() => onClearFilter('paymentSource', source.value)}
+                            className="hover:text-orange-100"
                         >
                             <X size={12} weight="bold" />
                         </button>
