@@ -17,6 +17,9 @@ interface PaymentFiltersProps {
     onPaymentStatusesChange: (statuses: SelectOption[]) => void;
     selectedUserPlanStatuses: SelectOption[];
     onUserPlanStatusesChange: (statuses: SelectOption[]) => void;
+    selectedPaymentSources: SelectOption[]; // New prop
+    onPaymentSourcesChange: (sources: SelectOption[]) => void; // New prop
+    hasOrgAssociatedBatches: boolean; // New prop to conditionally show filter
     packageSessionFilter: PackageSessionFilter;
     onPackageSessionFilterChange: (filter: PackageSessionFilter) => void;
     batchesForSessions: BatchForSession[];
@@ -37,6 +40,11 @@ const USER_PLAN_STATUS_OPTIONS: SelectOption[] = [
     { value: 'INACTIVE', label: 'Inactive' },
 ];
 
+const PAYMENT_SOURCE_OPTIONS: SelectOption[] = [
+    { value: 'USER', label: 'User' },
+    { value: 'SUB_ORG', label: 'Org' },
+];
+
 export function PaymentFilters({
     startDate,
     endDate,
@@ -46,6 +54,9 @@ export function PaymentFilters({
     onPaymentStatusesChange,
     selectedUserPlanStatuses,
     onUserPlanStatusesChange,
+    selectedPaymentSources,
+    onPaymentSourcesChange,
+    hasOrgAssociatedBatches,
     packageSessionFilter,
     onPackageSessionFilterChange,
     batchesForSessions,
@@ -204,13 +215,12 @@ export function PaymentFilters({
     const handleQuickFilter = (type: string) => {
         const range = getQuickDateRange(type);
         onQuickFilterSelect(range);
-    };
-
-    const hasActiveFilters =
+    };    const hasActiveFilters =
         startDate ||
         endDate ||
         selectedPaymentStatuses.length > 0 ||
         selectedUserPlanStatuses.length > 0 ||
+        selectedPaymentSources.length > 0 ||
         !!packageSessionFilter.packageId;
 
     return (
@@ -224,11 +234,11 @@ export function PaymentFilters({
                     className={cn('gap-2', hasActiveFilters && 'border-primary-500 bg-primary-50')}
                 >
                     <Funnel size={16} weight={hasActiveFilters ? 'fill' : 'regular'} />
-                    Filters
-                    {hasActiveFilters && (
+                    Filters                    {hasActiveFilters && (
                         <span className="ml-1 flex size-5 items-center justify-center rounded-full bg-primary-500 text-xs text-white">
                             {(selectedPaymentStatuses.length || 0) +
                                 (selectedUserPlanStatuses.length || 0) +
+                                (selectedPaymentSources.length || 0) +
                                 (startDate ? 1 : 0) +
                                 (endDate ? 1 : 0) +
                                 (packageSessionFilter.packageId ? 1 : 0)}
@@ -450,9 +460,7 @@ export function PaymentFilters({
                                 multiSelect={true}
                                 clearable={true}
                             />
-                        </div>
-
-                        {/* User Plan Status */}
+                        </div>                        {/* User Plan Status */}
                         <div className="space-y-2">
                             <Label className="text-sm font-medium text-gray-700">
                                 User Plan Status
@@ -465,7 +473,22 @@ export function PaymentFilters({
                                 multiSelect={true}
                                 clearable={true}
                             />
-                        </div>
+                        </div>                        {/* Payment Source - Only show if institute has org-associated batches */}
+                        {hasOrgAssociatedBatches && (
+                            <div className="space-y-2">
+                                <Label className="text-sm font-medium text-gray-700">
+                                    Payment Source
+                                </Label>
+                                <SelectChips
+                                    options={PAYMENT_SOURCE_OPTIONS}
+                                    selected={selectedPaymentSources}
+                                    onChange={onPaymentSourcesChange}
+                                    placeholder="Select sources"
+                                    multiSelect={true}
+                                    clearable={true}
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

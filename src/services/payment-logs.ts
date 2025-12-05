@@ -1,9 +1,9 @@
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
-import { BASE_URL } from '@/constants/urls';
+import { ADMIN_CORE_BASE_URL } from '@/constants/urls';
 import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
 import type { PaymentLogsRequest, PaymentLogsResponse } from '@/types/payment-logs';
 
-export const PAYMENT_LOGS_URL = `${BASE_URL}/admin-core-service/v1/user-plan/payment-logs`;
+export const PAYMENT_LOGS_URL = `${ADMIN_CORE_BASE_URL}/admin-core-service/v1/user-plan/payment-logs`;
 
 /**
  * Fetch payment logs with pagination and filtering

@@ -97,6 +97,14 @@ export interface UserPlan {
     enroll_invite: EnrollInvite;
     payment_option: PaymentOption;
     payment_plan_dto: PaymentPlanDto;
+    // New fields for source and subOrg details
+    source?: 'USER' | 'SUB_ORG';
+    sub_org_id?: string | null;
+    sub_org_details?: {
+        id: string;
+        name: string;
+        address: string;
+    } | null;
 }
 
 export interface PaymentLogEntry {
@@ -143,6 +151,7 @@ export interface PaymentLogsRequest {
     user_plan_statuses?: string[];
     enroll_invite_ids?: string[];
     package_session_ids?: string[];
+    sources?: ('USER' | 'SUB_ORG')[]; // New field for filtering by source
     sort_columns?: Record<string, string>;
 }
 
@@ -176,6 +185,7 @@ export interface BatchForSession {
     };
     start_time: string | null;
     status: string;
+    is_org_associated?: boolean; // New field to check if batch is org associated
     package_dto: {
         id: string;
         package_name: string;
