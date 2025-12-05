@@ -322,14 +322,14 @@ export const useInstituteDetailsStore = create<InstituteDetailsStore>((set, get)
 
     getSessionNameById: (sessionId: string) => {
         const { instituteDetails } = get();
-        if (!instituteDetails) return null;
+        if (!instituteDetails?.sessions) return null;
 
         const session = instituteDetails.sessions.find((session) => session.id === sessionId);
         return session?.session_name || null;
     },
     showForInstitutes: (instituteIds: string[]) => {
         const { instituteDetails } = get();
-        if (!instituteDetails) return false;
+        if (!instituteDetails?.id) return false;
         return instituteIds.includes(instituteDetails.id);
     },
     getInstituteSettings: () => {

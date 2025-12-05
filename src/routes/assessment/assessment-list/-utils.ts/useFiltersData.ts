@@ -8,7 +8,9 @@ export const useFilterDataForAssesment = (initData: InstituteDetailsType) => {
             initData?.batches_for_sessions
                 ?.map((item) => ({
                     id: String(item.id),
-                    name: `${item.level.level_name} ${item.package_dto.package_name}`,
+                    name: item.level.id === 'DEFAULT'
+                        ? item.package_dto.package_name.replace(/^default\s+/i, '').trim()
+                        : `${item.level.level_name.replace(/^default\s+/i, '')} ${item.package_dto.package_name.replace(/^default\s+/i, '')}`.trim(),
                 }))
                 .sort((a, b) => Number(a.id) - Number(b.id)) || []
         );

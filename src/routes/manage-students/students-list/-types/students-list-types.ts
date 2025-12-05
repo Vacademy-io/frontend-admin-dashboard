@@ -19,7 +19,7 @@ export interface FilterProps {
     setColumnFilters?: (values: { id: string; value: { id: string; label: string }[] }[]) => void;
 }
 
-export type FilterId = 'session' | 'batch' | 'statuses' | 'gender' | 'session_expiry_days';
+export type FilterId = string;
 
 export interface FilterConfig {
     id: FilterId; // Change this line

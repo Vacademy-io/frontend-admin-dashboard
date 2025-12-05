@@ -42,7 +42,8 @@ export const GET_DASHBOARD_URL = `${ADMIN_CORE_BASE_URL}/admin-core-service/inst
 export const UPDATE_DASHBOARD_URL = `${ADMIN_CORE_BASE_URL}/admin-core-service/institute/v1/institute-update`;
 export const UPDATE_ADMIN_DETAILS_URL = `${BASE_URL}/auth-service/v1/user-details/update`;
 export const GET_DASHBOARD_ASSESSMENT_COUNT_URL = `${BASE_URL}/assessment-service/assessment/admin/dashboard/get-count`;
-export const INIT_INSTITUTE = `${ADMIN_CORE_BASE_URL}/admin-core-service/institute/v1/details`;
+export const INIT_INSTITUTE = `${BASE_URL}/admin-core-service/institute/v1/details`;
+export const INIT_INSTITUTE_SETUP = `${BASE_URL}/admin-core-service/institute/v1/setup`;
 export const ADMIN_DETAILS_URL = `${BASE_URL}/auth-service/v1/user-details/get`;
 export const GET_STUDENTS = `${ADMIN_CORE_BASE_URL}/admin-core-service/institute/institute_learner/get/v2/all`;
 export const GET_ASSESSMENT_DETAILS = `${BASE_URL}/assessment-service/assessment/create/v1/status`;
@@ -411,3 +412,9 @@ export const GET_LEARNER_PORTAL_ACCESS = `${ADMIN_CORE_BASE_URL}/admin-core-serv
 export const SEND_LEARNER_RESET_PASSWORD = `${ADMIN_CORE_BASE_URL}/admin-core-service/admin/learner-portal/v1/send-cred`;
 
 
+// Planning Logs
+export const PLANNING_LOGS_BASE = `https://backend-stage.vacademy.io/admin-core-service/planning-logs/v1`;
+export const CREATE_PLANNING_LOGS = `${PLANNING_LOGS_BASE}/create`;
+export const LIST_PLANNING_LOGS = `${PLANNING_LOGS_BASE}/list`;
+export const UPDATE_PLANNING_LOG = (logId: string) => `${PLANNING_LOGS_BASE}/${logId}`;
+export const GENERATE_INTERVAL_TYPE_ID = `${PLANNING_LOGS_BASE}/generate-interval-type-id`;

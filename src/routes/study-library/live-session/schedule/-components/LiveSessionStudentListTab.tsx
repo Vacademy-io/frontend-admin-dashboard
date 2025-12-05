@@ -37,7 +37,7 @@ export const LiveSessionStudentListTab = ({ form }: { form: UseFormReturn<FormDa
     const { isError, isLoading } = useSuspenseQuery(useInstituteQuery());
     const { instituteDetails } = useInstituteDetailsStore();
     const sessions =
-        instituteDetails?.sessions.map((session) => ({
+        instituteDetails?.sessions?.map((session) => ({
             id: session.id,
             name: session.session_name,
         })) || [];
