@@ -16,6 +16,27 @@ export const Filters = ({
 }: FilterProps) => {
     const [selectedFilterList, setSelectedFilterList] = useState<SelectedFilterListType>({});
 
+    // Sync local state with parent columnFilters on mount and when columnFilters change
+    useEffect(() => {
+        const existingFilter = columnFilters?.find((filter) => filter.id === filterId);
+        if (existingFilter) {
+            // Deduplicate values when syncing to prevent count mismatch
+            const uniqueValues = Array.from(
+                new Map(existingFilter.value.map(v => [v.id, v])).values()
+            );
+            setSelectedFilterList((prev) => ({
+                ...prev,
+                [filterId]: uniqueValues,
+            }));
+        } else if (clearFilters) {
+            // When clearFilters is true, reset local state
+            setSelectedFilterList((prev) => ({
+                ...prev,
+                [filterId]: [],
+            }));
+        }
+    }, [columnFilters, filterId, clearFilters]);
+
     const handleSelectDeSelect = (option: { id: string; label: string }) => {
         let updatedValue: { id: string; label: string }[] = [];
         const existingFilter = columnFilters?.find((filter) => filter.id === filterId);
@@ -56,21 +77,6 @@ export const Filters = ({
             onFilterChange([]);
         }
     };
-
-    useEffect(() => {
-        if (onFilterChange && selectedFilterList[filterId]) {
-            // If this is a session expiry filter, extract only the numbers
-            if (filterDetails.label === 'Session Expiry') {
-                const processedValues = (selectedFilterList[filterId] || []).map((filter) => {
-                    const numberMatch = filter.label.match(/\d+/);
-                    return numberMatch ? { id: filter.id, label: numberMatch[0] } : filter;
-                });
-                onFilterChange(processedValues);
-            } else {
-                onFilterChange(selectedFilterList[filterId] || []);
-            }
-        }
-    }, [selectedFilterList[filterId], filterDetails.label]);
 
     return (
         <div className="hover:scale-102 group transition-all duration-200">
