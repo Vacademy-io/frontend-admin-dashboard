@@ -74,6 +74,8 @@ export interface StudentTable {
     enroll_invite_id: string;
     payment_status: string;
     custom_fields: Record<string, string | null>;
+    sub_org_name?: string;
+    comma_separated_org_roles?: string;
 }
 
 export interface StudentListResponse {

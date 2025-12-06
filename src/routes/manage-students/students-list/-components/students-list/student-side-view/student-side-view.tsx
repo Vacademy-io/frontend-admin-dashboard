@@ -27,6 +27,7 @@ import {
     TEACHER_DISPLAY_SETTINGS_KEY,
     type StudentSideViewSettings,
 } from '@/types/display-settings';
+import { Badge } from 'lucide-react';
 
 export const StudentSidebar = ({
     selectedTab,
@@ -158,6 +159,29 @@ export const StudentSidebar = ({
                                 <X className="size-5 text-neutral-500 transition-colors duration-200 group-hover:text-red-500" />
                             </button>
                         </div>
+
+                        {/* Sub Organization and Roles Badges */}
+                        {(selectedStudent?.sub_org_name || selectedStudent?.comma_separated_org_roles) && (
+                            <div className="mb-4 flex flex-wrap items-center gap-2">
+                                {selectedStudent?.sub_org_name && (
+                                    <div className="flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm">
+                                        <span>{selectedStudent.sub_org_name}</span>
+                                    </div>
+                                )}
+                                {selectedStudent?.comma_separated_org_roles && (
+                                    <>
+                                        {selectedStudent.comma_separated_org_roles.split(',').map((role, index) => (
+                                            <div
+                                                key={index}
+                                                className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-medium capitalize text-amber-700 shadow-sm"
+                                            >
+                                                {role.trim().toLowerCase().replace(/_/g, ' ')}
+                                            </div>
+                                        ))}
+                                    </>
+                                )}
+                            </div>
+                        )}
 
                         {/* Enhanced tab navigation with modern design */}
                         {!isEnrollRequestStudentList && tabSettings && (

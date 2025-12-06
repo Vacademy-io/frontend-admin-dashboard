@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { StudentFilterRequest } from '@/types/student-table-types';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
@@ -24,6 +24,7 @@ export const useStudentFilters = () => {
     const [searchInput, setSearchInput] = useState<string>('');
     const [searchFilter, setSearchFilter] = useState('');
     const [clearFilters, setClearFilters] = useState<boolean>(false);
+    const hasInitializedFilters = useRef(false);
     const [sessionList, setSessionList] = useState<DropdownItemType[]>(
         getAllSessions().map((session) => ({
             id: session.id,
@@ -110,6 +111,10 @@ export const useStudentFilters = () => {
     // Initialize filters from URL params
     useEffect(() => {
         if (!instituteDetails) return;
+        
+        // Prevent running this logic multiple times
+        if (hasInitializedFilters.current) return;
+        hasInitializedFilters.current = true;
 
         const initialFilters: { id: string; value: { id: string; label: string }[] }[] = [];
 
@@ -144,7 +149,9 @@ export const useStudentFilters = () => {
         // Gender filter from URL
         if (searchParams.gender) {
             const genders = Array.isArray(searchParams.gender) ? searchParams.gender : [searchParams.gender];
-            const genderOptions = genders.map((gender) => ({
+            // Deduplicate genders from URL
+            const uniqueGenders = [...new Set(genders)];
+            const genderOptions = uniqueGenders.map((gender) => ({
                 id: gender,
                 label: gender,
             }));
@@ -156,7 +163,9 @@ export const useStudentFilters = () => {
         // Status filter from URL
         if (searchParams.status) {
             const statuses = Array.isArray(searchParams.status) ? searchParams.status : [searchParams.status];
-            const statusOptions = statuses.map((status) => ({
+            // Deduplicate statuses from URL
+            const uniqueStatuses = [...new Set(statuses)];
+            const statusOptions = uniqueStatuses.map((status) => ({
                 id: status,
                 label: status,
             }));
@@ -226,6 +235,58 @@ export const useStudentFilters = () => {
 
         if (initialFilters.length > 0) {
             setColumnFilters(initialFilters);
+            // Mark that filters have been loaded from URL so they appear as "applied"
+            // This ensures the UI shows them as active filters
+            setClearFilters(false);
+            
+            // Apply the URL filters immediately on initial load
+            // Calculate filters from initialFilters to apply them
+            const statusFilter = initialFilters.find((filter) => filter.id === 'statuses');
+            const statusesToApply = statusFilter?.value.map((option) => option.label) || [];
+            const finalStatusesToApply = statusesToApply.length > 0 ? statusesToApply : instituteDetails?.student_statuses || [];
+
+            const genderFilter = initialFilters.find((filter) => filter.id === 'gender');
+            const gendersToApply = genderFilter?.value.map((option) => option.label) || [];
+
+            const roleFilter = initialFilters.find((filter) => filter.id === 'sub_org_user_types');
+            const rolesToApply = roleFilter?.value.map((option) => option.id) || [];
+
+            const batchFilter = initialFilters.find((filter) => filter.id === 'batch');
+            const pksids = batchFilter?.value.map((option) => option.id) || 
+                (instituteDetails?.batches_for_sessions || [])
+                    .filter((batch) => batch.session.id === currentSession.id)
+                    .map((batch) => batch.id);
+
+            const sessionExpiryFilter = initialFilters.find((filter) => filter.id === 'session_expiry_days');
+            const sessionExpiryDays = sessionExpiryFilter?.value.map((value) => {
+                const numberMatch = value.label.match(/\d+/);
+                return numberMatch ? parseInt(numberMatch[0]) : 0;
+            }) || [];
+
+            // Handle custom field filters
+            const customFieldParams: Record<string, any> = {};
+            if (instituteDetails?.dropdown_custom_fields) {
+                let index = 0;
+                instituteDetails.dropdown_custom_fields.forEach((customField) => {
+                    const filter = initialFilters.find((f) => f.id === customField.fieldKey);
+                    if (filter && filter.value.length > 0) {
+                        customFieldParams[`customFieldId${index}`] = customField.id;
+                        customFieldParams[`customFieldValues${index}`] = filter.value.map((option) => option.id);
+                        index++;
+                    }
+                });
+            }
+
+            setAppliedFilters((prev) => ({
+                ...prev,
+                name: searchFilter,
+                package_session_ids: pksids,
+                gender: gendersToApply,
+                statuses: finalStatusesToApply,
+                session_expiry_days: sessionExpiryDays,
+                sub_org_user_types: rolesToApply,
+                ...customFieldParams,
+            }));
         }
     }, [instituteDetails, searchParams]);
 
@@ -268,10 +329,10 @@ export const useStudentFilters = () => {
         });
 
         const statusFilter = columnFilters.find((filter) => filter.id === 'statuses');
-        const statusesToApply =
-            statusFilter?.value.map((option) => option.label) ||
-            instituteDetails?.student_statuses ||
-            [];
+        const statusesToApply = statusFilter?.value.map((option) => option.label) || [];
+        const defaultStatuses = instituteDetails?.student_statuses || [];
+        // If no status filter is selected, use all default statuses for API
+        const finalStatusesToApply = statusesToApply.length > 0 ? statusesToApply : defaultStatuses;
 
         const pksids =
             columnFilters
@@ -338,8 +399,9 @@ export const useStudentFilters = () => {
             uniqueGenders.forEach(gender => currentParams.append('gender', gender));
         }
         
-        // Handle multiple statuses - use unique values only
-        if (statusesToApply.length > 0 && statusesToApply.length !== instituteDetails?.student_statuses?.length) {
+        // Handle multiple statuses - only add to URL if user has explicitly selected specific statuses
+        // Don't add if no filter was selected (which means all statuses are applied by default)
+        if (statusesToApply.length > 0) {
             const uniqueStatuses = [...new Set(statusesToApply)];
             uniqueStatuses.forEach(status => currentParams.append('status', status));
         }
@@ -378,7 +440,7 @@ export const useStudentFilters = () => {
             name: searchFilter,
             package_session_ids: pksids,
             gender: gendersToApply,
-            statuses: statusesToApply,
+            statuses: finalStatusesToApply,
             session_expiry_days: sessionExpiryDays || [],
             sub_org_user_types: rolesToApply,
             ...customFieldParams,
@@ -514,3 +576,4 @@ export const useStudentFilters = () => {
         setColumnFilters,
     };
 };
+
