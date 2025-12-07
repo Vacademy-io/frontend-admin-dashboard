@@ -15,7 +15,19 @@ export type ModeType =
 
 export type MediumType = 'WHATSAPP' | 'PUSH_NOTIFICATION' | 'EMAIL';
 
-export type RecipientType = 'ROLE' | 'USER' | 'PACKAGE_SESSION' | 'TAG' | 'CUSTOM_FIELD_FILTER';
+export type RecipientType = 'ROLE' | 'USER' | 'PACKAGE_SESSION' | 'PACKAGE_SESSION_COMMA_SEPARATED_ORG_ROLES' | 'TAG' | 'CUSTOM_FIELD_FILTER' | 'AUDIENCE';
+
+export interface CustomFieldFilter {
+    customFieldId?: string; // Preferred way
+    fieldName?: string; // Fallback for backward compatibility
+    fieldValue: string | string[]; // For dropdown: array of selected values, for text/number: single value
+    operator?: 'equals' | 'contains' | 'starts_with' | 'ends_with' | 'greaterThan'; // For text/number fields
+}
+
+export interface Exclusion {
+    exclusionType: 'USER' | 'ROLE' | 'PACKAGE_SESSION' | 'TAG';
+    exclusionId: string;
+}
 
 export interface CreateAnnouncementRequest {
     title: string;
@@ -29,17 +41,10 @@ export interface CreateAnnouncementRequest {
         recipientType: RecipientType;
         recipientId?: string;
         recipientName?: string;
-        filters?: Array<{
-            customFieldId: string;
-            fieldValue: string | string[]; // For dropdown: array of selected values, for text/number: single value
-            operator?: 'equals' | 'contains' | 'starts_with' | 'ends_with'; // For text fields
-        }>;
+        customFieldFilters?: CustomFieldFilter[]; // Per-recipient filters
+        exclusions?: Exclusion[]; // Per-recipient exclusions
     }>;
-    exclusions?: Array<{
-        recipientType: RecipientType;
-        recipientId: string;
-        recipientName?: string;
-    }>;
+    exclusions?: Exclusion[]; // Global exclusions (currently not processed, but kept for backward compatibility) - optional
     modes: Array<{
         modeType: ModeType;
         settings: Record<string, unknown>;
