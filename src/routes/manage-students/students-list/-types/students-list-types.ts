@@ -106,12 +106,5 @@ export interface StudentSearchBoxProps {
     onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
     onSearchEnter: () => void;
     onClearSearch: () => void;
-}
-
-export interface StudentSearchBoxProps {
-    searchInput: string;
-    searchFilter: string;
-    onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-    onSearchEnter: () => void;
-    onClearSearch: () => void;
+    placeholder?: string;
 }

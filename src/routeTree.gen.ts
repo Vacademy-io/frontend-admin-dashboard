@@ -18,6 +18,7 @@ import { Route as PlanningIndexRouteImport } from "./routes/planning/index"
 import { Route as ManageStudentsIndexRouteImport } from "./routes/manage-students/index"
 import { Route as ManagePaymentsIndexRouteImport } from "./routes/manage-payments/index"
 import { Route as ManageInstituteIndexRouteImport } from "./routes/manage-institute/index"
+import { Route as ManageContactsIndexRouteImport } from "./routes/manage-contacts/index"
 import { Route as LoginIndexRouteImport } from "./routes/login/index"
 import { Route as LearnerInsightsIndexRouteImport } from "./routes/learner-insights/index"
 import { Route as InstructorCopilotIndexRouteImport } from "./routes/instructor-copilot/index"
@@ -26,6 +27,7 @@ import { Route as EvaluationIndexRouteImport } from "./routes/evaluation/index"
 import { Route as DashboardIndexRouteImport } from "./routes/dashboard/index"
 import { Route as CommunityIndexRouteImport } from "./routes/community/index"
 import { Route as AuthTransferIndexRouteImport } from "./routes/auth-transfer/index"
+import { Route as AiVideoStudioIndexRouteImport } from "./routes/ai-video-studio/index"
 import { Route as AiCenterIndexRouteImport } from "./routes/ai-center/index"
 import { Route as WorkflowListIndexRouteImport } from "./routes/workflow/list/index"
 import { Route as WorkflowWorkflowIdIndexRouteImport } from "./routes/workflow/$workflowId/index"
@@ -175,6 +177,11 @@ const ManageInstituteIndexRoute = ManageInstituteIndexRouteImport.update({
   path: "/manage-institute/",
   getParentRoute: () => rootRouteImport,
 } as any)
+const ManageContactsIndexRoute = ManageContactsIndexRouteImport.update({
+  id: "/manage-contacts/",
+  path: "/manage-contacts/",
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginIndexRoute = LoginIndexRouteImport.update({
   id: "/login/",
   path: "/login/",
@@ -213,6 +220,11 @@ const CommunityIndexRoute = CommunityIndexRouteImport.update({
 const AuthTransferIndexRoute = AuthTransferIndexRouteImport.update({
   id: "/auth-transfer/",
   path: "/auth-transfer/",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiVideoStudioIndexRoute = AiVideoStudioIndexRouteImport.update({
+  id: "/ai-video-studio/",
+  path: "/ai-video-studio/",
   getParentRoute: () => rootRouteImport,
 } as any)
 const AiCenterIndexRoute = AiCenterIndexRouteImport.update({
@@ -721,6 +733,7 @@ export interface FileRoutesByFullPath {
   "/learner-insights": typeof LearnerInsightsLazyRouteWithChildren
   "/pricing": typeof PricingLazyRoute
   "/ai-center": typeof AiCenterIndexRoute
+  "/ai-video-studio": typeof AiVideoStudioIndexRoute
   "/auth-transfer": typeof AuthTransferIndexRoute
   "/community": typeof CommunityIndexRoute
   "/dashboard": typeof DashboardIndexRoute
@@ -729,6 +742,7 @@ export interface FileRoutesByFullPath {
   "/instructor-copilot": typeof InstructorCopilotIndexRoute
   "/learner-insights/": typeof LearnerInsightsIndexRoute
   "/login": typeof LoginIndexRoute
+  "/manage-contacts": typeof ManageContactsIndexRoute
   "/manage-institute": typeof ManageInstituteIndexRoute
   "/manage-payments": typeof ManagePaymentsIndexRoute
   "/manage-students": typeof ManageStudentsIndexRoute
@@ -825,6 +839,7 @@ export interface FileRoutesByTo {
   "/landing": typeof LandingLazyRoute
   "/pricing": typeof PricingLazyRoute
   "/ai-center": typeof AiCenterIndexRoute
+  "/ai-video-studio": typeof AiVideoStudioIndexRoute
   "/auth-transfer": typeof AuthTransferIndexRoute
   "/community": typeof CommunityIndexRoute
   "/dashboard": typeof DashboardIndexRoute
@@ -833,6 +848,7 @@ export interface FileRoutesByTo {
   "/instructor-copilot": typeof InstructorCopilotIndexRoute
   "/learner-insights": typeof LearnerInsightsIndexRoute
   "/login": typeof LoginIndexRoute
+  "/manage-contacts": typeof ManageContactsIndexRoute
   "/manage-institute": typeof ManageInstituteIndexRoute
   "/manage-payments": typeof ManagePaymentsIndexRoute
   "/manage-students": typeof ManageStudentsIndexRoute
@@ -931,6 +947,7 @@ export interface FileRoutesById {
   "/learner-insights": typeof LearnerInsightsLazyRouteWithChildren
   "/pricing": typeof PricingLazyRoute
   "/ai-center/": typeof AiCenterIndexRoute
+  "/ai-video-studio/": typeof AiVideoStudioIndexRoute
   "/auth-transfer/": typeof AuthTransferIndexRoute
   "/community/": typeof CommunityIndexRoute
   "/dashboard/": typeof DashboardIndexRoute
@@ -939,6 +956,7 @@ export interface FileRoutesById {
   "/instructor-copilot/": typeof InstructorCopilotIndexRoute
   "/learner-insights/": typeof LearnerInsightsIndexRoute
   "/login/": typeof LoginIndexRoute
+  "/manage-contacts/": typeof ManageContactsIndexRoute
   "/manage-institute/": typeof ManageInstituteIndexRoute
   "/manage-payments/": typeof ManagePaymentsIndexRoute
   "/manage-students/": typeof ManageStudentsIndexRoute
@@ -1038,6 +1056,7 @@ export interface FileRouteTypes {
     | "/learner-insights"
     | "/pricing"
     | "/ai-center"
+    | "/ai-video-studio"
     | "/auth-transfer"
     | "/community"
     | "/dashboard"
@@ -1046,6 +1065,7 @@ export interface FileRouteTypes {
     | "/instructor-copilot"
     | "/learner-insights/"
     | "/login"
+    | "/manage-contacts"
     | "/manage-institute"
     | "/manage-payments"
     | "/manage-students"
@@ -1142,6 +1162,7 @@ export interface FileRouteTypes {
     | "/landing"
     | "/pricing"
     | "/ai-center"
+    | "/ai-video-studio"
     | "/auth-transfer"
     | "/community"
     | "/dashboard"
@@ -1150,6 +1171,7 @@ export interface FileRouteTypes {
     | "/instructor-copilot"
     | "/learner-insights"
     | "/login"
+    | "/manage-contacts"
     | "/manage-institute"
     | "/manage-payments"
     | "/manage-students"
@@ -1247,6 +1269,7 @@ export interface FileRouteTypes {
     | "/learner-insights"
     | "/pricing"
     | "/ai-center/"
+    | "/ai-video-studio/"
     | "/auth-transfer/"
     | "/community/"
     | "/dashboard/"
@@ -1255,6 +1278,7 @@ export interface FileRouteTypes {
     | "/instructor-copilot/"
     | "/learner-insights/"
     | "/login/"
+    | "/manage-contacts/"
     | "/manage-institute/"
     | "/manage-payments/"
     | "/manage-students/"
@@ -1353,6 +1377,7 @@ export interface RootRouteChildren {
   LearnerInsightsLazyRoute: typeof LearnerInsightsLazyRouteWithChildren
   PricingLazyRoute: typeof PricingLazyRoute
   AiCenterIndexRoute: typeof AiCenterIndexRoute
+  AiVideoStudioIndexRoute: typeof AiVideoStudioIndexRoute
   AuthTransferIndexRoute: typeof AuthTransferIndexRoute
   CommunityIndexRoute: typeof CommunityIndexRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
@@ -1360,6 +1385,7 @@ export interface RootRouteChildren {
   EvaluatorAiIndexRoute: typeof EvaluatorAiIndexRoute
   InstructorCopilotIndexRoute: typeof InstructorCopilotIndexRoute
   LoginIndexRoute: typeof LoginIndexRoute
+  ManageContactsIndexRoute: typeof ManageContactsIndexRoute
   ManageInstituteIndexRoute: typeof ManageInstituteIndexRoute
   ManagePaymentsIndexRoute: typeof ManagePaymentsIndexRoute
   ManageStudentsIndexRoute: typeof ManageStudentsIndexRoute
@@ -1532,6 +1558,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof ManageInstituteIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/manage-contacts/": {
+      id: "/manage-contacts/"
+      path: "/manage-contacts"
+      fullPath: "/manage-contacts"
+      preLoaderRoute: typeof ManageContactsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/login/": {
       id: "/login/"
       path: "/login"
@@ -1586,6 +1619,13 @@ declare module "@tanstack/react-router" {
       path: "/auth-transfer"
       fullPath: "/auth-transfer"
       preLoaderRoute: typeof AuthTransferIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/ai-video-studio/": {
+      id: "/ai-video-studio/"
+      path: "/ai-video-studio"
+      fullPath: "/ai-video-studio"
+      preLoaderRoute: typeof AiVideoStudioIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/ai-center/": {
@@ -2195,6 +2235,7 @@ const rootRouteChildren: RootRouteChildren = {
   LearnerInsightsLazyRoute: LearnerInsightsLazyRouteWithChildren,
   PricingLazyRoute: PricingLazyRoute,
   AiCenterIndexRoute: AiCenterIndexRoute,
+  AiVideoStudioIndexRoute: AiVideoStudioIndexRoute,
   AuthTransferIndexRoute: AuthTransferIndexRoute,
   CommunityIndexRoute: CommunityIndexRoute,
   DashboardIndexRoute: DashboardIndexRoute,
@@ -2202,6 +2243,7 @@ const rootRouteChildren: RootRouteChildren = {
   EvaluatorAiIndexRoute: EvaluatorAiIndexRoute,
   InstructorCopilotIndexRoute: InstructorCopilotIndexRoute,
   LoginIndexRoute: LoginIndexRoute,
+  ManageContactsIndexRoute: ManageContactsIndexRoute,
   ManageInstituteIndexRoute: ManageInstituteIndexRoute,
   ManagePaymentsIndexRoute: ManagePaymentsIndexRoute,
   ManageStudentsIndexRoute: ManageStudentsIndexRoute,
