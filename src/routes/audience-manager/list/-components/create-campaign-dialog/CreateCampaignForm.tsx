@@ -275,6 +275,9 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
     );
     const statusValue = watch('status');
     const isStatusActive = statusValue?.toUpperCase?.() === 'ACTIVE';
+    
+    // Store initial custom fields for create mode (from settings) so we can restore them on reset
+    const initialCreateModeCustomFields = useRef<any[] | null>(null);
 
     useEffect(() => {
         if (campaignData) {
@@ -380,18 +383,10 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
     const customFields = getValues('custom_fields');
 
     /**
-     * Load custom fields dynamically from settings cache
-     * This function:
-     * 1. Gets fields from settings via getCampaignCustomFields() (reads from localStorage cache)
-     * 2. Ensures Name and Email are always present as fixed fields (cannot be deleted)
-     * 3. Filters out Phone Number (since it's available via Add button)
-     * 4. Transforms all fields from settings that have Campaign visibility enabled
-     * 5. Converts to form-compatible format
-     * 
-     * When settings are updated, this will automatically reflect changes on next form load
-     * Name and Email are always present as fixed fields, followed by other fields from settings
+     * Get initial custom fields from settings (helper function)
+     * Returns the normalized fields array without setting them in the form
      */
-    const applyDefaultCustomFields = useCallback(() => {
+    const getInitialCustomFieldsFromSettings = useCallback(() => {
         // Get fields from settings cache (dynamically reads from localStorage)
         const fieldsFromSettings = getCampaignCustomFields();
 
@@ -429,7 +424,7 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
         fieldsFromSettings.forEach((field) => {
             // Skip Phone Number - it's available via Add button
             if (isPhoneNumber(field.key, field.name)) {
-                console.log('📋 [applyDefaultCustomFields] Skipping Phone Number from settings (available via Add button)');
+                console.log('📋 [getInitialCustomFieldsFromSettings] Skipping Phone Number from settings (available via Add button)');
                 return;
             }
 
@@ -497,13 +492,28 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
             oldKey: field.oldKey ?? false,
         }));
 
-        
+        return normalizedFields;
+    }, []);
 
+    /**
+     * Load custom fields dynamically from settings cache
+     * This function:
+     * 1. Gets fields from settings via getCampaignCustomFields() (reads from localStorage cache)
+     * 2. Ensures Name and Email are always present as fixed fields (cannot be deleted)
+     * 3. Filters out Phone Number (since it's available via Add button)
+     * 4. Transforms all fields from settings that have Campaign visibility enabled
+     * 5. Converts to form-compatible format
+     * 
+     * When settings are updated, this will automatically reflect changes on next form load
+     * Name and Email are always present as fixed fields, followed by other fields from settings
+     */
+    const applyDefaultCustomFields = useCallback(() => {
+        const normalizedFields = getInitialCustomFieldsFromSettings();
         setValue('custom_fields', normalizedFields, {
             shouldDirty: false,
             shouldTouch: false,
         });
-    }, [setValue]);
+    }, [setValue, getInitialCustomFieldsFromSettings]);
 
     const setCustomFieldsFromExisting = useCallback(
         (fields: any[]) => {
@@ -549,12 +559,19 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
             console.log('📋 [CreateCampaignForm] Create mode - loading fields from settings immediately');
             // Use setTimeout to ensure form is fully initialized
             const timer = setTimeout(() => {
-                applyDefaultCustomFields();
+                const normalizedFields = getInitialCustomFieldsFromSettings();
+                // Store the initial custom fields for reset functionality
+                initialCreateModeCustomFields.current = normalizedFields;
+                // Apply the fields to the form
+                setValue('custom_fields', normalizedFields, {
+                    shouldDirty: false,
+                    shouldTouch: false,
+                });
             }, 100);
             return () => clearTimeout(timer);
         }
     }, [
-        applyDefaultCustomFields,
+        getInitialCustomFieldsFromSettings,
         isEditMode,
         initialFormValues,
         getValues,
@@ -562,15 +579,38 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
     ]);
 
     const handleFormReset = () => {
-        handleReset();
         if (isEditMode && existingCustomFields && existingCustomFields.length > 0) {
+            // In edit mode, reset to original campaign data
+            handleReset();
             setCustomFieldsFromExisting(existingCustomFields);
             setEmails(parseEmailsFromCsv(campaignData?.to_notify));
         } else {
-            applyDefaultCustomFields();
-            if (!isEditMode) {
+            // In create mode, reset form values but preserve initial custom fields
+            // Get the initial custom fields that were loaded when form opened
+            const fieldsToRestore = initialCreateModeCustomFields.current;
+            
+            // Reset form to default values
+            handleReset();
+            
+            // Immediately restore initial custom fields after reset
+            setTimeout(() => {
+                if (fieldsToRestore && fieldsToRestore.length > 0) {
+                    // Restore to the initial fields from when form was opened
+                    setValue('custom_fields', fieldsToRestore, {
+                        shouldDirty: false,
+                        shouldTouch: false,
+                    });
+                } else {
+                    // If no initial fields stored yet, load from settings
+                    const normalizedFields = getInitialCustomFieldsFromSettings();
+                    initialCreateModeCustomFields.current = normalizedFields;
+                    setValue('custom_fields', normalizedFields, {
+                        shouldDirty: false,
+                        shouldTouch: false,
+                    });
+                }
                 setEmails([]);
-            }
+            }, 50);
         }
     };
 
