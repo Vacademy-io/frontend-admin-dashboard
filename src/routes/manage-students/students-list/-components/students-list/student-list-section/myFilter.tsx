@@ -5,7 +5,7 @@ import {
 } from '@/routes/manage-students/students-list/-types/students-list-types';
 import { useEffect, useState } from 'react';
 
-type SelectedFilterListType = Record<FilterId, { id: string; label: string }[]>;
+type SelectedFilterListType = Record<string, { id: string; label: string }[]>;
 
 export const Filters = ({
     filterDetails,
@@ -14,13 +14,7 @@ export const Filters = ({
     filterId,
     columnFilters,
 }: FilterProps) => {
-    const [selectedFilterList, setSelectedFilterList] = useState<SelectedFilterListType>({
-        session: [],
-        batch: [],
-        statuses: [],
-        gender: [],
-        session_expiry_days: [],
-    });
+    const [selectedFilterList, setSelectedFilterList] = useState<SelectedFilterListType>({});
 
     const handleSelectDeSelect = (option: { id: string; label: string }) => {
         let updatedValue: { id: string; label: string }[] = [];
@@ -64,16 +58,16 @@ export const Filters = ({
     };
 
     useEffect(() => {
-        if (onFilterChange) {
+        if (onFilterChange && selectedFilterList[filterId]) {
             // If this is a session expiry filter, extract only the numbers
             if (filterDetails.label === 'Session Expiry') {
-                const processedValues = selectedFilterList[filterId].map((filter) => {
+                const processedValues = (selectedFilterList[filterId] || []).map((filter) => {
                     const numberMatch = filter.label.match(/\d+/);
                     return numberMatch ? { id: filter.id, label: numberMatch[0] } : filter;
                 });
                 onFilterChange(processedValues);
             } else {
-                onFilterChange(selectedFilterList[filterId]);
+                onFilterChange(selectedFilterList[filterId] || []);
             }
         }
     }, [selectedFilterList[filterId], filterDetails.label]);
@@ -82,8 +76,8 @@ export const Filters = ({
         <div className="hover:scale-102 group transition-all duration-200">
             <FilterChips
                 label={filterDetails.label}
-                filterList={filterDetails.filters}
-                selectedFilters={selectedFilterList[filterId]}
+                filterList={filterDetails.filters || []}
+                selectedFilters={selectedFilterList[filterId] || []}
                 clearFilters={clearFilters}
                 handleSelect={handleSelectDeSelect}
                 handleClearFilters={handleClearFilters}

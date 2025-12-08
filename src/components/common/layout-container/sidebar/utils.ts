@@ -10,6 +10,7 @@ import {
     Tag,
     FlowArrow,
     CreditCard,
+    Strategy,
 } from '@phosphor-icons/react';
 import { SidebarItemsType } from '../../../../types/layout-container/layout-container-types';
 import { ChalkboardTeacher, GearSix, Lightning, NotePencil, UsersFour } from 'phosphor-react';
@@ -128,18 +129,35 @@ export const SidebarItemsData: SidebarItemsType[] = [
     },
 
     {
-        icon:Users ,
+        icon: Users,
         title: 'Manage Campaigns',
         id: 'manage-campaigns',
         subItems: [
             {
                 subItem: 'Campaign List',
                 subItemLink: '/audience-manager/list',
-                subItemId: 'list'
-            }
+                subItemId: 'list',
+            },
         ],
     },
-    
+    {
+        icon: Strategy,
+        title: 'Planning',
+        id: 'planning',
+        subItems: [
+            {
+                subItem: 'Planning',
+                subItemLink: '/planning/planning',
+                subItemId: 'planning',
+            },
+            {
+                subItem: 'Activity Logs',
+                subItemLink: '/planning/activity-logs',
+                subItemId: 'activity-logs',
+            },
+        ],
+    },
+
     {
         icon: CreditCard,
         title: 'Manage Payments',

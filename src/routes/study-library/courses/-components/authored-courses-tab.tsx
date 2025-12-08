@@ -237,14 +237,6 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
             const courseId = response.courseId;
             const course = response.packageEntity;
 
-            // Debug logging for API data
-            console.log('API Response Debug:', {
-                courseName: course.packageName,
-                thumbnail_file_id: course.thumbnail_file_id,
-                course_preview_image_media_id: course.course_preview_image_media_id,
-                course_banner_media_id: course.course_banner_media_id,
-            });
-
             if (!groupedMap.has(courseId)) {
                 groupedMap.set(courseId, {
                     id: courseId,

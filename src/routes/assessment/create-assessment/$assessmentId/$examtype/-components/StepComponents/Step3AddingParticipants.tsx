@@ -100,7 +100,7 @@ const Step3AddingParticipants: React.FC<StepContentProps> = ({
     );
 
     // Filter matching batches
-    const matchedBatches = batches_for_sessions?.filter((batch) => batchIds.has(batch.id));
+    const matchedBatches = batches_for_sessions?.filter((batch: any) => batchIds.has(batch.id));
     const transformedBatches =
         assessmentId !== 'defaultId'
             ? transformAllBatchData(matchedBatches || [])

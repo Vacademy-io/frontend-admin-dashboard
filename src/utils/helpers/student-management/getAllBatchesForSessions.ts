@@ -35,9 +35,19 @@ export const useBatchSessionManagementForManualEnroll = () => {
         batches.forEach((batch) => {
             const key = `${batch.level.id}-${batch.package_dto.id}`;
             if (!uniqueCombinations.has(key)) {
+                let name;
+                if (batch.level.id === 'DEFAULT') {
+                    // Only show package name if level is DEFAULT
+                    name = batch.package_dto.package_name.replace(/^default\s+/i, '').trim();
+                } else {
+                    // Show level + package name
+                    const levelName = batch.level.level_name.replace(/^default\s+/i, '');
+                    const packageName = batch.package_dto.package_name.replace(/^default\s+/i, '');
+                    name = `${levelName} ${packageName}`.trim();
+                }
                 uniqueCombinations.set(key, {
                     id: crypto.randomUUID(),
-                    name: `${batch.level.level_name} ${batch.package_dto.package_name}`,
+                    name,
                     levelId: batch.level.id,
                     packageId: batch.package_dto.id,
                 });

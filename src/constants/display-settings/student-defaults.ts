@@ -35,8 +35,17 @@ function defaultSidebarTabs(): StudentSidebarTabConfig[] {
                 { id: 'assessment-reports', route: '/assessment/reports', order: 2, visible: true },
             ],
         },
-        { id: 'referral', order: 5, visible: true },
-        { id: 'attendance', order: 6, visible: true },
+        {
+            id: 'planning',
+            order: 5,
+            visible: true,
+            subTabs: [
+                { id: 'planning-logs', route: '/planning/planning-logs', order: 1, visible: true },
+                { id: 'activity-logs', route: '/planning/activity-logs', order: 2, visible: true },
+            ],
+        },
+        { id: 'referral', order: 6, visible: true },
+        { id: 'attendance', order: 7, visible: true },
     ];
 }
 

@@ -6,6 +6,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
 import svgr from 'vite-plugin-svgr';
 // import { VitePWA } from 'vite-plugin-pwa';
+import flowbiteReact from "flowbite-react/plugin/vite";
 
 // https://vitejs.dev/config https://vitest.dev/config
 export default defineConfig({
@@ -13,7 +14,6 @@ export default defineConfig({
         react(),
         tsconfigPaths(),
         TanStackRouterVite(),
-        svgr({ include: '**/*.svg' }),
         // Temporarily disabled PWA plugin due to build error
         // VitePWA({
         //     registerType: 'autoUpdate',
@@ -60,6 +60,8 @@ export default defineConfig({
         //         ],
         //     },
         // }),
+        svgr({ include: '**/*.svg' }),
+        flowbiteReact()
     ],
     // plugins: [react(), tsconfigPaths(), svgr({ include: "**/*.svg" })],
 
