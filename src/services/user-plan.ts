@@ -100,6 +100,13 @@ export interface UserPlan {
     status: string;
     created_at: string;
     updated_at: string;
+    source?: 'USER' | 'SUB_ORG'; // Payment source type
+    sub_org_id?: string | null; // Sub-organization ID if source is SUB_ORG
+    sub_org_details?: {
+        id: string;
+        name: string;
+        address: string;
+    } | null; // Sub-organization details if source is SUB_ORG
     payment_logs: UserPlanPaymentLog[];
     enroll_invite: EnrollInviteData;
     payment_option: PaymentOption;
@@ -137,6 +144,7 @@ export interface UserPlansResponse {
 
 export interface GetUserPlansRequest {
     statuses: string[];
+    sources?: ('USER' | 'SUB_ORG')[]; // Payment source filter
     sort_columns: Record<string, unknown>;
     user_id: string;
     institute_id: string;
@@ -151,6 +159,7 @@ export interface GetUserPlansRequest {
  * @param statuses - Array of statuses to filter by (e.g., ['ACTIVE'], ['ACTIVE', 'EXPIRED'])
  * @param userId - The user ID to fetch plans for
  * @param instituteId - The institute ID
+ * @param sources - Optional array of payment sources to filter by (e.g., ['USER'], ['SUB_ORG'])
  * @returns Promise<UserPlansResponse>
  */
 export const getUserPlans = async (
@@ -158,7 +167,8 @@ export const getUserPlans = async (
     pageSize: number = 10,
     statuses: string[] = ['ACTIVE'],
     userId?: string,
-    instituteId?: string
+    instituteId?: string,
+    sources?: ('USER' | 'SUB_ORG')[]
 ): Promise<UserPlansResponse> => {
     try {
         const accessToken = getTokenFromCookie(TokenKey.accessToken);
@@ -184,6 +194,11 @@ export const getUserPlans = async (
             pageNo: pageNo - 1, // Convert to 0-indexed
             pageSize,
         };
+
+        // Add sources filter if provided
+        if (sources && sources.length > 0) {
+            request.sources = sources;
+        }
 
         const response = await authenticatedAxiosInstance.post(GET_USER_PLANS, request, {
             params: {
