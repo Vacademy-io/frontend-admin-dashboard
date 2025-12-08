@@ -62,7 +62,7 @@ export const audienceCampaignSchema = z.object({
             campaign_image: z.boolean().default(false),
         })
         .default({ campaign_image: false }),
-});
+}).catchall(z.any()); // Allow additional fields for preview (e.g., preview_Gender_0)
 
 export type AudienceCampaignForm = z.infer<typeof audienceCampaignSchema>;
 
@@ -84,26 +84,10 @@ export const defaultFormValues: AudienceCampaignForm = {
     status: 'ACTIVE',
     json_web_metadata: '',
     institute_custom_fields: '',
-    custom_fields: [
-        {
-            id: '0',
-            type: 'text',
-            name: 'Full Name',
-            oldKey: true,
-            isRequired: true,
-            key: 'full_name',
-            order: 0,
-        },
-        {
-            id: '1',
-            type: 'text',
-            name: 'Email',
-            oldKey: true,
-            isRequired: true,
-            key: 'email',
-            order: 1,
-        },
-    ],
+    // custom_fields are loaded dynamically from settings via getCampaignCustomFields()
+    // If no fields are configured in settings, the form will start with an empty array
+    // Users can add fields manually or configure them in settings
+    custom_fields: [],
     customHtml: '',
     selectedOptionValue: 'textfield',
     textFieldValue: '',

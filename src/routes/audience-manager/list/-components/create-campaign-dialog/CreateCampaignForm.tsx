@@ -7,8 +7,7 @@ import { AudienceCampaignForm, defaultFormValues } from '../../-schema/AudienceC
 import { useCreateAudienceCampaign } from '../../-hooks/useCreateAudienceCampaign';
 import { useUpdateAudienceCampaign } from '../../-hooks/useUpdateAudienceCampaign';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import CustomInviteFormCard from './CustomInviteFormCard';
-import CustomHTMLCard from './CustomHTMLCard';
+import CampaignCustomFieldsCard from './CampaignCustomFieldsCard';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { FileUploadComponent } from '@/components/design-system/file-upload';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
@@ -24,6 +23,8 @@ import StatusDropdown from './StatusDropdown';
 import createCampaignLink from '../../-utils/createCampaignLink';
 import CampaignLink from './CampaignLink';
 import { CampaignItem } from '../../-services/get-campaigns-list';
+import { getCampaignCustomFields } from '../../-utils/getCampaignCustomFields';
+import { useGetCampaignById } from '../../-hooks/useGetCampaignById';
 
 const parseEmailsFromCsv = (value?: string | null) => {
     if (!value) return [];
@@ -95,7 +96,7 @@ const convertExistingCustomFields = (fields?: any[] | string | null) => {
             const fieldName = meta.fieldName || field.field_name || `Field ${index + 1}`;
             const fieldKey = meta.fieldKey || generateKeyFromName(fieldName);
             const normalizedKey = fieldKey ? fieldKey.toLowerCase() : '';
-            const isPermanent = ['full_name', 'email', 'name'].includes(normalizedKey);
+            // const isPermanent = ['full_name', 'email', 'name'].includes(normalizedKey);
             const configOptions =
                 typeof meta.config === 'string' && meta.config.length > 0
                     ? meta.config
@@ -104,12 +105,16 @@ const convertExistingCustomFields = (fields?: any[] | string | null) => {
                           .filter(Boolean)
                     : undefined;
 
+            // Preserve status from API - default to ACTIVE if not present
+            const fieldStatus = field.status || 'ACTIVE';
+
             const convertedField = {
                 id: field.id || meta.id || field.field_id || `${index}`,
                 _id: meta.id || field.id || field.field_id,
+                field_id: field.field_id || meta.id || field.id,
                 type: mapApiFieldTypeToUi(meta.fieldType || field.type),
                 name: fieldName,
-                oldKey: isPermanent,
+                oldKey: false,
                 isRequired:
                     typeof meta.isMandatory === 'boolean' ? meta.isMandatory : field.isRequired ?? true,
                 key: fieldKey,
@@ -124,11 +129,21 @@ const convertExistingCustomFields = (fields?: any[] | string | null) => {
                           disabled: true,
                       }))
                     : undefined,
+                // Preserve all original field data for payload
+                status: fieldStatus,
+                institute_id: field.institute_id,
+                type_id: field.type_id,
+                group_name: field.group_name || meta.groupName,
+                individual_order: field.individual_order,
+                group_internal_order: field.group_internal_order,
+                // Store full custom_field object for payload
+                custom_field_data: meta,
             };
             
-            console.log('📋 [convertExistingCustomFields] Converted field:', fieldName, '(key:', fieldKey, ', permanent:', isPermanent, ')');
+            console.log('📋 [convertExistingCustomFields] Converted field:', fieldName, '(key:', fieldKey, ', status:', fieldStatus, ')');
             return convertedField;
         })
+        .filter((field) => field.status !== 'DELETED') // Filter out deleted fields from display
         .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
         .map((field, index) => ({
             ...field,
@@ -160,6 +175,28 @@ const buildInitialFormValues = (campaign?: CampaignItem | null): AudienceCampaig
     // Convert existing custom fields from campaign
     const existingCustomFields = convertExistingCustomFields(campaign.institute_custom_fields);
     
+    // If no existing custom fields, load from settings (Name, Email, etc.)
+    let customFieldsToUse: any[] = [];
+    if (existingCustomFields && existingCustomFields.length > 0) {
+        // Use existing fields from campaign
+        customFieldsToUse = existingCustomFields;
+    } else {
+        // Load from settings (Name, Email, and other fields with Campaign visibility)
+        const fieldsFromSettings = getCampaignCustomFields();
+        // Transform to match form format (ensure oldKey is present)
+        customFieldsToUse = fieldsFromSettings.map((field, index) => ({
+            id: field.id || String(index),
+            type: field.type,
+            name: field.name,
+            oldKey: (field as any).oldKey ?? false, // Ensure oldKey is present
+            isRequired: field.isRequired ?? true,
+            key: field.key,
+            order: index,
+            _id: field._id,
+            options: field.options,
+        }));
+    }
+    
     const initialValues = {
         ...defaultFormValues,
         campaign_name: campaign.campaign_name || '',
@@ -179,15 +216,14 @@ const buildInitialFormValues = (campaign?: CampaignItem | null): AudienceCampaig
             defaultFormValues.end_date_local,
         status: campaign.status?.toUpperCase?.() || defaultFormValues.status,
         json_web_metadata: campaign.json_web_metadata || '',
-        // Include existing custom fields in initial values
-        custom_fields: existingCustomFields && existingCustomFields.length > 0 
-            ? existingCustomFields 
-            : defaultFormValues.custom_fields,
+        // Include existing custom fields, or load from settings if none exist
+        custom_fields: customFieldsToUse || [],
     };
     
     console.log('📋 [buildInitialFormValues] Building initial values for edit mode');
     console.log('📋 [buildInitialFormValues] Raw institute_custom_fields:', campaign.institute_custom_fields);
-    console.log('📋 [buildInitialFormValues] Converted custom_fields:', initialValues.custom_fields.length, 'fields');
+    console.log('📋 [buildInitialFormValues] Has existing fields:', existingCustomFields && existingCustomFields.length > 0);
+    console.log('📋 [buildInitialFormValues] Custom fields to use:', initialValues.custom_fields.length, 'fields');
     console.log('📋 [buildInitialFormValues] Custom fields:', initialValues.custom_fields.map(f => ({ name: f.name, key: f.key })));
     
     return initialValues;
@@ -199,8 +235,27 @@ interface CreateCampaignFormProps {
 }
 
 export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSuccess, campaign }) => {
-    const initialFormValues = useMemo(() => buildInitialFormValues(campaign), [campaign]);
-    const [emails, setEmails] = useState<string[]>(() => parseEmailsFromCsv(campaign?.to_notify));
+    const { instituteDetails } = useInstituteDetailsStore();
+    const isEditMode = Boolean(campaign);
+    const editingCampaignId = useMemo(() => getCampaignIdentifier(campaign), [campaign]);
+    
+    // Fetch campaign data when in edit mode
+    const { data: fetchedCampaign, isLoading: isLoadingCampaign } = useGetCampaignById({
+        instituteId: instituteDetails?.id || '',
+        audienceId: editingCampaignId || '',
+        enabled: isEditMode && !!instituteDetails?.id && !!editingCampaignId,
+    });
+
+    // Use fetched campaign data if available, otherwise use passed campaign prop
+    const campaignData = useMemo(() => {
+        if (fetchedCampaign) {
+            return fetchedCampaign as CampaignItem;
+        }
+        return campaign;
+    }, [fetchedCampaign, campaign]);
+
+    const initialFormValues = useMemo(() => buildInitialFormValues(campaignData as CampaignItem), [campaignData]);
+    const [emails, setEmails] = useState<string[]>(() => parseEmailsFromCsv(campaignData?.to_notify as string || ''));
     const [latestCampaignShareLink, setLatestCampaignShareLink] = useState<string | null>(null);
     const { form, handleDateChange, handleSubmit, handleReset, isSubmitting } =
         useAudienceCampaignForm(initialFormValues);
@@ -214,45 +269,45 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
     } = form;
     const createCampaign = useCreateAudienceCampaign();
     const updateCampaign = useUpdateAudienceCampaign();
-    const { instituteDetails } = useInstituteDetailsStore();
-    const isEditMode = Boolean(campaign);
     const existingCustomFields = useMemo(
-        () => convertExistingCustomFields(campaign?.institute_custom_fields),
-        [campaign?.institute_custom_fields]
+        () => convertExistingCustomFields(campaignData?.institute_custom_fields),
+        [campaignData?.institute_custom_fields]
     );
-    const editingCampaignId = useMemo(() => getCampaignIdentifier(campaign), [campaign]);
     const statusValue = watch('status');
     const isStatusActive = statusValue?.toUpperCase?.() === 'ACTIVE';
+    
+    // Store initial custom fields for create mode (from settings) so we can restore them on reset
+    const initialCreateModeCustomFields = useRef<any[] | null>(null);
 
     useEffect(() => {
-        if (campaign) {
-            setEmails(parseEmailsFromCsv(campaign.to_notify));
+        if (campaignData) {
+            setEmails(parseEmailsFromCsv(campaignData.to_notify));
         } else {
             setEmails([]);
         }
-    }, [campaign]);
+    }, [campaignData]);
 
     useEffect(() => {
-        if (campaign && editingCampaignId) {
+        if (campaignData && editingCampaignId) {
             const shareLink = createCampaignLink(
                 editingCampaignId,
                 instituteDetails?.learner_portal_base_url
             );
             setLatestCampaignShareLink(shareLink);
-        } else if (!campaign) {
+        } else if (!campaignData) {
             setLatestCampaignShareLink(null);
         }
-    }, [campaign, editingCampaignId, instituteDetails?.learner_portal_base_url]);
+    }, [campaignData, editingCampaignId, instituteDetails?.learner_portal_base_url]);
 
     // Set start date to today (date only) when form initializes (create mode only)
     useEffect(() => {
-        if (campaign) return;
+        if (campaignData) return;
         const today = new Date();
         const todayDateOnly = today.toISOString().split('T')[0] || today.toISOString().substring(0, 10); // Format: YYYY-MM-DD
         if (todayDateOnly) {
             setValue('start_date_local', todayDateOnly, { shouldValidate: false });
         }
-    }, [campaign, setValue]);
+    }, [campaignData, setValue]);
 
     // File upload setup
     const { uploadFile, getPublicUrl } = useFileUpload();
@@ -296,20 +351,29 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
         }
     };
 
+    // Update form when campaign data is fetched
     useEffect(() => {
+        if (isEditMode && isLoadingCampaign) {
+            return; // Don't update form while loading
+        }
+        
         if (initialFormValues) {
             form.reset(initialFormValues);
-            // If we have existing custom fields in initial values, ensure they're set
+            // In edit mode, ensure custom fields are set immediately from initial values
             if (isEditMode && initialFormValues.custom_fields && initialFormValues.custom_fields.length > 0) {
-                setValue('custom_fields', initialFormValues.custom_fields, {
-                    shouldDirty: false,
-                    shouldTouch: false,
-                });
+                console.log('📋 [Form Reset] Setting custom fields from initial values:', initialFormValues.custom_fields.length, 'fields');
+                // Use a longer timeout to ensure form.reset() has fully completed
+                setTimeout(() => {
+                    setValue('custom_fields', initialFormValues.custom_fields, {
+                        shouldDirty: false,
+                        shouldTouch: false,
+                    });
+                }, 50);
             }
         } else {
             form.reset(defaultFormValues);
         }
-    }, [form, initialFormValues, isEditMode, setValue]);
+    }, [form, initialFormValues, isEditMode, isLoadingCampaign, setValue]);
 
     // Custom fields array management
     const { fields: customFieldsArray, move: moveCustomField } = useFieldArray({
@@ -318,43 +382,138 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
     });
     const customFields = getValues('custom_fields');
 
-    const applyDefaultCustomFields = useCallback(() => {
-        // Always include Full Name and Email as permanent fields (first two fields)
-        const permanentFields = [
-            {
-                id: 'full_name_permanent',
+    /**
+     * Get initial custom fields from settings (helper function)
+     * Returns the normalized fields array without setting them in the form
+     */
+    const getInitialCustomFieldsFromSettings = useCallback(() => {
+        // Get fields from settings cache (dynamically reads from localStorage)
+        const fieldsFromSettings = getCampaignCustomFields();
+
+        // Helper to check if a field is Name or Email
+        const isNameOrEmail = (key?: string, name?: string): boolean => {
+            const normalizedKey = (key || '').toLowerCase();
+            const normalizedName = (name || '').toLowerCase();
+            return (
+                normalizedKey === 'full_name' ||
+                normalizedKey === 'name' ||
+                normalizedKey === 'email' ||
+                normalizedName === 'full name' ||
+                normalizedName === 'name' ||
+                normalizedName === 'email'
+            );
+        };
+
+        // Helper to check if a field is Phone Number
+        const isPhoneNumber = (key?: string, name?: string): boolean => {
+            const normalizedKey = (key || '').toLowerCase();
+            const normalizedName = (name || '').toLowerCase();
+            return (
+                normalizedKey === 'phone_number' ||
+                normalizedKey === 'phone' ||
+                normalizedKey === 'phone_number' ||
+                normalizedName === 'phone number' ||
+                normalizedName === 'phone'
+            );
+        };
+
+        // Separate fixed fields (Name, Email) from other fields
+        const fixedFields: any[] = [];
+        const otherFields: any[] = [];
+
+        fieldsFromSettings.forEach((field) => {
+            // Skip Phone Number - it's available via Add button
+            if (isPhoneNumber(field.key, field.name)) {
+                console.log('📋 [getInitialCustomFieldsFromSettings] Skipping Phone Number from settings (available via Add button)');
+                return;
+            }
+
+            const transformedField = {
+                id: field.id || String(fieldsFromSettings.indexOf(field)),
+                type: field.type,
+                name: field.name,
+                oldKey: isNameOrEmail(field.key, field.name), // Mark Name/Email as fixed
+                isRequired: field.isRequired ?? true,
+                key: field.key,
+                order: fieldsFromSettings.indexOf(field),
+                _id: field._id, // Store actual field ID from settings for API payload
+                options: field.options,
+            };
+
+            if (isNameOrEmail(field.key, field.name)) {
+                fixedFields.push(transformedField);
+            } else {
+                otherFields.push(transformedField);
+            }
+        });
+
+        // Ensure Name and Email are always present (even if not in settings)
+        const hasName = fixedFields.some(
+            (f) => f.key?.toLowerCase() === 'full_name' || f.key?.toLowerCase() === 'name' || f.name?.toLowerCase() === 'full name' || f.name?.toLowerCase() === 'name'
+        );
+        const hasEmail = fixedFields.some(
+            (f) => f.key?.toLowerCase() === 'email' || f.name?.toLowerCase() === 'email'
+        );
+
+        if (!hasName) {
+            fixedFields.unshift({
+                id: 'full_name_fixed',
                 type: 'text' as const,
                 name: 'Full Name',
-                oldKey: true,
+                oldKey: true, // Fixed field - cannot be deleted
                 isRequired: true,
                 key: 'full_name',
                 order: 0,
-            } as any,
-            {
-                id: 'email_permanent',
+            });
+        }
+
+        if (!hasEmail) {
+            const emailIndex = fixedFields.length;
+            fixedFields.push({
+                id: 'email_fixed',
                 type: 'text' as const,
                 name: 'Email',
-                oldKey: true,
+                oldKey: true, // Fixed field - cannot be deleted
                 isRequired: true,
                 key: 'email',
-                order: 1,
-            } as any,
-        ];
+                order: emailIndex,
+            });
+        }
 
-        // Normalize all fields with proper order and ensure oldKey is set
-        const normalizedFields = permanentFields.map((field, index) => ({
+        // Combine: fixed fields first, then other fields from settings
+        const allFields = [...fixedFields, ...otherFields];
+
+        // Normalize order
+        const normalizedFields = allFields.map((field, index) => ({
             ...field,
             order: index,
             id: field.id ?? String(index),
             isRequired: field.isRequired ?? true,
-            oldKey: (field as any).oldKey ?? false, // Preserve oldKey if already set
+            oldKey: field.oldKey ?? false,
         }));
 
+        return normalizedFields;
+    }, []);
+
+    /**
+     * Load custom fields dynamically from settings cache
+     * This function:
+     * 1. Gets fields from settings via getCampaignCustomFields() (reads from localStorage cache)
+     * 2. Ensures Name and Email are always present as fixed fields (cannot be deleted)
+     * 3. Filters out Phone Number (since it's available via Add button)
+     * 4. Transforms all fields from settings that have Campaign visibility enabled
+     * 5. Converts to form-compatible format
+     * 
+     * When settings are updated, this will automatically reflect changes on next form load
+     * Name and Email are always present as fixed fields, followed by other fields from settings
+     */
+    const applyDefaultCustomFields = useCallback(() => {
+        const normalizedFields = getInitialCustomFieldsFromSettings();
         setValue('custom_fields', normalizedFields, {
             shouldDirty: false,
             shouldTouch: false,
         });
-    }, [setValue]);
+    }, [setValue, getInitialCustomFieldsFromSettings]);
 
     const setCustomFieldsFromExisting = useCallback(
         (fields: any[]) => {
@@ -373,50 +532,85 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
         [setValue]
     );
 
+    // Load custom fields immediately when form opens
     useEffect(() => {
-        // Only apply custom fields if form has been initialized
-        // This prevents overriding the initial values set in buildInitialFormValues
-        if (!initialFormValues) {
-            if (!isEditMode) {
-                applyDefaultCustomFields();
-            }
-            return;
-        }
-
         if (isEditMode) {
-            // In edit mode, use existing custom fields from campaign
-            // They should already be in initialFormValues, but ensure they're set
-            if (existingCustomFields && existingCustomFields.length > 0) {
-                console.log('📋 [CreateCampaignForm] Loading existing custom fields for edit:', existingCustomFields.length, 'fields');
-                console.log('📋 [CreateCampaignForm] Existing fields:', existingCustomFields.map(f => ({ name: f.name, key: f.key, oldKey: f.oldKey })));
-                setCustomFieldsFromExisting(existingCustomFields);
-            } else {
-                console.log('📋 [CreateCampaignForm] No existing custom fields, using defaults');
-                applyDefaultCustomFields();
+            // In edit mode, fields should already be in initialFormValues (from buildInitialFormValues)
+            // Just ensure they're set if not already
+            if (initialFormValues) {
+                const currentFields = getValues('custom_fields');
+                
+                if (initialFormValues.custom_fields && initialFormValues.custom_fields.length > 0) {
+                    if (!currentFields || currentFields.length === 0) {
+                        console.log('📋 [CreateCampaignForm] Setting custom fields from initialFormValues:', initialFormValues.custom_fields.length, 'fields');
+                        setTimeout(() => {
+                            setValue('custom_fields', initialFormValues.custom_fields, {
+                                shouldDirty: false,
+                                shouldTouch: false,
+                            });
+                        }, 100);
+                    }
+                }
             }
+            return undefined;
         } else {
-            // In create mode, use default fields
-            console.log('📋 [CreateCampaignForm] Create mode - applying default fields (Full Name, Email only)');
-            applyDefaultCustomFields();
+            // In create mode, load fields immediately from settings
+            // This ensures Name, Email, and all custom fields appear automatically when form opens
+            console.log('📋 [CreateCampaignForm] Create mode - loading fields from settings immediately');
+            // Use setTimeout to ensure form is fully initialized
+            const timer = setTimeout(() => {
+                const normalizedFields = getInitialCustomFieldsFromSettings();
+                // Store the initial custom fields for reset functionality
+                initialCreateModeCustomFields.current = normalizedFields;
+                // Apply the fields to the form
+                setValue('custom_fields', normalizedFields, {
+                    shouldDirty: false,
+                    shouldTouch: false,
+                });
+            }, 100);
+            return () => clearTimeout(timer);
         }
     }, [
-        applyDefaultCustomFields,
-        existingCustomFields,
+        getInitialCustomFieldsFromSettings,
         isEditMode,
-        setCustomFieldsFromExisting,
         initialFormValues,
+        getValues,
+        setValue,
     ]);
 
     const handleFormReset = () => {
-        handleReset();
         if (isEditMode && existingCustomFields && existingCustomFields.length > 0) {
+            // In edit mode, reset to original campaign data
+            handleReset();
             setCustomFieldsFromExisting(existingCustomFields);
-            setEmails(parseEmailsFromCsv(campaign?.to_notify));
+            setEmails(parseEmailsFromCsv(campaignData?.to_notify));
         } else {
-            applyDefaultCustomFields();
-            if (!isEditMode) {
+            // In create mode, reset form values but preserve initial custom fields
+            // Get the initial custom fields that were loaded when form opened
+            const fieldsToRestore = initialCreateModeCustomFields.current;
+            
+            // Reset form to default values
+            handleReset();
+            
+            // Immediately restore initial custom fields after reset
+            setTimeout(() => {
+                if (fieldsToRestore && fieldsToRestore.length > 0) {
+                    // Restore to the initial fields from when form was opened
+                    setValue('custom_fields', fieldsToRestore, {
+                        shouldDirty: false,
+                        shouldTouch: false,
+                    });
+                } else {
+                    // If no initial fields stored yet, load from settings
+                    const normalizedFields = getInitialCustomFieldsFromSettings();
+                    initialCreateModeCustomFields.current = normalizedFields;
+                    setValue('custom_fields', normalizedFields, {
+                        shouldDirty: false,
+                        shouldTouch: false,
+                    });
+                }
                 setEmails([]);
-            }
+            }, 50);
         }
     };
 
@@ -435,12 +629,16 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
     };
 
     const handleDeleteOpenField = (id: number) => {
-        const updatedFields = customFieldsArray
-            .filter((field, idx) => idx !== id)
-            .map((field, index) => ({
-                ...field,
-                order: index,
-            }));
+        // Instead of removing the field, set its status to DELETED
+        const updatedFields = customFieldsArray.map((field, idx) => {
+            if (idx === id) {
+                return {
+                    ...field,
+                    status: 'DELETED',
+                };
+            }
+            return field;
+        });
         setValue('custom_fields', updatedFields);
     };
 
@@ -593,23 +791,50 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
                     ? field.options.map((option: any) => option.value?.trim()).filter(Boolean)
                     : undefined;
 
-            return {
-                institute_id: instituteId,
+            // Use existing field data if available (from API), otherwise create new structure
+            const fieldId = field.id || field._id || field.field_id;
+            const customFieldData = field.custom_field_data || field.custom_field || {};
+            
+            // Build the payload according to the required structure
+            const payload: any = {
+                ...(fieldId && { id: fieldId }),
+                field_id: field.field_id || customFieldData.id || fieldId,
+                institute_id: field.institute_id || instituteId,
+                type: field.type_id || customFieldData.fieldType || mapFieldTypeToPayload(field.type),
+                type_id: field.type_id || customFieldData.fieldType || mapFieldTypeToPayload(field.type),
+                group_name: field.group_name || customFieldData.groupName || '',
+                status: field.status || 'ACTIVE', // Preserve status (ACTIVE or DELETED)
+                individual_order: field.individual_order ?? field.order ?? index,
+                group_internal_order: field.group_internal_order ?? 0,
                 custom_field: {
-                    fieldName: field.name || field.custom_field?.fieldName || `Field ${index + 1}`,
-                    fieldType: mapFieldTypeToPayload(field.type || field.custom_field?.fieldType),
+                    ...(customFieldData.id && { id: customFieldData.id }),
+                    ...(customFieldData.guestId && { guestId: customFieldData.guestId }),
+                    fieldKey: field.key || customFieldData.fieldKey || generateKeyFromName(field.name),
+                    fieldName: field.name || customFieldData.fieldName || `Field ${index + 1}`,
+                    fieldType: mapFieldTypeToPayload(field.type || customFieldData.fieldType),
+                    defaultValue: customFieldData.defaultValue || '',
+                    config: options ? options.join(',') : (customFieldData.config || ''),
+                    formOrder: typeof field.order === 'number' ? field.order + 1 : (customFieldData.formOrder || index + 1),
                     isMandatory: Boolean(
                         typeof field.isRequired === 'boolean'
                             ? field.isRequired
-                            : field.custom_field?.isMandatory
+                            : customFieldData.isMandatory ?? true
                     ),
-                    formOrder:
-                        typeof field.order === 'number'
-                            ? field.order + 1
-                            : field.custom_field?.formOrder || index + 1,
-                    ...(options && { config: options.join(',') }),
+                    isFilter: customFieldData.isFilter ?? false,
+                    isSortable: customFieldData.isSortable ?? false,
+                    isHidden: customFieldData.isHidden ?? false,
+                    ...(customFieldData.createdAt && { createdAt: customFieldData.createdAt }),
+                    ...(customFieldData.updatedAt && { updatedAt: customFieldData.updatedAt }),
+                    ...(customFieldData.sessionId && { sessionId: customFieldData.sessionId }),
+                    ...(customFieldData.liveSessionId && { liveSessionId: customFieldData.liveSessionId }),
+                    customFieldValue: customFieldData.customFieldValue || '',
+                    groupName: field.group_name || customFieldData.groupName || '',
+                    groupInternalOrder: field.group_internal_order ?? 0,
+                    individualOrder: field.individual_order ?? field.order ?? index,
                 },
             };
+
+            return payload;
         });
     };
 
@@ -654,13 +879,19 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
         const customFieldsToSend =
             customFieldsFromJson.length > 0 ? customFieldsFromJson : transformedCustomFields;
 
+        // Include all fields (both ACTIVE and DELETED) in the payload
+        // The API will handle the status updates
+        const allFieldsIncludingDeleted = (data.custom_fields || []).map((field: any) => field);
+        const allCustomFieldsPayload = convertFieldsToPayload(allFieldsIncludingDeleted, instituteDetails.id);
+
         // Debug logging
-        // console.log('Custom Fields Debug:', {
-        //     'data.custom_fields': data.custom_fields,
-        //     transformedCustomFields,
-        //     parsedCustomFields,
-        //     customFieldsToSend,
-        // });
+        console.log('Custom Fields Debug:', {
+            'data.custom_fields': data.custom_fields,
+            transformedCustomFields,
+            parsedCustomFields,
+            customFieldsToSend,
+            allCustomFieldsPayload,
+        });
 
         const payload = {
             id: editingCampaignId || undefined,
@@ -676,7 +907,7 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
             start_date_local: formatDateTimeForPayload(data.start_date_local, false),
             end_date_local: formatDateTimeForPayload(data.end_date_local, true),
             status: data.status?.toUpperCase?.() || data.status,
-            institute_custom_fields: customFieldsToSend,
+            institute_custom_fields: allCustomFieldsPayload.length > 0 ? allCustomFieldsPayload : customFieldsToSend,
         };
 
         try {
@@ -724,6 +955,15 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
         : isSaving
           ? 'Creating...'
           : 'Create Campaign';
+
+    // Show loading state while fetching campaign data
+    if (isEditMode && isLoadingCampaign) {
+        return (
+            <div className="flex items-center justify-center py-8">
+                <DashboardLoader />
+            </div>
+        );
+    }
 
     return (
         <form onSubmit={onFormSubmit} className="w-full space-y-6">
@@ -1052,25 +1292,9 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({ onSucces
             </div>
 
             {/* JSON Metadata */}
-            {/* <div>
-                <label className="block text-sm font-semibold text-neutral-700">
-                    JSON Web Metadata
-                </label>
-                <textarea
-                    placeholder="Optional metadata JSON"
-                    rows={3}
-                    {...register('json_web_metadata')}
-                    className="mt-2 w-full rounded-lg border border-neutral-300 px-4 py-2.5 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all resize-none"
-                />
-                {errors.json_web_metadata && (
-                    <span className="mt-1 block text-sm text-red-500">
-                        {errors.json_web_metadata.message as string}
-                    </span>
-                )}
-            </div> */}
 
-            {/* Customize Invite Form Card */}
-            <CustomInviteFormCard
+            {/* Customize Campaign Form - Custom Fields Card */}
+            <CampaignCustomFieldsCard
                 form={form}
                 updateFieldOrders={updateFieldOrders}
                 handleDeleteOpenField={handleDeleteOpenField}
