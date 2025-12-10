@@ -126,6 +126,8 @@ type SlideType =
     | 'objectives'
     | 'topic'
     | 'quiz'
+    | 'assessment'
+    | 'ASSESSMENT'
     | 'homework'
     | 'solution'
     | 'doc'
@@ -501,6 +503,8 @@ function RouteComponent() {
                     </div>
                 );
             case 'quiz':
+            case 'assessment':
+            case 'ASSESSMENT':
                 return <FileQuestion className="h-4 w-4 text-purple-600" />;
             case 'homework':
             case 'assignment':

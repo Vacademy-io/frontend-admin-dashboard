@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { SlideGeneration, SlideType } from '../../shared/types';
+import type { SlideGeneration, SlideType } from '../../../shared/types';
 
 export const useSlideHandlers = (
     slides: SlideGeneration[],

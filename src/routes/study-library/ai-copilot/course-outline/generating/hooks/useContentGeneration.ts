@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { getInstituteId } from '@/constants/helper';
-import type { SlideGeneration } from '../../../shared/types';
+import type { SlideGeneration, SlideType } from '../../../shared/types';
 
 /**
  * Custom hook for handling content generation from outline
@@ -299,7 +299,7 @@ export const useContentGeneration = (
                             const stored = localStorage.getItem('generatedSlides');
                             if (stored) {
                                 const parsed = JSON.parse(stored);
-                                const slideIndex = parsed.findIndex((s: any) => s.id === mappedSlide.id);
+                                const slideIndex = parsed.findIndex((s: any) => s.id === mappedSlide!.id);
                                 if (slideIndex >= 0) {
                                     parsed[slideIndex] = {
                                         ...parsed[slideIndex],
@@ -309,7 +309,7 @@ export const useContentGeneration = (
                                     };
 
                                     localStorage.setItem('generatedSlides', JSON.stringify(parsed));
-                                    console.log(`✅ [${update.path}] Updated localStorage for slide: ${mappedSlide.id}`);
+                                    console.log(`✅ [${update.path}] Updated localStorage for slide: ${mappedSlide!.id}`);
 
                                     // Check if all content slides are now completed
                                     const allCompleted = parsed.every((s: any) => 
@@ -338,10 +338,10 @@ export const useContentGeneration = (
                         
                         // Also update React state
                         setSlides((prevSlides) => {
-                            const slideToUpdate = prevSlides.find((slide) => slide.id === mappedSlide.id);
+                            const slideToUpdate = prevSlides.find((slide) => slide.id === mappedSlide!.id);
                             
                             if (!slideToUpdate) {
-                                console.error(`❌ [${update.path}] Slide ${mappedSlide.id} not found in prevSlides`);
+                                console.error(`❌ [${update.path}] Slide ${mappedSlide!.id} not found in prevSlides`);
                                 return prevSlides;
                             }
                             
@@ -350,7 +350,7 @@ export const useContentGeneration = (
                                     return {
                                         ...slide,
                                         content,
-                                        slideType: update.slideType === 'ASSESSMENT' ? 'assessment' : slide.slideType,
+                                        slideType: (update.slideType === 'ASSESSMENT' ? 'assessment' : slide.slideType) as SlideType,
                                         status: 'completed' as const,
                                         progress: 100,
                                     };

@@ -805,7 +805,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                     // Pattern 4: any 11-character ID
                     if (!videoUrl) {
                         const idMatch = content.match(/([a-zA-Z0-9_-]{11})/);
-                        if (idMatch && /[a-zA-Z]/.test(idMatch[1])) {
+                        if (idMatch && idMatch[1] && /[a-zA-Z]/.test(idMatch[1])) {
                             videoUrl = `https://www.youtube.com/embed/${idMatch[1]}`;
                         }
                     }
