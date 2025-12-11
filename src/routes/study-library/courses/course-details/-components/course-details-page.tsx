@@ -48,6 +48,9 @@ import { CourseStructureDetails } from './course-structure-details';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { AddCourseForm } from '@/components/common/study-library/add-course/add-course-form';
+import { PackageDripConditionsCard } from './PackageDripConditionsCard';
+import { DripCondition } from '@/types/course-settings';
+import { getCourseSettings, saveCourseSettings } from '@/services/course-settings';
 import { MyButton } from '@/components/design-system/button';
 import { getPublicUrl } from '@/services/upload_file';
 import InviteDetailsComponent from './invite-details-component';
@@ -230,6 +233,8 @@ export const CourseDetailsPage = () => {
     const [selectedSession, setSelectedSession] = useState<string>('');
     const [selectedLevel, setSelectedLevel] = useState<string>('');
     const [isRestoringSelections, setIsRestoringSelections] = useState<boolean>(false);
+    const [dripConditionsEnabled, setDripConditionsEnabled] = useState<boolean>(false);
+    const [dripConditions, setDripConditions] = useState<DripCondition[]>([]);
 
     // Use refs to preserve selections across re-renders and data fetches
     const preservedSessionRef = useRef<string>('');
@@ -367,6 +372,77 @@ export const CourseDetailsPage = () => {
     // Handle level change - clear expanded items and reset state
     const handleLevelChange = (levelId: string) => {
         setSelectedLevel(levelId);
+    };
+
+    // Load drip conditions from course settings
+    useEffect(() => {
+        const loadDripSettings = async () => {
+            try {
+                const settings = await getCourseSettings();
+                setDripConditionsEnabled(settings.dripConditions.enabled);
+                setDripConditions(settings.dripConditions.conditions);
+            } catch (error) {
+                console.error('Error loading drip conditions:', error);
+            }
+        };
+        loadDripSettings();
+    }, []);
+
+    // Drip conditions handlers
+    const handleAddDripCondition = async (condition: DripCondition) => {
+        try {
+            const settings = await getCourseSettings();
+            const updatedConditions = [...settings.dripConditions.conditions, condition];
+            await saveCourseSettings({
+                ...settings,
+                dripConditions: {
+                    ...settings.dripConditions,
+                    conditions: updatedConditions,
+                },
+            });
+            setDripConditions(updatedConditions);
+        } catch (error) {
+            console.error('Error adding drip condition:', error);
+            alert('Failed to save drip condition. Please try again.');
+        }
+    };
+
+    const handleUpdateDripCondition = async (condition: DripCondition) => {
+        try {
+            const settings = await getCourseSettings();
+            const updatedConditions = settings.dripConditions.conditions.map((c) =>
+                c.id === condition.id ? condition : c
+            );
+            await saveCourseSettings({
+                ...settings,
+                dripConditions: {
+                    ...settings.dripConditions,
+                    conditions: updatedConditions,
+                },
+            });
+            setDripConditions(updatedConditions);
+        } catch (error) {
+            console.error('Error updating drip condition:', error);
+            alert('Failed to update drip condition. Please try again.');
+        }
+    };
+
+    const handleDeleteDripCondition = async (id: string) => {
+        try {
+            const settings = await getCourseSettings();
+            const updatedConditions = settings.dripConditions.conditions.filter((c) => c.id !== id);
+            await saveCourseSettings({
+                ...settings,
+                dripConditions: {
+                    ...settings.dripConditions,
+                    conditions: updatedConditions,
+                },
+            });
+            setDripConditions(updatedConditions);
+        } catch (error) {
+            console.error('Error deleting drip condition:', error);
+            alert('Failed to delete drip condition. Please try again.');
+        }
     };
 
     // Set initial session and its levels
@@ -1093,7 +1169,7 @@ export const CourseDetailsPage = () => {
                     </div>
 
                     {/* Right Column - 1/3 width */}
-                    <div className="w-full xl:w-1/3">
+                    <div className="w-full space-y-2 xl:w-1/3">
                         <div className="sticky top-4 rounded-md border bg-white p-3 shadow-sm lg:p-4">
                             {/* Course Stats */}
                             <h2 className="mb-3 line-clamp-2 text-base font-semibold text-gray-900">
@@ -1379,6 +1455,7 @@ export const CourseDetailsPage = () => {
                                                     </div>
                                                 );
                                             })}
+
                                         {form.getValues('courseData').instructors.length > 0 && (
                                             <div className="flex items-center gap-2">
                                                 <ChalkboardTeacher
@@ -1397,6 +1474,22 @@ export const CourseDetailsPage = () => {
                                 )}
                             </div>
                         </div>
+                        {dripConditionsEnabled && (
+                            <div className="sticky top-4 rounded-md border bg-white p-3 shadow-sm lg:p-4">
+                                <PackageDripConditionsCard
+                                    packageId={searchParams.courseId || ''}
+                                    packageName={form.getValues('courseData').title || 'Course'}
+                                    conditions={dripConditions.filter(
+                                        (c) =>
+                                            c.level === 'package' &&
+                                            c.level_id === searchParams.courseId
+                                    )}
+                                    onAdd={handleAddDripCondition}
+                                    onUpdate={handleUpdateDripCondition}
+                                    onDelete={handleDeleteDripCondition}
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
                 <CourseDetailsRatingsComponent

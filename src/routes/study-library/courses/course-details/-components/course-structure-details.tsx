@@ -42,7 +42,17 @@ import {
     ArrowsOut,
     ArrowsIn,
     PencilSimple,
+    DotsThree,
+    Info,
 } from 'phosphor-react';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { DripCondition } from '@/types/course-settings';
+import { getCourseSettings, saveCourseSettings } from '@/services/course-settings';
 import { MyButton } from '@/components/design-system/button';
 import AddTeachers from '@/routes/dashboard/-components/AddTeachers';
 import { AddSubjectButton } from '../subjects/-components/add-subject.tsx/add-subject-button';
@@ -80,6 +90,7 @@ import { convertCapitalToTitleCase } from '@/lib/utils';
 import { getTokenDecodedData, getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
 import { TokenKey, Authority } from '@/constants/auth/tokens';
 import { useCourseSettings } from '@/hooks/useCourseSettings';
+import { ChapterDripConditionDialog } from './ChapterDripConditionDialog';
 import { AddSubjectForm } from '../subjects/-components/add-subject.tsx/add-subject-form';
 import { AddModulesForm } from '../subjects/modules/-components/add-modules.tsx/add-modules-form';
 import { AddChapterForm } from '../subjects/modules/chapters/-components/chapter-material/add-chapters/add-chapter-form';
@@ -439,6 +450,17 @@ export const CourseStructureDetails = ({
         isPending: boolean;
     }>({ submitFn: null, isPending: false });
 
+    // Chapter drip conditions state
+    const [chapterDripDialog, setChapterDripDialog] = useState<{
+        open: boolean;
+        chapterId: string | null;
+        chapterName: string | null;
+        packageId: string | null;
+    }>({ open: false, chapterId: null, chapterName: null, packageId: null });
+    const [dripConditionsEnabled, setDripConditionsEnabled] = useState(false);
+    const [dripConditions, setDripConditions] = useState<any[]>([]);
+    const [loadingDripConditions, setLoadingDripConditions] = useState(false);
+
     // Navigation state for loose view
     const [currentNavigationLevel, setCurrentNavigationLevel] = useState<
         'subjects' | 'modules' | 'chapters' | 'slides'
@@ -691,6 +713,54 @@ export const CourseStructureDetails = ({
         };
         loadDirectSlides();
     }, [courseStructure, packageSessionIds]);
+
+    // Load drip conditions settings
+    useEffect(() => {
+        const loadDripSettings = async () => {
+            setLoadingDripConditions(true);
+            try {
+                const settings = await getCourseSettings();
+                setDripConditionsEnabled(settings.dripConditions.enabled || false);
+                setDripConditions(settings.dripConditions.conditions || []);
+            } catch (error) {
+                console.error('Failed to load drip conditions:', error);
+            } finally {
+                setLoadingDripConditions(false);
+            }
+        };
+        loadDripSettings();
+    }, []);
+
+    const handleOpenChapterDripDialog = (chapterId: string, chapterName: string) => {
+        setChapterDripDialog({
+            open: true,
+            chapterId,
+            chapterName,
+            packageId: searchParams?.courseId ?? '',
+        });
+    };
+
+    const handleCloseChapterDripDialog = () => {
+        setChapterDripDialog({ open: false, chapterId: null, chapterName: null, packageId: null });
+    };
+
+    const handleSaveChapterDripConditions = async (updatedConditions: any[]) => {
+        try {
+            const settings = await getCourseSettings();
+            const newSettings = {
+                ...settings,
+                dripConditions: {
+                    ...settings.dripConditions,
+                    conditions: updatedConditions,
+                },
+            };
+            await saveCourseSettings(newSettings);
+            setDripConditions(updatedConditions);
+        } catch (error) {
+            console.error('Failed to save drip conditions:', error);
+            alert('Failed to save drip conditions. Please try again.');
+        }
+    };
 
     const handleAddSubject = async (newSubject: SubjectType) => {
         if (!packageSessionIds) {
@@ -1374,40 +1444,125 @@ export const CourseStructureDetails = ({
                                                                                                 </span>
                                                                                             </div>
                                                                                             {!readOnly && (
-                                                                                                <MyButton
-                                                                                                    buttonType="secondary"
-                                                                                                    layoutVariant="icon"
-                                                                                                    scale="small"
-                                                                                                    onClick={(
-                                                                                                        e
-                                                                                                    ) => {
-                                                                                                        e.stopPropagation();
-                                                                                                        openDeleteConfirmation(
-                                                                                                            'chapter',
-                                                                                                            {
-                                                                                                                id: ch
-                                                                                                                    .chapter
-                                                                                                                    .id,
-                                                                                                                name: ch
-                                                                                                                    .chapter
-                                                                                                                    .chapter_name,
-                                                                                                                subjectId:
-                                                                                                                    subject.id,
-                                                                                                                moduleId:
-                                                                                                                    mod
-                                                                                                                        .module
-                                                                                                                        .id,
-                                                                                                            }
-                                                                                                        );
-                                                                                                    }}
-                                                                                                    className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/chapter-trigger:opacity-100"
-                                                                                                >
-                                                                                                    <Trash
-                                                                                                        size={
-                                                                                                            12
+                                                                                                <DropdownMenu>
+                                                                                                    <DropdownMenuTrigger
+                                                                                                        asChild
+                                                                                                    >
+                                                                                                        <MyButton
+                                                                                                            buttonType="secondary"
+                                                                                                            layoutVariant="icon"
+                                                                                                            scale="small"
+                                                                                                            onClick={(
+                                                                                                                e
+                                                                                                            ) => {
+                                                                                                                e.stopPropagation();
+                                                                                                            }}
+                                                                                                            className="opacity-0 transition-opacity group-hover/chapter-trigger:opacity-100"
+                                                                                                        >
+                                                                                                            <DotsThree
+                                                                                                                size={
+                                                                                                                    16
+                                                                                                                }
+                                                                                                                weight="bold"
+                                                                                                            />
+                                                                                                        </MyButton>
+                                                                                                    </DropdownMenuTrigger>
+                                                                                                    <DropdownMenuContent
+                                                                                                        align="end"
+                                                                                                        onClick={(
+                                                                                                            e
+                                                                                                        ) =>
+                                                                                                            e.stopPropagation()
                                                                                                         }
-                                                                                                    />
-                                                                                                </MyButton>
+                                                                                                    >
+                                                                                                        <DropdownMenuItem
+                                                                                                            onClick={(
+                                                                                                                e
+                                                                                                            ) => {
+                                                                                                                e.stopPropagation();
+                                                                                                                openEditDialog(
+                                                                                                                    'chapter',
+                                                                                                                    {
+                                                                                                                        ...ch.chapter,
+                                                                                                                        subjectId:
+                                                                                                                            subject.id,
+                                                                                                                        moduleId:
+                                                                                                                            mod
+                                                                                                                                .module
+                                                                                                                                .id,
+                                                                                                                    }
+                                                                                                                );
+                                                                                                            }}
+                                                                                                        >
+                                                                                                            <PencilSimple
+                                                                                                                size={
+                                                                                                                    16
+                                                                                                                }
+                                                                                                                className="mr-2"
+                                                                                                            />
+                                                                                                            Edit
+                                                                                                        </DropdownMenuItem>
+                                                                                                        <DropdownMenuItem
+                                                                                                            onClick={(
+                                                                                                                e
+                                                                                                            ) => {
+                                                                                                                e.stopPropagation();
+                                                                                                                openDeleteConfirmation(
+                                                                                                                    'chapter',
+                                                                                                                    {
+                                                                                                                        id: ch
+                                                                                                                            .chapter
+                                                                                                                            .id,
+                                                                                                                        name: ch
+                                                                                                                            .chapter
+                                                                                                                            .chapter_name,
+                                                                                                                        subjectId:
+                                                                                                                            subject.id,
+                                                                                                                        moduleId:
+                                                                                                                            mod
+                                                                                                                                .module
+                                                                                                                                .id,
+                                                                                                                    }
+                                                                                                                );
+                                                                                                            }}
+                                                                                                            className="text-red-600 focus:text-red-600"
+                                                                                                        >
+                                                                                                            <Trash
+                                                                                                                size={
+                                                                                                                    16
+                                                                                                                }
+                                                                                                                className="mr-2"
+                                                                                                            />
+                                                                                                            Delete
+                                                                                                        </DropdownMenuItem>
+                                                                                                        {dripConditionsEnabled && (
+                                                                                                            <DropdownMenuItem
+                                                                                                                onClick={(
+                                                                                                                    e
+                                                                                                                ) => {
+                                                                                                                    e.stopPropagation();
+                                                                                                                    handleOpenChapterDripDialog(
+                                                                                                                        ch
+                                                                                                                            .chapter
+                                                                                                                            .id,
+                                                                                                                        ch
+                                                                                                                            .chapter
+                                                                                                                            .chapter_name
+                                                                                                                    );
+                                                                                                                }}
+                                                                                                            >
+                                                                                                                <Info
+                                                                                                                    size={
+                                                                                                                        16
+                                                                                                                    }
+                                                                                                                    className="mr-2"
+                                                                                                                />
+                                                                                                                Drip
+                                                                                                                Condition
+                                                                                                            </DropdownMenuItem>
+                                                                                                        )}
+                                                                                                    </DropdownMenuContent>
+                                                                                                </DropdownMenu>
                                                                                             )}
                                                                                         </CollapsibleTrigger>
                                                                                         <CollapsibleContent className="py-1 pl-9">
@@ -1767,71 +1922,125 @@ export const CourseStructureDetails = ({
                                                                                                 </span>
                                                                                             </div>
                                                                                             {canEditStructure && (
-                                                                                                <div className="flex gap-1">
-                                                                                                    <MyButton
-                                                                                                        buttonType="secondary"
-                                                                                                        layoutVariant="icon"
-                                                                                                        scale="small"
+                                                                                                <DropdownMenu>
+                                                                                                    <DropdownMenuTrigger
+                                                                                                        asChild
+                                                                                                    >
+                                                                                                        <MyButton
+                                                                                                            buttonType="secondary"
+                                                                                                            layoutVariant="icon"
+                                                                                                            scale="small"
+                                                                                                            onClick={(
+                                                                                                                e
+                                                                                                            ) => {
+                                                                                                                e.stopPropagation();
+                                                                                                            }}
+                                                                                                            className="opacity-0 transition-opacity group-hover/chapter-trigger:opacity-100"
+                                                                                                        >
+                                                                                                            <DotsThree
+                                                                                                                size={
+                                                                                                                    16
+                                                                                                                }
+                                                                                                                weight="bold"
+                                                                                                            />
+                                                                                                        </MyButton>
+                                                                                                    </DropdownMenuTrigger>
+                                                                                                    <DropdownMenuContent
+                                                                                                        align="end"
                                                                                                         onClick={(
                                                                                                             e
-                                                                                                        ) => {
-                                                                                                            e.stopPropagation();
-                                                                                                            openEditDialog(
-                                                                                                                'chapter',
-                                                                                                                {
-                                                                                                                    ...ch.chapter,
-                                                                                                                    subjectId:
-                                                                                                                        subject.id,
-                                                                                                                    moduleId:
-                                                                                                                        mod
-                                                                                                                            .module
-                                                                                                                            .id,
-                                                                                                                }
-                                                                                                            );
-                                                                                                        }}
-                                                                                                        className="opacity-0 transition-opacity hover:bg-blue-100 hover:text-blue-600 group-hover/chapter-trigger:opacity-100"
+                                                                                                        ) =>
+                                                                                                            e.stopPropagation()
+                                                                                                        }
                                                                                                     >
-                                                                                                        <PencilSimple
-                                                                                                            size={
-                                                                                                                12
-                                                                                                            }
-                                                                                                        />
-                                                                                                    </MyButton>
-                                                                                                    <MyButton
-                                                                                                        buttonType="secondary"
-                                                                                                        layoutVariant="icon"
-                                                                                                        scale="small"
-                                                                                                        onClick={(
-                                                                                                            e
-                                                                                                        ) => {
-                                                                                                            e.stopPropagation();
-                                                                                                            openDeleteConfirmation(
-                                                                                                                'chapter',
-                                                                                                                {
-                                                                                                                    id: ch
-                                                                                                                        .chapter
-                                                                                                                        .id,
-                                                                                                                    name: ch
-                                                                                                                        .chapter
-                                                                                                                        .chapter_name,
-                                                                                                                    subjectId:
-                                                                                                                        subject.id,
-                                                                                                                    moduleId:
-                                                                                                                        mod
-                                                                                                                            .module
-                                                                                                                            .id,
+                                                                                                        <DropdownMenuItem
+                                                                                                            onClick={(
+                                                                                                                e
+                                                                                                            ) => {
+                                                                                                                e.stopPropagation();
+                                                                                                                openEditDialog(
+                                                                                                                    'chapter',
+                                                                                                                    {
+                                                                                                                        ...ch.chapter,
+                                                                                                                        subjectId:
+                                                                                                                            subject.id,
+                                                                                                                        moduleId:
+                                                                                                                            mod
+                                                                                                                                .module
+                                                                                                                                .id,
+                                                                                                                    }
+                                                                                                                );
+                                                                                                            }}
+                                                                                                        >
+                                                                                                            <PencilSimple
+                                                                                                                size={
+                                                                                                                    16
                                                                                                                 }
-                                                                                                            );
-                                                                                                        }}
-                                                                                                        className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/chapter-trigger:opacity-100"
-                                                                                                    >
-                                                                                                        <Trash
-                                                                                                            size={
-                                                                                                                12
-                                                                                                            }
-                                                                                                        />
-                                                                                                    </MyButton>
-                                                                                                </div>
+                                                                                                                className="mr-2"
+                                                                                                            />
+                                                                                                            Edit
+                                                                                                        </DropdownMenuItem>
+                                                                                                        <DropdownMenuItem
+                                                                                                            onClick={(
+                                                                                                                e
+                                                                                                            ) => {
+                                                                                                                e.stopPropagation();
+                                                                                                                openDeleteConfirmation(
+                                                                                                                    'chapter',
+                                                                                                                    {
+                                                                                                                        id: ch
+                                                                                                                            .chapter
+                                                                                                                            .id,
+                                                                                                                        name: ch
+                                                                                                                            .chapter
+                                                                                                                            .chapter_name,
+                                                                                                                        subjectId:
+                                                                                                                            subject.id,
+                                                                                                                        moduleId:
+                                                                                                                            mod
+                                                                                                                                .module
+                                                                                                                                .id,
+                                                                                                                    }
+                                                                                                                );
+                                                                                                            }}
+                                                                                                            className="text-red-600 focus:text-red-600"
+                                                                                                        >
+                                                                                                            <Trash
+                                                                                                                size={
+                                                                                                                    16
+                                                                                                                }
+                                                                                                                className="mr-2"
+                                                                                                            />
+                                                                                                            Delete
+                                                                                                        </DropdownMenuItem>
+                                                                                                        {dripConditionsEnabled && (
+                                                                                                            <DropdownMenuItem
+                                                                                                                onClick={(
+                                                                                                                    e
+                                                                                                                ) => {
+                                                                                                                    e.stopPropagation();
+                                                                                                                    handleOpenChapterDripDialog(
+                                                                                                                        ch
+                                                                                                                            .chapter
+                                                                                                                            .id,
+                                                                                                                        ch
+                                                                                                                            .chapter
+                                                                                                                            .chapter_name
+                                                                                                                    );
+                                                                                                                }}
+                                                                                                            >
+                                                                                                                <Info
+                                                                                                                    size={
+                                                                                                                        16
+                                                                                                                    }
+                                                                                                                    className="mr-2"
+                                                                                                                />
+                                                                                                                Drip
+                                                                                                                Condition
+                                                                                                            </DropdownMenuItem>
+                                                                                                        )}
+                                                                                                    </DropdownMenuContent>
+                                                                                                </DropdownMenu>
                                                                                             )}
                                                                                         </CollapsibleTrigger>
                                                                                         <CollapsibleContent className="py-1 pl-9">
@@ -2095,71 +2304,125 @@ export const CourseStructureDetails = ({
                                                                                                 </span>
                                                                                             </div>
                                                                                             {canEditStructure && (
-                                                                                                <div className="flex gap-1">
-                                                                                                    <MyButton
-                                                                                                        buttonType="secondary"
-                                                                                                        layoutVariant="icon"
-                                                                                                        scale="small"
+                                                                                                <DropdownMenu>
+                                                                                                    <DropdownMenuTrigger
+                                                                                                        asChild
+                                                                                                    >
+                                                                                                        <MyButton
+                                                                                                            buttonType="secondary"
+                                                                                                            layoutVariant="icon"
+                                                                                                            scale="small"
+                                                                                                            onClick={(
+                                                                                                                e
+                                                                                                            ) => {
+                                                                                                                e.stopPropagation();
+                                                                                                            }}
+                                                                                                            className="opacity-0 transition-opacity group-hover/chapter-trigger:opacity-100"
+                                                                                                        >
+                                                                                                            <DotsThree
+                                                                                                                size={
+                                                                                                                    16
+                                                                                                                }
+                                                                                                                weight="bold"
+                                                                                                            />
+                                                                                                        </MyButton>
+                                                                                                    </DropdownMenuTrigger>
+                                                                                                    <DropdownMenuContent
+                                                                                                        align="end"
                                                                                                         onClick={(
                                                                                                             e
-                                                                                                        ) => {
-                                                                                                            e.stopPropagation();
-                                                                                                            openEditDialog(
-                                                                                                                'chapter',
-                                                                                                                {
-                                                                                                                    ...ch.chapter,
-                                                                                                                    subjectId:
-                                                                                                                        subject.id,
-                                                                                                                    moduleId:
-                                                                                                                        mod
-                                                                                                                            .module
-                                                                                                                            .id,
-                                                                                                                }
-                                                                                                            );
-                                                                                                        }}
-                                                                                                        className="opacity-0 transition-opacity hover:bg-blue-100 hover:text-blue-600 group-hover/chapter-trigger:opacity-100"
+                                                                                                        ) =>
+                                                                                                            e.stopPropagation()
+                                                                                                        }
                                                                                                     >
-                                                                                                        <PencilSimple
-                                                                                                            size={
-                                                                                                                12
-                                                                                                            }
-                                                                                                        />
-                                                                                                    </MyButton>
-                                                                                                    <MyButton
-                                                                                                        buttonType="secondary"
-                                                                                                        layoutVariant="icon"
-                                                                                                        scale="small"
-                                                                                                        onClick={(
-                                                                                                            e
-                                                                                                        ) => {
-                                                                                                            e.stopPropagation();
-                                                                                                            openDeleteConfirmation(
-                                                                                                                'chapter',
-                                                                                                                {
-                                                                                                                    id: ch
-                                                                                                                        .chapter
-                                                                                                                        .id,
-                                                                                                                    name: ch
-                                                                                                                        .chapter
-                                                                                                                        .chapter_name,
-                                                                                                                    subjectId:
-                                                                                                                        subject.id,
-                                                                                                                    moduleId:
-                                                                                                                        mod
-                                                                                                                            .module
-                                                                                                                            .id,
+                                                                                                        <DropdownMenuItem
+                                                                                                            onClick={(
+                                                                                                                e
+                                                                                                            ) => {
+                                                                                                                e.stopPropagation();
+                                                                                                                openEditDialog(
+                                                                                                                    'chapter',
+                                                                                                                    {
+                                                                                                                        ...ch.chapter,
+                                                                                                                        subjectId:
+                                                                                                                            subject.id,
+                                                                                                                        moduleId:
+                                                                                                                            mod
+                                                                                                                                .module
+                                                                                                                                .id,
+                                                                                                                    }
+                                                                                                                );
+                                                                                                            }}
+                                                                                                        >
+                                                                                                            <PencilSimple
+                                                                                                                size={
+                                                                                                                    16
                                                                                                                 }
-                                                                                                            );
-                                                                                                        }}
-                                                                                                        className="opacity-0 transition-opacity hover:bg-red-100 hover:text-red-600 group-hover/chapter-trigger:opacity-100"
-                                                                                                    >
-                                                                                                        <Trash
-                                                                                                            size={
-                                                                                                                12
-                                                                                                            }
-                                                                                                        />
-                                                                                                    </MyButton>
-                                                                                                </div>
+                                                                                                                className="mr-2"
+                                                                                                            />
+                                                                                                            Edit
+                                                                                                        </DropdownMenuItem>
+                                                                                                        <DropdownMenuItem
+                                                                                                            onClick={(
+                                                                                                                e
+                                                                                                            ) => {
+                                                                                                                e.stopPropagation();
+                                                                                                                openDeleteConfirmation(
+                                                                                                                    'chapter',
+                                                                                                                    {
+                                                                                                                        id: ch
+                                                                                                                            .chapter
+                                                                                                                            .id,
+                                                                                                                        name: ch
+                                                                                                                            .chapter
+                                                                                                                            .chapter_name,
+                                                                                                                        subjectId:
+                                                                                                                            subject.id,
+                                                                                                                        moduleId:
+                                                                                                                            mod
+                                                                                                                                .module
+                                                                                                                                .id,
+                                                                                                                    }
+                                                                                                                );
+                                                                                                            }}
+                                                                                                            className="text-red-600 focus:text-red-600"
+                                                                                                        >
+                                                                                                            <Trash
+                                                                                                                size={
+                                                                                                                    16
+                                                                                                                }
+                                                                                                                className="mr-2"
+                                                                                                            />
+                                                                                                            Delete
+                                                                                                        </DropdownMenuItem>
+                                                                                                        {dripConditionsEnabled && (
+                                                                                                            <DropdownMenuItem
+                                                                                                                onClick={(
+                                                                                                                    e
+                                                                                                                ) => {
+                                                                                                                    e.stopPropagation();
+                                                                                                                    handleOpenChapterDripDialog(
+                                                                                                                        ch
+                                                                                                                            .chapter
+                                                                                                                            .id,
+                                                                                                                        ch
+                                                                                                                            .chapter
+                                                                                                                            .chapter_name
+                                                                                                                    );
+                                                                                                                }}
+                                                                                                            >
+                                                                                                                <Info
+                                                                                                                    size={
+                                                                                                                        16
+                                                                                                                    }
+                                                                                                                    className="mr-2"
+                                                                                                                />
+                                                                                                                Drip
+                                                                                                                Condition
+                                                                                                            </DropdownMenuItem>
+                                                                                                        )}
+                                                                                                    </DropdownMenuContent>
+                                                                                                </DropdownMenu>
                                                                                             )}
                                                                                         </CollapsibleTrigger>
                                                                                         <CollapsibleContent className="py-1 pl-9">
@@ -2490,27 +2753,40 @@ export const CourseStructureDetails = ({
                                     {/* Edit and Delete Buttons */}
                                     {canEditStructure && (
                                         <div className="absolute right-2 top-2 flex gap-1">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    openEditDialog('subject', subject);
-                                                }}
-                                                className="rounded-full p-1 opacity-0 transition-opacity hover:bg-blue-100 group-hover:opacity-100"
-                                            >
-                                                <PencilSimple size={14} className="text-blue-600" />
-                                            </button>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    openDeleteConfirmation('subject', {
-                                                        id: subject.id,
-                                                        name: subject.subject_name,
-                                                    });
-                                                }}
-                                                className="rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
-                                            >
-                                                <Trash size={14} className="text-red-600" />
-                                            </button>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <button className="rounded-full p-1 opacity-0 transition-opacity hover:bg-gray-100 group-hover:opacity-100">
+                                                        <DotsThree size={16} weight="bold" />
+                                                    </button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openEditDialog('subject', subject);
+                                                        }}
+                                                    >
+                                                        <PencilSimple
+                                                            size={14}
+                                                            className="mr-2 text-blue-600"
+                                                        />
+                                                        Edit
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openDeleteConfirmation('subject', {
+                                                                id: subject.id,
+                                                                name: subject.subject_name,
+                                                            });
+                                                        }}
+                                                        className="text-red-600"
+                                                    >
+                                                        <Trash size={14} className="mr-2" />
+                                                        Delete
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
                                     )}
                                 </div>
@@ -2562,34 +2838,44 @@ export const CourseStructureDetails = ({
                                         {/* Edit and Delete Buttons */}
                                         {canEditStructure && (
                                             <div className="absolute right-2 top-2 flex gap-1">
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        openEditDialog('module', {
-                                                            ...mod.module,
-                                                            subjectId: selectedSubjectId,
-                                                        });
-                                                    }}
-                                                    className="rounded-full p-1 opacity-0 transition-opacity hover:bg-blue-100 group-hover:opacity-100"
-                                                >
-                                                    <PencilSimple
-                                                        size={14}
-                                                        className="text-blue-600"
-                                                    />
-                                                </button>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        openDeleteConfirmation('module', {
-                                                            id: mod.module.id,
-                                                            name: mod.module.module_name,
-                                                            subjectId: selectedSubjectId,
-                                                        });
-                                                    }}
-                                                    className="rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
-                                                >
-                                                    <Trash size={14} className="text-red-600" />
-                                                </button>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <button className="rounded-full p-1 opacity-0 transition-opacity hover:bg-gray-100 group-hover:opacity-100">
+                                                            <DotsThree size={16} weight="bold" />
+                                                        </button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                openEditDialog('module', {
+                                                                    ...mod.module,
+                                                                    subjectId: selectedSubjectId,
+                                                                });
+                                                            }}
+                                                        >
+                                                            <PencilSimple
+                                                                size={14}
+                                                                className="mr-2 text-blue-600"
+                                                            />
+                                                            Edit
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                openDeleteConfirmation('module', {
+                                                                    id: mod.module.id,
+                                                                    name: mod.module.module_name,
+                                                                    subjectId: selectedSubjectId,
+                                                                });
+                                                            }}
+                                                            className="text-red-600"
+                                                        >
+                                                            <Trash size={14} className="mr-2" />
+                                                            Delete
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                             </div>
                                         )}
                                     </div>
@@ -2651,34 +2937,44 @@ export const CourseStructureDetails = ({
                                         {/* Edit and Delete Buttons */}
                                         {canEditStructure && (
                                             <div className="absolute right-2 top-2 flex gap-1">
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        openEditDialog('module', {
-                                                            ...mod.module,
-                                                            subjectId: subjects[0]?.id,
-                                                        });
-                                                    }}
-                                                    className="rounded-full p-1 opacity-0 transition-opacity hover:bg-blue-100 group-hover:opacity-100"
-                                                >
-                                                    <PencilSimple
-                                                        size={14}
-                                                        className="text-blue-600"
-                                                    />
-                                                </button>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        openDeleteConfirmation('module', {
-                                                            id: mod.module.id,
-                                                            name: mod.module.module_name,
-                                                            subjectId: subjects[0]?.id,
-                                                        });
-                                                    }}
-                                                    className="rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
-                                                >
-                                                    <Trash size={14} className="text-red-600" />
-                                                </button>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <button className="rounded-full p-1 opacity-0 transition-opacity hover:bg-gray-100 group-hover:opacity-100">
+                                                            <DotsThree size={16} weight="bold" />
+                                                        </button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                openEditDialog('module', {
+                                                                    ...mod.module,
+                                                                    subjectId: subjects[0]?.id,
+                                                                });
+                                                            }}
+                                                        >
+                                                            <PencilSimple
+                                                                size={14}
+                                                                className="mr-2 text-blue-600"
+                                                            />
+                                                            Edit
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                openDeleteConfirmation('module', {
+                                                                    id: mod.module.id,
+                                                                    name: mod.module.module_name,
+                                                                    subjectId: subjects[0]?.id,
+                                                                });
+                                                            }}
+                                                            className="text-red-600"
+                                                        >
+                                                            <Trash size={14} className="mr-2" />
+                                                            Delete
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                             </div>
                                         )}
                                     </div>
@@ -2738,33 +3034,63 @@ export const CourseStructureDetails = ({
                                     {/* Edit and Delete Buttons */}
                                     {canEditStructure && (
                                         <div className="absolute right-2 top-2 flex gap-1">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    openEditDialog('chapter', {
-                                                        ...ch.chapter,
-                                                        subjectId: selectedSubjectId,
-                                                        moduleId: selectedModuleId,
-                                                    });
-                                                }}
-                                                className="rounded-full p-1 opacity-0 transition-opacity hover:bg-blue-100 group-hover:opacity-100"
-                                            >
-                                                <PencilSimple size={14} className="text-blue-600" />
-                                            </button>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    openDeleteConfirmation('chapter', {
-                                                        id: ch.chapter.id,
-                                                        name: ch.chapter.chapter_name,
-                                                        subjectId: selectedSubjectId,
-                                                        moduleId: selectedModuleId,
-                                                    });
-                                                }}
-                                                className="rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
-                                            >
-                                                <Trash size={14} className="text-red-600" />
-                                            </button>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <button className="rounded-full p-1 opacity-0 transition-opacity hover:bg-gray-100 group-hover:opacity-100">
+                                                        <DotsThree size={16} weight="bold" />
+                                                    </button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openEditDialog('chapter', {
+                                                                ...ch.chapter,
+                                                                subjectId: selectedSubjectId,
+                                                                moduleId: selectedModuleId,
+                                                            });
+                                                        }}
+                                                    >
+                                                        <PencilSimple
+                                                            size={14}
+                                                            className="mr-2 text-blue-600"
+                                                        />
+                                                        Edit
+                                                    </DropdownMenuItem>
+                                                    {dripConditionsEnabled && (
+                                                        <DropdownMenuItem
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleOpenChapterDripDialog(
+                                                                    ch.chapter.id,
+                                                                    ch.chapter.chapter_name
+                                                                );
+                                                            }}
+                                                        >
+                                                            <Info
+                                                                size={14}
+                                                                className="mr-2 text-purple-600"
+                                                            />
+                                                            Drip Condition
+                                                        </DropdownMenuItem>
+                                                    )}
+                                                    <DropdownMenuItem
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openDeleteConfirmation('chapter', {
+                                                                id: ch.chapter.id,
+                                                                name: ch.chapter.chapter_name,
+                                                                subjectId: selectedSubjectId,
+                                                                moduleId: selectedModuleId,
+                                                            });
+                                                        }}
+                                                        className="text-red-600"
+                                                    >
+                                                        <Trash size={14} className="mr-2" />
+                                                        Delete
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
                                     )}
                                 </div>
@@ -2823,33 +3149,63 @@ export const CourseStructureDetails = ({
                                     {/* Edit and Delete Buttons */}
                                     {canEditStructure && (
                                         <div className="absolute right-2 top-2 flex gap-1">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    openEditDialog('chapter', {
-                                                        ...ch.chapter,
-                                                        subjectId: subjects[0]?.id || '',
-                                                        moduleId: selectedModuleId,
-                                                    });
-                                                }}
-                                                className="rounded-full p-1 opacity-0 transition-opacity hover:bg-blue-100 group-hover:opacity-100"
-                                            >
-                                                <PencilSimple size={14} className="text-blue-600" />
-                                            </button>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    openDeleteConfirmation('chapter', {
-                                                        id: ch.chapter.id,
-                                                        name: ch.chapter.chapter_name,
-                                                        subjectId: subjects[0]?.id || '',
-                                                        moduleId: selectedModuleId,
-                                                    });
-                                                }}
-                                                className="rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
-                                            >
-                                                <Trash size={14} className="text-red-600" />
-                                            </button>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <button className="rounded-full p-1 opacity-0 transition-opacity hover:bg-gray-100 group-hover:opacity-100">
+                                                        <DotsThree size={16} weight="bold" />
+                                                    </button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openEditDialog('chapter', {
+                                                                ...ch.chapter,
+                                                                subjectId: subjects[0]?.id || '',
+                                                                moduleId: selectedModuleId,
+                                                            });
+                                                        }}
+                                                    >
+                                                        <PencilSimple
+                                                            size={14}
+                                                            className="mr-2 text-blue-600"
+                                                        />
+                                                        Edit
+                                                    </DropdownMenuItem>
+                                                    {dripConditionsEnabled && (
+                                                        <DropdownMenuItem
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleOpenChapterDripDialog(
+                                                                    ch.chapter.id,
+                                                                    ch.chapter.chapter_name
+                                                                );
+                                                            }}
+                                                        >
+                                                            <Info
+                                                                size={14}
+                                                                className="mr-2 text-purple-600"
+                                                            />
+                                                            Drip Condition
+                                                        </DropdownMenuItem>
+                                                    )}
+                                                    <DropdownMenuItem
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openDeleteConfirmation('chapter', {
+                                                                id: ch.chapter.id,
+                                                                name: ch.chapter.chapter_name,
+                                                                subjectId: subjects[0]?.id || '',
+                                                                moduleId: selectedModuleId,
+                                                            });
+                                                        }}
+                                                        className="text-red-600"
+                                                    >
+                                                        <Trash size={14} className="mr-2" />
+                                                        Delete
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
                                     )}
                                 </div>
@@ -2910,44 +3266,73 @@ export const CourseStructureDetails = ({
                                         {/* Edit and Delete Buttons */}
                                         {canEditStructure && (
                                             <div className="absolute right-2 top-2 flex gap-1">
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        openEditDialog('chapter', {
-                                                            ...ch.chapter,
-                                                            subjectId: subjects[0]?.id || '',
-                                                            moduleId: subjects[0]
-                                                                ? subjectModulesMap[
-                                                                      subjects[0].id
-                                                                  ]?.[0]?.module.id
-                                                                : undefined,
-                                                        });
-                                                    }}
-                                                    className="rounded-full p-1 opacity-0 transition-opacity hover:bg-blue-100 group-hover:opacity-100"
-                                                >
-                                                    <PencilSimple
-                                                        size={14}
-                                                        className="text-blue-600"
-                                                    />
-                                                </button>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        openDeleteConfirmation('chapter', {
-                                                            id: ch.chapter.id,
-                                                            name: ch.chapter.chapter_name,
-                                                            subjectId: subjects[0]?.id || '',
-                                                            moduleId: subjects[0]
-                                                                ? subjectModulesMap[
-                                                                      subjects[0].id
-                                                                  ]?.[0]?.module.id
-                                                                : undefined,
-                                                        });
-                                                    }}
-                                                    className="rounded-full p-1 opacity-0 transition-opacity hover:bg-red-100 group-hover:opacity-100"
-                                                >
-                                                    <Trash size={14} className="text-red-600" />
-                                                </button>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <button className="rounded-full p-1 opacity-0 transition-opacity hover:bg-gray-100 group-hover:opacity-100">
+                                                            <DotsThree size={16} weight="bold" />
+                                                        </button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                openEditDialog('chapter', {
+                                                                    ...ch.chapter,
+                                                                    subjectId:
+                                                                        subjects[0]?.id || '',
+                                                                    moduleId: subjects[0]
+                                                                        ? subjectModulesMap[
+                                                                              subjects[0].id
+                                                                          ]?.[0]?.module.id
+                                                                        : undefined,
+                                                                });
+                                                            }}
+                                                        >
+                                                            <PencilSimple
+                                                                size={14}
+                                                                className="mr-2 text-blue-600"
+                                                            />
+                                                            Edit
+                                                        </DropdownMenuItem>
+                                                        {dripConditionsEnabled && (
+                                                            <DropdownMenuItem
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleOpenChapterDripDialog(
+                                                                        ch.chapter.id,
+                                                                        ch.chapter.chapter_name
+                                                                    );
+                                                                }}
+                                                            >
+                                                                <Info
+                                                                    size={14}
+                                                                    className="mr-2 text-purple-600"
+                                                                />
+                                                                Drip Condition
+                                                            </DropdownMenuItem>
+                                                        )}
+                                                        <DropdownMenuItem
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                openDeleteConfirmation('chapter', {
+                                                                    id: ch.chapter.id,
+                                                                    name: ch.chapter.chapter_name,
+                                                                    subjectId:
+                                                                        subjects[0]?.id || '',
+                                                                    moduleId: subjects[0]
+                                                                        ? subjectModulesMap[
+                                                                              subjects[0].id
+                                                                          ]?.[0]?.module.id
+                                                                        : undefined,
+                                                                });
+                                                            }}
+                                                            className="text-red-600"
+                                                        >
+                                                            <Trash size={14} className="mr-2" />
+                                                            Delete
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                             </div>
                                         )}
                                     </div>
@@ -3076,7 +3461,7 @@ export const CourseStructureDetails = ({
                                     className="flex flex-col items-center gap-2 text-center"
                                 >
                                     <Plus size={24} className="text-primary-500" />
-                                    <span className="text-primary-700 text-sm font-medium">
+                                    <span className="text-sm font-medium text-primary-700">
                                         Add{' '}
                                         {getTerminology(ContentTerms.Slides, SystemTerms.Slides)}
                                     </span>
@@ -3347,6 +3732,25 @@ export const CourseStructureDetails = ({
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* Chapter Drip Condition Dialog */}
+            <ChapterDripConditionDialog
+                open={chapterDripDialog.open}
+                onClose={handleCloseChapterDripDialog}
+                chapterId={chapterDripDialog.chapterId}
+                chapterName={chapterDripDialog.chapterName}
+                packageId={chapterDripDialog.packageId}
+                dripConditions={dripConditions}
+                onSave={handleSaveChapterDripConditions}
+                allChapters={Object.values(subjectModulesMap)
+                    .flat()
+                    .flatMap((modWithChapters) =>
+                        modWithChapters.chapters.map((ch) => ({
+                            id: ch.chapter.id,
+                            name: ch.chapter.chapter_name,
+                        }))
+                    )}
+            />
         </div>
     );
 };
