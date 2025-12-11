@@ -20,15 +20,15 @@ export default function AssessmentCenterWidget({
     };
 
     const handleViewAssessments = () => {
-        navigate({ to: '/assessment' });
+        navigate({ to: '/assessment/assessment-list' });
     };
 
     const handleQuestionPapers = () => {
-        navigate({ to: '/assessment' });
+        navigate({ to: '/assessment/question-papers' });
     };
 
     const handleEvaluationCenter = () => {
-        navigate({ to: '/evaluation' });
+        navigate({ to: '/evaluation/evaluations' });
     };
 
     const assessmentFeatures = [

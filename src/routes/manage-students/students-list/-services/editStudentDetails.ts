@@ -40,7 +40,7 @@ export const useEditStudentDetails = () => {
                     city: data.city || '',
                     region: data.state || '',
                     pin_code: data.pin_code || '',
-                    mobile_number: data.contact_number,
+                    mobile_number: data.contact_number || '',
                     date_of_birth: data.date_of_birth || '',
                     gender: data.gender,
                     profile_pic_file_id: data.face_file_id || '',

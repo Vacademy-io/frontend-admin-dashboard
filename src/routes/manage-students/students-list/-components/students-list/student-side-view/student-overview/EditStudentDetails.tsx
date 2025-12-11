@@ -151,7 +151,7 @@ export const EditStudentDetails = () => {
                 username: selectedStudent?.username || '',
                 email: selectedStudent?.email || '',
                 full_name: selectedStudent?.full_name || '',
-                contact_number: selectedStudent?.mobile_number || '',
+                contact_number: selectedStudent?.mobile_number ,
                 gender: selectedStudent?.gender || '',
                 date_of_birth: selectedStudent?.date_of_birth || '',
                 address_line: selectedStudent?.address_line || '',
@@ -418,7 +418,7 @@ export const EditStudentDetails = () => {
                                         <PhoneInputField
                                             label="Mobile Number"
                                             placeholder="123 456 7890"
-                                            name="mobileNumber"
+                                            name="contact_number"
                                             control={form.control}
                                             country="in"
                                             required={true}
@@ -622,7 +622,7 @@ export const EditStudentDetails = () => {
                                     <PhoneInputField
                                         label="Father/Male Guardian Mobile Number"
                                         placeholder="123 456 7890"
-                                        name="fatherMobile"
+                                        name="father_mobile_number"
                                         control={form.control}
                                         country="in"
                                         required={false}
@@ -659,7 +659,7 @@ export const EditStudentDetails = () => {
                                     <PhoneInputField
                                         label="Mother/Female Guardian Mobile Number"
                                         placeholder="123 456 7890"
-                                        name="motherMobile"
+                                        name="mother_mobile_number"
                                         control={form.control}
                                         country="in"
                                         required={false}

@@ -27,9 +27,10 @@ export default function LearningCenterWidget({
         navigate({ to: '/manage-institute/batches' });
     };
 
-    const handleManageSessions = () => {
-        navigate({ to: '/manage-institute/sessions' });
+    const handleLiveSessions = () => {
+        navigate({ to: '/study-library/live-session' });
     };
+
 
     const learningFeatures = [
         {
@@ -42,7 +43,7 @@ export default function LearningCenterWidget({
             icon: VideoCamera,
             title: getTerminology(ContentTerms.LiveSession, SystemTerms.LiveSession),
             description: 'Manage live teaching sessions',
-            action: handleManageSessions,
+            action: handleLiveSessions,
         },
         {
             icon: Folder,
