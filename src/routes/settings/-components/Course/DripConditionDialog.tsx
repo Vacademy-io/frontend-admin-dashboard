@@ -74,35 +74,58 @@ export const DripConditionDialog: React.FC<DripConditionDialogProps> = ({
 
     const addRule = (type: DripConditionRuleType) => {
         const newRule = createDefaultRule(type);
-        setFormData((prev) => ({
-            ...prev,
-            drip_condition: {
-                ...prev.drip_condition!,
-                rules: [...(prev.drip_condition?.rules || []), newRule],
-            },
-        }));
+        setFormData((prev) => {
+            const currentConfig = prev.drip_condition?.[0] || {
+                target: prev.level === 'package' ? 'chapter' : (prev.level as 'chapter' | 'slide'),
+                behavior: 'lock' as DripConditionBehavior,
+                rules: [],
+            };
+            return {
+                ...prev,
+                drip_condition: [
+                    {
+                        ...currentConfig,
+                        rules: [...currentConfig.rules, newRule],
+                    },
+                ],
+            };
+        });
     };
 
     const removeRule = (index: number) => {
-        setFormData((prev) => ({
-            ...prev,
-            drip_condition: {
-                ...prev.drip_condition!,
-                rules: prev.drip_condition!.rules.filter((_, i) => i !== index),
-            },
-        }));
+        setFormData((prev) => {
+            const currentConfig = prev.drip_condition?.[0];
+            if (!currentConfig) return prev;
+            return {
+                ...prev,
+                drip_condition: [
+                    {
+                        ...currentConfig,
+                        rules: currentConfig.rules.filter(
+                            (_: DripConditionRule, i: number) => i !== index
+                        ),
+                    },
+                ],
+            };
+        });
     };
 
     const updateRule = (index: number, updatedRule: DripConditionRule) => {
-        setFormData((prev) => ({
-            ...prev,
-            drip_condition: {
-                ...prev.drip_condition!,
-                rules: prev.drip_condition!.rules.map((rule, i) =>
-                    i === index ? updatedRule : rule
-                ),
-            },
-        }));
+        setFormData((prev) => {
+            const currentConfig = prev.drip_condition?.[0];
+            if (!currentConfig) return prev;
+            return {
+                ...prev,
+                drip_condition: [
+                    {
+                        ...currentConfig,
+                        rules: currentConfig.rules.map((rule: DripConditionRule, i: number) =>
+                            i === index ? updatedRule : rule
+                        ),
+                    },
+                ],
+            };
+        });
     };
 
     return (
@@ -234,14 +257,19 @@ export const DripConditionDialog: React.FC<DripConditionDialogProps> = ({
                         <div className="space-y-2">
                             <Label htmlFor="target">Apply To</Label>
                             <Select
-                                value={formData.drip_condition?.target}
+                                value={formData.drip_condition?.[0]?.target}
                                 onValueChange={(value) =>
                                     setFormData((prev) => ({
                                         ...prev,
-                                        drip_condition: {
-                                            ...prev.drip_condition!,
-                                            target: value as 'chapter' | 'slide',
-                                        },
+                                        drip_condition: [
+                                            {
+                                                ...(prev.drip_condition?.[0] || {
+                                                    behavior: 'lock' as DripConditionBehavior,
+                                                    rules: [],
+                                                }),
+                                                target: value as 'chapter' | 'slide',
+                                            },
+                                        ],
                                     }))
                                 }
                             >
@@ -264,14 +292,22 @@ export const DripConditionDialog: React.FC<DripConditionDialogProps> = ({
                     <div className="space-y-2">
                         <Label htmlFor="behavior">Behavior</Label>
                         <Select
-                            value={formData.drip_condition?.behavior}
+                            value={formData.drip_condition?.[0]?.behavior}
                             onValueChange={(value) =>
                                 setFormData((prev) => ({
                                     ...prev,
-                                    drip_condition: {
-                                        ...prev.drip_condition!,
-                                        behavior: value as DripConditionBehavior,
-                                    },
+                                    drip_condition: [
+                                        {
+                                            ...(prev.drip_condition?.[0] || {
+                                                target:
+                                                    prev.level === 'package'
+                                                        ? 'chapter'
+                                                        : (prev.level as 'chapter' | 'slide'),
+                                                rules: [],
+                                            }),
+                                            behavior: value as DripConditionBehavior,
+                                        },
+                                    ],
                                 }))
                             }
                         >
@@ -348,17 +384,19 @@ export const DripConditionDialog: React.FC<DripConditionDialogProps> = ({
 
                     {/* Rules List */}
                     <div className="space-y-3">
-                        {formData.drip_condition?.rules.map((rule, index) => (
-                            <RuleEditor
-                                key={index}
-                                rule={rule}
-                                index={index}
-                                onUpdate={updateRule}
-                                onRemove={removeRule}
-                            />
-                        ))}
+                        {formData.drip_condition?.[0]?.rules.map(
+                            (rule: DripConditionRule, index: number) => (
+                                <RuleEditor
+                                    key={index}
+                                    rule={rule}
+                                    index={index}
+                                    onUpdate={updateRule}
+                                    onRemove={removeRule}
+                                />
+                            )
+                        )}
 
-                        {formData.drip_condition?.rules.length === 0 && (
+                        {formData.drip_condition?.[0]?.rules.length === 0 && (
                             <div className="rounded-lg border border-dashed p-8 text-center">
                                 <p className="text-sm text-muted-foreground">
                                     No rules added yet. Add at least one rule to continue.

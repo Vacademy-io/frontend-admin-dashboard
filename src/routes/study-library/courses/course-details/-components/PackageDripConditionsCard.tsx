@@ -36,8 +36,31 @@ export const PackageDripConditionsCard: React.FC<PackageDripConditionsCardProps>
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingCondition, setEditingCondition] = useState<DripCondition | undefined>();
 
+    // Flatten conditions array for display - show each config as separate card
+    const flattenedConditions: Array<{
+        condition: DripCondition;
+        config: DripCondition['drip_condition'][number];
+        target: 'chapter' | 'slide';
+    }> = [];
+
+    conditions.forEach((condition) => {
+        if (condition.level === 'package' && Array.isArray(condition.drip_condition)) {
+            condition.drip_condition.forEach((config) => {
+                flattenedConditions.push({
+                    condition,
+                    config,
+                    target: config.target as 'chapter' | 'slide',
+                });
+            });
+        }
+    });
+
     const handleAddCondition = () => {
-        setEditingCondition(undefined);
+        // Find existing condition for this package (if any)
+        const existingCondition = conditions.find(
+            (c) => c.level === 'package' && c.level_id === packageId
+        );
+        setEditingCondition(existingCondition);
         setDialogOpen(true);
     };
 
@@ -54,9 +77,21 @@ export const PackageDripConditionsCard: React.FC<PackageDripConditionsCardProps>
         }
     };
 
-    const handleDeleteCondition = (id: string) => {
-        if (confirm('Are you sure you want to delete this drip condition?')) {
-            onDelete(id);
+    const handleDeleteCondition = (condition: DripCondition, target: 'chapter' | 'slide') => {
+        if (confirm(`Are you sure you want to delete this ${target} drip condition?`)) {
+            // If this is the only config, delete the entire condition
+            if (condition.drip_condition.length === 1) {
+                onDelete(condition.id);
+            } else {
+                // Remove only this config from the array
+                const updatedConfigs = condition.drip_condition.filter((c) => c.target !== target);
+                const updatedCondition: DripCondition = {
+                    ...condition,
+                    drip_condition: updatedConfigs,
+                    updated_at: new Date().toISOString(),
+                };
+                onUpdate(updatedCondition);
+            }
         }
     };
 
@@ -94,7 +129,7 @@ export const PackageDripConditionsCard: React.FC<PackageDripConditionsCardProps>
                 </MyButton>
             </div>
 
-            {conditions.length === 0 ? (
+            {flattenedConditions.length === 0 ? (
                 <div className="rounded-lg border border-dashed p-8 text-center">
                     <h3 className="mt-4 text-base font-medium">No drip conditions</h3>
                     <p className="mt-2 text-sm text-muted-foreground">
@@ -103,33 +138,27 @@ export const PackageDripConditionsCard: React.FC<PackageDripConditionsCardProps>
                 </div>
             ) : (
                 <div className="space-y-3">
-                    {conditions.map((condition) => (
+                    {flattenedConditions.map(({ condition, config, target }, index) => (
                         <div
-                            key={condition.id}
+                            key={`${condition.id}-${target}-${index}`}
                             className="rounded-lg border bg-white p-4 shadow-sm"
                         >
                             <div className="flex items-start justify-between">
                                 <div className="flex-1 space-y-2">
                                     <div className="flex items-center gap-2">
-                                        {condition.drip_condition.target && (
-                                            <Badge variant="outline" className="capitalize">
-                                                {condition.drip_condition.target}
-                                            </Badge>
-                                        )}
-                                        <Badge
-                                            className={getBehaviorColor(
-                                                condition.drip_condition.behavior
-                                            )}
-                                        >
-                                            {getBehaviorIcon(condition.drip_condition.behavior)}
+                                        <Badge variant="outline" className="capitalize">
+                                            {target}
+                                        </Badge>
+                                        <Badge className={getBehaviorColor(config.behavior)}>
+                                            {getBehaviorIcon(config.behavior)}
                                             <span className="ml-1 capitalize">
-                                                {condition.drip_condition.behavior}
+                                                {config.behavior}
                                             </span>
                                         </Badge>
                                     </div>
 
                                     <div className="space-y-1">
-                                        {condition.drip_condition.rules.map((rule, idx) => (
+                                        {config.rules.map((rule, idx) => (
                                             <div
                                                 key={idx}
                                                 className="flex items-start gap-2 text-sm text-gray-700"
@@ -160,7 +189,7 @@ export const PackageDripConditionsCard: React.FC<PackageDripConditionsCardProps>
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        onClick={() => handleDeleteCondition(condition.id)}
+                                        onClick={() => handleDeleteCondition(condition, target)}
                                     >
                                         <Trash />
                                     </Button>

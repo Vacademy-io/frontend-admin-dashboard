@@ -25,7 +25,8 @@ export const DripConditionItem: React.FC<DripConditionItemProps> = ({
     onToggle,
 }) => {
     const getBehaviorIcon = () => {
-        switch (condition.drip_condition.behavior) {
+        const behavior = condition.drip_condition[0]?.behavior;
+        switch (behavior) {
             case 'lock':
                 return <Lock className="size-4 text-amber-600" />;
             case 'hide':
@@ -37,6 +38,8 @@ export const DripConditionItem: React.FC<DripConditionItemProps> = ({
                         <Eye className="size-3 text-purple-600" />
                     </div>
                 );
+            default:
+                return <Lock className="size-4 text-gray-600" />;
         }
     };
 
@@ -55,15 +58,15 @@ export const DripConditionItem: React.FC<DripConditionItemProps> = ({
                             ID: {condition.level_id}
                         </Badge>
 
-                        {condition.level === 'package' && condition.drip_condition.target && (
+                        {condition.level === 'package' && condition.drip_condition[0]?.target && (
                             <Badge variant="secondary" className="text-xs">
-                                → Applies to: {condition.drip_condition.target}s
+                                → Applies to: {condition.drip_condition[0].target}s
                             </Badge>
                         )}
 
                         <Badge variant="outline" className="flex items-center gap-1">
                             {getBehaviorIcon()}
-                            {formatBehavior(condition.drip_condition.behavior)}
+                            {formatBehavior(condition.drip_condition[0]?.behavior || 'lock')}
                         </Badge>
                     </div>
 
@@ -71,10 +74,10 @@ export const DripConditionItem: React.FC<DripConditionItemProps> = ({
                     <div className="space-y-2">
                         <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                             <List className="size-3" />
-                            Rules ({condition.drip_condition.rules.length})
+                            Rules ({condition.drip_condition[0]?.rules.length || 0})
                         </div>
                         <div className="space-y-1.5 pl-5">
-                            {condition.drip_condition.rules.map((rule, index) => (
+                            {(condition.drip_condition[0]?.rules || []).map((rule, index) => (
                                 <div key={index} className="flex items-start gap-2 text-sm">
                                     <span className="min-w-4 text-muted-foreground">
                                         {index + 1}.

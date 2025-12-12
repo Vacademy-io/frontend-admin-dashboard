@@ -18,6 +18,22 @@ import { Plus, Trash, Info } from 'phosphor-react';
 import type { DripCondition, DripConditionRule } from '@/types/course-settings';
 import { formatDripRule } from '@/utils/drip-conditions';
 
+// Helper functions to convert between ISO string and local datetime-local format
+function toLocalDateTimeString(isoString: string): string {
+    const date = new Date(isoString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function toISOStringFromLocal(localDateTimeString: string): string {
+    const date = new Date(localDateTimeString);
+    return date.toISOString();
+}
+
 interface SlideDripConditionDialogProps {
     open: boolean;
     onClose: () => void;
@@ -45,15 +61,16 @@ export function SlideDripConditionDialog({
     // Ensure dripConditions is an array
     const conditions = Array.isArray(dripConditions) ? dripConditions : [];
 
-    // Check if package has slide-targeting conditions
+    // Check if package has slide-targeting conditions (check array format)
     const packageSlideConditions = conditions.filter((c) => {
-        const isMatch =
-            c.level === 'package' &&
-            c.level_id === packageId &&
-            c.drip_condition?.target === 'slide' &&
-            c.enabled !== false;
-
-        return isMatch;
+        if (c.level !== 'package' || c.level_id !== packageId || !c.enabled) {
+            return false;
+        }
+        // Check if any config in the drip_condition array targets slides
+        return (
+            Array.isArray(c.drip_condition) &&
+            c.drip_condition.some((config) => config.target === 'slide')
+        );
     });
 
     // Get slide-specific conditions
@@ -126,32 +143,41 @@ export function SlideDripConditionDialog({
                         <AlertDescription className="text-sm text-blue-900">
                             <div className="mb-2 font-semibold">Course-Level Conditions Active</div>
                             <div className="space-y-2">
-                                {packageSlideConditions.map((condition) => (
-                                    <div
-                                        key={condition.id}
-                                        className="rounded-md border border-blue-200 bg-white p-3"
-                                    >
-                                        <div className="mb-2 flex items-start gap-2">
-                                            <Badge
-                                                variant="outline"
-                                                className="bg-purple-100 text-purple-700"
-                                            >
-                                                Course Level
-                                            </Badge>
-                                            <Badge
-                                                variant="outline"
-                                                className="bg-blue-100 text-blue-700"
-                                            >
-                                                {condition.drip_condition.behavior}
-                                            </Badge>
+                                {packageSlideConditions.map((condition) => {
+                                    // Find slide-targeting configs in the array
+                                    const slideConfigs = Array.isArray(condition.drip_condition)
+                                        ? condition.drip_condition.filter(
+                                              (c) => c.target === 'slide'
+                                          )
+                                        : [];
+
+                                    return slideConfigs.map((config, configIdx) => (
+                                        <div
+                                            key={`${condition.id}-${configIdx}`}
+                                            className="rounded-md border border-blue-200 bg-white p-3"
+                                        >
+                                            <div className="mb-2 flex items-start gap-2">
+                                                <Badge
+                                                    variant="outline"
+                                                    className="bg-purple-100 text-purple-700"
+                                                >
+                                                    Course Level
+                                                </Badge>
+                                                <Badge
+                                                    variant="outline"
+                                                    className="bg-blue-100 text-blue-700"
+                                                >
+                                                    {config.behavior}
+                                                </Badge>
+                                            </div>
+                                            <div className="space-y-1 text-sm text-gray-700">
+                                                {config.rules.map((rule, idx) => (
+                                                    <div key={idx}>• {formatDripRule(rule)}</div>
+                                                ))}
+                                            </div>
                                         </div>
-                                        <div className="space-y-1 text-sm text-gray-700">
-                                            {condition.drip_condition.rules.map((rule, idx) => (
-                                                <div key={idx}>• {formatDripRule(rule)}</div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
+                                    ));
+                                })}
                             </div>
                             <div className="mt-3 text-xs text-blue-700">
                                 These course-level conditions apply to all slides. Slide-specific
@@ -212,7 +238,8 @@ export function SlideDripConditionDialog({
                                                     variant="outline"
                                                     className="bg-blue-100 text-blue-700"
                                                 >
-                                                    {condition.drip_condition.behavior}
+                                                    {condition.drip_condition[0]?.behavior ||
+                                                        'lock'}
                                                 </Badge>
                                             </div>
                                             <div className="flex gap-1">
@@ -241,9 +268,11 @@ export function SlideDripConditionDialog({
                                             </div>
                                         </div>
                                         <div className="space-y-1 text-sm text-gray-700">
-                                            {condition.drip_condition.rules.map((rule, idx) => (
-                                                <div key={idx}>• {formatDripRule(rule)}</div>
-                                            ))}
+                                            {(condition.drip_condition[0]?.rules || []).map(
+                                                (rule, idx) => (
+                                                    <div key={idx}>• {formatDripRule(rule)}</div>
+                                                )
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -281,11 +310,15 @@ interface ConditionFormProps {
 
 function ConditionForm({ condition, slideId, onSave, saving, allSlides = [] }: ConditionFormProps) {
     const target = 'slide';
+
+    // Extract first config from array or create default
+    const existingConfig = condition?.drip_condition?.[0];
+
     const [behavior, setBehavior] = useState<'lock' | 'hide' | 'both'>(
-        condition?.drip_condition?.behavior || 'lock'
+        existingConfig?.behavior || 'lock'
     );
     const [rules, setRules] = useState<DripConditionRule[]>(
-        condition?.drip_condition?.rules || [
+        existingConfig?.rules || [
             { type: 'date_based', params: { unlock_date: new Date().toISOString() } },
         ]
     );
@@ -342,15 +375,13 @@ function ConditionForm({ condition, slideId, onSave, saving, allSlides = [] }: C
                         <Input
                             type="datetime-local"
                             value={
-                                params.unlock_date
-                                    ? new Date(params.unlock_date).toISOString().slice(0, 16)
-                                    : ''
+                                params.unlock_date ? toLocalDateTimeString(params.unlock_date) : ''
                             }
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                 handleRuleChange(
                                     index,
                                     'unlock_date',
-                                    new Date(e.target.value).toISOString()
+                                    toISOStringFromLocal(e.target.value)
                                 )
                             }
                         />
@@ -521,11 +552,13 @@ function ConditionForm({ condition, slideId, onSave, saving, allSlides = [] }: C
         const newCondition: Omit<DripCondition, 'id'> = {
             level: 'slide',
             level_id: slideId,
-            drip_condition: {
-                target,
-                behavior,
-                rules,
-            },
+            drip_condition: [
+                {
+                    target,
+                    behavior,
+                    rules,
+                },
+            ],
             enabled: true,
         };
 

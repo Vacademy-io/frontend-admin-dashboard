@@ -16,9 +16,25 @@ import {
     DripConditionRule,
     DripConditionRuleType,
     DripConditionBehavior,
+    DripConditionConfig,
 } from '@/types/course-settings';
-import { createEmptyDripCondition } from '@/utils/drip-conditions';
 import { MyButton } from '@/components/design-system/button';
+
+// Helper functions to convert between ISO string and local datetime-local format
+function toLocalDateTimeString(isoString: string): string {
+    const date = new Date(isoString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function toISOStringFromLocal(localDateTimeString: string): string {
+    const date = new Date(localDateTimeString);
+    return date.toISOString();
+}
 
 interface PackageDripConditionDialogProps {
     open: boolean;
@@ -37,91 +53,79 @@ export const PackageDripConditionDialog: React.FC<PackageDripConditionDialogProp
     packageName,
     condition,
 }) => {
-    const [formData, setFormData] = useState<DripCondition>(() => {
-        if (condition) return condition;
-        const empty = createEmptyDripCondition();
+    // Start with chapter as default target
+    const [selectedTarget, setSelectedTarget] = useState<'chapter' | 'slide'>('chapter');
+
+    // Find existing config for selected target or create new one
+    const getConfigForTarget = (target: 'chapter' | 'slide'): DripConditionConfig => {
+        if (condition) {
+            const existingConfig = condition.drip_condition.find((c) => c.target === target);
+            if (existingConfig) {
+                return existingConfig;
+            }
+        }
         return {
-            id: empty.id!,
-            level: 'package',
-            level_id: packageId,
-            drip_condition: {
-                ...empty.drip_condition!,
-                rules: [
-                    {
-                        type: 'date_based',
-                        params: { unlock_date: new Date().toISOString() },
-                    },
-                ],
-            },
-            enabled: empty.enabled!,
-            created_at: empty.created_at,
+            target,
+            behavior: 'lock',
+            rules: [
+                {
+                    type: 'date_based',
+                    params: { unlock_date: new Date().toISOString() },
+                },
+            ],
         };
-    });
+    };
+
+    const [currentConfig, setCurrentConfig] = useState<DripConditionConfig>(
+        getConfigForTarget('chapter')
+    );
+    const [enabled, setEnabled] = useState(condition?.enabled ?? true);
+
+    // Update config when target changes
+    const handleTargetChange = (newTarget: 'chapter' | 'slide') => {
+        setSelectedTarget(newTarget);
+        setCurrentConfig(getConfigForTarget(newTarget));
+    };
 
     useEffect(() => {
-        if (condition) {
-            setFormData(condition);
-        } else {
-            const empty = createEmptyDripCondition();
-            setFormData({
-                id: empty.id!,
-                level: 'package',
-                level_id: packageId,
-                drip_condition: {
-                    ...empty.drip_condition!,
-                    rules: [
-                        {
-                            type: 'date_based',
-                            params: { unlock_date: new Date().toISOString() },
-                        },
-                    ],
-                },
-                enabled: empty.enabled!,
-                created_at: empty.created_at,
-            });
+        if (open) {
+            const target = 'chapter';
+            setSelectedTarget(target);
+            setCurrentConfig(getConfigForTarget(target));
+            setEnabled(condition?.enabled ?? true);
         }
-    }, [condition, packageId]);
+    }, [condition, open]);
 
     const handleSave = () => {
-        onSave(formData);
+        // Ensure the currentConfig has the correct target
+        const configToSave: DripConditionConfig = {
+            ...currentConfig,
+            target: selectedTarget,
+        };
+
+        // Merge the current config with existing configs
+        const existingConfigs = condition?.drip_condition || [];
+        const otherConfigs = existingConfigs.filter((c) => c.target !== selectedTarget);
+        const updatedConfigs = [...otherConfigs, configToSave];
+
+        const updatedCondition: DripCondition = {
+            id: condition?.id || `drip_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            level: 'package',
+            level_id: packageId,
+            drip_condition: updatedConfigs,
+            enabled,
+            created_at: condition?.created_at || new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+        };
+
+        onSave(updatedCondition);
         onClose();
     };
 
-    const handleAddRule = () => {
-        setFormData({
-            ...formData,
-            drip_condition: {
-                ...formData.drip_condition,
-                rules: [
-                    ...formData.drip_condition.rules,
-                    {
-                        type: 'date_based',
-                        params: {
-                            unlock_date: new Date().toISOString(),
-                        },
-                    },
-                ],
-            },
-        });
-    };
-
-    const handleRemoveRule = (index: number) => {
-        setFormData({
-            ...formData,
-            drip_condition: {
-                ...formData.drip_condition,
-                rules: formData.drip_condition.rules.filter((_, i) => i !== index),
-            },
-        });
-    };
-
     const handleRuleChange = (index: number, rule: DripConditionRule) => {
-        setFormData({
-            ...formData,
-            drip_condition: {
-                ...formData.drip_condition,
-                rules: formData.drip_condition.rules.map((r, i) => (i === index ? rule : r)),
-            },
+        setCurrentConfig({
+            ...currentConfig,
+            rules: currentConfig.rules.map((r, i) => (i === index ? rule : r)),
         });
     };
 
@@ -168,14 +172,12 @@ export const PackageDripConditionDialog: React.FC<PackageDripConditionDialogProp
                         <Input
                             type="datetime-local"
                             value={
-                                params.unlock_date
-                                    ? new Date(params.unlock_date).toISOString().slice(0, 16)
-                                    : ''
+                                params.unlock_date ? toLocalDateTimeString(params.unlock_date) : ''
                             }
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                 handleRuleChange(index, {
                                     ...rule,
-                                    params: { unlock_date: new Date(e.target.value).toISOString() },
+                                    params: { unlock_date: toISOStringFromLocal(e.target.value) },
                                 })
                             }
                         />
@@ -221,8 +223,8 @@ export const PackageDripConditionDialog: React.FC<PackageDripConditionDialogProp
                                 <Label>Count</Label>
                                 <Input
                                     type="number"
-                                    min="1"
-                                    value={params.count || 1}
+                                    min="0"
+                                    value={params.count || 0}
                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                         handleRuleChange(index, {
                                             ...rule,
@@ -278,15 +280,9 @@ export const PackageDripConditionDialog: React.FC<PackageDripConditionDialogProp
                     <div className="space-y-2">
                         <Label>Target Content</Label>
                         <Select
-                            value={formData.drip_condition.target || 'chapter'}
+                            value={selectedTarget}
                             onValueChange={(value: 'chapter' | 'slide') =>
-                                setFormData({
-                                    ...formData,
-                                    drip_condition: {
-                                        ...formData.drip_condition,
-                                        target: value,
-                                    },
-                                })
+                                handleTargetChange(value)
                             }
                         >
                             <SelectTrigger>
@@ -299,8 +295,7 @@ export const PackageDripConditionDialog: React.FC<PackageDripConditionDialogProp
                         </Select>
                         <p className="text-xs text-muted-foreground">
                             This condition will apply to all{' '}
-                            {formData.drip_condition.target === 'chapter' ? 'chapters' : 'slides'}{' '}
-                            in this package
+                            {selectedTarget === 'chapter' ? 'chapters' : 'slides'} in this package
                         </p>
                     </div>
 
@@ -308,14 +303,11 @@ export const PackageDripConditionDialog: React.FC<PackageDripConditionDialogProp
                     <div className="space-y-2">
                         <Label>Behavior</Label>
                         <Select
-                            value={formData.drip_condition.behavior}
+                            value={currentConfig.behavior}
                             onValueChange={(value: DripConditionBehavior) =>
-                                setFormData({
-                                    ...formData,
-                                    drip_condition: {
-                                        ...formData.drip_condition,
-                                        behavior: value,
-                                    },
+                                setCurrentConfig({
+                                    ...currentConfig,
+                                    behavior: value,
                                 })
                             }
                         >
@@ -335,13 +327,13 @@ export const PackageDripConditionDialog: React.FC<PackageDripConditionDialogProp
                             <Label>Unlock Rule</Label>
                         </div>
 
-                        {formData.drip_condition.rules.length === 0 ? (
+                        {currentConfig.rules.length === 0 ? (
                             <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
                                 No rule configured. Please configure an unlock rule below.
                             </div>
                         ) : (
                             <div className="space-y-3">
-                                {formData.drip_condition.rules.map((rule, index) => (
+                                {currentConfig.rules.map((rule, index) => (
                                     <div
                                         key={index}
                                         className="space-y-3 rounded-lg border bg-gray-50 p-4"
@@ -390,10 +382,8 @@ export const PackageDripConditionDialog: React.FC<PackageDripConditionDialogProp
                         </Label>
                         <Switch
                             id="condition-enabled"
-                            checked={formData.enabled}
-                            onCheckedChange={(checked) =>
-                                setFormData({ ...formData, enabled: checked })
-                            }
+                            checked={enabled}
+                            onCheckedChange={setEnabled}
                         />
                     </div>
                 </div>
@@ -403,11 +393,11 @@ export const PackageDripConditionDialog: React.FC<PackageDripConditionDialogProp
                     <MyButton buttonType="secondary" onClick={onClose}>
                         Cancel
                     </MyButton>
-                    <MyButton
-                        onClick={handleSave}
-                        disabled={formData.drip_condition.rules.length === 0}
-                    >
-                        {condition ? 'Update' : 'Add'} Condition
+                    <MyButton onClick={handleSave} disabled={currentConfig.rules.length === 0}>
+                        {condition?.drip_condition.find((c) => c.target === selectedTarget)
+                            ? 'Update'
+                            : 'Add'}{' '}
+                        Condition
                     </MyButton>
                 </div>
             }

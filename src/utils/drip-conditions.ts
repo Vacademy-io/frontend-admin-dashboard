@@ -133,37 +133,40 @@ export const validateDripCondition = (
         errors.push('Level ID is required');
     }
 
-    if (!condition.drip_condition) {
-        errors.push('Drip condition configuration is required');
+    if (!condition.drip_condition || !Array.isArray(condition.drip_condition)) {
+        errors.push('Drip condition configuration must be an array');
         return { valid: false, errors };
     }
 
-    const config = condition.drip_condition;
-
-    // Validate target for package level
-    if (condition.level === 'package' && !config.target) {
-        errors.push('Package level conditions must specify a target (chapter or slide)');
+    if (condition.drip_condition.length === 0) {
+        errors.push('At least one drip condition configuration is required');
+        return { valid: false, errors };
     }
 
-    // Validate target not present for chapter/slide level
-    if (condition.level !== 'package' && config.target) {
-        errors.push('Only package level conditions can have a target field');
-    }
+    // Validate each config in the array
+    condition.drip_condition.forEach((config, configIndex) => {
+        const prefix = `Config ${configIndex + 1}:`;
 
-    // Validate behavior
-    if (!config.behavior || !['lock', 'hide', 'both'].includes(config.behavior)) {
-        errors.push('Valid behavior is required (lock, hide, or both)');
-    }
+        // Validate target is required
+        if (!config.target) {
+            errors.push(`${prefix} Target is required (chapter or slide)`);
+        }
 
-    // Validate rules
-    if (!config.rules || config.rules.length === 0) {
-        errors.push('At least one rule is required');
-    } else {
-        config.rules.forEach((rule, index) => {
-            const ruleErrors = validateRule(rule, index);
-            errors.push(...ruleErrors);
-        });
-    }
+        // Validate behavior
+        if (!config.behavior || !['lock', 'hide', 'both'].includes(config.behavior)) {
+            errors.push(`${prefix} Valid behavior is required (lock, hide, or both)`);
+        }
+
+        // Validate rules
+        if (!config.rules || config.rules.length === 0) {
+            errors.push(`${prefix} At least one rule is required`);
+        } else {
+            config.rules.forEach((rule, index) => {
+                const ruleErrors = validateRule(rule, index);
+                errors.push(...ruleErrors.map((err) => `${prefix} ${err}`));
+            });
+        }
+    });
 
     return { valid: errors.length === 0, errors };
 };
@@ -322,11 +325,13 @@ export const createEmptyDripCondition = (): Partial<DripCondition> => {
         id: generateDripConditionId(),
         level: 'chapter',
         level_id: '',
-        drip_condition: {
-            target: 'chapter',
-            behavior: 'lock',
-            rules: [],
-        },
+        drip_condition: [
+            {
+                target: 'chapter',
+                behavior: 'lock',
+                rules: [],
+            },
+        ],
         enabled: true,
         created_at: new Date().toISOString(),
     };

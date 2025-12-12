@@ -392,7 +392,36 @@ export const CourseDetailsPage = () => {
     const handleAddDripCondition = async (condition: DripCondition) => {
         try {
             const settings = await getCourseSettings();
-            const updatedConditions = [...settings.dripConditions.conditions, condition];
+
+            // Check if a condition with same level and level_id already exists
+            const existingConditionIndex = settings.dripConditions.conditions.findIndex(
+                (c) => c.level === condition.level && c.level_id === condition.level_id
+            );
+
+            let updatedConditions: DripCondition[];
+
+            if (existingConditionIndex !== -1) {
+                // Merge drip_condition arrays if condition exists
+                const existingCondition =
+                    settings.dripConditions.conditions[existingConditionIndex];
+                const mergedCondition: DripCondition = {
+                    id: existingCondition?.id ?? '',
+                    level: existingCondition?.level ?? 'package',
+                    level_id: existingCondition?.level_id ?? '',
+                    enabled: existingCondition?.enabled ?? false,
+                    created_at: existingCondition?.created_at,
+                    drip_condition: condition.drip_condition,
+                    updated_at: new Date().toISOString(),
+                };
+
+                updatedConditions = settings.dripConditions.conditions.map((c, idx) =>
+                    idx === existingConditionIndex ? mergedCondition : c
+                );
+            } else {
+                // Add new condition if doesn't exist
+                updatedConditions = [...settings.dripConditions.conditions, condition];
+            }
+
             await saveCourseSettings({
                 ...settings,
                 dripConditions: {

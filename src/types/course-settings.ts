@@ -79,11 +79,14 @@ export interface DripConditionRule {
     params: DripConditionRuleParams;
 }
 
-export interface DripConditionJson {
-    target?: 'chapter' | 'slide'; // Only for package-level
+export interface DripConditionConfig {
+    target: 'chapter' | 'slide'; // Required for all levels
     behavior: DripConditionBehavior;
     rules: DripConditionRule[];
 }
+
+// DripConditionJson is now an array of configs to support multiple targets per level
+export type DripConditionJson = DripConditionConfig[];
 
 export interface DripCondition {
     id: string; // Unique identifier for UI management
