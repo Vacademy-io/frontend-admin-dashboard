@@ -75,6 +75,7 @@ export interface StudentTable {
     payment_status: string;
     custom_fields: Record<string, string | null>;
     sub_org_name?: string;
+    sub_org_id?: string;
     comma_separated_org_roles?: string;
 }
 
