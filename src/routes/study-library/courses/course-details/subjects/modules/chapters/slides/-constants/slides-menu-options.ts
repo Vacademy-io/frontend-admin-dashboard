@@ -7,6 +7,7 @@ import { TokenKey, Authority } from '@/constants/auth/tokens';
 const baseList: DropdownItem[] = [
     { label: 'Copy to', value: 'copy' },
     { label: 'Move to', value: 'move' },
+    { label: 'Drip Conditions', value: 'drip-conditions' },
     { label: 'Delete', value: 'delete' },
 ];
 

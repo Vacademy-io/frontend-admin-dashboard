@@ -10,10 +10,11 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { CourseSettingsData } from '@/types/course-settings';
+import { CourseSettingsData, DripConditionsSettings } from '@/types/course-settings';
 import { BookOpen, Eye, Users, Save, Image, Play, List, Layers, RotateCcw } from 'lucide-react';
 import { MyButton } from '@/components/design-system/button';
 import { Separator } from '@/components/ui/separator';
+import { DripConditionsCard } from './DripConditionsCard';
 
 interface CourseSettingsFormProps {
     settings: CourseSettingsData;
@@ -123,6 +124,13 @@ export const CourseSettingsForm: React.FC<CourseSettingsFormProps> = ({
                 ...prev.permissions,
                 [key]: value,
             },
+        }));
+    };
+
+    const updateDripConditions = (dripConditions: DripConditionsSettings) => {
+        setFormData((prev) => ({
+            ...prev,
+            dripConditions,
         }));
     };
 
@@ -556,6 +564,12 @@ export const CourseSettingsForm: React.FC<CourseSettingsFormProps> = ({
                         </div>
                     </CardContent>
                 </Card>
+
+                {/* Drip Conditions Section */}
+                <DripConditionsCard
+                    settings={formData.dripConditions}
+                    onUpdate={updateDripConditions}
+                />
             </div>
 
             <Separator />

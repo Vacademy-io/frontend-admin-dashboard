@@ -282,5 +282,10 @@ export const mergeWithDefaults = (settings: Partial<CourseSettingsData>): Course
             ...DEFAULT_COURSE_SETTINGS.permissions,
             ...settings.permissions,
         },
+        dripConditions: {
+            ...DEFAULT_COURSE_SETTINGS.dripConditions,
+            ...settings.dripConditions,
+            conditions: settings.dripConditions?.conditions || [],
+        },
     };
 };

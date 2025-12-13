@@ -9,8 +9,8 @@ import { useContentStore } from '../../-stores/chapter-sidebar-store';
 import { useSlidesMutations } from '../../-hooks/use-slides';
 
 interface DeleteProps {
-    openDialog: 'copy' | 'move' | 'delete' | null;
-    setOpenDialog: Dispatch<SetStateAction<'copy' | 'move' | 'delete' | null>>;
+    openDialog: 'copy' | 'move' | 'delete' | 'drip-conditions' | null;
+    setOpenDialog: Dispatch<SetStateAction<'copy' | 'move' | 'delete' | 'drip-conditions' | null>>;
 }
 
 export const DeleteDialog = ({ openDialog, setOpenDialog }: DeleteProps) => {
