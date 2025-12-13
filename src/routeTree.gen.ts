@@ -15,6 +15,8 @@ import { Route as StudyLibraryIndexRouteImport } from "./routes/study-library/in
 import { Route as SignupIndexRouteImport } from "./routes/signup/index"
 import { Route as SettingsIndexRouteImport } from "./routes/settings/index"
 import { Route as PlanningIndexRouteImport } from "./routes/planning/index"
+import { Route as MembershipStatsIndexRouteImport } from "./routes/membership-stats/index"
+import { Route as MembershipExpiryIndexRouteImport } from "./routes/membership-expiry/index"
 import { Route as ManageStudentsIndexRouteImport } from "./routes/manage-students/index"
 import { Route as ManagePaymentsIndexRouteImport } from "./routes/manage-payments/index"
 import { Route as ManageInstituteIndexRouteImport } from "./routes/manage-institute/index"
@@ -160,6 +162,16 @@ const SettingsIndexRoute = SettingsIndexRouteImport.update({
 const PlanningIndexRoute = PlanningIndexRouteImport.update({
   id: "/planning/",
   path: "/planning/",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembershipStatsIndexRoute = MembershipStatsIndexRouteImport.update({
+  id: "/membership-stats/",
+  path: "/membership-stats/",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembershipExpiryIndexRoute = MembershipExpiryIndexRouteImport.update({
+  id: "/membership-expiry/",
+  path: "/membership-expiry/",
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManageStudentsIndexRoute = ManageStudentsIndexRouteImport.update({
@@ -746,6 +758,8 @@ export interface FileRoutesByFullPath {
   "/manage-institute": typeof ManageInstituteIndexRoute
   "/manage-payments": typeof ManagePaymentsIndexRoute
   "/manage-students": typeof ManageStudentsIndexRoute
+  "/membership-expiry": typeof MembershipExpiryIndexRoute
+  "/membership-stats": typeof MembershipStatsIndexRoute
   "/planning": typeof PlanningIndexRoute
   "/settings": typeof SettingsIndexRoute
   "/signup": typeof SignupIndexRoute
@@ -852,6 +866,8 @@ export interface FileRoutesByTo {
   "/manage-institute": typeof ManageInstituteIndexRoute
   "/manage-payments": typeof ManagePaymentsIndexRoute
   "/manage-students": typeof ManageStudentsIndexRoute
+  "/membership-expiry": typeof MembershipExpiryIndexRoute
+  "/membership-stats": typeof MembershipStatsIndexRoute
   "/planning": typeof PlanningIndexRoute
   "/settings": typeof SettingsIndexRoute
   "/signup": typeof SignupIndexRoute
@@ -960,6 +976,8 @@ export interface FileRoutesById {
   "/manage-institute/": typeof ManageInstituteIndexRoute
   "/manage-payments/": typeof ManagePaymentsIndexRoute
   "/manage-students/": typeof ManageStudentsIndexRoute
+  "/membership-expiry/": typeof MembershipExpiryIndexRoute
+  "/membership-stats/": typeof MembershipStatsIndexRoute
   "/planning/": typeof PlanningIndexRoute
   "/settings/": typeof SettingsIndexRoute
   "/signup/": typeof SignupIndexRoute
@@ -1069,6 +1087,8 @@ export interface FileRouteTypes {
     | "/manage-institute"
     | "/manage-payments"
     | "/manage-students"
+    | "/membership-expiry"
+    | "/membership-stats"
     | "/planning"
     | "/settings"
     | "/signup"
@@ -1175,6 +1195,8 @@ export interface FileRouteTypes {
     | "/manage-institute"
     | "/manage-payments"
     | "/manage-students"
+    | "/membership-expiry"
+    | "/membership-stats"
     | "/planning"
     | "/settings"
     | "/signup"
@@ -1282,6 +1304,8 @@ export interface FileRouteTypes {
     | "/manage-institute/"
     | "/manage-payments/"
     | "/manage-students/"
+    | "/membership-expiry/"
+    | "/membership-stats/"
     | "/planning/"
     | "/settings/"
     | "/signup/"
@@ -1389,6 +1413,8 @@ export interface RootRouteChildren {
   ManageInstituteIndexRoute: typeof ManageInstituteIndexRoute
   ManagePaymentsIndexRoute: typeof ManagePaymentsIndexRoute
   ManageStudentsIndexRoute: typeof ManageStudentsIndexRoute
+  MembershipExpiryIndexRoute: typeof MembershipExpiryIndexRoute
+  MembershipStatsIndexRoute: typeof MembershipStatsIndexRoute
   PlanningIndexRoute: typeof PlanningIndexRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
   SignupIndexRoute: typeof SignupIndexRoute
@@ -1535,6 +1561,20 @@ declare module "@tanstack/react-router" {
       path: "/planning"
       fullPath: "/planning"
       preLoaderRoute: typeof PlanningIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/membership-stats/": {
+      id: "/membership-stats/"
+      path: "/membership-stats"
+      fullPath: "/membership-stats"
+      preLoaderRoute: typeof MembershipStatsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/membership-expiry/": {
+      id: "/membership-expiry/"
+      path: "/membership-expiry"
+      fullPath: "/membership-expiry"
+      preLoaderRoute: typeof MembershipExpiryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/manage-students/": {
@@ -2247,6 +2287,8 @@ const rootRouteChildren: RootRouteChildren = {
   ManageInstituteIndexRoute: ManageInstituteIndexRoute,
   ManagePaymentsIndexRoute: ManagePaymentsIndexRoute,
   ManageStudentsIndexRoute: ManageStudentsIndexRoute,
+  MembershipExpiryIndexRoute: MembershipExpiryIndexRoute,
+  MembershipStatsIndexRoute: MembershipStatsIndexRoute,
   PlanningIndexRoute: PlanningIndexRoute,
   SettingsIndexRoute: SettingsIndexRoute,
   SignupIndexRoute: SignupIndexRoute,
