@@ -2,6 +2,8 @@ export type SlideType =
     | 'objectives'
     | 'topic'
     | 'quiz'
+    | 'assessment'
+    | 'ASSESSMENT'
     | 'homework'
     | 'solution'
     | 'doc'
