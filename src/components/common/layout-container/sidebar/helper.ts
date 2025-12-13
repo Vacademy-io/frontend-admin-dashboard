@@ -131,7 +131,10 @@ export function filterMenuListByModules(
                 item.id === 'announcement' ||
                 item.id === 'user-tags' ||
                 item.id === 'manage-campaigns' ||
-                item.id === 'planning'
+                item.id === 'planning' ||
+                item.id === 'membership-expiry' ||
+                item.id === 'membership-stats' ||
+                item.id === 'manage-contacts'
             ) {
                 return true;
             }
