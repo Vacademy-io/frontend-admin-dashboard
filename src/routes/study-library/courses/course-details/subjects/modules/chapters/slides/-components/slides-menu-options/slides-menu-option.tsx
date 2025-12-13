@@ -70,7 +70,10 @@ export const SlidesMenuOption = () => {
             const settings = await getCourseSettings();
             const updatedSettings = {
                 ...settings,
-                drip_conditions: updatedConditions,
+                dripConditions: {
+                    ...settings.dripConditions,
+                    conditions: updatedConditions,
+                },
             };
             await saveCourseSettings(updatedSettings);
             setDripConditions(updatedConditions);
