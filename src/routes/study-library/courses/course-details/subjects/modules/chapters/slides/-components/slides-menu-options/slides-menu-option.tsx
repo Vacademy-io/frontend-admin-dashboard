@@ -23,7 +23,7 @@ export const SlidesMenuOption = () => {
     const { activeItem, items } = useContentStore();
     const router = useRouter();
     const searchParams = router.state.location.search;
-    const levelId: string = searchParams.levelId || '';
+    const courseId: string = searchParams.courseId || '';
     const slideId: string = activeItem?.id || '';
     const slideName: string = activeItem?.title || 'Slide';
 
@@ -109,7 +109,7 @@ export const SlidesMenuOption = () => {
                     onClose={() => setOpenDialog(null)}
                     slideId={slideId}
                     slideName={slideName}
-                    packageId={levelId}
+                    packageId={courseId}
                     dripConditions={dripConditions}
                     onSave={handleSaveDripConditions}
                     allSlides={allSlides}
