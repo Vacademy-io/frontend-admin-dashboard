@@ -1,15 +1,14 @@
 import { Canvas } from 'fabric';
 import useFabric from './canvas'; // Adjust the import path as necessary
-import { FaPen } from 'react-icons/fa6';
-import { Check, Trash2, Type, X } from 'lucide-react';
-import { Circle, Rectangle } from 'phosphor-react';
+import { Check, Trash2, Type, X, Pen } from 'lucide-react';
+import { Circle, Rectangle } from '@phosphor-icons/react';
 
 const useCanvasTools = (fabricCanvas: Canvas | null) => {
     const canvasUtils = useFabric(fabricCanvas);
 
     const tools = [
         {
-            icon: FaPen,
+            icon: Pen,
             label: 'Pen',
             color: 'text-blue-600',
             action: () => {

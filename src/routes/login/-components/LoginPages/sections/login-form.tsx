@@ -17,8 +17,8 @@ import { handleSSOLogin } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 // import { Link2Icon } from 'lucide-react';
 import { handleOAuthLogin } from '@/hooks/login/oauth-login';
-import { GitHubLogoIcon } from '@radix-ui/react-icons';
-import { FcGoogle } from 'react-icons/fc';
+import { GitHubIcon } from '@/components/icons/GitHubIcon';
+import { GoogleIcon } from '@/components/icons/GoogleIcon';
 import { EmailLogin } from './EmailOtpForm';
 import { useState } from 'react';
 import { amplitudeEvents, trackEvent } from '@/lib/amplitude';
@@ -453,7 +453,7 @@ export function LoginForm() {
                                         }}
                                         type="button"
                                     >
-                                        {FcGoogle({ size: 20 })}
+                                        <GoogleIcon size={20} />
                                         Continue with Google
                                     </button>
                                 )}
@@ -470,22 +470,22 @@ export function LoginForm() {
                                         }}
                                         type="button"
                                     >
-                                        <GitHubLogoIcon className="size-5" />
+                                        <GitHubIcon className="size-5" />
                                         Continue with GitHub
                                     </button>
                                 )}
 
                                 {(providerFlags.allowGoogleAuth ||
                                     providerFlags.allowGithubAuth) && (
-                                    <div className="relative my-1 flex items-center justify-center">
-                                        <div className="absolute inset-0 flex items-center">
-                                            <span className="w-full border-t border-neutral-300" />
+                                        <div className="relative my-1 flex items-center justify-center">
+                                            <div className="absolute inset-0 flex items-center">
+                                                <span className="w-full border-t border-neutral-300" />
+                                            </div>
+                                            <div className="relative bg-white px-3 text-xs font-medium text-neutral-600">
+                                                or continue with
+                                            </div>
                                         </div>
-                                        <div className="relative bg-white px-3 text-xs font-medium text-neutral-600">
-                                            or continue with
-                                        </div>
-                                    </div>
-                                )}
+                                    )}
 
                                 {isEmailLogin ? (
                                     <EmailLogin onSwitchToUsername={handleSwitchToUsername} />
@@ -603,7 +603,7 @@ export function LoginForm() {
                 </div>
 
                 {Boolean(cachedBranding?.termsAndConditionUrl) ||
-                Boolean(cachedBranding?.privacyPolicyUrl) ? (
+                    Boolean(cachedBranding?.privacyPolicyUrl) ? (
                     <div className="mt-4 text-center text-xs text-neutral-600">
                         {cachedBranding?.termsAndConditionUrl ? (
                             <a
@@ -616,7 +616,7 @@ export function LoginForm() {
                             </a>
                         ) : null}
                         {cachedBranding?.termsAndConditionUrl &&
-                        cachedBranding?.privacyPolicyUrl ? (
+                            cachedBranding?.privacyPolicyUrl ? (
                             <span className="mx-2 text-neutral-400">•</span>
                         ) : null}
                         {cachedBranding?.privacyPolicyUrl ? (

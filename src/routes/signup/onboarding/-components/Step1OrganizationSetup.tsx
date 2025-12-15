@@ -9,7 +9,7 @@ import { MyInput } from '@/components/design-system/input';
 import SelectField from '@/components/design-system/select-field';
 import { InstituteType } from '@/constants/dummy-data';
 import { MyButton } from '@/components/design-system/button';
-import { PencilSimpleLine } from 'phosphor-react';
+import { PencilSimpleLine } from '@phosphor-icons/react';
 import { FileUploadComponent } from '@/components/design-system/file-upload';
 import { UploadFileInS3Public } from '../../-services/signup-services';
 import useOrganizationStore from '../-zustand-store/step1OrganizationZustand';

@@ -12,7 +12,7 @@ import { LayoutContainer } from '@/components/common/layout-container/layout-con
 import { Separator } from '@/components/ui/separator';
 import { wrapContentInHTML } from '../../-utils/templateLoader';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
-import { ArrowLeft } from 'phosphor-react';
+import { ArrowLeft } from '@phosphor-icons/react';
 import { MyButton } from '@/components/design-system/button';
 
 export const Route = createFileRoute('/planning/planning/create/')({

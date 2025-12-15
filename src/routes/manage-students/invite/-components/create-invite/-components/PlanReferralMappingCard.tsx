@@ -3,7 +3,7 @@ import { InviteLinkFormValues } from '../GenerateInviteLinkSchema';
 import { MyButton } from '@/components/design-system/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendUp, Gear, Plus, CheckCircle, Clock } from 'phosphor-react';
+import { TrendUp, Gear, Plus, CheckCircle, Clock } from '@phosphor-icons/react';
 import { getAllPlanIdsFromSelectedPlan, getPlanDisplayName } from '../-utils/helper';
 
 interface PlanReferralMappingCardProps {

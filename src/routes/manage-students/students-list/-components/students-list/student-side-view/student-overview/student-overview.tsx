@@ -27,7 +27,7 @@ import { getFieldsForLocation, type FieldForLocation } from '@/lib/custom-fields
 import { getCustomFieldSettingsFromCache } from '@/services/custom-field-settings';
 import type { FieldGroup } from '@/services/custom-field-settings';
 import { Tag, Folders } from '@phosphor-icons/react';
-import { MonitorPlay } from 'phosphor-react';
+import { MonitorPlay } from '@phosphor-icons/react';
 
 export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean }) => {
     const { selectedStudent } = useStudentSidebar();

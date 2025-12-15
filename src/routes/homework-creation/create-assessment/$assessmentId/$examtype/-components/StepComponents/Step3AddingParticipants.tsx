@@ -15,7 +15,7 @@ import {
     PencilSimple,
     Plus,
     TrashSimple,
-} from 'phosphor-react';
+} from '@phosphor-icons/react';
 import QRCode from 'react-qr-code';
 import {
     copyToClipboard,

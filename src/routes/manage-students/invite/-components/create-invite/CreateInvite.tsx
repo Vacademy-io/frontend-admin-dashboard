@@ -1,6 +1,6 @@
 import { MyButton } from '@/components/design-system/button';
 import { useRef, useEffect } from 'react';
-import { Plus, X, CaretDown, Check } from 'phosphor-react';
+import { Plus, X, CaretDown, Check } from '@phosphor-icons/react';
 import {
     Dialog,
     DialogContent,

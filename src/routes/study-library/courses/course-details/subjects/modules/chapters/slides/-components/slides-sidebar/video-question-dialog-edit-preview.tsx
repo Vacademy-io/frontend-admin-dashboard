@@ -8,7 +8,7 @@ import { Dialog, DialogClose, DialogContent } from '@/components/ui/dialog';
 import { MyButton } from '@/components/design-system/button';
 import { UploadQuestionPaperFormType } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
 import { DialogTrigger } from '@radix-ui/react-dialog';
-import { PencilSimpleLine } from 'phosphor-react';
+import { PencilSimpleLine } from '@phosphor-icons/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 type QuestionPaperForm = z.infer<ReturnType<typeof uploadQuestionPaperFormSchema>>;

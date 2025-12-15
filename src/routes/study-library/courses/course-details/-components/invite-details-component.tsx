@@ -11,7 +11,7 @@ import { InviteLink } from '@/routes/manage-students/-components/InviteLink';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useNavigate, useRouter } from '@tanstack/react-router';
-import { ArrowRight, Plus, Users } from 'phosphor-react';
+import { ArrowRight, Plus, Users } from '@phosphor-icons/react';
 import { handleFetchInviteLinks, handleMakeInviteLinkDefault } from '../-services/get-invite-links';
 import { MyPagination } from '@/components/design-system/pagination';
 import { usePaginationState } from '@/hooks/pagination';

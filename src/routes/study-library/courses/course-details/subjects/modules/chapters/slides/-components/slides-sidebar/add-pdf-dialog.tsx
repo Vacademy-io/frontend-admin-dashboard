@@ -14,7 +14,7 @@ import { TokenKey } from '@/constants/auth/tokens';
 import { useContentStore } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import * as pdfjs from 'pdfjs-dist';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { CheckCircle, FilePdf } from 'phosphor-react';
+import { CheckCircle, FilePdf } from '@phosphor-icons/react';
 import { getSlideStatusForUser } from '../../non-admin/hooks/useNonAdminSlides';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;

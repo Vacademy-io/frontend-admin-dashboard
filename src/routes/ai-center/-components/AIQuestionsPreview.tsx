@@ -19,14 +19,14 @@ import {
     transformResponseDataToMyQuestionsSchema,
 } from '@/routes/assessment/question-papers/-utils/helper';
 import { QuestionType } from '@/constants/dummy-data';
-import { DotsSixVertical } from 'phosphor-react';
+import { DotsSixVertical } from '@phosphor-icons/react';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { DotsThreeVertical, Copy, Trash } from 'phosphor-react';
+import { DotsThreeVertical, Copy, Trash } from '@phosphor-icons/react';
 import { PPTComponentFactory } from '@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/PPTComponentFactory';
 import { Separator } from '@/components/ui/separator';
 import { MainViewComponentFactory } from '@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory';

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { LanguageDropdown } from '../../../../../components/common/localization/language-dropdown';
 import { SplashScreenProps } from '@/routes/login/-types/loginTypes';
-import { LoginImage } from '@/assets/svgs';
+import LoginImage from '@/assets/svgs/login-image.svg';
 import useInstituteLogoStore from '@/components/common/layout-container/sidebar/institutelogo-global-zustand';
 import React, { useEffect, useRef, useState } from 'react';
 import { getSubdomain, HOLISTIC_SUBDOMAIN } from '@/utils/subdomain';

@@ -1,6 +1,6 @@
 import { MyButton } from '@/components/design-system/button';
 import { Switch } from '@/components/ui/switch';
-import { DotsSixVertical, Plus, TrashSimple } from 'phosphor-react';
+import { DotsSixVertical, Plus, TrashSimple } from '@phosphor-icons/react';
 import { AddCustomFieldDialog, DropdownOption } from './AddCustomFieldDialog';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { InviteForm } from '../../-schema/InviteFormSchema';

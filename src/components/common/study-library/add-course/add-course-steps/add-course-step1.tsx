@@ -16,7 +16,7 @@ import {
 import { MyInput } from '@/components/design-system/input';
 import { RichTextEditor } from '@/components/editor/RichTextEditor';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
-import { ImageSquare, PencilSimpleLine } from 'phosphor-react';
+import { ImageSquare, PencilSimpleLine } from '@phosphor-icons/react';
 import { FileUploadComponent } from '@/components/design-system/file-upload';
 import { MyButton } from '@/components/design-system/button';
 import { Label } from '@/components/ui/label';

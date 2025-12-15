@@ -1,7 +1,7 @@
 import { AIAssessmentCompleteQuestion } from '@/types/ai/generate-assessment/generate-complete-assessment';
 import { MyQuestion } from '@/types/assessments/question-paper-form';
 import { FilePdf } from '@phosphor-icons/react';
-import { FileAudio, FileDoc } from 'phosphor-react';
+import { FileAudio, FileDoc } from '@phosphor-icons/react';
 
 export const transformQuestionsToGenerateAssessmentAI = (
     data: AIAssessmentCompleteQuestion[] | undefined

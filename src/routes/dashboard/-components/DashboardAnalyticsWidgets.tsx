@@ -6,7 +6,7 @@ import { Suspense } from 'react';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { MyButton } from '@/components/design-system/button';
 import { useRouter } from '@tanstack/react-router';
-import { ArrowSquareOut, ChartBar } from 'phosphor-react';
+import { ArrowSquareOut, ChartBar } from '@phosphor-icons/react';
 
 // Import key analytics widgets
 import RealTimeActiveUsersWidget from './analytics-widgets/RealTimeActiveUsersWidget';

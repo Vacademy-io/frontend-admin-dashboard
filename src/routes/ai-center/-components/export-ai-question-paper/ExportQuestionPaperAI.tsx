@@ -5,7 +5,7 @@ import {
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Settings, Trash2 } from 'lucide-react';
-import { Upload } from 'phosphor-react';
+import { Upload } from '@phosphor-icons/react';
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { ExportHandlerQuestionPaperAI } from './ExportHandlerQuestionPaperAI';
 import { PaperSetQuestionsAI } from './PaperSetQuestionsAI';

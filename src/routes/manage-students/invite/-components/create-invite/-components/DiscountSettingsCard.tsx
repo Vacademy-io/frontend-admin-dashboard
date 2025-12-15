@@ -2,7 +2,7 @@ import { UseFormReturn } from 'react-hook-form';
 import { InviteLinkFormValues } from '../GenerateInviteLinkSchema';
 import { MyButton } from '@/components/design-system/button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tag, WarningCircle } from 'phosphor-react';
+import { Tag, WarningCircle } from '@phosphor-icons/react';
 import { Badge } from '@/components/ui/badge';
 
 interface DiscountSettingsDialogProps {

@@ -41,7 +41,7 @@ import {
 import { useSearch } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { GET_PUBLIC_URL_PUBLIC } from '@/constants/urls';
-import { FilePlus } from 'phosphor-react';
+import { FilePlus } from '@phosphor-icons/react';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 

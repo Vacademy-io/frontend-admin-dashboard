@@ -19,8 +19,7 @@ import TableRow from '@tiptap/extension-table-row';
 import TableHeader from '@tiptap/extension-table-header';
 import TableCell from '@tiptap/extension-table-cell';
 import './tiptap.css';
-import * as fabricNS from 'fabric';
-const fabric = (fabricNS as any).fabric ?? fabricNS;
+
 import katex from 'katex';
 import 'katex/dist/katex.css';
 
@@ -417,32 +416,48 @@ export function TipTapEditor({
             useEffect(() => {
               if (!isEditing) return;
               if (!containerRef.current) return;
+
+              let currentCanvas: any = null;
               const canvasEl = document.createElement('canvas');
               canvasEl.width = width;
               canvasEl.height = height;
               containerRef.current.innerHTML = '';
               containerRef.current.appendChild(canvasEl);
 
-              const c = new (fabric as any).Canvas(canvasEl, {
-                isDrawingMode: true,
-                selection: true,
-              });
-              c.freeDrawingBrush = new (fabric as any).PencilBrush(c);
-              c.freeDrawingBrush.width = 3;
-              c.freeDrawingBrush.color = '#111827';
-              canvasRef.current = c;
-
-              // Load existing JSON if available
-              const json = node.attrs.json;
-              if (json) {
+              const initFabric = async () => {
                 try {
-                  const parsed = typeof json === 'string' ? JSON.parse(json) : json;
-                  c.loadFromJSON(parsed, () => c.renderAll());
-                } catch { }
-              }
+                  const fabricNS = await import('fabric');
+                  const fabric = (fabricNS as any).fabric ?? fabricNS;
+
+                  const c = new (fabric as any).Canvas(canvasEl, {
+                    isDrawingMode: true,
+                    selection: true,
+                  });
+                  c.freeDrawingBrush = new (fabric as any).PencilBrush(c);
+                  c.freeDrawingBrush.width = 3;
+                  c.freeDrawingBrush.color = '#111827';
+                  canvasRef.current = c;
+                  currentCanvas = c;
+
+                  // Load existing JSON if available
+                  const json = node.attrs.json;
+                  if (json) {
+                    try {
+                      const parsed = typeof json === 'string' ? JSON.parse(json) : json;
+                      c.loadFromJSON(parsed, () => c.renderAll());
+                    } catch { }
+                  }
+                } catch (error) {
+                  console.error('Failed to load fabric', error);
+                }
+              };
+
+              initFabric();
 
               return () => {
-                try { c.dispose(); } catch { }
+                if (currentCanvas) {
+                  try { currentCanvas.dispose(); } catch { }
+                }
                 canvasRef.current = null;
               };
               // eslint-disable-next-line react-hooks/exhaustive-deps

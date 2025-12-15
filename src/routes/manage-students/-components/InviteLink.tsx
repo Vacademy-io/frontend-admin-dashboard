@@ -1,4 +1,4 @@
-import { Check, Copy } from 'phosphor-react';
+import { Check, Copy } from '@phosphor-icons/react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import createInviteLink from '../invite/-utils/createInviteLink';
 import { MyButton } from '@/components/design-system/button';

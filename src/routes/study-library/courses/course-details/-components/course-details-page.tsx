@@ -14,7 +14,7 @@ import {
     ClipboardText,
     PresentationChart,
     FileText,
-} from 'phosphor-react';
+} from '@phosphor-icons/react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     Select,

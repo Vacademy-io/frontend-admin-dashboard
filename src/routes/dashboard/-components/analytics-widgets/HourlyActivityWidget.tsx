@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchAnalyticsEngagementTrends } from '../../-services/dashboard-services';
 import { useTheme } from '@/providers/theme/theme-provider';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from 'recharts';
-import { Clock, Sun, Moon } from 'phosphor-react';
+import { Clock, Sun, Moon } from '@phosphor-icons/react';
 
 interface HourlyActivityWidgetProps {
     instituteId: string;

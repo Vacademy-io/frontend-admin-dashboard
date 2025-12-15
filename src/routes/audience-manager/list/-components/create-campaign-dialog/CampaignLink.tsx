@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Check, Copy } from 'phosphor-react';
+import { Check, Copy } from '@phosphor-icons/react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { MyButton } from '@/components/design-system/button';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';

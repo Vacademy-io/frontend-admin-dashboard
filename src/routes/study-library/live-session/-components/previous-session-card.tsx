@@ -1,11 +1,11 @@
-import { LockSimple } from 'phosphor-react';
+import { LockSimple } from '@phosphor-icons/react';
 import { Badge } from '@/components/ui/badge';
 import { LiveSession } from '../schedule/-services/utils';
 import React, { useMemo, useState } from 'react';
 import Papa from 'papaparse';
 import { toast } from 'sonner';
 import { useNavigate } from '@tanstack/react-router';
-import { DownloadSimple } from 'phosphor-react';
+import { DownloadSimple } from '@phosphor-icons/react';
 import { MyDialog } from '@/components/design-system/dialog';
 import { fetchSessionDetails, SessionDetailsResponse } from '../-hooks/useSessionDetails';
 import { MyButton } from '@/components/design-system/button';

@@ -16,7 +16,7 @@ import {
     AddressBook,
 } from '@phosphor-icons/react';
 import { SidebarItemsType } from '../../../../types/layout-container/layout-container-types';
-import { ChalkboardTeacher, GearSix, Lightning, NotePencil, UsersFour } from 'phosphor-react';
+import { ChalkboardTeacher, GearSix, Lightning, NotePencil, UsersFour } from '@phosphor-icons/react';
 import { StorageKey } from '@/constants/storage/storage';
 import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { NamingSettingsType, SettingsTabs } from '@/routes/settings/-constants/terms';

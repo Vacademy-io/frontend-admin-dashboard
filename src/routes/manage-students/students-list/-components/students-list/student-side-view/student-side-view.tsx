@@ -2,7 +2,7 @@ import { Sidebar, SidebarContent, SidebarHeader } from '@/components/ui/sidebar'
 import { useSidebar } from '@/components/ui/sidebar';
 import { X } from '@phosphor-icons/react';
 import { useState, useEffect, useRef } from 'react';
-import { DummyProfile } from '@/assets/svgs';
+import DummyProfile from '@/assets/svgs/dummy_profile_photo.svg';
 import { StatusChips } from '@/components/design-system/chips';
 import { StudentOverview } from './student-overview/student-overview';
 import { StudentLearningProgress } from './student-learning-progress/student-learning-progress';

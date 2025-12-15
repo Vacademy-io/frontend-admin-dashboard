@@ -3,7 +3,7 @@ import { MyDialog } from '@/components/design-system/dialog';
 import { useState } from 'react';
 import { AddModulesForm } from './add-modules-form';
 import { Module } from '@/stores/study-library/use-modules-with-chapters-store';
-import { Plus } from 'phosphor-react';
+import { Plus } from '@phosphor-icons/react';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 

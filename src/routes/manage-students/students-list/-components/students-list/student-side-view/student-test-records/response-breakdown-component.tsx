@@ -4,7 +4,9 @@ import {
     ChartTooltip,
     ChartTooltipContent,
 } from '@/components/ui/chart';
-import { Pie, PieChart } from 'recharts';
+import React, { Suspense } from 'react';
+const PieChart = React.lazy(() => import('recharts').then(module => ({ default: module.PieChart as unknown as React.ComponentType<any> })));
+const Pie = React.lazy(() => import('recharts').then(module => ({ default: module.Pie as unknown as React.ComponentType<any> })));
 
 interface ResponseData {
     attempted: number;
@@ -37,16 +39,18 @@ export function ResponseBreakdownComponent({ responseData }: { responseData: Res
     ];
     return (
         <ChartContainer config={chartConfig} className="mx-auto aspect-square h-[180px]">
-            <PieChart>
-                <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                <Pie
-                    data={chartData}
-                    dataKey="value"
-                    nameKey="responseType"
-                    innerRadius={42}
-                    strokeWidth={2}
-                />
-            </PieChart>
+            <Suspense fallback={<div className="h-full w-full animate-pulse bg-gray-100 rounded-full opacity-20" />}>
+                <PieChart>
+                    <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                    <Pie
+                        data={chartData}
+                        dataKey="value"
+                        nameKey="responseType"
+                        innerRadius={42}
+                        strokeWidth={2}
+                    />
+                </PieChart>
+            </Suspense>
         </ChartContainer>
     );
 }

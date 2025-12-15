@@ -1,5 +1,5 @@
 import QRCode from 'react-qr-code';
-import { Copy, DownloadSimple, DotsThree } from 'phosphor-react';
+import { Copy, DownloadSimple, DotsThree } from '@phosphor-icons/react';
 import { MyButton } from '@/components/design-system/button';
 import { copyToClipboard } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper';
 import {

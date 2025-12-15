@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X } from 'phosphor-react';
+import { X } from '@phosphor-icons/react';
 
 export interface MultiSelectOption {
     id: string | number;

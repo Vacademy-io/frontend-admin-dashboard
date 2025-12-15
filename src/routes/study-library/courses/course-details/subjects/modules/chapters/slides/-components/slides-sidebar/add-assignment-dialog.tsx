@@ -6,7 +6,7 @@ import { useContentStore } from '../../-stores/chapter-sidebar-store';
 import { Route } from '../..';
 import { useSlidesMutations } from '../../-hooks/use-slides';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { CheckCircle, File } from 'phosphor-react';
+import { CheckCircle, File } from '@phosphor-icons/react';
 import { getSlideStatusForUser } from '../../non-admin/hooks/useNonAdminSlides';
 
 const AddAssignmentDialog = ({

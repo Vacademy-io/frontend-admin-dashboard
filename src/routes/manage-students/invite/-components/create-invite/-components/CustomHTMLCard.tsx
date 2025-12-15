@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { UseFormReturn } from 'react-hook-form';
 import { InviteLinkFormValues } from '../GenerateInviteLinkSchema';
-import { CodeSimple } from 'phosphor-react';
+import { CodeSimple } from '@phosphor-icons/react';
 import { PPTViewQuillEditor } from '@/components/quill/PPTViewQuillEditor';
 
 interface InviteViaEmailCardProps {

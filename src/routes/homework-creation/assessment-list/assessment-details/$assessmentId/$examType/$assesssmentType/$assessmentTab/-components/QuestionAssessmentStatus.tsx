@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StudentSidebarContext } from '@/routes/manage-students/students-list/-context/selected-student-sidebar-context';
 import { StudentTable } from '@/types/student-table-types';
-import { ArrowCounterClockwise } from 'phosphor-react';
+import { ArrowCounterClockwise } from '@phosphor-icons/react';
 import { useEffect, useState } from 'react';
 import {
     getAllColumnsForTableQuestionWise,

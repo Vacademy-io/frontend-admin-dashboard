@@ -42,7 +42,7 @@ import {
     PresentationChart,
     CornersOut,
     CornersIn,
-} from 'phosphor-react';
+} from '@phosphor-icons/react';
 import Students from './student-list';
 import Assessments from './assessment-list';
 import Planning from './planning';

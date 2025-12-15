@@ -1,5 +1,5 @@
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
-import { SlideMaterial } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/slide-material';
+const SlideMaterial = React.lazy(() => import('@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/slide-material').then(module => ({ default: module.SlideMaterial })));
 import { ChapterSidebarAddButton } from '../-components/slides-sidebar/slides-sidebar-add-button';
 import { ChapterSidebarSlides } from '../-components/slides-sidebar/slides-sidebar-slides';
 import '../slides-sidebar-scrollbar.css';
@@ -17,10 +17,10 @@ import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore
 import { useChapterName } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getChapterNameById';
 import { getModuleName } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getModuleNameById';
 import { getSubjectName } from '@/utils/helpers/study-library-helpers.ts/get-name-by-id/getSubjectNameById';
-import { ChevronRightIcon } from '@radix-ui/react-icons';
+import { ChevronRight } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
-import { CaretLeft, Eye, UserGear, Lock } from 'phosphor-react';
-import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import { CaretLeft, Eye, UserGear, Lock } from '@phosphor-icons/react';
+import React, { useEffect, useRef, useState, useMemo, useCallback, Suspense } from 'react';
 import { SaveDraftProvider } from '../-context/saveDraftContext';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 import { useModulesWithChaptersStore } from '@/stores/study-library/use-modules-with-chapters-store';
@@ -244,7 +244,7 @@ export function NonAdminSlidesView({
                         // Add first chevron if subject is not default and module is not default
                         if (!isSubjectDefault && !isModuleDefault) {
                             breadcrumbItems.push(
-                                <ChevronRightIcon
+                                <ChevronRight
                                     key="chevron1"
                                     className="size-3.5 shrink-0 text-neutral-400"
                                 />
@@ -269,7 +269,7 @@ export function NonAdminSlidesView({
                         // Add second chevron if module is not default and chapter is not default
                         if (!isModuleDefault && !isChapterDefault) {
                             breadcrumbItems.push(
-                                <ChevronRightIcon
+                                <ChevronRight
                                     key="chevron2"
                                     className="size-3.5 shrink-0 text-neutral-400"
                                 />
@@ -369,15 +369,19 @@ export function NonAdminSlidesView({
                 <InitStudyLibraryProvider>
                     <ModulesWithChaptersProvider>
                         <SidebarProvider defaultOpen={false}>
-                            <SlideMaterial
-                                setGetCurrentEditorHTMLContent={(fn) =>
-                                    (getCurrentEditorHTMLContentRef.current = fn)
-                                }
-                                setSaveDraft={() => {}} // Not used when customSaveFunction is provided
-                                isLearnerView={isLearnerView}
-                                hidePublishButtons={true}
-                                customSaveFunction={customSaveDraft}
-                            />
+                            <SidebarProvider defaultOpen={false}>
+                                <Suspense fallback={<div className="h-full w-full animate-pulse bg-gray-100" />}>
+                                    <SlideMaterial
+                                        setGetCurrentEditorHTMLContent={(fn) =>
+                                            (getCurrentEditorHTMLContentRef.current = fn)
+                                        }
+                                        setSaveDraft={() => { }} // Not used when customSaveFunction is provided
+                                        isLearnerView={isLearnerView}
+                                        hidePublishButtons={true}
+                                        customSaveFunction={customSaveDraft}
+                                    />
+                                </Suspense>
+                            </SidebarProvider>
                         </SidebarProvider>
                     </ModulesWithChaptersProvider>
                 </InitStudyLibraryProvider>

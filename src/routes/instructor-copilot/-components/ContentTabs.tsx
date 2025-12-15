@@ -17,7 +17,7 @@ import {
     CaretLeft,
     CaretRight,
     MagicWand,
-} from 'phosphor-react';
+} from '@phosphor-icons/react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { InstructorCopilotLog } from '@/services/instructor-copilot';
 import ReactMarkdown from 'react-markdown';

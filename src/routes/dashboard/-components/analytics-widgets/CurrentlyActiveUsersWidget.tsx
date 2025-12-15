@@ -14,7 +14,7 @@ import {
     Gear,
     PlayCircle,
     ChartBar,
-} from 'phosphor-react';
+} from '@phosphor-icons/react';
 
 interface CurrentlyActiveUsersWidgetProps {
     instituteId: string;

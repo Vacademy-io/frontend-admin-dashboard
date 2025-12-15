@@ -9,7 +9,7 @@
 // import { useSessionManager } from "../../../../-hooks/useSessionManager";
 // import SelectField from "@/components/design-system/select-field";
 // import { MyButton } from "@/components/design-system/button";
-// import { PencilSimple } from "phosphor-react";
+// import { PencilSimple } from "@phosphor-icons/react";
 // import { SessionList } from "../session/SessionList";
 // import { useInviteFormContext } from "@/routes/students/invite/-context/useInviteFormContext";
 

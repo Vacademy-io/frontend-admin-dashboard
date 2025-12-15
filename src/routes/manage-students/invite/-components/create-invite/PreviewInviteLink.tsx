@@ -4,7 +4,7 @@ import { Separator } from '@/components/ui/separator';
 import { Award, Target, Info, BookOpen, RotateCcw } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { MyButton } from '@/components/design-system/button';
-import { Check, Eye, GraduationCap, X } from 'phosphor-react';
+import { Check, Eye, GraduationCap, X } from '@phosphor-icons/react';
 import { FormProvider, useForm, UseFormReturn } from 'react-hook-form';
 import { InviteLinkFormValues } from './GenerateInviteLinkSchema';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';

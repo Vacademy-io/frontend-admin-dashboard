@@ -12,7 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertCircle, Plus, Minus, Edit, CheckCircle, X } from 'lucide-react';
-import { Spinner } from 'phosphor-react';
+import { Spinner } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';

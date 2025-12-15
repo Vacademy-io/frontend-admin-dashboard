@@ -1,10 +1,6 @@
-import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { createFileRoute } from '@tanstack/react-router';
-import { ScheduleTestMainComponent } from './-components/ScheduleTestMainComponent';
+
+// Route definition only - component is lazy loaded from index.lazy.tsx
 export const Route = createFileRoute('/evaluation/evaluations/')({
-    component: () => (
-        <LayoutContainer>
-            <ScheduleTestMainComponent />
-        </LayoutContainer>
-    ),
+    // Component is defined in index.lazy.tsx
 });
