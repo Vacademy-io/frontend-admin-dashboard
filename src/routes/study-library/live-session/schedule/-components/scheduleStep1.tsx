@@ -24,7 +24,7 @@ import {
 } from '../../-constants/enums';
 import { WEEK_DAYS } from '../../-constants/type';
 import { sessionFormSchema } from '../-schema/schema';
-import { Trash, UploadSimple, X, Plus, Copy, Eye, MusicNote } from 'phosphor-react';
+import { Trash, UploadSimple, X, Plus, Copy, Eye, MusicNote } from '@phosphor-icons/react';
 import { MyDialog } from '@/components/design-system/dialog';
 // import { MeetLogo, YoutubeLogo, ZoomLogo } from '@/svgs';
 import { transformFormToDTOStep1, timeOptions } from '../../-constants/helper';
@@ -37,7 +37,7 @@ import { UploadFileInS3, getPublicUrl } from '@/services/upload_file';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { XCircle } from 'phosphor-react';
+import { XCircle } from '@phosphor-icons/react';
 import {
     Select,
     SelectContent,

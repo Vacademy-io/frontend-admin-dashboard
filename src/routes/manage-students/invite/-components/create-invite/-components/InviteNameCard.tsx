@@ -2,7 +2,7 @@ import { UseFormReturn } from 'react-hook-form';
 import { InviteLinkFormValues } from '../GenerateInviteLinkSchema';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormField, FormItem, FormControl } from '@/components/ui/form';
-import { AddressBook } from 'phosphor-react';
+import { AddressBook } from '@phosphor-icons/react';
 import { MyInput } from '@/components/design-system/input';
 
 interface DiscountSettingsDialogProps {

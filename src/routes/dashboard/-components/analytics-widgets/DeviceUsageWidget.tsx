@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchAnalyticsEngagementTrends } from '../../-services/dashboard-services';
 import { useTheme } from '@/providers/theme/theme-provider';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { Desktop, DeviceMobile, DeviceTablet } from 'phosphor-react';
+import { Desktop, DeviceMobile, DeviceTablet } from '@phosphor-icons/react';
 
 interface DeviceUsageWidgetProps {
     instituteId: string;

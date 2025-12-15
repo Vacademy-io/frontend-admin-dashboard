@@ -6,7 +6,7 @@ import {
     BatchType,
     batchWithStudentDetails,
 } from '@/routes/manage-institute/batches/-types/manage-batches-types';
-import { Plus, TrashSimple, Users, Copy } from 'phosphor-react';
+import { Plus, TrashSimple, Users, Copy } from '@phosphor-icons/react';
 import { useNavigate } from '@tanstack/react-router';
 import { useGetStudentBatch } from '@/routes/manage-students/students-list/-hooks/useGetStudentBatch';
 import { EnrollManuallyButton } from '@/components/common/students/enroll-manually/enroll-manually-button';

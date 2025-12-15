@@ -12,7 +12,7 @@ import { StudentSidebarContext } from '@/routes/manage-students/students-list/-c
 import { StudentTable } from '@/types/student-table-types';
 import { ContactUser } from '../-types/contact-types';
 import { getContactColumns } from './contacts-table-columns';
-import { EmptyStudentListImage } from '@/assets/svgs';
+import EmptyStudentListImage from '@/assets/svgs/empty-students-image.svg';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 
 export const ContactsListSection = () => {

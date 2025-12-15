@@ -9,7 +9,7 @@ import {
     VideoPlayerTimeFormType,
     videoPlayerTimeSchema,
 } from '../-form-schemas/video-player-time-schema';
-import { PencilSimpleLine } from 'phosphor-react';
+import { PencilSimpleLine } from '@phosphor-icons/react';
 import { StudyLibraryQuestion } from '@/types/study-library/study-library-video-questions';
 import { toast } from 'sonner';
 import { formatTimeStudyLibraryInSeconds, timestampToSeconds } from '../-helper/helper';

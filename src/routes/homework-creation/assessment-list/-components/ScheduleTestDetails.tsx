@@ -2,7 +2,7 @@ import { TestContent } from '@/types/assessments/schedule-test-list';
 import { MyButton } from '@/components/design-system/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { CheckCircle, Copy, DownloadSimple, LockSimple, PauseCircle } from 'phosphor-react';
+import { CheckCircle, Copy, DownloadSimple, LockSimple, PauseCircle } from '@phosphor-icons/react';
 import QRCode from 'react-qr-code';
 import { convertToLocalDateTime } from '@/constants/helper';
 import { useSuspenseQuery } from '@tanstack/react-query';

@@ -1,9 +1,10 @@
 /* eslint-disable */
-import YooptaEditor, { createYooptaEditor } from '@yoopta/editor';
-import { useEffect, useMemo, useRef, useCallback, type ChangeEvent } from 'react';
+import { createYooptaEditor } from '@yoopta/editor';
+import React, { useEffect, useMemo, useRef, useCallback, type ChangeEvent, Suspense } from 'react';
+const YooptaEditorWrapper = React.lazy(() => import('./YooptaEditorWrapper').then(module => ({ default: module.YooptaEditorWrapper })));
 import '../excalidraw-z-index-fix.css';
 import { MyButton } from '@/components/design-system/button';
-import PDFViewer from './pdf-viewer';
+const PDFViewer = React.lazy(() => import('./pdf-viewer'));
 import { ActivityStatsSidebar } from './stats-dialog/activity-sidebar';
 import { useContentStore } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { EmptySlideMaterial } from '@/assets/svgs';
@@ -20,7 +21,7 @@ import {
     useSlidesMutations,
 } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
 import { toast } from 'sonner';
-import { Check, DownloadSimple, PencilSimpleLine, Trash, FloppyDisk } from 'phosphor-react';
+import { Check, DownloadSimple, PencilSimpleLine, Trash, FloppyDisk } from '@phosphor-icons/react';
 import { AlertCircle } from 'lucide-react';
 import {
     converDataToAssignmentFormat,
@@ -36,7 +37,7 @@ import { handleUnpublishSlide } from './slide-operations/handleUnpublishSlide';
 import { updateHeading } from './slide-operations/updateSlideHeading';
 import { formatHTMLString, stripAwsQueryParamsFromUrls } from './slide-operations/formatHtmlString';
 import { handleConvertAndUpload } from './slide-operations/handleConvertUpload';
-import SlideEditor from './SlideEditor';
+const SlideEditor = React.lazy(() => import('./SlideEditor'));
 import type { JSX } from 'react/jsx-runtime';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
@@ -233,27 +234,35 @@ export const SlideMaterial = ({
                         <span className="text-lg">Click to start writing here...</span>
                     </div>
                 )}
-                <YooptaEditor
-                    editor={editor}
-                    plugins={plugins}
-                    tools={TOOLS}
-                    marks={MARKS}
-                    value={editor.children}
-                    selectionBoxRoot={selectionRef}
-                    autoFocus={true}
-                    onChange={() => {
-                        // Get current editor content and check if it's empty
-                        const currentContent = html.serialize(editor, editor.children);
-                        const currentIsEmpty = checkIsEmpty(currentContent);
+                <Suspense
+                    fallback={
+                        <div className="flex items-center justify-center p-8">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+                        </div>
+                    }
+                >
+                    <YooptaEditorWrapper
+                        editor={editor}
+                        plugins={plugins}
+                        tools={TOOLS}
+                        marks={MARKS}
+                        value={editor.children}
+                        selectionBoxRoot={selectionRef}
+                        autoFocus={true}
+                        onChange={() => {
+                            // Get current editor content and check if it's empty
+                            const currentContent = html.serialize(editor, editor.children);
+                            const currentIsEmpty = checkIsEmpty(currentContent);
 
-                        // Update placeholder state
-                        setShowPlaceholder(currentIsEmpty);
-                        // Track current DOC HTML for unsaved-change detection (no store mutation)
-                        currentDocHtmlRef.current = formatHTMLString(currentContent || '');
-                    }}
-                    className="size-full"
-                    style={{ width: '100%', height: '100%', minHeight: '200px' }}
-                />
+                            // Update placeholder state
+                            setShowPlaceholder(currentIsEmpty);
+                            // Track current DOC HTML for unsaved-change detection (no store mutation)
+                            currentDocHtmlRef.current = formatHTMLString(currentContent || '');
+                        }}
+                        className="size-full"
+                        style={{ width: '100%', height: '100%', minHeight: '200px' }}
+                    />
+                </Suspense>
             </div>
         );
     };
@@ -512,13 +521,13 @@ export const SlideMaterial = ({
                             status: newStatus,
                             document_slide: activeItem.document_slide
                                 ? {
-                                      ...activeItem.document_slide,
-                                      data: fileId, // Update local state with new fileId
-                                      published_data:
-                                          newStatus === 'PUBLISHED'
-                                              ? fileId
-                                              : activeItem.document_slide.published_data, // Update published_data for auto-publish
-                                  }
+                                    ...activeItem.document_slide,
+                                    data: fileId, // Update local state with new fileId
+                                    published_data:
+                                        newStatus === 'PUBLISHED'
+                                            ? fileId
+                                            : activeItem.document_slide.published_data, // Update published_data for auto-publish
+                                }
                                 : undefined,
                         };
                         setActiveItem(updatedActiveItem);
@@ -528,13 +537,13 @@ export const SlideMaterial = ({
                             status: newStatus,
                             document_slide: activeItem.document_slide
                                 ? {
-                                      ...activeItem.document_slide,
-                                      data: fileId,
-                                      published_data:
-                                          newStatus === 'PUBLISHED'
-                                              ? fileId
-                                              : activeItem.document_slide.published_data, // Update published_data for auto-publish
-                                  }
+                                    ...activeItem.document_slide,
+                                    data: fileId,
+                                    published_data:
+                                        newStatus === 'PUBLISHED'
+                                            ? fileId
+                                            : activeItem.document_slide.published_data, // Update published_data for auto-publish
+                                }
                                 : undefined,
                         };
                     }
@@ -665,9 +674,9 @@ export const SlideMaterial = ({
                         splitScreenData={activeItem.splitScreenData as any}
                         slideType={
                             activeItem.splitScreenType as
-                                | 'SPLIT_JUPYTER'
-                                | 'SPLIT_SCRATCH'
-                                | 'SPLIT_CODE'
+                            | 'SPLIT_JUPYTER'
+                            | 'SPLIT_SCRATCH'
+                            | 'SPLIT_CODE'
                         }
                         isEditable={activeItem.status !== 'PUBLISHED'}
                         currentSlideId={activeItem.id}
@@ -792,8 +801,8 @@ export const SlideMaterial = ({
                 const fileId = isLearnerView
                     ? activeItem.document_slide?.published_data
                     : activeItem.status === 'PUBLISHED'
-                      ? activeItem.document_slide?.published_data
-                      : activeItem.document_slide?.data;
+                        ? activeItem.document_slide?.published_data
+                        : activeItem.document_slide?.data;
                 // Only set a new key if the id changes
                 if (!stableKeyRef.current || !stableKeyRef.current.includes(activeItem.id)) {
                     stableKeyRef.current = `slide-editor-${activeItem.id}-${Date.now()}`;
@@ -801,34 +810,37 @@ export const SlideMaterial = ({
 
                 setContent(
                     <div className="relative z-30 size-full">
-                        <SlideEditor
-                            key={stableKeyRef.current} // Use stable key during operations
-                            slideId={activeItem.id}
-                            initialData={{
-                                elements: [],
-                                files: {},
-                                appState: {},
-                            }}
-                            fileId={fileId || undefined}
-                            onChange={handleExcalidrawChange}
-                            editable={!isLearnerView && activeItem.status !== 'PUBLISHED'}
-                            isSaving={isSaving}
-                            onEditorReady={(state) => {
-                                getCurrentExcalidrawStateRef.current = state;
-                            }}
-                            onBusyStateChange={(isBusy) => {
-                                const wasBusy = isExcalidrawBusyRef.current;
-                                isExcalidrawBusyRef.current = isBusy;
+                        <Suspense fallback={<div className="flex aspect-[4/3] w-full items-center justify-center border bg-slate-50"><div className="flex flex-col items-center"><div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-primary-600"></div><span className="text-sm text-slate-500">Loading editor...</span></div></div>}>
+                            <SlideEditor
+                                key={stableKeyRef.current} // Use stable key during operations
+                                slideId={activeItem.id}
+                                initialData={{
+                                    elements: [],
+                                    files: {},
+                                    appState: {},
+                                }}
+                                fileId={fileId || undefined}
+                                onChange={handleExcalidrawChange}
+                                editable={!isLearnerView && activeItem.status !== 'PUBLISHED'}
+                                isSaving={isSaving}
+                                onEditorReady={(state) => {
+                                    getCurrentExcalidrawStateRef.current = state;
+                                }}
+                                onBusyStateChange={(isBusy) => {
+                                    const wasBusy = isExcalidrawBusyRef.current;
+                                    isExcalidrawBusyRef.current = isBusy;
 
-                                // If operation just completed and we have a pending update, apply it
-                                if (wasBusy && !isBusy && pendingStateUpdateRef.current) {
-                                    const pendingUpdate = pendingStateUpdateRef.current;
-                                    setActiveItem(pendingUpdate);
-                                    pendingStateUpdateRef.current = null;
-                                    // Keep stable key unchanged to prevent component rebuilds
-                                }
-                            }}
-                        />
+                                    // If operation just completed and we have a pending update, apply it
+                                    if (wasBusy && !isBusy && pendingStateUpdateRef.current) {
+                                        const pendingUpdate = pendingStateUpdateRef.current;
+                                        setActiveItem(pendingUpdate);
+                                        pendingStateUpdateRef.current = null;
+                                        // Keep stable key unchanged to prevent component rebuilds
+                                    }
+                                }}
+                            />
+                        </Suspense>
+
                     </div>
                 );
                 return;
@@ -838,11 +850,15 @@ export const SlideMaterial = ({
                 const data = isLearnerView
                     ? activeItem.document_slide?.published_data || null
                     : activeItem.status === 'PUBLISHED'
-                      ? activeItem.document_slide?.published_data || null
-                      : activeItem.document_slide?.data || '';
+                        ? activeItem.document_slide?.published_data || null
+                        : activeItem.document_slide?.data || '';
 
                 const url = await getPublicUrl(data || '');
-                setContent(<PDFViewer pdfUrl={url} />);
+                setContent(
+                    <Suspense fallback={<div className="h-full w-full animate-pulse bg-gray-100" />}>
+                        <PDFViewer pdfUrl={url} />
+                    </Suspense>
+                );
                 return;
             }
 
@@ -851,11 +867,11 @@ export const SlideMaterial = ({
                     // In learner view, always use published_data, otherwise use existing logic
                     const rawData = isLearnerView
                         ? activeItem.document_slide?.published_data ||
-                          activeItem.document_slide?.data
+                        activeItem.document_slide?.data
                         : activeItem.status === 'PUBLISHED'
-                          ? activeItem.document_slide?.data ||
+                            ? activeItem.document_slide?.data ||
                             activeItem.document_slide?.published_data
-                          : activeItem.document_slide?.data;
+                            : activeItem.document_slide?.data;
 
                     const notebookData = rawData
                         ? JSON.parse(rawData)
@@ -908,12 +924,12 @@ export const SlideMaterial = ({
                                         title: updatedNotebookData.projectName || activeItem.title,
                                         document_slide: activeItem.document_slide
                                             ? {
-                                                  ...activeItem.document_slide,
-                                                  title:
-                                                      updatedNotebookData.projectName ||
-                                                      activeItem.document_slide.title,
-                                                  data: JSON.stringify(updatedNotebookData),
-                                              }
+                                                ...activeItem.document_slide,
+                                                title:
+                                                    updatedNotebookData.projectName ||
+                                                    activeItem.document_slide.title,
+                                                data: JSON.stringify(updatedNotebookData),
+                                            }
                                             : undefined,
                                     };
                                     setActiveItem(updatedActiveItem);
@@ -974,15 +990,15 @@ export const SlideMaterial = ({
                                                             activeItem.title,
                                                         document_slide: activeItem.document_slide
                                                             ? {
-                                                                  ...activeItem.document_slide,
-                                                                  title:
-                                                                      newNotebookData.projectName ||
-                                                                      activeItem.document_slide
-                                                                          .title,
-                                                                  data: JSON.stringify(
-                                                                      newNotebookData
-                                                                  ),
-                                                              }
+                                                                ...activeItem.document_slide,
+                                                                title:
+                                                                    newNotebookData.projectName ||
+                                                                    activeItem.document_slide
+                                                                        .title,
+                                                                data: JSON.stringify(
+                                                                    newNotebookData
+                                                                ),
+                                                            }
                                                             : undefined,
                                                     });
                                                 };
@@ -1010,7 +1026,7 @@ export const SlideMaterial = ({
                     const rawData =
                         activeItem.status === 'PUBLISHED'
                             ? activeItem.document_slide?.data ||
-                              activeItem.document_slide?.published_data
+                            activeItem.document_slide?.published_data
                             : activeItem.document_slide?.data;
 
                     const scratchData = rawData
@@ -1061,12 +1077,12 @@ export const SlideMaterial = ({
                                         title: updatedScratchData.projectName || activeItem.title,
                                         document_slide: activeItem.document_slide
                                             ? {
-                                                  ...activeItem.document_slide,
-                                                  title:
-                                                      updatedScratchData.projectName ||
-                                                      activeItem.document_slide.title,
-                                                  data: JSON.stringify(updatedScratchData),
-                                              }
+                                                ...activeItem.document_slide,
+                                                title:
+                                                    updatedScratchData.projectName ||
+                                                    activeItem.document_slide.title,
+                                                data: JSON.stringify(updatedScratchData),
+                                            }
                                             : undefined,
                                     };
                                     setActiveItem(updatedActiveItem);
@@ -1128,15 +1144,15 @@ export const SlideMaterial = ({
                                                             activeItem.title,
                                                         document_slide: activeItem.document_slide
                                                             ? {
-                                                                  ...activeItem.document_slide,
-                                                                  title:
-                                                                      newScratchData.projectName ||
-                                                                      activeItem.document_slide
-                                                                          .title,
-                                                                  data: JSON.stringify(
-                                                                      newScratchData
-                                                                  ),
-                                                              }
+                                                                ...activeItem.document_slide,
+                                                                title:
+                                                                    newScratchData.projectName ||
+                                                                    activeItem.document_slide
+                                                                        .title,
+                                                                data: JSON.stringify(
+                                                                    newScratchData
+                                                                ),
+                                                            }
                                                             : undefined,
                                                     });
                                                 };
@@ -1164,7 +1180,7 @@ export const SlideMaterial = ({
                     const rawData =
                         activeItem.status === 'PUBLISHED'
                             ? activeItem.document_slide?.data ||
-                              activeItem.document_slide?.published_data
+                            activeItem.document_slide?.published_data
                             : activeItem.document_slide?.data;
 
                     const codeData = rawData
@@ -1195,7 +1211,7 @@ export const SlideMaterial = ({
                                             total_pages: 1,
                                             published_data:
                                                 hidePublishButtons ||
-                                                activeItem.status === 'PUBLISHED'
+                                                    activeItem.status === 'PUBLISHED'
                                                     ? JSON.stringify(updatedCodeData)
                                                     : null,
                                             published_document_total_pages: 1,
@@ -1210,9 +1226,9 @@ export const SlideMaterial = ({
                                         ...activeItem,
                                         document_slide: activeItem.document_slide
                                             ? {
-                                                  ...activeItem.document_slide,
-                                                  data: JSON.stringify(updatedCodeData),
-                                              }
+                                                ...activeItem.document_slide,
+                                                data: JSON.stringify(updatedCodeData),
+                                            }
                                             : undefined,
                                     });
                                 } catch (error) {
@@ -1236,7 +1252,7 @@ export const SlideMaterial = ({
                     const rawData =
                         activeItem.status === 'PUBLISHED'
                             ? activeItem.document_slide?.data ||
-                              activeItem.document_slide?.published_data
+                            activeItem.document_slide?.published_data
                             : activeItem.document_slide?.data;
 
                     const splitScreenData = rawData
@@ -1282,9 +1298,9 @@ export const SlideMaterial = ({
                                         ...activeItem,
                                         document_slide: activeItem.document_slide
                                             ? {
-                                                  ...activeItem.document_slide,
-                                                  data: JSON.stringify(updatedSplitData),
-                                              }
+                                                ...activeItem.document_slide,
+                                                data: JSON.stringify(updatedSplitData),
+                                            }
                                             : undefined,
                                     });
                                 } catch (error) {
@@ -1414,8 +1430,8 @@ export const SlideMaterial = ({
                     ? slide.status == 'PUBLISHED'
                         ? 'UNSYNC'
                         : slide.status == 'UNSYNC'
-                          ? 'UNSYNC'
-                          : 'DRAFT'
+                            ? 'UNSYNC'
+                            : 'DRAFT'
                     : 'DRAFT';
             }
 
@@ -1615,7 +1631,7 @@ export const SlideMaterial = ({
                     const rawData =
                         activeItem.status === 'PUBLISHED'
                             ? activeItem.document_slide?.data ||
-                              activeItem.document_slide?.published_data
+                            activeItem.document_slide?.published_data
                             : activeItem.document_slide?.data;
 
                     // CRITICAL FIX: Don't save if rawData is empty/null to prevent data loss
@@ -1627,12 +1643,12 @@ export const SlideMaterial = ({
                             activeItem.document_slide.type === 'CODE'
                                 ? 'Code Editor'
                                 : activeItem.document_slide.type === 'JUPYTER'
-                                  ? 'Jupyter Notebook'
-                                  : activeItem.document_slide.type === 'SCRATCH'
-                                    ? 'Scratch Project'
-                                    : activeItem.document_slide.type?.startsWith('SPLIT_')
-                                      ? `Split Screen ${activeItem.document_slide.type.replace('SPLIT_', '')}`
-                                      : 'Interactive Slide';
+                                    ? 'Jupyter Notebook'
+                                    : activeItem.document_slide.type === 'SCRATCH'
+                                        ? 'Scratch Project'
+                                        : activeItem.document_slide.type?.startsWith('SPLIT_')
+                                            ? `Split Screen ${activeItem.document_slide.type.replace('SPLIT_', '')}`
+                                            : 'Interactive Slide';
                         toast.success(`${slideTypeName} is already up to date!`);
                         return;
                     }
@@ -1662,12 +1678,12 @@ export const SlideMaterial = ({
                         activeItem.document_slide.type === 'CODE'
                             ? 'Code Editor'
                             : activeItem.document_slide.type === 'JUPYTER'
-                              ? 'Jupyter Notebook'
-                              : activeItem.document_slide.type === 'SCRATCH'
-                                ? 'Scratch Project'
-                                : activeItem.document_slide.type?.startsWith('SPLIT_')
-                                  ? `Split Screen ${activeItem.document_slide.type.replace('SPLIT_', '')}`
-                                  : 'Interactive Slide';
+                                ? 'Jupyter Notebook'
+                                : activeItem.document_slide.type === 'SCRATCH'
+                                    ? 'Scratch Project'
+                                    : activeItem.document_slide.type?.startsWith('SPLIT_')
+                                        ? `Split Screen ${activeItem.document_slide.type.replace('SPLIT_', '')}`
+                                        : 'Interactive Slide';
                     toast.success(`${slideTypeName} saved successfully!`);
                 } catch (error) {
                     console.error(`Error saving ${activeItem.document_slide.type} slide:`, error);
@@ -1780,7 +1796,7 @@ export const SlideMaterial = ({
 
             const publishedFileId = await UploadFileInS3(
                 jsonFile,
-                () => {}, // No progress callback needed
+                () => { }, // No progress callback needed
                 USER_ID || '',
                 INSTITUTE_ID,
                 'ADMIN',
@@ -1820,10 +1836,10 @@ export const SlideMaterial = ({
                 status: 'PUBLISHED' as any,
                 document_slide: activeItem.document_slide
                     ? {
-                          ...activeItem.document_slide,
-                          data: publishedFileId,
-                          published_data: publishedFileId,
-                      }
+                        ...activeItem.document_slide,
+                        data: publishedFileId,
+                        published_data: publishedFileId,
+                    }
                     : undefined,
             };
             setActiveItem(updatedActiveItem);
@@ -1849,7 +1865,7 @@ export const SlideMaterial = ({
                 const rawData =
                     activeItem.status === 'PUBLISHED'
                         ? activeItem.document_slide?.data ||
-                          activeItem.document_slide?.published_data
+                        activeItem.document_slide?.published_data
                         : activeItem.document_slide?.data;
 
                 // If no valid data exists, skip manual save as auto-save handles these slides
@@ -1858,12 +1874,12 @@ export const SlideMaterial = ({
                         activeItem.document_slide.type === 'CODE'
                             ? 'Code Editor'
                             : activeItem.document_slide.type === 'JUPYTER'
-                              ? 'Jupyter Notebook'
-                              : activeItem.document_slide.type === 'SCRATCH'
-                                ? 'Scratch Project'
-                                : activeItem.document_slide.type?.startsWith('SPLIT_')
-                                  ? `Split Screen ${activeItem.document_slide.type.replace('SPLIT_', '')}`
-                                  : 'Interactive Slide';
+                                ? 'Jupyter Notebook'
+                                : activeItem.document_slide.type === 'SCRATCH'
+                                    ? 'Scratch Project'
+                                    : activeItem.document_slide.type?.startsWith('SPLIT_')
+                                        ? `Split Screen ${activeItem.document_slide.type.replace('SPLIT_', '')}`
+                                        : 'Interactive Slide';
 
                     toast.success(`${slideTypeName} is up to date! Changes are auto-saved.`);
                     return;
@@ -1888,8 +1904,8 @@ export const SlideMaterial = ({
         setHeading(activeItem?.title || '');
         setSlideTitle(
             (activeItem?.source_type === 'DOCUMENT' && activeItem?.document_slide?.title) ||
-                (activeItem?.source_type === 'VIDEO' && activeItem?.video_slide?.title) ||
-                ''
+            (activeItem?.source_type === 'VIDEO' && activeItem?.video_slide?.title) ||
+            ''
         );
     }, [activeItem]);
 
@@ -1990,62 +2006,62 @@ export const SlideMaterial = ({
                             >
                                 Discard
                             </MyButton>
-                                <MyButton
-                                    buttonType="primary"
-                                    scale="medium"
-                                    onClick={async () => {
-                                        try {
-                                            const slide = unsavedDocPrompt.slide!;
-                                            const htmlString = unsavedDocPrompt.html;
+                            <MyButton
+                                buttonType="primary"
+                                scale="medium"
+                                onClick={async () => {
+                                    try {
+                                        const slide = unsavedDocPrompt.slide!;
+                                        const htmlString = unsavedDocPrompt.html;
 
-                                            // Process images in HTML content before saving
-                                            let processedHtmlString = htmlString;
-                                            if (containsBase64Images(htmlString)) {
-                                                console.log('Processing base64 images in unsaved DOC content...');
-                                                const { processedHtml, uploadedImages, failedUploads } = await processHtmlImages(htmlString);
-                                                processedHtmlString = processedHtml;
+                                        // Process images in HTML content before saving
+                                        let processedHtmlString = htmlString;
+                                        if (containsBase64Images(htmlString)) {
+                                            console.log('Processing base64 images in unsaved DOC content...');
+                                            const { processedHtml, uploadedImages, failedUploads } = await processHtmlImages(htmlString);
+                                            processedHtmlString = processedHtml;
 
-                                                if (failedUploads > 0) {
-                                                    toast.error(`Warning: ${failedUploads} images failed to upload`);
-                                                }
-                                                if (uploadedImages > 0) {
-                                                    console.log(`Successfully processed ${uploadedImages} images in unsaved draft`);
-                                                }
+                                            if (failedUploads > 0) {
+                                                toast.error(`Warning: ${failedUploads} images failed to upload`);
                                             }
-
-                                            const { totalPages } = await convertHtmlToPdf(processedHtmlString);
-                                            const nextStatus = slide.status === 'PUBLISHED' ? 'UNSYNC' : 'DRAFT';
-                                            await addUpdateDocumentSlide({
-                                                id: slide.id,
-                                                title: slide.title || '',
-                                                image_file_id: '',
-                                                description: slide.description || '',
-                                                slide_order: null,
-                                                document_slide: {
-                                                    id: slide.document_slide?.id || '',
-                                                    type: 'DOC',
-                                                    data: processedHtmlString,
-                                                    title: slide.document_slide?.title || '',
-                                                    cover_file_id: '',
-                                                    total_pages: totalPages,
-                                                    published_data: slide.document_slide?.published_data || null,
-                                                    published_document_total_pages: 1,
-                                                },
-                                                status: nextStatus,
-                                                new_slide: false,
-                                                notify: false,
-                                            });
-                                            toast.success('Draft saved');
-                                        } catch (error) {
-                                            console.error('Error saving draft:', error);
-                                            toast.error('Failed to save draft');
-                                        } finally {
-                                            setUnsavedDocPrompt({ open: false, slide: null, html: '' });
+                                            if (uploadedImages > 0) {
+                                                console.log(`Successfully processed ${uploadedImages} images in unsaved draft`);
+                                            }
                                         }
-                                    }}
-                                >
-                                    Save as Draft
-                                </MyButton>
+
+                                        const { totalPages } = await convertHtmlToPdf(processedHtmlString);
+                                        const nextStatus = slide.status === 'PUBLISHED' ? 'UNSYNC' : 'DRAFT';
+                                        await addUpdateDocumentSlide({
+                                            id: slide.id,
+                                            title: slide.title || '',
+                                            image_file_id: '',
+                                            description: slide.description || '',
+                                            slide_order: null,
+                                            document_slide: {
+                                                id: slide.document_slide?.id || '',
+                                                type: 'DOC',
+                                                data: processedHtmlString,
+                                                title: slide.document_slide?.title || '',
+                                                cover_file_id: '',
+                                                total_pages: totalPages,
+                                                published_data: slide.document_slide?.published_data || null,
+                                                published_document_total_pages: 1,
+                                            },
+                                            status: nextStatus,
+                                            new_slide: false,
+                                            notify: false,
+                                        });
+                                        toast.success('Draft saved');
+                                    } catch (error) {
+                                        console.error('Error saving draft:', error);
+                                        toast.error('Failed to save draft');
+                                    } finally {
+                                        setUnsavedDocPrompt({ open: false, slide: null, html: '' });
+                                    }
+                                }}
+                            >
+                                Save as Draft
+                            </MyButton>
                         </div>
                     </div>
                 </div>
@@ -2106,7 +2122,7 @@ export const SlideMaterial = ({
                                                 if (activeItem.status === 'PUBLISHED') {
                                                     await handleConvertAndUpload(
                                                         activeItem.document_slide?.published_data ||
-                                                            null
+                                                        null
                                                     );
                                                 } else {
                                                     await handleConvertAndUpload(
@@ -2137,26 +2153,26 @@ export const SlideMaterial = ({
                                     (!hidePublishButtons &&
                                         activeItem?.source_type === 'VIDEO' &&
                                         activeItem?.splitScreenMode)) && ( // Keep split-screen condition for admin
-                                    <MyButton
-                                        buttonType="secondary"
-                                        scale="medium"
-                                        layoutVariant="default"
-                                        onClick={handleSaveDraftClick}
-                                        disabled={isSaving}
-                                        className={cn(isSaving && 'pointer-events-none')}
-                                    >
-                                        {isSaving ? (
-                                            <>
-                                                <Loader2 className="size-4 animate-spin text-primary-500 " />
-                                                Saving...
-                                            </>
-                                        ) : hidePublishButtons ? (
-                                            <FloppyDisk size={18} />
-                                        ) : (
-                                            'Save Draft'
-                                        )}
-                                    </MyButton>
-                                )}
+                                        <MyButton
+                                            buttonType="secondary"
+                                            scale="medium"
+                                            layoutVariant="default"
+                                            onClick={handleSaveDraftClick}
+                                            disabled={isSaving}
+                                            className={cn(isSaving && 'pointer-events-none')}
+                                        >
+                                            {isSaving ? (
+                                                <>
+                                                    <Loader2 className="size-4 animate-spin text-primary-500 " />
+                                                    Saving...
+                                                </>
+                                            ) : hidePublishButtons ? (
+                                                <FloppyDisk size={18} />
+                                            ) : (
+                                                'Save Draft'
+                                            )}
+                                        </MyButton>
+                                    )}
 
                                 {/* Single Publish/Unpublish Button - Hidden for non-admin users */}
                                 {!hidePublishButtons &&
@@ -2250,13 +2266,11 @@ export const SlideMaterial = ({
             )}
 
             <div
-                className={`mx-auto mt-14 ${
-                    activeItem?.document_slide?.type === 'PDF' ? 'h-[calc(100vh-200px)]' : 'h-full'
-                } relative z-20 w-full ${
-                    activeItem?.document_slide?.type === 'DOC'
+                className={`mx-auto mt-14 ${activeItem?.document_slide?.type === 'PDF' ? 'h-[calc(100vh-200px)]' : 'h-full'
+                    } relative z-20 w-full ${activeItem?.document_slide?.type === 'DOC'
                         ? 'overflow-visible'
                         : 'overflow-hidden'
-                }`}
+                    }`}
             >
                 {content}
             </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { MainStepComponent } from './MainStepComponent';
-import { CheckCircle } from 'phosphor-react';
+import { CheckCircle } from '@phosphor-icons/react';
 import { Helmet } from 'react-helmet';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useNavigate } from '@tanstack/react-router';

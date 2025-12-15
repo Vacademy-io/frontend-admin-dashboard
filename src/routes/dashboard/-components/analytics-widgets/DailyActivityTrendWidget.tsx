@@ -12,7 +12,7 @@ import {
     Tooltip,
     CartesianGrid,
 } from 'recharts';
-import { ChartLine, Calendar } from 'phosphor-react';
+import { ChartLine, Calendar } from '@phosphor-icons/react';
 
 interface DailyActivityTrendWidgetProps {
     instituteId: string;

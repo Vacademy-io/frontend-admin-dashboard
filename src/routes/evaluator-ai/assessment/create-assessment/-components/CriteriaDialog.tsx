@@ -24,7 +24,7 @@ import {
     marking_8,
     marking_10,
 } from '../-constants/criteria';
-import { Plus, Trash } from 'phosphor-react';
+import { Plus, Trash } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 import {
     Accordion,

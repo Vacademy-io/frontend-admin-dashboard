@@ -27,7 +27,7 @@ import { useBasicInfoStore } from '../../-utils/zustand-global-states/step1-basi
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
-import { CaretLeft } from 'phosphor-react';
+import { CaretLeft } from '@phosphor-icons/react';
 import { useParams } from '@tanstack/react-router';
 import useIntroJsTour, { Step } from '@/hooks/use-intro';
 import { IntroKey } from '@/constants/storage/introKey';

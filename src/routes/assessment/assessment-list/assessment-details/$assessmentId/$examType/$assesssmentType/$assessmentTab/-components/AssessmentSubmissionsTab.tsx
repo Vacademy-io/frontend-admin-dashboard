@@ -22,7 +22,7 @@ import {
 } from '../-services/assessment-details-services';
 import { MyPagination } from '@/components/design-system/pagination';
 import { MyButton } from '@/components/design-system/button';
-import { ArrowCounterClockwise } from 'phosphor-react';
+import { ArrowCounterClockwise } from '@phosphor-icons/react';
 import { AssessmentDetailsSearchComponent } from './SearchComponent';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { useFilterDataForAssesment } from '@/routes/assessment/assessment-list/-utils.ts/useFiltersData';

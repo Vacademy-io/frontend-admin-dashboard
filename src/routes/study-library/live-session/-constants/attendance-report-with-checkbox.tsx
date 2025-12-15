@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { CheckCircle, XCircle } from 'phosphor-react';
+import { CheckCircle, XCircle } from '@phosphor-icons/react';
 import { Checkbox } from '@/components/ui/checkbox';
 
 export interface AttendanceReportTableData {

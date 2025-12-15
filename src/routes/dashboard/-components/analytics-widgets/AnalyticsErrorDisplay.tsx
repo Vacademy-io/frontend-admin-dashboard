@@ -6,7 +6,7 @@ import {
     Info,
     ArrowCounterClockwise,
     ArrowSquareOut,
-} from 'phosphor-react';
+} from '@phosphor-icons/react';
 import { MyButton } from '@/components/design-system/button';
 import {
     getAnalyticsErrorDetails,

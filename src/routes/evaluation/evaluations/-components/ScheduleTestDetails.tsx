@@ -2,7 +2,7 @@ import { TestContent } from '@/types/assessments/schedule-test-list';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { DotIcon, DotIconOffline } from '@/svgs';
-import { CheckCircle, LockSimple, PauseCircle } from 'phosphor-react';
+import { CheckCircle, LockSimple, PauseCircle } from '@phosphor-icons/react';
 import { convertToLocalDateTime } from '@/constants/helper';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';

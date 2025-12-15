@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchAnalyticsServiceUsage } from '../../-services/dashboard-services';
 import { useTheme } from '@/providers/theme/theme-provider';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from 'recharts';
-import { Database, Gear, PlayCircle, Users, Bell, FileText, ChartBar } from 'phosphor-react';
+import { Database, Gear, PlayCircle, Users, Bell, FileText, ChartBar } from '@phosphor-icons/react';
 import { AnalyticsErrorDisplay } from './AnalyticsErrorDisplay';
 
 interface ServiceUsageWidgetProps {

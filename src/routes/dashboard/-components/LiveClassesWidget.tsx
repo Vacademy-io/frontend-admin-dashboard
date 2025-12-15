@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { MyButton } from '@/components/design-system/button';
-import { Plus, PencilSimpleLine, DownloadSimple } from 'phosphor-react';
+import { Plus, PencilSimpleLine, DownloadSimple } from '@phosphor-icons/react';
 import { useNavigate } from '@tanstack/react-router';
 import { useUpcomingSessions } from '@/routes/study-library/live-session/-hooks/useLiveSessions';
 import { useLiveSessionStore } from '@/routes/study-library/live-session/schedule/-store/sessionIdstore';
@@ -35,7 +35,7 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
-import { DotsThreeVertical } from 'phosphor-react';
+import { DotsThreeVertical } from '@phosphor-icons/react';
 import Papa from 'papaparse';
 import { toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';

@@ -1,7 +1,7 @@
 // import { MyInput } from "@/components/design-system/input";
 // import { useEffect, useState } from "react";
 // import { MyButton } from "@/components/design-system/button";
-// import { Check, PencilSimple } from "phosphor-react";
+// import { Check, PencilSimple } from "@phosphor-icons/react";
 
 // interface MaxLimitFieldProp {
 //     title: string;

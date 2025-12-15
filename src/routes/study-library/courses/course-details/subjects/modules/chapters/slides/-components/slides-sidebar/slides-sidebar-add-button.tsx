@@ -26,7 +26,7 @@ import {
 } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-hooks/use-slides';
 import { useContentStore } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { useDialogStore } from '@/routes/study-library/courses/-stores/slide-add-dialogs-store';
-import { File, GameController, ClipboardText } from 'phosphor-react';
+import { File, GameController, ClipboardText } from '@phosphor-icons/react';
 import { formatHTMLString } from '../slide-operations/formatHtmlString';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { generateUniqueDocumentSlideTitle } from '../../-helper/slide-naming-utils';

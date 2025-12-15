@@ -5,7 +5,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { DotsThree } from 'phosphor-react';
+import { DotsThree } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 import { DeleteSessionDialog } from './deleteSessionDialog';
 import { MyButton } from '@/components/design-system/button';

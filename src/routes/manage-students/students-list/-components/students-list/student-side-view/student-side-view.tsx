@@ -2,7 +2,7 @@ import { Sidebar, SidebarContent, SidebarHeader } from '@/components/ui/sidebar'
 import { useSidebar } from '@/components/ui/sidebar';
 import { X } from '@phosphor-icons/react';
 import { useState, useEffect, useRef } from 'react';
-import { DummyProfile } from '@/assets/svgs';
+import DummyProfile from '@/assets/svgs/dummy_profile_photo.svg';
 import { StatusChips } from '@/components/design-system/chips';
 import { StudentOverview } from './student-overview/student-overview';
 import { StudentLearningProgress } from './student-learning-progress/student-learning-progress';
@@ -12,6 +12,7 @@ import { StudentMembership } from './student-membership/student-membership';
 import { StudentUserTagging } from './student-user-tagging/student-user-tagging';
 import { StudentFiles } from './student-files/student-files';
 import { StudentPortalAccess } from './student-portal-access/student-portal-access';
+import { StudentSubOrg } from './student-sub-org/student-sub-org';
 import { getPublicUrl } from '@/services/upload_file';
 import { ErrorBoundary } from '@/components/core/dashboard-loader';
 import { useStudentSidebar } from '../../../-context/selected-student-sidebar-context';
@@ -194,11 +195,10 @@ export const StudentSidebar = ({
                                     {tabSettings.overviewTab && (
                                         <button
                                             ref={category === 'overview' ? activeTabRef : null}
-                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
-                                                category === 'overview'
-                                                    ? 'bg-white text-primary-500 shadow-lg'
-                                                    : 'text-neutral-600 hover:text-neutral-800'
-                                            }`}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${category === 'overview'
+                                                ? 'bg-white text-primary-500 shadow-lg'
+                                                : 'text-neutral-600 hover:text-neutral-800'
+                                                }`}
                                             onClick={() => setCategory('overview')}
                                         >
                                             <span className="relative">
@@ -217,11 +217,10 @@ export const StudentSidebar = ({
                                                     ? activeTabRef
                                                     : null
                                             }
-                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
-                                                category === 'learningProgress'
-                                                    ? 'bg-white text-primary-500 shadow-lg'
-                                                    : 'text-neutral-600 hover:text-neutral-800'
-                                            }`}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${category === 'learningProgress'
+                                                ? 'bg-white text-primary-500 shadow-lg'
+                                                : 'text-neutral-600 hover:text-neutral-800'
+                                                }`}
                                             onClick={() => setCategory('learningProgress')}
                                         >
                                             <span className="relative">
@@ -236,11 +235,10 @@ export const StudentSidebar = ({
                                     {tabSettings.testTab && (
                                         <button
                                             ref={category === 'testRecord' ? activeTabRef : null}
-                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
-                                                category === 'testRecord'
-                                                    ? 'bg-white text-primary-500 shadow-lg'
-                                                    : 'text-neutral-600 hover:text-neutral-800'
-                                            }`}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${category === 'testRecord'
+                                                ? 'bg-white text-primary-500 shadow-lg'
+                                                : 'text-neutral-600 hover:text-neutral-800'
+                                                }`}
                                             onClick={() => setCategory('testRecord')}
                                         >
                                             <span className="relative">
@@ -255,11 +253,10 @@ export const StudentSidebar = ({
                                     {tabSettings.notificationTab && (
                                         <button
                                             ref={category === 'notifications' ? activeTabRef : null}
-                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
-                                                category === 'notifications'
-                                                    ? 'bg-white text-primary-500 shadow-lg'
-                                                    : 'text-neutral-600 hover:text-neutral-800'
-                                            }`}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${category === 'notifications'
+                                                ? 'bg-white text-primary-500 shadow-lg'
+                                                : 'text-neutral-600 hover:text-neutral-800'
+                                                }`}
                                             onClick={() => setCategory('notifications')}
                                         >
                                             <span className="relative">
@@ -274,11 +271,10 @@ export const StudentSidebar = ({
                                     {tabSettings.membershipTab && (
                                         <button
                                             ref={category === 'membership' ? activeTabRef : null}
-                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
-                                                category === 'membership'
-                                                    ? 'bg-white text-primary-500 shadow-lg'
-                                                    : 'text-neutral-600 hover:text-neutral-800'
-                                            }`}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${category === 'membership'
+                                                ? 'bg-white text-primary-500 shadow-lg'
+                                                : 'text-neutral-600 hover:text-neutral-800'
+                                                }`}
                                             onClick={() => setCategory('membership')}
                                         >
                                             <span className="relative">
@@ -293,11 +289,10 @@ export const StudentSidebar = ({
                                     {tabSettings.userTaggingTab && (
                                         <button
                                             ref={category === 'userTagging' ? activeTabRef : null}
-                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
-                                                category === 'userTagging'
-                                                    ? 'bg-white text-primary-500 shadow-lg'
-                                                    : 'text-neutral-600 hover:text-neutral-800'
-                                            }`}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${category === 'userTagging'
+                                                ? 'bg-white text-primary-500 shadow-lg'
+                                                : 'text-neutral-600 hover:text-neutral-800'
+                                                }`}
                                             onClick={() => setCategory('userTagging')}
                                         >
                                             <span className="relative">
@@ -312,11 +307,10 @@ export const StudentSidebar = ({
                                     {tabSettings.fileTab && (
                                         <button
                                             ref={category === 'files' ? activeTabRef : null}
-                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
-                                                category === 'files'
-                                                    ? 'bg-white text-primary-500 shadow-lg'
-                                                    : 'text-neutral-600 hover:text-neutral-800'
-                                            }`}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${category === 'files'
+                                                ? 'bg-white text-primary-500 shadow-lg'
+                                                : 'text-neutral-600 hover:text-neutral-800'
+                                                }`}
                                             onClick={() => setCategory('files')}
                                         >
                                             <span className="relative">
@@ -331,16 +325,33 @@ export const StudentSidebar = ({
                                     {tabSettings.portalAccessTab && (
                                         <button
                                             ref={category === 'portalAccess' ? activeTabRef : null}
-                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
-                                                category === 'portalAccess'
-                                                    ? 'bg-white text-primary-500 shadow-lg'
-                                                    : 'text-neutral-600 hover:text-neutral-800'
-                                            }`}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${category === 'portalAccess'
+                                                ? 'bg-white text-primary-500 shadow-lg'
+                                                : 'text-neutral-600 hover:text-neutral-800'
+                                                }`}
                                             onClick={() => setCategory('portalAccess')}
                                         >
                                             <span className="relative">
                                                 Portal Access
                                                 {category === 'portalAccess' && (
+                                                    <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
+                                                )}
+                                            </span>
+                                        </button>
+                                    )}
+
+                                    {selectedStudent?.sub_org_name && (
+                                        <button
+                                            ref={category === 'subOrg' ? activeTabRef : null}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${category === 'subOrg'
+                                                ? 'bg-white text-primary-500 shadow-lg'
+                                                : 'text-neutral-600 hover:text-neutral-800'
+                                                }`}
+                                            onClick={() => setCategory('subOrg')}
+                                        >
+                                            <span className="relative">
+                                                SubOrg
+                                                {category === 'subOrg' && (
                                                     <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
                                                 )}
                                             </span>
@@ -447,6 +458,11 @@ export const StudentSidebar = ({
                             tabSettings?.portalAccessTab &&
                             !isEnrollRequestStudentList && (
                                 <StudentPortalAccess isSubmissionTab={isSubmissionTab} />
+                            )}
+                        {category === 'subOrg' &&
+                            selectedStudent?.sub_org_name &&
+                            !isEnrollRequestStudentList && (
+                                <StudentSubOrg isSubmissionTab={isSubmissionTab} />
                             )}
                     </ErrorBoundary>
                 </div>

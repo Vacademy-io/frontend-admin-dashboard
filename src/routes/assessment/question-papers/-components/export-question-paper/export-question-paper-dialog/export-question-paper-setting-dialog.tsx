@@ -15,7 +15,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useCallback, useState } from 'react';
 import { Plus } from 'lucide-react';
-import { Minus } from 'phosphor-react';
+import { Minus } from '@phosphor-icons/react';
 import {
     Accordion,
     AccordionItem,

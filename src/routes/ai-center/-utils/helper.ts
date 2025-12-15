@@ -1,7 +1,7 @@
 import { AIAssessmentCompleteQuestion } from '@/types/ai/generate-assessment/generate-complete-assessment';
 import { MyQuestion } from '@/types/assessments/question-paper-form';
 import { FilePdf } from '@phosphor-icons/react';
-import { FileAudio, FileDoc } from 'phosphor-react';
+import { FileAudio, FileDoc } from '@phosphor-icons/react';
 
 export const transformQuestionsToGenerateAssessmentAI = (
     data: AIAssessmentCompleteQuestion[] | undefined
@@ -100,31 +100,64 @@ export const transformQuestionsToGenerateAssessmentAI = (
 };
 
 export function convertSVGsToBase64(htmlString: string) {
+    if (!htmlString) return '';
+
+    console.log('🔄 convertSVGsToBase64 INPUT:', htmlString.substring(0, 100) + '...');
+
+    let processedString = htmlString;
+
+    // 1. Replace known typo/bad chars variants
+    processedString = processedString
+        .replace(/‹/g, '<')
+        .replace(/›/g, '>')
+        .replace(/xmIns/g, 'xmlns');
+
+    // 2. Recursive Unescape (up to 3 levels)
+    const txt = document.createElement('textarea');
+    let levels = 0;
+    while (levels < 3) {
+        const prev = processedString;
+        if (!prev.includes('&')) break;
+        txt.innerHTML = prev;
+        processedString = txt.value;
+        if (processedString === prev) break;
+        levels++;
+    }
+
     const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlString, 'text/html');
+    const doc = parser.parseFromString(processedString, 'text/html');
 
+    // 3. UNCONDITIONALLY CLEAN ALL .math-inline elements
+    // This is the nuclear fix - clear any inner content and keep only data-latex attribute
+    const mathInlineElements = doc.querySelectorAll('.math-inline');
+    mathInlineElements.forEach((el) => {
+        const latex = el.getAttribute('data-latex') || '';
+        console.log('🧹 Cleaning .math-inline element, latex:', latex);
+
+        // Completely wipe inner content
+        el.innerHTML = '';
+
+        // If latex is empty, just leave a space as placeholder
+        // If latex exists, set it as text (will be rendered by TipTap's math node)
+        el.textContent = latex || '';
+    });
+
+    // 4. Convert SVGs to base64 images
     const svgElements = doc.querySelectorAll('svg');
-
     svgElements.forEach((svg) => {
         const svgClone = svg.cloneNode(true);
-
-        // Serialize the SVG element to a string
         const svgString = new XMLSerializer().serializeToString(svgClone);
-
-        // Encode as Base64
         const base64 = btoa(unescape(encodeURIComponent(svgString)));
         const dataUrl = `data:image/svg+xml;base64,${base64}`;
-
-        // Create an <img> element with the data URL
         const img = document.createElement('img');
         img.src = dataUrl;
         img.alt = 'Converted SVG';
-
-        // Replace the <svg> element with the <img> tag
         svg.replaceWith(img);
     });
 
-    return doc.body.innerHTML;
+    const result = doc.body.innerHTML;
+    console.log('🔄 convertSVGsToBase64 OUTPUT:', result.substring(0, 100) + '...');
+    return result;
 }
 
 export function getPerformanceLabel(score: number): string {

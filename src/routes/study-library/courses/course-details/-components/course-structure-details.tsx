@@ -51,7 +51,6 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { DripCondition } from '@/types/course-settings';
 import { getCourseSettings, saveCourseSettings } from '@/services/course-settings';
 import { MyButton } from '@/components/design-system/button';
 import AddTeachers from '@/routes/dashboard/-components/AddTeachers';

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { fetchAnalyticsActiveUsersRealtime } from '../../-services/dashboard-services';
 import { useEffect, useState } from 'react';
-import { Eye, ArrowUp } from 'phosphor-react';
+import { Eye, ArrowUp } from '@phosphor-icons/react';
 import { AnalyticsErrorDisplay } from './AnalyticsErrorDisplay';
 
 // Animated number counter component

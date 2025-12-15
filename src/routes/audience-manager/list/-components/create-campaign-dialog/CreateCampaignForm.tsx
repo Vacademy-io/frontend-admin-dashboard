@@ -11,7 +11,7 @@ import CampaignCustomFieldsCard from './CampaignCustomFieldsCard';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { FileUploadComponent } from '@/components/design-system/file-upload';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
-import { ImageSquare, PencilSimpleLine } from 'phosphor-react';
+import { ImageSquare, PencilSimpleLine } from '@phosphor-icons/react';
 import { TokenKey } from '@/constants/auth/tokens';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { Info } from '@phosphor-icons/react';

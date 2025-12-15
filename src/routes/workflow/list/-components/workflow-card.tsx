@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from '@tanstack/react-router';
-import { Calendar, Clock, Tag } from 'phosphor-react';
+import { Calendar, Clock, Tag } from '@phosphor-icons/react';
 
 interface WorkflowCardProps {
     workflow: Workflow;

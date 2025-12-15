@@ -1,5 +1,5 @@
 import { useRouter } from '@tanstack/react-router';
-import { DotsSixVertical } from 'phosphor-react';
+import { DotsSixVertical } from '@phosphor-icons/react';
 import { useEffect, useState } from 'react';
 import { MenuOptions } from './module-menu-options';
 import { MyDialog } from '@/components/design-system/dialog';

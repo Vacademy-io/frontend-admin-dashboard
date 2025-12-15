@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { MyButton } from '@/components/design-system/button';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, VideoCamera, Folder } from 'phosphor-react';
+import { BookOpen, VideoCamera, Folder } from '@phosphor-icons/react';
 import { useNavigate } from '@tanstack/react-router';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
@@ -27,9 +27,10 @@ export default function LearningCenterWidget({
         navigate({ to: '/manage-institute/batches' });
     };
 
-    const handleManageSessions = () => {
-        navigate({ to: '/manage-institute/sessions' });
+    const handleLiveSessions = () => {
+        navigate({ to: '/study-library/live-session' });
     };
+
 
     const learningFeatures = [
         {
@@ -42,7 +43,7 @@ export default function LearningCenterWidget({
             icon: VideoCamera,
             title: getTerminology(ContentTerms.LiveSession, SystemTerms.LiveSession),
             description: 'Manage live teaching sessions',
-            action: handleManageSessions,
+            action: handleLiveSessions,
         },
         {
             icon: Folder,

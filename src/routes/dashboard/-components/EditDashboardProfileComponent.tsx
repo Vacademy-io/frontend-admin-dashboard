@@ -2,7 +2,7 @@ import { MyButton } from '@/components/design-system/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
-import { PencilSimpleLine, Plus } from 'phosphor-react';
+import { PencilSimpleLine, Plus } from '@phosphor-icons/react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { editDashboardProfileSchema } from '../-utils/edit-dashboard-profile-schema';

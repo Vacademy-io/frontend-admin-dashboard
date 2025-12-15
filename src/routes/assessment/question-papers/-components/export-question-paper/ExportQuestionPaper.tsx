@@ -5,7 +5,7 @@ import {
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Settings, Trash2 } from 'lucide-react';
-import { ArrowSquareOut, Upload } from 'phosphor-react';
+import { ArrowSquareOut, Upload } from '@phosphor-icons/react';
 import { PaperSetQuestions } from './PaperSetQuestions';
 import { ExportHandlerQuestionPaper } from './ExportHandlerQuestionPaper';
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/ui/dialog';

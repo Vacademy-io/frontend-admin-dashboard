@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { AccessControlFormSchema } from '../../-utils/access-control-form-schema';
 import { MyButton } from '@/components/design-system/button';
 import { Separator } from '@/components/ui/separator';
-import { Info, Plus, X } from 'phosphor-react';
+import { Info, Plus, X } from '@phosphor-icons/react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import {
