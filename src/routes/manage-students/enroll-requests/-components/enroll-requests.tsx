@@ -14,7 +14,7 @@ import { AssessmentDetailsSearchComponent } from '@/routes/evaluation/evaluation
 import { ScheduleTestFilters } from '@/routes/assessment/assessment-list/-components/ScheduleTestFilters';
 import { MyFilterOption } from '@/types/assessments/my-filter';
 import { Step3ParticipantsFilterButtons } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-components/AssessmentParticipantsList';
-import { Users } from 'phosphor-react';
+import { Users } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 import { getEnrollmentRequestsData } from '../-services/get-enroll-requests';
 import { useMutation } from '@tanstack/react-query';

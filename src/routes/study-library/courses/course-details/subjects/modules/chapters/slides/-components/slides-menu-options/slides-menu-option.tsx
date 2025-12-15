@@ -1,6 +1,6 @@
 import { MyButton } from '@/components/design-system/button';
 import { MyDropdown } from '@/components/design-system/dropdown';
-import { DotsThree } from 'phosphor-react';
+import { DotsThree } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { dropdownList } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-constants/slides-menu-options';
 import { CopyToDialog } from './copy-dialog';

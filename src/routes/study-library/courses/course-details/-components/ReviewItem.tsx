@@ -1,6 +1,6 @@
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ThumbsUp, ThumbsDown, Trash, Check, X } from 'phosphor-react';
+import { ThumbsUp, ThumbsDown, Trash, Check, X } from '@phosphor-icons/react';
 import { StarRatingComponent } from '@/components/common/star-rating-component';
 import { useState, useEffect, useRef } from 'react';
 import { AxiosError } from 'axios';

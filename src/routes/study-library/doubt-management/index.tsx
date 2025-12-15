@@ -1,15 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { DoubtManagement } from './-components/doubt-management';
-import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 
+// Route definition only - component is lazy loaded from index.lazy.tsx
 export const Route = createFileRoute('/study-library/doubt-management/')({
-    component: RouteComponent,
+    // Component is defined in index.lazy.tsx
 });
-
-function RouteComponent() {
-    return (
-        <LayoutContainer>
-            <DoubtManagement />
-        </LayoutContainer>
-    );
-}

@@ -1,6 +1,6 @@
 import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { Sliders, X } from 'phosphor-react';
+import { Sliders, X } from '@phosphor-icons/react';
 import 'react-quill/dist/quill.snow.css';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { PopoverClose } from '@radix-ui/react-popover';

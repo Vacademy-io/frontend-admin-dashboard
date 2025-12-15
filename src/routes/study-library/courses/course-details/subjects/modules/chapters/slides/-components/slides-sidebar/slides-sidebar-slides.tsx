@@ -17,7 +17,7 @@ import {
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { useRouter } from '@tanstack/react-router';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { BookOpen, CheckCircle, Code, File, GameController, Question } from 'phosphor-react';
+import { BookOpen, CheckCircle, Code, File, GameController, Question } from '@phosphor-icons/react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useLearnerViewStore } from '../../-stores/learner-view-store';
 

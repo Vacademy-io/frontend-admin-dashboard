@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/dialog';
 import { DialogDescription } from '@radix-ui/react-dialog';
 import { MyButton } from '@/components/design-system/button';
-import { ImportFileImage } from '@/assets/svgs';
+import ImportFileImage from '@/assets/svgs/import-file.svg';
 import { useBulkUploadInit } from '@/routes/manage-students/students-list/-hooks/enroll-student-bulk/useBulkUploadInit';
 import { useState, useCallback, Dispatch, SetStateAction, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
@@ -341,9 +341,8 @@ export const UploadCSVButton = ({
                             <DialogDescription className="flex flex-col items-center justify-center gap-6 p-6 text-neutral-600">
                                 <div
                                     {...getRootProps()}
-                                    className={`h-[270px] w-[720px] cursor-pointer rounded-lg border-[1.5px] border-dashed border-primary-500 p-6 ${
-                                        isDragActive ? 'bg-primary-50' : 'bg-white'
-                                    } transition-colors duration-200 ease-in-out`}
+                                    className={`h-[270px] w-[720px] cursor-pointer rounded-lg border-[1.5px] border-dashed border-primary-500 p-6 ${isDragActive ? 'bg-primary-50' : 'bg-white'
+                                        } transition-colors duration-200 ease-in-out`}
                                 >
                                     <input {...getInputProps()} />
                                     <div className="flex flex-col items-center justify-center gap-4">

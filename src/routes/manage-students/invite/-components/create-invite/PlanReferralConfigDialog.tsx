@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { MyButton } from '@/components/design-system/button';
 import { UseFormReturn } from 'react-hook-form';
 import { InviteLinkFormValues } from './GenerateInviteLinkSchema';
-import { Gift, Gear, TrendUp, ArrowRight, ArrowLeft, Clock, Users } from 'phosphor-react';
+import { Gift, Gear, TrendUp, ArrowRight, ArrowLeft, Clock, Users } from '@phosphor-icons/react';
 import { handleGetReferralProgramDetails } from './-services/referral-services';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import {

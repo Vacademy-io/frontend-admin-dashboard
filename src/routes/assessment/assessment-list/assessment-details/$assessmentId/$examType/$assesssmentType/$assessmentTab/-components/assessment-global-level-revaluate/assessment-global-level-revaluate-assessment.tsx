@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Route } from '../..';
 import { getInstituteId } from '@/constants/helper';
 import { MyButton } from '@/components/design-system/button';
-import { WarningCircle } from 'phosphor-react';
+import { WarningCircle } from '@phosphor-icons/react';
 import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 

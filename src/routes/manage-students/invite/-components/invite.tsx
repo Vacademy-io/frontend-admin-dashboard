@@ -1,4 +1,4 @@
-import { EmptyInvitePage } from '@/assets/svgs';
+import EmptyInvitePage from '@/assets/svgs/empty-invite-page.svg';
 import { InviteCardMenuOptions } from './InviteCardMenuOptions';
 import { MyPagination } from '@/components/design-system/pagination';
 import { usePaginationState } from '@/hooks/pagination';

@@ -7,7 +7,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { CheckCircle } from 'phosphor-react';
+import { CheckCircle } from '@phosphor-icons/react';
 import { Section } from '@/types/assessments/assessment-data-type';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { Route } from '..';

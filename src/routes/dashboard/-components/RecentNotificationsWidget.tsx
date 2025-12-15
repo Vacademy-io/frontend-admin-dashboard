@@ -2,7 +2,7 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/ca
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { getUserId } from '@/utils/userDetails';
 import { getSystemAlertsQuery, stripHtml } from '@/services/notifications/system-alerts';
-import { BellSimple } from 'phosphor-react';
+import { BellSimple } from '@phosphor-icons/react';
 
 export default function RecentNotificationsWidget({ onSeeAll }: { onSeeAll?: () => void }) {
     const userId = getUserId();

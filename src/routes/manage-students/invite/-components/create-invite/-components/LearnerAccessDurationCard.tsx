@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { UseFormReturn } from 'react-hook-form';
 import { InviteLinkFormValues } from '../GenerateInviteLinkSchema';
-import { Clock } from 'phosphor-react';
+import { Clock } from '@phosphor-icons/react';
 import { Input } from '@/components/ui/input';
 
 interface CustomInviteFormCardProps {

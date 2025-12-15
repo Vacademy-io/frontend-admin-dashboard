@@ -1,5 +1,5 @@
 import { EnrollStudentsButton } from '@/components/common/students/enroll-students-button';
-import { EmptyDashboardImage } from '@/assets/svgs';
+import EmptyDashboardImage from '@/assets/svgs/empty-student-dashboard.svg';
 import { BulkDialogProvider } from '../../-providers/bulk-dialog-provider';
 // import { EnrollManuallyButton } from "../enroll-manually/enroll-manually-button";
 

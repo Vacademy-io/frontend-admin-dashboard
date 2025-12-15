@@ -4,7 +4,7 @@ import sectionDetailsSchema from '../-utils/section-details-sechma';
 import { FormProvider, useFieldArray, useForm } from 'react-hook-form';
 import { MyButton } from '@/components/design-system/button';
 import { Separator } from '@/components/ui/separator';
-import { Plus } from 'phosphor-react';
+import { Plus } from '@phosphor-icons/react';
 import { Accordion } from '@/components/ui/accordion';
 import { StepContentProps } from '@/types/assessments/step-content-props';
 import { zodResolver } from '@hookform/resolvers/zod';

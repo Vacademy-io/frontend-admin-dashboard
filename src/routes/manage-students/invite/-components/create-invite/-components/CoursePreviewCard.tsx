@@ -2,7 +2,7 @@ import { UseFormReturn } from 'react-hook-form';
 import { InviteLinkFormValues } from '../GenerateInviteLinkSchema';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormField, FormItem, FormControl, FormMessage, FormLabel } from '@/components/ui/form';
-import { ImageSquare, PencilSimpleLine } from 'phosphor-react';
+import { ImageSquare, PencilSimpleLine } from '@phosphor-icons/react';
 import { MyInput } from '@/components/design-system/input';
 import { RichTextEditor } from '@/components/editor/RichTextEditor';
 import { Label } from '@/components/ui/label';

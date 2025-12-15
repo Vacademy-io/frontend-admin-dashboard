@@ -1,6 +1,6 @@
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { DotsThree } from 'phosphor-react';
+import { DotsThree } from '@phosphor-icons/react';
 import { useState } from 'react';
 import {
     DropdownMenu,

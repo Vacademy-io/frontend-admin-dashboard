@@ -3,7 +3,7 @@ import { useFieldArray, UseFormReturn } from 'react-hook-form';
 import { AudienceCampaignForm } from '../../-schema/AudienceCampaignSchema';
 import { Sortable, SortableDragHandle, SortableItem } from '@/components/ui/sortable';
 import { MyButton } from '@/components/design-system/button';
-import { DotsSixVertical, PencilSimple, Plus, TrashSimple } from 'phosphor-react';
+import { DotsSixVertical, PencilSimple, Plus, TrashSimple } from '@phosphor-icons/react';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { MyInput } from '@/components/design-system/input';

@@ -1,6 +1,6 @@
 import { FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { DotsThree } from 'phosphor-react';
+import { DotsThree } from '@phosphor-icons/react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useState } from 'react';
 import {

@@ -13,7 +13,7 @@ import { DropdownValueType } from '@/components/common/students/enroll-manually/
 import { DropdownItemType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
 import { MyInput } from '@/components/design-system/input';
 import { copyToClipboard } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper';
-import { Copy, DotsSixVertical, DownloadSimple, Plus, TrashSimple, XCircle } from 'phosphor-react';
+import { Copy, DotsSixVertical, DownloadSimple, Plus, TrashSimple, XCircle } from '@phosphor-icons/react';
 import QRCode from 'react-qr-code';
 import { handleDownloadQRCode } from '@/routes/homework-creation/create-assessment/$assessmentId/$examtype/-utils/helper';
 import { Checkbox } from '@/components/ui/checkbox';

@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useDropzone, FileRejection, DropEvent } from 'react-dropzone';
-import { UploadSimple, File, X } from 'phosphor-react';
+import { UploadSimple, File, X } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';

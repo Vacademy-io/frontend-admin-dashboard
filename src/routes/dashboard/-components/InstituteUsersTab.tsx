@@ -1,12 +1,12 @@
 import { Badge } from '@/components/ui/badge';
 import { TabsContent } from '@/components/ui/tabs';
 import { RoleTypeEmptyScreen } from '@/svgs';
-import { CheckCircle, XCircle } from 'phosphor-react';
+import { CheckCircle, XCircle } from '@phosphor-icons/react';
 import InstituteUsersOptions from './InstituteUsersOptions';
 import { RolesDummyDataType, UserRolesDataEntry } from '@/types/dashboard/user-roles';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { useEffect, useState } from 'react';
-import { EnrollFormUploadImage } from '@/assets/svgs';
+import EnrollFormUploadImage from '@/assets/svgs/enroll-form-upload-image.svg';
 import { mapRoleToCustomName } from '@/utils/roleUtils';
 
 interface InviteUsersTabProps {
@@ -76,17 +76,16 @@ const InstituteUsersComponent: React.FC<InviteUsersTabProps> = ({
                                                 return (
                                                     <Badge
                                                         key={index}
-                                                        className={`whitespace-nowrap rounded-lg border border-neutral-300 py-1.5 font-thin shadow-none ${
-                                                            role.role_name === 'ADMIN'
+                                                        className={`whitespace-nowrap rounded-lg border border-neutral-300 py-1.5 font-thin shadow-none ${role.role_name === 'ADMIN'
                                                                 ? 'bg-[#F4F9FF]'
                                                                 : role.role_name ===
                                                                     'COURSE CREATOR'
-                                                                  ? 'bg-[#F4FFF9]'
-                                                                  : role.role_name ===
-                                                                      'ASSESSMENT CREATOR'
-                                                                    ? 'bg-[#FFF4F5]'
-                                                                    : 'bg-[#F5F0FF]'
-                                                        }`}
+                                                                    ? 'bg-[#F4FFF9]'
+                                                                    : role.role_name ===
+                                                                        'ASSESSMENT CREATOR'
+                                                                        ? 'bg-[#FFF4F5]'
+                                                                        : 'bg-[#F5F0FF]'
+                                                            }`}
                                                     >
                                                         {customRoleName}
                                                     </Badge>
@@ -99,11 +98,10 @@ const InstituteUsersComponent: React.FC<InviteUsersTabProps> = ({
                                 <div className="flex items-center gap-4">
                                     <Badge
                                         key={idx}
-                                        className={`flex items-center gap-1 whitespace-nowrap rounded-lg border border-neutral-300 py-1.5 font-thin shadow-none ${
-                                            item.roles.some((role) => role.status === 'ACTIVE')
+                                        className={`flex items-center gap-1 whitespace-nowrap rounded-lg border border-neutral-300 py-1.5 font-thin shadow-none ${item.roles.some((role) => role.status === 'ACTIVE')
                                                 ? 'bg-success-50'
                                                 : 'bg-neutral-50'
-                                        }`}
+                                            }`}
                                     >
                                         {item.roles.some((role) => role.status === 'ACTIVE') ? (
                                             <CheckCircle

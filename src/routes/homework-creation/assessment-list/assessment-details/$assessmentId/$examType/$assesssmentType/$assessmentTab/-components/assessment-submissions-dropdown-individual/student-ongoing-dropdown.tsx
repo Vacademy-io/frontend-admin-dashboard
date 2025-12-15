@@ -6,7 +6,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { MyButton } from '@/components/design-system/button';
-import { DotsThree, WarningCircle } from 'phosphor-react';
+import { DotsThree, WarningCircle } from '@phosphor-icons/react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { AssessmentRevaluateStudentInterface } from '@/types/assessments/assessment-overview';
 import {

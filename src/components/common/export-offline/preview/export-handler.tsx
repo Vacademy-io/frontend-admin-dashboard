@@ -7,7 +7,7 @@ import { ExportSettings } from '../contexts/export-settings-context';
 import { MyButton } from '@/components/design-system/button';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { CircleNotch } from 'phosphor-react';
+import { CircleNotch } from '@phosphor-icons/react';
 
 interface ExportHandlerProps {
     sections: Section[];

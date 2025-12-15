@@ -4,7 +4,7 @@ import { transformQuestionsToGenerateAssessmentAI } from '../-utils/helper';
 import { Sortable, SortableDragHandle, SortableItem } from '@/components/ui/sortable';
 import { getPPTViewTitle } from '@/routes/assessment/question-papers/-utils/helper';
 import { QuestionType } from '@/constants/dummy-data';
-import { DotsSixVertical, Copy, Trash, DotsThreeVertical } from 'phosphor-react';
+import { DotsSixVertical, Copy, Trash, DotsThreeVertical } from '@phosphor-icons/react';
 import { PPTComponentFactory } from '@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/PPTComponentFactory';
 import { Separator } from '@/components/ui/separator';
 import { MainViewComponentFactory } from '@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory';

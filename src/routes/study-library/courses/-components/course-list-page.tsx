@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/select';
 import { StarRatingComponent } from '@/components/common/star-rating-component';
 import { MyButton } from '@/components/design-system/button';
-import { TrashSimple } from 'phosphor-react';
+import { TrashSimple } from '@phosphor-icons/react';
 import { useNavigate } from '@tanstack/react-router';
 import { MyPagination } from '@/components/design-system/pagination';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';

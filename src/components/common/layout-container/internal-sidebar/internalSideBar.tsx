@@ -1,7 +1,7 @@
 'use client';
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import { Collapsible, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Folder } from 'phosphor-react';
+import { Folder } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 
 export const InternalSideBar = ({

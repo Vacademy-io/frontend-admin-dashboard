@@ -1,21 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { LayoutContainer } from '../-components/layout-container/layout-container';
-import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
-import { useEffect } from 'react';
-import { EvaluatedStudents } from './-components/evaluation';
 
+// Route definition only - component is lazy loaded from index.lazy.tsx
 export const Route = createFileRoute('/evaluator-ai/evaluation/')({
-    component: () => (
-        <LayoutContainer>
-            <RouteComponent />
-        </LayoutContainer>
-    ),
+    // Component is defined in index.lazy.tsx
 });
-
-function RouteComponent() {
-    const { setNavHeading } = useNavHeadingStore();
-    useEffect(() => {
-        setNavHeading(<h1 className="text-lg">Evaluate Students</h1>);
-    }, []);
-    return <EvaluatedStudents />;
-}

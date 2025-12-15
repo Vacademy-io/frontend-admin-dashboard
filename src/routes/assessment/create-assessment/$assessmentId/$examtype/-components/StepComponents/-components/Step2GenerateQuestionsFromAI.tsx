@@ -5,7 +5,7 @@ import {
     AlertDialogContent,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { StarFour, X } from 'phosphor-react';
+import { StarFour, X } from '@phosphor-icons/react';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { AICenterProvider } from '@/routes/ai-center/-contexts/useAICenterContext';

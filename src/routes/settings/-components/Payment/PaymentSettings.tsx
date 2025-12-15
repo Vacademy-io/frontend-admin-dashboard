@@ -9,7 +9,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { CreditCard, Globe, Plus } from 'phosphor-react';
+import { CreditCard, Globe, Plus } from '@phosphor-icons/react';
 import { useState, useEffect, useRef } from 'react';
 import { PaymentPlanList } from './PaymentPlanList';
 import { MyButton } from '@/components/design-system/button';

@@ -38,7 +38,7 @@ import {
     initializeLanguageStates,
     initializeCurrentData,
 } from './utils/code-editor-utils';
-import { X } from 'phosphor-react';
+import { X } from '@phosphor-icons/react';
 
 export const CodeEditorSlide: React.FC<CodeEditorSlideProps> = ({
     codeData,

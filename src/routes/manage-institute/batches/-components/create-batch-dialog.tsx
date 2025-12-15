@@ -10,7 +10,7 @@ import { useAddCourse } from '@/services/study-library/course-operations/add-cou
 import { CourseFormData } from '@/components/common/study-library/add-course/add-course-form';
 import { useCopyStudyMaterialFromSession } from '../../../manage-students/students-list/-services/copyStudyMaterialFromSession';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { Plus } from 'phosphor-react';
+import { Plus } from '@phosphor-icons/react';
 
 interface FormData {
     // Course step

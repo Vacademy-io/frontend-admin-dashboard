@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { MyButton } from '../design-system/button';
-import { Export, DownloadSimple } from 'phosphor-react';
+import { Export, DownloadSimple } from '@phosphor-icons/react';
 import { DashboardLoader } from '../core/dashboard-loader';
 
 const ExportDialogPDFCSV = ({

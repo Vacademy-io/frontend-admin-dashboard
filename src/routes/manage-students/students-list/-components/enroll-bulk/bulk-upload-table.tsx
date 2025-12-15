@@ -21,7 +21,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { StatusColumnRenderer } from './status-column-rendered';
 import { ErrorDetailsDialog } from './error-details-dialog';
-import { Warning } from 'phosphor-react';
+import { Warning } from '@phosphor-icons/react';
 
 interface EditableBulkUploadTableProps {
     headers: Header[];

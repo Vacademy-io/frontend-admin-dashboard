@@ -17,7 +17,7 @@ import { StudyLibraryQuestion } from '@/types/study-library/study-library-video-
 import { formatTimeStudyLibraryInSeconds, timestampToSeconds } from '../-helper/helper';
 import { useContentStore } from '../-stores/chapter-sidebar-store';
 import { useMediaNavigationStore } from '../-stores/media-navigation-store';
-import { TrashSimple } from 'phosphor-react';
+import { TrashSimple } from '@phosphor-icons/react';
 import { MyButton } from '@/components/design-system/button';
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';

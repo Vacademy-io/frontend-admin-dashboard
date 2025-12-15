@@ -9,7 +9,7 @@ import {
     // DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu';
 import { useNavigate } from '@tanstack/react-router';
-import { DotsThree, Info } from 'phosphor-react';
+import { DotsThree, Info } from '@phosphor-icons/react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';

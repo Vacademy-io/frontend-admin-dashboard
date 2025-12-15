@@ -8,7 +8,7 @@ import {
     stepOneSchema,
 } from '@/schemas/student/student-list/schema-enroll-students-manually';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { EnrollFormUploadImage } from '@/assets/svgs';
+import EnrollFormUploadImage from '@/assets/svgs/enroll-form-upload-image.svg';
 import { useState, useRef, useEffect, Fragment } from 'react';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { FileUploadComponent } from '@/components/design-system/file-upload';
@@ -198,11 +198,10 @@ export const StepOneForm = ({
                                                                     onClick={() =>
                                                                         fileInputRef.current?.click()
                                                                     }
-                                                                    className={`${
-                                                                        active
+                                                                    className={`${active
                                                                             ? 'bg-neutral-100'
                                                                             : ''
-                                                                    } group flex w-full items-center gap-2 rounded-md p-2 text-sm`}
+                                                                        } group flex w-full items-center gap-2 rounded-md p-2 text-sm`}
                                                                 >
                                                                     <Upload className="size-4" />
                                                                     Upload New
@@ -214,11 +213,10 @@ export const StepOneForm = ({
                                                                 <button
                                                                     type="button"
                                                                     onClick={handleRemoveImage}
-                                                                    className={`${
-                                                                        active
+                                                                    className={`${active
                                                                             ? 'bg-neutral-100'
                                                                             : ''
-                                                                    } group flex w-full items-center gap-2 rounded-md p-2 text-sm text-red-600`}
+                                                                        } group flex w-full items-center gap-2 rounded-md p-2 text-sm text-red-600`}
                                                                 >
                                                                     <Trash2 className="size-4" />
                                                                     Remove Image

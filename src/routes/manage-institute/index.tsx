@@ -1,9 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 
+// Route definition only - component is lazy loaded from index.lazy.tsx
 export const Route = createFileRoute('/manage-institute/')({
-    component: RouteComponent,
+    // Component is defined in index.lazy.tsx
 });
-
-function RouteComponent() {
-    return <div>Hello, welcome to manage institutes</div>;
-}

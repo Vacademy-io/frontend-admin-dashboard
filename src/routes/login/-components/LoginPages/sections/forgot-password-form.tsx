@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
-import { EnvelopeSimple, WhatsappLogo } from 'phosphor-react';
+import { EnvelopeSimple, WhatsappLogo } from '@phosphor-icons/react';
 import { goToMailSupport, goToWhatsappSupport } from '@/lib/utils';
 
 type FormValues = z.infer<typeof forgotPasswordSchema>;

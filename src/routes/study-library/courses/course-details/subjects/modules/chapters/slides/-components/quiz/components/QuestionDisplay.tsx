@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TransformedQuestion } from '../types';
-import { CaretDown, CaretUp } from 'phosphor-react';
+import { CaretDown, CaretUp } from '@phosphor-icons/react';
 
 interface QuestionDisplayProps {
     question: TransformedQuestion;

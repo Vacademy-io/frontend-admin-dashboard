@@ -42,7 +42,7 @@ import {
     ArrowsOut,
     ArrowsIn,
     PencilSimple,
-} from 'phosphor-react';
+} from '@phosphor-icons/react';
 import { MyButton } from '@/components/design-system/button';
 import AddTeachers from '@/routes/dashboard/-components/AddTeachers';
 import { AddSubjectButton } from '../subjects/-components/add-subject.tsx/add-subject-button';

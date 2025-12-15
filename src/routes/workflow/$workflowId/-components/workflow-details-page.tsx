@@ -7,10 +7,10 @@ import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { WorkflowDiagramSimple } from './workflow-diagram-simple';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'phosphor-react';
+import { ArrowLeft } from '@phosphor-icons/react';
 import { useNavigate } from '@tanstack/react-router';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock } from 'phosphor-react';
+import { Calendar, Clock } from '@phosphor-icons/react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface WorkflowDetailsPageProps {
