@@ -127,7 +127,7 @@ export function TipTapEditor({
   const uploadFileToS3GetUrl = useCallback(async (file: File): Promise<string | null> => {
     try {
       const { INSTITUTE_ID, USER_ID } = getAuthContext();
-      const fileId = await UploadFileInS3(file, () => {}, USER_ID, INSTITUTE_ID, 'STUDENTS', true);
+      const fileId = await UploadFileInS3(file, () => { }, USER_ID, INSTITUTE_ID, 'STUDENTS', true);
       if (!fileId) return null;
       const publicUrl = await getPublicUrl(fileId);
       return publicUrl || null;
@@ -256,7 +256,7 @@ export function TipTapEditor({
           let html = '';
           try {
             html = katex.renderToString(latex, { throwOnError: false, displayMode: false });
-          } catch {}
+          } catch { }
           return [
             'span',
             mergeAttributes(
@@ -265,6 +265,30 @@ export function TipTapEditor({
             ),
             html,
           ];
+        },
+        addNodeView() {
+          return ({ node }) => {
+            const dom = document.createElement('span');
+            dom.className = 'math-inline';
+            dom.contentEditable = 'false';
+
+            const latex = node.attrs.latex || '';
+            dom.setAttribute('data-latex', latex);
+
+            // Render KaTeX if latex exists, otherwise show empty or placeholder
+            if (latex) {
+              try {
+                dom.innerHTML = katex.renderToString(latex, { throwOnError: false, displayMode: false });
+              } catch {
+                dom.textContent = latex; // Fallback to raw latex text
+              }
+            } else {
+              // Empty latex - render nothing visible
+              dom.innerHTML = '';
+            }
+
+            return { dom };
+          };
         },
       })) as unknown as Node,
       (Node.create({
@@ -288,7 +312,7 @@ export function TipTapEditor({
           let html = '';
           try {
             html = katex.renderToString(latex, { throwOnError: false, displayMode: true });
-          } catch {}
+          } catch { }
           return [
             'div',
             mergeAttributes(
@@ -297,6 +321,28 @@ export function TipTapEditor({
             ),
             html,
           ];
+        },
+        addNodeView() {
+          return ({ node }) => {
+            const dom = document.createElement('div');
+            dom.className = 'math-block';
+            dom.contentEditable = 'false';
+
+            const latex = node.attrs.latex || '';
+            dom.setAttribute('data-latex', latex);
+
+            if (latex) {
+              try {
+                dom.innerHTML = katex.renderToString(latex, { throwOnError: false, displayMode: true });
+              } catch {
+                dom.textContent = latex;
+              }
+            } else {
+              dom.innerHTML = '';
+            }
+
+            return { dom };
+          };
         },
       })) as unknown as Node,
       // Drawing node (fabric.js-powered)
@@ -392,11 +438,11 @@ export function TipTapEditor({
                 try {
                   const parsed = typeof json === 'string' ? JSON.parse(json) : json;
                   c.loadFromJSON(parsed, () => c.renderAll());
-                } catch {}
+                } catch { }
               }
 
               return () => {
-                try { c.dispose(); } catch {}
+                try { c.dispose(); } catch { }
                 canvasRef.current = null;
               };
               // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -613,9 +659,8 @@ export function TipTapEditor({
     if (!input) return;
     try {
       const html = katex.renderToString(input, { throwOnError: false, displayMode: false });
-      editor.commands.insertContent(`<span class="math-inline" data-latex="${
-        input.replace(/"/g, '&quot;')
-      }">${html}</span>`);
+      editor.commands.insertContent(`<span class="math-inline" data-latex="${input.replace(/"/g, '&quot;')
+        }">${html}</span>`);
     } catch (e) {
       console.error('KaTeX render error:', e);
     }
@@ -627,9 +672,8 @@ export function TipTapEditor({
     if (!input) return;
     try {
       const html = katex.renderToString(input, { throwOnError: false, displayMode: true });
-      editor.commands.insertContent(`<div class="math-block" data-latex="${
-        input.replace(/"/g, '&quot;')
-      }">${html}</div>`);
+      editor.commands.insertContent(`<div class="math-block" data-latex="${input.replace(/"/g, '&quot;')
+        }">${html}</div>`);
     } catch (e) {
       console.error('KaTeX render error:', e);
     }
@@ -690,7 +734,7 @@ export function TipTapEditor({
             const url = await uploadFileToS3GetUrl(file);
             if (url && editor) editor.commands.insertContent(`<audio controls src="${url}" style="width:100%"></audio>`);
           } finally {
-            try { stream.getTracks().forEach((t) => t.stop()); } catch {}
+            try { stream.getTracks().forEach((t) => t.stop()); } catch { }
             mediaRecorderRef.current = null; mediaStreamRef.current = null; setIsRecording(false);
           }
         };
@@ -700,14 +744,14 @@ export function TipTapEditor({
       }
     } catch (e) {
       console.error('Audio record error:', e);
-      try { mediaStreamRef.current?.getTracks().forEach((t) => t.stop()); } catch {}
+      try { mediaStreamRef.current?.getTracks().forEach((t) => t.stop()); } catch { }
       setIsRecording(false);
     }
   }, [editor, isRecording, uploadFileToS3GetUrl]);
 
   useEffect(() => () => {
-    try { if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') mediaRecorderRef.current.stop(); } catch {}
-    try { mediaStreamRef.current?.getTracks().forEach((t) => t.stop()); } catch {}
+    try { if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') mediaRecorderRef.current.stop(); } catch { }
+    try { mediaStreamRef.current?.getTracks().forEach((t) => t.stop()); } catch { }
   }, []);
 
   const canUndo = !!editor?.can().undo();
@@ -721,104 +765,104 @@ export function TipTapEditor({
       style={{ width: '100%', maxHeight: 'inherit', minHeight: 'inherit' }}
     >
       {editable && (
-      <div className="flex flex-wrap items-center gap-1 overflow-x-auto border-b p-2 text-sm">
-        <div className="flex items-center gap-1">
-          <button type="button" title="Bold" onClick={() => editor?.chain().focus().toggleBold().run()} className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('bold') ? 'bg-neutral-200' : ''}`}>B</button>
-          <button type="button" title="Italic" onClick={() => editor?.chain().focus().toggleItalic().run()} className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('italic') ? 'bg-neutral-200' : ''}`}>I</button>
-          <button type="button" title="Underline" onClick={() => editor?.chain().focus().toggleUnderline().run()} className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('underline') ? 'bg-neutral-200' : ''}`}>U</button>
-          <button type="button" title="Highlight" onClick={() => editor?.chain().focus().toggleHighlight().run()} className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('highlight') ? 'bg-neutral-200' : ''}`}>HL</button>
-        </div>
-        <div className="mx-1 h-6 w-px bg-neutral-200" />
-        <div className="flex items-center gap-1">
-          <button type="button" title="Bullet List" onClick={() => editor?.chain().focus().toggleBulletList().run()} className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('bulletList') ? 'bg-neutral-200' : ''}`}>•</button>
-          <button type="button" title="Ordered List" onClick={() => editor?.chain().focus().toggleOrderedList().run()} className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('orderedList') ? 'bg-neutral-200' : ''}`}>1.</button>
-          <button type="button" title="Blockquote" onClick={() => editor?.chain().focus().toggleBlockquote().run()} className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('blockquote') ? 'bg-neutral-200' : ''}`}>&ldquo; &rdquo;</button>
-          <button type="button" title="Code Block" onClick={() => editor?.chain().focus().toggleCodeBlock().run()} className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('codeBlock') ? 'bg-neutral-200' : ''}`}>{"</>"}</button>
-          <button type="button" title="Horizontal Rule" onClick={() => editor?.chain().focus().setHorizontalRule().run()} className="rounded px-2 py-1 hover:bg-neutral-100">HR</button>
-        </div>
-        <div className="mx-1 h-6 w-px bg-neutral-200" />
-        <div className="flex items-center gap-1">
-          <button type="button" title="Align Left" onClick={() => editor?.chain().focus().setTextAlign('left').run()} className="rounded px-2 py-1 hover:bg-neutral-100">L</button>
-          <button type="button" title="Align Center" onClick={() => editor?.chain().focus().setTextAlign('center').run()} className="rounded px-2 py-1 hover:bg-neutral-100">C</button>
-          <button type="button" title="Align Right" onClick={() => editor?.chain().focus().setTextAlign('right').run()} className="rounded px-2 py-1 hover:bg-neutral-100">R</button>
-        </div>
-        <div className="mx-1 h-6 w-px bg-neutral-200" />
-        <div className="flex items-center gap-1">
-          <div className="ml-0">
-            <button
-              type="button"
-              title="More tools"
-              ref={mediaButtonRef}
-              onClick={() => {
-                const btn = mediaButtonRef.current;
-                if (btn) {
-                  const rect = btn.getBoundingClientRect();
-                  setMediaMenuPos({ top: rect.bottom + window.scrollY + 6, left: rect.left + window.scrollX });
-                }
-                setShowMediaMenu((p) => !p);
-              }}
-              className="rounded px-2 py-1 hover:bg-neutral-100"
-            >+
-            </button>
-            {showMediaMenu && mediaMenuPos && createPortal(
-              <div
-                ref={mediaMenuRef}
-                className="w-56 rounded border bg-white p-2 shadow"
-                style={{ position: 'fixed', top: mediaMenuPos.top, left: mediaMenuPos.left, zIndex: 2147483647 }}
-                onMouseDown={(e) => { e.stopPropagation(); }}
-              >
-                <div className="mb-1 text-xs font-medium text-neutral-600">Insert</div>
-                <button type="button" className="w-full rounded px-3 py-2 text-left text-sm hover:bg-neutral-100" onClick={() => { setShowMediaMenu(false); insertLink(); }}>Link…</button>
-                <button type="button" className="w-full rounded px-3 py-2 text-left text-sm hover:bg-neutral-100" onClick={() => { setShowMediaMenu(false); onInsertImage(); }}>Image</button>
-                <button type="button" className="w-full rounded px-3 py-2 text-left text-sm hover:bg-neutral-100" onClick={() => { setShowMediaMenu(false); editor?.chain().focus().insertContent({ type: 'drawing', attrs: { width: 600, height: 300 } }).run(); }}>Drawing</button>
-                <button type="button" className="w-full rounded px-3 py-2 text-left text-sm hover:bg-neutral-100" onClick={() => { setShowMediaMenu(false); onAttachFile(); }}>File</button>
-                <button
-                  type="button"
-                  className="w-full rounded px-3 py-2 text-left text-sm hover:bg-neutral-100"
-                  onClick={() => { setShowMediaMenu(false); onRecordAudio(); }}
-                >{isRecording ? 'Stop recording' : 'Audio (Record)'}
-                </button>
-                <button type="button" className="w-full rounded px-3 py-2 text-left text-sm hover:bg-neutral-100" onClick={() => { setShowMediaMenu(false); setMathLatex(''); setMathMode('inline'); setShowMathModal(true); }}>Math…</button>
-                <div className="mt-2 border-t pt-2">
-                  <div className="mb-1 text-xs font-medium text-neutral-600">Table</div>
-                  <div className="mb-2 flex items-center gap-2 px-1">
-                    <input type="number" min={1} defaultValue={3} id="menuRowsInput" className="w-16 rounded border px-2 py-1 text-sm" />
-                    <input type="number" min={1} defaultValue={3} id="menuColsInput" className="w-16 rounded border px-2 py-1 text-sm" />
-                    <button type="button" className="rounded bg-neutral-100 px-2 py-1 text-sm hover:bg-neutral-200" onClick={() => {
-                      const rows = Number((document.getElementById('menuRowsInput') as HTMLInputElement)?.value || 3);
-                      const cols = Number((document.getElementById('menuColsInput') as HTMLInputElement)?.value || 3);
-                      editor?.chain().focus().insertTable({ rows, cols, withHeaderRow: true }).run();
-                      setShowMediaMenu(false);
-                    }}>Add</button>
-                  </div>
-                </div>
-              </div>,
-              wrapperRef.current || document.body
-            )}
+        <div className="flex flex-wrap items-center gap-1 overflow-x-auto border-b p-2 text-sm">
+          <div className="flex items-center gap-1">
+            <button type="button" title="Bold" onClick={() => editor?.chain().focus().toggleBold().run()} className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('bold') ? 'bg-neutral-200' : ''}`}>B</button>
+            <button type="button" title="Italic" onClick={() => editor?.chain().focus().toggleItalic().run()} className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('italic') ? 'bg-neutral-200' : ''}`}>I</button>
+            <button type="button" title="Underline" onClick={() => editor?.chain().focus().toggleUnderline().run()} className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('underline') ? 'bg-neutral-200' : ''}`}>U</button>
+            <button type="button" title="Highlight" onClick={() => editor?.chain().focus().toggleHighlight().run()} className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('highlight') ? 'bg-neutral-200' : ''}`}>HL</button>
           </div>
-          {isRecording && (
-            <div className="ml-2 flex items-center gap-2">
-              <span className="text-xs text-red-600">● Recording…</span>
+          <div className="mx-1 h-6 w-px bg-neutral-200" />
+          <div className="flex items-center gap-1">
+            <button type="button" title="Bullet List" onClick={() => editor?.chain().focus().toggleBulletList().run()} className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('bulletList') ? 'bg-neutral-200' : ''}`}>•</button>
+            <button type="button" title="Ordered List" onClick={() => editor?.chain().focus().toggleOrderedList().run()} className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('orderedList') ? 'bg-neutral-200' : ''}`}>1.</button>
+            <button type="button" title="Blockquote" onClick={() => editor?.chain().focus().toggleBlockquote().run()} className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('blockquote') ? 'bg-neutral-200' : ''}`}>&ldquo; &rdquo;</button>
+            <button type="button" title="Code Block" onClick={() => editor?.chain().focus().toggleCodeBlock().run()} className={`rounded px-2 py-1 hover:bg-neutral-100 ${editor?.isActive('codeBlock') ? 'bg-neutral-200' : ''}`}>{"</>"}</button>
+            <button type="button" title="Horizontal Rule" onClick={() => editor?.chain().focus().setHorizontalRule().run()} className="rounded px-2 py-1 hover:bg-neutral-100">HR</button>
+          </div>
+          <div className="mx-1 h-6 w-px bg-neutral-200" />
+          <div className="flex items-center gap-1">
+            <button type="button" title="Align Left" onClick={() => editor?.chain().focus().setTextAlign('left').run()} className="rounded px-2 py-1 hover:bg-neutral-100">L</button>
+            <button type="button" title="Align Center" onClick={() => editor?.chain().focus().setTextAlign('center').run()} className="rounded px-2 py-1 hover:bg-neutral-100">C</button>
+            <button type="button" title="Align Right" onClick={() => editor?.chain().focus().setTextAlign('right').run()} className="rounded px-2 py-1 hover:bg-neutral-100">R</button>
+          </div>
+          <div className="mx-1 h-6 w-px bg-neutral-200" />
+          <div className="flex items-center gap-1">
+            <div className="ml-0">
               <button
                 type="button"
-                title="Stop recording"
-                onClick={onRecordAudio}
-                className="rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
-              >Stop
+                title="More tools"
+                ref={mediaButtonRef}
+                onClick={() => {
+                  const btn = mediaButtonRef.current;
+                  if (btn) {
+                    const rect = btn.getBoundingClientRect();
+                    setMediaMenuPos({ top: rect.bottom + window.scrollY + 6, left: rect.left + window.scrollX });
+                  }
+                  setShowMediaMenu((p) => !p);
+                }}
+                className="rounded px-2 py-1 hover:bg-neutral-100"
+              >+
               </button>
+              {showMediaMenu && mediaMenuPos && createPortal(
+                <div
+                  ref={mediaMenuRef}
+                  className="w-56 rounded border bg-white p-2 shadow"
+                  style={{ position: 'fixed', top: mediaMenuPos.top, left: mediaMenuPos.left, zIndex: 2147483647 }}
+                  onMouseDown={(e) => { e.stopPropagation(); }}
+                >
+                  <div className="mb-1 text-xs font-medium text-neutral-600">Insert</div>
+                  <button type="button" className="w-full rounded px-3 py-2 text-left text-sm hover:bg-neutral-100" onClick={() => { setShowMediaMenu(false); insertLink(); }}>Link…</button>
+                  <button type="button" className="w-full rounded px-3 py-2 text-left text-sm hover:bg-neutral-100" onClick={() => { setShowMediaMenu(false); onInsertImage(); }}>Image</button>
+                  <button type="button" className="w-full rounded px-3 py-2 text-left text-sm hover:bg-neutral-100" onClick={() => { setShowMediaMenu(false); editor?.chain().focus().insertContent({ type: 'drawing', attrs: { width: 600, height: 300 } }).run(); }}>Drawing</button>
+                  <button type="button" className="w-full rounded px-3 py-2 text-left text-sm hover:bg-neutral-100" onClick={() => { setShowMediaMenu(false); onAttachFile(); }}>File</button>
+                  <button
+                    type="button"
+                    className="w-full rounded px-3 py-2 text-left text-sm hover:bg-neutral-100"
+                    onClick={() => { setShowMediaMenu(false); onRecordAudio(); }}
+                  >{isRecording ? 'Stop recording' : 'Audio (Record)'}
+                  </button>
+                  <button type="button" className="w-full rounded px-3 py-2 text-left text-sm hover:bg-neutral-100" onClick={() => { setShowMediaMenu(false); setMathLatex(''); setMathMode('inline'); setShowMathModal(true); }}>Math…</button>
+                  <div className="mt-2 border-t pt-2">
+                    <div className="mb-1 text-xs font-medium text-neutral-600">Table</div>
+                    <div className="mb-2 flex items-center gap-2 px-1">
+                      <input type="number" min={1} defaultValue={3} id="menuRowsInput" className="w-16 rounded border px-2 py-1 text-sm" />
+                      <input type="number" min={1} defaultValue={3} id="menuColsInput" className="w-16 rounded border px-2 py-1 text-sm" />
+                      <button type="button" className="rounded bg-neutral-100 px-2 py-1 text-sm hover:bg-neutral-200" onClick={() => {
+                        const rows = Number((document.getElementById('menuRowsInput') as HTMLInputElement)?.value || 3);
+                        const cols = Number((document.getElementById('menuColsInput') as HTMLInputElement)?.value || 3);
+                        editor?.chain().focus().insertTable({ rows, cols, withHeaderRow: true }).run();
+                        setShowMediaMenu(false);
+                      }}>Add</button>
+                    </div>
+                  </div>
+                </div>,
+                wrapperRef.current || document.body
+              )}
             </div>
-          )}
-          <div className="ml-2 flex items-center gap-1">
-            <span className="text-xs text-neutral-500">Color</span>
-            <input type="color" onChange={(e) => editor?.chain().focus().setColor(e.target.value).run()} className="h-6 w-6 cursor-pointer rounded border p-0" />
-          </div>
+            {isRecording && (
+              <div className="ml-2 flex items-center gap-2">
+                <span className="text-xs text-red-600">● Recording…</span>
+                <button
+                  type="button"
+                  title="Stop recording"
+                  onClick={onRecordAudio}
+                  className="rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
+                >Stop
+                </button>
+              </div>
+            )}
+            <div className="ml-2 flex items-center gap-1">
+              <span className="text-xs text-neutral-500">Color</span>
+              <input type="color" onChange={(e) => editor?.chain().focus().setColor(e.target.value).run()} className="h-6 w-6 cursor-pointer rounded border p-0" />
+            </div>
 
+          </div>
+          <span className="ml-auto flex gap-1">
+            <button type="button" disabled={!canUndo} onClick={() => editor?.chain().focus().undo().run()} className="rounded px-2 py-1 hover:bg-neutral-100 disabled:opacity-50">Undo</button>
+            <button type="button" disabled={!canRedo} onClick={() => editor?.chain().focus().redo().run()} className="rounded px-2 py-1 hover:bg-neutral-100 disabled:opacity-50">Redo</button>
+          </span>
         </div>
-        <span className="ml-auto flex gap-1">
-          <button type="button" disabled={!canUndo} onClick={() => editor?.chain().focus().undo().run()} className="rounded px-2 py-1 hover:bg-neutral-100 disabled:opacity-50">Undo</button>
-          <button type="button" disabled={!canRedo} onClick={() => editor?.chain().focus().redo().run()} className="rounded px-2 py-1 hover:bg-neutral-100 disabled:opacity-50">Redo</button>
-        </span>
-      </div>
       )}
       <div className="p-2" style={{ maxHeight: 'inherit', minHeight: 'inherit', overflowY: 'auto' }}>
         <EditorContent

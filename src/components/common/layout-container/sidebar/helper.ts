@@ -134,7 +134,10 @@ export function filterMenuListByModules(
                 item.id === 'planning' ||
                 item.id === 'membership-expiry' ||
                 item.id === 'membership-stats' ||
-                item.id === 'manage-contacts'
+                item.id === 'manage-contacts' ||
+                item.id === 'ai-center' ||
+                item.id === 'instructor-copilot'
+
             ) {
                 return true;
             }
