@@ -67,6 +67,7 @@ export const PackageDripConditionDialog: React.FC<PackageDripConditionDialogProp
         return {
             target,
             behavior: 'lock',
+            is_enabled: true,
             rules: [
                 {
                     type: 'date_based',
@@ -80,27 +81,33 @@ export const PackageDripConditionDialog: React.FC<PackageDripConditionDialogProp
         getConfigForTarget('chapter')
     );
     const [enabled, setEnabled] = useState(condition?.enabled ?? true);
+    const [configEnabled, setConfigEnabled] = useState(currentConfig.is_enabled ?? true);
 
     // Update config when target changes
     const handleTargetChange = (newTarget: 'chapter' | 'slide') => {
         setSelectedTarget(newTarget);
-        setCurrentConfig(getConfigForTarget(newTarget));
+        const newConfig = getConfigForTarget(newTarget);
+        setCurrentConfig(newConfig);
+        setConfigEnabled(newConfig.is_enabled ?? true);
     };
 
     useEffect(() => {
         if (open) {
             const target = 'chapter';
+            const config = getConfigForTarget(target);
             setSelectedTarget(target);
-            setCurrentConfig(getConfigForTarget(target));
+            setCurrentConfig(config);
             setEnabled(condition?.enabled ?? true);
+            setConfigEnabled(config.is_enabled ?? true);
         }
     }, [condition, open]);
 
     const handleSave = () => {
-        // Ensure the currentConfig has the correct target
+        // Ensure the currentConfig has the correct target and is_enabled
         const configToSave: DripConditionConfig = {
             ...currentConfig,
             target: selectedTarget,
+            is_enabled: configEnabled,
         };
 
         // Merge the current config with existing configs
@@ -375,15 +382,21 @@ export const PackageDripConditionDialog: React.FC<PackageDripConditionDialogProp
                         )}
                     </div>
 
-                    {/* Enable Toggle */}
+                    {/* Enable Configuration Toggle */}
                     <div className="flex items-center justify-between rounded-lg border p-3">
-                        <Label htmlFor="condition-enabled" className="font-medium">
-                            Enable this condition
-                        </Label>
+                        <div className="flex flex-col gap-1">
+                            <Label htmlFor="config-enabled" className="font-medium">
+                                Enable {selectedTarget} drip condition
+                            </Label>
+                            <p className="text-xs text-muted-foreground">
+                                Controls whether this specific {selectedTarget} drip condition is
+                                active
+                            </p>
+                        </div>
                         <Switch
-                            id="condition-enabled"
-                            checked={enabled}
-                            onCheckedChange={setEnabled}
+                            id="config-enabled"
+                            checked={configEnabled}
+                            onCheckedChange={setConfigEnabled}
                         />
                     </div>
                 </div>

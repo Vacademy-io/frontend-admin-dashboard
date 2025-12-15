@@ -78,6 +78,7 @@ export const DripConditionDialog: React.FC<DripConditionDialogProps> = ({
             const currentConfig = prev.drip_condition?.[0] || {
                 target: prev.level === 'package' ? 'chapter' : (prev.level as 'chapter' | 'slide'),
                 behavior: 'lock' as DripConditionBehavior,
+                is_enabled: true,
                 rules: [],
             };
             return {
@@ -265,6 +266,7 @@ export const DripConditionDialog: React.FC<DripConditionDialogProps> = ({
                                             {
                                                 ...(prev.drip_condition?.[0] || {
                                                     behavior: 'lock' as DripConditionBehavior,
+                                                    is_enabled: true,
                                                     rules: [],
                                                 }),
                                                 target: value as 'chapter' | 'slide',
@@ -303,6 +305,7 @@ export const DripConditionDialog: React.FC<DripConditionDialogProps> = ({
                                                     prev.level === 'package'
                                                         ? 'chapter'
                                                         : (prev.level as 'chapter' | 'slide'),
+                                                is_enabled: true,
                                                 rules: [],
                                             }),
                                             behavior: value as DripConditionBehavior,

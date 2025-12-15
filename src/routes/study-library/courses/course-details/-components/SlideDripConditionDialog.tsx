@@ -13,6 +13,7 @@ import {
 import { MultiSelect } from '@/components/design-system/multi-select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Plus, Trash, Info } from 'phosphor-react';
 import type { DripCondition, DripConditionRule } from '@/types/course-settings';
@@ -113,6 +114,18 @@ export function SlideDripConditionDialog({
     };
 
     const handleDeleteCondition = async (conditionId: string) => {
+        const conditionToDelete = conditions.find((c) => c.id === conditionId);
+        if (!conditionToDelete) return;
+
+        // Check if condition is enabled
+        const isEnabled = conditionToDelete.drip_condition?.[0]?.is_enabled;
+        if (isEnabled) {
+            alert(
+                'Cannot delete an enabled condition. Please disable the slide drip condition first.'
+            );
+            return;
+        }
+
         if (!confirm('Are you sure you want to delete this drip condition?')) return;
 
         try {
@@ -254,17 +267,20 @@ export function SlideDripConditionDialog({
                                                 >
                                                     Edit
                                                 </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() =>
-                                                        handleDeleteCondition(condition.id)
-                                                    }
-                                                    disabled={saving}
-                                                    className="h-8 px-2 text-red-600 hover:bg-red-50 hover:text-red-700"
-                                                >
-                                                    <Trash size={16} />
-                                                </Button>
+                                                {!condition.drip_condition?.[0]?.is_enabled && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() =>
+                                                            handleDeleteCondition(condition.id)
+                                                        }
+                                                        disabled={saving}
+                                                        className="h-8 px-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                        title="Delete condition"
+                                                    >
+                                                        <Trash size={16} />
+                                                    </Button>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="space-y-1 text-sm text-gray-700">
@@ -317,6 +333,7 @@ function ConditionForm({ condition, slideId, onSave, saving, allSlides = [] }: C
     const [behavior, setBehavior] = useState<'lock' | 'hide' | 'both'>(
         existingConfig?.behavior || 'lock'
     );
+    const [isEnabled, setIsEnabled] = useState<boolean>(existingConfig?.is_enabled ?? true);
     const [rules, setRules] = useState<DripConditionRule[]>(
         existingConfig?.rules || [
             { type: 'date_based', params: { unlock_date: new Date().toISOString() } },
@@ -556,6 +573,7 @@ function ConditionForm({ condition, slideId, onSave, saving, allSlides = [] }: C
                 {
                     target,
                     behavior,
+                    is_enabled: isEnabled,
                     rules,
                 },
             ],
@@ -615,6 +633,23 @@ function ConditionForm({ condition, slideId, onSave, saving, allSlides = [] }: C
                         </div>
                     ))
                 )}
+            </div>
+
+            {/* Enable Toggle */}
+            <div className="flex items-center justify-between rounded-lg border p-3">
+                <div className="flex flex-col gap-1">
+                    <Label htmlFor="slide-condition-enabled" className="font-medium">
+                        Enable this slide condition
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                        Controls whether this drip condition is active
+                    </p>
+                </div>
+                <Switch
+                    id="slide-condition-enabled"
+                    checked={isEnabled}
+                    onCheckedChange={setIsEnabled}
+                />
             </div>
 
             <div className="flex justify-end gap-2 pt-2">

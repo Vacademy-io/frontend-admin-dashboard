@@ -329,6 +329,7 @@ export const createEmptyDripCondition = (): Partial<DripCondition> => {
             {
                 target: 'chapter',
                 behavior: 'lock',
+                is_enabled: true,
                 rules: [],
             },
         ],

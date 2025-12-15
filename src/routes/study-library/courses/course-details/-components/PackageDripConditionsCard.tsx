@@ -77,7 +77,19 @@ export const PackageDripConditionsCard: React.FC<PackageDripConditionsCardProps>
         }
     };
 
-    const handleDeleteCondition = (condition: DripCondition, target: 'chapter' | 'slide') => {
+    const handleDeleteCondition = (
+        condition: DripCondition,
+        target: 'chapter' | 'slide',
+        config: DripCondition['drip_condition'][number]
+    ) => {
+        // Only allow deletion of disabled conditions
+        if (config.is_enabled) {
+            alert(
+                `Cannot delete an enabled condition. Please disable the ${target} drip condition first.`
+            );
+            return;
+        }
+
         if (confirm(`Are you sure you want to delete this ${target} drip condition?`)) {
             // If this is the only config, delete the entire condition
             if (condition.drip_condition.length === 1) {
@@ -155,6 +167,14 @@ export const PackageDripConditionsCard: React.FC<PackageDripConditionsCardProps>
                                                 {config.behavior}
                                             </span>
                                         </Badge>
+                                        {config.is_enabled !== undefined && !config.is_enabled && (
+                                            <Badge
+                                                variant="outline"
+                                                className="bg-gray-100 text-gray-600"
+                                            >
+                                                Disabled
+                                            </Badge>
+                                        )}
                                     </div>
 
                                     <div className="space-y-1">
@@ -186,13 +206,18 @@ export const PackageDripConditionsCard: React.FC<PackageDripConditionsCardProps>
                                     >
                                         <Pencil />
                                     </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => handleDeleteCondition(condition, target)}
-                                    >
-                                        <Trash />
-                                    </Button>
+                                    {!config.is_enabled && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                                handleDeleteCondition(condition, target, config)
+                                            }
+                                            title="Delete condition"
+                                        >
+                                            <Trash />
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                         </div>

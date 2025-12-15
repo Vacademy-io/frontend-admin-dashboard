@@ -82,6 +82,7 @@ export interface DripConditionRule {
 export interface DripConditionConfig {
     target: 'chapter' | 'slide'; // Required for all levels
     behavior: DripConditionBehavior;
+    is_enabled: boolean;
     rules: DripConditionRule[];
 }
 
