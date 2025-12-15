@@ -536,6 +536,9 @@ importers:
       perfect-freehand:
         specifier: 1.2.0
         version: 1.2.0
+      phosphor-react:
+        specifier: ^1.4.1
+        version: 1.4.1(react@18.3.1)
       pica:
         specifier: 7.1.1
         version: 7.1.1
@@ -10282,6 +10285,12 @@ packages:
 
   performance-now@2.1.0:
     resolution: {integrity: sha512-7EAHlyLHI56VEIdK57uwHdHKIaAGbnXPiw0yWbarQZOKaKpvUIgW0jWRVLiatnM+XXlSwsanIBH/hzGMJulMow==}
+
+  phosphor-react@1.4.1:
+    resolution: {integrity: sha512-gO5j7U0xZrdglTAYDYPACU4xDOFBTJmptrrB/GeR+tHhCZF3nUMyGmV/0hnloKjuTrOmpSFlbfOY78H39rgjUQ==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      react: '>=16'
 
   pica@7.1.1:
     resolution: {integrity: sha512-WY73tMvNzXWEld2LicT9Y260L43isrZ85tPuqRyvtkljSDLmnNFQmZICt4xUJMVulmcc6L9O7jbBrtx3DOz/YQ==}
@@ -25355,6 +25364,10 @@ snapshots:
   perfect-freehand@1.2.0: {}
 
   performance-now@2.1.0: {}
+
+  phosphor-react@1.4.1(react@18.3.1):
+    dependencies:
+      react: 18.3.1
 
   pica@7.1.1:
     dependencies:

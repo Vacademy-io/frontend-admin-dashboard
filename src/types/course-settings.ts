@@ -37,6 +37,73 @@ export interface Permissions {
     allowReferralOptionChange: boolean;
 }
 
+// Drip Conditions Types
+export type DripConditionLevel = 'package' | 'chapter' | 'slide';
+export type DripConditionBehavior = 'lock' | 'hide' | 'both';
+export type DripConditionRuleType =
+    | 'date_based'
+    | 'completion_based'
+    | 'prerequisite'
+    | 'sequential';
+export type DripConditionMetric = 'average_of_last_n' | 'average_of_all';
+
+export interface DateBasedParams {
+    unlock_date: string; // ISO 8601 format
+}
+
+export interface CompletionBasedParams {
+    metric: DripConditionMetric;
+    count?: number; // Required for average_of_last_n
+    threshold: number; // 0-100
+}
+
+export interface PrerequisiteParams {
+    required_chapters?: string[];
+    required_slides?: string[];
+    threshold: number; // 0-100
+}
+
+export interface SequentialParams {
+    requires_previous: boolean;
+    threshold: number; // 0-100
+}
+
+export type DripConditionRuleParams =
+    | DateBasedParams
+    | CompletionBasedParams
+    | PrerequisiteParams
+    | SequentialParams;
+
+export interface DripConditionRule {
+    type: DripConditionRuleType;
+    params: DripConditionRuleParams;
+}
+
+export interface DripConditionConfig {
+    target: 'chapter' | 'slide'; // Required for all levels
+    behavior: DripConditionBehavior;
+    is_enabled: boolean;
+    rules: DripConditionRule[];
+}
+
+// DripConditionJson is now an array of configs to support multiple targets per level
+export type DripConditionJson = DripConditionConfig[];
+
+export interface DripCondition {
+    id: string; // Unique identifier for UI management
+    level: DripConditionLevel;
+    level_id: string; // packageId, chapterId, or slideId
+    drip_condition: DripConditionJson;
+    enabled: boolean;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface DripConditionsSettings {
+    enabled: boolean; // Global toggle for drip functionality
+    conditions: DripCondition[];
+}
+
 export interface CourseSettingsData {
     courseInformation: CourseInformation;
     courseStructure: CourseStructure;
@@ -44,6 +111,7 @@ export interface CourseSettingsData {
     courseViewSettings: CourseViewSettings;
     outlineSettings: OutlineSettings;
     permissions: Permissions;
+    dripConditions: DripConditionsSettings;
 }
 
 export interface CourseSettings {
@@ -98,5 +166,9 @@ export const DEFAULT_COURSE_SETTINGS: CourseSettingsData = {
         allowPaymentOptionChange: true,
         allowDiscountOptionChange: true,
         allowReferralOptionChange: true,
+    },
+    dripConditions: {
+        enabled: false,
+        conditions: [],
     },
 };

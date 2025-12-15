@@ -202,6 +202,7 @@
         "pdfjs-dist": "3.11.174",
         "pdfkit": "^0.16.0",
         "perfect-freehand": "1.2.0",
+        "phosphor-react": "^1.4.1",
         "pica": "7.1.1",
         "png-chunk-text": "1.0.0",
         "png-chunks-encode": "1.0.0",

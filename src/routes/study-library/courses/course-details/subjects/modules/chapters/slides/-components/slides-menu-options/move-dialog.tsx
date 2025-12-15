@@ -8,8 +8,8 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import { toast } from 'sonner';
 
 interface MoveTo {
-    openDialog: 'copy' | 'move' | 'delete' | null;
-    setOpenDialog: Dispatch<SetStateAction<'copy' | 'move' | 'delete' | null>>;
+    openDialog: 'copy' | 'move' | 'delete' | 'drip-conditions' | null;
+    setOpenDialog: Dispatch<SetStateAction<'copy' | 'move' | 'delete' | 'drip-conditions' | null>>;
 }
 
 export const MoveToDialog = ({ openDialog, setOpenDialog }: MoveTo) => {
