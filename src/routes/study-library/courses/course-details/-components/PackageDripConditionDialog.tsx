@@ -43,6 +43,7 @@ interface PackageDripConditionDialogProps {
     packageId: string;
     packageName: string;
     condition?: DripCondition;
+    initialTarget?: 'chapter' | 'slide';
 }
 
 export const PackageDripConditionDialog: React.FC<PackageDripConditionDialogProps> = ({
@@ -52,6 +53,7 @@ export const PackageDripConditionDialog: React.FC<PackageDripConditionDialogProp
     packageId,
     packageName,
     condition,
+    initialTarget,
 }) => {
     // Start with chapter as default target
     const [selectedTarget, setSelectedTarget] = useState<'chapter' | 'slide'>('chapter');
@@ -93,14 +95,24 @@ export const PackageDripConditionDialog: React.FC<PackageDripConditionDialogProp
 
     useEffect(() => {
         if (open) {
-            const target = 'chapter';
-            const config = getConfigForTarget(target);
-            setSelectedTarget(target);
+            // When editing existing condition, use initialTarget if provided, otherwise find which target has configs
+            let targetToSelect: 'chapter' | 'slide' = 'chapter';
+
+            if (initialTarget) {
+                // Use the explicitly passed target (when editing a specific target)
+                targetToSelect = initialTarget;
+            } else if (condition?.drip_condition && condition.drip_condition.length > 0) {
+                // Select the first available target from existing configs
+                targetToSelect = condition?.drip_condition[0]?.target ?? 'chapter';
+            }
+
+            const config = getConfigForTarget(targetToSelect);
+            setSelectedTarget(targetToSelect);
             setCurrentConfig(config);
             setEnabled(condition?.enabled ?? true);
             setConfigEnabled(config.is_enabled ?? true);
         }
-    }, [condition, open]);
+    }, [condition, open, initialTarget]);
 
     const handleSave = () => {
         // Ensure the currentConfig has the correct target and is_enabled
@@ -283,6 +295,24 @@ export const PackageDripConditionDialog: React.FC<PackageDripConditionDialogProp
                         <p className="text-sm font-medium text-blue-900">Course: {packageName}</p>
                     </div>
 
+                    {/* Enable Configuration Toggle - Moved to Top */}
+                    <div className="flex items-center justify-between rounded-lg border p-3">
+                        <div className="flex flex-col gap-1">
+                            <Label htmlFor="config-enabled" className="font-medium">
+                                Enable {selectedTarget} drip condition
+                            </Label>
+                            <p className="text-xs text-muted-foreground">
+                                Controls whether this specific {selectedTarget} drip condition is
+                                active
+                            </p>
+                        </div>
+                        <Switch
+                            id="config-enabled"
+                            checked={configEnabled}
+                            onCheckedChange={setConfigEnabled}
+                        />
+                    </div>
+
                     {/* Target Selection */}
                     <div className="space-y-2">
                         <Label>Target Content</Label>
@@ -380,24 +410,6 @@ export const PackageDripConditionDialog: React.FC<PackageDripConditionDialogProp
                                 ))}
                             </div>
                         )}
-                    </div>
-
-                    {/* Enable Configuration Toggle */}
-                    <div className="flex items-center justify-between rounded-lg border p-3">
-                        <div className="flex flex-col gap-1">
-                            <Label htmlFor="config-enabled" className="font-medium">
-                                Enable {selectedTarget} drip condition
-                            </Label>
-                            <p className="text-xs text-muted-foreground">
-                                Controls whether this specific {selectedTarget} drip condition is
-                                active
-                            </p>
-                        </div>
-                        <Switch
-                            id="config-enabled"
-                            checked={configEnabled}
-                            onCheckedChange={setConfigEnabled}
-                        />
                     </div>
                 </div>
             }

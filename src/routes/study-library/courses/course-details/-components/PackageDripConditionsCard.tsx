@@ -35,6 +35,7 @@ export const PackageDripConditionsCard: React.FC<PackageDripConditionsCardProps>
 }) => {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingCondition, setEditingCondition] = useState<DripCondition | undefined>();
+    const [editingTarget, setEditingTarget] = useState<'chapter' | 'slide' | undefined>();
 
     // Flatten conditions array for display - show each config as separate card
     const flattenedConditions: Array<{
@@ -61,11 +62,13 @@ export const PackageDripConditionsCard: React.FC<PackageDripConditionsCardProps>
             (c) => c.level === 'package' && c.level_id === packageId
         );
         setEditingCondition(existingCondition);
+        setEditingTarget(undefined);
         setDialogOpen(true);
     };
 
-    const handleEditCondition = (condition: DripCondition) => {
+    const handleEditCondition = (condition: DripCondition, target: 'chapter' | 'slide') => {
         setEditingCondition(condition);
+        setEditingTarget(target);
         setDialogOpen(true);
     };
 
@@ -204,7 +207,7 @@ export const PackageDripConditionsCard: React.FC<PackageDripConditionsCardProps>
                                     <Button
                                         variant="ghost"
                                         size="sm"
-                                        onClick={() => handleEditCondition(condition)}
+                                        onClick={() => handleEditCondition(condition, target)}
                                         className="size-8 p-0"
                                     >
                                         <Pencil className="size-4" />
@@ -231,11 +234,15 @@ export const PackageDripConditionsCard: React.FC<PackageDripConditionsCardProps>
 
             <PackageDripConditionDialog
                 open={dialogOpen}
-                onClose={() => setDialogOpen(false)}
+                onClose={() => {
+                    setDialogOpen(false);
+                    setEditingTarget(undefined);
+                }}
                 onSave={handleSaveCondition}
                 packageId={packageId}
                 packageName={packageName}
                 condition={editingCondition}
+                initialTarget={editingTarget}
             />
         </>
     );

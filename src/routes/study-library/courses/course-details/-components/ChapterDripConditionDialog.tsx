@@ -67,10 +67,10 @@ export function ChapterDripConditionDialog({
         if (c.level !== 'package' || c.level_id !== packageId || !c.enabled) {
             return false;
         }
-        // Check if any config in the drip_condition array targets chapters
+        // Check if any config in the drip_condition array targets chapters AND is enabled
         return (
             Array.isArray(c.drip_condition) &&
-            c.drip_condition.some((config) => config.target === 'chapter')
+            c.drip_condition.some((config) => config.target === 'chapter' && config.is_enabled)
         );
     });
 

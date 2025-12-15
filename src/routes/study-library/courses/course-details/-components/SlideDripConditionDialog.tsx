@@ -67,10 +67,10 @@ export function SlideDripConditionDialog({
         if (c.level !== 'package' || c.level_id !== packageId || !c.enabled) {
             return false;
         }
-        // Check if any config in the drip_condition array targets slides
+        // Check if any config in the drip_condition array targets slides AND is enabled
         return (
             Array.isArray(c.drip_condition) &&
-            c.drip_condition.some((config) => config.target === 'slide')
+            c.drip_condition.some((config) => config.target === 'slide' && config.is_enabled)
         );
     });
 
