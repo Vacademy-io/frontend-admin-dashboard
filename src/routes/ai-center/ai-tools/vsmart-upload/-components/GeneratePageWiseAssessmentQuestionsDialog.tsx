@@ -1,16 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { FormProvider, useFieldArray, UseFormReturn } from 'react-hook-form';
 import { transformQuestionsToGenerateAssessmentAI } from '@/routes/ai-center/-utils/helper';
 import { Sortable, SortableDragHandle, SortableItem } from '@/components/ui/sortable';
 import { getPPTViewTitle } from '@/routes/assessment/question-papers/-utils/helper';
 import { QuestionType } from '@/constants/dummy-data';
-import { DotsSixVertical } from 'phosphor-react';
+import { DotsSixVertical, Copy, Trash, DotsThreeVertical } from 'phosphor-react';
 import { PPTComponentFactory } from '@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/PPTComponentFactory';
 import { Separator } from '@/components/ui/separator';
 import { MainViewComponentFactory } from '@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory';
 import { z } from 'zod';
 import { generateCompleteAssessmentFormSchema } from '@/routes/ai-center/-utils/generate-complete-assessment-schema';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { MyButton } from '@/components/design-system/button';
 import useInstituteLogoStore from '@/components/common/layout-container/sidebar/institutelogo-global-zustand';
 import { Input } from '@/components/ui/input';
@@ -56,10 +62,37 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
     const { getValues } = form;
 
     // UseFieldArray to manage questions array
-    const { fields, move } = useFieldArray({
+    const { fields, move, insert, remove } = useFieldArray({
         control: form.control,
         name: 'questions', // Name of the field array
     });
+
+    const contentRef = useRef<HTMLDivElement>(null);
+    const [containerHeight, setContainerHeight] = useState<string | number>('auto');
+
+    useEffect(() => {
+        const updateHeight = () => {
+            if (contentRef.current) {
+                const scaled = contentRef.current.scrollHeight * 0.28 + 10;
+                setContainerHeight(scaled);
+            }
+        };
+
+        const timeoutId = setTimeout(updateHeight, 100);
+
+        const resizeObserver = new ResizeObserver(() => {
+            updateHeight();
+        });
+
+        if (contentRef.current) {
+            resizeObserver.observe(contentRef.current);
+        }
+
+        return () => {
+            clearTimeout(timeoutId);
+            resizeObserver.disconnect();
+        };
+    }, [fields]);
 
     const questions = form.getValues('questions');
 
@@ -78,12 +111,11 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
 
     return (
         <Dialog open={openCompleteAssessmentDialog} onOpenChange={setOpenCompleteAssessmentDialog}>
-            <DialogTrigger>
+            <DialogTrigger asChild>
                 <MyButton
                     type="submit"
                     scale="medium"
                     buttonType="secondary"
-                    layoutVariant="default"
                     className="text-sm"
                     onClick={handleGenerateQuestionsForAssessment}
                 >
@@ -98,169 +130,232 @@ const GeneratePageWiseAssessmentQuestionsDialog = ({
                 </MyButton>
             </DialogTrigger>
             {assessmentData!.questions.length > 0 && (
-                <DialogContent className="no-scrollbar !m-0 flex h-full !w-full !max-w-full flex-col !gap-0 overflow-y-auto !rounded-none !p-0 [&>button]:hidden">
+                <DialogContent className="no-scrollbar !m-0 flex h-full !w-screen !max-w-none flex-col !gap-0 overflow-hidden !rounded-none !p-0 bg-background text-foreground [&>button]:hidden">
                     <FormProvider {...form}>
-                        <form className="flex h-screen flex-col items-start">
-                            <div className="flex w-full items-center justify-between bg-primary-100 p-2">
-                                <div className="flex items-center gap-2">
-                                    <img
-                                        src={instituteLogo}
-                                        alt="logo"
-                                        className="size-12 rounded-full"
-                                    />
-                                    <span className="text-lg font-semibold text-neutral-500">
-                                        {form.getValues('title')}
-                                    </span>
-                                </div>
+                        <form className="flex h-full flex-col">
+                            {/* Header */}
+                            <div className="flex bg-background h-16 w-full items-center justify-between border-b px-6 shadow-sm z-10 shrink-0">
                                 <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-3">
+                                        <img
+                                            src={instituteLogo}
+                                            alt="logo"
+                                            className="size-9 rounded-full border bg-muted object-contain"
+                                        />
+                                        <span className="text-sm font-bold leading-tight text-foreground/90">
+                                            {form.getValues('title')}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3">
                                     <Dialog
                                         open={isMoreQuestionsDialog}
                                         onOpenChange={setIsMoreQuestionsDialog}
                                     >
-                                        <DialogTrigger>
+                                        <DialogTrigger asChild>
                                             <MyButton
                                                 type="button"
-                                                scale="medium"
+                                                scale="small"
                                                 buttonType="secondary"
-                                                layoutVariant="default"
-                                                className="mr-4 text-sm"
+                                                className="text-primary hover:text-primary/80"
                                             >
-                                                Generate
+                                                Generate More
                                             </MyButton>
                                         </DialogTrigger>
-                                        <DialogContent className="p-0">
-                                            <h1 className="rounded-t-lg bg-primary-50 p-4 font-semibold text-primary-500">
-                                                Generate more questions
-                                            </h1>
-                                            <div className="flex flex-col items-center justify-center gap-4 p-4">
+                                        <DialogContent className="p-0 sm:max-w-md overflow-hidden rounded-lg">
+                                            <div className="bg-primary/5 p-4 border-b">
+                                                <h1 className="font-semibold text-primary">
+                                                    Generate more questions
+                                                </h1>
+                                            </div>
+                                            <div className="flex flex-col gap-4 p-6">
                                                 <Input
                                                     placeholder="Enter topics to generate questions"
                                                     value={propmtInput}
                                                     onChange={(e) => setPropmtInput(e.target.value)}
+                                                    className="border-muted-foreground/20"
                                                 />
-                                                <MyButton
-                                                    type="button"
-                                                    scale="medium"
-                                                    buttonType="primary"
-                                                    layoutVariant="default"
-                                                    className="mr-4 text-sm"
-                                                    onClick={handleGenerateQuestionsForAssessment}
-                                                >
-                                                    Generate Questions
-                                                </MyButton>
+                                                <div className="flex justify-end pt-2">
+                                                    <MyButton
+                                                        type="button"
+                                                        scale="medium"
+                                                        buttonType="primary"
+                                                        onClick={handleGenerateQuestionsForAssessment}
+                                                    >
+                                                        Generate Questions
+                                                    </MyButton>
+                                                </div>
                                             </div>
                                         </DialogContent>
                                     </Dialog>
-                                    <MyButton
-                                        type="button"
-                                        scale="medium"
-                                        buttonType="secondary"
-                                        layoutVariant="default"
-                                        className="mr-4 text-sm"
-                                        onClick={() => setOpenCompleteAssessmentDialog(false)}
-                                    >
-                                        Cancel
-                                    </MyButton>
+
                                     <ExportQuestionPaperAI
                                         responseQuestionsData={assessmentData?.questions}
                                     />
+                                    <div className="h-5 w-px bg-border mx-1" />
+                                    <MyButton
+                                        type="button"
+                                        scale="small"
+                                        buttonType="secondary"
+                                        className="text-muted-foreground hover:text-foreground md:min-w-[80px]"
+                                        onClick={() => setOpenCompleteAssessmentDialog(false)}
+                                    >
+                                        Close
+                                    </MyButton>
                                 </div>
                             </div>
-                            <div className="flex w-full">
-                                <div className="mt-4 flex w-40 flex-col items-center justify-center gap-2">
-                                    <div className="flex h-[325vh] w-40 flex-col items-start justify-between gap-4 overflow-x-hidden overflow-y-scroll p-2">
+
+                            {/* Content Body */}
+                            <div className="flex flex-1 overflow-hidden">
+                                {/* Sidebar / Slides Strip */}
+                                <div className="flex w-56 flex-col border-r bg-muted/5">
+                                    <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 scrollbar-thin scrollbar-thumb-muted-foreground/20">
                                         <Sortable
                                             value={fields}
                                             onMove={({ activeIndex, overIndex }) =>
                                                 move(activeIndex, overIndex)
                                             }
                                         >
-                                            <div className="flex origin-top-left scale-[0.26] flex-col gap-8 overflow-x-hidden">
-                                                {fields.map((field, index) => {
-                                                    return (
-                                                        <SortableItem
-                                                            key={field.id}
-                                                            value={field.id}
-                                                            asChild
-                                                        >
-                                                            <div
-                                                                key={index}
-                                                                onClick={() =>
-                                                                    handlePageClick(index)
-                                                                }
-                                                                className={`rounded-xl border-4 bg-primary-50 p-6 ${
-                                                                    currentQuestionIndex === index
-                                                                        ? 'border-primary-500 bg-none'
-                                                                        : 'bg-none'
-                                                                }`}
+                                            <div style={{ height: containerHeight, overflow: 'hidden' }}>
+                                                <div ref={contentRef} className="origin-top-left scale-[0.28] w-[350%] flex flex-col gap-6 pb-20">
+                                                    {fields.map((field, index) => {
+                                                        const isSelected = currentQuestionIndex === index;
+                                                        return (
+                                                            <SortableItem
+                                                                key={field.id}
+                                                                value={field.id}
+                                                                asChild
                                                             >
-                                                                <div className="flex flex-col">
-                                                                    <div className="flex items-center justify-start gap-4">
-                                                                        <h1 className="left-0 w-96 whitespace-nowrap text-4xl font-bold">
-                                                                            {index + 1}
-                                                                            &nbsp;
-                                                                            {getPPTViewTitle(
-                                                                                getValues(
-                                                                                    `questions.${index}.questionType`
-                                                                                ) as QuestionType
-                                                                            )}
-                                                                        </h1>
-                                                                        <SortableDragHandle
-                                                                            variant="outline"
-                                                                            size="icon"
-                                                                            className="size-16"
-                                                                        >
-                                                                            <DotsSixVertical className="!size-12" />
-                                                                        </SortableDragHandle>
+                                                                <div
+                                                                    key={index}
+                                                                    onClick={() =>
+                                                                        handlePageClick(index)
+                                                                    }
+                                                                    className={`relative rounded-3xl border-4 p-6 transition-all duration-200 group
+                                                                    ${isSelected
+                                                                            ? 'border-blue-600 bg-white ring-8 ring-blue-50'
+                                                                            : 'border-transparent bg-white shadow-sm hover:shadow-md'
+                                                                        }`}
+                                                                >
+                                                                    <div className="flex flex-col gap-4">
+                                                                        <div className="flex items-center justify-between gap-4">
+                                                                            <div className="flex items-center gap-4">
+                                                                                <h1 className={`text-5xl font-bold ${isSelected ? 'text-blue-600' : 'text-gray-400'}`}>
+                                                                                    {index + 1}
+                                                                                </h1>
+                                                                                <span className="text-3xl font-medium text-gray-500 truncate max-w-[400px]">
+                                                                                    {getPPTViewTitle(
+                                                                                        getValues(
+                                                                                            `questions.${index}.questionType`
+                                                                                        ) as QuestionType
+                                                                                    )}
+                                                                                </span>
+                                                                            </div>
+                                                                            <div className="flex items-center gap-2">
+                                                                                <DropdownMenu>
+                                                                                    <DropdownMenuTrigger asChild>
+                                                                                        <MyButton
+                                                                                            type="button"
+                                                                                            scale="large"
+                                                                                            buttonType="secondary"
+                                                                                            className="size-16 p-0 text-muted-foreground hover:text-foreground"
+                                                                                            onClick={(e) => e.stopPropagation()}
+                                                                                        >
+                                                                                            <DotsThreeVertical className="!size-10" />
+                                                                                        </MyButton>
+                                                                                    </DropdownMenuTrigger>
+                                                                                    <DropdownMenuContent align="end" className="w-56">
+                                                                                        <DropdownMenuItem
+                                                                                            className="py-3 text-lg"
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation();
+                                                                                                insert(index + 1, getValues(`questions.${index}`));
+                                                                                            }}
+                                                                                        >
+                                                                                            <Copy className="mr-3 size-5" />
+                                                                                            Duplicate
+                                                                                        </DropdownMenuItem>
+                                                                                        <DropdownMenuItem
+                                                                                            className="py-3 text-lg text-destructive focus:text-destructive"
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation();
+                                                                                                remove(index);
+                                                                                                if (currentQuestionIndex >= index && currentQuestionIndex > 0) {
+                                                                                                    setCurrentQuestionIndex(currentQuestionIndex - 1);
+                                                                                                }
+                                                                                            }}
+                                                                                        >
+                                                                                            <Trash className="mr-3 size-5" />
+                                                                                            Delete
+                                                                                        </DropdownMenuItem>
+                                                                                    </DropdownMenuContent>
+                                                                                </DropdownMenu>
+                                                                                <SortableDragHandle
+                                                                                    variant="ghost"
+                                                                                    size="icon"
+                                                                                    className="size-16 opacity-50 hover:opacity-100 cursor-grab active:cursor-grabbing"
+                                                                                >
+                                                                                    <DotsSixVertical className="!size-12" />
+                                                                                </SortableDragHandle>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="pointer-events-none opacity-90">
+                                                                            <PPTComponentFactory
+                                                                                key={index}
+                                                                                type={
+                                                                                    getValues(
+                                                                                        `questions.${currentQuestionIndex}.questionType`
+                                                                                    ) as QuestionType
+                                                                                }
+                                                                                props={{
+                                                                                    form: form as any,
+                                                                                    currentQuestionIndex:
+                                                                                        index,
+                                                                                    setCurrentQuestionIndex:
+                                                                                        setCurrentQuestionIndex,
+                                                                                    className:
+                                                                                        'relative mt-4 rounded-xl border-2 border-gray-100 bg-white p-0 overflow-hidden',
+                                                                                }}
+                                                                            />
+                                                                        </div>
                                                                     </div>
-                                                                    <PPTComponentFactory
-                                                                        key={index}
-                                                                        type={
-                                                                            getValues(
-                                                                                `questions.${currentQuestionIndex}.questionType`
-                                                                            ) as QuestionType
-                                                                        }
-                                                                        props={{
-                                                                            form: form as any,
-                                                                            currentQuestionIndex:
-                                                                                index,
-                                                                            setCurrentQuestionIndex:
-                                                                                setCurrentQuestionIndex,
-                                                                            className:
-                                                                                'relative mt-4 rounded-xl border-4 border-primary-300 bg-white p-4',
-                                                                        }}
-                                                                    />
                                                                 </div>
-                                                            </div>
-                                                        </SortableItem>
-                                                    );
-                                                })}
+                                                            </SortableItem>
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
                                         </Sortable>
                                     </div>
                                 </div>
-                                <Separator orientation="vertical" className="h-screen" />
-                                {questions && questions.length === 0 ? (
-                                    <div className="flex h-screen w-screen items-center justify-center">
-                                        <h1>No Question Exists.</h1>
-                                    </div>
-                                ) : (
-                                    <MainViewComponentFactory
-                                        key={currentQuestionIndex}
-                                        type={
-                                            getValues(
-                                                `questions.${currentQuestionIndex}.questionType`
-                                            ) as QuestionType
-                                        }
-                                        props={{
-                                            form: form as any,
-                                            currentQuestionIndex: currentQuestionIndex,
-                                            setCurrentQuestionIndex: setCurrentQuestionIndex,
-                                            className:
-                                                'dialog-height overflow-auto ml-6 flex w-full flex-col gap-6 pr-6 pt-4',
-                                        }}
-                                    />
-                                )}
+
+                                <div className="flex-1 h-full w-full bg-muted/10 relative overflow-hidden">
+                                    {questions && questions.length === 0 ? (
+                                        <div className="flex h-full w-full items-center justify-center">
+                                            <h1 className="text-muted-foreground font-medium">No Question Exists.</h1>
+                                        </div>
+                                    ) : (
+                                        <div className="h-full w-full overflow-y-auto p-8">
+                                            <div className="mx-auto w-full max-w-5xl rounded-xl bg-background border shadow-sm min-h-[600px] p-10">
+                                                <MainViewComponentFactory
+                                                    key={currentQuestionIndex}
+                                                    type={
+                                                        getValues(
+                                                            `questions.${currentQuestionIndex}.questionType`
+                                                        ) as QuestionType
+                                                    }
+                                                    props={{
+                                                        form: form as any,
+                                                        currentQuestionIndex: currentQuestionIndex,
+                                                        setCurrentQuestionIndex: setCurrentQuestionIndex,
+                                                        className:
+                                                            'flex w-full flex-col gap-6',
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </form>
                     </FormProvider>
