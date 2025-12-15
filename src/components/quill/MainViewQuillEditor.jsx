@@ -4,7 +4,9 @@ import 'katex/dist/katex.css';
 
 import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import './jquery';
+
+// NOTE: jQuery is loaded from CDN in index.html BEFORE bundles load
+// This ensures MathQuill can find window.jQuery when it initializes
 
 import '@edtr-io/mathquill/build/mathquill.js';
 import '@edtr-io/mathquill/build/mathquill.css';
@@ -181,7 +183,7 @@ export const MainViewQuillEditor = ({
 
             const fileId = await UploadFileInS3(
                 file,
-                () => {},
+                () => { },
                 USER_ID,
                 INSTITUTE_ID,
                 'STUDENTS',
@@ -256,8 +258,8 @@ export const MainViewQuillEditor = ({
                 const mimeType = MediaRecorder.isTypeSupported('audio/webm')
                     ? 'audio/webm'
                     : MediaRecorder.isTypeSupported('audio/mp4')
-                      ? 'audio/mp4'
-                      : '';
+                        ? 'audio/mp4'
+                        : '';
                 const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
                 recordedChunksRef.current = [];
                 recorder.ondataavailable = (e) => {

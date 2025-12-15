@@ -139,12 +139,24 @@ export default defineConfig({
                         if (id.includes('/grapesjs/'))
                             return 'grapes-vendor';
 
-                        // Heavy Libraries - Mermaid/ELK (diagrams)
-                        if (id.includes('/mermaid/') || id.includes('/elkjs/') || id.includes('/dagre/'))
+                        // Heavy Libraries - Mermaid/ELK/ReactFlow (diagrams)
+                        if (
+                            id.includes('/mermaid/') ||
+                            id.includes('/elkjs/') ||
+                            id.includes('/dagre/') ||
+                            id.includes('/reactflow/') ||
+                            id.includes('/@reactflow/')
+                        )
                             return 'diagram-vendor';
 
-                        // Heavy Libraries - Rich Text Editors
-                        if (id.includes('/quill/') || id.includes('/react-quill/'))
+                        // Heavy Libraries - Rich Text Editors (jQuery + MathQuill must load together)
+                        if (
+                            id.includes('/quill/') ||
+                            id.includes('/react-quill/') ||
+                            id.includes('/jquery/') ||
+                            id.includes('/mathquill/') ||
+                            id.includes('/mathquill4quill/')
+                        )
                             return 'quill-vendor';
                         if (id.includes('/@tiptap/'))
                             return 'tiptap-vendor';
