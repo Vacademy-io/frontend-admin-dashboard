@@ -1,7 +1,7 @@
 import { MyButton } from '@/components/design-system/button';
 import { MyDropdown } from '@/components/design-system/dropdown';
 import { DotsThree } from 'phosphor-react';
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getSlidesMenuOptions } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-constants/slides-menu-options';
 import { CopyToDialog } from './copy-dialog';
 import { MoveToDialog } from './move-dialog';
@@ -12,6 +12,7 @@ import { SlideDripConditionDialog } from '@/routes/study-library/courses/course-
 import { getCourseSettings, saveCourseSettings } from '@/services/course-settings';
 import type { DripCondition } from '@/types/course-settings';
 import { toast } from 'sonner';
+import type { DropdownItem } from '@/components/design-system/utils/types/dropdown-types';
 
 export const SlidesMenuOption = () => {
     const [openDialog, setOpenDialog] = useState<
@@ -19,6 +20,7 @@ export const SlidesMenuOption = () => {
     >(null);
     const [dripConditions, setDripConditions] = useState<DripCondition[]>([]);
     const [loadingDripConditions, setLoadingDripConditions] = useState(false);
+    const [dripConditionsEnabled, setDripConditionsEnabled] = useState(true);
 
     const { activeItem, items } = useContentStore();
     const router = useRouter();
@@ -32,6 +34,30 @@ export const SlidesMenuOption = () => {
         id: slide.id,
         heading: slide.title || 'Untitled Slide',
     }));
+
+    // Load course settings to check if drip conditions are enabled
+    useEffect(() => {
+        const loadDripConditionsSettings = async () => {
+            try {
+                const settings = await getCourseSettings();
+                setDripConditionsEnabled(settings.dripConditions?.enabled !== false);
+            } catch (error) {
+                console.error('Failed to load drip conditions settings:', error);
+                // Default to true on error
+                setDripConditionsEnabled(true);
+            }
+        };
+        loadDripConditionsSettings();
+    }, []);
+
+    // Filter menu options based on drip conditions setting
+    const menuOptions = useMemo<DropdownItem[]>(() => {
+        const baseOptions = getSlidesMenuOptions();
+        if (!dripConditionsEnabled) {
+            return baseOptions.filter((item) => item.value !== 'drip-conditions');
+        }
+        return baseOptions;
+    }, [dripConditionsEnabled]);
 
     const handleSelect = async (value: string) => {
         switch (value) {
@@ -87,7 +113,7 @@ export const SlidesMenuOption = () => {
 
     return (
         <>
-            <MyDropdown dropdownList={getSlidesMenuOptions()} onSelect={handleSelect}>
+            <MyDropdown dropdownList={menuOptions} onSelect={handleSelect}>
                 <MyButton buttonType="secondary" scale="large" layoutVariant="icon">
                     <DotsThree />
                 </MyButton>
