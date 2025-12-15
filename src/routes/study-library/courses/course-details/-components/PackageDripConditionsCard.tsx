@@ -155,9 +155,9 @@ export const PackageDripConditionsCard: React.FC<PackageDripConditionsCardProps>
                             key={`${condition.id}-${target}-${index}`}
                             className="rounded-lg border bg-white p-4 shadow-sm"
                         >
-                            <div className="flex items-start justify-between">
-                                <div className="flex-1 space-y-2">
-                                    <div className="flex items-center gap-2">
+                            <div className="flex items-start gap-4">
+                                <div className="min-w-0 flex-1 space-y-2">
+                                    <div className="flex flex-wrap items-center gap-2">
                                         <Badge variant="outline" className="capitalize">
                                             {target}
                                         </Badge>
@@ -181,30 +181,33 @@ export const PackageDripConditionsCard: React.FC<PackageDripConditionsCardProps>
                                         {config.rules.map((rule, idx) => (
                                             <div
                                                 key={idx}
-                                                className="flex items-start gap-2 text-sm text-gray-700"
+                                                className="flex items-start gap-1 text-sm text-gray-700"
                                             >
                                                 {rule.type === 'date_based' && (
-                                                    <Calendar className="mt-0.5 size-4 text-blue-600" />
+                                                    <Calendar className="mt-0.5 size-4 shrink-0 text-blue-600" />
                                                 )}
                                                 {rule.type === 'completion_based' && (
-                                                    <CheckCircle className="mt-0.5 size-4 text-green-600" />
+                                                    <CheckCircle className="mt-0.5 size-4 shrink-0 text-green-600" />
                                                 )}
                                                 {rule.type === 'prerequisite' && (
-                                                    <Lock className="mt-0.5 size-4 text-orange-600" />
+                                                    <Lock className="mt-0.5 size-4 shrink-0 text-orange-600" />
                                                 )}
-                                                <span>{formatDripRule(rule)}</span>
+                                                <span className="min-w-fit ">
+                                                    {formatDripRule(rule)}
+                                                </span>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
 
-                                <div className="ml-2 flex gap-2">
+                                <div className="flex shrink-0 gap-1">
                                     <Button
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => handleEditCondition(condition)}
+                                        className="size-8 p-0"
                                     >
-                                        <Pencil />
+                                        <Pencil className="size-4" />
                                     </Button>
                                     {!config.is_enabled && (
                                         <Button
@@ -214,8 +217,9 @@ export const PackageDripConditionsCard: React.FC<PackageDripConditionsCardProps>
                                                 handleDeleteCondition(condition, target, config)
                                             }
                                             title="Delete condition"
+                                            className="size-8 p-0"
                                         >
-                                            <Trash />
+                                            <Trash className="size-4" />
                                         </Button>
                                     )}
                                 </div>
