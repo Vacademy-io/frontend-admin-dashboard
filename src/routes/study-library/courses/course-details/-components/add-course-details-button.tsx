@@ -1,7 +1,7 @@
 import { MyButton } from '@/components/design-system/button';
 import { MyDialog } from '@/components/design-system/dialog';
 import { ReactNode, useRef, useState } from 'react';
-import { Plus } from 'phosphor-react';
+import { Plus } from '@phosphor-icons/react';
 import { AddCourseDetailsForm, AddLevelData } from './add-course-details-form';
 
 const triggerButton = (

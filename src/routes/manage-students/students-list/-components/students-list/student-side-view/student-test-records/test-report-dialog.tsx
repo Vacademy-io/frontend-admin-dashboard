@@ -14,7 +14,7 @@ import { StatusChips } from '@/components/design-system/chips';
 import { parseHtmlToString } from '@/components/common/export-offline/utils/utils';
 import { AssessmentReportStudentInterface } from '@/types/assessments/assessment-overview';
 import { AssessmentTestReport } from '@/types/assessments/assessment-data-report';
-import { Clock } from 'phosphor-react';
+import { Clock } from '@phosphor-icons/react';
 import ExportDialogPDFCSV from '@/components/common/export-dialog-pdf-csv';
 import { toast } from 'sonner';
 import { handleGetStudentReportExportPDF } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services';

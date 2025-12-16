@@ -5,7 +5,7 @@ import { FormProvider, useForm, UseFormReturn } from 'react-hook-form';
 import SelectField from '@/components/design-system/select-field';
 import { UploadFileBg } from '@/svgs';
 import { FileUploadComponent } from '@/components/design-system/file-upload';
-import { File, X } from 'phosphor-react';
+import { File, X } from '@phosphor-icons/react';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { QuestionPaperTemplate } from './QuestionPaperTemplate';

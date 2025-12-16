@@ -16,7 +16,7 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { MyButton } from '@/components/design-system/button';
-import { X } from 'phosphor-react';
+import { X } from '@phosphor-icons/react';
 import { QuestionPaperUpload } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { QuestionPapersTabs } from '@/routes/assessment/question-papers/-components/QuestionPapersTabs';

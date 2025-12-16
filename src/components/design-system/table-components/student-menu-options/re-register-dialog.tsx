@@ -10,7 +10,7 @@ import { AddSessionDialog } from '@/routes/manage-institute/sessions/-components
 import { useAddSession } from '@/services/study-library/session-management/addSession';
 import { AddSessionDataType } from '@/routes/manage-institute/sessions/-components/session-operations/add-session/add-session-form';
 import { toast } from 'sonner';
-import { ArrowUpRight, Plus } from 'phosphor-react';
+import { ArrowUpRight, Plus } from '@phosphor-icons/react';
 import { useRouter } from '@tanstack/react-router';
 import {
     ReRegisterStudentRequestType,

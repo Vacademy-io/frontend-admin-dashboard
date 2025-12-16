@@ -4,7 +4,7 @@
 // import { useCourseManager } from "../../../../-hooks/useCourseManager";
 // import { CourseSelection } from "./CourseSelection";
 // import { MaxLimitField } from "../MaxLimitField";
-// import { TrashSimple } from "phosphor-react";
+// import { TrashSimple } from "@phosphor-icons/react";
 
 // export const CourseList = () => {
 //     const { form } = useInviteFormContext();

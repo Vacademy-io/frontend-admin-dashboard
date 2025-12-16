@@ -30,7 +30,7 @@ import { getDisplaySettings, getDisplaySettingsFromCache } from '@/services/disp
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn, goToMailSupport, goToWhatsappSupport } from '@/lib/utils';
-import { Question } from 'phosphor-react';
+import { Question } from '@phosphor-icons/react';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
 import { WhatsappLogo, EnvelopeSimple, Lightning } from '@phosphor-icons/react';
 import { useNavigate, useRouter } from '@tanstack/react-router';

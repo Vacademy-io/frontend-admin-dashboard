@@ -4,7 +4,7 @@ import { LayoutContainer } from '@/components/common/layout-container/layout-con
 import { Helmet } from 'react-helmet';
 import { useEffect } from 'react';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
-import { CaretLeft } from 'phosphor-react';
+import { CaretLeft } from '@phosphor-icons/react';
 import { useNavigate } from '@tanstack/react-router';
 import { useLiveSessionStore } from './-store/sessionIdstore';
 

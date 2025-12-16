@@ -1,21 +1,6 @@
-import { LayoutContainer } from '@/components/common/layout-container/layout-container';
-import { ManageBatches } from './-components/manage-batches';
 import { createFileRoute } from '@tanstack/react-router';
-import { Helmet } from 'react-helmet';
 
+// Route definition only - component is lazy loaded from index.lazy.tsx
 export const Route = createFileRoute('/manage-institute/batches/')({
-    component: RouteComponent,
+    // Component is defined in index.lazy.tsx
 });
-
-function RouteComponent() {
-    return (
-        <LayoutContainer>
-            {/* <EmptyDashboard /> */}
-            <Helmet>
-                <title>Manage Batches</title>
-                <meta name="description" content="This page contains the management of batches" />
-            </Helmet>
-            <ManageBatches />
-        </LayoutContainer>
-    );
-}

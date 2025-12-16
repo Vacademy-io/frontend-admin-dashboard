@@ -1,4 +1,6 @@
-import { Pie, PieChart } from 'recharts';
+import React, { Suspense } from 'react';
+const PieChart = React.lazy(() => import('recharts').then(module => ({ default: module.PieChart })));
+const Pie = React.lazy(() => import('recharts').then(module => ({ default: module.Pie as unknown as React.ComponentType<any> })));
 import {
     ChartConfig,
     ChartContainer,
@@ -57,16 +59,18 @@ export function MarksBreakdownComponent({ marksData }: { marksData: MarksRespons
     ];
     return (
         <ChartContainer config={chartConfig} className="mx-auto aspect-square h-[180px]">
-            <PieChart>
-                <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                <Pie
-                    data={chartData}
-                    dataKey="value"
-                    nameKey="responseType"
-                    innerRadius={42}
-                    strokeWidth={2}
-                />
-            </PieChart>
+            <Suspense fallback={<div className="h-full w-full animate-pulse bg-gray-100 rounded-full opacity-20" />}>
+                <PieChart>
+                    <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                    <Pie
+                        data={chartData}
+                        dataKey="value"
+                        nameKey="responseType"
+                        innerRadius={42}
+                        strokeWidth={2}
+                    />
+                </PieChart>
+            </Suspense>
         </ChartContainer>
     );
 }

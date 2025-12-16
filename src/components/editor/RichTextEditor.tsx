@@ -1,4 +1,5 @@
-import TipTapEditor from '@/components/tiptap/TipTapEditor';
+import { lazy, Suspense } from 'react';
+const TipTapEditor = lazy(() => import('@/components/tiptap/TipTapEditor').then(module => ({ default: module.TipTapEditor })));
 import { useState } from 'react';
 import {
     Dialog,
@@ -42,13 +43,15 @@ export function RichTextEditor({
 
     return (
         <div className={`relative w-full min-w-0 overflow-y-auto ${className ?? ''}`.trim()}>
-            <TipTapEditor
-                value={safeValue}
-                onChange={onChange}
-                onBlur={onBlur}
-                placeholder={placeholder}
-                minHeight={minHeight ?? 70}
-            />
+            <Suspense fallback={<div className="h-20 w-full animate-pulse rounded bg-gray-100" />}>
+                <TipTapEditor
+                    value={safeValue}
+                    onChange={onChange}
+                    onBlur={onBlur}
+                    placeholder={placeholder}
+                    minHeight={minHeight ?? 70}
+                />
+            </Suspense>
             {enableModalCompose && (
                 <MyButton
                     type="button"
@@ -73,13 +76,15 @@ export function RichTextEditor({
                             <DialogTitle>Compose</DialogTitle>
                         </DialogHeader>
                         <div className="mt-2 min-h-0 flex-1 overflow-auto">
-                            <TipTapEditor
-                                value={draft}
-                                onChange={setDraft}
-                                onBlur={() => {}}
-                                placeholder={placeholder}
-                                minHeight={modalMinHeight}
-                            />
+                            <Suspense fallback={<div className="h-64 w-full animate-pulse rounded bg-gray-100" />}>
+                                <TipTapEditor
+                                    value={draft}
+                                    onChange={setDraft}
+                                    onBlur={() => { }}
+                                    placeholder={placeholder}
+                                    minHeight={modalMinHeight}
+                                />
+                            </Suspense>
                         </div>
                         <DialogFooter className="mt-3 flex shrink-0 justify-end gap-2">
                             <MyButton

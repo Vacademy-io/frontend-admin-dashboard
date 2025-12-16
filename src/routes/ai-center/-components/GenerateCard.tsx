@@ -1,6 +1,6 @@
 import { MyButton } from '@/components/design-system/button';
 import { Input } from '@/components/ui/input';
-import { StarFour, UploadSimple } from 'phosphor-react';
+import { StarFour, UploadSimple } from '@phosphor-icons/react';
 import { useAICenter } from '../-contexts/useAICenterContext';
 import { AIToolPageData } from '../-constants/AIToolPageData';
 import { GetImagesForAITools } from '../-helpers/GetImagesForAITools';

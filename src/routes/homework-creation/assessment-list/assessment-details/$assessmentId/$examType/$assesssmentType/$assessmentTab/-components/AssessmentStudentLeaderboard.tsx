@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowCounterClockwise, Clock } from 'phosphor-react';
+import { ArrowCounterClockwise, Clock } from '@phosphor-icons/react';
 import { Crown, Person } from '@/svgs';
 import { MyPagination } from '@/components/design-system/pagination';
 import { AssessmentDetailsSearchComponent } from './SearchComponent';

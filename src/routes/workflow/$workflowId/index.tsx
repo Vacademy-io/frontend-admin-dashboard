@@ -1,22 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { LayoutContainer } from '@/components/common/layout-container/layout-container';
-import { Helmet } from 'react-helmet';
-import { WorkflowDetailsPage } from './-components/workflow-details-page';
 
+// Route definition only - component is lazy loaded from index.lazy.tsx
 export const Route = createFileRoute('/workflow/$workflowId/')({
-    component: WorkflowDetails,
+    // Component is defined in index.lazy.tsx
 });
 
-export function WorkflowDetails() {
-    const { workflowId } = Route.useParams();
-
-    return (
-        <LayoutContainer>
-            <Helmet>
-                <title>Workflow Details</title>
-                <meta name="description" content="View workflow automation diagram and details" />
-            </Helmet>
-            <WorkflowDetailsPage workflowId={workflowId} />
-        </LayoutContainer>
-    );
-}

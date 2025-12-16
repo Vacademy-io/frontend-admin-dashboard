@@ -9,7 +9,7 @@ import {
     canAccessLearnerPlatform,
 } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
-import { Student } from 'phosphor-react';
+import { Student } from '@phosphor-icons/react';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 
 interface SSOSwitcherProps {

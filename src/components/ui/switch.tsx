@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as SwitchPrimitives from '@radix-ui/react-switch';
 
 import { cn } from '@/lib/utils';
-import { Check, X } from 'phosphor-react';
+import { Check, X } from '@phosphor-icons/react';
 
 const Switch = React.forwardRef<
     React.ElementRef<typeof SwitchPrimitives.Root>,

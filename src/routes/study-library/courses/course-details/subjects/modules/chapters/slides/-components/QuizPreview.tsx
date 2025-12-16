@@ -7,7 +7,7 @@ import { uploadQuestionPaperFormSchema } from '@/routes/assessment/question-pape
 import { UploadQuestionPaperFormType } from '@/routes/assessment/question-papers/-components/QuestionPaperUpload';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
-import { Plus, Trash, Warning } from 'phosphor-react';
+import { Plus, Trash, Warning } from '@phosphor-icons/react';
 import { MainViewComponentFactory } from '@/routes/assessment/question-papers/-components/QuestionPaperTemplatesTypes/MainViewComponentFactory';
 import { QuestionType } from '@/constants/dummy-data';
 import { useContentStore } from '../-stores/chapter-sidebar-store';

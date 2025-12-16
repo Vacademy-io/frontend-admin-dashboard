@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Plus, X } from 'phosphor-react';
+import { Plus, X } from '@phosphor-icons/react';
 import {
     AlertDialog,
     AlertDialogCancel,

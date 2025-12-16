@@ -57,13 +57,17 @@ const SelectChips = ({
             }
             onChange(newSelected);
         } else {
-            onChange([option]);
+            if (hasClearFilter && selected.some((s) => s.value === option.value)) {
+                onChange([]);
+            } else {
+                onChange([option]);
+            }
             setOpen(false); // Close popover on single select
         }
     };
 
     const handleClear = () => {
-        if (multiSelect && hasClearFilter) {
+        if (hasClearFilter) {
             // Only allow clear if hasClearFilter is true
             onChange([]);
         }
@@ -155,7 +159,7 @@ const SelectChips = ({
                                 </CommandItem>
                             ))}
                         </CommandGroup>
-                        {multiSelect && selected.length > 0 && clearable && hasClearFilter && (
+                        {(multiSelect || clearable) && selected.length > 0 && hasClearFilter && (
                             <>
                                 <CommandSeparator />
                                 <CommandGroup>

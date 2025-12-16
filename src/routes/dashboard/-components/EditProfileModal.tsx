@@ -10,7 +10,7 @@
 // import { useEffect, useRef, useState } from 'react';
 // import { getInstituteId } from '@/constants/helper';
 // import { UploadFileInS3Public } from '@/routes/signup/-services/signup-services';
-// import { PencilSimpleLine } from 'phosphor-react';
+// import { PencilSimpleLine } from '@phosphor-icons/react';
 // import { MyButton } from '@/components/design-system/button';
 // import { MyInput } from '@/components/design-system/input';
 // import PhoneInputField from '@/components/design-system/phone-input-field';

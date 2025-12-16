@@ -1,6 +1,6 @@
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MyButton } from '@/components/design-system/button';
-import { CalendarBlank } from 'phosphor-react';
+import { CalendarBlank } from '@phosphor-icons/react';
 import { useNavigate } from '@tanstack/react-router';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Examination, Mock, Practice, Survey } from '@/svgs';

@@ -18,8 +18,11 @@ function mapSidebarToTeacherConfig(menu: SidebarItemsType[]): SidebarTabConfig[]
             // allow the settings engine to toggle visibility later
             visible:
                 item.id !== 'manage-institute' &&
-                item.id !== 'user-tags' &&
-                item.id !== 'manage-payments'
+                    item.id !== 'user-tags' &&
+                    item.id !== 'manage-payments' &&
+                    item.id !== 'membership-expiry' &&
+                    item.id !== 'membership-stats' &&
+                    item.id !== 'manage-contacts'
                     ? true
                     : false,
             subTabs:

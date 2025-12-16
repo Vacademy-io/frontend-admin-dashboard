@@ -14,7 +14,7 @@ import './scrollbarStyle.css';
 import React, { useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn, goToMailSupport, goToWhatsappSupport } from '@/lib/utils';
-import { Question } from 'phosphor-react';
+import { Question } from '@phosphor-icons/react';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
 import { WhatsappLogo, EnvelopeSimple } from '@phosphor-icons/react';
 import { useNavigate } from '@tanstack/react-router';

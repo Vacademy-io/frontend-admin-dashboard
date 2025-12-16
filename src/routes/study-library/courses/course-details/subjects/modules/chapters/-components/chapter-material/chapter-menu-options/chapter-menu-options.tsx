@@ -1,7 +1,7 @@
 import { MyButton } from '@/components/design-system/button';
 import { MyDialog } from '@/components/design-system/dialog';
 import { MyDropdown } from '@/components/design-system/dropdown';
-import { DotsThree } from 'phosphor-react';
+import { DotsThree } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { dropdownList } from '@/constants/study-library/chapter-menu-options-list';
 import { MoveToDialog } from './move-dialog';

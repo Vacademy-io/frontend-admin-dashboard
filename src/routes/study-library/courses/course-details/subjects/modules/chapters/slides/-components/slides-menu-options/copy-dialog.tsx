@@ -8,8 +8,8 @@ import { useCopySlide } from '../../-services/copySlides';
 import { toast } from 'sonner';
 
 interface CopyTo {
-    openDialog: 'copy' | 'move' | 'delete' | null;
-    setOpenDialog: Dispatch<SetStateAction<'copy' | 'move' | 'delete' | null>>;
+    openDialog: 'copy' | 'move' | 'delete' | 'drip-conditions' | null;
+    setOpenDialog: Dispatch<SetStateAction<'copy' | 'move' | 'delete' | 'drip-conditions' | null>>;
 }
 
 export const CopyToDialog = ({ openDialog, setOpenDialog }: CopyTo) => {

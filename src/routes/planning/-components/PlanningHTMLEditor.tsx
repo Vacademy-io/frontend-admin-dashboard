@@ -1,8 +1,9 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, lazy, Suspense } from 'react';
 import { loadPlanningTemplate, unwrapContentFromHTML } from '../-utils/templateLoader';
-import TipTapEditor from '@/components/tiptap/TipTapEditor';
 import { Button } from '@/components/ui/button';
-import { Eye, Code, Plus } from 'lucide-react';
+import { Eye, Code, Plus, Loader2 } from 'lucide-react';
+
+const TipTapEditor = lazy(() => import('@/components/tiptap/TipTapEditor').then(module => ({ default: module.TipTapEditor })));
 
 interface PlanningHTMLEditorProps {
     value: string;
@@ -85,24 +86,26 @@ export default function PlanningHTMLEditor({ value, onChange }: PlanningHTMLEdit
                 </div>
             </div>
 
-            {showPreview ? (
-                <div className="rounded-md border">
-                    <TipTapEditor
-                        value={unwrapContentFromHTML(value)}
-                        editable={false}
-                        onChange={() => {}}
-                    />
-                </div>
-            ) : (
-                <div className="rounded-md border">
-                    <TipTapEditor
-                        value={value}
-                        onChange={(html: string) => onChange(html)}
-                        placeholder="Fill in the planning template..."
-                        addTableRow={addTableRowTrigger}
-                    />
-                </div>
-            )}
+            <Suspense fallback={<div className="flex items-center justify-center p-8"><Loader2 className="h-6 w-6 animate-spin" /></div>}>
+                {showPreview ? (
+                    <div className="rounded-md border">
+                        <TipTapEditor
+                            value={unwrapContentFromHTML(value)}
+                            editable={false}
+                            onChange={() => { }}
+                        />
+                    </div>
+                ) : (
+                    <div className="rounded-md border">
+                        <TipTapEditor
+                            value={value}
+                            onChange={(html: string) => onChange(html)}
+                            placeholder="Fill in the planning template..."
+                            addTableRow={addTableRowTrigger}
+                        />
+                    </div>
+                )}
+            </Suspense>
         </div>
     );
 }

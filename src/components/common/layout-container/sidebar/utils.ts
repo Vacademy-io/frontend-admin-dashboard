@@ -11,9 +11,12 @@ import {
     FlowArrow,
     CreditCard,
     Strategy,
+    Timer,
+    ChartBar,
+    AddressBook,
 } from '@phosphor-icons/react';
 import { SidebarItemsType } from '../../../../types/layout-container/layout-container-types';
-import { ChalkboardTeacher, GearSix, Lightning, NotePencil, UsersFour } from 'phosphor-react';
+import { ChalkboardTeacher, GearSix, Lightning, NotePencil, UsersFour } from '@phosphor-icons/react';
 import { StorageKey } from '@/constants/storage/storage';
 import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { NamingSettingsType, SettingsTabs } from '@/routes/settings/-constants/terms';
@@ -293,12 +296,62 @@ export const SidebarItemsData: SidebarItemsType[] = [
         icon: HeadCircuit,
         title: 'VSmart AI Tools',
         id: 'ai-center',
-        to: '/ai-center',
+        to: '/ai-center/ai-tools',
         subItems: [
             {
                 subItem: 'AI Tools',
                 subItemLink: '/ai-center/ai-tools',
                 subItemId: 'ai-tools',
+            },
+            {
+                subItem: 'Vsmart Upload',
+                subItemLink: '/ai-center/ai-tools/vsmart-upload',
+                subItemId: 'vsmart-upload',
+            },
+            {
+                subItem: 'Vsmart Audio',
+                subItemLink: '/ai-center/ai-tools/vsmart-audio',
+                subItemId: 'vsmart-audio',
+            },
+            {
+                subItem: 'Vsmart Topics',
+                subItemLink: '/ai-center/ai-tools/vsmart-prompt',
+                subItemId: 'vsmart-prompt',
+            },
+            {
+                subItem: 'Vsmart Chat',
+                subItemLink: '/ai-center/ai-tools/vsmart-chat',
+                subItemId: 'vsmart-chat',
+            },
+            {
+                subItem: 'Vsmart Extract',
+                subItemLink: '/ai-center/ai-tools/vsmart-extract',
+                subItemId: 'vsmart-extract',
+            },
+            {
+                subItem: 'Vsmart Image',
+                subItemLink: '/ai-center/ai-tools/vsmart-image',
+                subItemId: 'vsmart-image',
+            },
+            {
+                subItem: 'Vsmart Organizer',
+                subItemLink: '/ai-center/ai-tools/vsmart-organizer',
+                subItemId: 'vsmart-organizer',
+            },
+            {
+                subItem: 'Vsmart Sorter',
+                subItemLink: '/ai-center/ai-tools/vsmart-sorter',
+                subItemId: 'vsmart-sorter',
+            },
+            {
+                subItem: 'Vsmart Lecturer',
+                subItemLink: '/ai-center/ai-tools/vsmart-lecture',
+                subItemId: 'vsmart-lecture',
+            },
+            {
+                subItem: 'Vsmart Feedback',
+                subItemLink: '/ai-center/ai-tools/vsmart-feedback',
+                subItemId: 'vsmart-feedback',
             },
             {
                 subItem: 'My Resources',
@@ -312,6 +365,24 @@ export const SidebarItemsData: SidebarItemsType[] = [
         id: 'instructor-copilot',
         title: 'Instructor Copilot',
         to: '/instructor-copilot',
+    },
+    {
+        icon: Timer,
+        id: 'membership-expiry',
+        title: 'Membership Expiry',
+        to: '/membership-expiry',
+    },
+    {
+        icon: ChartBar,
+        id: 'membership-stats',
+        title: 'Enrollment Stats',
+        to: '/membership-stats',
+    },
+    {
+        icon: AddressBook,
+        id: 'manage-contacts',
+        title: 'Manage Contacts',
+        to: '/manage-contacts',
     },
     {
         icon: GearSix,

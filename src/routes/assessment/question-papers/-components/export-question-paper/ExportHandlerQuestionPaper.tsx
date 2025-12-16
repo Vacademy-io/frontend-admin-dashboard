@@ -4,7 +4,7 @@ import { Download, X } from 'lucide-react';
 import { MyButton } from '@/components/design-system/button';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { CircleNotch } from 'phosphor-react';
+import { CircleNotch } from '@phosphor-icons/react';
 import { PaperSetQuestions } from './PaperSetQuestions';
 import { ExportSettings } from '@/components/common/export-offline/contexts/export-settings-context';
 

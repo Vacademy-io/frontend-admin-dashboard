@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { updateReferralOption } from '@/services/referral';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
-import { CheckCircle } from 'phosphor-react';
+import { CheckCircle } from '@phosphor-icons/react';
 import { useQueryClient } from '@tanstack/react-query';
 interface AddReferralProgramDialogProps {
     form: UseFormReturn<InviteLinkFormValues>;

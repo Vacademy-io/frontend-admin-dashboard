@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowSquareOut, Info } from 'phosphor-react';
+import { ArrowSquareOut, Info } from '@phosphor-icons/react';
 import { useRouter } from '@tanstack/react-router';
 import { getUnresolvedDoubtsCount } from '../-services/dashboard-services';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';

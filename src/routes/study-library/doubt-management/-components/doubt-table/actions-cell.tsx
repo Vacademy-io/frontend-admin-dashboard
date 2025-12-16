@@ -1,7 +1,7 @@
 import { DeleteDoubt } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/doubt-resolution/DeleteDoubt';
 import { Doubt } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-types/get-doubts-type';
 import { isUserAdmin } from '@/utils/userDetails';
-import { BookOpen, Clock, Eye, User } from 'phosphor-react';
+import { BookOpen, Clock, Eye, User } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { MyDialog } from '@/components/design-system/dialog';
 import { Separator } from '@/components/ui/separator';

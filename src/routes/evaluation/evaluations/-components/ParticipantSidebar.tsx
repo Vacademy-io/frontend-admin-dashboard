@@ -23,7 +23,7 @@ import { toast } from 'sonner';
 import { useNavigate } from '@tanstack/react-router';
 import { handleUpdateAttempt } from '@/routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/-services/assessment-details-services';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
-import { DummyProfile } from '@/assets/svgs';
+import DummyProfile from '@/assets/svgs/dummy_profile_photo.svg';
 import { MyDialog } from '@/components/design-system/dialog';
 
 interface FormData {

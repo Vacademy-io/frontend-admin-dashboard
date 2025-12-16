@@ -6,7 +6,7 @@ import {
     DialogDescription as ShadDialogDescription,
 } from '@/components/ui/dialog';
 import { Card } from '@/components/ui/card';
-import { Calendar, CreditCard, Globe } from 'phosphor-react';
+import { Calendar, CreditCard, Globe } from '@phosphor-icons/react';
 import { Badge } from '@/components/ui/badge';
 import { MyButton } from '@/components/design-system/button';
 import { UseFormReturn } from 'react-hook-form';

@@ -11,7 +11,7 @@ import { getTaskTypeFromFeature } from '../-helpers/GetImagesForAITools';
 import AIChatWithPDFPreview from './AIChatWithPDFPreview';
 import AIPlanLecturePreview from './AIPlanLecturePreview';
 import AIEvaluatePreview from './AIEvaluatePreview';
-import { ArrowCounterClockwise } from 'phosphor-react';
+import { ArrowCounterClockwise } from '@phosphor-icons/react';
 import { convertToLocalDateTime } from '@/constants/helper';
 import { QuestionsFromTextData } from '../ai-tools/vsmart-prompt/-components/GenerateQuestionsFromText';
 import { UseFormReturn } from 'react-hook-form';

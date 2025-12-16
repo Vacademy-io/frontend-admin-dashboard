@@ -13,7 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { wrapContentInHTML } from '../../-utils/templateLoader';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { MyButton } from '@/components/design-system/button';
-import { ArrowLeft } from 'phosphor-react';
+import { ArrowLeft } from '@phosphor-icons/react';
 
 export const Route = createFileRoute('/planning/activity-logs/create/')({
     component: CreateActivityLog,

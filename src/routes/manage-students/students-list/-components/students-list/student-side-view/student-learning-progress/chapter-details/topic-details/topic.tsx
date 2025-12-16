@@ -5,9 +5,9 @@ import { SlideWithStatusType } from '@/routes/manage-students/students-list/-typ
 import { useEffect, useState } from 'react';
 import { ActivityLogDialog } from '../../../../../../../../../components/common/student-slide-tracking/activity-log-dialog';
 import { useStudentSidebar } from '@/routes/manage-students/students-list/-context/selected-student-sidebar-context';
-import { FileDoc } from 'phosphor-react';
-import { FilePdf } from 'phosphor-react';
-import { PlayCircle } from 'phosphor-react';
+import { FileDoc } from '@phosphor-icons/react';
+import { FilePdf } from '@phosphor-icons/react';
+import { PlayCircle } from '@phosphor-icons/react';
 
 interface TopicProps {
     slideData: SlideWithStatusType;
