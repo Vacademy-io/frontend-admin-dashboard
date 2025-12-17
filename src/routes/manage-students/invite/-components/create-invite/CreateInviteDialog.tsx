@@ -15,7 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { AddCourseButton } from '@/components/common/study-library/add-course/add-course-button';
 import { useAddCourse } from '@/services/study-library/course-operations/add-course';
 import { CourseFormData } from '@/components/common/study-library/add-course/add-course-form';
-import { Plus } from 'phosphor-react';
+import { Plus } from '@phosphor-icons/react';
 import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 

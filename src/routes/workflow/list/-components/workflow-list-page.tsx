@@ -8,7 +8,7 @@ import { Workflow } from '@/types/workflow/workflow-types';
 import { Input } from '@/components/ui/input';
 import { MagnifyingGlass } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'phosphor-react';
+import { Plus } from '@phosphor-icons/react';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 
 export function WorkflowListPage() {

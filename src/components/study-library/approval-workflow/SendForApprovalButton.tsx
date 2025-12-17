@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { MyButton } from '@/components/design-system/button';
-import { CheckCircle, Eye, Spinner } from 'phosphor-react';
+import { CheckCircle, Eye, Spinner } from '@phosphor-icons/react';
 import { useMutation } from '@tanstack/react-query';
 import { submitForReview } from '@/routes/study-library/courses/-services/approval-services';
 import { toast } from 'sonner';

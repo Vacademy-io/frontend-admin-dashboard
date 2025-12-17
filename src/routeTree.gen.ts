@@ -15,6 +15,8 @@ import { Route as StudyLibraryIndexRouteImport } from "./routes/study-library/in
 import { Route as SignupIndexRouteImport } from "./routes/signup/index"
 import { Route as SettingsIndexRouteImport } from "./routes/settings/index"
 import { Route as PlanningIndexRouteImport } from "./routes/planning/index"
+import { Route as MembershipStatsIndexRouteImport } from "./routes/membership-stats/index"
+import { Route as MembershipExpiryIndexRouteImport } from "./routes/membership-expiry/index"
 import { Route as ManageStudentsIndexRouteImport } from "./routes/manage-students/index"
 import { Route as ManagePaymentsIndexRouteImport } from "./routes/manage-payments/index"
 import { Route as ManageInstituteIndexRouteImport } from "./routes/manage-institute/index"
@@ -151,97 +153,143 @@ const SignupIndexRoute = SignupIndexRouteImport.update({
   id: "/signup/",
   path: "/signup/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() => import("./routes/signup/index.lazy").then((d) => d.Route))
 const SettingsIndexRoute = SettingsIndexRouteImport.update({
   id: "/settings/",
   path: "/settings/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/settings/index.lazy").then((d) => d.Route),
+)
 const PlanningIndexRoute = PlanningIndexRouteImport.update({
   id: "/planning/",
   path: "/planning/",
   getParentRoute: () => rootRouteImport,
 } as any)
+const MembershipStatsIndexRoute = MembershipStatsIndexRouteImport.update({
+  id: "/membership-stats/",
+  path: "/membership-stats/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/membership-stats/index.lazy").then((d) => d.Route),
+)
+const MembershipExpiryIndexRoute = MembershipExpiryIndexRouteImport.update({
+  id: "/membership-expiry/",
+  path: "/membership-expiry/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/membership-expiry/index.lazy").then((d) => d.Route),
+)
 const ManageStudentsIndexRoute = ManageStudentsIndexRouteImport.update({
   id: "/manage-students/",
   path: "/manage-students/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/manage-students/index.lazy").then((d) => d.Route),
+)
 const ManagePaymentsIndexRoute = ManagePaymentsIndexRouteImport.update({
   id: "/manage-payments/",
   path: "/manage-payments/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/manage-payments/index.lazy").then((d) => d.Route),
+)
 const ManageInstituteIndexRoute = ManageInstituteIndexRouteImport.update({
   id: "/manage-institute/",
   path: "/manage-institute/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/manage-institute/index.lazy").then((d) => d.Route),
+)
 const ManageContactsIndexRoute = ManageContactsIndexRouteImport.update({
   id: "/manage-contacts/",
   path: "/manage-contacts/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/manage-contacts/index.lazy").then((d) => d.Route),
+)
 const LoginIndexRoute = LoginIndexRouteImport.update({
   id: "/login/",
   path: "/login/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() => import("./routes/login/index.lazy").then((d) => d.Route))
 const LearnerInsightsIndexRoute = LearnerInsightsIndexRouteImport.update({
   id: "/",
   path: "/",
   getParentRoute: () => LearnerInsightsLazyRoute,
-} as any)
+} as any).lazy(() =>
+  import("./routes/learner-insights/index.lazy").then((d) => d.Route),
+)
 const InstructorCopilotIndexRoute = InstructorCopilotIndexRouteImport.update({
   id: "/instructor-copilot/",
   path: "/instructor-copilot/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/instructor-copilot/index.lazy").then((d) => d.Route),
+)
 const EvaluatorAiIndexRoute = EvaluatorAiIndexRouteImport.update({
   id: "/evaluator-ai/",
   path: "/evaluator-ai/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/evaluator-ai/index.lazy").then((d) => d.Route),
+)
 const EvaluationIndexRoute = EvaluationIndexRouteImport.update({
   id: "/evaluation/",
   path: "/evaluation/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/evaluation/index.lazy").then((d) => d.Route),
+)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: "/dashboard/",
   path: "/dashboard/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/dashboard/index.lazy").then((d) => d.Route),
+)
 const CommunityIndexRoute = CommunityIndexRouteImport.update({
   id: "/community/",
   path: "/community/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/community/index.lazy").then((d) => d.Route),
+)
 const AuthTransferIndexRoute = AuthTransferIndexRouteImport.update({
   id: "/auth-transfer/",
   path: "/auth-transfer/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/auth-transfer/index.lazy").then((d) => d.Route),
+)
 const AiVideoStudioIndexRoute = AiVideoStudioIndexRouteImport.update({
   id: "/ai-video-studio/",
   path: "/ai-video-studio/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/ai-video-studio/index.lazy").then((d) => d.Route),
+)
 const AiCenterIndexRoute = AiCenterIndexRouteImport.update({
   id: "/ai-center/",
   path: "/ai-center/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/ai-center/index.lazy").then((d) => d.Route),
+)
 const WorkflowListIndexRoute = WorkflowListIndexRouteImport.update({
   id: "/workflow/list/",
   path: "/workflow/list/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/workflow/list/index.lazy").then((d) => d.Route),
+)
 const WorkflowWorkflowIdIndexRoute = WorkflowWorkflowIdIndexRouteImport.update({
   id: "/workflow/$workflowId/",
   path: "/workflow/$workflowId/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/workflow/$workflowId/index.lazy").then((d) => d.Route),
+)
 const UserTagsLinkIndexRoute = UserTagsLinkIndexRouteImport.update({
   id: "/user-tags/link/",
   path: "/user-tags/link/",
@@ -256,76 +304,112 @@ const TemplatesCreateIndexRoute = TemplatesCreateIndexRouteImport.update({
   id: "/templates/create/",
   path: "/templates/create/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/templates/create/index.lazy").then((d) => d.Route),
+)
 const StudyLibraryVoltIndexRoute = StudyLibraryVoltIndexRouteImport.update({
   id: "/study-library/volt/",
   path: "/study-library/volt/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/study-library/volt/index.lazy").then((d) => d.Route),
+)
 const StudyLibraryReportsIndexRoute =
   StudyLibraryReportsIndexRouteImport.update({
     id: "/study-library/reports/",
     path: "/study-library/reports/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/study-library/reports/index.lazy").then((d) => d.Route),
+  )
 const StudyLibraryLiveSessionIndexRoute =
   StudyLibraryLiveSessionIndexRouteImport.update({
     id: "/study-library/live-session/",
     path: "/study-library/live-session/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/study-library/live-session/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const StudyLibraryDoubtManagementIndexRoute =
   StudyLibraryDoubtManagementIndexRouteImport.update({
     id: "/study-library/doubt-management/",
     path: "/study-library/doubt-management/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/study-library/doubt-management/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const StudyLibraryCoursesIndexRoute =
   StudyLibraryCoursesIndexRouteImport.update({
     id: "/study-library/courses/",
     path: "/study-library/courses/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/study-library/courses/index.lazy").then((d) => d.Route),
+  )
 const StudyLibraryAttendanceTrackerIndexRoute =
   StudyLibraryAttendanceTrackerIndexRouteImport.update({
     id: "/study-library/attendance-tracker/",
     path: "/study-library/attendance-tracker/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/study-library/attendance-tracker/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const StudyLibraryAiCourseBuilderIndexRoute =
   StudyLibraryAiCourseBuilderIndexRouteImport.update({
     id: "/study-library/ai-course-builder/",
     path: "/study-library/ai-course-builder/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/study-library/ai-course-builder/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const StudyLibraryAiCopilotIndexRoute =
   StudyLibraryAiCopilotIndexRouteImport.update({
     id: "/study-library/ai-copilot/",
     path: "/study-library/ai-copilot/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/study-library/ai-copilot/index.lazy").then((d) => d.Route),
+  )
 const SignupOnboardingIndexRoute = SignupOnboardingIndexRouteImport.update({
   id: "/signup/onboarding/",
   path: "/signup/onboarding/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/signup/onboarding/index.lazy").then((d) => d.Route),
+)
 const PlanningPlanningIndexRoute = PlanningPlanningIndexRouteImport.update({
   id: "/planning/planning/",
   path: "/planning/planning/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/planning/planning/index.lazy").then((d) => d.Route),
+)
 const PlanningActivityLogsIndexRoute =
   PlanningActivityLogsIndexRouteImport.update({
     id: "/planning/activity-logs/",
     path: "/planning/activity-logs/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/planning/activity-logs/index.lazy").then((d) => d.Route),
+  )
 const ManageStudentsStudentsListIndexRoute =
   ManageStudentsStudentsListIndexRouteImport.update({
     id: "/manage-students/students-list/",
     path: "/manage-students/students-list/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/manage-students/students-list/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const ManageStudentsInviteIndexRoute =
   ManageStudentsInviteIndexRouteImport.update({
     id: "/manage-students/invite/",
@@ -337,147 +421,213 @@ const ManageStudentsEnrollRequestsIndexRoute =
     id: "/manage-students/enroll-requests/",
     path: "/manage-students/enroll-requests/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/manage-students/enroll-requests/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const ManageInstituteTeamsIndexRoute =
   ManageInstituteTeamsIndexRouteImport.update({
     id: "/manage-institute/teams/",
     path: "/manage-institute/teams/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/manage-institute/teams/index.lazy").then((d) => d.Route),
+  )
 const ManageInstituteSessionsIndexRoute =
   ManageInstituteSessionsIndexRouteImport.update({
     id: "/manage-institute/sessions/",
     path: "/manage-institute/sessions/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/manage-institute/sessions/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const ManageInstituteBatchesIndexRoute =
   ManageInstituteBatchesIndexRouteImport.update({
     id: "/manage-institute/batches/",
     path: "/manage-institute/batches/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/manage-institute/batches/index.lazy").then((d) => d.Route),
+  )
 const LoginForgotPasswordIndexRoute =
   LoginForgotPasswordIndexRouteImport.update({
     id: "/login/forgot-password/",
     path: "/login/forgot-password/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/login/forgot-password/index.lazy").then((d) => d.Route),
+  )
 const LoginKeyIndexRoute = LoginKeyIndexRouteImport.update({
   id: "/login/$key/",
   path: "/login/$key/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/login/$key/index.lazy").then((d) => d.Route),
+)
 const HomeworkCreationAssessmentListIndexRoute =
   HomeworkCreationAssessmentListIndexRouteImport.update({
     id: "/homework-creation/assessment-list/",
     path: "/homework-creation/assessment-list/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/homework-creation/assessment-list/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const EvaluatorAiStudentsIndexRoute =
   EvaluatorAiStudentsIndexRouteImport.update({
     id: "/evaluator-ai/students/",
     path: "/evaluator-ai/students/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/evaluator-ai/students/index.lazy").then((d) => d.Route),
+  )
 const EvaluatorAiEvaluationIndexRoute =
   EvaluatorAiEvaluationIndexRouteImport.update({
     id: "/evaluator-ai/evaluation/",
     path: "/evaluator-ai/evaluation/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/evaluator-ai/evaluation/index.lazy").then((d) => d.Route),
+  )
 const EvaluatorAiAssessmentIndexRoute =
   EvaluatorAiAssessmentIndexRouteImport.update({
     id: "/evaluator-ai/assessment/",
     path: "/evaluator-ai/assessment/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/evaluator-ai/assessment/index.lazy").then((d) => d.Route),
+  )
 const EvaluationEvaluationsIndexRoute =
   EvaluationEvaluationsIndexRouteImport.update({
     id: "/evaluation/evaluations/",
     path: "/evaluation/evaluations/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/evaluation/evaluations/index.lazy").then((d) => d.Route),
+  )
 const EvaluationEvaluationToolIndexRoute =
   EvaluationEvaluationToolIndexRouteImport.update({
     id: "/evaluation/evaluation-tool/",
     path: "/evaluation/evaluation-tool/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/evaluation/evaluation-tool/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const CommunityQuestionPaperIndexRoute =
   CommunityQuestionPaperIndexRouteImport.update({
     id: "/community/question-paper/",
     path: "/community/question-paper/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/community/question-paper/index.lazy").then((d) => d.Route),
+  )
 const CertificateGenerationStudentDataIndexRoute =
   CertificateGenerationStudentDataIndexRouteImport.update({
     id: "/certificate-generation/student-data/",
     path: "/certificate-generation/student-data/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/certificate-generation/student-data/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const AudienceManagerListIndexRoute =
   AudienceManagerListIndexRouteImport.update({
     id: "/audience-manager/list/",
     path: "/audience-manager/list/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/audience-manager/list/index.lazy").then((d) => d.Route),
+  )
 const AssessmentQuestionPapersIndexRoute =
   AssessmentQuestionPapersIndexRouteImport.update({
     id: "/assessment/question-papers/",
     path: "/assessment/question-papers/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/assessment/question-papers/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const AssessmentAssessmentListIndexRoute =
   AssessmentAssessmentListIndexRouteImport.update({
     id: "/assessment/assessment-list/",
     path: "/assessment/assessment-list/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/assessment/assessment-list/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const AnnouncementScheduleIndexRoute =
   AnnouncementScheduleIndexRouteImport.update({
     id: "/announcement/schedule/",
     path: "/announcement/schedule/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/announcement/schedule/index.lazy").then((d) => d.Route),
+  )
 const AnnouncementHistoryIndexRoute =
   AnnouncementHistoryIndexRouteImport.update({
     id: "/announcement/history/",
     path: "/announcement/history/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/announcement/history/index.lazy").then((d) => d.Route),
+  )
 const AnnouncementEmailCampaigningIndexRoute =
   AnnouncementEmailCampaigningIndexRouteImport.update({
     id: "/announcement/email-campaigning/",
     path: "/announcement/email-campaigning/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/announcement/email-campaigning/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const AnnouncementCreateIndexRoute = AnnouncementCreateIndexRouteImport.update({
   id: "/announcement/create/",
   path: "/announcement/create/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/announcement/create/index.lazy").then((d) => d.Route),
+)
 const AnnouncementApprovalIndexRoute =
   AnnouncementApprovalIndexRouteImport.update({
     id: "/announcement/approval/",
     path: "/announcement/approval/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/announcement/approval/index.lazy").then((d) => d.Route),
+  )
 const AiCenterMyResourcesIndexRoute =
   AiCenterMyResourcesIndexRouteImport.update({
     id: "/ai-center/my-resources/",
     path: "/ai-center/my-resources/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/ai-center/my-resources/index.lazy").then((d) => d.Route),
+  )
 const AiCenterAiToolsIndexRoute = AiCenterAiToolsIndexRouteImport.update({
   id: "/ai-center/ai-tools/",
   path: "/ai-center/ai-tools/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/ai-center/ai-tools/index.lazy").then((d) => d.Route),
+)
 const TemplatesEditTemplateIdRoute = TemplatesEditTemplateIdRouteImport.update({
   id: "/templates/edit/$templateId",
   path: "/templates/edit/$templateId",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/templates/edit/$templateId.lazy").then((d) => d.Route),
+)
 const SignupOauthCallbackRoute = SignupOauthCallbackRouteImport.update({
   id: "/signup/oauth/callback",
   path: "/signup/oauth/callback",
@@ -487,13 +637,17 @@ const PlanningPlanningLogIdRoute = PlanningPlanningLogIdRouteImport.update({
   id: "/planning/planning/$logId",
   path: "/planning/planning/$logId",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import("./routes/planning/planning/$logId.lazy").then((d) => d.Route),
+)
 const PlanningActivityLogsLogIdRoute =
   PlanningActivityLogsLogIdRouteImport.update({
     id: "/planning/activity-logs/$logId",
     path: "/planning/activity-logs/$logId",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/planning/activity-logs/$logId.lazy").then((d) => d.Route),
+  )
 const LoginOauthRedirectRoute = LoginOauthRedirectRouteImport.update({
   id: "/login/oauth/redirect",
   path: "/login/oauth/redirect",
@@ -516,7 +670,11 @@ const StudyLibraryCoursesCourseDetailsIndexRoute =
     id: "/study-library/courses/course-details/",
     path: "/study-library/courses/course-details/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/study-library/courses/course-details/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const StudyLibraryAiCopilotCourseOutlineIndexRoute =
   StudyLibraryAiCopilotCourseOutlineIndexRouteImport.update({
     id: "/study-library/ai-copilot/course-outline/",
@@ -564,61 +722,101 @@ const AiCenterAiToolsVsmartUploadIndexRoute =
     id: "/ai-center/ai-tools/vsmart-upload/",
     path: "/ai-center/ai-tools/vsmart-upload/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/ai-center/ai-tools/vsmart-upload/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const AiCenterAiToolsVsmartSorterIndexRoute =
   AiCenterAiToolsVsmartSorterIndexRouteImport.update({
     id: "/ai-center/ai-tools/vsmart-sorter/",
     path: "/ai-center/ai-tools/vsmart-sorter/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/ai-center/ai-tools/vsmart-sorter/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const AiCenterAiToolsVsmartPromptIndexRoute =
   AiCenterAiToolsVsmartPromptIndexRouteImport.update({
     id: "/ai-center/ai-tools/vsmart-prompt/",
     path: "/ai-center/ai-tools/vsmart-prompt/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/ai-center/ai-tools/vsmart-prompt/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const AiCenterAiToolsVsmartOrganizerIndexRoute =
   AiCenterAiToolsVsmartOrganizerIndexRouteImport.update({
     id: "/ai-center/ai-tools/vsmart-organizer/",
     path: "/ai-center/ai-tools/vsmart-organizer/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/ai-center/ai-tools/vsmart-organizer/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const AiCenterAiToolsVsmartLectureIndexRoute =
   AiCenterAiToolsVsmartLectureIndexRouteImport.update({
     id: "/ai-center/ai-tools/vsmart-lecture/",
     path: "/ai-center/ai-tools/vsmart-lecture/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/ai-center/ai-tools/vsmart-lecture/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const AiCenterAiToolsVsmartImageIndexRoute =
   AiCenterAiToolsVsmartImageIndexRouteImport.update({
     id: "/ai-center/ai-tools/vsmart-image/",
     path: "/ai-center/ai-tools/vsmart-image/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/ai-center/ai-tools/vsmart-image/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const AiCenterAiToolsVsmartFeedbackIndexRoute =
   AiCenterAiToolsVsmartFeedbackIndexRouteImport.update({
     id: "/ai-center/ai-tools/vsmart-feedback/",
     path: "/ai-center/ai-tools/vsmart-feedback/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/ai-center/ai-tools/vsmart-feedback/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const AiCenterAiToolsVsmartExtractIndexRoute =
   AiCenterAiToolsVsmartExtractIndexRouteImport.update({
     id: "/ai-center/ai-tools/vsmart-extract/",
     path: "/ai-center/ai-tools/vsmart-extract/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/ai-center/ai-tools/vsmart-extract/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const AiCenterAiToolsVsmartChatIndexRoute =
   AiCenterAiToolsVsmartChatIndexRouteImport.update({
     id: "/ai-center/ai-tools/vsmart-chat/",
     path: "/ai-center/ai-tools/vsmart-chat/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/ai-center/ai-tools/vsmart-chat/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const AiCenterAiToolsVsmartAudioIndexRoute =
   AiCenterAiToolsVsmartAudioIndexRouteImport.update({
     id: "/ai-center/ai-tools/vsmart-audio/",
     path: "/ai-center/ai-tools/vsmart-audio/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/ai-center/ai-tools/vsmart-audio/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const StudyLibraryLiveSessionViewSessionIdRoute =
   StudyLibraryLiveSessionViewSessionIdRouteImport.update({
     id: "/study-library/live-session/view/$sessionId",
@@ -642,37 +840,61 @@ const StudyLibraryCoursesCourseDetailsSubjectsIndexRoute =
     id: "/study-library/courses/course-details/subjects/",
     path: "/study-library/courses/course-details/subjects/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import(
+      "./routes/study-library/courses/course-details/subjects/index.lazy"
+    ).then((d) => d.Route),
+  )
 const StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute =
   StudyLibraryAiCopilotCourseOutlineGeneratingIndexRouteImport.update({
     id: "/study-library/ai-copilot/course-outline/generating/",
     path: "/study-library/ai-copilot/course-outline/generating/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import(
+      "./routes/study-library/ai-copilot/course-outline/generating/index.lazy"
+    ).then((d) => d.Route),
+  )
 const HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute =
   HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRouteImport.update({
     id: "/homework-creation/create-assessment/$assessmentId/$examtype/",
     path: "/homework-creation/create-assessment/$assessmentId/$examtype/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import(
+      "./routes/homework-creation/create-assessment/$assessmentId/$examtype/index.lazy"
+    ).then((d) => d.Route),
+  )
 const AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute =
   AssessmentCreateAssessmentAssessmentIdExamtypeIndexRouteImport.update({
     id: "/assessment/create-assessment/$assessmentId/$examtype/",
     path: "/assessment/create-assessment/$assessmentId/$examtype/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import(
+      "./routes/assessment/create-assessment/$assessmentId/$examtype/index.lazy"
+    ).then((d) => d.Route),
+  )
 const StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRoute =
   StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRouteImport.update({
     id: "/study-library/courses/course-details/subjects/modules/",
     path: "/study-library/courses/course-details/subjects/modules/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import(
+      "./routes/study-library/courses/course-details/subjects/modules/index.lazy"
+    ).then((d) => d.Route),
+  )
 const StudyLibraryAiCopilotCourseOutlineGeneratingViewerIndexRoute =
   StudyLibraryAiCopilotCourseOutlineGeneratingViewerIndexRouteImport.update({
     id: "/study-library/ai-copilot/course-outline/generating/viewer/",
     path: "/study-library/ai-copilot/course-outline/generating/viewer/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import(
+      "./routes/study-library/ai-copilot/course-outline/generating/viewer/index.lazy"
+    ).then((d) => d.Route),
+  )
 const StudyLibraryAiCopilotCourseOutlineGeneratingProcessingIndexRoute =
   StudyLibraryAiCopilotCourseOutlineGeneratingProcessingIndexRouteImport.update(
     {
@@ -686,7 +908,11 @@ const EvaluationEvaluateAssessmentIdAttemptIdExamTypeIndexRoute =
     id: "/evaluation/evaluate/$assessmentId/$attemptId/$examType/",
     path: "/evaluation/evaluate/$assessmentId/$attemptId/$examType/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import(
+      "./routes/evaluation/evaluate/$assessmentId/$attemptId/$examType/index.lazy"
+    ).then((d) => d.Route),
+  )
 const StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexRoute =
   StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexRouteImport.update(
     {
@@ -694,6 +920,10 @@ const StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersIndexRoute =
       path: "/study-library/courses/course-details/subjects/modules/chapters/",
       getParentRoute: () => rootRouteImport,
     } as any,
+  ).lazy(() =>
+    import(
+      "./routes/study-library/courses/course-details/subjects/modules/chapters/index.lazy"
+    ).then((d) => d.Route),
   )
 const EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRoute =
   EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeIndexRouteImport.update(
@@ -702,6 +932,10 @@ const EvaluationEvaluationsAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeI
       path: "/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/",
       getParentRoute: () => rootRouteImport,
     } as any,
+  ).lazy(() =>
+    import(
+      "./routes/evaluation/evaluations/assessment-details/$assessmentId/$examType/$assesssmentType/index.lazy"
+    ).then((d) => d.Route),
   )
 const StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexRoute =
   StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexRouteImport.update(
@@ -710,6 +944,10 @@ const StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexRoute =
       path: "/study-library/courses/course-details/subjects/modules/chapters/slides/",
       getParentRoute: () => rootRouteImport,
     } as any,
+  ).lazy(() =>
+    import(
+      "./routes/study-library/courses/course-details/subjects/modules/chapters/slides/index.lazy"
+    ).then((d) => d.Route),
   )
 const HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRoute =
   HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRouteImport.update(
@@ -718,6 +956,10 @@ const HomeworkCreationAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesss
       path: "/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/",
       getParentRoute: () => rootRouteImport,
     } as any,
+  ).lazy(() =>
+    import(
+      "./routes/homework-creation/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/index.lazy"
+    ).then((d) => d.Route),
   )
 const AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRoute =
   AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTypeAssessmentTabIndexRouteImport.update(
@@ -726,6 +968,10 @@ const AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTy
       path: "/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/",
       getParentRoute: () => rootRouteImport,
     } as any,
+  ).lazy(() =>
+    import(
+      "./routes/assessment/assessment-list/assessment-details/$assessmentId/$examType/$assesssmentType/$assessmentTab/index.lazy"
+    ).then((d) => d.Route),
   )
 
 export interface FileRoutesByFullPath {
@@ -746,6 +992,8 @@ export interface FileRoutesByFullPath {
   "/manage-institute": typeof ManageInstituteIndexRoute
   "/manage-payments": typeof ManagePaymentsIndexRoute
   "/manage-students": typeof ManageStudentsIndexRoute
+  "/membership-expiry": typeof MembershipExpiryIndexRoute
+  "/membership-stats": typeof MembershipStatsIndexRoute
   "/planning": typeof PlanningIndexRoute
   "/settings": typeof SettingsIndexRoute
   "/signup": typeof SignupIndexRoute
@@ -852,6 +1100,8 @@ export interface FileRoutesByTo {
   "/manage-institute": typeof ManageInstituteIndexRoute
   "/manage-payments": typeof ManagePaymentsIndexRoute
   "/manage-students": typeof ManageStudentsIndexRoute
+  "/membership-expiry": typeof MembershipExpiryIndexRoute
+  "/membership-stats": typeof MembershipStatsIndexRoute
   "/planning": typeof PlanningIndexRoute
   "/settings": typeof SettingsIndexRoute
   "/signup": typeof SignupIndexRoute
@@ -960,6 +1210,8 @@ export interface FileRoutesById {
   "/manage-institute/": typeof ManageInstituteIndexRoute
   "/manage-payments/": typeof ManagePaymentsIndexRoute
   "/manage-students/": typeof ManageStudentsIndexRoute
+  "/membership-expiry/": typeof MembershipExpiryIndexRoute
+  "/membership-stats/": typeof MembershipStatsIndexRoute
   "/planning/": typeof PlanningIndexRoute
   "/settings/": typeof SettingsIndexRoute
   "/signup/": typeof SignupIndexRoute
@@ -1069,6 +1321,8 @@ export interface FileRouteTypes {
     | "/manage-institute"
     | "/manage-payments"
     | "/manage-students"
+    | "/membership-expiry"
+    | "/membership-stats"
     | "/planning"
     | "/settings"
     | "/signup"
@@ -1175,6 +1429,8 @@ export interface FileRouteTypes {
     | "/manage-institute"
     | "/manage-payments"
     | "/manage-students"
+    | "/membership-expiry"
+    | "/membership-stats"
     | "/planning"
     | "/settings"
     | "/signup"
@@ -1282,6 +1538,8 @@ export interface FileRouteTypes {
     | "/manage-institute/"
     | "/manage-payments/"
     | "/manage-students/"
+    | "/membership-expiry/"
+    | "/membership-stats/"
     | "/planning/"
     | "/settings/"
     | "/signup/"
@@ -1389,6 +1647,8 @@ export interface RootRouteChildren {
   ManageInstituteIndexRoute: typeof ManageInstituteIndexRoute
   ManagePaymentsIndexRoute: typeof ManagePaymentsIndexRoute
   ManageStudentsIndexRoute: typeof ManageStudentsIndexRoute
+  MembershipExpiryIndexRoute: typeof MembershipExpiryIndexRoute
+  MembershipStatsIndexRoute: typeof MembershipStatsIndexRoute
   PlanningIndexRoute: typeof PlanningIndexRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
   SignupIndexRoute: typeof SignupIndexRoute
@@ -1535,6 +1795,20 @@ declare module "@tanstack/react-router" {
       path: "/planning"
       fullPath: "/planning"
       preLoaderRoute: typeof PlanningIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/membership-stats/": {
+      id: "/membership-stats/"
+      path: "/membership-stats"
+      fullPath: "/membership-stats"
+      preLoaderRoute: typeof MembershipStatsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/membership-expiry/": {
+      id: "/membership-expiry/"
+      path: "/membership-expiry"
+      fullPath: "/membership-expiry"
+      preLoaderRoute: typeof MembershipExpiryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/manage-students/": {
@@ -2247,6 +2521,8 @@ const rootRouteChildren: RootRouteChildren = {
   ManageInstituteIndexRoute: ManageInstituteIndexRoute,
   ManagePaymentsIndexRoute: ManagePaymentsIndexRoute,
   ManageStudentsIndexRoute: ManageStudentsIndexRoute,
+  MembershipExpiryIndexRoute: MembershipExpiryIndexRoute,
+  MembershipStatsIndexRoute: MembershipStatsIndexRoute,
   PlanningIndexRoute: PlanningIndexRoute,
   SettingsIndexRoute: SettingsIndexRoute,
   SignupIndexRoute: SignupIndexRoute,

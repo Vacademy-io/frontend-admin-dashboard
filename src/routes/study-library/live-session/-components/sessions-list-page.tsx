@@ -14,8 +14,8 @@ import PreviousSessionCard from './previous-session-card';
 import DraftSessionCard from './draft-session-card';
 import { useSessionDetailsStore } from '../-store/useSessionDetailsStore';
 import { useLiveSessionStore } from '../schedule/-store/sessionIdstore';
-import { CalendarIcon } from '@radix-ui/react-icons';
-import { CaretDown, VideoCameraSlash, Clock } from 'phosphor-react';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { CaretDown, VideoCameraSlash, Clock } from '@phosphor-icons/react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
@@ -276,10 +276,10 @@ export default function SessionListPage() {
                                 {startDate && endDate
                                     ? `${format(startDate, 'dd/MM/yy')} - ${format(endDate, 'dd/MM/yy')}`
                                     : startDate
-                                      ? `From ${format(startDate, 'dd/MM/yy')}`
-                                      : endDate
-                                        ? `To ${format(endDate, 'dd/MM/yy')}`
-                                        : 'Select date range'}
+                                        ? `From ${format(startDate, 'dd/MM/yy')}`
+                                        : endDate
+                                            ? `To ${format(endDate, 'dd/MM/yy')}`
+                                            : 'Select date range'}
                                 <CalendarIcon className="text-neutral-500" />
                             </button>
                         </PopoverTrigger>
@@ -590,10 +590,10 @@ export default function SessionListPage() {
                 selectedTab === SessionStatus.LIVE
                     ? 'Live'
                     : selectedTab === SessionStatus.UPCOMING
-                      ? 'Upcoming'
-                      : selectedTab === SessionStatus.PAST
-                        ? 'Past'
-                        : 'Draft';
+                        ? 'Upcoming'
+                        : selectedTab === SessionStatus.PAST
+                            ? 'Past'
+                            : 'Draft';
 
             return (
                 <div className="flex h-[300px] flex-col items-center justify-center gap-4 text-center">
@@ -681,11 +681,10 @@ export default function SessionListPage() {
                             <TabsTrigger
                                 key={status}
                                 value={status}
-                                className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                    selectedTab === status
+                                className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${selectedTab === status
                                         ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
                                         : 'border-none bg-transparent'
-                                }`}
+                                    }`}
                             >
                                 {sessionStatusLabels[status]}
                             </TabsTrigger>

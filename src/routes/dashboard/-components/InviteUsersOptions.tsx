@@ -4,7 +4,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { DotsThree, WarningCircle } from 'phosphor-react';
+import { DotsThree, WarningCircle } from '@phosphor-icons/react';
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { MyButton } from '@/components/design-system/button';

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { cn } from '@/lib/utils';
-import { Cross2Icon } from '@radix-ui/react-icons';
+import { X } from 'lucide-react';
 
 const Dialog = DialogPrimitive.Root;
 
@@ -48,7 +48,7 @@ const DialogContent = React.forwardRef<
                 {children}
                 {showCloseButton && (
                     <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-                        <Cross2Icon className="size-4" />
+                        <X className="size-4" />
                         <span className="sr-only">Close</span>
                     </DialogPrimitive.Close>
                 )}

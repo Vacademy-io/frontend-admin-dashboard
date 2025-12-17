@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { MyButton } from '@/components/design-system/button';
 import { MyInput } from '@/components/design-system/input';
-import { DotsSixVertical, PencilSimple, Plus, TrashSimple } from 'phosphor-react';
+import { DotsSixVertical, PencilSimple, Plus, TrashSimple } from '@phosphor-icons/react';
 import { CustomField } from '../../-schema/InviteFormSchema';
 import { duplicateKeyCheck } from '../../-utils/inviteLinkKeyChecks';
 

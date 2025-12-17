@@ -1,7 +1,7 @@
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { MyButton } from '@/components/design-system/button';
 import { Separator } from '@/components/ui/separator';
-import { CheckCircle, Copy, DownloadSimple } from 'phosphor-react';
+import { CheckCircle, Copy, DownloadSimple } from '@phosphor-icons/react';
 import QRCode from 'react-qr-code';
 import { Route } from '..';
 import { useSuspenseQuery } from '@tanstack/react-query';

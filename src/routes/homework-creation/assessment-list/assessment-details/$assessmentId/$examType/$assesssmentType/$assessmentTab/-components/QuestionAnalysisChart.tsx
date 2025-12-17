@@ -17,7 +17,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { ArrowCounterClockwise, Export } from 'phosphor-react';
+import { ArrowCounterClockwise, Export } from '@phosphor-icons/react';
 import { getInstituteId } from '@/constants/helper';
 import { Route } from '..';
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';

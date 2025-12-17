@@ -1,5 +1,5 @@
 import { FormContainerProps } from '@/routes/login/-types/loginTypes';
-import { LoginImage } from '@/assets/svgs';
+import LoginImage from '@/assets/svgs/login-image.svg';
 import useInstituteLogoStore from '../../../../../components/common/layout-container/sidebar/institutelogo-global-zustand';
 
 export function FormContainer({ children }: FormContainerProps) {

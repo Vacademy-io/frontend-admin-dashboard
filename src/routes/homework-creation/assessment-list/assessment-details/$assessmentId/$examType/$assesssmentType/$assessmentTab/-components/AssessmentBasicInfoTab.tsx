@@ -2,7 +2,7 @@ import { Separator } from '@/components/ui/separator';
 import { getAssessmentDetails } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-services/assessment-services';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { CheckCircle } from 'phosphor-react';
+import { CheckCircle } from '@phosphor-icons/react';
 import { Route } from '..';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { convertToLocalDateTime } from '@/constants/helper';

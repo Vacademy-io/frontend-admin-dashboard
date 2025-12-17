@@ -11,6 +11,11 @@ import {
     AlertCircle,
     RefreshCcw,
     Loader2,
+    Calculator as CalculatorIcon,
+    Pen,
+    Hash,
+    RotateCcw,
+    StickyNote,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -26,11 +31,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MagnifyingGlassMinus, MagnifyingGlassPlus, X } from "phosphor-react";
+import { MagnifyingGlassMinus, MagnifyingGlassPlus, X, SidebarSimple } from "@phosphor-icons/react";
 import { PDFDocument } from "pdf-lib";
 // Lazy-load heavy libs where used
-import { FaCalculator, FaPen } from "react-icons/fa6";
-import { TbNumbers, TbZoomReset } from "react-icons/tb";
 import Calculator from "./calculator";
 import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -38,11 +41,10 @@ import { ColorPicker } from "@/components/ui/color-picker";
 import useCanvasTools from "../-hooks/tools";
 import useFabric from "../-hooks/canvas";
 import Dropzone, { useDropzone } from "react-dropzone";
-import { ImportFileImage } from "@/assets/svgs";
+import ImportFileImage from '@/assets/svgs/import-file.svg';
 import { DashboardLoader } from "@/components/core/dashboard-loader";
 import { toast } from "sonner";
 import { ProgressBar } from "@/components/design-system/progress-bar";
-import { SlNote } from "react-icons/sl";
 import Evaluation from "./evaluation";
 import { useNavigate, useParams, useRouter } from "@tanstack/react-router";
 import { useTimerStore } from "@/stores/evaluation/timer-store";
@@ -55,8 +57,6 @@ import { useFileUpload } from "@/hooks/use-file-upload";
 import { getPublicUrl } from "@/services/upload_file";
 import { cn } from "@/lib/utils";
 import { MyButton } from "@/components/design-system/button";
-import { PiSidebarSimpleFill } from "react-icons/pi";
-import { PiSidebarSimpleLight } from "react-icons/pi";
 import { useMarksStore } from "@/stores/evaluation/marks-store";
 import { LoadingOverlay, UploadingOverlay } from "./Overlay";
 
@@ -580,9 +580,8 @@ const PDFEvaluator = ({
                         <div className="flex w-full flex-col items-center gap-2">
                             <div
                                 {...getRootProps()}
-                                className={`w-full cursor-pointer rounded-lg border-[1.5px] border-dashed border-primary-500 p-6 ${
-                                    isDragActive ? "bg-primary-50" : "bg-white"
-                                } transition-colors duration-200 ease-in-out`}
+                                className={`w-full cursor-pointer rounded-lg border-[1.5px] border-dashed border-primary-500 p-6 ${isDragActive ? "bg-primary-50" : "bg-white"
+                                    } transition-colors duration-200 ease-in-out`}
                             >
                                 <input {...getInputProps()} />
                                 <div className="flex flex-col items-center justify-center gap-4">
@@ -649,12 +648,12 @@ const PDFEvaluator = ({
                                 );
                             })}
                             <Button onClick={() => setOpenCalc(true)} variant="outline">
-                                <FaCalculator className="size-4 text-red-500" />
+                                <CalculatorIcon className="size-4 text-red-500" />
                             </Button>
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button variant="outline" className="">
-                                        <TbNumbers />
+                                        <Hash />
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-64 p-2" side="right">
@@ -754,9 +753,9 @@ const PDFEvaluator = ({
                                     className=""
                                 >
                                     {isToolbarOpen ? (
-                                        <PiSidebarSimpleLight className="size-5" />
+                                        <SidebarSimple className="size-5" />
                                     ) : (
-                                        <PiSidebarSimpleFill className="size-5" />
+                                        <SidebarSimple weight="fill" className="size-5" />
                                     )}
                                 </Button>
                                 <CardTitle>Answer Sheet Evaluation</CardTitle>

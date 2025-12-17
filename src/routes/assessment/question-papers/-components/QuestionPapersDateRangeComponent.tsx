@@ -13,7 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarBlank, X } from 'phosphor-react';
+import { CalendarBlank, X } from '@phosphor-icons/react';
 import { PopoverClose } from '@radix-ui/react-popover';
 
 export const QuestionPapersDateRangeComponent = () => {

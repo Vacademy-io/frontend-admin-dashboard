@@ -3,7 +3,7 @@ import { InviteLinkFormValues } from '../GenerateInviteLinkSchema';
 import { MyButton } from '@/components/design-system/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Gear, Gift, Percent, Star, TrendUp, Users } from 'phosphor-react';
+import { Calendar, Gear, Gift, Percent, Star, TrendUp, Users } from '@phosphor-icons/react';
 import { DollarSign } from 'lucide-react';
 
 interface DiscountSettingsDialogProps {

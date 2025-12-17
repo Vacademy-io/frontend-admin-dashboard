@@ -3,7 +3,7 @@ import { RadioGroupItem, RadioGroup } from '@/components/ui/radio-group';
 import { useEffect, useState } from 'react';
 import { MyDropdown } from '@/components/common/students/enroll-manually/dropdownForPackageItems';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { Plus } from 'phosphor-react';
+import { Plus } from '@phosphor-icons/react';
 import { AddCourseButton } from '@/components/common/study-library/add-course/add-course-button';
 import { MyButton } from '@/components/design-system/button';
 import { useFormContext } from 'react-hook-form';

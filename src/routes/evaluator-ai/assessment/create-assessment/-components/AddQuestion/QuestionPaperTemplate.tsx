@@ -1,4 +1,4 @@
-import { DotsSixVertical, Plus } from 'phosphor-react';
+import { DotsSixVertical, Plus } from '@phosphor-icons/react';
 import { Dispatch, SetStateAction, useState } from 'react';
 import { useFieldArray, UseFormReturn } from 'react-hook-form';
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/ui/dialog';

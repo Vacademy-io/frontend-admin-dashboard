@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CaretDown, CaretUp, Check, X } from 'phosphor-react';
+import { CaretDown, CaretUp, Check, X } from '@phosphor-icons/react';
 
 interface Option {
     id: string;

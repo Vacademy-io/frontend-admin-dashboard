@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { DotsThree, Star } from 'phosphor-react';
+import { DotsThree, Star } from '@phosphor-icons/react';
 import {
     DropdownMenu,
     DropdownMenuContent,

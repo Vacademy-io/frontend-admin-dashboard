@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { MyTable } from '@/components/design-system/table';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
-import { EmptyInvitePage } from '@/assets/svgs';
+import EmptyInvitePage from '@/assets/svgs/empty-invite-page.svg';
 import { MyPagination } from '@/components/design-system/pagination';
 import { useCampaignUsers } from '../../-hooks/useCampaignUsers';
 import {
@@ -324,9 +324,9 @@ export const CampaignUsersTable = ({
                                 customFieldId === searchId ||
                                 fieldKey === searchId ||
                                 customFieldId?.replace(/[^a-zA-Z0-9]/g, '') ===
-                                    searchId.replace(/[^a-zA-Z0-9]/g, '') ||
+                                searchId.replace(/[^a-zA-Z0-9]/g, '') ||
                                 fieldKey?.replace(/[^a-zA-Z0-9]/g, '') ===
-                                    searchId.replace(/[^a-zA-Z0-9]/g, '')
+                                searchId.replace(/[^a-zA-Z0-9]/g, '')
                             ) {
                                 fieldInfo = field;
                                 break;

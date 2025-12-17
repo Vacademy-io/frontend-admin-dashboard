@@ -18,7 +18,7 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { QuestionPaperUpload } from './QuestionPaperUpload';
-import { X } from 'phosphor-react';
+import { X } from '@phosphor-icons/react';
 import useDialogStore from '../-global-states/question-paper-dialogue-close';
 import { useState } from 'react';
 import { QuestionType as QuestionTypeList } from '@/constants/dummy-data';

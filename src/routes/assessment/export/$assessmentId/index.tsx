@@ -7,7 +7,7 @@ import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { useEffect } from 'react';
-import { CaretLeft } from 'phosphor-react';
+import { CaretLeft } from '@phosphor-icons/react';
 
 export const Route = createFileRoute('/assessment/export/$assessmentId/')({
     component: () => (

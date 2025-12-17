@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { UseFormReturn } from 'react-hook-form';
 import { InviteLinkFormValues } from '../GenerateInviteLinkSchema';
-import { X } from 'phosphor-react';
+import { X } from '@phosphor-icons/react';
 import { Input } from '@/components/ui/input';
 import { MyButton } from '@/components/design-system/button';
 

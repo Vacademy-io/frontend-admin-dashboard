@@ -2,7 +2,7 @@ import { formatTime } from '@/helpers/formatYoutubeVideoTime';
 import { Doubt } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-types/get-doubts-type';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useRouter } from '@tanstack/react-router';
-import { Clock, FileText } from 'phosphor-react';
+import { Clock, FileText } from '@phosphor-icons/react';
 
 const removeMediaTags = (html: string): string => {
     const doc = new DOMParser().parseFromString(html, 'text/html');

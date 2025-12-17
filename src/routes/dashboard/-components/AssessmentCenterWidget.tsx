@@ -1,17 +1,19 @@
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { MyButton } from '@/components/design-system/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Plus, Eye, ChartBar } from 'phosphor-react';
+import { FileText, Plus, Eye, ChartBar } from '@phosphor-icons/react';
 import { useNavigate } from '@tanstack/react-router';
 
 interface AssessmentCenterWidgetProps {
     assessmentCount?: number;
     questionPaperCount?: number;
+    isLoading?: boolean;
 }
 
 export default function AssessmentCenterWidget({
     assessmentCount = 0,
     questionPaperCount = 0,
+    isLoading = false,
 }: AssessmentCenterWidgetProps) {
     const navigate = useNavigate();
 
@@ -20,15 +22,15 @@ export default function AssessmentCenterWidget({
     };
 
     const handleViewAssessments = () => {
-        navigate({ to: '/assessment' });
+        navigate({ to: '/assessment/assessment-list' });
     };
 
     const handleQuestionPapers = () => {
-        navigate({ to: '/assessment' });
+        navigate({ to: '/assessment/question-papers' });
     };
 
     const handleEvaluationCenter = () => {
-        navigate({ to: '/evaluation' });
+        navigate({ to: '/evaluation/evaluations' });
     };
 
     const assessmentFeatures = [
@@ -72,10 +74,20 @@ export default function AssessmentCenterWidget({
                     </div>
                     <div className="flex gap-2">
                         <Badge variant="secondary" className="text-xs">
-                            {assessmentCount} Tests
+                            {isLoading ? (
+                                <span className="inline-block h-3 w-6 animate-pulse rounded bg-neutral-200"></span>
+                            ) : (
+                                assessmentCount
+                            )}{' '}
+                            Tests
                         </Badge>
                         <Badge variant="secondary" className="text-xs">
-                            {questionPaperCount} Papers
+                            {isLoading ? (
+                                <span className="inline-block h-3 w-6 animate-pulse rounded bg-neutral-200"></span>
+                            ) : (
+                                questionPaperCount
+                            )}{' '}
+                            Papers
                         </Badge>
                     </div>
                 </div>

@@ -117,7 +117,9 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 // YouTube and utility functions are now imported from shared/utils
+import { createFileRoute } from '@tanstack/react-router';
 
+// Route definition only - component is lazy loaded from index.lazy.tsx
 export const Route = createFileRoute('/study-library/ai-copilot/course-outline/generating/')({
     component: RouteComponent,
 });
@@ -2744,3 +2746,5 @@ function RouteComponent() {
         </LayoutContainer>
     )
 }
+    // Component is defined in index.lazy.tsx
+});

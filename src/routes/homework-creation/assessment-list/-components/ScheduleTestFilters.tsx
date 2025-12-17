@@ -11,8 +11,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { MyFilterOption, MyFilterProps } from '@/types/assessments/my-filter';
-import { CheckIcon } from '@radix-ui/react-icons';
-import { PlusCircle } from 'phosphor-react';
+import { Check } from 'lucide-react';
+import { PlusCircle } from '@phosphor-icons/react';
 
 export const ScheduleTestFilters = ({
     label,
@@ -32,11 +32,10 @@ export const ScheduleTestFilters = ({
             <PopoverTrigger asChild>
                 <Button
                     variant={'outline'}
-                    className={`text-neutral-600 ${
-                        selectedItems.length > 0
+                    className={`text-neutral-600 ${selectedItems.length > 0
                             ? 'border-primary-500 bg-primary-100 hover:bg-primary-100'
                             : ''
-                    }`}
+                        }`}
                 >
                     <PlusCircle size={32} />
                     {label}
@@ -73,7 +72,7 @@ export const ScheduleTestFilters = ({
                                                     : 'opacity-70 [&_svg]:invisible'
                                             )}
                                         >
-                                            <CheckIcon
+                                            <Check
                                                 className={cn('h-4 w-4 rounded-sm bg-primary-500')}
                                             />
                                         </div>

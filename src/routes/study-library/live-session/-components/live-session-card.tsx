@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import QRCode from 'react-qr-code';
 import { MyDialog } from '@/components/design-system/dialog';
-import { Copy, DownloadSimple, LockSimple, DotsThree } from 'phosphor-react';
+import { Copy, DownloadSimple, LockSimple, DotsThree } from '@phosphor-icons/react';
 import { Badge } from '@/components/ui/badge';
 import { MyButton } from '@/components/design-system/button';
 import { copyToClipboard } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper';
