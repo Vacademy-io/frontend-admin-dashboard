@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { DotOutline } from '@phosphor-icons/react';
 import { Separator } from '@/components/ui/separator';
 import { MyButton } from '@/components/design-system/button';
-import { ArrowCounterClockwise } from 'phosphor-react';
+import { ArrowCounterClockwise } from '@phosphor-icons/react';
 import { QuestionInsightsAnalysisChartComponent } from './QuestionInsightsAnalysisChartComponent';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { getInstituteId } from '@/constants/helper';

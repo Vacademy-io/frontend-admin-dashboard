@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { OnboardingComponent } from './-components/OnboardingComponent';
 import { z } from 'zod';
 
 export interface OrganizationOnboardingSidebarProps {
@@ -25,5 +24,5 @@ export const onboardingParamsSchema = z.object({
 
 export const Route = createFileRoute('/signup/onboarding/')({
     validateSearch: onboardingParamsSchema,
-    component: OnboardingComponent,
 });
+

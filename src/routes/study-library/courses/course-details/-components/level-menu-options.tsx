@@ -1,6 +1,6 @@
 import { MyButton } from '@/components/design-system/button';
 import { MyDropdown } from '@/components/design-system/dropdown';
-import { DotsThree } from 'phosphor-react';
+import { DotsThree } from '@phosphor-icons/react';
 import { AddCourseDetailsForm, AddLevelData } from './add-course-details-form';
 import { useRef, useState } from 'react';
 import { MyDialog } from '@/components/design-system/dialog';

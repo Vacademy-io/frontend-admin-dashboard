@@ -1,5 +1,5 @@
 import React from 'react';
-import { CaretLeft, CaretRight } from 'phosphor-react';
+import { CaretLeft, CaretRight } from '@phosphor-icons/react';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { MyButton } from '@/components/design-system/button';
 

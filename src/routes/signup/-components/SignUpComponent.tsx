@@ -12,12 +12,12 @@ import {
 } from '@/components/ui/form';
 import { OnboardingSignup, VacademyAssessLogo, VacademyLMSLogo } from '@/svgs';
 import { MyButton } from '@/components/design-system/button';
-import { Plus } from 'phosphor-react';
+import { Plus } from '@phosphor-icons/react';
 import { useNavigate } from '@tanstack/react-router';
 import useOrganizationStore from '../onboarding/-zustand-store/step1OrganizationZustand';
 import { useEffect } from 'react';
-import { GitHubLogoIcon } from '@radix-ui/react-icons';
-import { FcGoogle } from 'react-icons/fc';
+import { GitHubIcon } from '@/components/icons/GitHubIcon';
+import { GoogleIcon } from '@/components/icons/GoogleIcon';
 import { handleOAuthSignUp } from '@/hooks/signup/oauth-signup';
 import VacademyVoltLogo from '@/components/core/volt-logo';
 import VacademyVSmartLogo from '@/components/core/vsmart-logo';
@@ -111,7 +111,7 @@ export function SignUpComponent() {
                                         !form.getValues('items.vsmart')
                                     }
                                 >
-                                    {FcGoogle({ size: 20 })}
+                                    <GoogleIcon size={20} />
                                     Continue with Google
                                 </button>
 
@@ -134,7 +134,7 @@ export function SignUpComponent() {
                                         !form.getValues('items.vsmart')
                                     }
                                 >
-                                    <GitHubLogoIcon className="size-5" />
+                                    <GitHubIcon className="size-5" />
                                     Continue with GitHub
                                 </button>
 
@@ -175,11 +175,10 @@ export function SignUpComponent() {
                                                         <Checkbox
                                                             checked={field.value}
                                                             onCheckedChange={field.onChange}
-                                                            className={`size-5 border shadow-none ${
-                                                                field.value
-                                                                    ? 'border-none bg-green-500 text-white'
-                                                                    : 'bg-white'
-                                                            }`}
+                                                            className={`size-5 border shadow-none ${field.value
+                                                                ? 'border-none bg-green-500 text-white'
+                                                                : 'bg-white'
+                                                                }`}
                                                         />
                                                     </FormControl>
                                                 </div>

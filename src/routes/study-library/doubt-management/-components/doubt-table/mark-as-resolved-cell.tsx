@@ -1,7 +1,7 @@
 import { MarkAsResolved } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/doubt-resolution/MarkAsResolved';
 import { Doubt } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-types/get-doubts-type';
 import { useState, useRef, useEffect } from 'react';
-import { CaretDown } from 'phosphor-react';
+import { CaretDown } from '@phosphor-icons/react';
 import { getUserId, isUserAdmin } from '@/utils/userDetails';
 
 export const MarkResolutionDropdown = ({

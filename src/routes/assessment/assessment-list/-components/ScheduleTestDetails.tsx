@@ -3,7 +3,7 @@ import { MyButton } from '@/components/design-system/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { DotIcon, DotIconOffline } from '@/svgs';
-import { CheckCircle, Copy, DownloadSimple, LockSimple, PauseCircle } from 'phosphor-react';
+import { CheckCircle, Copy, DownloadSimple, LockSimple, PauseCircle } from '@phosphor-icons/react';
 import QRCode from 'react-qr-code';
 import { convertToLocalDateTime } from '@/constants/helper';
 import { getSubjectNameById } from '../../question-papers/-utils/helper';

@@ -10,7 +10,7 @@ import {
     CircleNotch,
     TrashSimple,
     ClockCounterClockwise,
-} from 'phosphor-react';
+} from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { useNavigate } from '@tanstack/react-router';
 import { DashboardLoader } from '@/components/core/dashboard-loader';

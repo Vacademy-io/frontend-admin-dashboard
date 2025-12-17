@@ -16,7 +16,7 @@ import { Separator } from '@/components/ui/separator';
 import { MyDialog } from '@/components/design-system/dialog';
 import { useTimerStore } from '@/stores/evaluation/timer-store';
 import { useMarksStore } from '@/stores/evaluation/marks-store';
-import { ArrowSquareOut } from 'phosphor-react';
+import { ArrowSquareOut } from '@phosphor-icons/react';
 
 interface QuestionData {
     question_id: string;

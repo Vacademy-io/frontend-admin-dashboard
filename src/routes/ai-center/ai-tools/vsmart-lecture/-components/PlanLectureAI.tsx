@@ -2,7 +2,7 @@ import { Separator } from '@/components/ui/separator';
 import AITasksList from '@/routes/ai-center/-components/AITasksList';
 import { AIToolPageData } from '@/routes/ai-center/-constants/AIToolPageData';
 import { GetImagesForAITools } from '@/routes/ai-center/-helpers/GetImagesForAITools';
-import { StarFour } from 'phosphor-react';
+import { StarFour } from '@phosphor-icons/react';
 import PlanLectureForm from './PlanLectureForm';
 import { useAICenter } from '@/routes/ai-center/-contexts/useAICenterContext';
 import { PlanLectureAIFormSchema } from '@/routes/ai-center/-utils/plan-lecture-schema';

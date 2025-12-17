@@ -5,7 +5,7 @@
 // import { useInstituteDetailsStore } from "@/stores/students/students-list/useInstituteDetailsStore";
 // import { MaxLimitField } from "../MaxLimitField";
 // import { MyButton } from "@/components/design-system/button";
-// import { PencilSimple } from "phosphor-react";
+// import { PencilSimple } from "@phosphor-icons/react";
 // import MultiSelectDropdown from "../MultiSelectDropdown";
 
 // interface LevelSelectionProps {

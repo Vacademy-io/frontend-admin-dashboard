@@ -22,7 +22,7 @@ import { DashboardLoader, ErrorBoundary } from '@/components/core/dashboard-load
 import RootErrorComponent from '@/components/core/deafult-error';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { StudentSidebar } from '../student-side-view/student-side-view';
-import { EmptyStudentListImage } from '@/assets/svgs';
+import EmptyStudentListImage from '@/assets/svgs/empty-students-image.svg';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { NoCourseDialog } from '@/components/common/students/no-course-dialog';
 import { useSearch } from '@tanstack/react-router';

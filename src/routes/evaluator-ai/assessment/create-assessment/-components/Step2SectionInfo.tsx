@@ -2,7 +2,7 @@
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import React, { MutableRefObject, useEffect, useState } from "react";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
-import { PencilSimpleLine, TrashSimple, X } from "phosphor-react";
+import { PencilSimpleLine, TrashSimple, X } from "@phosphor-icons/react";
 import {
     AlertDialog,
     AlertDialogCancel,

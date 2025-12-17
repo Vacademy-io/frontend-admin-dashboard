@@ -16,7 +16,7 @@ import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { useRouter } from '@tanstack/react-router'; // Or your router import
 import { useGetSinglePresentation } from './hooks/useGetSinglePresntation'; // Assumed path
 import { toast } from 'sonner';
-import { IoArrowBackSharp } from 'react-icons/io5';
+import { ArrowLeft } from 'lucide-react';
 import { TokenKey } from '@/constants/auth/tokens';
 import { ActualPresentationDisplay } from './ActualPresentationDisplay'; // Import the new component
 import { SessionOptionsModal, type SessionOptions } from './components/SessionOptionModel'; // Assumed path
@@ -267,7 +267,7 @@ const SlidesEditorComponent = ({
                 setShowSessionOptionsModal(true);
                 // Optional: Clean up the query parameter from URL if desired, though this can be complex
                 // router.history.replace({ search: '...' });
-            } else if (!isLoadingPresentation && !isRefetchingPresentation && slides && slides.length === 0){
+            } else if (!isLoadingPresentation && !isRefetchingPresentation && slides && slides.length === 0) {
                 toast.error(`Cannot start a live session for an empty ${PRODUCT_NAME.toLowerCase()}. Please add slides.`);
             }
             // If slides are still loading, the modal will open once they are loaded by other effects or user action.
@@ -305,7 +305,7 @@ const SlidesEditorComponent = ({
 
             // Pass the Blob directly to the SDK
             const transcript = await client.transcripts.transcribe({
-              audio: currentAudioBlob,
+                audio: currentAudioBlob,
             });
 
             if (transcript.status === 'completed') {
@@ -375,7 +375,7 @@ const SlidesEditorComponent = ({
                 document.body.removeChild(anchor);
                 URL.revokeObjectURL(tempUrl);
                 if (format === 'webm') {
-                   toast.success("Current audio snapshot download started.");
+                    toast.success("Current audio snapshot download started.");
                 }
             } catch (error) {
                 console.error(`Error during audio processing or download for ${format}:`, error);
@@ -521,14 +521,14 @@ const SlidesEditorComponent = ({
             } else {
                 toast.error(
                     response.data?.message ||
-                        'Failed to create session. Invalid response from server.'
+                    'Failed to create session. Invalid response from server.'
                 );
             }
         } catch (error: any) {
             console.error('Error creating session:', error);
             toast.error(
                 error.response?.data?.message ||
-                    'An unexpected error occurred while creating the session.'
+                'An unexpected error occurred while creating the session.'
             );
         } finally {
             setIsCreatingSession(false);
@@ -616,7 +616,7 @@ const SlidesEditorComponent = ({
 
             // 3. Process slides into frontend format
             const recommendedSlides = [];
-             data.slides.forEach((slideData) => {
+            data.slides.forEach((slideData) => {
                 const newSlide = createNewSlide(SlideTypeEnum.Excalidraw);
                 recommendedSlides.push({
                     ...newSlide,
@@ -777,7 +777,7 @@ const SlidesEditorComponent = ({
 
             // Step 3: Send the transcript to the notifications API
             await authenticatedAxiosInstance.post(
-                                    `${BACKEND_URL}/community-service/engage/admin/finish-send-notifications`,
+                `${BACKEND_URL}/community-service/engage/admin/finish-send-notifications`,
                 { transcript: transcript.text, session_id: localSessionId }
             );
 
@@ -857,7 +857,7 @@ const SlidesEditorComponent = ({
                     // For now, it re-uploads every time, generating a new fileId.
                     fileId = await UploadFileInS3V2(
                         slide,
-                        () => {}, // Progress callback (noop)
+                        () => { }, // Progress callback (noop)
                         tokenData.sub, // User ID
                         'SLIDES',      // Category
                         tokenData.sub, // Institute ID (using sub as placeholder if specific institute ID is different)
@@ -956,17 +956,17 @@ const SlidesEditorComponent = ({
             }
 
             if (slides.length === 0 && isEdit) { // Handle case where all slides are deleted from an existing presentation
-            const payload = {
+                const payload = {
                     id: presentationId,
-                title: metaData?.title || `New ${PRODUCT_NAME}`,
-                description: metaData?.description || '',
-                cover_file_id: '',
+                    title: metaData?.title || `New ${PRODUCT_NAME}`,
+                    description: metaData?.description || '',
+                    cover_file_id: '',
                     added_slides: [],
                     updated_slides: [],
                     deleted_slides: Array.from(originalSlideIds).map(id => ({ id })), // All original slides are deleted
-                status: 'PUBLISHED',
+                    status: 'PUBLISHED',
                 };
-                 await authenticatedAxiosInstance.post(
+                await authenticatedAxiosInstance.post(
                     EDIT_PRESENTATION,
                     payload,
                     { /* headers and params */ }
@@ -979,9 +979,9 @@ const SlidesEditorComponent = ({
 
 
             if (slides.length === 0 && !isEdit) {
-                 toast.error(`Cannot create an empty ${PRODUCT_NAME.toLowerCase()}. Please add slides.`);
-                 setIsSaving(false);
-                 return;
+                toast.error(`Cannot create an empty ${PRODUCT_NAME.toLowerCase()}. Please add slides.`);
+                setIsSaving(false);
+                return;
             }
 
 
@@ -1046,7 +1046,7 @@ const SlidesEditorComponent = ({
                     // For ADD, the response is a presentation object containing the slides.
                     const presentationData = response.data;
                     if (presentationData && Array.isArray(presentationData.added_slides)) {
-                         backendSlides = presentationData.added_slides;
+                        backendSlides = presentationData.added_slides;
                     }
                 }
 
@@ -1140,12 +1140,12 @@ const SlidesEditorComponent = ({
             }
 
             if (isAutoSave) {
-                toast.info(`${PRODUCT_NAME} auto-saved.`, { duration: 2000});
+                toast.info(`${PRODUCT_NAME} auto-saved.`, { duration: 2000 });
             } else {
-            toast.success(`${PRODUCT_NAME} ${isEdit ? 'updated' : 'created'} successfully`);
+                toast.success(`${PRODUCT_NAME} ${isEdit ? 'updated' : 'created'} successfully`);
             }
             if (!isAutoSave && !isEdit) { // Only navigate for explicit create action
-            router.navigate({ to: '/study-library/volt' });
+                router.navigate({ to: '/study-library/volt' });
             }
             // If we reach here and didn't auto-create-navigate, it's safe to set isSaving to false.
             if (!autoCreateNavigated) {
@@ -1348,7 +1348,7 @@ const SlidesEditorComponent = ({
             if (!tokenData) throw new Error("Invalid token data.");
 
             // Upload content to S3 to get a source_id
-            const fileId = await UploadFileInS3V2(newSlideData, () => {}, tokenData.sub, 'SLIDES', tokenData.sub, true);
+            const fileId = await UploadFileInS3V2(newSlideData, () => { }, tokenData.sub, 'SLIDES', tokenData.sub, true);
 
             const isQuestionSlide = [SlideTypeEnum.Quiz, SlideTypeEnum.Feedback].includes(newSlideData.type);
 
@@ -1501,7 +1501,7 @@ const SlidesEditorComponent = ({
 
         try {
             const response = await authenticatedAxiosInstance.post(
-                                        GENERATE_SLIDES_FROM_TEXT_API_URL,
+                GENERATE_SLIDES_FROM_TEXT_API_URL,
                 {
                     language: aiLanguage,
                     text: aiTopic,
@@ -1763,17 +1763,17 @@ const SlidesEditorComponent = ({
         const onVoltExit = sessionDetails
             ? handleExitSessionFlow
             : () => {
-                  setEditMode(true);
-                  if (slides.length > 0 && !slides.find((s) => s.id === currentSlideId)) {
-                      setCurrentSlideId(slides[0].id);
-                  }
-                  if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-                      mediaRecorderRef.current.stop();
-                  }
-                  stopDurationTracker(); // Stop and reset duration tracker
-                  audioChunksRef.current = []; // Clear chunks on exiting direct preview too
-                  setIsParticipantsPanelOpen(false); // Close panel on exit
-              };
+                setEditMode(true);
+                if (slides.length > 0 && !slides.find((s) => s.id === currentSlideId)) {
+                    setCurrentSlideId(slides[0].id);
+                }
+                if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+                    mediaRecorderRef.current.stop();
+                }
+                stopDurationTracker(); // Stop and reset duration tracker
+                audioChunksRef.current = []; // Clear chunks on exiting direct preview too
+                setIsParticipantsPanelOpen(false); // Close panel on exit
+            };
         return (
             <>
                 <ActualPresentationDisplay
@@ -1902,7 +1902,7 @@ const SlidesEditorComponent = ({
                         onClick={() => router.navigate({ to: '/study-library/volt' })}
                         className="text-slate-600 hover:bg-slate-100 hover:text-slate-800"
                     >
-                        <IoArrowBackSharp size={22} />
+                        <ArrowLeft size={22} />
                     </Button>
                     <span className="ml-3 text-lg font-semibold text-slate-700">
                         {metaData.title || `New ${PRODUCT_NAME}`}
@@ -1950,7 +1950,7 @@ const SlidesEditorComponent = ({
                         onClick={() => router.navigate({ to: '/study-library/volt' })}
                         className="rounded-full text-slate-600 hover:bg-slate-100 hover:text-slate-800"
                     >
-                        <IoArrowBackSharp size={20} />
+                        <ArrowLeft size={20} />
                     </Button>
 
                     {isEditingTitle && isEdit ? (
@@ -1980,10 +1980,10 @@ const SlidesEditorComponent = ({
                             <span
                                 className="text-md max-w-[150px] truncate font-semibold text-slate-800 sm:max-w-xs sm:text-lg md:max-w-sm group-hover:text-orange-600"
                                 title={currentTitle}
-                                onClick={() => { if(isEdit) setIsEditingTitle(true);}} // Allow click to edit only if isEdit is true
+                                onClick={() => { if (isEdit) setIsEditingTitle(true); }} // Allow click to edit only if isEdit is true
                             >
                                 {currentTitle || `Untitled ${PRODUCT_NAME}`}
-                    </span>
+                            </span>
                             {isEdit && ( // Only show edit icon if isEdit is true
                                 <Button variant="ghost" size="icon" onClick={() => setIsEditingTitle(true)} className="h-7 w-7 opacity-0 group-hover:opacity-100 text-slate-500 hover:text-orange-500">
                                     <Edit2 size={16} />
@@ -1996,7 +1996,7 @@ const SlidesEditorComponent = ({
                     {isEdit ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                    <Button
+                                <Button
                                     disabled={isSaving}
                                     size="sm"
                                     variant="default"
@@ -2030,17 +2030,17 @@ const SlidesEditorComponent = ({
                     ) : (
                         <Button
                             onClick={() => savePresentation()}
-                        disabled={isSaving}
-                        size="sm"
-                        className="gap-1.5 bg-orange-500 px-3 text-white hover:bg-orange-600 focus-visible:ring-orange-400 sm:gap-2 sm:px-4"
-                    >
-                        <Save className="size-4" />
-                        {isSaving ? (
-                            <Loader2 className="size-4 animate-spin" />
-                        ) : (
-                            'Create'
-                        )}
-                    </Button>
+                            disabled={isSaving}
+                            size="sm"
+                            className="gap-1.5 bg-orange-500 px-3 text-white hover:bg-orange-600 focus-visible:ring-orange-400 sm:gap-2 sm:px-4"
+                        >
+                            <Save className="size-4" />
+                            {isSaving ? (
+                                <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                                'Create'
+                            )}
+                        </Button>
                     )}
                     <Button
                         onClick={toggleDirectPresentationPreview}
@@ -2060,8 +2060,8 @@ const SlidesEditorComponent = ({
                     >
                         <span className="absolute inset-0 w-full h-full bg-emerald-400/25 rounded-md animate-pulse"></span>
                         <span className="relative z-10 flex items-center">
-                           <Tv2 className="size-4 mr-1.5" />
-                        Start Live
+                            <Tv2 className="size-4 mr-1.5" />
+                            Start Live
                         </span>
                     </Button>
                     <Button
@@ -2269,7 +2269,7 @@ const SlidesEditorComponent = ({
                                         className="w-full sm:w-auto"
                                         disabled={!pptFile}
                                     >
-                                       Import & Add Slides
+                                        Import & Add Slides
                                     </MyButton>
                                 </DialogFooter>
                             </form>

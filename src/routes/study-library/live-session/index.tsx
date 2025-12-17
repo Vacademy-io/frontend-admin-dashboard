@@ -1,23 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { LayoutContainer } from '@/components/common/layout-container/layout-container';
-import { Helmet } from 'react-helmet';
-import SessionListPage from './-components/sessions-list-page';
 
+// Route definition only - component is lazy loaded from index.lazy.tsx
 export const Route = createFileRoute('/study-library/live-session/')({
-    component: RouteComponent,
+    // Component is defined in index.lazy.tsx
 });
-
-function RouteComponent() {
-    return (
-        <LayoutContainer>
-            <Helmet>
-                <title>Live Session</title>
-                <meta
-                    name="description"
-                    content="This page shows the live session list of the institute."
-                />
-            </Helmet>
-            <SessionListPage />̥
-        </LayoutContainer>
-    );
-}

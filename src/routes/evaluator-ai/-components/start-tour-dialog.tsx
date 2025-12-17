@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { MyButton } from '@/components/design-system/button';
 import { MyDialog } from '@/components/design-system/dialog';
-import { ArrowRight } from 'phosphor-react';
+import { ArrowRight } from '@phosphor-icons/react';
 import useLocalStorage from '../-hooks/useLocalStorage';
 import { EvaluationAIKey } from '../-constants/intro-keys';
 

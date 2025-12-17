@@ -6,7 +6,7 @@ import {
     ChartTooltipContent,
 } from '@/components/ui/chart';
 import { MyButton } from '@/components/design-system/button';
-import { ArrowCounterClockwise } from 'phosphor-react';
+import { ArrowCounterClockwise } from '@phosphor-icons/react';
 import AssessmentDetailsRankMarkTable from './QuestionsRankMarkTable';
 import { getInstituteId } from '@/constants/helper';
 import { Route } from '..';

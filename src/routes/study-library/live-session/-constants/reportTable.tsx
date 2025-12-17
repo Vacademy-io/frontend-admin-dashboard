@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { CheckCircle, XCircle } from 'phosphor-react';
+import { CheckCircle, XCircle } from '@phosphor-icons/react';
 
 export interface ReportTableData {
     index: number;

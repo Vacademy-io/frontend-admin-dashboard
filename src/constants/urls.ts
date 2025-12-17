@@ -420,3 +420,10 @@ export const GENERATE_INTERVAL_TYPE_ID = `${PLANNING_LOGS_BASE}/generate-interva
 // Sub Org
 export const GET_SUB_ORG_ADMINS = `${BASE_URL}/admin-core-service/sub-org/v1/sub-org-admins`;
 export const GET_SUB_ORG_MEMBERS = `${BASE_URL}/admin-core-service/sub-org/v1/members`;
+
+// Instructor Copilot
+export const INSTRUCTOR_COPILOT_BASE = `${BASE_URL}/admin-core-service/instructor-copilot/v1`;
+export const CREATE_INSTRUCTOR_COPILOT_LOG = `${INSTRUCTOR_COPILOT_BASE}/create`;
+export const LIST_INSTRUCTOR_COPILOT_LOGS = `${INSTRUCTOR_COPILOT_BASE}/list`;
+export const UPDATE_INSTRUCTOR_COPILOT_LOG = (id: string) => `${INSTRUCTOR_COPILOT_BASE}/${id}`;
+export const DELETE_INSTRUCTOR_COPILOT_LOG = (id: string) => `${INSTRUCTOR_COPILOT_BASE}/${id}`;

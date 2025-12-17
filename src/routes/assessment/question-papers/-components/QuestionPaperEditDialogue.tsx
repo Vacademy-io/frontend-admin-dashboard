@@ -4,7 +4,7 @@ import SelectField from '@/components/design-system/select-field';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { PencilSimpleLine } from 'phosphor-react';
+import { PencilSimpleLine } from '@phosphor-icons/react';
 import { useForm, SubmitHandler, UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 import { uploadQuestionPaperFormSchema } from '../-utils/upload-question-paper-form-schema';

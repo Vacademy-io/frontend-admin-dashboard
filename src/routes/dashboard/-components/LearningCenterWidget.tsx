@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { MyButton } from '@/components/design-system/button';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, VideoCamera, Folder } from 'phosphor-react';
+import { BookOpen, VideoCamera, Folder } from '@phosphor-icons/react';
 import { useNavigate } from '@tanstack/react-router';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';

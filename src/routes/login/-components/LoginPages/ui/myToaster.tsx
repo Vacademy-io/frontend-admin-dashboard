@@ -9,7 +9,7 @@ import {
     ToastViewport,
 } from '@/components/ui/toast';
 import { toast } from '@/hooks/use-toast';
-import { WarningCircle } from 'phosphor-react';
+import { WarningCircle } from '@phosphor-icons/react';
 
 export function CustomToaster() {
     const { toasts } = useToast();

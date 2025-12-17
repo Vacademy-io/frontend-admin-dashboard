@@ -9,12 +9,12 @@ import {
     Desktop,
     DeviceMobile,
     DeviceTablet,
-    Activity,
+    Pulse as Activity,
     Database,
     Clock,
     Star,
     Crown,
-} from 'phosphor-react';
+} from '@phosphor-icons/react';
 
 interface MostActiveUsersWidgetProps {
     instituteId: string;
@@ -163,11 +163,10 @@ export default function MostActiveUsersWidget({ instituteId }: MostActiveUsersWi
                                         initial={{ opacity: 0, x: -20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ duration: 0.4, delay: index * 0.1 }}
-                                        className={`relative rounded-lg border p-4 transition-all duration-200 hover:shadow-md ${
-                                            index === 0
+                                        className={`relative rounded-lg border p-4 transition-all duration-200 hover:shadow-md ${index === 0
                                                 ? 'border-yellow-200 bg-gradient-to-r from-yellow-50 to-amber-50'
                                                 : 'border-gray-200 bg-white'
-                                        }`}
+                                            }`}
                                     >
                                         {/* Rank Badge */}
                                         <div className="absolute -left-2 -top-2 flex size-8 items-center justify-center rounded-full border-2 border-gray-200 bg-white">
@@ -178,15 +177,14 @@ export default function MostActiveUsersWidget({ instituteId }: MostActiveUsersWi
                                             <div className="flex min-w-0 flex-1 items-center gap-3">
                                                 {/* Avatar */}
                                                 <div
-                                                    className={`flex size-12 items-center justify-center rounded-full font-bold text-white ${
-                                                        index === 0
+                                                    className={`flex size-12 items-center justify-center rounded-full font-bold text-white ${index === 0
                                                             ? 'bg-gradient-to-r from-yellow-500 to-orange-600'
                                                             : index === 1
-                                                              ? 'bg-gradient-to-r from-gray-400 to-gray-600'
-                                                              : index === 2
-                                                                ? 'bg-gradient-to-r from-amber-500 to-yellow-600'
-                                                                : 'bg-gradient-to-r from-blue-500 to-purple-600'
-                                                    }`}
+                                                                ? 'bg-gradient-to-r from-gray-400 to-gray-600'
+                                                                : index === 2
+                                                                    ? 'bg-gradient-to-r from-amber-500 to-yellow-600'
+                                                                    : 'bg-gradient-to-r from-blue-500 to-purple-600'
+                                                        }`}
                                                 >
                                                     {getInitials(user.full_name)}
                                                 </div>

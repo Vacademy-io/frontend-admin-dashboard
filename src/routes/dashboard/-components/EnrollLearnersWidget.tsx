@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { MyButton } from '@/components/design-system/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Users, UserPlus } from 'phosphor-react';
+import { Plus, Users, UserPlus } from '@phosphor-icons/react';
 import { useNavigate } from '@tanstack/react-router';
 import { RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';

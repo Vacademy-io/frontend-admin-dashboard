@@ -12,7 +12,7 @@ import {
     copyToClipboard,
     handleDownloadQRCode,
 } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/helper';
-import { Copy, DotsSixVertical, DownloadSimple, SpeakerLow } from 'phosphor-react';
+import { Copy, DotsSixVertical, DownloadSimple, SpeakerLow } from '@phosphor-icons/react';
 import QRCode from 'react-qr-code';
 import { useEffect, useRef, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

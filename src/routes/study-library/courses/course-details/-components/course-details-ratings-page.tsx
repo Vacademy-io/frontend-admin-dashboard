@@ -10,7 +10,7 @@ import { useRouter } from '@tanstack/react-router';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { ProgressBar } from '@/components/ui/custom-progress-bar';
 import { ReviewItem } from './ReviewItem';
-import { Star as StarIcon } from 'phosphor-react';
+import { Star as StarIcon } from '@phosphor-icons/react';
 
 // Types for API Response
 interface User {

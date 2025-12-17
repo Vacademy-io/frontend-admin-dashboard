@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Popover, PopoverTrigger } from '@/components/ui/popover';
-import { CaretDown, CaretUp, Check } from 'phosphor-react';
+import { CaretDown, CaretUp, Check } from '@phosphor-icons/react';
 import { Badge } from '../ui/badge';
 import { FormControl, FormField, FormItem, FormLabel } from '../ui/form';
 import { type Control } from 'react-hook-form';

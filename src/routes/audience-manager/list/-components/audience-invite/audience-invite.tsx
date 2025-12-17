@@ -1,4 +1,4 @@
-import { EmptyInvitePage } from '@/assets/svgs';
+import EmptyInvitePage from '@/assets/svgs/empty-invite-page.svg';
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { MyPagination } from '@/components/design-system/pagination';
 import { usePaginationState } from '@/hooks/pagination';
@@ -130,7 +130,7 @@ export const AudienceInvite = () => {
                         setIsDialogOpen(true);
                     }}
                 >
-                  +  Add
+                    +  Add
                 </MyButton>
             </div>
             <div className="flex items-center gap-4">
@@ -174,11 +174,11 @@ export const AudienceInvite = () => {
                 ) : (
                     <div className="flex flex-col gap-10">
                         {displayCampaignsList.content.map((campaign: CampaignItem, index: number) => {
-                                // Calculate total users count from custom fields
-                                // const totalUsersCount = campaign.institute_custom_fields?.length || 0;
-                                const normalizedStatus = campaign.status?.trim().toUpperCase();
-                                const campaignId =
-                                    campaign.id || campaign.campaign_id || campaign.audience_id || '';
+                            // Calculate total users count from custom fields
+                            // const totalUsersCount = campaign.institute_custom_fields?.length || 0;
+                            const normalizedStatus = campaign.status?.trim().toUpperCase();
+                            const campaignId =
+                                campaign.id || campaign.campaign_id || campaign.audience_id || '';
 
                             const handleCampaignClick = () => {
                                 if (!campaignId) {

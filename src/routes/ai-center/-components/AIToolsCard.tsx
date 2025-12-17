@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { StarFour } from 'phosphor-react';
+import { StarFour } from '@phosphor-icons/react';
 import { GetImagesForAITools } from '../-helpers/GetImagesForAITools';
 import { AIToolFeatureType } from '../-constants/AICardsData';
 import { useNavigate } from '@tanstack/react-router';

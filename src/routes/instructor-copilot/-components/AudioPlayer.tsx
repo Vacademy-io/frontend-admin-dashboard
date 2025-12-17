@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Play, Pause, SpeakerHigh, SpeakerLow, SpeakerSlash } from 'phosphor-react';
+import { Play, Pause, SpeakerHigh, SpeakerLow, SpeakerSlash } from '@phosphor-icons/react';
 
 interface AudioPlayerProps {
     audioUrl: string;

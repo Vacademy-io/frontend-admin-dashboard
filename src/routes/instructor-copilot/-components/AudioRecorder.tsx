@@ -1,6 +1,6 @@
 import { useAudioRecording } from '@/hooks/useAudioRecording';
 import { Button } from '@/components/ui/button';
-import { Microphone, Stop, Pause, Play, ArrowCounterClockwise } from 'phosphor-react';
+import { Microphone, Stop, Pause, Play, ArrowCounterClockwise } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 
 interface AudioRecorderProps {

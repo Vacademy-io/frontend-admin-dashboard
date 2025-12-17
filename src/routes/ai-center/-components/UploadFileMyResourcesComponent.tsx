@@ -1,4 +1,4 @@
-import { UploadSimple } from 'phosphor-react';
+import { UploadSimple } from '@phosphor-icons/react';
 import { MyButton } from '@/components/design-system/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useRef, useState } from 'react';

@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { MyDropdown } from '@/components/common/students/enroll-manually/dropdownForPackageItems';
 import { useFormContext } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { X } from 'phosphor-react';
+import { X } from '@phosphor-icons/react';
 import { MyButton } from '@/components/design-system/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';

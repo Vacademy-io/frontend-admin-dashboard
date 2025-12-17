@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { MyButton } from '@/components/design-system/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, X, Plus, FileText, Spinner } from 'phosphor-react';
+import { CheckCircle, X, Plus, FileText, Spinner } from '@phosphor-icons/react';
 import { useStudyLibraryStore } from '@/stores/study-library/use-study-library-store';
 import { useContentStore } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-stores/chapter-sidebar-store';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';

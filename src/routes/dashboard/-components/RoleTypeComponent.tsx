@@ -1,6 +1,6 @@
 import { MyButton } from '@/components/design-system/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { Plus } from 'phosphor-react';
+import { Plus } from '@phosphor-icons/react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';

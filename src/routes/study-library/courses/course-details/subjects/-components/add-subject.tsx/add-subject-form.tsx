@@ -19,7 +19,7 @@ import { useFileUpload } from '@/hooks/use-file-upload';
 import { useState, useRef } from 'react';
 import { getInstituteId } from '@/constants/helper';
 import { Input } from '@/components/ui/input';
-import { ImageSquare, X } from 'phosphor-react';
+import { ImageSquare, X } from '@phosphor-icons/react';
 
 const formSchema = z.object({
     subjectName: z.string().min(1, 'Subject name is required'),

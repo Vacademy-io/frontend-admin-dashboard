@@ -1,5 +1,5 @@
 import { MyButton } from '@/components/design-system/button';
-import { StarFour } from 'phosphor-react';
+import { StarFour } from '@phosphor-icons/react';
 import { QuestionsFromTextDialog } from './QuestionsFromTextDialog';
 import { useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';

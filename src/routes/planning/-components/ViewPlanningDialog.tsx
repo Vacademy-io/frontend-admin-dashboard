@@ -4,8 +4,9 @@ import { MyInput } from '@/components/design-system/input';
 import { MyLabel } from '@/components/design-system/my-label';
 import { Textarea } from '@/components/ui/textarea';
 import { Edit, Save, X, Share2 } from 'lucide-react';
-import TipTapEditor from '@/components/tiptap/TipTapEditor';
 import { unwrapContentFromHTML, wrapContentInHTML } from '../-utils/templateLoader';
+import { lazy, Suspense } from 'react';
+const TipTapEditor = lazy(() => import('@/components/tiptap/TipTapEditor').then(module => ({ default: module.TipTapEditor })));
 import { useUpdatePlanningLog } from '../-services/updatePlanningLog';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
@@ -214,14 +215,16 @@ export default function ViewPlanningDialog({
                 <div>
                     <MyLabel required>Content</MyLabel>
                     <div className="mt-2">
-                        <TipTapEditor
-                            value={
-                                isEditing ? editedContent : unwrapContentFromHTML(log.content_html)
-                            }
-                            onChange={isEditing ? (html) => setEditedContent(html) : () => {}}
-                            editable={isEditing}
-                            placeholder="Enter content..."
-                        />
+                        <Suspense fallback={<div className="h-32 w-full animate-pulse rounded bg-muted" />}>
+                            <TipTapEditor
+                                value={
+                                    isEditing ? editedContent : unwrapContentFromHTML(log.content_html)
+                                }
+                                onChange={isEditing ? (html) => setEditedContent(html) : () => { }}
+                                editable={isEditing}
+                                placeholder="Enter content..."
+                            />
+                        </Suspense>
                     </div>
                 </div>
             </div>

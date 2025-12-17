@@ -12,7 +12,7 @@ import { getTerminology } from '@/components/common/layout-container/sidebar/uti
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { useFileUpload } from '@/hooks/use-file-upload';
 import { useState, useRef, useEffect } from 'react';
-import { Image, X } from 'phosphor-react';
+import { Image, X } from '@phosphor-icons/react';
 import { getUserId } from '@/utils/userDetails';
 import { useInstitute } from '@/hooks/auth/useInstitute';
 

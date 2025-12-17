@@ -17,7 +17,7 @@ import { useExportSettings, type ExportSettings } from '../contexts/export-setti
 import { useCallback, useState } from 'react';
 import { Plus } from 'lucide-react';
 import type { CustomField, CustomFieldType } from '../types/question';
-import { Minus } from 'phosphor-react';
+import { Minus } from '@phosphor-icons/react';
 import { AnswerSpacingDialog } from './answer-spacing-dialog';
 import {
     Accordion,

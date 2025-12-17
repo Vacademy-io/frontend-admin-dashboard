@@ -1,7 +1,7 @@
 import { Doubt } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-types/get-doubts-type';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useRouter } from '@tanstack/react-router';
-import { ArrowSquareOut } from 'phosphor-react';
+import { ArrowSquareOut } from '@phosphor-icons/react';
 
 export const NavigateCell = ({ doubt }: { doubt: Doubt }) => {
     const router = useRouter();
