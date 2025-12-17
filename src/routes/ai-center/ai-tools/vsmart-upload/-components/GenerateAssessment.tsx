@@ -220,7 +220,7 @@ const GenerateAIAssessmentComponent = ({
     }, [fileUploading, key]);
 
     return (
-        <div className="flex items-center justify-start gap-8">
+        <div className="flex flex-col items-start justify-start gap-8 sm:items-center">
             <GenerateCard
                 handleUploadClick={handleUploadClick}
                 fileInputRef={fileInputRef}

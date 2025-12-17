@@ -74,17 +74,17 @@ export function SessionCard({ data }: SessionCardProps) {
                 onError: (error) => {
                     toast.error(
                         error.message ||
-                            `Failed to edit ${getTerminology(
-                                ContentTerms.Session,
-                                SystemTerms.Session
-                            ).toLocaleLowerCase()}`
+                        `Failed to edit ${getTerminology(
+                            ContentTerms.Session,
+                            SystemTerms.Session
+                        ).toLocaleLowerCase()}`
                     );
                 },
             }
         );
     };
 
-    const formSubmitRef = useRef(() => {});
+    const formSubmitRef = useRef(() => { });
 
     const submitButton = (
         <div className="flex items-center justify-end">
@@ -162,7 +162,7 @@ export function SessionCard({ data }: SessionCardProps) {
                 </DropdownMenu>
             </div>
             <div className="border-t"></div>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 {data?.packages.map((item, idx) =>
                     containsActiveLevels(item) ? (
                         <div key={idx}>

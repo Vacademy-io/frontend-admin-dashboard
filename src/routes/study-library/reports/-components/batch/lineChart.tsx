@@ -25,7 +25,7 @@ const chartConfig = {
 
 export function LineChartComponent({ chartData }: { chartData: DailyLearnerTimeSpent[] }) {
     return (
-        <Card className="w-[70%]">
+        <Card className="w-full">
             {/* <CardContent className="h-[520px] border-none"> */}
             <ChartContainer className="h-[530px] w-full py-6" config={chartConfig}>
                 <LineChart

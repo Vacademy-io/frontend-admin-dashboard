@@ -28,7 +28,7 @@ export interface ChartDataType {
 }
 export function LineChartComponent({ chartData }: { chartData: ChartDataType[] }) {
     return (
-        <Card className="w-[65%]">
+        <Card className="w-full">
             <ChartContainer className="h-[530px] w-full py-6" config={chartConfig}>
                 <LineChart
                     accessibilityLayer

@@ -74,19 +74,19 @@ export const ManageBatches = () => {
         );
 
     return (
-        <div className="flex flex-col gap-8 p-2 text-neutral-700">
-            <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 p-2 text-neutral-700 sm:gap-8">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <p className="text-xl font-semibold">
+                    <p className="text-lg font-semibold sm:text-xl">
                         {getTerminology(RoleTerms.Learner, 'Learner')} Batches
                     </p>
-                    <p className="text-sm text-neutral-500">
+                    <p className="text-xs text-neutral-500 sm:text-sm">
                         Manage and organize your{' '}
                         {getTerminology(RoleTerms.Learner, 'Learner').toLocaleLowerCase()} batches
                         by {getTerminology(ContentTerms.Session, 'Session').toLocaleLowerCase()}.
                     </p>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 sm:gap-4">
                     {sessionList.length > 0 && currentSession !== undefined && (
                         <MyDropdown
                             currentValue={currentSession}
@@ -100,7 +100,7 @@ export const ManageBatches = () => {
             </div>
 
             {data && data.length > 0 ? (
-                <div className="flex flex-col gap-8">
+                <div className="flex flex-col gap-4 sm:gap-8">
                     {data.map((batch, index) => (
                         <BatchSection
                             key={index}
@@ -110,14 +110,14 @@ export const ManageBatches = () => {
                     ))}
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center gap-5 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 py-16 text-center">
-                    <EmptyBatchImage className="size-32 text-neutral-400" />
-                    <p className="text-lg font-medium text-neutral-600">
+                <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-4 py-10 text-center sm:gap-5 sm:py-16">
+                    <EmptyBatchImage className="size-24 text-neutral-400 sm:size-32" />
+                    <p className="text-base font-medium text-neutral-600 sm:text-lg">
                         {currentSession
                             ? `No batches found for ${currentSession.name}`
                             : 'No sessions available'}
                     </p>
-                    <p className="max-w-md text-sm text-neutral-500">
+                    <p className="max-w-md text-xs text-neutral-500 sm:text-sm">
                         {currentSession
                             ? 'Create a new batch in this session to get started.'
                             : 'Please create a session first before adding batches.'}

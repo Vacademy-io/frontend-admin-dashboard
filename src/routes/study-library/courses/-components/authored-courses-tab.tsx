@@ -446,14 +446,14 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
     }
 
     return (
-        <div className="space-y-6">
-            {/* Search Bar */}
+        <div className="space-y-4 sm:space-y-6">
+            {/* Search Bar - Full width on mobile */}
             <div className="flex items-center gap-4">
                 <Input
                     placeholder="Search courses..."
                     value={searchValue}
                     onChange={(e) => setSearchValue(e.target.value)}
-                    className="max-w-md"
+                    className="w-full sm:max-w-md"
                 />
             </div>
 
@@ -470,23 +470,23 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                     </CardContent>
                 </Card>
             ) : (
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredCourses.map((course) => (
                         <Card
                             key={course.id}
-                            className="flex flex-col overflow-hidden border border-gray-200 bg-white transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+                            className="flex flex-col overflow-hidden border border-gray-200 bg-white transition-all duration-200 hover:scale-[1.01] hover:shadow-lg sm:hover:scale-[1.02]"
                         >
                             {/* Thumbnail */}
                             <CourseThumbnail course={course} />
 
-                            <CardHeader className="pb-3">
+                            <CardHeader className="p-3 pb-2 sm:p-4 sm:pb-3">
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="min-w-0 flex-1">
-                                        <CardTitle className="line-clamp-2 text-lg font-semibold leading-tight">
+                                        <CardTitle className="line-clamp-2 text-base font-semibold leading-tight sm:text-lg">
                                             {course.packageName}
                                         </CardTitle>
                                     </div>
-                                    <div className="flex flex-col items-end gap-1">
+                                    <div className="flex flex-shrink-0 flex-col items-end gap-1">
                                         {getStatusBadge(course.status)}
                                         {course.originalCourseId && (
                                             <Badge className="px-1 text-xs">Copy</Badge>
@@ -498,9 +498,9 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                                 </CardDescription>
                             </CardHeader>
 
-                            <CardContent className="flex flex-1 flex-col justify-between p-4 pt-0">
+                            <CardContent className="flex flex-1 flex-col justify-between p-3 pt-0 sm:p-4 sm:pt-0">
                                 {/* Level Information */}
-                                <div className="mb-4">
+                                <div className="mb-3 sm:mb-4">
                                     {course.sessionLevelCombinations.length > 0 && (
                                         <div className="flex flex-wrap gap-1">
                                             {(() => {
@@ -551,14 +551,14 @@ export const AuthoredCoursesTab: React.FC<AuthoredCoursesTabProps> = ({
                                 </div>
 
                                 {/* Action Buttons */}
-                                <div className="space-y-3">
+                                <div className="space-y-2 sm:space-y-3">
                                     {/* Primary View Button */}
                                     <MyButton
                                         onClick={() => handleViewCourse(course.id)}
                                         size="default"
-                                        className="h-10 w-full text-sm font-medium"
+                                        className="h-9 w-full text-xs font-medium sm:h-10 sm:text-sm"
                                     >
-                                        <Eye size={16} className="mr-2" />
+                                        <Eye size={16} className="mr-1 sm:mr-2" />
                                         View Course
                                     </MyButton>
 

@@ -282,7 +282,7 @@ const PlayWithPDF = ({
                                         }}
                                         required={true}
                                         size="large"
-                                        className="w-[500px] rounded-xl px-6 py-4"
+                                        className="w-full max-w-[500px] rounded-xl px-4 py-3 sm:px-6 sm:py-4"
                                     />
                                     {pendingResponse && <DashboardLoader />}
                                 </div>

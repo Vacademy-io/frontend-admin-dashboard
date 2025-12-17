@@ -198,7 +198,7 @@ function InstructorCopilotPage() {
                                 Back to History
                             </Button>
                             <div>
-                                <h1 className="text-2xl font-bold">{selectedLog.title || 'Untitled Session'}</h1>
+                                <h1 className="text-xl font-bold sm:text-2xl">{selectedLog.title || 'Untitled Session'}</h1>
                                 <p className="text-sm text-gray-500">
                                     Generated on {format(new Date(selectedLog.created_at), 'PPP p')}
                                 </p>
@@ -244,11 +244,13 @@ function InstructorCopilotPage() {
                                             <TabsList className="mb-6 grid w-full grid-cols-2">
                                                 <TabsTrigger value="upload" className="gap-2">
                                                     <UploadSimple size={18} />
-                                                    Upload File
+                                                    <span className="hidden sm:inline">Upload File</span>
+                                                    <span className="inline sm:hidden">Upload</span>
                                                 </TabsTrigger>
                                                 <TabsTrigger value="record" className="gap-2">
                                                     <Microphone size={18} />
-                                                    Record Audio
+                                                    <span className="hidden sm:inline">Record Audio</span>
+                                                    <span className="inline sm:hidden">Record</span>
                                                 </TabsTrigger>
                                             </TabsList>
 

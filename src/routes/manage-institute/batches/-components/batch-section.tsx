@@ -122,14 +122,14 @@ const BatchCard = ({ batch }: batchCardProps) => {
                         </MyButton>
                     </div>
                 </div>
-                <div className="mt-5 flex items-center justify-end gap-3 border-t border-neutral-100 pt-4">
+                <div className="mt-5 flex flex-wrap items-center justify-end gap-3 border-t border-neutral-100 pt-4">
                     <EnrollManuallyButton
                         triggerButton={
                             <MyButton
                                 buttonType="text"
                                 layoutVariant="default"
                                 scale="medium"
-                                className="hover:text-primary-600 text-neutral-700"
+                                className="w-full text-neutral-700 hover:text-primary-600 sm:w-auto"
                             >
                                 <Plus size={18} className="mr-1" />
                                 Enroll {getTerminology(RoleTerms.Learner, 'Learner')}
@@ -141,7 +141,7 @@ const BatchCard = ({ batch }: batchCardProps) => {
                         layoutVariant="default"
                         scale="medium"
                         onClick={handleViewBatch}
-                        className="bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
+                        className="w-full bg-neutral-100 text-neutral-700 hover:bg-neutral-200 sm:w-auto"
                     >
                         View Batch
                     </MyButton>
@@ -191,12 +191,12 @@ export const BatchSection = ({ batch, currentSessionId }: BatchSectionProps) => 
     const filteredBatches =
         currentSessionId && instituteDetails?.batches_for_sessions
             ? batch.batches.filter((b) => {
-                  const batchDetail: BatchForSessionStoreType | undefined =
-                      instituteDetails.batches_for_sessions.find(
-                          (detail: BatchForSessionStoreType) => detail.id === b.package_session_id
-                      );
-                  return batchDetail?.session.id === currentSessionId;
-              })
+                const batchDetail: BatchForSessionStoreType | undefined =
+                    instituteDetails.batches_for_sessions.find(
+                        (detail: BatchForSessionStoreType) => detail.id === b.package_session_id
+                    );
+                return batchDetail?.session.id === currentSessionId;
+            })
             : batch.batches;
 
     return (

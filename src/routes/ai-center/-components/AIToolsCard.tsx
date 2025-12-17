@@ -1,4 +1,4 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StarFour } from '@phosphor-icons/react';
 import { GetImagesForAITools } from '../-helpers/GetImagesForAITools';
 import { AIToolFeatureType } from '../-constants/AICardsData';
@@ -9,28 +9,44 @@ export const AIToolsCard = ({ feature }: { feature: AIToolFeatureType }) => {
     return (
         <Card
             key={feature.key}
-            className="flex w-full cursor-pointer items-center justify-center gap-10 border-neutral-300 bg-neutral-50 p-8 text-neutral-600 sm:flex-wrap md:flex-nowrap"
+            className="group flex h-full w-full cursor-pointer flex-col justify-between overflow-hidden border-neutral-200 bg-white transition-all hover:border-primary-200 hover:shadow-lg"
             onClick={() => {
                 if (feature.route) {
                     navigate({ to: feature.route });
                 }
             }}
         >
-            <CardHeader className="flex h-fit flex-col gap-3">
-                <CardTitle className="flex items-center gap-2 text-title font-semibold">
-                    <StarFour size={30} weight="fill" className="text-primary-500" />{' '}
-                    {feature.heading}
-                    <p className="text-body">({feature.subheading})</p>
-                </CardTitle>
-                <CardDescription className="flex flex-col justify-between">
-                    <div className="flex flex-col gap-3">
-                        {feature.description.map((description, index) => (
-                            <p key={index}>{description}</p>
+            <CardHeader className="flex flex-col gap-2 p-5 pb-0">
+                <div className="flex items-center gap-2">
+                    <div className="flex bg-primary-50 p-2 rounded-lg text-primary-500 group-hover:bg-primary-100 transition-colors">
+                        <StarFour weight="fill" className="size-5" />
+                    </div>
+                    <CardTitle className="text-base font-semibold text-gray-900 line-clamp-1">
+                        {feature.heading}
+                    </CardTitle>
+                </div>
+
+                <div className="space-y-1">
+                    <p className="text-sm font-medium text-gray-500">
+                        {feature.subheading}
+                    </p>
+                    <div className="flex flex-wrap gap-2 pt-2">
+                        {feature.tags.map((tag, index) => (
+                            <span
+                                key={index}
+                                className="inline-flex items-center rounded-md bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-600 ring-1 ring-inset ring-neutral-500/10"
+                            >
+                                {tag}
+                            </span>
                         ))}
                     </div>
-                </CardDescription>
+                </div>
             </CardHeader>
-            <CardContent>{GetImagesForAITools(feature.key)}</CardContent>
+            <CardContent className="flex justify-end p-4 pt-2">
+                <div className="h-24 w-auto opacity-80 duration-300 group-hover:scale-105 group-hover:opacity-100 [&_svg]:h-full [&_svg]:w-auto">
+                    {GetImagesForAITools(feature.key)}
+                </div>
+            </CardContent>
         </Card>
     );
 };

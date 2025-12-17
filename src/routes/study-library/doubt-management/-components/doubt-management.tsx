@@ -10,7 +10,7 @@ export const DoubtManagement = () => {
     }, []);
 
     return (
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-4 sm:gap-8">
             <Filters />
             <DoubtTable />
         </div>

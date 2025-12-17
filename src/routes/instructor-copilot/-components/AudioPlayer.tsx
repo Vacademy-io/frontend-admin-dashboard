@@ -106,7 +106,7 @@ export function AudioPlayer({ audioUrl, title = 'Audio Recording' }: AudioPlayer
     };
 
     return (
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
             <audio ref={audioRef} src={audioUrl} preload="metadata" />
 
             <div className="space-y-4">

@@ -491,12 +491,12 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                     content="This page shows the dashboard of the institute."
                 />
             </Helmet>
-            <h1 className="text-base">
+            <h1 className="text-sm sm:text-base">
                 Hello <span className="text-primary-500">{adminDetails?.full_name}!</span>
             </h1>
             {getValue() && (
                 <>
-                    <p className="mt-0.5 text-xs text-neutral-600">
+                    <p className="mt-0.5 text-[11px] text-neutral-600 sm:text-xs">
                         Welcome aboard! We&apos;re excited to have you here. Let&apos;s set up your
                         admin dashboard and make learning seamless and engaging.
                     </p>
@@ -548,7 +548,7 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
 
                             {!showForInstitutes([HOLISTIC_INSTITUTE_ID]) && (
                                 <CardHeader className="p-4">
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                         <div className="flex flex-col">
                                             <CardTitle className="text-sm font-semibold">
                                                 Naming Settings
@@ -563,7 +563,7 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                                             scale="medium"
                                             buttonType="secondary"
                                             layoutVariant="default"
-                                            className="text-sm"
+                                            className="mt-2 w-full text-sm sm:mt-0 sm:w-auto"
                                             onClick={() =>
                                                 navigate({
                                                     to: '/settings',
@@ -771,7 +771,7 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                             <CardDescription className="text-xs text-purple-100">
                                 Explore cutting-edge AI tools to enhance your teaching
                             </CardDescription>
-                            <div className="mt-3 flex flex-wrap justify-start gap-2 sm:gap-2.5">
+                            <div className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:justify-start sm:gap-2.5 sm:overflow-visible sm:px-0">
                                 {[
                                     { icon: FilePdf, text: 'Questions from PDF' },
                                     {

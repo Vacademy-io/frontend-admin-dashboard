@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/select';
 import { StarRatingComponent } from '@/components/common/star-rating-component';
 import { MyButton } from '@/components/design-system/button';
-import { TrashSimple } from '@phosphor-icons/react';
+import { TrashSimple, Funnel, X } from '@phosphor-icons/react';
 import { useNavigate } from '@tanstack/react-router';
 import { MyPagination } from '@/components/design-system/pagination';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
@@ -29,6 +29,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { convertCapitalToTitleCase } from '@/lib/utils';
 import { CourseImageShimmer, InstructorAvatarShimmer } from '@/components/ui/shimmer';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useState } from 'react';
 
 interface CourseListPageProps {
     selectedFilters: AllCourseFilters;
@@ -86,113 +89,156 @@ const CourseListPage = ({
     showDeleteButton = true,
 }: CourseListPageProps) => {
     const navigate = useNavigate();
-    return (
-        <>
-            <div className="mt-6 flex w-full gap-6">
-                {/* Filter Section */}
-                <div className="animate-fade-in flex h-fit min-w-[240px] max-w-[260px] flex-col gap-2 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm">
-                    <div className="mb-2 flex items-center justify-between">
-                        <div className="text-base font-semibold">Filters</div>
-                        {(selectedFilters.level_ids.length > 0 ||
-                            selectedFilters.tag.length > 0 ||
-                            selectedFilters.faculty_ids.length > 0) && (
-                            <div className="flex gap-2">
-                                <button
-                                    className="text-xs font-medium text-primary-500 transition-transform hover:underline active:scale-95"
-                                    onClick={handleClearAll}
-                                >
-                                    Clear All
-                                </button>
-                                <button
-                                    className="hover:bg-primary-600 rounded bg-primary-500 px-3 py-1 text-xs font-medium text-white transition-transform active:scale-95"
-                                    onClick={handleApply}
-                                >
-                                    Apply
-                                </button>
-                            </div>
-                        )}
+    const isMobile = useIsMobile();
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+    // Count active filters
+    const activeFilterCount =
+        selectedFilters.level_ids.length +
+        selectedFilters.tag.length +
+        selectedFilters.faculty_ids.length;
+
+    // Filter sidebar content - reused between mobile sheet and desktop sidebar
+    const FilterContent = () => (
+        <div className="flex h-full flex-col gap-2">
+            <div className="mb-2 flex items-center justify-between">
+                <div className="text-base font-semibold">Filters</div>
+                {activeFilterCount > 0 && (
+                    <div className="flex gap-2">
+                        <button
+                            className="text-xs font-medium text-primary-500 transition-transform hover:underline active:scale-95"
+                            onClick={handleClearAll}
+                        >
+                            Clear All
+                        </button>
+                        <button
+                            className="hover:bg-primary-600 rounded bg-primary-500 px-3 py-1 text-xs font-medium text-white transition-transform active:scale-95"
+                            onClick={() => {
+                                handleApply();
+                                if (isMobile) setIsFilterOpen(false);
+                            }}
+                        >
+                            Apply
+                        </button>
                     </div>
-                    <div className="mb-1 text-sm font-semibold">
-                        {getTerminology(ContentTerms.Level, SystemTerms.Level)}s
-                    </div>
+                )}
+            </div>
+            <div className="mb-1 text-sm font-semibold">
+                {getTerminology(ContentTerms.Level, SystemTerms.Level)}s
+            </div>
+            <div className="flex flex-col gap-2">
+                {levels.map((level: { id: string; name: string }) => (
+                    <label
+                        key={level.id}
+                        className="group flex cursor-pointer items-center gap-2"
+                    >
+                        <input
+                            type="checkbox"
+                            checked={selectedFilters.level_ids.includes(level.id)}
+                            onChange={() => handleLevelChange(level.id)}
+                            className="scale-110 accent-primary-500 transition-transform"
+                        />
+                        <span className="transition-colors group-hover:text-primary-500">
+                            {convertCapitalToTitleCase(level.name)}
+                        </span>
+                    </label>
+                ))}
+            </div>
+            {/* Tags Section */}
+            {tags.length > 0 && (
+                <>
+                    <div className="mb-1 mt-4 text-sm font-semibold">Popular Tags</div>
                     <div className="flex flex-col gap-2">
-                        {levels.map((level: { id: string; name: string }) => (
+                        {tags.map((tagValue: string) => (
                             <label
-                                key={level.id}
+                                key={tagValue}
                                 className="group flex cursor-pointer items-center gap-2"
                             >
                                 <input
                                     type="checkbox"
-                                    checked={selectedFilters.level_ids.includes(level.id)}
-                                    onChange={() => handleLevelChange(level.id)}
+                                    checked={selectedFilters.tag.includes(tagValue)}
+                                    onChange={() => handleTagChange(tagValue)}
                                     className="scale-110 accent-primary-500 transition-transform"
                                 />
                                 <span className="transition-colors group-hover:text-primary-500">
-                                    {convertCapitalToTitleCase(level.name)}
+                                    {convertCapitalToTitleCase(tagValue)}
                                 </span>
                             </label>
                         ))}
                     </div>
-                    {/* Tags Section */}
-                    {tags.length > 0 && (
-                        <>
-                            <div className="mb-1 mt-4 text-sm font-semibold">Popular Tags</div>
-                            <div className="flex flex-col gap-2">
-                                {tags.map((tagValue: string) => (
-                                    <label
-                                        key={tagValue}
-                                        className="group flex cursor-pointer items-center gap-2"
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedFilters.tag.includes(tagValue)}
-                                            onChange={() => handleTagChange(tagValue)}
-                                            className="scale-110 accent-primary-500 transition-transform"
-                                        />
-                                        <span className="transition-colors group-hover:text-primary-500">
-                                            {convertCapitalToTitleCase(tagValue)}
-                                        </span>
-                                    </label>
-                                ))}
-                            </div>
-                        </>
-                    )}
-                    {/* Users Section */}
-                    {Array.isArray(accessControlUsers) && accessControlUsers.length > 0 && (
-                        <>
-                            <div className="mb-1 mt-4 text-sm font-semibold">
-                                {getTerminology(RoleTerms.Teacher, SystemTerms.Teacher)}s
-                            </div>
-                            <div className="flex flex-col gap-2">
-                                {(accessControlUsers as UserRolesDataEntry[]).map(
-                                    (user: UserRolesDataEntry) => (
-                                        <label
-                                            key={user.id}
-                                            className="group flex cursor-pointer items-center gap-2"
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedFilters.faculty_ids.includes(
-                                                    user.id
-                                                )}
-                                                onChange={() => handleUserChange(user.id)}
-                                                className="scale-110 accent-primary-500 transition-transform"
-                                            />
-                                            <span className="transition-colors group-hover:text-primary-500">
-                                                {user.full_name}
-                                            </span>
-                                        </label>
-                                    )
+                </>
+            )}
+            {/* Users Section */}
+            {Array.isArray(accessControlUsers) && accessControlUsers.length > 0 && (
+                <>
+                    <div className="mb-1 mt-4 text-sm font-semibold">
+                        {getTerminology(RoleTerms.Teacher, SystemTerms.Teacher)}s
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        {(accessControlUsers as UserRolesDataEntry[]).map(
+                            (user: UserRolesDataEntry) => (
+                                <label
+                                    key={user.id}
+                                    className="group flex cursor-pointer items-center gap-2"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedFilters.faculty_ids.includes(user.id)}
+                                        onChange={() => handleUserChange(user.id)}
+                                        className="scale-110 accent-primary-500 transition-transform"
+                                    />
+                                    <span className="transition-colors group-hover:text-primary-500">
+                                        {user.full_name}
+                                    </span>
+                                </label>
+                            )
+                        )}
+                    </div>
+                </>
+            )}
+        </div>
+    );
+
+    return (
+        <>
+            <div className="mt-4 flex w-full flex-col gap-4 lg:mt-6 lg:flex-row lg:gap-6">
+                {/* Mobile Filter Button */}
+                <div className="flex items-center gap-2 lg:hidden">
+                    <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+                        <SheetTrigger asChild>
+                            <MyButton
+                                buttonType="secondary"
+                                className="flex items-center gap-2"
+                            >
+                                <Funnel size={18} />
+                                Filters
+                                {activeFilterCount > 0 && (
+                                    <span className="ml-1 flex size-5 items-center justify-center rounded-full bg-primary-500 text-xs text-white">
+                                        {activeFilterCount}
+                                    </span>
                                 )}
-                            </div>
-                        </>
-                    )}
+                            </MyButton>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="w-[280px] overflow-y-auto p-4">
+                            <SheetHeader className="mb-4">
+                                <SheetTitle>Filter Courses</SheetTitle>
+                            </SheetHeader>
+                            <FilterContent />
+                        </SheetContent>
+                    </Sheet>
                 </div>
+
+                {/* Desktop Filter Section */}
+                <div className="animate-fade-in hidden h-fit min-w-[240px] max-w-[260px] flex-col gap-2 rounded-lg border border-neutral-200 bg-white p-4 shadow-sm lg:flex">
+                    <FilterContent />
+                </div>
+
                 {/* Courses Section */}
                 <div className="animate-fade-in flex flex-1 flex-col gap-4">
-                    <div className="mb-2 flex w-full items-center justify-between gap-4">
+                    {/* Search and Sort Row */}
+                    <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                         {/* Search Bar */}
-                        <div className="relative max-w-xs flex-1">
+                        <div className="relative flex-1 sm:max-w-xs">
                             {/* Search Icon */}
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
                                 <svg
@@ -250,7 +296,7 @@ const CourseListPage = ({
                             )}
                         </div>
                         {/* Sort By */}
-                        <div className="flex min-w-[180px] items-center justify-end gap-2">
+                        <div className="flex items-center justify-between gap-2 sm:min-w-[180px] sm:justify-end">
                             <span className="text-sm font-medium text-neutral-600">Sort by</span>
                             <Select value={sortBy} onValueChange={setSortBy}>
                                 <SelectTrigger className="w-[110px]">
@@ -263,26 +309,28 @@ const CourseListPage = ({
                             </Select>
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+                    {/* Course Grid - Responsive columns */}
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
                         {Array.isArray(allCourses?.content) &&
-                        (allCourses?.content?.length ?? 0) > 0 ? (
+                            (allCourses?.content?.length ?? 0) > 0 ? (
                             allCourses?.content?.map((course: CourseItem) => {
                                 const instructors: CourseInstructor[] = course.instructors || [];
                                 const tags: string[] = course.comma_separeted_tags
                                     ? course.comma_separeted_tags
-                                          .split(',')
-                                          .map((t: string) => t.trim())
+                                        .split(',')
+                                        .map((t: string) => t.trim())
                                     : [];
                                 return (
                                     <div
                                         key={course.id}
-                                        className={`animate-fade-in group relative flex h-fit flex-col rounded-lg border border-neutral-200 bg-white p-0 shadow-sm transition-transform duration-500 hover:scale-[1.025] hover:shadow-md`}
+                                        className={`animate-fade-in group relative flex h-fit flex-col rounded-lg border border-neutral-200 bg-white p-0 shadow-sm transition-transform duration-500 hover:scale-[1.02] hover:shadow-md sm:hover:scale-[1.025]`}
                                     >
                                         {/* Course Banner Image */}
                                         {isLoadingImages ? (
                                             <CourseImageShimmer />
                                         ) : courseImageUrls[course.id] ? (
-                                            <div className="flex size-full w-full items-center justify-center overflow-hidden rounded-lg px-3 pb-0 pt-4">
+                                            <div className="flex size-full w-full items-center justify-center overflow-hidden rounded-lg px-2 pb-0 pt-2 sm:px-3 sm:pt-4">
                                                 <img
                                                     src={
                                                         courseImageUrls[course.id] ||
@@ -290,17 +338,17 @@ const CourseListPage = ({
                                                         'https://images.pexels.com/photos/31530661/pexels-photo-31530661.jpeg'
                                                     }
                                                     alt={course.package_name}
-                                                    className="rounded-lg bg-white object-cover p-2 transition-transform duration-300 group-hover:scale-105"
+                                                    className="rounded-lg bg-white object-cover p-1 transition-transform duration-300 group-hover:scale-105 sm:p-2"
                                                 />
                                             </div>
                                         ) : null}
-                                        <div className="flex flex-col gap-1 p-4">
-                                            <div className="flex items-center justify-between">
-                                                <div className="text-lg font-extrabold text-neutral-800">
+                                        <div className="flex flex-col gap-1 p-3 sm:p-4">
+                                            <div className="flex items-start justify-between gap-2">
+                                                <div className="min-w-0 flex-1 text-base font-extrabold text-neutral-800 sm:text-lg">
                                                     {convertCapitalToTitleCase(course.package_name)}
                                                 </div>
                                                 <div
-                                                    className={`rounded-lg bg-gray-100 p-1 px-2 text-xs font-semibold text-gray-700`}
+                                                    className={`flex-shrink-0 rounded-lg bg-gray-100 p-1 px-2 text-xs font-semibold text-gray-700`}
                                                 >
                                                     {convertCapitalToTitleCase(course.level_name) ||
                                                         'Level'}
@@ -312,8 +360,8 @@ const CourseListPage = ({
                                                     (course.course_html_description_html || '')
                                                         .replace(/<[^>]*>/g, '')
                                                         .slice(0, 120).length > 0
-                                                        ? 'mt-2 text-sm text-neutral-600'
-                                                        : 'text-sm text-neutral-600'
+                                                        ? 'mt-1 line-clamp-2 text-xs text-neutral-600 sm:mt-2 sm:text-sm'
+                                                        : 'text-xs text-neutral-600 sm:text-sm'
                                                 }
                                             >
                                                 {(course.course_html_description_html || '')
@@ -339,11 +387,11 @@ const CourseListPage = ({
                                                                 'https://randomuser.me/api/portraits/lego/1.jpg'
                                                             }
                                                             alt={inst.full_name}
-                                                            className="-ml-2 size-7 rounded-full border border-neutral-200 object-cover first:ml-0"
+                                                            className="-ml-2 size-6 rounded-full border border-neutral-200 object-cover first:ml-0 sm:size-7"
                                                         />
                                                     )
                                                 )}
-                                                <span className="ml-2 text-xs text-neutral-600">
+                                                <span className="ml-1 truncate text-xs text-neutral-600 sm:ml-2">
                                                     {instructors
                                                         ?.map(
                                                             (inst: CourseInstructor) =>
@@ -352,18 +400,18 @@ const CourseListPage = ({
                                                         .join(', ')}
                                                 </span>
                                             </div>
-                                            {/* Tags section */}
+                                            {/* Tags section - scrollable on mobile */}
                                             <div
                                                 className={
                                                     tags && tags.length > 0
-                                                        ? 'mt-2 flex flex-wrap gap-2'
+                                                        ? 'no-scrollbar mt-2 flex gap-2 overflow-x-auto'
                                                         : 'flex flex-wrap gap-2'
                                                 }
                                             >
                                                 {tags?.map((tag: string) => (
                                                     <span
                                                         key={tag}
-                                                        className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700"
+                                                        className="flex-shrink-0 rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700"
                                                     >
                                                         {tag}
                                                     </span>
@@ -398,9 +446,9 @@ const CourseListPage = ({
                                                 )}
                                             </span>
                                             {/* View Course Button */}
-                                            <div className="mt-4 flex gap-2">
+                                            <div className="mt-3 flex gap-2 sm:mt-4">
                                                 <MyButton
-                                                    className="flex-1"
+                                                    className="flex-1 text-sm"
                                                     buttonType="primary"
                                                     onClick={() =>
                                                         navigate({
@@ -433,7 +481,7 @@ const CourseListPage = ({
                                                         <AlertDialogTrigger className="flex size-9 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-500 transition-colors hover:border-red-300 hover:bg-red-100 active:scale-95">
                                                             <TrashSimple size={18} />
                                                         </AlertDialogTrigger>
-                                                        <AlertDialogContent>
+                                                        <AlertDialogContent className="w-[calc(100%-2rem)] max-w-md">
                                                             <AlertDialogHeader>
                                                                 <AlertDialogTitle>
                                                                     Are you sure you want to delete
@@ -446,12 +494,13 @@ const CourseListPage = ({
                                                                     course data from our servers.
                                                                 </AlertDialogDescription>
                                                             </AlertDialogHeader>
-                                                            <AlertDialogFooter>
+                                                            <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
                                                                 <AlertDialogCancel
                                                                     disabled={
                                                                         deletingCourseId ===
                                                                         course.id
                                                                     }
+                                                                    className="w-full sm:w-auto"
                                                                 >
                                                                     Cancel
                                                                 </AlertDialogCancel>
@@ -465,10 +514,10 @@ const CourseListPage = ({
                                                                         deletingCourseId ===
                                                                         course.id
                                                                     }
-                                                                    className="bg-primary-500 text-white"
+                                                                    className="w-full bg-primary-500 text-white sm:w-auto"
                                                                 >
                                                                     {deletingCourseId ===
-                                                                    course.id ? (
+                                                                        course.id ? (
                                                                         <svg
                                                                             className="animate-spin"
                                                                             width="18"
@@ -501,7 +550,7 @@ const CourseListPage = ({
                                 );
                             })
                         ) : (
-                            <div className="col-span-2 text-center text-neutral-400">
+                            <div className="col-span-full py-8 text-center text-neutral-400">
                                 No courses found.
                             </div>
                         )}

@@ -1,6 +1,6 @@
-import { SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { useEffect, useMemo, useState } from 'react';
-import { BellSimple, CaretDown, CaretUp } from '@phosphor-icons/react';
+import { BellSimple, CaretDown, CaretUp, List } from '@phosphor-icons/react';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { useSidebarStore } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/global-states';
 import {
@@ -52,6 +52,8 @@ import { DEFAULT_ADMIN_DISPLAY_SETTINGS } from '@/constants/display-settings/adm
 import { DEFAULT_TEACHER_DISPLAY_SETTINGS } from '@/constants/display-settings/teacher-defaults';
 import { MyButton } from '@/components/design-system/button';
 import AccountDetailsEdit from '@/routes/dashboard/-components/AccountDetailsEdit';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 export function Navbar() {
     const roleColors: Record<string, string> = {
@@ -82,6 +84,9 @@ export function Navbar() {
     const roles = getUserRoles(accessToken);
     const userId = getUserId();
     const [showEditAccountDetails, setShowEditAccountDetails] = useState(false);
+    const isMobile = useIsMobile();
+    const { setOpenMobile } = useSidebar();
+
     // Effective display settings (cached or defaults) for permission gating
     const isAdminRoleForDS = roles.includes('ADMIN');
     const roleKeyForDS = isAdminRoleForDS
@@ -154,55 +159,70 @@ export function Navbar() {
         return () => clearTimeout(timer); // Cleanup the timeout on component unmount
     }, [adminDetails?.profile_pic_file_id, getPublicUrl, setAdminLogo]);
 
+    // Check if sidebar should be shown
+    const showSidebar = (() => {
+        const rolesForDS = getUserRoles(accessToken);
+        const isAdminRole = rolesForDS.includes('ADMIN');
+        const roleKey = isAdminRole ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
+        const ds = getDisplaySettingsFromCache(roleKey);
+        return ds?.ui?.showSidebar !== false;
+    })();
+
     return (
-        <div className="sticky top-0 z-10 flex h-[72px] items-center justify-between border-b bg-neutral-50 px-8 py-4">
-            <div className="flex items-center gap-4">
-                {(() => {
-                    const rolesForDS = getUserRoles(accessToken);
-                    const isAdminRole = rolesForDS.includes('ADMIN');
-                    const roleKey = isAdminRole
-                        ? ADMIN_DISPLAY_SETTINGS_KEY
-                        : TEACHER_DISPLAY_SETTINGS_KEY;
-                    const ds = getDisplaySettingsFromCache(roleKey);
-                    const showSidebar = ds?.ui?.showSidebar !== false;
-                    if (showSidebar) return null;
-                    return (
-                        <div className="flex items-center gap-2">
-                            {instituteLogo ? (
-                                <img
-                                    src={instituteLogo}
-                                    alt="logo"
-                                    className="size-20 object-contain"
-                                />
-                            ) : null}
-                        </div>
-                    );
-                })()}
-                {(() => {
-                    const rolesForDS = getUserRoles(accessToken);
-                    const isAdminRole = rolesForDS.includes('ADMIN');
-                    const roleKey = isAdminRole
-                        ? ADMIN_DISPLAY_SETTINGS_KEY
-                        : TEACHER_DISPLAY_SETTINGS_KEY;
-                    const ds = getDisplaySettingsFromCache(roleKey);
-                    const showSidebar = ds?.ui?.showSidebar !== false;
-                    if (!showSidebar) return null;
-                    return (
-                        <SidebarTrigger onClick={() => setSidebarOpen(!sidebarOpen)}>
-                            <SidebarSimple className="text-neutral-600" />
-                        </SidebarTrigger>
-                    );
-                })()}
-                <div className="border-l border-neutral-500 px-4 text-h3 font-semibold text-neutral-600">
+        <div className={cn(
+            "sticky top-0 z-10 flex items-center justify-between border-b bg-neutral-50",
+            // Responsive padding and height
+            "h-14 px-4 py-2",
+            "md:h-[72px] md:px-8 md:py-4"
+        )}>
+            <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
+                {/* Mobile hamburger menu */}
+                {isMobile && showSidebar && (
+                    <button
+                        onClick={() => setOpenMobile(true)}
+                        className="flex items-center justify-center p-2 rounded-md hover:bg-neutral-100 transition-colors"
+                        aria-label="Open menu"
+                    >
+                        <List className="size-5 text-neutral-600" weight="bold" />
+                    </button>
+                )}
+
+                {/* Institute logo when sidebar is hidden */}
+                {!showSidebar && (
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                        {instituteLogo ? (
+                            <img
+                                src={instituteLogo}
+                                alt="logo"
+                                className="size-10 md:size-20 object-contain"
+                            />
+                        ) : null}
+                    </div>
+                )}
+
+                {/* Desktop sidebar trigger */}
+                {!isMobile && showSidebar && (
+                    <SidebarTrigger onClick={() => setSidebarOpen(!sidebarOpen)}>
+                        <SidebarSimple className="text-neutral-600" />
+                    </SidebarTrigger>
+                )}
+
+                {/* Nav heading */}
+                <div className={cn(
+                    "border-l border-neutral-500 font-semibold text-neutral-600 truncate",
+                    "px-2 text-sm",
+                    "md:px-4 md:text-h3"
+                )}>
                     {navHeading}
                 </div>
             </div>
-            <div className="flex gap-6 text-neutral-600">
+
+            <div className="flex items-center gap-2 md:gap-6 text-neutral-600 flex-shrink-0">
                 {/* Notifications */}
                 <DropdownMenu>
                     <DropdownMenuTrigger className="relative flex items-center justify-center">
-                        <div className="relative rounded-full p-2 hover:bg-neutral-200">
-                            <BellSimple className="size-5 text-neutral-700" />
+                        <div className="relative rounded-full p-1.5 md:p-2 hover:bg-neutral-200">
+                            <BellSimple className="size-4 md:size-5 text-neutral-700" />
                             {!!unreadCount && (
                                 <span className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-medium text-white">
                                     {unreadCount}
@@ -210,7 +230,10 @@ export function Navbar() {
                             )}
                         </div>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-80 p-0">
+                    <DropdownMenuContent className={cn(
+                        "p-0",
+                        isMobile ? "w-[calc(100vw-2rem)] max-w-[320px]" : "w-80"
+                    )}>
                         <div className="flex items-center justify-between px-3 py-2">
                             <span className="text-sm font-medium">System Alerts</span>
                             <button
@@ -248,13 +271,12 @@ export function Navbar() {
                                                 </div>
                                                 {!!status && (
                                                     <span
-                                                        className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                                                            isDelivered
+                                                        className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${isDelivered
                                                                 ? 'bg-green-100 text-green-700'
                                                                 : isFailed
-                                                                  ? 'bg-red-100 text-red-700'
-                                                                  : 'bg-neutral-100 text-neutral-700'
-                                                        }`}
+                                                                    ? 'bg-red-100 text-red-700'
+                                                                    : 'bg-neutral-100 text-neutral-700'
+                                                            }`}
                                                     >
                                                         {status}
                                                     </span>
@@ -295,7 +317,10 @@ export function Navbar() {
 
                 {/* See all dialog */}
                 <Dialog open={showAllDialog} onOpenChange={setShowAllDialog}>
-                    <DialogContent className="max-w-2xl p-0">
+                    <DialogContent className={cn(
+                        "p-0",
+                        isMobile ? "w-[calc(100vw-2rem)] max-w-lg" : "max-w-2xl"
+                    )}>
                         <DialogTitle className="px-5 py-4 text-base">System Alerts</DialogTitle>
                         <Separator />
                         <ScrollArea className="max-h-[70vh]">
@@ -334,13 +359,12 @@ export function Navbar() {
                                                             </div>
                                                             {!!status && (
                                                                 <span
-                                                                    className={`shrink-0 rounded px-2 py-0.5 text-[11px] font-medium ${
-                                                                        isDelivered
+                                                                    className={`shrink-0 rounded px-2 py-0.5 text-[11px] font-medium ${isDelivered
                                                                             ? 'bg-green-100 text-green-700'
                                                                             : isFailed
-                                                                              ? 'bg-red-100 text-red-700'
-                                                                              : 'bg-neutral-100 text-neutral-700'
-                                                                    }`}
+                                                                                ? 'bg-red-100 text-red-700'
+                                                                                : 'bg-neutral-100 text-neutral-700'
+                                                                        }`}
                                                                 >
                                                                     {status}
                                                                 </span>
@@ -397,18 +421,23 @@ export function Navbar() {
                         </ScrollArea>
                     </DialogContent>
                 </Dialog>
+
                 {roles.includes('STUDENT') && <SSOSwitcher variant="button" className="" />}
+
+                {/* User profile dropdown */}
                 <div className="flex items-center gap-1">
                     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-                        <DropdownMenuTrigger className="flex items-center gap-2">
+                        <DropdownMenuTrigger className="flex items-center gap-1 md:gap-2">
                             {adminLogo !== '' && (
                                 <img
                                     src={adminLogo}
                                     alt="logo"
-                                    className="size-10 rounded-full object-cover"
+                                    className="size-8 md:size-10 rounded-full object-cover"
                                 />
                             )}
-                            {isOpen ? <CaretDown /> : <CaretUp />}
+                            <span className="hidden md:inline">
+                                {isOpen ? <CaretDown /> : <CaretUp />}
+                            </span>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="flex flex-col items-start">
                             {canViewProfile && (
@@ -416,7 +445,10 @@ export function Navbar() {
                                     <SheetTrigger className="w-full p-2 text-left text-sm hover:rounded-sm hover:bg-accent hover:text-accent-foreground">
                                         View Profile Details
                                     </SheetTrigger>
-                                    <SheetContent className="max-h-screen !min-w-[565px] overflow-y-auto !border-l border-gray-200 bg-primary-50 p-8 shadow-none [&>button>svg]:size-6 [&>button>svg]:font-thin [&>button>svg]:text-neutral-600 [&>button]:mt-[19px]">
+                                    <SheetContent className={cn(
+                                        "max-h-screen overflow-y-auto !border-l border-gray-200 bg-primary-50 p-4 md:p-8 shadow-none [&>button>svg]:size-6 [&>button>svg]:font-thin [&>button>svg]:text-neutral-600 [&>button]:mt-[19px]",
+                                        isMobile ? "!min-w-full !w-full" : "!min-w-[565px]"
+                                    )}>
                                         <SheetTitle className="text-primary-500">
                                             Profile Details
                                         </SheetTitle>
@@ -426,16 +458,16 @@ export function Navbar() {
                                                     <img
                                                         src={adminLogo}
                                                         alt="logo"
-                                                        className="size-48 object-cover rounded-full"
+                                                        className="size-32 md:size-48 object-cover rounded-full"
                                                     />
                                                 )}
-                                                <h1>{adminDetails?.full_name}</h1>
-                                                <div className="flex flex-wrap items-center gap-2">
+                                                <h1 className="text-center">{adminDetails?.full_name}</h1>
+                                                <div className="flex flex-wrap items-center justify-center gap-2">
                                                     <h1 className="whitespace-nowrap">Role Type</h1>
                                                     {adminDetails.roles?.map((role, idx) => {
                                                         const bgColor =
                                                             roleColors[
-                                                                role.role_name.toUpperCase()
+                                                            role.role_name.toUpperCase()
                                                             ] || '#EDEDED';
                                                         return (
                                                             <Badge
@@ -454,7 +486,7 @@ export function Navbar() {
                                             </div>
                                             <Separator />
                                             <div className="flex flex-col gap-2">
-                                                <div className=" flex items-center justify-between">
+                                                <div className="flex items-center justify-between flex-wrap gap-2">
                                                     <h1>Account Information</h1>
                                                     <MyButton
                                                         buttonType="secondary"
@@ -468,7 +500,7 @@ export function Navbar() {
                                                 </div>
                                                 <p className="text-sm text-neutral-600">
                                                     <span>Username:&nbsp;</span>
-                                                    <span>{getUserName()}</span>
+                                                    <span className="break-all">{getUserName()}</span>
                                                 </p>
                                             </div>
                                             <Separator />
@@ -476,7 +508,7 @@ export function Navbar() {
                                                 <h1>Contact Information</h1>
                                                 <p className="text-sm text-neutral-600">
                                                     <span>Email:&nbsp;</span>
-                                                    <span>{adminDetails?.email}</span>
+                                                    <span className="break-all">{adminDetails?.email}</span>
                                                 </p>
                                                 <p className="text-sm text-neutral-600">
                                                     <span>Mobile:&nbsp;</span>
@@ -492,7 +524,10 @@ export function Navbar() {
                                     <SheetTrigger className="w-full p-2 text-sm hover:rounded-sm hover:bg-accent hover:text-accent-foreground">
                                         View Institute Details
                                     </SheetTrigger>
-                                    <SheetContent className="max-h-screen !min-w-[565px] overflow-y-auto !border-l border-gray-200 bg-primary-50 p-8 shadow-none [&>button>svg]:size-6 [&>button>svg]:font-thin [&>button>svg]:text-neutral-600 [&>button]:mt-[19px]">
+                                    <SheetContent className={cn(
+                                        "max-h-screen overflow-y-auto !border-l border-gray-200 bg-primary-50 p-4 md:p-8 shadow-none [&>button>svg]:size-6 [&>button>svg]:font-thin [&>button>svg]:text-neutral-600 [&>button]:mt-[19px]",
+                                        isMobile ? "!min-w-full !w-full" : "!min-w-[565px]"
+                                    )}>
                                         <SheetTitle className="text-primary-500">
                                             Institute Details
                                         </SheetTitle>
@@ -502,10 +537,10 @@ export function Navbar() {
                                                     <img
                                                         src={instituteLogo}
                                                         alt="logo"
-                                                        className="size-48 object-cover rounded-full"
+                                                        className="size-32 md:size-48 object-cover rounded-full"
                                                     />
                                                 )}
-                                                <h1>{instituteDetails?.institute_name}</h1>
+                                                <h1 className="text-center">{instituteDetails?.institute_name}</h1>
                                                 <div className="flex items-center gap-2">
                                                     <h1>Institute Type</h1>
                                                     <p className="rounded-lg border px-2 py-1 text-sm text-neutral-600">
@@ -521,7 +556,7 @@ export function Navbar() {
                                                 <h1>Contact Information</h1>
                                                 <p className="text-sm text-neutral-600">
                                                     <span>Institute Email:&nbsp;</span>
-                                                    <span>{instituteDetails?.email}</span>
+                                                    <span className="break-all">{instituteDetails?.email}</span>
                                                 </p>
                                                 <p className="text-sm text-neutral-600">
                                                     <span>Institute Mobile:&nbsp;</span>
@@ -529,7 +564,7 @@ export function Navbar() {
                                                 </p>
                                                 <p className="text-sm text-neutral-600">
                                                     <span>Institute Website:&nbsp;</span>
-                                                    <span>{instituteDetails?.website_url}</span>
+                                                    <span className="break-all">{instituteDetails?.website_url}</span>
                                                 </p>
                                             </div>
                                             <Separator />

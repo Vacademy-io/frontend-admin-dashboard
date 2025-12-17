@@ -62,7 +62,7 @@ export function AudioRecorder({ onRecordingComplete }: AudioRecorderProps) {
                     </div>
 
                     {/* Controls */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center justify-center gap-3">
                         {!isRecording ? (
                             <Button
                                 onClick={startRecording}

@@ -51,13 +51,13 @@ function RouteComponent() {
     return (
         <>
             <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-                <div className="flex items-center justify-between">
-                    <TabsList className="mb-2 inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <TabsList className="no-scrollbar mb-2 inline-flex h-auto w-full justify-start gap-2 overflow-x-auto rounded-none border-b !bg-transparent p-0 sm:w-auto sm:gap-4">
                         <TabsTrigger
                             value="myResources"
-                            className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${selectedTab === 'myResources'
-                                    ? 'border-4px rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
-                                    : 'border-none bg-transparent'
+                            className={`flex shrink-0 gap-1.5 rounded-none px-4 py-2 text-sm !shadow-none sm:px-12 ${selectedTab === 'myResources'
+                                ? 'border-4px rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                : 'border-none bg-transparent'
                                 }`}
                         >
                             <span
@@ -68,9 +68,9 @@ function RouteComponent() {
                         </TabsTrigger>
                         <TabsTrigger
                             value="aiTaskList"
-                            className={`inline-flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${selectedTab === 'aiTaskList'
-                                    ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
-                                    : 'border-none bg-transparent'
+                            className={`inline-flex shrink-0 gap-1.5 rounded-none px-4 py-2 text-sm !shadow-none sm:px-12 ${selectedTab === 'aiTaskList'
+                                ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                : 'border-none bg-transparent'
                                 }`}
                         >
                             <span
@@ -80,7 +80,9 @@ function RouteComponent() {
                             </span>
                         </TabsTrigger>
                     </TabsList>
-                    <UploadFileMyResourcesComponent />
+                    <div className="w-full sm:w-auto">
+                        <UploadFileMyResourcesComponent />
+                    </div>
                 </div>
                 <TabsContent value="myResources">
                     <MyResources />
@@ -92,13 +94,13 @@ function RouteComponent() {
                         className="flex w-full flex-col items-start gap-4"
                     >
                         <TabsList
-                            className={`sticky ${navBarHeightClass} z-40 mb-4 w-full self-start rounded-lg bg-white p-1.5 shadow-sm md:w-auto`}
+                            className={`no-scrollbar sticky ${navBarHeightClass} z-40 mb-4 flex w-full gap-1 self-start overflow-x-auto rounded-lg bg-white p-1.5 shadow-sm sm:inline-flex sm:w-auto`}
                         >
                             {AIToolCardData.map((category) => (
                                 <TabsTrigger
                                     key={slugify(category.title)}
                                     value={slugify(category.title)}
-                                    className="h-10 w-full rounded-md px-3 py-1.5 text-sm font-medium hover:cursor-pointer data-[state=active]:bg-primary-50 data-[state=active]:text-primary-500 sm:w-[200px]"
+                                    className="h-9 w-auto shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium hover:cursor-pointer data-[state=active]:bg-primary-50 data-[state=active]:text-primary-500 sm:h-10 sm:w-[200px] sm:text-sm"
                                 >
                                     {category.title}
                                 </TabsTrigger>
@@ -110,12 +112,12 @@ function RouteComponent() {
                                 <section
                                     key={slugify(category.title)}
                                     id={slugify(category.title)}
-                                    className={`flex w-full flex-col gap-6 ${sectionScrollMarginTopClass}`}
+                                    className={`flex w-full flex-col gap-4 sm:gap-6 ${sectionScrollMarginTopClass}`}
                                 >
-                                    <h2 className="border-b pb-3 text-2xl font-semibold text-gray-800">
+                                    <h2 className="border-b pb-2 text-lg font-semibold text-gray-800 sm:pb-3 sm:text-2xl">
                                         {category.title}
                                     </h2>
-                                    <div className="flex w-full flex-col gap-6">
+                                    <div className="flex w-full flex-col gap-4 sm:gap-6">
                                         {category.features.map((feature) => (
                                             <AIToolsCard key={feature.key} feature={feature} />
                                         ))}

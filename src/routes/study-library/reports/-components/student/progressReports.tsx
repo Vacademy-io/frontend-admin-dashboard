@@ -232,8 +232,8 @@ export default function ProgressReports() {
     return (
         <div className="mt-10 flex flex-col gap-10">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div className="flex flex-row items-center justify-between">
-                    <div>
+                <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                    <div className="w-full sm:w-auto">
                         <div>{getTerminology(ContentTerms.Course, SystemTerms.Course)}</div>
                         <Select
                             onValueChange={(value) => {
@@ -242,7 +242,7 @@ export default function ProgressReports() {
                             {...register('course')}
                             defaultValue={search.studentReport ? search.studentReport.courseId : ''}
                         >
-                            <SelectTrigger className="h-[40px] w-[320px]">
+                            <SelectTrigger className="h-[40px] w-full sm:w-[320px]">
                                 <SelectValue placeholder="Select a Course" />
                             </SelectTrigger>
                             <SelectContent>
@@ -255,7 +255,7 @@ export default function ProgressReports() {
                         </Select>
                     </div>
 
-                    <div>
+                    <div className="w-full sm:w-auto">
                         <div>{getTerminology(ContentTerms.Session, SystemTerms.Session)}</div>
                         <Select
                             onValueChange={(value) => {
@@ -267,7 +267,7 @@ export default function ProgressReports() {
                             value={selectedSession}
                             disabled={!sessionList.length}
                         >
-                            <SelectTrigger className="h-[40px] w-[320px]">
+                            <SelectTrigger className="h-[40px] w-full sm:w-[320px]">
                                 <SelectValue
                                     placeholder={`Select a ${getTerminology(ContentTerms.Session, SystemTerms.Session)}`}
                                 />
@@ -282,7 +282,7 @@ export default function ProgressReports() {
                         </Select>
                     </div>
 
-                    <div>
+                    <div className="w-full sm:w-auto">
                         <div>{getTerminology(ContentTerms.Level, SystemTerms.Level)}</div>
                         <Select
                             onValueChange={(value) => {
@@ -293,7 +293,7 @@ export default function ProgressReports() {
                             disabled={!levelList.length}
                             {...register('level')}
                         >
-                            <SelectTrigger className="h-[40px] w-[320px]">
+                            <SelectTrigger className="h-[40px] w-full sm:w-[320px]">
                                 <SelectValue
                                     placeholder={`Select a ${getTerminology(ContentTerms.Level, SystemTerms.Level)}`}
                                 />
@@ -309,7 +309,7 @@ export default function ProgressReports() {
                     </div>
                 </div>
 
-                <div>
+                <div className="w-full sm:w-auto">
                     <div>Name</div>
                     <Select
                         onValueChange={(value) => {
@@ -319,7 +319,7 @@ export default function ProgressReports() {
                         defaultValue=""
                         disabled={!studentList.length}
                     >
-                        <SelectTrigger className="h-[40px] w-[320px]">
+                        <SelectTrigger className="h-[40px] w-full sm:w-[320px]">
                             <SelectValue placeholder="Select Student" />
                         </SelectTrigger>
                         <SelectContent>
@@ -352,9 +352,11 @@ export default function ProgressReports() {
                     </Select>
                 </div>
 
-                <div className="flex flex-row items-end justify-between gap-4">
-                    <div>
-                        <MyButton buttonType="secondary">Generate Report</MyButton>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+                    <div className="w-full sm:w-auto">
+                        <MyButton buttonType="secondary" className="w-full sm:w-auto">
+                            Generate Report
+                        </MyButton>
                     </div>
                 </div>
 
@@ -375,8 +377,8 @@ export default function ProgressReports() {
             {subjectReportData && !isPending && (
                 <div className="flex flex-col gap-10">
                     <div className="flex flex-col gap-4">
-                        <div className="flex flex-row justify-between gap-10">
-                            <div className="flex flex-col gap-6">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:gap-10">
+                            <div className="flex flex-col gap-2 sm:gap-6">
                                 <div className="text-h3 text-primary-500">
                                     {
                                         studentList.find((s) => s.user_id === selectedStudent)
@@ -384,19 +386,20 @@ export default function ProgressReports() {
                                     }
                                 </div>
                             </div>
-                            <div className="flex flex-row gap-10">
+                            <div className="flex flex-col gap-4 sm:flex-row sm:gap-10">
                                 <ReportRecipientsDialogBox userId={selectedStudent || ''} />
                                 <MyButton
                                     buttonType="secondary"
                                     onClick={() => {
                                         handleExportPDF();
                                     }}
+                                    className="w-full sm:w-auto"
                                 >
                                     {isExporting ? <DashboardLoader /> : 'Export'}
                                 </MyButton>
                             </div>
                         </div>
-                        <div className="flex flex-row items-center justify-between">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 {getTerminology(ContentTerms.Course, SystemTerms.Course)}:{' '}
                                 {courseList.find((course) => course.id === selectedCourse)?.name}

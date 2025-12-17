@@ -32,10 +32,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn, goToMailSupport, goToWhatsappSupport } from '@/lib/utils';
 import { Question } from '@phosphor-icons/react';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
-import { WhatsappLogo, EnvelopeSimple, Lightning } from '@phosphor-icons/react';
+import { WhatsappLogo, EnvelopeSimple, Lightning, X } from '@phosphor-icons/react';
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import useInstituteLogoStore from './institutelogo-global-zustand';
 import { useTabSettings } from '@/hooks/use-tab-settings';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const voltSidebarData: SidebarItemsType[] = [
     {
@@ -48,11 +50,12 @@ const voltSidebarData: SidebarItemsType[] = [
 
 export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
     const navigate = useNavigate();
-    const { state }: SidebarStateType = useSidebar();
+    const { state, openMobile, setOpenMobile }: SidebarStateType & { openMobile: boolean; setOpenMobile: (open: boolean) => void } = useSidebar();
     const { data, isLoading } = useSuspenseQuery(useInstituteQuery());
     const router = useRouter();
     const currentRoute = router.state.location.pathname;
     const { isTabVisible, isSubItemVisible } = useTabSettings();
+    const isMobile = useIsMobile();
 
     const [isVoltSubdomain, setIsVoltSubdomain] = useState(false);
 
@@ -82,11 +85,11 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
         const base = isVoltSubdomain
             ? voltSidebarData
             : filterMenuItems(
-                  filterMenuListByModules(data?.sub_modules, SidebarItemsData),
-                  data?.id,
-                  isTabVisible,
-                  isSubItemVisible
-              );
+                filterMenuListByModules(data?.sub_modules, SidebarItemsData),
+                data?.id,
+                isTabVisible,
+                isSubItemVisible
+            );
         if (!roleDisplay) return base;
         // Apply role-based visibility and ordering
         const tabVis = new Map(roleDisplay.sidebar.map((t) => [t.id, t]));
@@ -171,60 +174,98 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
 
     if (isLoading) return <DashboardLoader />;
     if (roleDisplay?.ui?.showSidebar === false) return null;
+
+    // Sidebar content - shared between mobile drawer and desktop sidebar
+    const sidebarContent = (
+        <>
+            <SidebarHeader className="px-3 py-1">
+                <div
+                    className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded p-1 transition-colors"
+                    onClick={() => {
+                        navigate({ to: '/dashboard' });
+                        if (isMobile) setOpenMobile(false);
+                    }}
+                >
+                    {instituteLogo !== '' && (
+                        <img
+                            src={instituteLogo}
+                            alt="logo"
+                            className="h-12 w-auto max-w-[100px] object-cover rounded-full"
+                        />
+                    )}
+                    <SidebarGroup
+                        className={`text-center text-lg font-semibold leading-tight text-primary-500 ${!isMobile ? 'group-data-[collapsible=icon]:hidden' : ''}`}
+                    >
+                        {data?.institute_name}
+                    </SidebarGroup>
+                </div>
+            </SidebarHeader>
+            <SidebarMenu
+                className={`flex shrink-0 flex-col gap-2 px-1 py-4 ${state == 'expanded' || isMobile ? 'items-stretch' : 'items-center'
+                    }`}
+            >
+                {sidebarComponent
+                    ? sidebarComponent
+                    : finalSidebarItems
+                        .filter((item) => {
+                            const show = (item as SidebarItemsType).showForInstitute;
+                            return !show || show === data?.id;
+                        })
+                        .map((obj, key) => (
+                            <SidebarMenuItem
+                                key={key}
+                                id={obj.id}
+                                onClick={() => {
+                                    // Close mobile sidebar when an item is clicked
+                                    if (isMobile && !obj.subItems) {
+                                        setOpenMobile(false);
+                                    }
+                                }}
+                            >
+                                <SidebarItem {...obj} />
+                            </SidebarMenuItem>
+                        ))}
+            </SidebarMenu>
+            {roleDisplay?.ui?.showSupportButton !== false && (
+                <div
+                    className={cn(
+                        'mt-auto flex items-center justify-center px-1 py-2',
+                        state === 'collapsed' && !isMobile ? 'mx-auto' : ''
+                    )}
+                >
+                    {!currentRoute.includes('slides') && <SupportOptions />}
+                </div>
+            )}
+        </>
+    );
+
+    // Mobile: Render as Sheet/Drawer
+    if (isMobile) {
+        return (
+            <Sheet open={openMobile} onOpenChange={setOpenMobile}>
+                <SheetContent
+                    side="left"
+                    className="w-[280px] p-0 bg-primary-50 border-r border-r-neutral-300"
+                >
+                    <SheetHeader className="sr-only">
+                        <SheetTitle>Navigation Menu</SheetTitle>
+                    </SheetHeader>
+                    <div className="sidebar-content flex h-full flex-col gap-2 py-6 overflow-y-auto">
+                        {sidebarContent}
+                    </div>
+                </SheetContent>
+            </Sheet>
+        );
+    }
+
+    // Desktop/Tablet: Render as regular Sidebar
     return (
         <Sidebar collapsible="icon" className="z-20">
             <SidebarContent
-                className={`sidebar-content flex flex-col gap-2 border-r border-r-neutral-300 bg-primary-50 py-6 ${
-                    state == 'expanded' ? 'w-[307px]' : 'w-28'
-                }`}
-            >
-                <SidebarHeader className="px-3 py-1">
-                    <div
-                        className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded p-1 transition-colors"
-                        onClick={() => navigate({ to: '/dashboard' })}
-                    >
-                        {instituteLogo !== '' && (
-                            <img
-                                src={instituteLogo}
-                                alt="logo"
-                                className="h-12 w-auto max-w-[100px] object-cover rounded-full"
-                            />
-                        )}
-                        <SidebarGroup
-                            className={`text-center text-lg font-semibold leading-tight text-primary-500 group-data-[collapsible=icon]:hidden`}
-                        >
-                            {data?.institute_name}
-                        </SidebarGroup>
-                    </div>
-                </SidebarHeader>
-                <SidebarMenu
-                    className={`flex shrink-0 flex-col gap-2 px-1 py-4 ${
-                        state == 'expanded' ? 'items-stretch' : 'items-center'
+                className={`sidebar-content flex flex-col gap-2 border-r border-r-neutral-300 bg-primary-50 py-6 ${state == 'expanded' ? 'w-[307px]' : 'w-28'
                     }`}
-                >
-                    {sidebarComponent
-                        ? sidebarComponent
-                        : finalSidebarItems
-                              .filter((item) => {
-                                  const show = (item as SidebarItemsType).showForInstitute;
-                                  return !show || show === data?.id;
-                              })
-                              .map((obj, key) => (
-                                  <SidebarMenuItem key={key} id={obj.id}>
-                                      <SidebarItem {...obj} />
-                                  </SidebarMenuItem>
-                              ))}
-                </SidebarMenu>
-                {roleDisplay?.ui?.showSupportButton !== false && (
-                    <div
-                        className={cn(
-                            'mt-auto flex items-center justify-center px-1 py-2',
-                            state === 'collapsed' ? 'mx-auto' : ''
-                        )}
-                    >
-                        {!currentRoute.includes('slides') && <SupportOptions />}
-                    </div>
-                )}
+            >
+                {sidebarContent}
             </SidebarContent>
         </Sidebar>
     );
@@ -249,9 +290,8 @@ function SupportOptions() {
                         weight="fill"
                     />
                     <div
-                        className={`${
-                            hover ? 'text-primary-500' : 'text-neutral-600'
-                        } text-body font-regular text-neutral-600 group-data-[collapsible=icon]:hidden`}
+                        className={`${hover ? 'text-primary-500' : 'text-neutral-600'
+                            } text-body font-regular text-neutral-600 group-data-[collapsible=icon]:hidden`}
                     >
                         {'Support'}
                     </div>

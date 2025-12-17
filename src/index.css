@@ -493,6 +493,113 @@ html {
     width: 100% !important;
 }
 
+/* ========= RESPONSIVE UTILITIES ========= */
+
+/* Mobile-friendly touch targets - minimum 44px for accessibility */
+@layer utilities {
+    .touch-target {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    .touch-target-sm {
+        min-height: 36px;
+        min-width: 36px;
+    }
+}
+
+/* Safe area padding for iOS notch and home indicator */
+@layer utilities {
+    .safe-area-inset-top {
+        padding-top: env(safe-area-inset-top);
+    }
+    
+    .safe-area-inset-bottom {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    
+    .safe-area-inset-left {
+        padding-left: env(safe-area-inset-left);
+    }
+    
+    .safe-area-inset-right {
+        padding-right: env(safe-area-inset-right);
+    }
+}
+
+/* Mobile-specific layout helpers */
+@layer utilities {
+    /* Prevent text selection on mobile for UI elements */
+    .no-select {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+    
+    /* Prevent tap highlight on mobile */
+    .no-tap-highlight {
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* Momentum scrolling for iOS */
+    .scroll-touch {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Mobile viewport fix for 100vh issues */
+@layer base {
+    :root {
+        --vh: 1vh;
+    }
+}
+
+@layer utilities {
+    .min-h-screen-mobile {
+        min-height: 100vh;
+        min-height: calc(var(--vh, 1vh) * 100);
+    }
+    
+    .h-screen-mobile {
+        height: 100vh;
+        height: calc(var(--vh, 1vh) * 100);
+    }
+}
+
+/* Mobile sidebar overlay backdrop */
+@layer components {
+    .mobile-sidebar-backdrop {
+        @apply fixed inset-0 bg-black/50 z-40;
+    }
+}
+
+/* Responsive table wrapper for horizontal scrolling */
+@layer components {
+    .table-responsive {
+        @apply overflow-x-auto -mx-4 px-4;
+    }
+    
+    @screen md {
+        .table-responsive {
+            @apply mx-0 px-0;
+        }
+    }
+}
+
+/* Card variants for mobile */
+@layer components {
+    .card-mobile {
+        @apply rounded-none border-x-0;
+    }
+    
+    @screen sm {
+        .card-mobile {
+            @apply rounded-lg border-x;
+        }
+    }
+}
+
 /* Custom animations for enhanced student sidebar */
 @keyframes fadeIn {
   from {

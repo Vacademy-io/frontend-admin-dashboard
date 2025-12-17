@@ -212,7 +212,7 @@ const FlashcardsView = ({ content }: { content: string }) => {
                         style={{ backfaceVisibility: 'hidden' }}
                     >
                         <span className="mb-4 text-xs font-bold uppercase tracking-wider text-slate-400">Question</span>
-                        <h3 className="text-xl font-medium text-slate-900 dark:text-slate-100">
+                        <h3 className="max-h-[70%] w-full overflow-y-auto px-2 text-xl font-medium text-slate-900 dark:text-slate-100">
                             {currentCard.front}
                         </h3>
                         <div className="absolute bottom-6 text-slate-400">
@@ -230,7 +230,7 @@ const FlashcardsView = ({ content }: { content: string }) => {
                         }}
                     >
                         <span className="mb-4 text-xs font-bold uppercase tracking-wider text-primary-500">Answer</span>
-                        <div className="prose prose-lg dark:prose-invert">
+                        <div className="prose prose-lg w-full overflow-y-auto px-2 dark:prose-invert">
                             <p className="text-lg text-slate-800 dark:text-slate-200">{currentCard.back}</p>
                         </div>
                         <div className="absolute bottom-6 text-primary-400">
