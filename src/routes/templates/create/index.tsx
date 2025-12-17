@@ -1,9 +1,11 @@
-// trigger commit
 import { createFileRoute } from '@tanstack/react-router';
+import { lazy, Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
 
-// Route definition only - component is lazy loaded from index.lazy.tsx
+const TemplateEditorGrapes = lazy(() => import('./-components/TemplateEditorGrapes').then(module => ({ default: module.TemplateEditorGrapes })));
+
 export const Route = createFileRoute('/templates/create/')({
-    // Component is defined in index.lazy.tsx
+    component: TemplateCreatePage,
 });
 
 function TemplateCreatePage() {
