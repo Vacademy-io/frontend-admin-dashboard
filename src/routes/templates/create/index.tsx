@@ -1,3 +1,4 @@
+// trigger commit
 import { createFileRoute } from '@tanstack/react-router';
 import { lazy, Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
