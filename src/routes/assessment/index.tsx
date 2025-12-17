@@ -36,55 +36,51 @@ function AssessmentPage() {
                     content="This page shows all types of assessments that you can create here."
                 />
             </Helmet>
-            <div className="pb-6 text-title font-semibold">Create Assessment</div>
-            <div className="flex size-auto flex-col items-center justify-center gap-11">
-                <div className="flex items-center gap-12">
-                    <div
-                        onClick={() => handleRedirectRoute('EXAM')}
-                        className="flex w-[400px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
-                    >
-                        <Examination />
-                        <h1 className="text-[1.4rem] font-semibold">Examination</h1>
-                        <p className="text-center text-sm text-neutral-500">
-                            A Fixed-time assessment that goes live for a specific schedule,
-                            simulating real exam conditions.
-                        </p>
-                    </div>
-                    <div
-                        onClick={() => handleRedirectRoute('MOCK')}
-                        className="flex w-[400px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
-                    >
-                        <Mock />
-                        <h1 className="text-[1.4rem] font-semibold">Mock Assessment</h1>
-                        <p className="text-center text-sm text-neutral-500">
-                            A practice assessment always available, with a fixed duration to
-                            replicate exam scenarios.
-                        </p>
-                    </div>
+            <div className="pb-4 text-lg font-semibold sm:pb-6 sm:text-title">Create Assessment</div>
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:gap-8">
+                <div
+                    onClick={() => handleRedirectRoute('EXAM')}
+                    className="flex cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-4 transition-all hover:border-primary-200 hover:shadow-md active:scale-[0.98] sm:p-6 md:p-8"
+                >
+                    <Examination className="size-16 sm:size-auto" />
+                    <h1 className="mt-2 text-lg font-semibold sm:text-[1.4rem]">Examination</h1>
+                    <p className="mt-1 text-center text-xs text-neutral-500 sm:text-sm">
+                        A Fixed-time assessment that goes live for a specific schedule,
+                        simulating real exam conditions.
+                    </p>
                 </div>
-                <div className="flex items-center gap-12">
-                    <div
-                        onClick={() => handleRedirectRoute('PRACTICE')}
-                        className="flex w-[400px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
-                    >
-                        <Practice />
-                        <h1 className="text-[1.4rem] font-semibold">Practice Assessment</h1>
-                        <p className="text-center text-sm text-neutral-500">
-                            An on-demand assessment with no time limits, allowing students to
-                            attempt it anytime.
-                        </p>
-                    </div>
-                    <div
-                        onClick={() => handleRedirectRoute('SURVEY')}
-                        className="flex w-[400px] cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-8"
-                    >
-                        <Survey />
-                        <h1 className="text-[1.4rem] font-semibold">Survey</h1>
-                        <p className="text-center text-sm text-neutral-500">
-                            A set of questions for feedback or opinions, with no right or wrong
-                            answers.
-                        </p>
-                    </div>
+                <div
+                    onClick={() => handleRedirectRoute('MOCK')}
+                    className="flex cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-4 transition-all hover:border-primary-200 hover:shadow-md active:scale-[0.98] sm:p-6 md:p-8"
+                >
+                    <Mock className="size-16 sm:size-auto" />
+                    <h1 className="mt-2 text-lg font-semibold sm:text-[1.4rem]">Mock Assessment</h1>
+                    <p className="mt-1 text-center text-xs text-neutral-500 sm:text-sm">
+                        A practice assessment always available, with a fixed duration to
+                        replicate exam scenarios.
+                    </p>
+                </div>
+                <div
+                    onClick={() => handleRedirectRoute('PRACTICE')}
+                    className="flex cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-4 transition-all hover:border-primary-200 hover:shadow-md active:scale-[0.98] sm:p-6 md:p-8"
+                >
+                    <Practice className="size-16 sm:size-auto" />
+                    <h1 className="mt-2 text-lg font-semibold sm:text-[1.4rem]">Practice Assessment</h1>
+                    <p className="mt-1 text-center text-xs text-neutral-500 sm:text-sm">
+                        An on-demand assessment with no time limits, allowing students to
+                        attempt it anytime.
+                    </p>
+                </div>
+                <div
+                    onClick={() => handleRedirectRoute('SURVEY')}
+                    className="flex cursor-pointer flex-col items-center rounded-xl border bg-neutral-50 p-4 transition-all hover:border-primary-200 hover:shadow-md active:scale-[0.98] sm:p-6 md:p-8"
+                >
+                    <Survey className="size-16 sm:size-auto" />
+                    <h1 className="mt-2 text-lg font-semibold sm:text-[1.4rem]">Survey</h1>
+                    <p className="mt-1 text-center text-xs text-neutral-500 sm:text-sm">
+                        A set of questions for feedback or opinions, with no right or wrong
+                        answers.
+                    </p>
                 </div>
             </div>
         </>

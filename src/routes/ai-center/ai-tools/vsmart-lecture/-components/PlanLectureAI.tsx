@@ -58,36 +58,38 @@ const PlanLectureAI = () => {
     return (
         <>
             {toolData && (
-                <div className="flex w-full flex-col gap-4 px-8 text-neutral-600">
+                <div className="flex w-full flex-col gap-4 px-4 text-neutral-600 sm:gap-6 sm:px-8">
                     <div className="flex w-fit items-center justify-start gap-2">
-                        <div className="flex items-center gap-2 text-h2 font-semibold">
-                            <StarFour size={30} weight="fill" className="text-primary-500" />{' '}
+                        <div className="flex items-center gap-2 text-xl font-semibold sm:text-h2">
+                            <StarFour weight="fill" className="text-primary-500 size-6 sm:size-[30px]" />{' '}
                             {toolData.heading}
                         </div>
                         <AITasksList heading={toolData.heading} />
                     </div>
-                    {GetImagesForAITools(toolData.key)}
+                    <div className="scale-90 self-center sm:scale-100 sm:self-start">
+                        {GetImagesForAITools(toolData.key)}
+                    </div>
                     <div className="flex flex-col gap-1">
-                        <p className="text-h3 font-semibold">How to use {toolData.heading}</p>
-                        <p className="text-subtitle">{toolData.instructionsHeading}</p>
+                        <p className="text-lg font-semibold sm:text-h3">How to use {toolData.heading}</p>
+                        <p className="text-sm sm:text-subtitle">{toolData.instructionsHeading}</p>
                     </div>
                     <Separator />
                     <div className="flex flex-col gap-6">
                         {toolData.instructions.map((steps, index) => (
                             <div key={index}>
-                                <div className="flex gap-2 text-title font-semibold">
+                                <div className="flex gap-2 text-base font-semibold sm:text-title">
                                     <p className="text-primary-500">Step {index + 1}</p>
                                     <p>{steps.stepHeading}</p>
                                 </div>
-                                <p>{steps.stepSubHeading}</p>
-                                <ul className="flex flex-col text-body">
+                                <p className="text-sm sm:text-base">{steps.stepSubHeading}</p>
+                                <ul className="flex flex-col text-sm sm:text-body">
                                     {steps.steps.map((step, index) => (
                                         <li key={index}>
                                             <p>{step}</p>
                                         </li>
                                     ))}
                                 </ul>
-                                <p>{steps.stepFooter}</p>
+                                <p className="text-sm sm:text-base">{steps.stepFooter}</p>
                             </div>
                         ))}
                     </div>
@@ -100,9 +102,11 @@ const PlanLectureAI = () => {
                     </div>
                 </div>
             )}
-            {getQuestionsFromTextMutation.status === 'success' && (
-                <AITasksList heading="Vsmart Lecturer" enableDialog={true} />
-            )}
+            {
+                getQuestionsFromTextMutation.status === 'success' && (
+                    <AITasksList heading="Vsmart Lecturer" enableDialog={true} />
+                )
+            }
         </>
     );
 };

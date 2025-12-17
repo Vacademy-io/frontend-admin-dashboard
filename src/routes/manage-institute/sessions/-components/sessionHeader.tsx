@@ -50,17 +50,17 @@ export default function SessionHeader() {
                 onError: (error) => {
                     toast.error(
                         error.message ||
-                            `Failed to add ${getTerminology(
-                                ContentTerms.Session,
-                                SystemTerms.Session
-                            ).toLocaleLowerCase()}`
+                        `Failed to add ${getTerminology(
+                            ContentTerms.Session,
+                            SystemTerms.Session
+                        ).toLocaleLowerCase()}`
                     );
                 },
             }
         );
     };
 
-    const formSubmitRef = useRef(() => {});
+    const formSubmitRef = useRef(() => { });
 
     const submitButton = (
         <div className="flex items-center justify-end">
@@ -83,12 +83,12 @@ export default function SessionHeader() {
     };
 
     return (
-        <div className="flex items-center justify-between text-neutral-600">
+        <div className="flex flex-col gap-4 text-neutral-600 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col gap-2">
-                <div className="text-xl font-[600]">
+                <div className="text-lg font-[600] sm:text-xl">
                     Manage Your {getTerminology(ContentTerms.Session, SystemTerms.Session)}
                 </div>
-                <div className="text-base">
+                <div className="text-sm sm:text-base">
                     Effortlessly organize, upload, and track educational resources in one place.
                     Provide{' '}
                     {getTerminology(RoleTerms.Learner, SystemTerms.Learner).toLocaleLowerCase()}s
@@ -96,7 +96,7 @@ export default function SessionHeader() {
                     learning experience.
                 </div>
             </div>
-            <div>
+            <div className="self-end sm:self-auto">
                 {!instituteDetails?.batches_for_sessions.length ? (
                     <div className="flex flex-col items-center gap-1">
                         <NoCourseDialog

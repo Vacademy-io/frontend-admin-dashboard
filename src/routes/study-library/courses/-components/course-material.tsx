@@ -587,19 +587,18 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
 
     return (
         <div className="relative flex w-full flex-col gap-2 text-neutral-600">
-            <div className="flex flex-col items-end gap-4">
-                <AddCourseButton />
-            </div>
-            <div className="flex items-center gap-2">
+            {/* Header section - responsive layout */}
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex flex-col gap-1">
-                    <div className="text-h5 font-semibold">
+                    <div className="text-lg font-semibold sm:text-h5">
                         Explore {getTerminology(ContentTerms.Course, SystemTerms.Course)}s
                     </div>
-                    <div className="text-sm">
+                    <div className="text-xs text-neutral-500 sm:text-sm">
                         Effortlessly organize, upload, and track educational resources in one place.
-                        Provide students with easy access to the materials they need to succeed,
-                        ensuring a seamless learning experience.
                     </div>
+                </div>
+                <div className="flex-shrink-0">
+                    <AddCourseButton />
                 </div>
             </div>
 
@@ -609,19 +608,20 @@ export const CourseMaterial = ({ initialSelectedTab }: CourseMaterialProps = {})
                 onValueChange={(value) =>
                     handleTabChange(
                         value as
-                            | 'AuthoredCourses'
-                            | 'AllCourses'
-                            | 'CourseInReview'
-                            | 'CourseApproval'
+                        | 'AuthoredCourses'
+                        | 'AllCourses'
+                        | 'CourseInReview'
+                        | 'CourseApproval'
                     )
                 }
             >
-                <TabsList className="inline-flex h-auto w-full justify-start gap-4 rounded-none border-b !bg-transparent p-0">
+                {/* Scrollable tabs for mobile */}
+                <TabsList className="no-scrollbar -mx-4 inline-flex h-auto w-[calc(100%+2rem)] justify-start gap-2 overflow-x-auto rounded-none border-b !bg-transparent px-4 py-0 sm:mx-0 sm:w-full sm:gap-4 sm:px-0">
                     {availableTabs.map((tab) => (
                         <TabsTrigger
                             key={tab.key}
                             value={tab.key}
-                            className={`-mb-px rounded-none border-b-2 text-sm font-semibold !shadow-none
+                            className={`-mb-px flex-shrink-0 whitespace-nowrap rounded-none border-b-2 px-2 py-2 text-xs font-semibold !shadow-none sm:px-0 sm:text-sm
                                 ${selectedTab === tab.key ? 'border-primary-500 !text-primary-500' : 'border-transparent text-gray-500'}`}
                         >
                             <span className={selectedTab === tab.key ? 'text-primary-500' : ''}>

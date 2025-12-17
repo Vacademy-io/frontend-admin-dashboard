@@ -680,13 +680,19 @@ const StudyLibraryAiCopilotCourseOutlineIndexRoute =
     id: "/study-library/ai-copilot/course-outline/",
     path: "/study-library/ai-copilot/course-outline/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/study-library/ai-copilot/course-outline/index.lazy").then(
+      (d) => d.Route,
+    ),
+  )
 const PlanningPlanningCreateIndexRoute =
   PlanningPlanningCreateIndexRouteImport.update({
     id: "/planning/planning/create/",
     path: "/planning/planning/create/",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any).lazy(() =>
+    import("./routes/planning/planning/create/index.lazy").then((d) => d.Route),
+  )
 const PlanningActivityLogsCreateIndexRoute =
   PlanningActivityLogsCreateIndexRouteImport.update({
     id: "/planning/activity-logs/create/",

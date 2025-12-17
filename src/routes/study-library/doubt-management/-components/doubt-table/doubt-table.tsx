@@ -12,8 +12,8 @@ export const DoubtTable = () => {
         setCurrentPage(page);
     };
     return (
-        <div className="no-scrollbar flex w-full flex-col gap-10 overflow-y-scroll">
-            <div className="flex w-full flex-col gap-6 ">
+        <div className="no-scrollbar flex w-full flex-col gap-4 overflow-y-scroll sm:gap-10">
+            <div className="flex w-full flex-col gap-4 sm:gap-6">
                 {doubts?.content.length == 0 ? (
                     <p className="text-primary-500">No student activity found</p>
                 ) : (

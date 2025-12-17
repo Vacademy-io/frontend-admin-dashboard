@@ -86,7 +86,7 @@ const AITasksList = ({
 
             return () => clearInterval(interval); // cleanup on unmount
         }
-        return () => {};
+        return () => { };
     }, [mutate, heading, isAIQuestionDialog9, openQuestionsPreview]);
 
     useEffect(() => {
@@ -177,24 +177,23 @@ const AITasksList = ({
                                 return (
                                     <div
                                         key={task.id}
-                                        className="flex flex-col gap-1 rounded-lg border bg-neutral-50 p-4"
+                                        className="flex flex-col gap-2 rounded-lg border bg-neutral-50 p-3 sm:p-4"
                                     >
-                                        <div className="flex items-center justify-between">
-                                            <h1 className="text-neutral-600">{task.task_name}</h1>
-                                            <h1 className="text-sm text-neutral-600">
+                                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                                            <h1 className="break-words text-sm font-medium text-neutral-600 sm:text-base">{task.task_name}</h1>
+                                            <h1 className="text-xs text-neutral-500 sm:text-sm text-neutral-600">
                                                 {convertToLocalDateTime(task.updated_at)}
                                             </h1>
                                         </div>
 
-                                        <div className="flex items-center justify-start">
+                                        <div className="flex flex-wrap items-center justify-start gap-2">
                                             <Badge
-                                                className={`border border-gray-200 text-neutral-600 shadow-none ${
-                                                    task.status === 'FAILED'
+                                                className={`border border-gray-200 text-neutral-600 shadow-none ${task.status === 'FAILED'
                                                         ? 'bg-red-100'
                                                         : task.status === 'COMPLETED'
-                                                          ? 'bg-green-100'
-                                                          : 'bg-blue-100'
-                                                }`}
+                                                            ? 'bg-green-100'
+                                                            : 'bg-blue-100'
+                                                    }`}
                                             >
                                                 {task.status}
                                             </Badge>
@@ -260,9 +259,9 @@ const AITasksList = ({
                                                 )}
                                         </div>
                                         {task.file_detail && (
-                                            <div className="mt-2 flex items-center justify-between rounded-md bg-neutral-100 p-3">
+                                            <div className="mt-2 flex flex-col gap-2 rounded-md bg-neutral-100 p-3 sm:flex-row sm:items-center sm:justify-between">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="max-w-[200px] truncate text-sm text-neutral-600">
+                                                    <span className="max-w-[200px] truncate text-xs sm:text-sm text-neutral-600">
                                                         {task.file_detail.file_name}
                                                     </span>
                                                 </div>
@@ -270,7 +269,7 @@ const AITasksList = ({
                                                     type="button"
                                                     scale="small"
                                                     buttonType="secondary"
-                                                    className="text-sm"
+                                                    className="w-full text-xs sm:w-auto sm:text-sm"
                                                     onClick={(e) => {
                                                         e.preventDefault();
                                                         e.stopPropagation();

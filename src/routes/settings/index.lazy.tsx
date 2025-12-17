@@ -88,9 +88,9 @@ function RouteComponent() {
                             aria-label="Scroll left"
                             title="Scroll left"
                             onClick={() => scrollBy(-240)}
-                            className="absolute left-1 top-1/2 z-20 hidden -translate-y-1/2 items-center justify-center rounded-full border bg-background p-1.5 shadow md:flex"
+                            className="absolute left-0 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center rounded-full border bg-background p-1 shadow sm:left-1 sm:p-1.5"
                         >
-                            <ChevronLeft className="size-4" />
+                            <ChevronLeft className="size-3 sm:size-4" />
                         </button>
                     )}
                     {canScrollRight && (
@@ -99,32 +99,32 @@ function RouteComponent() {
                             aria-label="Scroll right"
                             title="Scroll right"
                             onClick={() => scrollBy(240)}
-                            className="absolute right-1 top-1/2 z-20 hidden -translate-y-1/2 items-center justify-center rounded-full border bg-background p-1.5 shadow md:flex"
+                            className="absolute right-0 top-1/2 z-20 flex -translate-y-1/2 items-center justify-center rounded-full border bg-background p-1 shadow sm:right-1 sm:p-1.5"
                         >
-                            <ChevronRight className="size-4" />
+                            <ChevronRight className="size-3 sm:size-4" />
                         </button>
                     )}
                     {/* Gradient edges to hint scrollability */}
                     {canScrollLeft && (
-                        <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-10 bg-gradient-to-r from-background to-transparent" />
+                        <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-6 bg-gradient-to-r from-background to-transparent sm:w-10" />
                     )}
                     {canScrollRight && (
-                        <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-10 bg-gradient-to-l from-background to-transparent" />
+                        <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-6 bg-gradient-to-l from-background to-transparent sm:w-10" />
                     )}
                     <div
                         ref={scrollRef}
-                        className="overflow-x-auto"
+                        className="no-scrollbar overflow-x-auto"
                         role="region"
                         aria-label="Settings tabs"
                     >
-                        <TabsList className="inline-flex h-auto w-max justify-start gap-4 whitespace-nowrap rounded-none border-b !bg-transparent p-0">
+                        <TabsList className="inline-flex h-auto w-max justify-start gap-2 whitespace-nowrap rounded-none border-b !bg-transparent p-0 sm:gap-4">
                             {getAvailableSettingsTabs().map((tab, index) => (
                                 <TabsTrigger
                                     key={index}
                                     value={tab.tab}
-                                    className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${selectedTab === tab.tab
-                                            ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
-                                            : 'border-none bg-transparent'
+                                    className={`flex gap-1.5 rounded-none px-4 py-2 text-sm !shadow-none sm:px-12 ${selectedTab === tab.tab
+                                        ? 'rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
+                                        : 'border-none bg-transparent'
                                         }`}
                                 >
                                     <span

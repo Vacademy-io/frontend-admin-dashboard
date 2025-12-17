@@ -321,8 +321,8 @@ export default function TimelineReports() {
     return (
         <div className="mt-10 flex flex-col gap-10">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div className="flex flex-row items-center justify-between">
-                    <div>
+                <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                    <div className="w-full sm:w-auto">
                         <div>
                             {getTerminology(ContentTerms.Course, SystemTerms.Course)}{' '}
                             <span className="text-red-600">*</span>
@@ -334,7 +334,7 @@ export default function TimelineReports() {
                             {...register('course')}
                             defaultValue=""
                         >
-                            <SelectTrigger className="h-[40px] w-[320px]">
+                            <SelectTrigger className="h-[40px] w-full sm:w-[320px]">
                                 <SelectValue
                                     placeholder={`Select a ${getTerminology(
                                         ContentTerms.Course,
@@ -353,7 +353,7 @@ export default function TimelineReports() {
                     </div>
 
                     {!defaultSessionLevels && (
-                        <div>
+                        <div className="w-full sm:w-auto">
                             <div>
                                 {getTerminology(ContentTerms.Session, SystemTerms.Session)}{' '}
                                 <span className="text-red-600">*</span>
@@ -367,7 +367,7 @@ export default function TimelineReports() {
                                 value={selectedSession}
                                 disabled={!sessionList.length}
                             >
-                                <SelectTrigger className="h-[40px] w-[320px]">
+                                <SelectTrigger className="h-[40px] w-full sm:w-[320px]">
                                     <SelectValue
                                         placeholder={`Select a ${getTerminology(
                                             ContentTerms.Session,
@@ -387,7 +387,7 @@ export default function TimelineReports() {
                     )}
 
                     {!defaultSessionLevels && (
-                        <div>
+                        <div className="w-full sm:w-auto">
                             <div>
                                 {getTerminology(ContentTerms.Level, SystemTerms.Level)}{' '}
                                 <span className="text-red-600">*</span>
@@ -400,7 +400,7 @@ export default function TimelineReports() {
                                 value={selectedLevel}
                                 disabled={!levelList.length}
                             >
-                                <SelectTrigger className="h-[40px] w-[320px]">
+                                <SelectTrigger className="h-[40px] w-full sm:w-[320px]">
                                     <SelectValue
                                         placeholder={`Select a ${getTerminology(
                                             ContentTerms.Level,
@@ -420,29 +420,31 @@ export default function TimelineReports() {
                     )}
                 </div>
 
-                <div className="flex flex-row items-end justify-between gap-4">
-                    <div>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+                    <div className="w-full sm:w-auto">
                         <div>
                             Start Date <span className="text-red-600">*</span>
                         </div>
                         <input
-                            className="h-[40px] w-[320px] rounded-md border px-3 py-[10px]"
+                            className="h-[40px] w-full rounded-md border px-3 py-[10px] sm:w-[320px]"
                             type="date"
                             {...register('startDate')}
                         />
                     </div>
-                    <div>
+                    <div className="w-full sm:w-auto">
                         <div>
                             End Date <span className="text-red-600">*</span>
                         </div>
                         <input
-                            className="h-[40px] w-[320px] rounded-md border px-3 py-[10px]"
+                            className="h-[40px] w-full rounded-md border px-3 py-[10px] sm:w-[320px]"
                             type="date"
                             {...register('endDate')}
                         />
                     </div>
-                    <div>
-                        <MyButton buttonType="secondary">Generate Report</MyButton>
+                    <div className="w-full sm:w-auto">
+                        <MyButton buttonType="secondary" className="w-full sm:w-auto">
+                            Generate Report
+                        </MyButton>
                     </div>
                 </div>
 
@@ -462,8 +464,8 @@ export default function TimelineReports() {
             {reportData && !loading && <div className="border"></div>}
             {reportData && !loading && (
                 <div className="flex flex-col gap-10">
-                    <div className="flex flex-row justify-between gap-10">
-                        <div className="flex flex-col gap-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:gap-10">
+                        <div className="flex flex-col gap-2 sm:gap-6">
                             <div className="text-h3 text-primary-500">
                                 {courseList.find((c) => c.id === selectedCourse)?.name}
                             </div>
@@ -474,12 +476,13 @@ export default function TimelineReports() {
                             onClick={() => {
                                 handleExportPDF();
                             }}
+                            className="w-full sm:w-auto"
                         >
                             {isExporting ? <DashboardLoader /> : 'Export'}
                         </MyButton>
                     </div>
-                    <div className="flex flex-row items-center justify-between">
-                        <div className="flex flex-col items-center justify-center">
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="flex flex-col items-center justify-center text-center">
                             <div className="text-h3 font-[600]">
                                 {getTerminology(ContentTerms.Course, SystemTerms.Course)} Completed
                                 by batch
@@ -488,7 +491,7 @@ export default function TimelineReports() {
                                 reportData?.percentage_course_completed
                             )} %`}</div>
                         </div>
-                        <div className="flex flex-col items-center justify-center">
+                        <div className="flex flex-col items-center justify-center text-center">
                             <div className="text-h3 font-[600]">
                                 Daily Time spent by batch (Avg)
                             </div>
@@ -496,7 +499,7 @@ export default function TimelineReports() {
                                 {convertMinutesToTimeFormat(reportData?.avg_time_spent_in_minutes)}
                             </div>
                         </div>
-                        <div className="flex flex-col items-center justify-center">
+                        <div className="flex flex-col items-center justify-center text-center sm:col-span-2 lg:col-span-1">
                             <div className="text-h3 font-[600]">
                                 Concentration score of batch (Avg)
                             </div>
@@ -509,11 +512,13 @@ export default function TimelineReports() {
                         <div className="text-h3 font-[600] text-primary-500">
                             Daily Learning Performance
                         </div>
-                        <div className="flex h-[570px] w-full flex-row gap-6">
-                            <LineChartComponent
-                                chartData={convertChartData(reportData.daily_time_spent)}
-                            />
-                            <div className="h-full w-[30%]">
+                        <div className="flex w-full flex-col gap-6 lg:h-[570px] lg:flex-row">
+                            <div className="h-[400px] w-full lg:h-full lg:flex-1">
+                                <LineChartComponent
+                                    chartData={convertChartData(reportData.daily_time_spent)}
+                                />
+                            </div>
+                            <div className="h-[400px] w-full lg:h-full lg:w-[30%]">
                                 <MyTable
                                     data={tableData}
                                     columns={activityLogColumns}
@@ -536,7 +541,7 @@ export default function TimelineReports() {
                             error={error}
                             columnWidths={LEADERBOARD_WIDTH}
                             currentPage={0}
-                            // className="!h-full"
+                        // className="!h-full"
                         ></MyTable>
                         <MyPagination
                             currentPage={currPage}

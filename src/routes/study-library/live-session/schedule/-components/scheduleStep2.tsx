@@ -131,10 +131,10 @@ export default function ScheduleStep2() {
                         };
                     })
                     .filter(Boolean) as {
-                    courseId: string;
-                    sessionId: string;
-                    levelId: string;
-                }[];
+                        courseId: string;
+                        sessionId: string;
+                        levelId: string;
+                    }[];
 
                 if (selectedLevelsFromPackages.length) {
                     form.setValue('selectedLevels', selectedLevelsFromPackages);
@@ -453,9 +453,9 @@ export default function ScheduleStep2() {
             options:
                 data.fieldType === 'dropdown'
                     ? data.options.map((option) => ({
-                          name: option.optionField,
-                          label: option.optionField,
-                      }))
+                        name: option.optionField,
+                        label: option.optionField,
+                    }))
                     : [],
         });
         setAddCustomFieldDialog(false);
@@ -509,8 +509,9 @@ export default function ScheduleStep2() {
 
                     <div className="flex flex-col gap-4 font-medium">
                         <div className="font-bold">Participant Access Settings</div>
+
                         {isEditState && (
-                            <div className="flex flex-row">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                                 <div className="font-bold">{accessType} : </div>
                                 {accessType === AccessType.PRIVATE ? (
                                     <div>
@@ -569,7 +570,7 @@ export default function ScheduleStep2() {
                     {/* Participant Selection - Available for both Public and Private classes */}
                     <div className="flex flex-col gap-4">
                         <div className="font-bold">Select Participants</div>
-                        <div className="w-full max-w-[260px]">
+                        <div className="w-full sm:max-w-[260px]">
                             <MyDropdown
                                 currentValue={currentSession ?? undefined}
                                 dropdownList={sessionList}
@@ -597,71 +598,74 @@ export default function ScheduleStep2() {
                                 >
                                     {fields.map((field, index) => (
                                         <SortableItem key={field.id} value={field.id} asChild>
-                                            <div className="flex items-center gap-6 rounded p-3">
-                                                <div className="flex w-3/4 items-center justify-between rounded-md border bg-neutral-50 p-2 shadow">
-                                                    {field.isDefault ? (
-                                                        <div className="w-full text-neutral-600">
-                                                            {field.label}
-                                                        </div>
-                                                    ) : (
-                                                        <Controller
-                                                            control={control}
-                                                            name={`fields.${index}.label`}
-                                                            render={({ field }) => (
-                                                                <input
-                                                                    {...field}
-                                                                    className="w-full border-none bg-transparent outline-none"
-                                                                    placeholder="Enter label"
-                                                                />
-                                                            )}
-                                                        />
-                                                    )}
-                                                    {!field.isDefault && (
-                                                        <div
-                                                            className="mr-2 cursor-pointer rounded border-2 p-1 text-red-300"
-                                                            onClick={() => remove(index)}
-                                                        >
-                                                            <TrashSimple />
-                                                        </div>
-                                                    )}
-                                                    <SortableDragHandle className="cursor-grab border-none shadow-none">
-                                                        <DotsSixVertical />
-                                                    </SortableDragHandle>
-                                                </div>
-                                                {!field.isDefault && (
-                                                    <div className="flex items-center gap-4">
-                                                        <Controller
-                                                            control={control}
-                                                            name={`fields.${index}.required`}
-                                                            render={({ field }) => (
-                                                                <label className="flex items-center gap-2">
-                                                                    <span className="text-sm">
-                                                                        Required
-                                                                    </span>
-                                                                    <Switch
-                                                                        checked={field.value}
-                                                                        onCheckedChange={
-                                                                            field.onChange
-                                                                        }
+                                            <SortableItem key={field.id} value={field.id} asChild>
+                                                <div className="flex flex-col gap-3 rounded p-3 sm:flex-row sm:items-center sm:gap-6">
+                                                    <div className="flex w-full items-center justify-between rounded-md border bg-neutral-50 p-2 shadow sm:w-3/4">
+                                                        {field.isDefault ? (
+                                                            <div className="w-full text-neutral-600">
+                                                                {field.label}
+                                                            </div>
+                                                        ) : (
+                                                            <Controller
+                                                                control={control}
+                                                                name={`fields.${index}.label`}
+                                                                render={({ field }) => (
+                                                                    <input
+                                                                        {...field}
+                                                                        className="w-full border-none bg-transparent outline-none"
+                                                                        placeholder="Enter label"
                                                                     />
-                                                                </label>
-                                                            )}
-                                                        />
+                                                                )}
+                                                            />
+                                                        )}
+                                                        {!field.isDefault && (
+                                                            <div
+                                                                className="mr-2 cursor-pointer rounded border-2 p-1 text-red-300"
+                                                                onClick={() => remove(index)}
+                                                            >
+                                                                <TrashSimple />
+                                                            </div>
+                                                        )}
+                                                        <SortableDragHandle className="cursor-grab border-none shadow-none">
+                                                            <DotsSixVertical />
+                                                        </SortableDragHandle>
                                                     </div>
-                                                )}
-                                            </div>
+                                                    {!field.isDefault && (
+                                                        <div className="flex items-center gap-4">
+                                                            <Controller
+                                                                control={control}
+                                                                name={`fields.${index}.required`}
+                                                                render={({ field }) => (
+                                                                    <label className="flex items-center gap-2">
+                                                                        <span className="text-sm">
+                                                                            Required
+                                                                        </span>
+                                                                        <Switch
+                                                                            checked={field.value}
+                                                                            onCheckedChange={
+                                                                                field.onChange
+                                                                            }
+                                                                        />
+                                                                    </label>
+                                                                )}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </SortableItem>
                                         </SortableItem>
                                     ))}
                                 </Sortable>
 
                                 {/* adding customs fields and new registration form options */}
-                                <div className="flex flex-row gap-4 p-3">
+                                <div className="flex flex-col gap-4 p-3 sm:flex-row">
                                     <MyButton
                                         buttonType="secondary"
                                         type="button"
                                         onClick={() => {
                                             setAddCustomFieldDialog(!addCustomFieldDialog);
                                         }}
+                                        className="w-full sm:w-auto"
                                     >
                                         <Plus></Plus> Add Custom Field
                                     </MyButton>
@@ -671,6 +675,7 @@ export default function ScheduleStep2() {
                                         onClick={() => {
                                             setPreviewDialog(true);
                                         }}
+                                        className="w-full sm:w-auto"
                                     >
                                         Preview Registration Form
                                     </MyButton>
@@ -681,18 +686,18 @@ export default function ScheduleStep2() {
 
                     <Separator className="my-4" />
                     <div
-                        className="flex flex-row items-center gap-20 font-bold"
+                        className="flex flex-col gap-10 font-bold sm:flex-row sm:items-center sm:gap-20"
                         id="join-link-qr-code"
                     >
-                        <div className="flex flex-col gap-2">
+                        <div className="col flex flex-1 flex-col gap-2">
                             <h1>Join Link</h1>
-                            <div className="flex items-center gap-8">
-                                <div className="flex items-center gap-4">
+                            <div className="flex w-full items-center gap-8">
+                                <div className="flex w-full items-center gap-4">
                                     <FormField
                                         control={control}
                                         name="joinLink"
                                         render={({ field: { ...field } }) => (
-                                            <FormItem>
+                                            <FormItem className="w-full">
                                                 <FormControl>
                                                     <MyInput
                                                         inputType="text"
@@ -704,6 +709,7 @@ export default function ScheduleStep2() {
                                                         }
                                                         readOnly
                                                         size="large"
+                                                        className="!w-full min-w-0"
                                                         {...field}
                                                     />
                                                 </FormControl>
@@ -714,7 +720,7 @@ export default function ScheduleStep2() {
                                         type="button"
                                         scale="small"
                                         buttonType="secondary"
-                                        className="h-10 min-w-10"
+                                        className="h-10 min-w-10 flex-shrink-0"
                                         onClick={() => copyToClipboard(getValues('joinLink'))}
                                     >
                                         <Copy size={32} />
@@ -759,7 +765,7 @@ export default function ScheduleStep2() {
                     <div className="flex flex-col gap-4">
                         <div className="font-bold">Notification Settings</div>
 
-                        <div className="flex flex-row gap-8">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:gap-8">
                             <FormField
                                 control={control}
                                 name={`notifyBy.mail`}
@@ -769,11 +775,10 @@ export default function ScheduleStep2() {
                                             <Checkbox
                                                 checked={field.value}
                                                 onCheckedChange={field.onChange}
-                                                className={`size-5 rounded-sm border-2 shadow-none ${
-                                                    field.value
-                                                        ? 'border-none bg-primary-500 text-white' // Blue background and red tick when checked
-                                                        : '' // Default styles when unchecked
-                                                }`}
+                                                className={`size-5 rounded-sm border-2 shadow-none ${field.value
+                                                    ? 'border-none bg-primary-500 text-white' // Blue background and red tick when checked
+                                                    : '' // Default styles when unchecked
+                                                    }`}
                                             />
                                         </FormControl>
                                         <FormLabel className="!mb-[3px] font-thin">
@@ -791,11 +796,10 @@ export default function ScheduleStep2() {
                                             <Checkbox
                                                 checked={field.value}
                                                 onCheckedChange={field.onChange}
-                                                className={`size-5 rounded-sm border-2 shadow-none ${
-                                                    field.value
-                                                        ? 'border-none bg-primary-500 text-white' // Blue background and red tick when checked
-                                                        : '' // Default styles when unchecked
-                                                }`}
+                                                className={`size-5 rounded-sm border-2 shadow-none ${field.value
+                                                    ? 'border-none bg-primary-500 text-white' // Blue background and red tick when checked
+                                                    : '' // Default styles when unchecked
+                                                    }`}
                                             />
                                         </FormControl>
                                         <FormLabel className="!mb-[3px] font-thin">
@@ -818,11 +822,10 @@ export default function ScheduleStep2() {
                                             <Checkbox
                                                 checked={field.value}
                                                 onCheckedChange={field.onChange}
-                                                className={`size-5 rounded-sm border-2 shadow-none ${
-                                                    field.value
-                                                        ? 'border-none bg-primary-500 text-white' // Blue background and red tick when checked
-                                                        : '' // Default styles when unchecked
-                                                }`}
+                                                className={`size-5 rounded-sm border-2 shadow-none ${field.value
+                                                    ? 'border-none bg-primary-500 text-white' // Blue background and red tick when checked
+                                                    : '' // Default styles when unchecked
+                                                    }`}
                                             />
                                         </FormControl>
                                         <FormLabel className="!mb-[3px] font-thin">
@@ -879,11 +882,10 @@ export default function ScheduleStep2() {
                                             <Checkbox
                                                 checked={field.value}
                                                 onCheckedChange={field.onChange}
-                                                className={`size-5 rounded-sm border-2 shadow-none ${
-                                                    field.value
-                                                        ? 'border-none bg-primary-500 text-white' // Blue background and red tick when checked
-                                                        : '' // Default styles when unchecked
-                                                }`}
+                                                className={`size-5 rounded-sm border-2 shadow-none ${field.value
+                                                    ? 'border-none bg-primary-500 text-white' // Blue background and red tick when checked
+                                                    : '' // Default styles when unchecked
+                                                    }`}
                                             />
                                         </FormControl>
                                         <FormLabel className="!mb-[3px] font-thin">
@@ -934,7 +936,7 @@ export default function ScheduleStep2() {
                                             inputType="text"
                                             inputPlaceholder={testInputFields.label}
                                             input=""
-                                            onChangeFunction={() => {}}
+                                            onChangeFunction={() => { }}
                                             size="large"
                                             disabled
                                             className="!min-w-full"

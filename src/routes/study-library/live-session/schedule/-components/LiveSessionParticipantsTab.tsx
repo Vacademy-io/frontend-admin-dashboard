@@ -50,14 +50,13 @@ export function LiveSessionParticipantsTab({
     return (
         <>
             <Tabs value={selectedTab} onValueChange={handleChange}>
-                <TabsList className="mt-4 flex h-auto w-fit flex-wrap justify-start border border-neutral-500 !bg-transparent p-0">
+                <TabsList className="mt-4 flex h-auto w-full flex-wrap justify-start border border-neutral-500 !bg-transparent p-0 sm:w-fit">
                     <TabsTrigger
                         value="Batch"
-                        className={`flex gap-1.5 rounded-l-lg rounded-r-none p-2 pr-4 ${
-                            selectedTab === 'Batch'
+                        className={`flex gap-1.5 rounded-l-lg rounded-r-none p-2 pr-4 ${selectedTab === 'Batch'
                                 ? '!bg-primary-100 !text-neutral-500'
                                 : 'bg-transparent px-4'
-                        }`}
+                            }`}
                     >
                         {selectedTab === 'Batch' && (
                             <CheckCircle size={18} className="text-teal-800 dark:text-teal-400" />
@@ -69,19 +68,17 @@ export function LiveSessionParticipantsTab({
                     <Separator className="!h-9 bg-neutral-600" orientation="vertical" />
                     <TabsTrigger
                         value="Individually"
-                        className={`flex gap-1.5 rounded-l-none rounded-r-lg p-2 ${
-                            selectedTab === 'Individually'
+                        className={`flex gap-1.5 rounded-l-none rounded-r-lg p-2 ${selectedTab === 'Individually'
                                 ? '!bg-primary-100 pr-4'
                                 : 'bg-transparent px-4'
-                        }`}
+                            }`}
                     >
                         {selectedTab === 'Individually' && (
                             <CheckCircle size={18} className="text-teal-800 dark:text-teal-400" />
                         )}
                         <span
-                            className={`${
-                                selectedTab === 'Individually' ? 'text-neutral-600' : ''
-                            }`}
+                            className={`${selectedTab === 'Individually' ? 'text-neutral-600' : ''
+                                }`}
                         >
                             Select Individually
                         </span>
@@ -116,7 +113,7 @@ const LiveSessionBatchList = ({
     const { control, watch } = form;
 
     return (
-        <div className="flex flex-row gap-10">
+        <div className="flex flex-col gap-6 sm:flex-row sm:flex-wrap sm:gap-10">
             {courses
                 ?.filter((course) => course.sessionId === currentSession?.id)
                 .map((course) => {
@@ -158,11 +155,11 @@ const LiveSessionBatchList = ({
                                                             const exists = updated.some(
                                                                 (item) =>
                                                                     item.courseId ===
-                                                                        levelItem.courseId &&
+                                                                    levelItem.courseId &&
                                                                     item.sessionId ===
-                                                                        levelItem.sessionId &&
+                                                                    levelItem.sessionId &&
                                                                     item.levelId ===
-                                                                        levelItem.levelId
+                                                                    levelItem.levelId
                                                             );
                                                             if (!exists) updated.push(levelItem);
                                                         });
@@ -172,11 +169,11 @@ const LiveSessionBatchList = ({
                                                             const index = updated.findIndex(
                                                                 (item) =>
                                                                     item.courseId ===
-                                                                        levelItem.courseId &&
+                                                                    levelItem.courseId &&
                                                                     item.sessionId ===
-                                                                        levelItem.sessionId &&
+                                                                    levelItem.sessionId &&
                                                                     item.levelId ===
-                                                                        levelItem.levelId
+                                                                    levelItem.levelId
                                                             );
                                                             if (index > -1)
                                                                 updated.splice(index, 1);
@@ -185,11 +182,10 @@ const LiveSessionBatchList = ({
 
                                                     field.onChange(updated);
                                                 }}
-                                                className={`size-4 rounded-sm border-2 shadow-none ${
-                                                    allSelected
+                                                className={`size-4 rounded-sm border-2 shadow-none ${allSelected
                                                         ? 'border-none bg-primary-500 text-white'
                                                         : ''
-                                                }`}
+                                                    }`}
                                             />
                                         </FormControl>
                                         <FormLabel className="font-semibold">
@@ -235,11 +231,11 @@ const LiveSessionBatchList = ({
                                                                     const index = updated.findIndex(
                                                                         (item) =>
                                                                             item.courseId ===
-                                                                                levelData.courseId &&
+                                                                            levelData.courseId &&
                                                                             item.sessionId ===
-                                                                                levelData.sessionId &&
+                                                                            levelData.sessionId &&
                                                                             item.levelId ===
-                                                                                levelData.levelId
+                                                                            levelData.levelId
                                                                     );
                                                                     if (index > -1)
                                                                         updated.splice(index, 1);
@@ -247,11 +243,10 @@ const LiveSessionBatchList = ({
 
                                                                 field.onChange(updated);
                                                             }}
-                                                            className={`size-4 rounded-sm border-2 shadow-none ${
-                                                                isChecked
+                                                            className={`size-4 rounded-sm border-2 shadow-none ${isChecked
                                                                     ? 'border-none bg-primary-500 text-white'
                                                                     : ''
-                                                            }`}
+                                                                }`}
                                                         />
                                                     </FormControl>
                                                     <FormLabel className="font-normal">

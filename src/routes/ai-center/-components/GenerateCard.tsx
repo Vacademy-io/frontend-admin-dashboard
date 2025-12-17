@@ -60,10 +60,10 @@ export const GenerateCard = ({
     return (
         <>
             {toolData && (
-                <div className="flex w-full flex-col gap-4 px-8 text-neutral-600">
+                <div className="flex w-full flex-col gap-4 px-4 text-neutral-600 sm:gap-6 sm:px-8">
                     <div className="flex w-fit items-center justify-start gap-2">
-                        <div className="flex items-center gap-2 text-h2 font-semibold">
-                            <StarFour size={30} weight="fill" className="text-primary-500" />{' '}
+                        <div className="flex items-center gap-2 text-xl font-semibold sm:text-h2">
+                            <StarFour weight="fill" className="text-primary-500 size-6 sm:size-[30px]" />{' '}
                             {toolData.heading}
                         </div>
                         <AITasksList
@@ -78,9 +78,11 @@ export const GenerateCard = ({
                             currentSectionIndex={currentSectionIndex}
                         />
                     </div>
-                    <div className="flex items-center justify-between">
-                        {GetImagesForAITools(toolData.key)}
-                        <div className="flex flex-col gap-4">
+                    <div className="flex flex-col items-center justify-between gap-6 sm:flex-row sm:gap-4">
+                        <div className="scale-90 sm:scale-100">
+                            {GetImagesForAITools(toolData.key)}
+                        </div>
+                        <div className="flex w-full flex-col gap-4 sm:w-auto">
                             {keyProp === 'sortSplitPdf' && (
                                 <div className="flex flex-col gap-2">
                                     <h1>
@@ -129,7 +131,7 @@ export const GenerateCard = ({
                                     className="w-full text-sm"
                                     disable
                                 >
-                                    <div className="flex items-center">
+                                    <div className="flex items-center justify-center">
                                         <div className="mr-2 size-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                                         <span>Uploading...</span>
                                     </div>
@@ -140,7 +142,7 @@ export const GenerateCard = ({
                                     scale="medium"
                                     buttonType="primary"
                                     layoutVariant="default"
-                                    className="text-sm"
+                                    className="w-full text-sm sm:w-auto"
                                     onClick={handleUploadClick}
                                     disable={keyContext !== keyProp && loader && keyContext != null}
                                 >
@@ -158,26 +160,26 @@ export const GenerateCard = ({
                         </div>
                     </div>
                     <div className="flex flex-col gap-1">
-                        <p className="text-h3 font-semibold">How to use {toolData.heading}</p>
-                        <p className="text-subtitle">{toolData.instructionsHeading}</p>
+                        <p className="text-lg font-semibold sm:text-h3">How to use {toolData.heading}</p>
+                        <p className="text-sm sm:text-subtitle">{toolData.instructionsHeading}</p>
                     </div>
                     <Separator />
                     <div className="flex flex-col gap-6">
                         {toolData.instructions.map((steps, index) => (
                             <div key={index}>
-                                <div className="flex gap-2 text-title font-semibold">
+                                <div className="flex gap-2 text-base font-semibold sm:text-title">
                                     <p className="text-primary-500">Step {index + 1}</p>
                                     <p>{steps.stepHeading}</p>
                                 </div>
-                                <p>{steps.stepSubHeading}</p>
-                                <ul className="flex flex-col text-body">
+                                <p className="text-sm sm:text-base">{steps.stepSubHeading}</p>
+                                <ul className="flex flex-col text-sm sm:text-body">
                                     {steps.steps.map((step, index) => (
                                         <li key={index}>
                                             <p>{step}</p>
                                         </li>
                                     ))}
                                 </ul>
-                                <p>{steps.stepFooter}</p>
+                                <p className="text-sm sm:text-base">{steps.stepFooter}</p>
                             </div>
                         ))}
                     </div>

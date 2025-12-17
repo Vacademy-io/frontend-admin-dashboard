@@ -46,7 +46,7 @@ export const DateFilter = () => {
 
     return (
         <div className="flex items-center gap-2">
-            <p>Status</p>
+            <p>Date</p>
             <SelectChips
                 options={dateFilterList}
                 selected={selectedDate}

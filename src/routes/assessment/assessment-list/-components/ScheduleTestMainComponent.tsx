@@ -501,8 +501,9 @@ export const ScheduleTestMainComponent = ({
                         selectedTab={selectedTab}
                         scheduleTestTabsData={scheduleTestTabsData}
                     />
-                    <div className="my-6 flex flex-wrap items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
+                    <div className="my-4 flex flex-col gap-3 sm:my-6 sm:gap-4">
+                        {/* Filters Row - scrollable on mobile */}
+                        <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:gap-4 sm:overflow-visible sm:px-0">
                             {/* Only show batch filter if not in course outline mode or explicitly enabled */}
                             {(!isCourseOutline || showBatchFilter) && (
                                 <ScheduleTestFilters
@@ -562,12 +563,15 @@ export const ScheduleTestMainComponent = ({
                                 handleResetFilters={handleResetFilters}
                             />
                         </div>
-                        <ScheduleTestSearchComponent
-                            onSearch={handleSearch}
-                            searchText={searchText}
-                            setSearchText={setSearchText}
-                            clearSearch={clearSearch}
-                        />
+                        {/* Search - full width on mobile */}
+                        <div className="w-full sm:max-w-xs sm:self-end">
+                            <ScheduleTestSearchComponent
+                                onSearch={handleSearch}
+                                searchText={searchText}
+                                setSearchText={setSearchText}
+                                clearSearch={clearSearch}
+                            />
+                        </div>
                     </div>
                     {scheduleTestTabsData.map((tab, index) => (
                         <ScheduleTestLists

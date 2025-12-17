@@ -108,7 +108,7 @@ export default function HeaderTabs() {
     ) => (
         <div className="flex flex-col items-start gap-4">
             <div className="text-subtitle font-[600]">{title}</div>
-            <div className="flex flex-row gap-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:gap-6">
                 {reportTypes.map((type) => (
                     <div key={type} className="flex flex-row items-center gap-2">
                         <Checkbox
@@ -156,37 +156,38 @@ export default function HeaderTabs() {
     return (
         <div>
             <Tabs value={selectedTab} onValueChange={handleTabChange}>
-                <div className="flex flex-row justify-between">
-                    <TabsList className="inline-flex h-auto justify-start gap-4 rounded-none border-b !bg-transparent p-0">
+                <div className="flex flex-col gap-4 sm:flex-row sm:justify-between">
+                    <TabsList className="inline-flex h-auto w-full justify-start overflow-x-auto rounded-none border-b !bg-transparent p-0 sm:w-auto sm:overflow-visible">
                         <TabsTrigger
                             value="BATCH"
-                            className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                selectedTab === 'BATCH'
+                            className={`flex min-w-fit gap-1.5 rounded-none px-6 py-2 !shadow-none sm:px-12 ${selectedTab === 'BATCH'
                                     ? 'border-4px rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
                                     : 'border-none bg-transparent'
-                            }`}
+                                }`}
                         >
                             Batch
                         </TabsTrigger>
                         <TabsTrigger
                             value="STUDENT"
-                            className={`flex gap-1.5 rounded-none px-12 py-2 !shadow-none ${
-                                selectedTab === 'STUDENT'
+                            className={`flex min-w-fit gap-1.5 rounded-none px-6 py-2 !shadow-none sm:px-12 ${selectedTab === 'STUDENT'
                                     ? 'border-4px rounded-t-sm border !border-b-0 border-primary-200 !bg-primary-50'
                                     : 'border-none bg-transparent'
-                            }`}
+                                }`}
                         >
                             {getTerminology(RoleTerms.Learner, SystemTerms.Learner)}
                         </TabsTrigger>
                     </TabsList>
-                    <MyButton
-                        onClick={() => {
-                            setSettingDialogState(!settingDialogState);
-                        }}
-                        buttonType="secondary"
-                    >
-                        Report Settings
-                    </MyButton>
+                    <div className="w-full sm:w-auto">
+                        <MyButton
+                            onClick={() => {
+                                setSettingDialogState(!settingDialogState);
+                            }}
+                            buttonType="secondary"
+                            className="w-full sm:w-auto"
+                        >
+                            Report Settings
+                        </MyButton>
+                    </div>
                 </div>
                 <TabsContent value="BATCH">
                     <BatchReports></BatchReports>
@@ -199,14 +200,14 @@ export default function HeaderTabs() {
                 heading="Reports Settings"
                 open={settingDialogState}
                 onOpenChange={setSettingDialogState}
-                dialogWidth="w-[800px]"
+                dialogWidth="w-full max-w-[800px]"
             >
                 {isPending && <DashboardLoader />}
                 {!isPending && (
                     <div className="flex flex-col gap-10">
-                        <div className="flex h-[350px] flex-col gap-10 overflow-y-scroll">
+                        <div className="flex h-[350px] flex-col gap-10 overflow-y-scroll pr-2">
                             <div className="flex flex-col gap-10">
-                                <div className="flex flex-row items-center gap-4">
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
                                     <Checkbox
                                         checked={isCommTypeEnabled(
                                             settingDetails?.learner_setting,
@@ -224,7 +225,7 @@ export default function HeaderTabs() {
                                         Send Reports to Student via mail
                                     </div>
                                 </div>
-                                <div className="flex flex-row items-center gap-4">
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
                                     <Checkbox
                                         checked={isCommTypeEnabled(
                                             settingDetails?.learner_setting,
@@ -255,7 +256,7 @@ export default function HeaderTabs() {
                             </div>
                             <div className="border"></div>
                             <div className="flex flex-col gap-10">
-                                <div className="flex flex-row items-center gap-4">
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
                                     <Checkbox
                                         checked={isCommTypeEnabled(
                                             settingDetails?.parent_setting,
@@ -273,7 +274,7 @@ export default function HeaderTabs() {
                                         Send Reports to Parent/Guardian via mail
                                     </div>
                                 </div>
-                                <div className="flex flex-row items-center gap-4">
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
                                     <Checkbox
                                         checked={isCommTypeEnabled(
                                             settingDetails?.parent_setting,
@@ -304,7 +305,9 @@ export default function HeaderTabs() {
                             </div>
                         </div>
                         <div className="flex w-full items-center justify-center">
-                            <MyButton onClick={handleSave}>Save Changes</MyButton>
+                            <MyButton onClick={handleSave} className="w-full sm:w-auto">
+                                Save Changes
+                            </MyButton>
                         </div>
                     </div>
                 )}

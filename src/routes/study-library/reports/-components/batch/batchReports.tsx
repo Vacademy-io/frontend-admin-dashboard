@@ -17,13 +17,12 @@ export default function BatchReports() {
     };
     return (
         <div className="mt-9">
-            <div className="w-fit rounded-sm border border-neutral-500 text-body">
+            <div className="flex w-full rounded-sm border border-neutral-500 text-body sm:w-fit">
                 <button
-                    className={`border-r border-neutral-500 px-3 py-[10px] ${
-                        learningData === 'TIMELINE'
+                    className={`flex-1 border-r border-neutral-500 px-3 py-[10px] sm:flex-none ${learningData === 'TIMELINE'
                             ? 'bg-primary-100 font-[600] text-neutral-600'
                             : ''
-                    }`}
+                        }`}
                     onClick={() => {
                         setLearningData('TIMELINE');
                     }}
@@ -31,11 +30,10 @@ export default function BatchReports() {
                     Learning Timeline
                 </button>
                 <button
-                    className={`border-l border-neutral-500 px-3 py-[10px] ${
-                        learningData === 'PROGRESS'
+                    className={`flex-1 px-3 py-[10px] sm:flex-none ${learningData === 'PROGRESS'
                             ? 'bg-primary-100 font-[600] text-neutral-600'
                             : ''
-                    }`}
+                        }`}
                     onClick={() => {
                         setLearningData('PROGRESS');
                     }}

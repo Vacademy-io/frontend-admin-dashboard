@@ -447,28 +447,28 @@ export default function ScheduleStep1() {
                     sessions:
                         matchingSchedules.length > 0
                             ? matchingSchedules.map((matchingSchedule) => {
-                                  const duration = parseInt(matchingSchedule.duration || '0') || 0;
-                                  return {
-                                      id: matchingSchedule.id,
-                                      startTime: matchingSchedule.startTime,
-                                      durationHours: String(Math.floor(duration / 60)),
-                                      durationMinutes: String(duration % 60),
-                                      link: matchingSchedule.link || '',
-                                      thumbnailFileId: matchingSchedule.thumbnailFileId || '',
-                                      countAttendanceDaily:
-                                          matchingSchedule.countAttendanceDaily || false,
-                                  };
-                              })
+                                const duration = parseInt(matchingSchedule.duration || '0') || 0;
+                                return {
+                                    id: matchingSchedule.id,
+                                    startTime: matchingSchedule.startTime,
+                                    durationHours: String(Math.floor(duration / 60)),
+                                    durationMinutes: String(duration % 60),
+                                    link: matchingSchedule.link || '',
+                                    thumbnailFileId: matchingSchedule.thumbnailFileId || '',
+                                    countAttendanceDaily:
+                                        matchingSchedule.countAttendanceDaily || false,
+                                };
+                            })
                             : [
-                                  {
-                                      startTime: '00:00',
-                                      durationHours: '0',
-                                      durationMinutes: '30',
-                                      link: '',
-                                      thumbnailFileId: '',
-                                      countAttendanceDaily: false,
-                                  },
-                              ],
+                                {
+                                    startTime: '00:00',
+                                    durationHours: '0',
+                                    durationMinutes: '30',
+                                    link: '',
+                                    thumbnailFileId: '',
+                                    countAttendanceDaily: false,
+                                },
+                            ],
                 };
             });
             form.setValue('recurringSchedule', transformedSchedules);
@@ -735,7 +735,7 @@ export default function ScheduleStep1() {
             // Override with new uploads if files are selected
             if (selectedMusicFile) {
                 try {
-                    musicFileId = await UploadFileInS3(selectedMusicFile, () => {}, 'your-user-id');
+                    musicFileId = await UploadFileInS3(selectedMusicFile, () => { }, 'your-user-id');
                 } catch (error) {
                     console.error('Error uploading music file:', error);
                     toast.error('Failed to upload background music. Please try again.');
@@ -745,7 +745,7 @@ export default function ScheduleStep1() {
             }
             if (selectedFile) {
                 try {
-                    thumbnailFileId = await UploadFileInS3(selectedFile, () => {}, 'your-user-id');
+                    thumbnailFileId = await UploadFileInS3(selectedFile, () => { }, 'your-user-id');
                 } catch (error) {
                     console.error('Error uploading thumbnail:', error);
                     toast.error('Failed to upload thumbnail image. Please try again.');
@@ -772,12 +772,12 @@ export default function ScheduleStep1() {
                             try {
                                 const sessionThumbnailId = await UploadFileInS3(
                                     sessionThumbnail,
-                                    () => {},
+                                    () => { },
                                     'your-user-id'
                                 );
                                 if (
                                     updatedData.recurringSchedule?.[dayIndex]?.sessions?.[
-                                        sessionIndex
+                                    sessionIndex
                                     ]
                                 ) {
                                     updatedData.recurringSchedule[dayIndex]!.sessions![
@@ -786,14 +786,12 @@ export default function ScheduleStep1() {
                                 }
                             } catch (error) {
                                 console.error(
-                                    `Error uploading thumbnail for ${day.day} session ${
-                                        sessionIndex + 1
+                                    `Error uploading thumbnail for ${day.day} session ${sessionIndex + 1
                                     }:`,
                                     error
                                 );
                                 toast.error(
-                                    `Failed to upload thumbnail for ${day.day} session ${
-                                        sessionIndex + 1
+                                    `Failed to upload thumbnail for ${day.day} session ${sessionIndex + 1
                                     }`
                                 );
                                 setIsSubmitting(false);
@@ -1131,12 +1129,12 @@ export default function ScheduleStep1() {
     // Render Functions
     const renderBasicInformation = () => (
         <div className="flex flex-col gap-6">
-            <div className="flex w-full items-start justify-start gap-4">
+            <div className="flex w-full flex-col items-start justify-start gap-4 sm:flex-row">
                 <FormField
                     control={control}
                     name="title"
                     render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="w-full">
                             <FormControl>
                                 <MyInput
                                     inputType="text"
@@ -1167,7 +1165,7 @@ export default function ScheduleStep1() {
                         })),
                     ]}
                     control={form.control}
-                    className="mt-[8px] w-56 font-thin"
+                    className="mt-[8px] w-full font-thin sm:w-56"
                 />
             </div>
 
@@ -1213,7 +1211,7 @@ export default function ScheduleStep1() {
                         { label: 'One Time Class', value: RecurringType.ONCE },
                         { label: 'Recurring Class', value: RecurringType.WEEKLY },
                     ]}
-                    className="flex flex-row gap-4"
+                    className="flex flex-col gap-4 sm:flex-row"
                 />
             )}
         />
@@ -1244,7 +1242,7 @@ export default function ScheduleStep1() {
                         labelStyle="text-sm font-medium"
                         options={TIMEZONE_OPTIONS}
                         control={form.control}
-                        className="mt-[8px] w-80 font-thin"
+                        className="mt-[8px] w-full font-thin sm:w-80"
                         required
                     />
                     {currentTime && (
@@ -1259,7 +1257,7 @@ export default function ScheduleStep1() {
 
     const renderSessionTiming = () => (
         <div className="flex flex-col gap-4">
-            <div className="flex flex-row items-center gap-8">
+            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-8">
                 <FormField
                     control={control}
                     name="startTime"
@@ -1297,7 +1295,7 @@ export default function ScheduleStep1() {
                     <FormLabel className="text-sm font-medium">
                         Duration<span className="text-danger-600">*</span>
                     </FormLabel>
-                    <div className="mt-2 flex flex-row items-center gap-2">
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
                         <FormField
                             control={control}
                             name="durationHours"
@@ -1393,7 +1391,7 @@ export default function ScheduleStep1() {
     );
 
     const renderLiveClassLink = () => (
-        <div className="flex flex-row items-end gap-8">
+        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-end sm:gap-8">
             <FormField
                 control={control}
                 name="defaultLink"
@@ -1425,7 +1423,7 @@ export default function ScheduleStep1() {
                 labelStyle="text-sm font-medium"
                 options={STREAMING_OPTIONS}
                 control={form.control}
-                className="mt-[8px] w-56 font-thin"
+                className="mt-[8px] w-full font-thin sm:w-56"
                 onSelect={handleSessionPlatformChange}
             />
             <div className="flex h-full flex-col items-start justify-around gap-2">
@@ -1443,7 +1441,7 @@ export default function ScheduleStep1() {
                                 { label: 'Pre Recorded', value: SessionType.PRE_RECORDED },
                             ]}
                             disabledOptions={disabledLiveClassOptions}
-                            className="flex flex-row gap-4"
+                            className="flex flex-col gap-4 sm:flex-row"
                         />
                     )}
                 />
@@ -1453,7 +1451,7 @@ export default function ScheduleStep1() {
 
     const renderStreamingChoices = () => (
         <div className="flex flex-col items-start gap-8">
-            <div className="flex flex-row items-end gap-8">
+            <div className="flex flex-col items-start gap-4">
                 <div className="flex h-full flex-col items-start justify-around gap-2">
                     <div className="text-sm font-medium">
                         Live Streaming Platform
@@ -1480,15 +1478,15 @@ export default function ScheduleStep1() {
                                             sessionPlatformWatch === StreamingPlatform.YOUTUBE
                                                 ? 'Redirect to YouTube'
                                                 : sessionPlatformWatch === StreamingPlatform.MEET
-                                                  ? 'Redirect to Google Meet'
-                                                  : sessionPlatformWatch === StreamingPlatform.ZOOM
-                                                    ? 'Redirect to Zoom'
-                                                    : 'Redirect to other platform',
+                                                    ? 'Redirect to Google Meet'
+                                                    : sessionPlatformWatch === StreamingPlatform.ZOOM
+                                                        ? 'Redirect to Zoom'
+                                                        : 'Redirect to other platform',
                                         value: SessionPlatform.REDIRECT_TO_OTHER_PLATFORM,
                                     },
                                 ]}
                                 disabledOptions={disabledStreamingOptions}
-                                className="flex flex-row gap-4"
+                                className="flex flex-col gap-4 sm:flex-row"
                             />
                         )}
                     />
@@ -1497,7 +1495,7 @@ export default function ScheduleStep1() {
             {/* Lock video playback settings */}
             <div className="flex flex-col items-start gap-4">
                 <h4 className="text-sm font-semibold">Lock video playback settings</h4>
-                <div className="flex flex-row items-center gap-4">
+                <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
                     <Controller
                         control={control}
                         name="allowRewind"
@@ -1533,7 +1531,7 @@ export default function ScheduleStep1() {
                 </div>
             </div>
             <div>
-                <div className="flex h-full flex-row items-start gap-4">
+                <div className="flex h-full flex-col items-start gap-4 sm:flex-row">
                     <Controller
                         control={control}
                         name={`enableWaitingRoom`}
@@ -1552,14 +1550,14 @@ export default function ScheduleStep1() {
     const renderWaitingRoomAndUpload = () => {
         if (form.watch('enableWaitingRoom')) {
             return (
-                <div className="flex flex-row items-start gap-4">
+                <div className="flex flex-col items-start gap-4 sm:flex-row">
                     <SelectField
                         label="Open Waiting Room Before"
                         name="openWaitingRoomBefore"
                         labelStyle="text-sm font-medium"
                         options={WAITING_ROOM_OPTIONS}
                         control={form.control}
-                        className="mt-[8px] w-56 font-thin"
+                        className="mt-[8px] w-full font-thin sm:w-56"
                     />
                     <input
                         type="file"
@@ -1734,14 +1732,13 @@ export default function ScheduleStep1() {
                             <div key={dayField.day} className="group">
                                 {/* Day Header Card */}
                                 <div
-                                    className={`rounded-xl border-2 transition-all duration-200 ${
-                                        isSelect
-                                            ? 'border-primary-200 bg-primary-50/50 shadow-sm'
-                                            : 'border-gray-200 bg-white hover:border-gray-300'
-                                    }`}
+                                    className={`rounded-xl border-2 transition-all duration-200 ${isSelect
+                                        ? 'border-primary-200 bg-primary-50/50 shadow-sm'
+                                        : 'border-gray-200 bg-white hover:border-gray-300'
+                                        }`}
                                 >
                                     {/* Day Toggle Header */}
-                                    <div className="flex items-center justify-between p-6">
+                                    <div className="flex flex-col items-start gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                                         <button
                                             type="button"
                                             onClick={() =>
@@ -1753,11 +1750,10 @@ export default function ScheduleStep1() {
                                             className="flex items-center gap-3 text-left transition-colors duration-200"
                                         >
                                             <div
-                                                className={`flex size-5 items-center justify-center rounded-full border-2 transition-all duration-200 ${
-                                                    isSelect
-                                                        ? 'border-primary-500 bg-primary-500'
-                                                        : 'border-gray-300 bg-white group-hover:border-gray-400'
-                                                }`}
+                                                className={`flex size-5 items-center justify-center rounded-full border-2 transition-all duration-200 ${isSelect
+                                                    ? 'border-primary-500 bg-primary-500'
+                                                    : 'border-gray-300 bg-white group-hover:border-gray-400'
+                                                    }`}
                                             >
                                                 {isSelect && (
                                                     <div className="size-2 rounded-full bg-white"></div>
@@ -1765,11 +1761,10 @@ export default function ScheduleStep1() {
                                             </div>
                                             <div>
                                                 <h3
-                                                    className={`text-lg font-semibold transition-colors duration-200 ${
-                                                        isSelect
-                                                            ? 'text-primary-900'
-                                                            : 'text-gray-900'
-                                                    }`}
+                                                    className={`text-lg font-semibold transition-colors duration-200 ${isSelect
+                                                        ? 'text-primary-900'
+                                                        : 'text-gray-900'
+                                                        }`}
                                                 >
                                                     {dayName}
                                                 </h3>
@@ -1797,7 +1792,7 @@ export default function ScheduleStep1() {
                                     {/* Daily Attendance Setting */}
                                     {isSelect && (
                                         <div className="bg-primary-25 border-t border-primary-100 px-6 py-2">
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
                                                 <div>
                                                     <Label className="text-sm font-medium text-gray-900">
                                                         Count attendance daily
@@ -1880,7 +1875,7 @@ export default function ScheduleStep1() {
                                                                         })
                                                                     )}
                                                                     control={form.control}
-                                                                    className="min-w-fit"
+                                                                    className="w-full"
                                                                 />
                                                             </div>
 
@@ -1889,7 +1884,7 @@ export default function ScheduleStep1() {
                                                                 <Label className="text-sm font-medium text-gray-700">
                                                                     Duration
                                                                 </Label>
-                                                                <div className="flex items-center gap-2">
+                                                                <div className="flex flex-wrap items-center gap-2">
                                                                     <FormField
                                                                         control={control}
                                                                         name={`recurringSchedule.${dayIndex}.sessions.${sessionIndex}.durationHours`}
@@ -2050,7 +2045,7 @@ export default function ScheduleStep1() {
                                                                                             }
                                                                                         }
                                                                                     }}
-                                                                                    className="min-w-fit"
+                                                                                    className="w-full min-w-fit"
                                                                                 />
                                                                             </FormControl>
                                                                             <FormMessage className="text-sm text-red-500" />
@@ -2064,7 +2059,7 @@ export default function ScheduleStep1() {
                                                         <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-gray-100 pt-4">
                                                             <div className="flex flex-wrap items-center gap-4">
                                                                 {/* Thumbnail Upload */}
-                                                                <div className="flex items-center gap-3">
+                                                                <div className="flex flex-wrap items-center gap-3">
                                                                     <span className="text-sm font-medium text-gray-700">
                                                                         Thumbnail:
                                                                     </span>

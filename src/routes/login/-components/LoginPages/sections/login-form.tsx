@@ -404,41 +404,36 @@ export function LoginForm() {
     }
 
     return (
-        <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-neutral-50">
-            {/* Decorative background elements - subtle bars */}
-            <div className="pointer-events-none absolute inset-0">
+        <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-neutral-50 px-4 py-6 sm:px-6 sm:py-8">
+            {/* Decorative background elements - subtle bars, hidden on mobile */}
+            <div className="pointer-events-none absolute inset-0 hidden md:block">
                 <div className="absolute left-0 top-20 h-32 w-64 bg-primary-100/20"></div>
                 <div className="absolute right-0 top-1/3 h-48 w-72 bg-neutral-200/30"></div>
                 <div className="absolute bottom-32 left-1/4 h-24 w-96 bg-primary-50/15"></div>
                 <div className="absolute right-1/3 top-1/2 h-40 w-56 bg-neutral-300/20"></div>
             </div>
 
-            <div className="relative z-10 w-full max-w-5xl px-4">
-                <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl">
+            <div className="relative z-10 w-full max-w-5xl">
+                <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-lg md:rounded-2xl md:shadow-2xl">
                     <div className="grid grid-cols-1 md:grid-cols-2">
                         {/* Left side - Branding */}
-                        <div className="flex flex-col items-center justify-center border-b border-neutral-200 bg-neutral-50/50 p-8 md:border-b-0 md:border-r md:p-12">
+                        <div className="flex flex-col items-center justify-center border-b border-neutral-200 bg-neutral-50/50 p-6 sm:p-8 md:border-b-0 md:border-r md:p-12">
                             {instituteLogo ? (
                                 <img
                                     src={instituteLogo}
                                     alt="institute logo"
-                                    className="mb-6 max-h-20 max-w-[200px] object-contain"
+                                    className="mb-4 max-h-16 max-w-[160px] object-contain sm:mb-6 sm:max-h-20 sm:max-w-[200px]"
                                 />
                             ) : null}
                             {instituteName ? (
-                                <div className="mb-4 text-xl font-bold text-neutral-900">
+                                <div className="mb-2 text-lg font-bold text-neutral-900 sm:mb-4 sm:text-xl">
                                     {instituteName}
                                 </div>
                             ) : null}
-                            {/* <div className="text-primary-700 rounded-lg border border-primary-200/60 bg-primary-50/60 px-5 py-2 text-center text-sm font-medium">
-                                Welcome to the{' '}
-                                <span className="font-semibold">{portalRoleLabel} Portal</span> of{' '}
-                                <span className="font-semibold">{portalInstitute}</span>
-                            </div> */}
                         </div>
 
                         {/* Right side - Login form */}
-                        <div className="flex flex-col justify-center p-8 md:p-12">
+                        <div className="flex flex-col justify-center p-6 sm:p-8 md:p-12">
                             <div className="flex w-full flex-col gap-4">
                                 {providerFlags.allowGoogleAuth && (
                                     <button

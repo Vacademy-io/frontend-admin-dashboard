@@ -52,10 +52,10 @@ export const DoubtDetailsDialog = ({ doubt, refetch }: { doubt: Doubt; refetch: 
     const { userDetailsRecord } = useDoubtTable();
     const batchName = batch
         ? convertCapitalToTitleCase(batch.level.level_name) +
-          ' ' +
-          convertCapitalToTitleCase(batch.package_dto.package_name) +
-          ' ' +
-          convertCapitalToTitleCase(batch.session.session_name)
+        ' ' +
+        convertCapitalToTitleCase(batch.package_dto.package_name) +
+        ' ' +
+        convertCapitalToTitleCase(batch.session.session_name)
         : '';
     return (
         <MyDialog
@@ -63,11 +63,11 @@ export const DoubtDetailsDialog = ({ doubt, refetch }: { doubt: Doubt; refetch: 
             heading="Doubt Details"
             open={isDialogOpen}
             onOpenChange={setIsDialogOpen}
-            dialogWidth="min-w-[50vw]"
+            dialogWidth="w-[95vw] sm:min-w-[50vw] sm:w-auto"
         >
             <div className="flex flex-col gap-4 p-4">
-                <div className="flex justify-between gap-3">
-                    <div className="flex w-3/4 flex-col gap-8">
+                <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
+                    <div className="flex w-full flex-col gap-4 sm:w-3/4 sm:gap-8">
                         <div className="flex flex-col gap-2">
                             <p className="text-regular font-semibold">Doubt Description</p>
                             <div className="w-full rounded-lg border border-neutral-300 bg-neutral-50 p-2">
@@ -101,7 +101,7 @@ export const DoubtDetailsDialog = ({ doubt, refetch }: { doubt: Doubt; refetch: 
                         </div>
                         <MarkAsResolved doubt={doubt} refetch={refetch} />
                     </div>
-                    <div className="flex flex-1 flex-col gap-8">
+                    <div className="flex flex-1 flex-col gap-4 sm:gap-8">
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center gap-1">
                                 <User />

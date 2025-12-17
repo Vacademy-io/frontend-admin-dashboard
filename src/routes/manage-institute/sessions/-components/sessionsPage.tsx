@@ -34,14 +34,14 @@ export function SessionsPage() {
     return (
         <div>
             <SessionHeader></SessionHeader>
-            <div className="my-10 flex flex-col gap-6 text-neutral-600">
+            <div className="my-6 flex flex-col gap-4 text-neutral-600 sm:my-10 sm:gap-6">
                 {sessionData?.length ? (
                     sessionData?.map((session, idx) => <SessionCard key={idx} data={session} />)
                 ) : (
-                    <div className="flex h-[50vh] flex-col items-center justify-center gap-2">
+                    <div className="flex h-[40vh] flex-col items-center justify-center gap-2 sm:h-[50vh]">
                         {' '}
-                        <EmptySessionImage />{' '}
-                        <p className="text-body text-neutral-600">No sessions found</p>
+                        <EmptySessionImage className="size-24 sm:size-32" />{' '}
+                        <p className="text-sm text-neutral-600 sm:text-body">No sessions found</p>
                     </div>
                 )}
             </div>
