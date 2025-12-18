@@ -2746,5 +2746,3 @@ function RouteComponent() {
         </LayoutContainer>
     )
 }
-    // Component is defined in index.lazy.tsx
-});
