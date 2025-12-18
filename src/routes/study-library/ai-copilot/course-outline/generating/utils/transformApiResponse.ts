@@ -90,7 +90,7 @@ export function transformApiResponseToSlides(
                 slideType = 'doc';
             } else if (todo.type === 'VIDEO') {
                 slideType = 'video';
-            } else if (todo.type === 'QUIZ') {
+            } else if (todo.type === 'QUIZ' || todo.type === 'ASSESSMENT') {
                 slideType = 'quiz';
             }
 

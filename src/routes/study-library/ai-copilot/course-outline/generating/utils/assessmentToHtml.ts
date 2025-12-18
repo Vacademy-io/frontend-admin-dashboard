@@ -1,0 +1,213 @@
+/**
+ * Convert assessment JSON content to HTML format for TipTapEditor
+ * This matches the format expected by the existing quiz display logic
+ */
+
+export interface AssessmentQuestion {
+    question_number: string;
+    question: { type: "HTML"; content: string };
+    options: Array<{ type: "HTML"; preview_id: string; content: string }>;
+    correct_options: string[];
+    ans: string;
+    exp: string;
+    question_type: "MCQS" | "MCQM" | "ONE_WORD" | "LONG_ANSWER";
+    tags: string[];
+    level: "easy" | "medium" | "hard";
+}
+
+export interface AssessmentContentData {
+    questions: AssessmentQuestion[];
+    title: string;
+    tags: string[];
+    difficulty: "easy" | "medium" | "hard";
+    is_process_completed: boolean;
+    subjects: string[];
+    classes: string[];
+}
+
+/**
+ * Convert assessment content data to HTML format
+ * This HTML will be displayed in TipTapEditor for quiz slides
+ */
+export function convertAssessmentToHTML(assessmentData: AssessmentContentData): string {
+    if (!assessmentData.questions || assessmentData.questions.length === 0) {
+        return '<p>No questions available.</p>';
+    }
+
+    let html = '';
+    
+    assessmentData.questions.forEach((q, index) => {
+        const questionNum = q.question_number || `Question ${index + 1}`;
+        html += `<h3>${questionNum}</h3>`;
+        
+        // Add question content
+        const questionContent = q.question?.content || '';
+        html += `<p>${questionContent}</p>`;
+        
+        // Add options as ordered list
+        if (q.options && q.options.length > 0) {
+            html += '<ol>';
+            q.options.forEach((option) => {
+                const optionContent = option.content || '';
+                html += `<li>${optionContent}</li>`;
+            });
+            html += '</ol>';
+        }
+        
+        // Show correct answer(s)
+        if (q.correct_options && q.correct_options.length > 0) {
+            const correctAnswers = q.correct_options
+                .map((optId) => {
+                    const option = q.options?.find((opt) => opt.preview_id === optId);
+                    return option?.content || optId;
+                })
+                .filter(Boolean);
+            
+            if (correctAnswers.length > 0) {
+                html += `<p><strong style="color: #10b981;">Correct Answer${correctAnswers.length > 1 ? 's' : ''}: ${correctAnswers.join(', ')}</strong></p>`;
+            }
+        } else if (q.ans) {
+            // Fallback to ans field if correct_options is not available
+            html += `<p><strong style="color: #10b981;">Correct Answer: ${q.ans}</strong></p>`;
+        }
+        
+        // Add explanation if available
+        if (q.exp) {
+            html += `<p><em>Explanation: ${q.exp}</em></p>`;
+        }
+        
+        // Add separator between questions (except for last one)
+        if (index < assessmentData.questions.length - 1) {
+            html += '<hr style="margin: 20px 0;" />';
+        }
+    });
+    
+    return html;
+}
+
+/**
+ * Convert assessment content data to JSON format for storage
+ * This is the format that will be stored in slide.content
+ */
+export function convertAssessmentToJSON(assessmentData: AssessmentContentData): string {
+    try {
+        // Validate the assessment data structure
+        if (!assessmentData || typeof assessmentData !== 'object') {
+            throw new Error('Invalid assessment data: not an object');
+        }
+
+        if (!Array.isArray(assessmentData.questions)) {
+            throw new Error('Invalid assessment data: questions is not an array');
+        }
+
+        // Limit the number of questions to prevent huge payloads
+        if (assessmentData.questions.length > 50) {
+            console.warn('Assessment has many questions, limiting to 50');
+            assessmentData.questions = assessmentData.questions.slice(0, 50);
+        }
+
+        // Validate and sanitize each question
+        assessmentData.questions = assessmentData.questions.map((q, index) => {
+            try {
+                // Ensure question structure is valid
+                if (!q.question || typeof q.question !== 'object') {
+                    console.warn(`Question ${index} has invalid question structure, sanitizing`);
+                    q.question = { type: 'HTML', content: 'Invalid question' };
+                }
+
+                // Ensure options is an array
+                if (!Array.isArray(q.options)) {
+                    console.warn(`Question ${index} has invalid options structure, sanitizing`);
+                    q.options = [];
+                }
+
+                // Limit options to reasonable number
+                if (q.options.length > 10) {
+                    console.warn(`Question ${index} has too many options, limiting to 10`);
+                    q.options = q.options.slice(0, 10);
+                }
+
+                // Sanitize option content
+                q.options = q.options.map((opt, optIndex) => {
+                    if (typeof opt === 'string') {
+                        return { type: 'HTML', content: opt, preview_id: `opt_${optIndex}` };
+                    } else if (!opt.content) {
+                        return { ...opt, content: 'Invalid option', preview_id: `opt_${optIndex}` };
+                    }
+                    return { ...opt, preview_id: opt.preview_id || `opt_${optIndex}` };
+                });
+
+                // Ensure correct_options is an array
+                if (!Array.isArray(q.correct_options)) {
+                    q.correct_options = [];
+                }
+
+                // Limit correct options
+                if (q.correct_options.length > q.options.length) {
+                    q.correct_options = q.correct_options.slice(0, q.options.length);
+                }
+
+                return q;
+            } catch (error) {
+                console.error(`Failed to sanitize question ${index}:`, error);
+                // Return a minimal valid question
+                return {
+                    question_number: `Q${index + 1}`,
+                    question: { type: 'HTML', content: 'Question parsing failed' },
+                    options: [{ type: 'HTML', content: 'Option A', preview_id: 'opt_a' }],
+                    correct_options: ['opt_a'],
+                    ans: 'Option A',
+                    exp: 'Question could not be parsed',
+                    question_type: 'MCQS',
+                    tags: [],
+                    level: 'easy'
+                };
+            }
+        });
+
+        // Remove any potentially problematic fields that might cause issues
+        const cleanAssessmentData = {
+            ...assessmentData,
+            // Ensure only essential fields are included
+            questions: assessmentData.questions,
+            title: assessmentData.title || 'Assessment',
+            tags: Array.isArray(assessmentData.tags) ? assessmentData.tags : [],
+            difficulty: assessmentData.difficulty || 'medium',
+            subjects: Array.isArray(assessmentData.subjects) ? assessmentData.subjects : [],
+            classes: Array.isArray(assessmentData.classes) ? assessmentData.classes : [],
+            is_process_completed: assessmentData.is_process_completed || false
+        };
+
+        const jsonString = JSON.stringify(cleanAssessmentData, null, 2);
+
+        // Check size - assessments shouldn't be too large
+        const maxSize = 500 * 1024; // 500KB limit
+        if (jsonString.length > maxSize) {
+            console.warn('Assessment JSON is very large:', jsonString.length, 'bytes, truncating');
+
+            // Try to reduce size by limiting questions
+            const originalLength = cleanAssessmentData.questions.length;
+            while (jsonString.length > maxSize && cleanAssessmentData.questions.length > 5) {
+                cleanAssessmentData.questions.pop();
+            }
+
+            if (cleanAssessmentData.questions.length < originalLength) {
+                console.warn(`Reduced questions from ${originalLength} to ${cleanAssessmentData.questions.length} to fit size limit`);
+            }
+
+            return JSON.stringify(cleanAssessmentData, null, 2);
+        }
+
+        return jsonString;
+    } catch (error) {
+        console.error('Failed to convert assessment to JSON:', error);
+        // Return a minimal fallback
+        return JSON.stringify({
+            questions: [],
+            title: 'Assessment',
+            error: 'Failed to parse assessment data',
+            originalError: error instanceof Error ? error.message : 'Unknown error'
+        }, null, 2);
+    }
+}
+
