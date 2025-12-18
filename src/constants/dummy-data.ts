@@ -100,3 +100,14 @@ export const BulkActionDropdownStudentSubmissionsList = [
     'Revaluate',
     'Release Result',
 ];
+
+export const QUIZ_LANGUAGES = [
+    { value: 'ENGLISH', label: 'English' },
+    { value: 'HINDI', label: 'Hindi' },
+    { value: 'FRENCH', label: 'French' },
+    { value: 'SPANISH', label: 'Spanish' },
+    { value: 'ARABIC', label: 'Arabic' },
+    { value: 'TAMIL', label: 'Tamil' },
+    { value: 'BENGALI', label: 'Bengali' },
+    { value: 'KANNADA', label: 'Kannada' },
+];

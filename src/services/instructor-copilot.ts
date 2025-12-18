@@ -4,6 +4,7 @@ import {
     DELETE_INSTRUCTOR_COPILOT_LOG,
     LIST_INSTRUCTOR_COPILOT_LOGS,
     UPDATE_INSTRUCTOR_COPILOT_LOG,
+    RETRY_INSTRUCTOR_COPILOT_LOG,
 } from '@/constants/urls';
 
 export interface InstructorCopilotLog {
@@ -19,6 +20,8 @@ export interface InstructorCopilotLog {
     flashcard_json: string | null;
     slides_json: string | null;
     video_json: string | null;
+    classwork_json: string | null;
+    homework_json: string | null;
     status: 'ACTIVE' | 'DELETED';
     created_at: string;
 }
@@ -31,6 +34,7 @@ export interface CreateInstructorCopilotLogRequest {
 export interface UpdateInstructorCopilotLogRequest {
     title?: string;
     status?: 'ACTIVE' | 'DELETED';
+    question_json?: string;
 }
 
 export interface ListInstructorCopilotLogsParams {
@@ -73,4 +77,84 @@ export const updateInstructorCopilotLog = async (
 
 export const deleteInstructorCopilotLog = async (id: string): Promise<void> => {
     await authenticatedAxiosInstance.delete(DELETE_INSTRUCTOR_COPILOT_LOG(id));
+};
+
+export const retryInstructorCopilotLog = async (id: string): Promise<void> => {
+    await authenticatedAxiosInstance.post(RETRY_INSTRUCTOR_COPILOT_LOG(id));
+};
+
+// Quiz Generation Interfaces
+export interface QuizGenerationRequest {
+    text: string;
+    num: number;
+    class_level: string;
+    topics?: string;
+    question_type: string;
+    question_language: string;
+    taskName: string;
+    taskId?: string;
+}
+
+export interface QuizQuestion {
+    id: string | null;
+    text: {
+        id: string | null;
+        type: string;
+        content: string;
+    };
+    question_type: string;
+    question_response_type: string;
+    auto_evaluation_json: string;
+    explanation_text: {
+        id: string | null;
+        type: string;
+        content: string;
+    };
+    options: Array<{
+        id: string | null;
+        preview_id: string;
+        text: {
+            id: string | null;
+            type: string;
+            content: string;
+        };
+    }>;
+    tags: string[];
+    level: string;
+}
+
+export interface QuizGenerationResponse {
+    questions: QuizQuestion[];
+    title: string;
+    tags: string[];
+    difficulty: string;
+    subjects: string[];
+    classes: string[];
+}
+
+export interface TaskStatusResponse {
+    taskId: string;
+    status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
+    result?: QuizGenerationResponse;
+}
+
+// Quiz Generation API Functions
+export const generateQuiz = async (
+    data: QuizGenerationRequest,
+    instituteId: string
+): Promise<{ taskId: string }> => {
+    const response = await authenticatedAxiosInstance.post(
+        `${import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io'}/media-service/ai/get-question-pdf/from-text?instituteId=${instituteId}`,
+        data
+    );
+    // API returns taskId as a string directly, wrap it in an object
+    const taskId = typeof response.data === 'string' ? response.data : response.data.taskId || response.data;
+    return { taskId };
+};
+
+export const getQuizTaskStatus = async (taskId: string): Promise<QuizGenerationResponse> => {
+    const response = await authenticatedAxiosInstance.get(
+        `${import.meta.env.VITE_BACKEND_URL || 'https://backend-stage.vacademy.io'}/media-service/task-status/get-result?taskId=${taskId}`
+    );
+    return response.data;
 };

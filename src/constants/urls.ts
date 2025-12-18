@@ -427,3 +427,4 @@ export const CREATE_INSTRUCTOR_COPILOT_LOG = `${INSTRUCTOR_COPILOT_BASE}/create`
 export const LIST_INSTRUCTOR_COPILOT_LOGS = `${INSTRUCTOR_COPILOT_BASE}/list`;
 export const UPDATE_INSTRUCTOR_COPILOT_LOG = (id: string) => `${INSTRUCTOR_COPILOT_BASE}/${id}`;
 export const DELETE_INSTRUCTOR_COPILOT_LOG = (id: string) => `${INSTRUCTOR_COPILOT_BASE}/${id}`;
+export const RETRY_INSTRUCTOR_COPILOT_LOG = (id: string) => `${INSTRUCTOR_COPILOT_BASE}/retry-generate/${id}`;
