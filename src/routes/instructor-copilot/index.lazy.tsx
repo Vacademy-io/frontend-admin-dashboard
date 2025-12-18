@@ -19,6 +19,7 @@ import {
     createInstructorCopilotLog,
     listInstructorCopilotLogs,
     deleteInstructorCopilotLog,
+    retryInstructorCopilotLog,
     type InstructorCopilotLog,
 } from '@/services/instructor-copilot';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -40,6 +41,9 @@ function InstructorCopilotPage() {
     const [processingStatus, setProcessingStatus] = useState<string>('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [selectedLog, setSelectedLog] = useState<InstructorCopilotLog | null>(null);
+    const [lastRegenerationTime, setLastRegenerationTime] = useState<number | null>(null);
+    const [canRegenerate, setCanRegenerate] = useState(true);
+    const [cooldownSeconds, setCooldownSeconds] = useState(0);
 
     const { data: instituteDetails } = useQuery(useInstituteQuery());
     const queryClient = useQueryClient();
@@ -87,6 +91,23 @@ function InstructorCopilotPage() {
         },
     });
 
+    const retryLogMutation = useMutation({
+        mutationFn: retryInstructorCopilotLog,
+        onSuccess: () => {
+            toast.success('Content regeneration started!');
+            setLastRegenerationTime(Date.now());
+            setCanRegenerate(false);
+            // Start 2-minute cooldown timer
+            setTimeout(() => {
+                setCanRegenerate(true);
+            }, 2 * 60 * 1000); // 2 minutes
+            queryClient.invalidateQueries({ queryKey: ['instructor-copilot-logs'] });
+        },
+        onError: () => {
+            toast.error('Failed to regenerate content');
+        },
+    });
+
     useEffect(() => {
         setNavHeading(
             <div className="flex items-center gap-2">
@@ -95,6 +116,27 @@ function InstructorCopilotPage() {
             </div>
         );
     }, [setNavHeading]);
+
+    // Cooldown countdown effect
+    useEffect(() => {
+        if (!canRegenerate && lastRegenerationTime) {
+            const interval = setInterval(() => {
+                const twoMinutes = 2 * 60 * 1000;
+                const elapsed = Date.now() - lastRegenerationTime;
+                const remaining = Math.max(0, Math.ceil((twoMinutes - elapsed) / 1000));
+                setCooldownSeconds(remaining);
+
+                if (remaining === 0) {
+                    clearInterval(interval);
+                }
+            }, 1000);
+
+            return () => clearInterval(interval);
+        }
+
+        setCooldownSeconds(0);
+        return undefined;
+    }, [canRegenerate, lastRegenerationTime]);
 
     const handleFileSelected = async (file: File) => {
         try {
@@ -123,6 +165,9 @@ function InstructorCopilotPage() {
                 const fileUrl = URL.createObjectURL(file);
                 setAudioUrl(fileUrl);
                 toast.success('Transcription completed!');
+
+                // Auto-start content generation after transcription
+                await autoGenerateContent(result.text);
             } else if (result.status === 'error') {
                 throw new Error(result.error || 'Transcription failed');
             }
@@ -132,6 +177,27 @@ function InstructorCopilotPage() {
         } finally {
             setIsProcessing(false);
             setProcessingStatus('');
+        }
+    };
+
+    const autoGenerateContent = async (transcriptText: string) => {
+        if (!transcriptText || !instituteDetails?.id) return;
+        setIsGenerating(true);
+        try {
+            const newLog = await createLogMutation.mutateAsync({
+                transcript_json: transcriptText,
+                instituteId: instituteDetails.id,
+            });
+            // Set the cooldown timer from log creation time
+            setLastRegenerationTime(Date.now());
+            setCanRegenerate(false);
+            setTimeout(() => {
+                setCanRegenerate(true);
+            }, 2 * 60 * 1000); // 2 minutes
+        } catch (error) {
+            console.error('Auto-generation error:', error);
+        } finally {
+            setIsGenerating(false);
         }
     };
 
@@ -151,20 +217,11 @@ function InstructorCopilotPage() {
         setProcessingStatus('');
         setIsGenerating(false);
         setSelectedLog(null);
+        setLastRegenerationTime(null);
+        setCanRegenerate(true);
+        setCooldownSeconds(0);
     };
 
-    const handleGenerateContent = async () => {
-        if (!transcription || !instituteDetails?.id) return;
-        setIsGenerating(true);
-        try {
-            await createLogMutation.mutateAsync({
-                transcript_json: transcription,
-                instituteId: instituteDetails.id,
-            });
-        } finally {
-            setIsGenerating(false);
-        }
-    };
 
     const handleDeleteLog = async (id: string) => {
         if (confirm('Are you sure you want to delete this log?')) {
@@ -176,6 +233,27 @@ function InstructorCopilotPage() {
         setSelectedLog(log);
         setAudioUrl(null); // Clear manual session state
         setTranscription('');
+
+        // Check if we need to set cooldown based on log creation time
+        const logCreatedTime = new Date(log.created_at).getTime();
+        const timeSinceCreation = Date.now() - logCreatedTime;
+        const twoMinutes = 2 * 60 * 1000;
+
+        if (timeSinceCreation < twoMinutes) {
+            setCanRegenerate(false);
+            setLastRegenerationTime(logCreatedTime);
+            // Set timeout for remaining time
+            setTimeout(() => {
+                setCanRegenerate(true);
+            }, twoMinutes - timeSinceCreation);
+        } else {
+            setCanRegenerate(true);
+        }
+    };
+
+    const handleRegenerateContent = async () => {
+        if (!selectedLog || !canRegenerate) return;
+        await retryLogMutation.mutateAsync(selectedLog.id);
     };
 
     return (
@@ -203,6 +281,21 @@ function InstructorCopilotPage() {
                                     Generated on {format(new Date(selectedLog.created_at), 'PPP p')}
                                 </p>
                             </div>
+                            {/* Show regenerate button if content is stuck in processing */}
+                            {!selectedLog.summary && (
+                                <Button
+                                    variant="outline"
+                                    onClick={handleRegenerateContent}
+                                    disabled={!canRegenerate || retryLogMutation.isPending}
+                                    className="gap-2"
+                                >
+                                    {retryLogMutation.isPending
+                                        ? 'Regenerating...'
+                                        : !canRegenerate
+                                            ? `Wait ${Math.floor(cooldownSeconds / 60)}:${String(cooldownSeconds % 60).padStart(2, '0')}`
+                                            : 'Regenerate Content'}
+                                </Button>
+                            )}
                         </div>
 
                         {/* Detail Content */}
@@ -211,7 +304,27 @@ function InstructorCopilotPage() {
                             {/* For now, maybe just show stats or nothing, making main content wider? 
                                 Let's keep the layout consistent. */}
                             <div className="lg:col-span-3">
-                                <ContentTabs log={selectedLog} />
+                                <ContentTabs
+                                    log={selectedLog}
+                                    onLogUpdate={async () => {
+                                        // Invalidate the queries to refetch the list
+                                        await queryClient.invalidateQueries({ queryKey: ['instructor-copilot-logs'] });
+
+                                        // Refetch the updated logs and find the current one
+                                        const updatedLogs = await listInstructorCopilotLogs({
+                                            instituteId: instituteDetails?.id!,
+                                            status: 'ACTIVE',
+                                            startDate: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
+                                            endDate: format(new Date(), 'yyyy-MM-dd'),
+                                        });
+
+                                        // Find and update the selected log
+                                        const freshLog = updatedLogs.find(log => log.id === selectedLog.id);
+                                        if (freshLog) {
+                                            setSelectedLog(freshLog);
+                                        }
+                                    }}
+                                />
                             </div>
                         </div>
                     </div>
@@ -288,13 +401,16 @@ function InstructorCopilotPage() {
                                                 <div className="lg:col-span-1">
                                                     <div className="space-y-4">
                                                         <AudioPlayer audioUrl={audioUrl} />
-                                                        <Button
-                                                            onClick={handleGenerateContent}
-                                                            className="w-full"
-                                                            disabled={isGenerating || !transcription}
-                                                        >
-                                                            {isGenerating ? 'Starting Generation...' : 'Generate Content'}
-                                                        </Button>
+                                                        {isGenerating && (
+                                                            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="size-5 animate-spin rounded-full border-b-2 border-blue-600" />
+                                                                    <p className="text-sm font-medium text-blue-800">
+                                                                        Generating content...
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                         <Button
                                                             variant="outline"
                                                             onClick={handleReset}

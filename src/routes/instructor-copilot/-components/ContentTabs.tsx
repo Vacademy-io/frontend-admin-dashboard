@@ -19,14 +19,29 @@ import {
     MagicWand,
 } from '@phosphor-icons/react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { InstructorCopilotLog } from '@/services/instructor-copilot';
+import {
+    InstructorCopilotLog,
+    generateQuiz,
+    getQuizTaskStatus,
+    updateInstructorCopilotLog,
+    type QuizGenerationResponse
+} from '@/services/instructor-copilot';
 import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { QuizView } from './QuizView';
+import { QuizGenerationForm } from './QuizGenerationForm';
+import { QuizDownloadDialog } from './QuizDownloadDialog';
+import { DownloadButton } from './DownloadButton';
+import { useQuery } from '@tanstack/react-query';
+import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
+import { generateNotesPDF, generateSummaryPDF, generateClassworkPDF, generateHomeworkPDF } from '../-utils/pdf';
+
 
 interface ContentTabsProps {
     transcription?: string;
     log?: InstructorCopilotLog | null;
+    onLogUpdate?: () => void;
 }
 
 interface SummaryData {
@@ -270,7 +285,289 @@ const FlashcardsView = ({ content }: { content: string }) => {
     );
 };
 
-export function ContentTabs({ transcription, log }: ContentTabsProps) {
+const ClassworkView = ({ content }: { content: string }) => {
+    let data: string[] | null = null;
+
+    try {
+        data = JSON.parse(content);
+        if (!Array.isArray(data)) {
+            data = null;
+        }
+    } catch (e) {
+        return (
+            <div className="prose prose-sm max-w-none">
+                <p className="whitespace-pre-wrap">{content}</p>
+            </div>
+        );
+    }
+
+    if (!data || data.length === 0) {
+        return (
+            <div className="prose prose-sm max-w-none">
+                <p className="whitespace-pre-wrap">{content}</p>
+            </div>
+        );
+    }
+
+    // Check if it's the fallback message
+    const isEmpty = data.length === 1 && data[0] === "No classwork given";
+
+    if (isEmpty) {
+        return (
+            <div className="flex flex-col items-center justify-center py-12">
+                <div className="rounded-full bg-slate-100 p-4 dark:bg-slate-800">
+                    <BookOpen size={32} className="text-slate-400" />
+                </div>
+                <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">No classwork was assigned</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-3">
+            {data.map((task, index) => (
+                <div
+                    key={index}
+                    className="group relative flex items-start gap-4 rounded-lg border border-slate-200 bg-white p-4 transition-all hover:border-primary-200 hover:bg-primary-50/30 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-primary-800"
+                >
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                        {index + 1}
+                    </span>
+                    <div className="prose prose-sm max-w-none flex-1 dark:prose-invert text-slate-700 dark:text-slate-300">
+                        <ReactMarkdown>{task}</ReactMarkdown>
+                    </div>
+                    <CheckCircle
+                        size={20}
+                        className="shrink-0 text-slate-300 opacity-0 transition-opacity group-hover:opacity-100 dark:text-slate-600"
+                    />
+                </div>
+            ))}
+        </div>
+    );
+};
+
+const HomeworkView = ({ content }: { content: string }) => {
+    let data: string[] | null = null;
+
+    try {
+        data = JSON.parse(content);
+        if (!Array.isArray(data)) {
+            data = null;
+        }
+    } catch (e) {
+        return (
+            <div className="prose prose-sm max-w-none">
+                <p className="whitespace-pre-wrap">{content}</p>
+            </div>
+        );
+    }
+
+    if (!data || data.length === 0) {
+        return (
+            <div className="prose prose-sm max-w-none">
+                <p className="whitespace-pre-wrap">{content}</p>
+            </div>
+        );
+    }
+
+    // Check if it's the fallback message
+    const isEmpty = data.length === 1 && data[0] === "No homework given";
+
+    if (isEmpty) {
+        return (
+            <div className="flex flex-col items-center justify-center py-12">
+                <div className="rounded-full bg-slate-100 p-4 dark:bg-slate-800">
+                    <PencilSimple size={32} className="text-slate-400" />
+                </div>
+                <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">No homework was assigned</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-3">
+            {data.map((assignment, index) => (
+                <div
+                    key={index}
+                    className="group relative flex items-start gap-4 rounded-lg border border-slate-200 bg-white p-4 transition-all hover:border-orange-200 hover:bg-orange-50/30 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-orange-800"
+                >
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-orange-100 text-sm font-bold text-orange-600 dark:bg-orange-900/30 dark:text-orange-400">
+                        {index + 1}
+                    </span>
+                    <div className="prose prose-sm max-w-none flex-1 dark:prose-invert text-slate-700 dark:text-slate-300">
+                        <ReactMarkdown>{assignment}</ReactMarkdown>
+                    </div>
+                    <PencilSimple
+                        size={20}
+                        className="shrink-0 text-slate-300 opacity-0 transition-opacity group-hover:opacity-100 dark:text-slate-600"
+                    />
+                </div>
+            ))}
+        </div>
+    );
+};
+
+
+export function ContentTabs({ transcription, log, onLogUpdate }: ContentTabsProps) {
+    const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
+    const [quizTaskId, setQuizTaskId] = useState<string | null>(null);
+    const [pollingInterval, setPollingInterval] = useState<number | null>(null);
+    const [isQuizDownloadDialogOpen, setIsQuizDownloadDialogOpen] = useState(false);
+    const { data: instituteDetails } = useQuery(useInstituteQuery());
+
+    // Poll for quiz task completion
+    const handleGenerateQuiz = async (formData: {
+        text: string;
+        num: number;
+        class_level: string;
+        question_type: string;
+        question_language: string;
+        taskName: string;
+    }) => {
+        if (!instituteDetails?.id) {
+            toast.error('Institute details not available');
+            return;
+        }
+
+        setIsGeneratingQuiz(true);
+        try {
+            const response = await generateQuiz(
+                {
+                    ...formData,
+                    topics: '',
+                },
+                instituteDetails.id
+            );
+
+            const taskId = response.taskId;
+            setQuizTaskId(taskId);
+            toast.success('Quiz generation started! Polling for results...');
+
+            // Start polling
+            let attempts = 0;
+            const maxAttempts = 60; // 60 * 5s = 5 minutes max
+            const pollInterval = setInterval(async () => {
+                attempts++;
+                try {
+                    const result = await getQuizTaskStatus(taskId);
+
+                    if (result && result.questions && result.questions.length > 0) {
+                        // Successfully got quiz data
+                        clearInterval(pollInterval);
+                        setPollingInterval(null);
+                        setIsGeneratingQuiz(false);
+                        toast.success('Quiz generated successfully!');
+
+                        // Update the log with quiz data
+                        if (log?.id) {
+                            try {
+                                const updatedLog = await updateInstructorCopilotLog(log.id, {
+                                    question_json: JSON.stringify(result),
+                                });
+
+                                // Trigger parent to refetch and update selectedLog
+                                onLogUpdate?.();
+
+                                // Also update the log prop directly to show immediately
+                                if (log) {
+                                    log.question_json = JSON.stringify(result);
+                                }
+                            } catch (error) {
+                                console.error('Failed to update log:', error);
+                                toast.error('Quiz generated but failed to save to log');
+                            }
+                        }
+                    } else if (attempts >= maxAttempts) {
+                        clearInterval(pollInterval);
+                        setPollingInterval(null);
+                        setIsGeneratingQuiz(false);
+                        toast.error('Quiz generation timed out');
+                    }
+                } catch (error) {
+                    if (attempts >= maxAttempts) {
+                        clearInterval(pollInterval);
+                        setPollingInterval(null);
+                        setIsGeneratingQuiz(false);
+                        toast.error('Failed to generate quiz');
+                    }
+                    // Continue polling on error unless max attempts reached
+                }
+            }, 5000); // Poll every 5 seconds
+
+            setPollingInterval(pollInterval as unknown as number);
+        } catch (error) {
+            console.error('Quiz generation error:', error);
+            toast.error('Failed to start quiz generation');
+            setIsGeneratingQuiz(false);
+        }
+    };
+
+    // PDF Download Handlers
+    const handleNotesDownload = () => {
+        if (!log?.flashnotes_json) {
+            toast.error('No notes available to download');
+            return;
+        }
+        try {
+            generateNotesPDF(log.flashnotes_json);
+            toast.success('Notes PDF downloaded successfully!');
+        } catch (error) {
+            console.error('Error generating notes PDF:', error);
+            toast.error('Failed to generate notes PDF');
+        }
+    };
+
+    const handleSummaryDownload = () => {
+        if (!log?.summary) {
+            toast.error('No summary available to download');
+            return;
+        }
+        try {
+            generateSummaryPDF(log.summary);
+            toast.success('Summary PDF downloaded successfully!');
+        } catch (error) {
+            console.error('Error generating summary PDF:', error);
+            toast.error('Failed to generate summary PDF');
+        }
+    };
+
+    const handleQuizDownload = () => {
+        if (!log?.question_json) {
+            toast.error('No quiz available to download');
+            return;
+        }
+        setIsQuizDownloadDialogOpen(true);
+    };
+
+    const handleClassworkDownload = () => {
+        if (!log?.classwork_json) {
+            toast.error('No classwork available to download');
+            return;
+        }
+        try {
+            generateClassworkPDF(log.classwork_json);
+            toast.success('Classwork PDF downloaded successfully!');
+        } catch (error) {
+            console.error('Error generating classwork PDF:', error);
+            toast.error('Failed to generate classwork PDF');
+        }
+    };
+
+    const handleHomeworkDownload = () => {
+        if (!log?.homework_json) {
+            toast.error('No homework available to download');
+            return;
+        }
+        try {
+            generateHomeworkPDF(log.homework_json);
+            toast.success('Homework PDF downloaded successfully!');
+        } catch (error) {
+            console.error('Error generating homework PDF:', error);
+            toast.error('Failed to generate homework PDF');
+        }
+    };
+
+
     const tabs = [
         {
             id: 'transcription',
@@ -326,14 +623,14 @@ export function ContentTabs({ transcription, log }: ContentTabsProps) {
             label: 'Homework',
             icon: PencilSimple,
             description: 'Homework assignment ideas',
-            content: null, // Not yet in schema
+            content: log?.homework_json,
         },
         {
             id: 'classwork',
             label: 'Classwork',
             icon: BookOpen,
             description: 'In-class activity ideas',
-            content: null, // Not yet in schema
+            content: log?.classwork_json,
         },
     ];
 
@@ -351,17 +648,25 @@ export function ContentTabs({ transcription, log }: ContentTabsProps) {
                     <p className="mt-2 max-w-sm text-sm text-slate-500 dark:text-slate-400">
                         Generate {label.toLowerCase()} from your transcription to see the content here.
                     </p>
-                    <Button
-                        onClick={() => {
-                            toast.info(`Generating ${label}... (TODO)`);
-                            console.log('Generate ' + label);
-                        }}
-                        className="mt-6 gap-2"
-                        variant="default"
-                    >
-                        <MagicWand size={16} />
-                        Generate {label}
-                    </Button>
+                    {label === 'Quiz' ? (
+                        <QuizGenerationForm
+                            transcript={log?.transcript_json || transcription || ''}
+                            onGenerate={handleGenerateQuiz}
+                            isGenerating={isGeneratingQuiz}
+                        />
+                    ) : (
+                        <Button
+                            onClick={() => {
+                                toast.info(`Generating ${label}... (TODO)`);
+                                console.log('Generate ' + label);
+                            }}
+                            className="mt-6 gap-2"
+                            variant="default"
+                        >
+                            <MagicWand size={16} />
+                            Generate {label}
+                        </Button>
+                    )}
                 </div>
             );
         }
@@ -377,6 +682,24 @@ export function ContentTabs({ transcription, log }: ContentTabsProps) {
         if (label === 'Flashcards') {
             return <FlashcardsView content={content} />;
         }
+
+        if (label === 'Classwork') {
+            return <ClassworkView content={content} />;
+        }
+
+        if (label === 'Homework') {
+            return <HomeworkView content={content} />;
+        }
+
+        if (label === 'Quiz') {
+            try {
+                const quizData: QuizGenerationResponse = JSON.parse(content);
+                return <QuizView data={quizData} />;
+            } catch (e) {
+                // Fallback to default rendering if parsing fails
+            }
+        }
+
 
         // Simple check if it looks like JSON and try to pretty print
         let displayContent = content;
@@ -412,22 +735,67 @@ export function ContentTabs({ transcription, log }: ContentTabsProps) {
                 </TabsList>
             </ScrollArea>
 
-            {tabs.map((tab) => (
-                <TabsContent key={tab.id} value={tab.id} className="mt-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <tab.icon size={20} />
-                                {tab.label}
-                            </CardTitle>
-                            <CardDescription>{tab.description}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {renderContent(tab.content, tab.label)}
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-            ))}
+            {tabs.map((tab) => {
+                // Determine if this tab should show a download button
+                const showDownloadButton =
+                    (tab.id === 'notes' && tab.content) ||
+                    (tab.id === 'summary' && tab.content) ||
+                    (tab.id === 'quiz' && tab.content) ||
+                    (tab.id === 'classwork' && tab.content) ||
+                    (tab.id === 'homework' && tab.content);
+
+                const getDownloadHandler = () => {
+                    switch (tab.id) {
+                        case 'notes':
+                            return handleNotesDownload;
+                        case 'summary':
+                            return handleSummaryDownload;
+                        case 'quiz':
+                            return handleQuizDownload;
+                        case 'classwork':
+                            return handleClassworkDownload;
+                        case 'homework':
+                            return handleHomeworkDownload;
+                        default:
+                            return undefined;
+                    }
+                };
+
+
+                return (
+                    <TabsContent key={tab.id} value={tab.id} className="mt-4">
+                        <Card>
+                            <CardHeader>
+                                <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                        <CardTitle className="flex items-center gap-2">
+                                            <tab.icon size={20} />
+                                            {tab.label}
+                                        </CardTitle>
+                                        <CardDescription>{tab.description}</CardDescription>
+                                    </div>
+                                    {showDownloadButton && (
+                                        <DownloadButton
+                                            onClick={getDownloadHandler()!}
+                                            label="Download PDF"
+                                        />
+                                    )}
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                {renderContent(tab.content, tab.label)}
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                );
+            })}
+
+            {/* Quiz Download Dialog */}
+            <QuizDownloadDialog
+                open={isQuizDownloadDialogOpen}
+                onOpenChange={setIsQuizDownloadDialogOpen}
+                quizContent={log?.question_json || ''}
+            />
         </Tabs>
     );
 }
