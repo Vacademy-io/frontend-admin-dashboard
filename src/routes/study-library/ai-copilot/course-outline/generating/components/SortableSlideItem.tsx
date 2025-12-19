@@ -766,6 +766,9 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
 
     // Get current HTML content from quiz questions - always called
     const quizHTML = useMemo(() => {
+        // Store status to avoid type narrowing issues
+        const slideStatus: 'pending' | 'generating' | 'completed' = slide.status;
+        
         if (slide.slideType === 'quiz' || slide.slideType === 'assessment') {
             // If we have quiz questions, convert them to HTML
             if (quizQuestions.length > 0) {
@@ -866,12 +869,15 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
 
     // Render content based on slide type - everything editable by default
     const renderContent = useMemo(() => {
+        // Store status in variable to avoid type narrowing issues - must be done first
+        const slideStatus: 'pending' | 'generating' | 'completed' = slide.status;
+        
         // Only render content when expanded by user
         // Allow AI_VIDEO slides to render even when not expanded (to show prompt)
         if (!isExpanded && slide.slideType !== 'ai-video') return null;
 
         // Show loader if slide is generating
-        if (slide.status === 'generating') {
+        if (slideStatus === 'generating') {
             return (
                 <div className="mt-3 ml-8 bg-neutral-50 rounded-md border border-neutral-200 p-4">
                     <div className="flex items-center justify-center gap-3 py-8">
@@ -890,7 +896,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
         if (slide.slideType !== 'ai-video' && 
             slide.slideType !== 'quiz' && 
             slide.slideType !== 'assessment' && 
-            (slide.status !== 'completed' || !slide.content)) {
+            (slideStatus !== 'completed' || !slide.content)) {
             return (
                 <div className="mt-3 ml-8 bg-neutral-50 rounded-md border border-neutral-200 p-4">
                     <div className="flex items-center justify-center gap-3 py-8">
@@ -902,7 +908,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
         
         // For quiz/assessment, don't show if status is generating and no valid questions
         if ((slide.slideType === 'quiz' || slide.slideType === 'assessment') && 
-            slide.status === 'generating' && 
+            (slideStatus as string) === 'generating' && 
             (!slide.content || quizQuestions.length === 0)) {
             return (
                 <div className="mt-3 ml-8 bg-neutral-50 rounded-md border border-neutral-200 p-4">
@@ -947,7 +953,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                             </div>
                         )}
                         {/* Only show loader when actively generating, not when pending */}
-                        {slide.status === 'generating' && (
+                        {(slideStatus as string) === 'generating' && (
                             <div className="mt-4 flex items-center gap-2">
                                 <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
                                 <span className="text-sm text-neutral-600">Generating video... {slide.progress || 0}%</span>
@@ -1343,7 +1349,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                     );
                 } else {
                     // Topic without video script + code - parse and show all sections editable
-                    const sections = editedSections.length > 0 ? editedSections : parseContent(slide.content);
+                    const sections = editedSections.length > 0 ? editedSections : parseContent(slide.content || '');
 
                     return (
                         <div className="mt-3 ml-8 space-y-4">
@@ -1411,7 +1417,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
 
             // Document pages (doc, objectives) - parse and show all sections editable
             if (slide.slideType === 'objectives' || slide.slideType === 'doc') {
-                const sections = editedSections.length > 0 ? editedSections : parseContent(slide.content);
+                const sections = editedSections.length > 0 ? editedSections : parseContent(slide.content || '');
 
                 return (
                     <div className="mt-3 ml-8 space-y-4">
@@ -1531,7 +1537,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                             )}
                         </div>
                         <TipTapEditor
-                            value={slide.content}
+                            value={slide.content || ''}
                             onChange={handleContentChange}
                             className="min-h-[300px]"
                         />

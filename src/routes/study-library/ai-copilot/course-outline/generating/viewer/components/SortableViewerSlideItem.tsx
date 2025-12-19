@@ -792,8 +792,11 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
 
         // AI Video pages - show video player
         if (slideType === 'ai-video') {
+            // Store status to avoid type narrowing issues
+            const slideStatus: 'pending' | 'generating' | 'completed' = slide.status;
+            
             // Check if video data is available
-            if (slide.aiVideoData?.timelineUrl && slide.aiVideoData?.audioUrl && slide.status === 'completed') {
+            if (slide.aiVideoData?.timelineUrl && slide.aiVideoData?.audioUrl && slideStatus === 'completed') {
                 return (
                     <div className="mt-3 ml-8 bg-neutral-50 rounded-md border border-neutral-200 p-4">
                         <div className="flex items-center justify-between mb-3">
@@ -820,13 +823,13 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
                             <div className="flex items-center gap-2">
                                 <Video className="h-4 w-4 text-purple-600" />
                                 <Label className="text-sm font-semibold text-neutral-900">
-                                    {slide.status === 'generating' ? 'Generating AI Video...' : 'AI Video Prompt'}
+                                    {(slideStatus as string) === 'generating' ? 'Generating AI Video...' : 'AI Video Prompt'}
                                 </Label>
                             </div>
                         </div>
                         <div className="bg-white rounded-lg border border-neutral-200 p-4">
                             <p className="text-sm text-neutral-700 whitespace-pre-wrap">{prompt}</p>
-                            {slide.status === 'generating' && (
+                            {(slideStatus as string) === 'generating' && (
                                 <div className="mt-4 flex items-center gap-2">
                                     <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
                                     <span className="text-sm text-neutral-600">Progress: {slide.progress || 0}%</span>
