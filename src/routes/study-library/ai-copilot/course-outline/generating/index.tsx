@@ -553,7 +553,7 @@ export function RouteComponent() {
                 setGenerationProgress('Connecting to AI service...');
 
                 // Make SSE API call
-                const apiUrl = `http://localhost:8077/ai-service/course/ai/v1/generate?institute_id=${instituteId}`;
+                const apiUrl = `${BASE_URL}/ai-service/course/ai/v1/generate?institute_id=${instituteId}`;
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: {
