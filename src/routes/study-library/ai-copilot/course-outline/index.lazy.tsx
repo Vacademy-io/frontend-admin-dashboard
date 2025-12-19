@@ -777,6 +777,8 @@ const SortableSlideItem = ({ slide, sessionId, onEdit, onDelete, onUpdatePrompt 
                 return <File className="h-4 w-4 text-red-600" />;
             case 'video':
                 return <Video className="h-4 w-4 text-red-600" />;
+            case 'ai-video':
+                return <Video className="h-4 w-4 text-purple-600" />;
             case 'image':
                 return <ImageIcon className="h-4 w-4 text-blue-600" />;
             case 'jupyter':

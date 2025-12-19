@@ -36,6 +36,7 @@ import {
     parseVideoContent,
 } from '../utils/contentParsers';
 import type { SlideGeneration, SlideType, QuizQuestion } from '../../../../shared/types';
+import { AIVideoPlayer } from '@/components/ai-video-player';
 
 interface SortableSlideItemProps {
     slide: SlideGeneration;
@@ -353,7 +354,7 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
                     <div className="flex items-center justify-center gap-3 py-8">
                         <Loader2 className="h-5 w-5 animate-spin text-indigo-600" />
                         <span className="text-sm font-medium text-neutral-600">
-                            Generating {slide.slideType === 'doc' ? 'document' : (slide.slideType === 'quiz' || slide.slideType === 'assessment' || slide.slideType === 'ASSESSMENT') ? 'quiz' : slide.slideType === 'video' ? 'video' : 'content'}...
+                            Generating {slide.slideType === 'doc' ? 'document' : (slide.slideType === 'quiz' || slide.slideType === 'assessment' || slide.slideType === 'ASSESSMENT') ? 'quiz' : slide.slideType === 'video' ? 'video' : slide.slideType === 'ai-video' ? 'AI video' : 'content'}...
                         </span>
                     </div>
                 </div>
@@ -787,6 +788,54 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
                     />
                 </div>
             );
+        }
+
+        // AI Video pages - show video player
+        if (slideType === 'ai-video') {
+            // Check if video data is available
+            if (slide.aiVideoData?.timelineUrl && slide.aiVideoData?.audioUrl && slide.status === 'completed') {
+                return (
+                    <div className="mt-3 ml-8 bg-neutral-50 rounded-md border border-neutral-200 p-4">
+                        <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                                <Video className="h-4 w-4 text-purple-600" />
+                                <Label className="text-sm font-semibold text-neutral-900">AI Generated Video</Label>
+                            </div>
+                        </div>
+                        <div className="bg-white rounded-lg border border-neutral-200 p-4">
+                            <AIVideoPlayer
+                                timelineUrl={slide.aiVideoData.timelineUrl}
+                                audioUrl={slide.aiVideoData.audioUrl}
+                                className="w-full"
+                            />
+                        </div>
+                    </div>
+                );
+            } else {
+                // Show generating or prompt
+                const prompt = slide.prompt || 'AI video is being generated...';
+                return (
+                    <div className="mt-3 ml-8 bg-neutral-50 rounded-md border border-neutral-200 p-4">
+                        <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                                <Video className="h-4 w-4 text-purple-600" />
+                                <Label className="text-sm font-semibold text-neutral-900">
+                                    {slide.status === 'generating' ? 'Generating AI Video...' : 'AI Video Prompt'}
+                                </Label>
+                            </div>
+                        </div>
+                        <div className="bg-white rounded-lg border border-neutral-200 p-4">
+                            <p className="text-sm text-neutral-700 whitespace-pre-wrap">{prompt}</p>
+                            {slide.status === 'generating' && (
+                                <div className="mt-4 flex items-center gap-2">
+                                    <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
+                                    <span className="text-sm text-neutral-600">Progress: {slide.progress || 0}%</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
         }
 
         // Video pages

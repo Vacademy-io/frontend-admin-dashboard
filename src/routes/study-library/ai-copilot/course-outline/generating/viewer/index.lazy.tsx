@@ -1833,6 +1833,8 @@ function RouteComponent() {
                 return <File className="h-4 w-4 text-red-600" />;
             case 'video':
                 return <Video className="h-4 w-4 text-red-600" />;
+            case 'ai-video':
+                return <Video className="h-4 w-4 text-purple-600" />;
             case 'jupyter':
                 return <Notebook className="h-4 w-4 text-orange-600" />;
             case 'code-editor':

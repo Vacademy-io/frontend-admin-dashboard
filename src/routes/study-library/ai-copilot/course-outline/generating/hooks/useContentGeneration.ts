@@ -43,9 +43,9 @@ export const useContentGeneration = (
             const { generateContent } = await import('../services/contentGenerationService');
             const { convertAssessmentToHTML, convertAssessmentToJSON } = await import('../utils/assessmentToHtml');
 
-            // Filter todos to only include DOCUMENT, ASSESSMENT, and VIDEO types
+            // Filter todos to only include DOCUMENT, ASSESSMENT, VIDEO, and AI_VIDEO types
             const contentTodos = outlineTodos.filter((todo: any) => 
-                todo.type === 'DOCUMENT' || todo.type === 'ASSESSMENT' || todo.type === 'VIDEO'
+                todo.type === 'DOCUMENT' || todo.type === 'ASSESSMENT' || todo.type === 'VIDEO' || todo.type === 'AI_VIDEO'
             );
 
             if (contentTodos.length === 0) {
@@ -89,9 +89,11 @@ export const useContentGeneration = (
                     const sessionExact = slide.sessionTitle === todo.chapter_name;
                     const titleExact = slide.slideTitle === todo.title || slide.slideTitle === todo.name;
                     const typeMatch = 
-                        (todo.type === 'DOCUMENT' && slide.slideType === 'doc') ||
-                        (todo.type === 'ASSESSMENT' && slide.slideType === 'quiz') ||
-                        (todo.type === 'VIDEO' && slide.slideType === 'video');
+                            (todo.type === 'DOCUMENT' && slide.slideType === 'doc') ||
+                            (todo.type === 'ASSESSMENT' && slide.slideType === 'quiz') ||
+                            (todo.type === 'VIDEO' && slide.slideType === 'video') ||
+                            (todo.type === 'AI_VIDEO' && slide.slideType === 'ai-video') ||
+                        (todo.type === 'AI_VIDEO' && slide.slideType === 'ai-video');
                     
                     return sessionExact && titleExact && typeMatch;
                 });
@@ -112,9 +114,11 @@ export const useContentGeneration = (
                     const titleMatch = slide.slideTitle.toLowerCase().trim() === (todo.title || '').toLowerCase().trim() ||
                                      slide.slideTitle.toLowerCase().trim() === (todo.name || '').toLowerCase().trim();
                     const typeMatch = 
-                        (todo.type === 'DOCUMENT' && slide.slideType === 'doc') ||
-                        (todo.type === 'ASSESSMENT' && slide.slideType === 'quiz') ||
-                        (todo.type === 'VIDEO' && slide.slideType === 'video');
+                            (todo.type === 'DOCUMENT' && slide.slideType === 'doc') ||
+                            (todo.type === 'ASSESSMENT' && slide.slideType === 'quiz') ||
+                            (todo.type === 'VIDEO' && slide.slideType === 'video') ||
+                            (todo.type === 'AI_VIDEO' && slide.slideType === 'ai-video') ||
+                        (todo.type === 'AI_VIDEO' && slide.slideType === 'ai-video');
                     
                     return sessionMatch && titleMatch && typeMatch;
                 });
@@ -141,9 +145,10 @@ export const useContentGeneration = (
                                      (todo.name || '').toLowerCase().trim().includes(slide.slideTitle.toLowerCase().trim()) ||
                                      slide.slideTitle.toLowerCase().trim().includes((todo.name || '').toLowerCase().trim());
                     const typeMatch = 
-                        (todo.type === 'DOCUMENT' && slide.slideType === 'doc') ||
-                        (todo.type === 'ASSESSMENT' && slide.slideType === 'quiz') ||
-                        (todo.type === 'VIDEO' && slide.slideType === 'video');
+                            (todo.type === 'DOCUMENT' && slide.slideType === 'doc') ||
+                            (todo.type === 'ASSESSMENT' && slide.slideType === 'quiz') ||
+                            (todo.type === 'VIDEO' && slide.slideType === 'video') ||
+                            (todo.type === 'AI_VIDEO' && slide.slideType === 'ai-video');
                     
                     return sessionMatch && titleMatch && typeMatch;
                 });
@@ -167,9 +172,10 @@ export const useContentGeneration = (
                             slide.sessionTitle === sessionTitle &&
                             slide.slideTitle === slideTitle &&
                             (
-                                (todo.type === 'DOCUMENT' && slide.slideType === 'doc') ||
-                                (todo.type === 'ASSESSMENT' && slide.slideType === 'quiz') ||
-                                (todo.type === 'VIDEO' && slide.slideType === 'video')
+                            (todo.type === 'DOCUMENT' && slide.slideType === 'doc') ||
+                            (todo.type === 'ASSESSMENT' && slide.slideType === 'quiz') ||
+                            (todo.type === 'VIDEO' && slide.slideType === 'video') ||
+                            (todo.type === 'AI_VIDEO' && slide.slideType === 'ai-video')
                             )
                         );
                     });
@@ -201,7 +207,14 @@ export const useContentGeneration = (
                 contentTodos,
                 instituteId,
                 (update) => {
-                    console.log('🔵 Content update received:', update.type, update.path);
+                    console.log('🔵 Content update received:', {
+                        type: update.type,
+                        path: update.path,
+                        slideType: update.slideType,
+                        status: update.status,
+                        hasContentData: !!update.contentData,
+                        contentDataKeys: update.contentData ? Object.keys(update.contentData) : []
+                    });
                     
                     if (update.type === 'SLIDE_CONTENT_UPDATE') {
                         console.log('🔵 Processing content update for path:', update.path);
@@ -233,7 +246,8 @@ export const useContentGeneration = (
                                         const typeMatch = 
                                             (update.slideType === 'DOCUMENT' && slide.slideType === 'doc') ||
                                             (update.slideType === 'ASSESSMENT' && slide.slideType === 'assessment') ||
-                                            (update.slideType === 'VIDEO' && slide.slideType === 'video');
+                                            (update.slideType === 'VIDEO' && slide.slideType === 'video') ||
+                                            (update.slideType === 'AI_VIDEO' && slide.slideType === 'ai-video');
                                         return sessionMatch && titleMatch && typeMatch;
                                     });
                                     
@@ -292,6 +306,30 @@ export const useContentGeneration = (
                                 content = `<div><p><strong>${title}</strong></p><p>${description}</p><p>No video URL provided</p></div>`;
                                 console.log(`⚠️ [${update.path}] No video URL found`);
                             }
+                        } else if (update.slideType === 'AI_VIDEO') {
+                            console.log(`🔵 [${update.path}] Processing AI video data, status: ${update.status}`);
+                            console.log(`🔵 [${update.path}] Content data:`, update.contentData);
+                            
+                            // For AI_VIDEO, process ALL events (not just COMPLETED)
+                            // Store contentData if available, otherwise store progress info
+                            if (update.contentData) {
+                                // Store the full contentData (includes timelineUrl, audioUrl, progress, etc.)
+                                content = JSON.stringify(update.contentData);
+                                console.log(`✅ [${update.path}] AI video data stored:`, {
+                                    videoId: update.contentData.videoId,
+                                    timelineUrl: update.contentData.timelineUrl,
+                                    audioUrl: update.contentData.audioUrl,
+                                    status: update.contentData.status || update.status,
+                                    progress: update.contentData.progress
+                                });
+                            } else {
+                                // No contentData yet, just store status/progress
+                                content = JSON.stringify({
+                                    status: update.status || 'GENERATING',
+                                    progress: 0
+                                });
+                                console.log(`⚠️ [${update.path}] AI video event received but no contentData yet, status: ${update.status}`);
+                            }
                         }
                         
                         // Update localStorage first
@@ -301,11 +339,58 @@ export const useContentGeneration = (
                                 const parsed = JSON.parse(stored);
                                 const slideIndex = parsed.findIndex((s: any) => s.id === mappedSlide!.id);
                                 if (slideIndex >= 0) {
+                                    // Determine status and progress based on update type and content
+                                    let newStatus: 'pending' | 'generating' | 'completed' = 'pending';
+                                    let newProgress = 0;
+                                    let aiVideoData = parsed[slideIndex].aiVideoData;
+                                    
+                                    if (update.slideType === 'AI_VIDEO' && update.contentData) {
+                                        // For AI_VIDEO, use status from contentData or update.status
+                                        const videoStatus = update.contentData.status || update.status;
+                                        if (videoStatus === 'COMPLETED') {
+                                            newStatus = 'completed';
+                                            newProgress = 100;
+                                            aiVideoData = update.contentData;
+                                        } else if (videoStatus === 'GENERATING' || update.status === 'GENERATING') {
+                                            newStatus = 'generating';
+                                            newProgress = update.contentData.progress || 0;
+                                            // Store partial data if available
+                                            if (update.contentData) {
+                                                aiVideoData = update.contentData;
+                                            }
+                                        } else {
+                                            newStatus = 'generating';
+                                            newProgress = update.contentData.progress || 0;
+                                        }
+                                    } else if (update.slideType === 'ASSESSMENT') {
+                                        // For ASSESSMENT, validate that we have valid quiz questions
+                                        try {
+                                            const assessmentData = JSON.parse(content);
+                                            if (assessmentData && assessmentData.questions && Array.isArray(assessmentData.questions) && assessmentData.questions.length > 0) {
+                                                newStatus = 'completed';
+                                                newProgress = 100;
+                                            } else {
+                                                newStatus = 'generating';
+                                                newProgress = 50;
+                                                console.log(`⚠️ [${update.path}] Assessment has no valid questions, keeping as generating`);
+                                            }
+                                        } catch (e) {
+                                            newStatus = 'generating';
+                                            newProgress = 50;
+                                            console.log(`⚠️ [${update.path}] Assessment content is invalid, keeping as generating`);
+                                        }
+                                    } else {
+                                        // For other types, mark as completed when we have content
+                                        newStatus = 'completed';
+                                        newProgress = 100;
+                                    }
+                                    
                                     parsed[slideIndex] = {
                                         ...parsed[slideIndex],
                                         content,
-                                        status: 'completed',
-                                        progress: 100,
+                                        status: newStatus,
+                                        progress: newProgress,
+                                        aiVideoData: aiVideoData ?? parsed[slideIndex].aiVideoData,
                                     };
 
                                     localStorage.setItem('generatedSlides', JSON.stringify(parsed));
@@ -314,7 +399,7 @@ export const useContentGeneration = (
                                     // Check if all content slides are now completed
                                     const allCompleted = parsed.every((s: any) => 
                                         s.status === 'completed' || 
-                                        (s.slideType !== 'doc' && s.slideType !== 'quiz' && s.slideType !== 'assessment' && s.slideType !== 'video')
+                                        (s.slideType !== 'doc' && s.slideType !== 'quiz' && s.slideType !== 'assessment' && s.slideType !== 'video' && s.slideType !== 'ai-video')
                                     );
                                     
                                     if (allCompleted) {
@@ -326,7 +411,7 @@ export const useContentGeneration = (
                                     } else {
                                         const completedCount = parsed.filter((s: any) => s.status === 'completed').length;
                                         const totalContent = parsed.filter((s: any) => 
-                                            s.slideType === 'doc' || s.slideType === 'quiz' || s.slideType === 'assessment' || s.slideType === 'video'
+                                            s.slideType === 'doc' || s.slideType === 'quiz' || s.slideType === 'assessment' || s.slideType === 'video' || s.slideType === 'ai-video'
                                         ).length;
                                         console.log(`📊 Progress: ${completedCount}/${totalContent} slides completed`);
                                     }
@@ -347,12 +432,56 @@ export const useContentGeneration = (
                             
                             const updatedSlides = prevSlides.map((slide) => {
                                 if (slide.id === slideToUpdate.id) {
+                                    let aiVideoData = slide.aiVideoData;
+                                    let newStatus: 'pending' | 'generating' | 'completed' = slide.status;
+                                    let newProgress = slide.progress;
+                                    
+                                    // For AI_VIDEO, process all events and update status/progress
+                                    if (update.slideType === 'AI_VIDEO') {
+                                        if (update.contentData) {
+                                            // Store the contentData
+                                            aiVideoData = update.contentData;
+                                            
+                                            // Determine status from contentData or update.status
+                                            const videoStatus = update.contentData.status || update.status;
+                                            if (videoStatus === 'COMPLETED') {
+                                                newStatus = 'completed';
+                                                newProgress = 100;
+                                            } else if (videoStatus === 'GENERATING' || update.status === 'GENERATING') {
+                                                newStatus = 'generating';
+                                                newProgress = update.contentData.progress || slide.progress || 0;
+                                            } else {
+                                                newStatus = 'generating';
+                                                newProgress = update.contentData.progress || slide.progress || 0;
+                                            }
+                                            
+                                            console.log(`🔄 [${update.path}] Updated AI video slide:`, {
+                                                status: newStatus,
+                                                progress: newProgress,
+                                                hasTimelineUrl: !!aiVideoData?.timelineUrl,
+                                                hasAudioUrl: !!aiVideoData?.audioUrl
+                                            });
+                                        } else {
+                                            // No contentData yet, but update status if provided
+                                            if (update.status === 'GENERATING') {
+                                                newStatus = 'generating';
+                                            }
+                                            console.log(`🔄 [${update.path}] AI video event without contentData, status: ${update.status}`);
+                                        }
+                                    } else {
+                                        // For other types, mark as completed
+                                        newStatus = 'completed';
+                                        newProgress = 100;
+                                    }
+                                    
                                     return {
                                         ...slide,
                                         content,
-                                        slideType: (update.slideType === 'ASSESSMENT' ? 'assessment' : slide.slideType) as SlideType,
-                                        status: 'completed' as const,
-                                        progress: 100,
+                                        slideType: (update.slideType === 'ASSESSMENT' ? 'assessment' : 
+                                                   update.slideType === 'AI_VIDEO' ? 'ai-video' : slide.slideType) as SlideType,
+                                        status: newStatus,
+                                        progress: newProgress,
+                                        aiVideoData,
                                     };
                                 }
                                 return slide;
@@ -392,9 +521,10 @@ export const useContentGeneration = (
                                         const titleMatch = slide.slideTitle === slideTitle || 
                                                          slide.slideTitle.toLowerCase().trim() === slideTitle.toLowerCase().trim();
                                         const typeMatch = 
-                                            (todo.type === 'DOCUMENT' && slide.slideType === 'doc') ||
-                                            (todo.type === 'ASSESSMENT' && slide.slideType === 'quiz') ||
-                                            (todo.type === 'VIDEO' && slide.slideType === 'video');
+                            (todo.type === 'DOCUMENT' && slide.slideType === 'doc') ||
+                            (todo.type === 'ASSESSMENT' && slide.slideType === 'quiz') ||
+                            (todo.type === 'VIDEO' && slide.slideType === 'video') ||
+                            (todo.type === 'AI_VIDEO' && slide.slideType === 'ai-video');
                                         
                                         return sessionMatch && titleMatch && typeMatch;
                                     });
