@@ -5,7 +5,7 @@ export interface ContentGenerationRequest {
         todos: Array<{
             name: string;
             title: string;
-            type: "DOCUMENT" | "ASSESSMENT" | "VIDEO";
+            type: "DOCUMENT" | "ASSESSMENT" | "VIDEO" | "AI_VIDEO";
             path: string;
             action_type: "ADD" | "UPDATE";
             prompt: string;
@@ -20,12 +20,16 @@ export interface ContentGenerationRequest {
 export interface ContentUpdate {
     type: "SLIDE_CONTENT_UPDATE" | "SLIDE_CONTENT_ERROR";
     path: string;
-    status: boolean;
+    status: boolean | string; // Can be boolean or "COMPLETED" | "GENERATING" for AI_VIDEO
     actionType: "ADD" | "UPDATE";
-    slideType: "DOCUMENT" | "ASSESSMENT" | "VIDEO";
+    slideType: "DOCUMENT" | "ASSESSMENT" | "VIDEO" | "AI_VIDEO";
     title?: string;
     contentData: any;
     errorMessage?: string;
+    metadata?: {
+        isGenerating?: boolean;
+        videoId?: string;
+    };
 }
 
 /**
@@ -197,9 +201,15 @@ export async function generateContent(
 
                                 // Validate the update structure
                                 if (update.type === 'SLIDE_CONTENT_UPDATE') {
-                                    if (!update.path || !update.slideType || update.contentData === undefined) {
+                                    // For AI_VIDEO, contentData might be undefined in intermediate events
+                                    if (!update.path || !update.slideType) {
                                         console.error('❌ Invalid SLIDE_CONTENT_UPDATE structure:', update);
                                         continue; // Skip this update but continue processing
+                                    }
+                                    // Allow contentData to be undefined for AI_VIDEO intermediate events
+                                    if (update.contentData === undefined && update.slideType !== 'AI_VIDEO') {
+                                        console.warn('⚠️ SLIDE_CONTENT_UPDATE missing contentData (non-AI_VIDEO):', update);
+                                        // Continue processing anyway for AI_VIDEO
                                     }
                                 }
 

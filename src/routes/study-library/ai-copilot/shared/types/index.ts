@@ -9,6 +9,7 @@ export type SlideType =
     | 'doc'
     | 'pdf'
     | 'video'
+    | 'ai-video'
     | 'image'
     | 'jupyter'
     | 'code-editor'
@@ -25,6 +26,24 @@ export interface QuizQuestion {
     explanation?: string;
 }
 
+export interface AIVideoContentData {
+    videoId: string;
+    status: string;
+    scriptFileId?: string;
+    audioFileId?: string;
+    wordsFileId?: string;
+    alignmentFileId?: string | null;
+    timelineFileId?: string;
+    scriptUrl?: string;
+    audioUrl?: string;
+    wordsUrl?: string;
+    alignmentUrl?: string | null;
+    timelineUrl?: string;
+    language?: string;
+    currentStage?: string;
+    progress?: number;
+}
+
 export interface SlideGeneration {
     id: string;
     sessionId: string;
@@ -37,6 +56,7 @@ export interface SlideGeneration {
     regenerationCount?: number; // Number of times this slide has been regenerated
     topicIndex?: number; // Index of the topic slide
     prompt?: string; // AI generation prompt for the slide (from API)
+    aiVideoData?: AIVideoContentData; // AI video metadata (timelineUrl, audioUrl, etc.)
 }
 
 export interface SessionProgress {
