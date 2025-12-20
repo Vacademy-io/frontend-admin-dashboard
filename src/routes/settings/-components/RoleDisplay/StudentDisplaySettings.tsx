@@ -694,6 +694,7 @@ export default function StudentDisplaySettings(): JSX.Element {
                             'canEditProfile',
                             'canDeleteProfile',
                             'canViewFiles',
+                            'canViewReports',
                         ] as const
                     ).map((k) => (
                         <div key={k} className="flex items-center gap-2">
