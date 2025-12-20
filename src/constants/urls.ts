@@ -398,7 +398,6 @@ export const LIST_WORKFLOWS_WITH_SCHEDULES = `${WORKFLOW_SERVICE_BASE}/institute
 export const GET_USER_PLANS = `${BASE_URL}/admin-core-service/v1/user-plan/all`;
 export const GET_PAYMENT_LOGS = `${BASE_URL}/admin-core-service/v1/user-plan/payment-logs`;
 
-
 // System files
 export const ADD_SYSTEM_FILE = `${BASE_URL}/admin-core-service/system-files/v1/add`;
 export const GET_SYSTEM_FILES = `${BASE_URL}/admin-core-service/system-files/v1/list`;
@@ -427,4 +426,8 @@ export const CREATE_INSTRUCTOR_COPILOT_LOG = `${INSTRUCTOR_COPILOT_BASE}/create`
 export const LIST_INSTRUCTOR_COPILOT_LOGS = `${INSTRUCTOR_COPILOT_BASE}/list`;
 export const UPDATE_INSTRUCTOR_COPILOT_LOG = (id: string) => `${INSTRUCTOR_COPILOT_BASE}/${id}`;
 export const DELETE_INSTRUCTOR_COPILOT_LOG = (id: string) => `${INSTRUCTOR_COPILOT_BASE}/${id}`;
-export const RETRY_INSTRUCTOR_COPILOT_LOG = (id: string) => `${INSTRUCTOR_COPILOT_BASE}/retry-generate/${id}`;
+export const RETRY_INSTRUCTOR_COPILOT_LOG = (id: string) =>
+    `${INSTRUCTOR_COPILOT_BASE}/retry-generate/${id}`;
+
+// Student Analysis
+export const STUDENT_ANALYSIS_BASE = `${BASE_URL}/admin-core-service/v1/student-analysis`;

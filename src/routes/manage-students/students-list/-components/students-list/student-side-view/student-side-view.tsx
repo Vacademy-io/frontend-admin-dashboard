@@ -13,6 +13,7 @@ import { StudentUserTagging } from './student-user-tagging/student-user-tagging'
 import { StudentFiles } from './student-files/student-files';
 import { StudentPortalAccess } from './student-portal-access/student-portal-access';
 import { StudentSubOrg } from './student-sub-org/student-sub-org';
+import { StudentReports } from './student-reports/student-reports';
 import { getPublicUrl } from '@/services/upload_file';
 import { ErrorBoundary } from '@/components/core/dashboard-loader';
 import { useStudentSidebar } from '../../../-context/selected-student-sidebar-context';
@@ -97,6 +98,8 @@ export const StudentSidebar = ({
                     setCategory('files');
                 } else if (settings.portalAccessTab) {
                     setCategory('portalAccess');
+                } else if (settings.reportsTab) {
+                    setCategory('reports');
                 }
             }
         };
@@ -162,7 +165,8 @@ export const StudentSidebar = ({
                         </div>
 
                         {/* Sub Organization and Roles Badges */}
-                        {(selectedStudent?.sub_org_name || selectedStudent?.comma_separated_org_roles) && (
+                        {(selectedStudent?.sub_org_name ||
+                            selectedStudent?.comma_separated_org_roles) && (
                             <div className="mb-4 flex flex-wrap items-center gap-2">
                                 {selectedStudent?.sub_org_name && (
                                     <div className="flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm">
@@ -171,14 +175,16 @@ export const StudentSidebar = ({
                                 )}
                                 {selectedStudent?.comma_separated_org_roles && (
                                     <>
-                                        {selectedStudent.comma_separated_org_roles.split(',').map((role, index) => (
-                                            <div
-                                                key={index}
-                                                className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-medium capitalize text-amber-700 shadow-sm"
-                                            >
-                                                {role.trim().toLowerCase().replace(/_/g, ' ')}
-                                            </div>
-                                        ))}
+                                        {selectedStudent.comma_separated_org_roles
+                                            .split(',')
+                                            .map((role, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-medium capitalize text-amber-700 shadow-sm"
+                                                >
+                                                    {role.trim().toLowerCase().replace(/_/g, ' ')}
+                                                </div>
+                                            ))}
                                     </>
                                 )}
                             </div>
@@ -195,10 +201,11 @@ export const StudentSidebar = ({
                                     {tabSettings.overviewTab && (
                                         <button
                                             ref={category === 'overview' ? activeTabRef : null}
-                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${category === 'overview'
-                                                ? 'bg-white text-primary-500 shadow-lg'
-                                                : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'overview'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                            }`}
                                             onClick={() => setCategory('overview')}
                                         >
                                             <span className="relative">
@@ -217,10 +224,11 @@ export const StudentSidebar = ({
                                                     ? activeTabRef
                                                     : null
                                             }
-                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${category === 'learningProgress'
-                                                ? 'bg-white text-primary-500 shadow-lg'
-                                                : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'learningProgress'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                            }`}
                                             onClick={() => setCategory('learningProgress')}
                                         >
                                             <span className="relative">
@@ -235,10 +243,11 @@ export const StudentSidebar = ({
                                     {tabSettings.testTab && (
                                         <button
                                             ref={category === 'testRecord' ? activeTabRef : null}
-                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${category === 'testRecord'
-                                                ? 'bg-white text-primary-500 shadow-lg'
-                                                : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'testRecord'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                            }`}
                                             onClick={() => setCategory('testRecord')}
                                         >
                                             <span className="relative">
@@ -253,10 +262,11 @@ export const StudentSidebar = ({
                                     {tabSettings.notificationTab && (
                                         <button
                                             ref={category === 'notifications' ? activeTabRef : null}
-                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${category === 'notifications'
-                                                ? 'bg-white text-primary-500 shadow-lg'
-                                                : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'notifications'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                            }`}
                                             onClick={() => setCategory('notifications')}
                                         >
                                             <span className="relative">
@@ -271,10 +281,11 @@ export const StudentSidebar = ({
                                     {tabSettings.membershipTab && (
                                         <button
                                             ref={category === 'membership' ? activeTabRef : null}
-                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${category === 'membership'
-                                                ? 'bg-white text-primary-500 shadow-lg'
-                                                : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'membership'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                            }`}
                                             onClick={() => setCategory('membership')}
                                         >
                                             <span className="relative">
@@ -289,10 +300,11 @@ export const StudentSidebar = ({
                                     {tabSettings.userTaggingTab && (
                                         <button
                                             ref={category === 'userTagging' ? activeTabRef : null}
-                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${category === 'userTagging'
-                                                ? 'bg-white text-primary-500 shadow-lg'
-                                                : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'userTagging'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                            }`}
                                             onClick={() => setCategory('userTagging')}
                                         >
                                             <span className="relative">
@@ -307,10 +319,11 @@ export const StudentSidebar = ({
                                     {tabSettings.fileTab && (
                                         <button
                                             ref={category === 'files' ? activeTabRef : null}
-                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${category === 'files'
-                                                ? 'bg-white text-primary-500 shadow-lg'
-                                                : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'files'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                            }`}
                                             onClick={() => setCategory('files')}
                                         >
                                             <span className="relative">
@@ -325,10 +338,11 @@ export const StudentSidebar = ({
                                     {tabSettings.portalAccessTab && (
                                         <button
                                             ref={category === 'portalAccess' ? activeTabRef : null}
-                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${category === 'portalAccess'
-                                                ? 'bg-white text-primary-500 shadow-lg'
-                                                : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'portalAccess'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                            }`}
                                             onClick={() => setCategory('portalAccess')}
                                         >
                                             <span className="relative">
@@ -340,13 +354,33 @@ export const StudentSidebar = ({
                                         </button>
                                     )}
 
+                                    {tabSettings.reportsTab && (
+                                        <button
+                                            ref={category === 'reports' ? activeTabRef : null}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'reports'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                            }`}
+                                            onClick={() => setCategory('reports')}
+                                        >
+                                            <span className="relative">
+                                                Reports
+                                                {category === 'reports' && (
+                                                    <div className="absolute -bottom-1 left-1/2 size-1 -translate-x-1/2 animate-bounce rounded-full bg-primary-500"></div>
+                                                )}
+                                            </span>
+                                        </button>
+                                    )}
+
                                     {selectedStudent?.sub_org_name && (
                                         <button
                                             ref={category === 'subOrg' ? activeTabRef : null}
-                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${category === 'subOrg'
-                                                ? 'bg-white text-primary-500 shadow-lg'
-                                                : 'text-neutral-600 hover:text-neutral-800'
-                                                }`}
+                                            className={`group relative z-10 shrink-0 whitespace-nowrap rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-300 ${
+                                                category === 'subOrg'
+                                                    ? 'bg-white text-primary-500 shadow-lg'
+                                                    : 'text-neutral-600 hover:text-neutral-800'
+                                            }`}
                                             onClick={() => setCategory('subOrg')}
                                         >
                                             <span className="relative">
@@ -464,6 +498,9 @@ export const StudentSidebar = ({
                             !isEnrollRequestStudentList && (
                                 <StudentSubOrg isSubmissionTab={isSubmissionTab} />
                             )}
+                        {category === 'reports' &&
+                            tabSettings?.reportsTab &&
+                            !isEnrollRequestStudentList && <StudentReports />}
                     </ErrorBoundary>
                 </div>
             </SidebarContent>
