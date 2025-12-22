@@ -192,7 +192,11 @@ export const handleGenerateAssessmentImage = async (
     return response?.data;
 };
 
-export const handleEvaluateLecture = async (audioId: string, taskName: string) => {
+export const handleEvaluateLecture = async (
+    audioId: string,
+    taskName: string,
+    preferredModel?: string
+) => {
     const instituteId = getInstituteId();
     const response = await axios({
         method: 'GET',
@@ -201,6 +205,7 @@ export const handleEvaluateLecture = async (audioId: string, taskName: string) =
             audioId,
             taskName,
             instituteId,
+            ...(preferredModel && { preferredModel }),
         },
     });
     return response?.data;
@@ -267,7 +272,8 @@ export const handleGetQuestionsFromAudio = async (
     difficulty: string | null,
     language: string | null,
     taskName: string,
-    taskId: string
+    taskId: string,
+    preferredModel?: string
 ) => {
     const instituteId = getInstituteId();
     const response = await axios({
@@ -282,6 +288,7 @@ export const handleGetQuestionsFromAudio = async (
             taskName,
             instituteId,
             taskId,
+            ...(preferredModel && { preferredModel }),
         },
     });
     return response?.data;
@@ -295,7 +302,8 @@ export const handleGetQuestionsFromText = async (
     topics: string,
     question_type: string,
     question_language: string,
-    taskId: string
+    taskId: string,
+    preferredModel?: string
 ) => {
     const instituteId = getInstituteId();
     const response = await authenticatedAxiosInstance({
@@ -310,6 +318,7 @@ export const handleGetQuestionsFromText = async (
             question_language: question_language,
             taskName,
             taskId,
+            ...(preferredModel && { preferredModel }),
         },
         params: { instituteId },
     });
@@ -327,7 +336,8 @@ export const handleGetPlanLecture = async (
         min: string;
     },
     isQuestionGenerated: boolean,
-    isAssignmentHomeworkGenerated: boolean
+    isAssignmentHomeworkGenerated: boolean,
+    preferredModel?: string
 ) => {
     const instituteId = getInstituteId();
     const totalMinutes =
@@ -345,6 +355,7 @@ export const handleGetPlanLecture = async (
             level: level,
             isQuestionGenerated,
             isAssignmentHomeworkGenerated,
+            ...(preferredModel && { preferredModel }),
         },
     });
     return response?.data;

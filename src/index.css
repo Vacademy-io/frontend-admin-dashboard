@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Compact Mode Styles */
+@import './styles/compact-mode.css';
+
 html {
     scroll-behavior: smooth;
 }

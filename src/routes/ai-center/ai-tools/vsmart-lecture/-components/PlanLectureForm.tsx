@@ -15,6 +15,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { ModelSelector } from '../../-components/ModelSelector';
 
 type PlanLectureFormProps = {
     handleSubmitSuccess: (data: PlanLectureAIFormSchema) => void;
@@ -38,6 +39,7 @@ const PlanLectureForm = ({ handleSubmitSuccess, keyContext, loader }: PlanLectur
             },
             isQuestionGenerated: false,
             isAssignmentHomeworkGenerated: false,
+            preferredModel: undefined, // Will use default model
         },
     });
 
@@ -234,6 +236,24 @@ const PlanLectureForm = ({ handleSubmitSuccess, keyContext, loader }: PlanLectur
                                         <Switch
                                             checked={field.value}
                                             onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* AI Model Selection */}
+                        <FormField
+                            control={form.control}
+                            name="preferredModel"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <ModelSelector
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            showAdvanced={true}
+                                            className="w-full"
                                         />
                                     </FormControl>
                                 </FormItem>

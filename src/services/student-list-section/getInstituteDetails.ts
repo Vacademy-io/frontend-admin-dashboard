@@ -1,10 +1,11 @@
 import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import axios from 'axios';
 import {
     InstituteDetailsType,
     SubModuleType,
 } from '@/schemas/student/student-list/institute-schema';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { HOLISTIC_INSTITUTE_ID, INIT_INSTITUTE, INIT_INSTITUTE_SETUP } from '@/constants/urls';
+import { HOLISTIC_INSTITUTE_ID, INIT_INSTITUTE, INIT_INSTITUTE_SETUP, DOMAIN_ROUTING_RESOLVE } from '@/constants/urls';
 import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
 import { useTheme } from '@/providers/theme/theme-provider';
 import { StorageKey } from '@/constants/storage/storage';
@@ -18,7 +19,7 @@ export const fetchInstituteSetup = async (): Promise<any> => {
         method: 'GET',
         url: `${INIT_INSTITUTE_SETUP}/${INSTITUTE_ID}`,
     });
-    
+
     // Transform the nested response to flat structure
     const setupData = response.data;
     const transformedData = {
@@ -26,7 +27,7 @@ export const fetchInstituteSetup = async (): Promise<any> => {
         sub_org_roles: setupData.sub_org_roles || [],
         dropdown_custom_fields: setupData.dropdown_custom_fields || [],
     };
-    
+
     return transformedData;
 };
 
@@ -39,16 +40,53 @@ export const fetchInstituteDetails = async (): Promise<InstituteDetailsType> => 
     return response.data;
 };
 
+
+
+export const fetchInstituteRoutingDetails = async (): Promise<any> => {
+    try {
+        const hostname = window.location.hostname;
+        const parts = hostname.split('.');
+        let domain = hostname;
+        let subdomain = '';
+
+        if (hostname.includes('localhost')) {
+            if (parts.length > 1) {
+                domain = 'localhost';
+                subdomain = parts.slice(0, -1).join('.');
+            }
+        } else {
+            // Assume the last two parts are the domain (e.g. vacademy.io)
+            if (parts.length > 2) {
+                domain = parts.slice(-2).join('.');
+                subdomain = parts.slice(0, -2).join('.');
+            }
+        }
+
+        const response = await axios.get(DOMAIN_ROUTING_RESOLVE, {
+            params: {
+                domain,
+                subdomain: subdomain || undefined
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching domain routing details:', error);
+        return {};
+    }
+};
+
 // Fetch both APIs in parallel and merge the results
 export const fetchBothInstituteAPIs = async (): Promise<InstituteDetailsType> => {
-    const [instituteData, setupData] = await Promise.all([
+    const [instituteData, setupData, routingData] = await Promise.all([
         fetchInstituteDetails(),
-        fetchInstituteSetup()
+        fetchInstituteSetup(),
+        fetchInstituteRoutingDetails()
     ]);
-    
-    // Merge: base institute data + setup data overlay (filters from setup take precedence)
+
+    // Merge: base institute data + setup data overlay (filters from setup take precedence) + routing data
     const mergedData: InstituteDetailsType = {
         ...instituteData,
+        ...routingData, // Merge routing data (app links, etc)
         // Override/add filter-related fields from INIT_INSTITUTE_SETUP
         sub_org_roles: setupData?.sub_org_roles || [],
         dropdown_custom_fields: setupData?.dropdown_custom_fields || [],
@@ -63,7 +101,7 @@ export const fetchBothInstituteAPIs = async (): Promise<InstituteDetailsType> =>
         genders: instituteData?.genders || [],
         tags: instituteData?.tags || [],
     };
-    
+
     return mergedData;
 }
 
@@ -84,7 +122,7 @@ export const useInstituteQuery = () => {
         queryFn: async () => {
             const data = await fetchBothInstituteAPIs();
             const INSTITUTE_ID = getCurrentInstituteId();
-            
+
             // Try to parse settings if they exist
             try {
                 if (data?.setting) {

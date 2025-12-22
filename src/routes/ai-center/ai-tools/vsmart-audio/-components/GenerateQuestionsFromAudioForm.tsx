@@ -9,6 +9,7 @@ import { languageSupport } from '@/constants/dummy-data';
 import { AudioAIQuestionFormSchema } from '@/routes/ai-center/-utils/audio-questions-schema';
 import { useState } from 'react';
 import { FormProvider, UseFormReturn } from 'react-hook-form';
+import { ModelSelector } from '../../-components/ModelSelector';
 
 const GenerateQuestionsFromAudioForm = ({
     form,
@@ -23,7 +24,8 @@ const GenerateQuestionsFromAudioForm = ({
         numQuestions: string,
         prompt: string,
         difficulty: string,
-        language: string
+        language: string,
+        preferredModel?: string
     ) => void;
     status: string;
 }) => {
@@ -35,7 +37,8 @@ const GenerateQuestionsFromAudioForm = ({
             values.numQuestions,
             values.prompt,
             values.difficulty,
-            values.language
+            values.language,
+            values.preferredModel
         );
     };
 
@@ -125,6 +128,24 @@ const GenerateQuestionsFromAudioForm = ({
                             control={form.control}
                             required
                             className="w-full font-thin"
+                        />
+
+                        {/* AI Model Selection */}
+                        <FormField
+                            control={form.control}
+                            name="preferredModel"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <ModelSelector
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            showAdvanced={true}
+                                            className="w-full"
+                                        />
+                                    </FormControl>
+                                </FormItem>
+                            )}
                         />
                         <div>
                             {status === 'pending' ? (

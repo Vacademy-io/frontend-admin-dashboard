@@ -11,6 +11,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 
 import { Route as rootRouteImport } from "./routes/__root"
+import { Route as AgentChatRouteImport } from "./routes/agent-chat"
 import { Route as StudyLibraryIndexRouteImport } from "./routes/study-library/index"
 import { Route as SignupIndexRouteImport } from "./routes/signup/index"
 import { Route as SettingsIndexRouteImport } from "./routes/settings/index"
@@ -137,6 +138,11 @@ const LandingLazyRoute = LandingLazyRouteImport.update({
   path: "/landing",
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import("./routes/landing.lazy").then((d) => d.Route))
+const AgentChatRoute = AgentChatRouteImport.update({
+  id: "/agent-chat",
+  path: "/agent-chat",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import("./routes/agent-chat.lazy").then((d) => d.Route))
 const AssessmentIndexLazyRoute = AssessmentIndexLazyRouteImport.update({
   id: "/assessment/",
   path: "/assessment/",
@@ -981,6 +987,7 @@ const AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeAssesssmentTy
   )
 
 export interface FileRoutesByFullPath {
+  "/agent-chat": typeof AgentChatRoute
   "/landing": typeof LandingLazyRoute
   "/learner-insights": typeof LearnerInsightsLazyRouteWithChildren
   "/pricing": typeof PricingLazyRoute
@@ -1090,6 +1097,7 @@ export interface FileRoutesByFullPath {
   "/study-library/courses/course-details/subjects/modules/chapters/slides": typeof StudyLibraryCoursesCourseDetailsSubjectsModulesChaptersSlidesIndexRoute
 }
 export interface FileRoutesByTo {
+  "/agent-chat": typeof AgentChatRoute
   "/landing": typeof LandingLazyRoute
   "/pricing": typeof PricingLazyRoute
   "/ai-center": typeof AiCenterIndexRoute
@@ -1199,6 +1207,7 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  "/agent-chat": typeof AgentChatRoute
   "/landing": typeof LandingLazyRoute
   "/learner-insights": typeof LearnerInsightsLazyRouteWithChildren
   "/pricing": typeof PricingLazyRoute
@@ -1310,6 +1319,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | "/agent-chat"
     | "/landing"
     | "/learner-insights"
     | "/pricing"
@@ -1419,6 +1429,7 @@ export interface FileRouteTypes {
     | "/study-library/courses/course-details/subjects/modules/chapters/slides"
   fileRoutesByTo: FileRoutesByTo
   to:
+    | "/agent-chat"
     | "/landing"
     | "/pricing"
     | "/ai-center"
@@ -1527,6 +1538,7 @@ export interface FileRouteTypes {
     | "/study-library/courses/course-details/subjects/modules/chapters/slides"
   id:
     | "__root__"
+    | "/agent-chat"
     | "/landing"
     | "/learner-insights"
     | "/pricing"
@@ -1637,6 +1649,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  AgentChatRoute: typeof AgentChatRoute
   LandingLazyRoute: typeof LandingLazyRoute
   LearnerInsightsLazyRoute: typeof LearnerInsightsLazyRouteWithChildren
   PricingLazyRoute: typeof PricingLazyRoute
@@ -1766,6 +1779,13 @@ declare module "@tanstack/react-router" {
       path: "/landing"
       fullPath: "/landing"
       preLoaderRoute: typeof LandingLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/agent-chat": {
+      id: "/agent-chat"
+      path: "/agent-chat"
+      fullPath: "/agent-chat"
+      preLoaderRoute: typeof AgentChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/assessment/": {
@@ -2511,6 +2531,7 @@ const LearnerInsightsLazyRouteWithChildren =
   LearnerInsightsLazyRoute._addFileChildren(LearnerInsightsLazyRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
+  AgentChatRoute: AgentChatRoute,
   LandingLazyRoute: LandingLazyRoute,
   LearnerInsightsLazyRoute: LearnerInsightsLazyRouteWithChildren,
   PricingLazyRoute: PricingLazyRoute,

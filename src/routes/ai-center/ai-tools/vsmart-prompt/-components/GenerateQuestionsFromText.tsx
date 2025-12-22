@@ -25,6 +25,7 @@ const formSchema = z.object({
     topics: z.string().min(1),
     question_type: z.string().min(1),
     question_language: z.string().min(1),
+    preferredModel: z.string().optional(),
 });
 
 export type QuestionsFromTextData = z.infer<typeof formSchema>;
@@ -40,7 +41,7 @@ export const GenerateQuestionsFromText = ({
     const [open, setOpen] = useState(false);
     const [disableSubmitBtn, setDisableSubmitBtn] = useState(false);
     console.log(disableSubmitBtn);
-    const formSubmitRef = useRef(() => {});
+    const formSubmitRef = useRef(() => { });
     const dialogForm = useForm<QuestionsFromTextData>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -51,6 +52,7 @@ export const GenerateQuestionsFromText = ({
             topics: '',
             question_type: '',
             question_language: languageSupport[0],
+            preferredModel: undefined, // Will use default model
         },
     });
     const { key: keyContext, loader, setLoader, setKey } = useAICenter();
@@ -78,6 +80,7 @@ export const GenerateQuestionsFromText = ({
                 topics: string;
                 question_type: string;
                 question_language: string;
+                preferredModel?: string;
             };
             taskId: string;
         }) => {
@@ -91,7 +94,8 @@ export const GenerateQuestionsFromText = ({
                 data.topics,
                 data.question_type,
                 data.question_language,
-                taskId
+                taskId,
+                data.preferredModel
             );
         },
         onSuccess: () => {
@@ -119,6 +123,7 @@ export const GenerateQuestionsFromText = ({
                 topics: data.topics,
                 question_type: data.question_type,
                 question_language: data.question_language,
+                preferredModel: data.preferredModel,
             },
             taskId: taskId,
         });
