@@ -28,6 +28,8 @@ import { DeleteStudentDialog } from './table-components/student-menu-options/del
 import { ColumnWidthConfig } from './utils/constants/table-layout';
 import { DashboardLoader } from '../core/dashboard-loader';
 import { useState, useCallback } from 'react';
+import { useCompactMode } from '@/hooks/use-compact-mode';
+import { cn } from '@/lib/utils';
 
 const headerTextCss = 'p-3 border-r border-neutral-300';
 const cellCommonCss = 'p-3';
@@ -70,10 +72,9 @@ const ResizeHandle = ({ header, table }: { header: any; table: any }) => {
             <div
                 className={`
                     h-4 w-0.5 rounded-full transition-all duration-200 ease-in-out
-                    ${
-                        isHovered || isResizing
-                            ? 'scale-y-150 bg-primary-500 shadow-md'
-                            : 'bg-neutral-300 group-hover:bg-primary-400'
+                    ${isHovered || isResizing
+                        ? 'scale-y-150 bg-primary-500 shadow-md'
+                        : 'bg-neutral-300 group-hover:bg-primary-400'
                     }
                 `}
             />
@@ -137,6 +138,8 @@ export function MyTable<T>({
     maxColumnWidth = 1000,
     enableColumnPinning = true,
 }: MyTableProps<T>) {
+    const { isCompact } = useCompactMode();
+
     // State for column resizing
     const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
 
@@ -259,7 +262,10 @@ export function MyTable<T>({
                         }}
                     >
                         <thead
-                            className="sticky top-0 z-30 border-b border-neutral-300 bg-primary-200 shadow-sm [&_tr]:border-b"
+                            className={cn(
+                                "sticky top-0 z-30 border-b border-neutral-300 bg-primary-200 shadow-sm [&_tr]:border-b",
+                                isCompact ? "text-xs" : "text-sm"
+                            )}
                             style={{
                                 transform: 'translate3d(0, 0, 0)',
                                 WebkitTransform: 'translate3d(0, 0, 0)',
@@ -282,9 +288,14 @@ export function MyTable<T>({
                                             .map((header) => (
                                                 <th
                                                     key={header.id}
-                                                    className={`${headerTextCss} sticky left-0 z-40 h-10 overflow-visible border-r-2 border-primary-300 bg-primary-100 px-2 text-left align-middle text-subtitle font-semibold text-neutral-600 ${
+                                                    className={cn(
+                                                        "sticky left-0 z-40 overflow-visible border-r-2 border-primary-300 bg-primary-100 text-left align-middle font-semibold text-neutral-600",
+                                                        // Compact vs Default styles
+                                                        isCompact
+                                                            ? "h-8 p-1 px-2 text-xs"
+                                                            : "h-10 p-3 px-2 text-subtitle",
                                                         columnWidths?.[header.column.id] || ''
-                                                    }`}
+                                                    )}
                                                     style={{
                                                         width: header?.getSize?.(),
                                                         minWidth:
@@ -316,10 +327,10 @@ export function MyTable<T>({
                                                             {header.isPlaceholder
                                                                 ? null
                                                                 : flexRender(
-                                                                      header.column.columnDef
-                                                                          .header,
-                                                                      header.getContext()
-                                                                  )}
+                                                                    header.column.columnDef
+                                                                        .header,
+                                                                    header.getContext()
+                                                                )}
                                                         </div>
                                                         {header?.column?.getCanResize?.() && (
                                                             <ResizeHandle
@@ -337,9 +348,14 @@ export function MyTable<T>({
                                             .map((header) => (
                                                 <th
                                                     key={header.id}
-                                                    className={`${headerTextCss} relative h-10 overflow-visible bg-primary-100 px-2 text-left align-middle text-subtitle font-semibold text-neutral-600 ${
+                                                    className={cn(
+                                                        "relative overflow-visible border-r border-neutral-300 bg-primary-100 text-left align-middle font-semibold text-neutral-600",
+                                                        // Compact vs Default styles
+                                                        isCompact
+                                                            ? "h-8 p-1 px-2 text-xs"
+                                                            : "h-10 p-3 px-2 text-subtitle",
                                                         columnWidths?.[header.column.id] || ''
-                                                    }`}
+                                                    )}
                                                     style={{
                                                         width: header?.getSize?.(),
                                                         minWidth:
@@ -370,10 +386,10 @@ export function MyTable<T>({
                                                             {header.isPlaceholder
                                                                 ? null
                                                                 : flexRender(
-                                                                      header.column.columnDef
-                                                                          .header,
-                                                                      header.getContext()
-                                                                  )}
+                                                                    header.column.columnDef
+                                                                        .header,
+                                                                    header.getContext()
+                                                                )}
                                                         </div>
                                                         {header?.column?.getCanResize?.() && (
                                                             <ResizeHandle
@@ -411,9 +427,14 @@ export function MyTable<T>({
                                     {row.getLeftVisibleCells().map((cell) => (
                                         <td
                                             key={cell.id}
-                                            className={`${cellCommonCss} sticky left-0 z-30 border-r-2 border-neutral-200 bg-white p-2 align-middle text-body font-regular text-neutral-600 ${
+                                            className={cn(
+                                                "sticky left-0 z-30 border-r-2 border-neutral-200 bg-white align-middle font-regular text-neutral-600",
+                                                // Compact vs Default styles
+                                                isCompact
+                                                    ? "p-1 text-xs"
+                                                    : "p-2 text-body", // Default was p-3 (from cellCommonCss) then p-2 override. Using p-2 for consistency with active.
                                                 columnWidths?.[cell.column.id] || ''
-                                            }`}
+                                            )}
                                             style={{
                                                 width: cell?.column?.getSize?.(),
                                                 minWidth:
@@ -449,9 +470,14 @@ export function MyTable<T>({
                                     {row.getCenterVisibleCells().map((cell) => (
                                         <td
                                             key={cell.id}
-                                            className={`${cellCommonCss} z-10 bg-white p-2 align-middle text-body font-regular text-neutral-600 ${
+                                            className={cn(
+                                                "z-10 bg-white align-middle font-regular text-neutral-600",
+                                                // Compact vs Default styles
+                                                isCompact
+                                                    ? "p-1 text-xs"
+                                                    : "p-2 text-body",
                                                 columnWidths?.[cell.column.id] || ''
-                                            }`}
+                                            )}
                                             style={{
                                                 width: cell?.column?.getSize?.(),
                                                 minWidth:

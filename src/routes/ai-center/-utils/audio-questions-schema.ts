@@ -6,6 +6,8 @@ export const audioQuestionsFormSchema = z.object({
     difficulty: z.string().min(1, 'Required'),
     language: z.string().min(1, 'Required'),
     taskName: z.string().min(1, 'Required'),
+    preferredModel: z.string().optional(),
 });
 
 export type AudioAIQuestionFormSchema = z.infer<typeof audioQuestionsFormSchema>;
+

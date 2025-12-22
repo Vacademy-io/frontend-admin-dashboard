@@ -38,6 +38,7 @@ import useInstituteLogoStore from './institutelogo-global-zustand';
 import { useTabSettings } from '@/hooks/use-tab-settings';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useCompactMode } from '@/hooks/use-compact-mode';
 
 const voltSidebarData: SidebarItemsType[] = [
     {
@@ -56,6 +57,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     const currentRoute = router.state.location.pathname;
     const { isTabVisible, isSubItemVisible } = useTabSettings();
     const isMobile = useIsMobile();
+    const { isCompact } = useCompactMode();
 
     const [isVoltSubdomain, setIsVoltSubdomain] = useState(false);
 
@@ -190,19 +192,29 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                         <img
                             src={instituteLogo}
                             alt="logo"
-                            className="h-12 w-auto max-w-[100px] object-cover rounded-full"
+                            className={cn(
+                                "w-auto object-cover rounded-full",
+                                isCompact ? "h-8 max-w-[60px]" : "h-12 max-w-[100px]"
+                            )}
                         />
                     )}
                     <SidebarGroup
-                        className={`text-center text-lg font-semibold leading-tight text-primary-500 ${!isMobile ? 'group-data-[collapsible=icon]:hidden' : ''}`}
+                        className={cn(
+                            "text-center font-semibold leading-tight text-primary-500",
+                            !isMobile ? 'group-data-[collapsible=icon]:hidden' : '',
+                            isCompact ? 'text-sm' : 'text-lg'
+                        )}
                     >
                         {data?.institute_name}
                     </SidebarGroup>
                 </div>
             </SidebarHeader>
             <SidebarMenu
-                className={`flex shrink-0 flex-col gap-2 px-1 py-4 ${state == 'expanded' || isMobile ? 'items-stretch' : 'items-center'
-                    }`}
+                className={cn(
+                    "flex shrink-0 flex-col px-1 py-4",
+                    state == 'expanded' || isMobile ? 'items-stretch' : 'items-center',
+                    isCompact ? "gap-1" : "gap-2"
+                )}
             >
                 {sidebarComponent
                     ? sidebarComponent
@@ -245,7 +257,7 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
             <Sheet open={openMobile} onOpenChange={setOpenMobile}>
                 <SheetContent
                     side="left"
-                    className="w-[280px] p-0 bg-primary-50 border-r border-r-neutral-300"
+                    className="w-[280px] p-0 bg-primary-50 border-r"
                 >
                     <SheetHeader className="sr-only">
                         <SheetTitle>Navigation Menu</SheetTitle>
@@ -260,10 +272,14 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
 
     // Desktop/Tablet: Render as regular Sidebar
     return (
-        <Sidebar collapsible="icon" className="z-20">
+        <Sidebar collapsible="icon" className="z-20 !border-0">
             <SidebarContent
-                className={`sidebar-content flex flex-col gap-2 border-r border-r-neutral-300 bg-primary-50 py-6 ${state == 'expanded' ? 'w-[307px]' : 'w-28'
-                    }`}
+                className={cn(
+                    "sidebar-content flex flex-col gap-2 border-r bg-primary-50 py-6",
+                    state == 'expanded'
+                        ? (isCompact ? 'w-[220px]' : 'w-[307px]')
+                        : (isCompact ? 'w-14' : 'w-28')
+                )}
             >
                 {sidebarContent}
             </SidebarContent>
