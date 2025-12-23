@@ -17,6 +17,12 @@ import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { GET_INVITE_LINKS, GET_SINGLE_INVITE_DETAILS } from '@/constants/urls';
 import { getInstituteId } from '@/constants/helper';
 import { useState } from 'react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { CalendarIcon } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface InviteItem {
     id: string;
@@ -81,6 +87,7 @@ export const StepThreeForm = ({
             },
             enrollment_number: '',
             access_days: '',
+            start_date: new Date().toISOString(), // Default to today
         };
     };
 
@@ -221,9 +228,9 @@ export const StepThreeForm = ({
                                                 currentValue={
                                                     field.value?.id
                                                         ? {
-                                                              id: field.value.id,
-                                                              name: field.value.name,
-                                                          }
+                                                            id: field.value.id,
+                                                            name: field.value.name,
+                                                        }
                                                         : undefined
                                                 }
                                                 handleChange={handleInviteChange}
@@ -290,6 +297,58 @@ export const StepThreeForm = ({
                                         </FormControl>
                                     </FormItem>
                                 )}
+                            />
+
+                            {/* Enrollment Start Date */}
+                            <FormField
+                                control={form.control}
+                                name="start_date"
+                                render={({ field }) => {
+                                    const selectedDate = field.value ? parseISO(field.value) : new Date();
+
+                                    return (
+                                        <FormItem>
+                                            <FormLabel className="text-subtitle font-semibold">
+                                                Enrollment Start Date
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <Button
+                                                            variant="outline"
+                                                            className={cn(
+                                                                'w-full justify-start text-left font-normal',
+                                                                !field.value && 'text-muted-foreground'
+                                                            )}
+                                                        >
+                                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                                            {field.value ? (
+                                                                format(selectedDate, 'PPP')
+                                                            ) : (
+                                                                <span>Select start date</span>
+                                                            )}
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-auto p-0" align="start">
+                                                        <Calendar
+                                                            mode="single"
+                                                            selected={selectedDate}
+                                                            onSelect={(date) => {
+                                                                if (date) {
+                                                                    field.onChange(date.toISOString());
+                                                                }
+                                                            }}
+                                                            initialFocus
+                                                        />
+                                                    </PopoverContent>
+                                                </Popover>
+                                            </FormControl>
+                                            <p className="text-xs text-muted-foreground">
+                                                Choose a date to backdate the enrollment or leave as today.
+                                            </p>
+                                        </FormItem>
+                                    );
+                                }}
                             />
 
                             {/* Access Days - commenting for temporary removal */}

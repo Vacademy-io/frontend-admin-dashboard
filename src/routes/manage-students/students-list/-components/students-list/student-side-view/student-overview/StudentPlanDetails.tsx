@@ -1,17 +1,166 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { MyButton } from '@/components/design-system/button';
-import { Clock, Eye, Loader2, AlertCircle } from 'lucide-react';
+import { Clock, Eye, Loader2, AlertCircle, RefreshCw, Calendar, CheckCircle2, Ban, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { getUserPlans, UserPlan } from '@/services/user-plan';
 import { toast } from 'sonner';
-import { formatDate } from 'date-fns';
+import { formatDate, format } from 'date-fns';
 import { Card } from '@/components/ui/card';
+import { PolicyActionsTimeline } from '@/components/common/PolicyActionsTimeline';
+import type { PolicyDetails } from '@/types/membership-expiry';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface StudentPlanDetailsProps {
     userId: string;
     instituteId?: string;
 }
+
+// Helper to get the first policy from a plan
+const getFirstPolicy = (plan: UserPlan): PolicyDetails | null => {
+    if (plan.policy_details && plan.policy_details.length > 0) {
+        return plan.policy_details[0] || null;
+    }
+    return null;
+};
+
+// Auto-Renewal Badge Component
+const AutoRenewalBadge = ({ policy }: { policy: PolicyDetails | null }) => {
+    if (!policy?.on_expiry_policy) return null;
+
+    const isEnabled = policy.on_expiry_policy.enable_auto_renewal;
+
+    return (
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <div className="inline-flex">
+                        {isEnabled ? (
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1 text-[10px]">
+                                <RefreshCw className="size-2.5" />
+                                Auto-Renewal
+                            </Badge>
+                        ) : (
+                            <Badge variant="outline" className="bg-gray-50 text-gray-500 border-gray-200 flex items-center gap-1 text-[10px]">
+                                <Ban className="size-2.5" />
+                                No Auto-Renewal
+                            </Badge>
+                        )}
+                    </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                    {isEnabled
+                        ? `Payment attempt on ${policy.on_expiry_policy.next_payment_attempt_date ? format(new Date(policy.on_expiry_policy.next_payment_attempt_date), 'MMM dd, yyyy') : 'scheduled date'}`
+                        : 'Auto-renewal is disabled'
+                    }
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+    );
+};
+
+// Policy Details Section Component
+const PolicyDetailsSection = ({ policy, compact = false }: { policy: PolicyDetails | null; compact?: boolean }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    if (!policy) return null;
+
+    const hasExpiryPolicy = policy.on_expiry_policy !== null;
+    const hasReenrollmentPolicy = policy.reenrollment_policy !== null;
+    const hasPolicyActions = policy.policy_actions && policy.policy_actions.length > 0;
+
+    if (!hasExpiryPolicy && !hasReenrollmentPolicy && !hasPolicyActions) return null;
+
+    return (
+        <div className="mt-2 space-y-2">
+            {/* Expiry Policy Info */}
+            {hasExpiryPolicy && (
+                <div className="rounded-md bg-neutral-50/80 p-2 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-medium text-neutral-500 uppercase tracking-wide">
+                            Expiry Policy
+                        </span>
+                        <AutoRenewalBadge policy={policy} />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-[10px]">
+                        {policy.on_expiry_policy?.final_expiry_date && (
+                            <div className="flex items-center gap-1">
+                                <Calendar className="size-3 text-red-400" />
+                                <span className="text-neutral-600">
+                                    Final: {format(new Date(policy.on_expiry_policy.final_expiry_date), 'MMM dd, yyyy')}
+                                </span>
+                            </div>
+                        )}
+                        {policy.on_expiry_policy?.waiting_period_in_days !== undefined && policy.on_expiry_policy.waiting_period_in_days > 0 && (
+                            <div className="flex items-center gap-1">
+                                <Clock className="size-3 text-amber-400" />
+                                <span className="text-neutral-600">
+                                    {policy.on_expiry_policy.waiting_period_in_days} day grace
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Re-enrollment Info */}
+            {hasReenrollmentPolicy && (
+                <div className="rounded-md bg-neutral-50/80 p-2">
+                    <div className="flex items-center gap-2 text-[10px]">
+                        {policy.reenrollment_policy?.allow_reenrollment_after_expiry ? (
+                            <>
+                                <CheckCircle2 className="size-3 text-green-500" />
+                                <span className="text-neutral-600">
+                                    Re-enrollment{' '}
+                                    {policy.reenrollment_policy.next_eligible_enrollment_date
+                                        ? `from ${format(new Date(policy.reenrollment_policy.next_eligible_enrollment_date), 'MMM dd, yyyy')}`
+                                        : 'available'
+                                    }
+                                    {policy.reenrollment_policy.reenrollment_gap_in_days > 0 && (
+                                        <span className="text-neutral-400 ml-1">
+                                            ({policy.reenrollment_policy.reenrollment_gap_in_days} day gap)
+                                        </span>
+                                    )}
+                                </span>
+                            </>
+                        ) : (
+                            <>
+                                <Ban className="size-3 text-red-400" />
+                                <span className="text-neutral-500">Re-enrollment not allowed</span>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Policy Actions Timeline (Expandable) */}
+            {hasPolicyActions && !compact && (
+                <div className="rounded-md bg-neutral-50/80 overflow-hidden">
+                    <button
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        className="w-full flex items-center justify-between p-2 text-[10px] font-medium text-neutral-500 hover:bg-neutral-100/50 transition-colors"
+                    >
+                        <span className="uppercase tracking-wide">Policy Actions ({policy.policy_actions.length})</span>
+                        {isExpanded ? (
+                            <ChevronUp className="size-3" />
+                        ) : (
+                            <ChevronDown className="size-3" />
+                        )}
+                    </button>
+                    {isExpanded && (
+                        <div className="px-2 pb-2">
+                            <PolicyActionsTimeline
+                                actions={policy.policy_actions}
+                                compact={true}
+                            />
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
 
 const StudentPlanDetails = ({ userId, instituteId }: StudentPlanDetailsProps) => {
     const [activePlan, setActivePlan] = useState<UserPlan | null>(null);
@@ -153,12 +302,18 @@ const StudentPlanDetails = ({ userId, instituteId }: StudentPlanDetailsProps) =>
     const getPlanValidity = (plan: UserPlan): number | undefined => {
         return plan.payment_plan_dto?.validity_in_days;
     };
+
     const getExpiryDate = (plan: UserPlan): string | null => {
+        // Use end_date from plan if available
+        if (plan.end_date) {
+            return formatDate(new Date(plan.end_date), 'dd MMM yyyy');
+        }
+        // Fallback to calculated validity
         const validityDays = getPlanValidity(plan);
-        if (validityDays) {
-            const today = new Date();
-            today.setDate(today.getDate() + validityDays);
-            return formatDate(today, 'dd MMM yyyy');
+        if (validityDays && plan.start_date) {
+            const startDate = new Date(plan.start_date);
+            startDate.setDate(startDate.getDate() + validityDays);
+            return formatDate(startDate, 'dd MMM yyyy');
         }
         return null;
     };
@@ -192,12 +347,18 @@ const StudentPlanDetails = ({ userId, instituteId }: StudentPlanDetailsProps) =>
                                 </Badge>
                             </div>
                             <div className="flex flex-wrap items-center gap-1.5">
-                                {getPlanValidity(activePlan) && (
+                                {getExpiryDate(activePlan) && (
                                     <span className="text-[10px] text-neutral-600">
                                         Valid till {getExpiryDate(activePlan)}
                                     </span>
                                 )}
                             </div>
+
+                            {/* Policy Details Section - New! */}
+                            <PolicyDetailsSection
+                                policy={getFirstPolicy(activePlan)}
+                                compact={true}
+                            />
                         </div>
 
                         <MyButton
@@ -220,7 +381,7 @@ const StudentPlanDetails = ({ userId, instituteId }: StudentPlanDetailsProps) =>
 
             {/* Plans History Dialog */}
             <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-                <DialogContent className="max-h-[70vh] w-[600px] overflow-y-auto ">
+                <DialogContent className="max-h-[80vh] w-[700px] overflow-y-auto ">
                     <DialogHeader>
                         <DialogTitle>Payment Plans History</DialogTitle>
                     </DialogHeader>
@@ -238,44 +399,60 @@ const StudentPlanDetails = ({ userId, instituteId }: StudentPlanDetailsProps) =>
                         ) : (
                             <>
                                 <div className="space-y-3">
-                                    {allPlans.map((plan) => (
-                                        <Card
-                                            key={plan.id}
-                                            className="rounded-md border border-neutral-200 p-3"
-                                        >
-                                            <div className="mb-2 flex items-start justify-between">
-                                                <div className="flex-1">
-                                                    <h5 className="text-sm font-semibold text-neutral-900">
-                                                        {getOptionName(plan)} - {getPlanName(plan)}
-                                                    </h5>
-                                                    <p className="mt-1 text-xs text-neutral-600">
-                                                        Type: {plan.payment_option.type}
-                                                    </p>
+                                    {allPlans.map((plan) => {
+                                        const policy = getFirstPolicy(plan);
+                                        return (
+                                            <Card
+                                                key={plan.id}
+                                                className="rounded-md border border-neutral-200 p-3"
+                                            >
+                                                <div className="mb-2 flex items-start justify-between">
+                                                    <div className="flex-1">
+                                                        <h5 className="text-sm font-semibold text-neutral-900">
+                                                            {getOptionName(plan)} - {getPlanName(plan)}
+                                                        </h5>
+                                                        <p className="mt-1 text-xs text-neutral-600">
+                                                            Type: {plan.payment_option.type}
+                                                        </p>
+                                                        {policy?.package_session_name && (
+                                                            <p className="mt-0.5 text-xs text-neutral-500">
+                                                                Session: {policy.package_session_name}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                    <Badge
+                                                        className={`text-xs ${getStatusColor(
+                                                            plan.payment_plan_dto?.status || plan.status
+                                                        )}`}
+                                                    >
+                                                        {plan.payment_plan_dto?.status || plan.status}
+                                                    </Badge>
                                                 </div>
-                                            </div>
 
-                                            <div className="flex flex-wrap items-center gap-1.5">
-                                                <Badge
-                                                    className={`text-xs ${getStatusColor(
-                                                        plan.payment_plan_dto?.status || plan.status
-                                                    )}`}
-                                                >
-                                                    {plan.payment_plan_dto?.status || plan.status}
-                                                </Badge>
-                                                {getPlanCurrency(plan) !== 'N/A' && (
-                                                    <span className="text-xs text-neutral-600">
-                                                        {getCurrencySymbol(getPlanCurrency(plan))}
-                                                        {getPlanAmount(plan)}
-                                                    </span>
-                                                )}
-                                                {getPlanValidity(plan) && (
-                                                    <span className="text-xs text-neutral-600">
-                                                        Valid till {getExpiryDate(plan)}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </Card>
-                                    ))}
+                                                <div className="flex flex-wrap items-center gap-2 mb-2">
+                                                    {getPlanCurrency(plan) !== 'N/A' && (
+                                                        <span className="text-xs text-neutral-600">
+                                                            {getCurrencySymbol(getPlanCurrency(plan))}
+                                                            {getPlanAmount(plan)}
+                                                        </span>
+                                                    )}
+                                                    {plan.start_date && (
+                                                        <span className="text-xs text-neutral-500">
+                                                            Started: {formatDate(new Date(plan.start_date), 'dd MMM yyyy')}
+                                                        </span>
+                                                    )}
+                                                    {getExpiryDate(plan) && (
+                                                        <span className="text-xs text-neutral-600">
+                                                            Ends: {getExpiryDate(plan)}
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {/* Policy Details Section in Dialog */}
+                                                <PolicyDetailsSection policy={policy} />
+                                            </Card>
+                                        );
+                                    })}
                                 </div>
 
                                 {/* Pagination Controls */}
