@@ -338,6 +338,7 @@ export const StepThreeForm = ({
                                                                     field.onChange(date.toISOString());
                                                                 }
                                                             }}
+                                                            disabled={(date) => date > new Date()}
                                                             initialFocus
                                                         />
                                                     </PopoverContent>
