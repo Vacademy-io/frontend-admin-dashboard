@@ -73,8 +73,9 @@ export const useReEnrollStudent = () => {
                     payment_option_id: stepThreeData?.invite?.payment_option_id || '',
                     plan_id: stepFourData?.plan_id || undefined,
                     payment_initiation_request: paymentInitiationRequest,
-                    learner_extra_details: learnerExtraDetails,
+                    start_date: stepThreeData?.start_date || new Date().toISOString(),
                 },
+                learner_extra_details: learnerExtraDetails,
             };
 
             const response = await authenticatedAxiosInstance.post(
