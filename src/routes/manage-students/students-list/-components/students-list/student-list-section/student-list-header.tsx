@@ -158,6 +158,9 @@ const InviteLinksDialog = ({
     );
 };
 
+import { useCompactMode } from '@/hooks/use-compact-mode';
+
+
 export const StudentListHeader = ({
     currentSession,
     titleSize,
@@ -168,22 +171,29 @@ export const StudentListHeader = ({
     const [openInviteLinksDialog, setOpenInviteLinksDialog] = useState(false);
     const { instituteDetails } = useInstituteDetailsStore();
     const [isOpen, setIsOpen] = useState(false);
+    const { isCompact } = useCompactMode();
 
     const handleOpenChange = () => {
         setOpenInviteLinksDialog(!openInviteLinksDialog);
     };
 
     return (
-        <div className="animate-slideInRight flex flex-col justify-between gap-2 lg:flex-row lg:items-center">
+        <div className={cn(
+            "animate-slideInRight flex flex-col justify-between gap-2 lg:flex-row lg:items-center",
+            isCompact ? "mb-1" : "mb-2"
+        )}>
             {/* Compact professional title */}
             <div className="flex items-center gap-2">
-                <div className="rounded-md bg-gradient-to-br from-primary-100 to-primary-200 p-1 shadow-sm">
-                    <Users className="size-3.5 text-primary-500" />
+                <div className={cn(
+                    "rounded-md bg-gradient-to-br from-primary-100 to-primary-200 shadow-sm",
+                    isCompact ? "p-0.5" : "p-1"
+                )}>
+                    <Users className={cn("text-primary-500", isCompact ? "size-3" : "size-3.5")} />
                 </div>
                 <h1
                     className={cn(
                         'font-semibold text-neutral-700',
-                        titleSize ? titleSize : 'text-base lg:text-lg'
+                        titleSize ? titleSize : (isCompact ? 'text-sm lg:text-base' : 'text-base lg:text-lg')
                     )}
                 >
                     {getTerminology(RoleTerms.Learner, SystemTerms.Learner)} Management
@@ -196,9 +206,12 @@ export const StudentListHeader = ({
                     onClick={() => setOpenInviteLinksDialog(true)}
                     scale="small"
                     buttonType="secondary"
-                    className="group flex items-center gap-1 border border-blue-200 bg-white px-2.5 py-1 text-xs text-blue-700 transition-all duration-200 hover:scale-100 hover:border-blue-300 hover:bg-blue-50"
+                    className={cn(
+                        "group flex items-center gap-1 border border-blue-200 bg-white text-blue-700 transition-all duration-200 hover:scale-100 hover:border-blue-300 hover:bg-blue-50",
+                        isCompact ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-1 text-xs"
+                    )}
                 >
-                    <UserPlus className="size-3 transition-transform duration-200 group-hover:scale-110" />
+                    <UserPlus className={cn("transition-transform duration-200 group-hover:scale-110", isCompact ? "size-2.5" : "size-3")} />
                     <span className="hidden sm:inline">Invite</span>
                 </MyButton>
 
@@ -212,15 +225,23 @@ export const StudentListHeader = ({
                             trigger={
                                 <MyButton
                                     scale="small"
-                                    className="hover:scale-102 hover:bg-primary-700 group flex items-center gap-1 border-0 bg-primary-600 px-2.5 py-1 text-xs text-white shadow-sm transition-all duration-200 hover:shadow-md"
+                                    className={cn(
+                                        "hover:scale-102 hover:bg-primary-700 group flex items-center gap-1 border-0 bg-primary-600 text-white shadow-sm transition-all duration-200 hover:shadow-md",
+                                        isCompact ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-1 text-xs"
+                                    )}
                                 >
-                                    <Users className="size-3 transition-transform duration-200 group-hover:scale-110" />
+                                    <Users className={cn("transition-transform duration-200 group-hover:scale-110", isCompact ? "size-2.5" : "size-3")} />
                                     <span className="hidden sm:inline">Enroll</span>
                                 </MyButton>
                             }
                         />
                     ) : (
-                        <div className="[&>button]:scale-90 [&>button]:px-2.5 [&>button]:py-1 [&>button]:text-xs">
+                        <div className={cn(
+                            "[&>button]:scale-90",
+                            isCompact
+                                ? "[&>button]:px-2 [&>button]:py-0.5 [&>button]:text-[10px]"
+                                : "[&>button]:px-2.5 [&>button]:py-1 [&>button]:text-xs"
+                        )}>
                             <EnrollStudentsButton />
                         </div>
                     )}

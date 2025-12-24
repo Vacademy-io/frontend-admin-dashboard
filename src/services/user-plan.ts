@@ -2,6 +2,7 @@ import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
 import { GET_USER_PLANS } from '@/constants/urls';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
+import type { PolicyDetails } from '@/types/membership-expiry';
 
 export interface UserPlanPaymentLog {
     id: string;
@@ -98,6 +99,8 @@ export interface UserPlan {
     payment_option_id: string;
     payment_option_json: string;
     status: string;
+    start_date?: string;
+    end_date?: string;
     created_at: string;
     updated_at: string;
     source?: 'USER' | 'SUB_ORG'; // Payment source type
@@ -111,6 +114,7 @@ export interface UserPlan {
     enroll_invite: EnrollInviteData;
     payment_option: PaymentOption;
     payment_plan_dto: PaymentPlanDTO;
+    policy_details?: PolicyDetails[];
 }
 
 export interface UserPlansResponse {

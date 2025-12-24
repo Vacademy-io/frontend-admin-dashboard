@@ -11,6 +11,7 @@ import { ADMIN_DISPLAY_SETTINGS_KEY, TEACHER_DISPLAY_SETTINGS_KEY } from '@/type
 import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { useIsMobile, useIsTablet } from '@/hooks/use-mobile';
+import { useCompactMode } from '@/hooks/use-compact-mode';
 
 export const LayoutContainer = ({
     children,
@@ -38,6 +39,7 @@ export const LayoutContainer = ({
     const { open, setOpen, isMobile: sidebarIsMobile } = useSidebar();
     const isMobile = useIsMobile();
     const isTablet = useIsTablet();
+    const { isCompact } = useCompactMode();
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const roles = getUserRoles(accessToken);
     const isAdmin = roles.includes('ADMIN');
@@ -95,23 +97,28 @@ export const LayoutContainer = ({
 
         if (open) {
             // Sidebar expanded
+            const sidebarWidth = isCompact ? 220 : 307;
+            const gap = isCompact ? 15 : 15; // gap between sidebar and content
+            const totalSidebarSpace = sidebarWidth + gap;
+
             if (intrnalMargin) {
                 if (internalSideBar || hasInternalSidebarComponent) {
-                    return 'max-w-[calc(100vw-322px-56px-290px)]';
+                    return `max-w-[calc(100vw-${totalSidebarSpace}px-56px-290px)]`;
                 }
-                return 'max-w-[calc(100vw-322px-56px)]';
+                return `max-w-[calc(100vw-${totalSidebarSpace}px-56px)]`;
             }
             if (internalSideBar || hasInternalSidebarComponent) {
-                return 'max-w-[calc(100vw-320px)]';
+                return `max-w-[calc(100vw-${sidebarWidth}px)]`;
             }
-            return 'max-w-[calc(100vw-320px)]';
+            return `max-w-[calc(100vw-${sidebarWidth}px)]`;
         }
 
         // Sidebar collapsed
+        const collapsedWidth = isCompact ? 56 : 112;
         if (internalSideBar || hasInternalSidebarComponent) {
-            return 'max-w-[calc(100vw-132px-56px-290px)]';
+            return `max-w-[calc(100vw-${collapsedWidth}px-56px-290px)]`;
         }
-        return 'max-w-[calc(100vw-132px-56px)]';
+        return `max-w-[calc(100vw-${collapsedWidth}px-56px)]`;
     };
 
     return (
@@ -120,7 +127,9 @@ export const LayoutContainer = ({
             {showMainSidebar && (
                 <div className={cn(
                     'hidden md:block',
-                    open ? 'md:w-[307px]' : 'md:w-[112px]',
+                    open
+                        ? (isCompact ? 'md:w-[220px]' : 'md:w-[307px]')
+                        : (isCompact ? 'md:w-[56px]' : 'md:w-[112px]'),
                     'flex-shrink-0 transition-all duration-200'
                 )}>
                     <MySidebar sidebarComponent={sidebarComponent} />
@@ -155,9 +164,11 @@ export const LayoutContainer = ({
                 <StudentSidebarProvider>
                     <div
                         className={cn(
-                            // Responsive padding
+                            // Responsive padding - reduced in compact mode
                             intrnalMargin
-                                ? 'p-4 md:p-6 lg:m-7 flex flex-1 flex-col'
+                                ? (isCompact
+                                    ? 'p-2 md:p-3 lg:m-4 flex flex-1 flex-col'
+                                    : 'p-4 md:p-6 lg:m-7 flex flex-1 flex-col')
                                 : 'm-0',
                             // Responsive max-width
                             isMobile ? 'max-w-full' : getContentMaxWidth(),

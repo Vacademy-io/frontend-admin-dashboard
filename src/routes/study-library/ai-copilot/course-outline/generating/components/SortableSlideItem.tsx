@@ -24,6 +24,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { TipTapEditor } from '@/components/tiptap/TipTapEditor';
 import { CircularProgress } from './CircularProgress';
+import { AIVideoPlayer } from '@/components/ai-video-player/AIVideoPlayer';
 import type { SlideGeneration, SlideType, QuizQuestion } from '../../../shared/types';
 
 interface SortableSlideItemProps {
@@ -190,7 +191,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
 
         // Initialize content based on slide type
         if (slide.content) {
-            if (slide.slideType === 'video') {
+            if (slide.slideType === 'video' || slide.slideType === 'ai-video') {
                 // Video pages - content IS the video script (NO content section)
                 // Remove any "Content" labels, sections, or headings that might be in the stored content
                 // ALL content is video script - never show "Content" section
@@ -366,53 +367,110 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                     // Check if it's the new assessment format (has question.content, options with preview_id)
                     if (firstQuestion.question && typeof firstQuestion.question === 'object' && firstQuestion.question.content) {
                         // New assessment format from API
-                        const normalizedQuestions = quizData.questions.map((q: any) => {
-                            const questionText = q.question?.content || '';
-                            const options = (q.options || []).map((opt: any) => opt.content || '');
+                        console.log('📝 Quiz: Processing new assessment format, total questions:', quizData.questions.length);
+                        const normalizedQuestions = quizData.questions.map((q: any, index: number) => {
+                            const questionText = q.question?.content || q.question?.text || '';
+                            const options = (q.options || []).map((opt: any) => {
+                                // Handle both content and text fields
+                                return opt.content || opt.text || opt || '';
+                            }).filter((opt: string) => opt !== ''); // Filter out empty options
+                            
                             let correctIndex = 0;
 
                             // Find correct answer index from correct_options array
                             if (q.correct_options && q.correct_options.length > 0) {
                                 const correctOptionId = q.correct_options[0];
-                                const foundIndex = q.options?.findIndex((opt: any) => opt.preview_id === correctOptionId);
-                                if (foundIndex !== -1) {
+                                const foundIndex = q.options?.findIndex((opt: any) => {
+                                    // Check both preview_id and id fields
+                                    return opt.preview_id === correctOptionId || opt.id === correctOptionId;
+                                });
+                                if (foundIndex !== -1 && foundIndex < options.length) {
                                     correctIndex = foundIndex;
+                                } else {
+                                    console.warn(`📝 Quiz: Question ${index + 1} - Could not find correct option index for ID: ${correctOptionId}`);
                                 }
                             }
 
-                            return {
+                            const normalized = {
                                 question: questionText,
                                 options: options,
                                 correctAnswerIndex: correctIndex,
-                                explanation: q.exp || ''
+                                explanation: q.exp || q.explanation || ''
                             };
+                            
+                            console.log(`📝 Quiz: Question ${index + 1} normalized:`, {
+                                questionLength: normalized.question.length,
+                                optionsCount: normalized.options.length,
+                                correctIndex: normalized.correctAnswerIndex,
+                                hasExplanation: !!normalized.explanation
+                            });
+                            
+                            return normalized;
                         });
-                        setQuizQuestions(normalizedQuestions);
+                        
+                        // Filter out questions with no question text or no options
+                        const validQuestions = normalizedQuestions.filter((q: any) => q.question && q.options.length > 0);
+                        console.log(`📝 Quiz: Valid questions after filtering: ${validQuestions.length}/${normalizedQuestions.length}`);
+                        
+                        if (validQuestions.length > 0) {
+                            setQuizQuestions(validQuestions);
+                        } else {
+                            console.error('📝 Quiz: No valid questions found after normalization');
+                            setQuizQuestions([]);
+                        }
                     } else if (firstQuestion.question && typeof firstQuestion.question === 'string') {
                         // Old quiz format
-                    const normalizedQuestions = quizData.questions.map((q: QuizQuestion) => {
-                        const options = q.options || [];
-                        let correctIndex = 0;
+                        console.log('📝 Quiz: Processing old quiz format, total questions:', quizData.questions.length);
+                        const normalizedQuestions = quizData.questions.map((q: any, index: number) => {
+                            const questionText = q.question || '';
+                            const options = (q.options || []).filter((opt: any) => {
+                                // Filter out empty or null options
+                                return opt !== null && opt !== undefined && opt !== '';
+                            });
+                            
+                            let correctIndex = 0;
 
-                        // Convert to number if it's a string
-                        if (q.correctAnswerIndex !== undefined && q.correctAnswerIndex !== null) {
-                            const numIndex = typeof q.correctAnswerIndex === 'string'
-                                ? parseInt(q.correctAnswerIndex, 10)
-                                : q.correctAnswerIndex;
+                            // Convert to number if it's a string
+                            if (q.correctAnswerIndex !== undefined && q.correctAnswerIndex !== null) {
+                                const numIndex = typeof q.correctAnswerIndex === 'string'
+                                    ? parseInt(q.correctAnswerIndex, 10)
+                                    : q.correctAnswerIndex;
 
-                            // Ensure it's a valid number and within bounds
-                            if (typeof numIndex === 'number' && !isNaN(numIndex) && numIndex >= 0 && numIndex < options.length) {
-                                correctIndex = numIndex;
+                                // Ensure it's a valid number and within bounds
+                                if (typeof numIndex === 'number' && !isNaN(numIndex) && numIndex >= 0 && numIndex < options.length) {
+                                    correctIndex = numIndex;
+                                } else {
+                                    console.warn(`📝 Quiz: Question ${index + 1} - Invalid correctAnswerIndex: ${numIndex}, options count: ${options.length}`);
+                                }
                             }
-                        }
 
-                        return {
-                            question: q.question || '',
-                            options: options,
-                            correctAnswerIndex: Number(correctIndex)
-                        };
-                    });
-                    setQuizQuestions(normalizedQuestions);
+                            const normalized = {
+                                question: questionText,
+                                options: options,
+                                correctAnswerIndex: Number(correctIndex),
+                                explanation: q.explanation || ''
+                            };
+                            
+                            console.log(`📝 Quiz: Question ${index + 1} (old format) normalized:`, {
+                                questionLength: normalized.question.length,
+                                optionsCount: normalized.options.length,
+                                correctIndex: normalized.correctAnswerIndex,
+                                hasExplanation: !!normalized.explanation
+                            });
+                            
+                            return normalized;
+                        });
+                        
+                        // Filter out invalid questions
+                        const validQuestions = normalizedQuestions.filter((q: any) => q.question && q.options.length > 0);
+                        console.log(`📝 Quiz: Valid questions (old format) after filtering: ${validQuestions.length}/${normalizedQuestions.length}`);
+                        
+                        if (validQuestions.length > 0) {
+                            setQuizQuestions(validQuestions);
+                        } else {
+                            console.error('📝 Quiz: No valid questions found in old format');
+                            setQuizQuestions([]);
+                        }
                     } else {
                         setQuizQuestions([]);
                     }
@@ -708,16 +766,86 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
 
     // Get current HTML content from quiz questions - always called
     const quizHTML = useMemo(() => {
+        // Store status to avoid type narrowing issues
+        const slideStatus: 'pending' | 'generating' | 'completed' = slide.status;
+        
         if (slide.slideType === 'quiz' || slide.slideType === 'assessment') {
             // If we have quiz questions, convert them to HTML
             if (quizQuestions.length > 0) {
-                return convertQuizToHTML(quizQuestions);
+                const html = convertQuizToHTML(quizQuestions);
+                console.log('📝 Quiz: Generated HTML from questions, length:', html.length);
+                return html;
             }
-            // If no quiz questions but slide has HTML content, use that directly
-            if (slide.content && slide.content.includes('<h3>') && slide.content.includes('Question')) {
-                return slide.content;
+            // If no quiz questions but slide has content, try to parse it
+            if (slide.content) {
+                // Check if it's already HTML
+                if (slide.content.includes('<h3>') || slide.content.includes('<h2>') || slide.content.includes('<p>')) {
+                    console.log('📝 Quiz: Using slide.content as HTML');
+                    return slide.content;
+                }
+                // Try to parse as JSON (from API)
+                try {
+                    const parsed = JSON.parse(slide.content);
+                    if (parsed && parsed.questions && Array.isArray(parsed.questions) && parsed.questions.length > 0) {
+                        console.log('📝 Quiz: Parsed JSON content, questions count:', parsed.questions.length);
+                        // If we have parsed questions but quizQuestions state hasn't updated yet,
+                        // convert them directly to HTML here
+                        const tempQuestions = parsed.questions.map((q: any, index: number) => {
+                            if (q.question && typeof q.question === 'object' && q.question.content) {
+                                // New format
+                                const questionText = q.question?.content || q.question?.text || q.question || '';
+                                const options = (q.options || []).map((opt: any) => {
+                                    return opt.content || opt.text || opt || '';
+                                }).filter((opt: string) => opt !== '');
+                                
+                                let correctIndex = 0;
+                                if (q.correct_options && q.correct_options.length > 0) {
+                                    const correctOptionId = q.correct_options[0];
+                                    const foundIndex = q.options?.findIndex((opt: any) => {
+                                        return opt.preview_id === correctOptionId || opt.id === correctOptionId;
+                                    });
+                                    if (foundIndex !== -1 && foundIndex < options.length) {
+                                        correctIndex = foundIndex;
+                                    } else {
+                                        console.warn(`📝 Quiz: Question ${index + 1} - Could not find correct option in tempQuestions`);
+                                    }
+                                }
+                                
+                                return {
+                                    question: questionText,
+                                    options: options,
+                                    correctAnswerIndex: correctIndex,
+                                    explanation: q.exp || q.explanation || ''
+                                };
+                            } else if (q.question && typeof q.question === 'string') {
+                                // Old format
+                                return {
+                                    question: q.question || '',
+                                    options: (q.options || []).filter((opt: any) => opt !== ''),
+                                    correctAnswerIndex: q.correctAnswerIndex || 0,
+                                    explanation: q.explanation || ''
+                                };
+                            } else {
+                                console.warn(`📝 Quiz: Question ${index + 1} - Unknown format:`, q);
+                                return null;
+                            }
+                        }).filter((q: any) => q !== null && q.question && q.options.length > 0);
+                        
+                        if (tempQuestions.length > 0) {
+                            return convertQuizToHTML(tempQuestions);
+                        } else {
+                            console.error('📝 Quiz: No valid questions after parsing in quizHTML');
+                            return '<p>No valid questions found.</p>';
+                        }
+                    }
+                } catch (e) {
+                    // Not JSON, might be plain text
+                    console.log('📝 Quiz: Content is not JSON, treating as text');
+                    return slide.content;
+                }
             }
             // Otherwise return empty
+            console.log('📝 Quiz: No content available');
             return '<p>No questions available.</p>';
         }
         return '';
@@ -741,11 +869,15 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
 
     // Render content based on slide type - everything editable by default
     const renderContent = useMemo(() => {
+        // Store status in variable to avoid type narrowing issues - must be done first
+        const slideStatus: 'pending' | 'generating' | 'completed' = slide.status;
+        
         // Only render content when expanded by user
-        if (!isExpanded) return null;
+        // Allow AI_VIDEO slides to render even when not expanded (to show prompt)
+        if (!isExpanded && slide.slideType !== 'ai-video') return null;
 
         // Show loader if slide is generating
-        if (slide.status === 'generating') {
+        if (slideStatus === 'generating') {
             return (
                 <div className="mt-3 ml-8 bg-neutral-50 rounded-md border border-neutral-200 p-4">
                     <div className="flex items-center justify-center gap-3 py-8">
@@ -759,7 +891,12 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
         }
 
         // Only render if slide is completed and has content
-        if (slide.status !== 'completed' || !slide.content) {
+        // Exception: AI_VIDEO slides should show prompt even when pending
+        // Exception: Quiz/Assessment slides can show content even when not completed (if content exists)
+        if (slide.slideType !== 'ai-video' && 
+            slide.slideType !== 'quiz' && 
+            slide.slideType !== 'assessment' && 
+            (slideStatus !== 'completed' || !slide.content)) {
             return (
                 <div className="mt-3 ml-8 bg-neutral-50 rounded-md border border-neutral-200 p-4">
                     <div className="flex items-center justify-center gap-3 py-8">
@@ -768,8 +905,64 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                 </div>
             );
         }
+        
+        // For quiz/assessment, don't show if status is generating and no valid questions
+        if ((slide.slideType === 'quiz' || slide.slideType === 'assessment') && 
+            (slideStatus as string) === 'generating' && 
+            (!slide.content || quizQuestions.length === 0)) {
+            return (
+                <div className="mt-3 ml-8 bg-neutral-50 rounded-md border border-neutral-200 p-4">
+                    <div className="flex items-center justify-center gap-3 py-8">
+                        <Loader2 className="h-5 w-5 animate-spin text-indigo-600" />
+                        <span className="text-sm font-medium text-neutral-600">Generating quiz...</span>
+                    </div>
+                </div>
+            );
+        }
 
         try {
+            // AI Video pages - show prompt in outline view (always visible, even when pending)
+            if (slide.slideType === 'ai-video') {
+                const prompt = slide.prompt || slide.content || 'No prompt available';
+                
+                return (
+                    <div className="mt-3 ml-8 bg-neutral-50 rounded-md border border-neutral-200 p-4">
+                        <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                                <Video className="h-4 w-4 text-purple-600" />
+                                <Label className="text-sm font-semibold text-neutral-900">AI Video Prompt</Label>
+                            </div>
+                        </div>
+                        <div className="bg-white rounded-lg border border-neutral-200 p-4">
+                            <p className="text-sm text-neutral-700 whitespace-pre-wrap">{prompt}</p>
+                        </div>
+                        {/* Show video player when video is ready - check both status and aiVideoData */}
+                        {slide.aiVideoData?.timelineUrl && slide.aiVideoData?.audioUrl && slide.aiVideoData?.status === 'COMPLETED' && (
+                            <div className="mt-4 bg-white rounded-lg border border-neutral-200 p-4 overflow-hidden">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Video className="h-4 w-4 text-purple-600" />
+                                    <Label className="text-sm font-semibold text-neutral-900">AI Generated Video</Label>
+                                </div>
+                                <div className="w-full max-w-full overflow-hidden">
+                                    <AIVideoPlayer
+                                        timelineUrl={slide.aiVideoData.timelineUrl}
+                                        audioUrl={slide.aiVideoData.audioUrl}
+                                        className="w-full max-w-full"
+                                    />
+                                </div>
+                            </div>
+                        )}
+                        {/* Only show loader when actively generating, not when pending */}
+                        {(slideStatus as string) === 'generating' && (
+                            <div className="mt-4 flex items-center gap-2">
+                                <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
+                                <span className="text-sm text-neutral-600">Generating video... {slide.progress || 0}%</span>
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+
             // Video pages - show video thumbnail with YouTube link (embedding is blocked)
             if (slide.slideType === 'video') {
                 // Parse video content to extract video URL and script
@@ -1156,7 +1349,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                     );
                 } else {
                     // Topic without video script + code - parse and show all sections editable
-                    const sections = editedSections.length > 0 ? editedSections : parseContent(slide.content);
+                    const sections = editedSections.length > 0 ? editedSections : parseContent(slide.content || '');
 
                     return (
                         <div className="mt-3 ml-8 space-y-4">
@@ -1224,7 +1417,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
 
             // Document pages (doc, objectives) - parse and show all sections editable
             if (slide.slideType === 'objectives' || slide.slideType === 'doc') {
-                const sections = editedSections.length > 0 ? editedSections : parseContent(slide.content);
+                const sections = editedSections.length > 0 ? editedSections : parseContent(slide.content || '');
 
                 return (
                     <div className="mt-3 ml-8 space-y-4">
@@ -1344,7 +1537,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                             )}
                         </div>
                         <TipTapEditor
-                            value={slide.content}
+                            value={slide.content || ''}
                             onChange={handleContentChange}
                             className="min-h-[300px]"
                         />
@@ -1391,8 +1584,11 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                 </div>
 
                 <div className="flex items-center gap-3">
-                    {/* View Content Button - only show if slide has content */}
-                    {!isEditing && slide.status === 'completed' && slide.content && (
+                    {/* View Content Button - show if slide has content OR if it's AI_VIDEO with prompt */}
+                    {!isEditing && (
+                        (slide.status === 'completed' && slide.content) || 
+                        (slide.slideType === 'ai-video' && slide.prompt)
+                    ) && (
                         <button
                             onClick={() => setIsExpanded(!isExpanded)}
                             className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition-colors"
@@ -1449,16 +1645,13 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                         <CheckCircle className="h-4 w-4 text-green-600" />
                     )}
 
-                    {slide.status === 'pending' && (
-                        <div className="flex items-center gap-2 text-xs text-neutral-400">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        </div>
-                    )}
+                    {/* Don't show loader for pending status - only show when actively generating */}
+                    {/* Loader will appear after clicking "Generate Content" button */}
                 </div>
             </div>
             
-            {/* Content - only show when expanded */}
-            {isExpanded && renderContent}
+            {/* Content - show when expanded OR if it's an AI_VIDEO slide (prompt should be visible by default) */}
+            {(isExpanded || slide.slideType === 'ai-video') && renderContent}
         </div>
     );
 }, (prevProps, nextProps) => {

@@ -25,6 +25,7 @@ const PlanLectureAI = () => {
             lectureDuration: data.lectureDuration,
             isQuestionGenerated: data.isQuestionGenerated,
             isAssignmentHomeworkGenerated: data.isAssignmentHomeworkGenerated,
+            preferredModel: data.preferredModel,
         });
     };
 
@@ -40,7 +41,8 @@ const PlanLectureAI = () => {
                 data.language,
                 data.lectureDuration,
                 data.isQuestionGenerated,
-                data.isAssignmentHomeworkGenerated
+                data.isAssignmentHomeworkGenerated,
+                data.preferredModel
             );
         },
         onSuccess: () => {

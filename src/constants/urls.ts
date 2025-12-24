@@ -268,6 +268,9 @@ export const GET_QUESTIONS_FROM_TEXT = `${BASE_URL}/media-service/ai/get-questio
 export const GET_LECTURE_PLAN_URL = `${BASE_URL}/media-service/ai/lecture/generate-plan`;
 export const GET_LECTURE_PLAN_PREVIEW_URL = `${BASE_URL}/media-service/task-status/get/lecture-plan`;
 export const GET_LECTURE_FEEDBACK_PREVIEW_URL = `${BASE_URL}/media-service/task-status/get/lecture-feedback`;
+
+// AI Model Selection
+export const GET_AVAILABLE_AI_MODELS = `${BASE_URL}/media-service/ai/retry/available-models`;
 export const INSTITUTE_SETTING = `${BASE_URL}/admin-core-service/lms-report-setting/institute-setting`;
 export const UPDATE_INSTITUTE_SETTING = `${BASE_URL}/admin-core-service/lms-report-setting/institute/update`;
 export const LEARNERS_SETTING = `${BASE_URL}/admin-core-service/lms-report-setting/learner-setting`;
@@ -426,8 +429,16 @@ export const CREATE_INSTRUCTOR_COPILOT_LOG = `${INSTRUCTOR_COPILOT_BASE}/create`
 export const LIST_INSTRUCTOR_COPILOT_LOGS = `${INSTRUCTOR_COPILOT_BASE}/list`;
 export const UPDATE_INSTRUCTOR_COPILOT_LOG = (id: string) => `${INSTRUCTOR_COPILOT_BASE}/${id}`;
 export const DELETE_INSTRUCTOR_COPILOT_LOG = (id: string) => `${INSTRUCTOR_COPILOT_BASE}/${id}`;
-export const RETRY_INSTRUCTOR_COPILOT_LOG = (id: string) =>
-    `${INSTRUCTOR_COPILOT_BASE}/retry-generate/${id}`;
+
 
 // Student Analysis
 export const STUDENT_ANALYSIS_BASE = `${BASE_URL}/admin-core-service/v1/student-analysis`;
+
+export const RETRY_INSTRUCTOR_COPILOT_LOG = (id: string) => `${INSTRUCTOR_COPILOT_BASE}/retry-generate/${id}`;
+
+// AI Agent Chat
+export const AGENT_CHAT = `${BASE_URL}/admin-core-service/v1/agent/chat`;
+export const AGENT_STREAM = (sessionId: string) => `${BASE_URL}/admin-core-service/v1/agent/stream/${sessionId}`;
+export const AGENT_RESPOND = (sessionId: string) => `${BASE_URL}/admin-core-service/v1/agent/respond/${sessionId}`;
+export const AGENT_SESSION_STATUS = (sessionId: string) => `${BASE_URL}/admin-core-service/v1/agent/session/${sessionId}/status`;
+

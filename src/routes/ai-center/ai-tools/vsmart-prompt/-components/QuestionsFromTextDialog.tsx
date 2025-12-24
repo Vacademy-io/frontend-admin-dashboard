@@ -7,6 +7,7 @@ import { FormProvider, UseFormReturn } from 'react-hook-form';
 import { QuestionsFromTextData } from './GenerateQuestionsFromText';
 import SelectField from '@/components/design-system/select-field';
 import { languageSupport } from '@/constants/dummy-data';
+import { ModelSelector } from '../../-components/ModelSelector';
 
 export const QuestionsFromTextDialog = ({
     open,
@@ -33,6 +34,7 @@ export const QuestionsFromTextDialog = ({
         topics: string;
         question_type: string;
         question_language: string;
+        preferredModel?: string;
     }>;
     taskId: string;
 }) => {
@@ -186,6 +188,24 @@ export const QuestionsFromTextDialog = ({
                         control={form.control}
                         required
                         className="w-56 font-thin"
+                    />
+
+                    {/* AI Model Selection */}
+                    <FormField
+                        control={form.control}
+                        name="preferredModel"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormControl>
+                                    <ModelSelector
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        showAdvanced={true}
+                                        className="w-full"
+                                    />
+                                </FormControl>
+                            </FormItem>
+                        )}
                     />
                 </form>
             </FormProvider>

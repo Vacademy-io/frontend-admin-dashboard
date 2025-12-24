@@ -123,6 +123,12 @@ const InstituteSchema = z.object({
     teacher_portal_base_url: z.string().optional(),
     sub_org_roles: z.array(z.string()).optional(),
     dropdown_custom_fields: z.array(CustomFieldSchema).optional(),
+    playStoreAppLink: z.string().nullable().optional(),
+    appStoreAppLink: z.string().nullable().optional(),
+    windowsAppLink: z.string().nullable().optional(),
+    macAppLink: z.string().nullable().optional(),
+    learnerPortalUrl: z.string().nullable().optional(),
+    instructorPortalUrl: z.string().nullable().optional(),
 });
 
 export type InstituteDetailsType = z.infer<typeof InstituteSchema> | null;

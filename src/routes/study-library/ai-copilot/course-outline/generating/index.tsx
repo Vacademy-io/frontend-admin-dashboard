@@ -127,7 +127,7 @@ export const Route = createFileRoute('/study-library/ai-copilot/course-outline/g
 
 // SortableSessionItem and SortableSlideItem are now imported from ./components
 
-function RouteComponent() {
+export function RouteComponent() {
     const navigate = useNavigate();
     const { setOpen } = useSidebar();
     const [slides, setSlides] = useState<SlideGeneration[]>([]);
@@ -310,6 +310,21 @@ function RouteComponent() {
         if (sessionsWithProgress.length === 0) return false;
         return sessionsWithProgress.every((session) => session.progress === 100);
     }, [sessionsWithProgress]);
+
+    // Check if there are slides that need content generation (pending or not completed)
+    const hasSlidesToGenerate = useMemo(() => {
+        return slides.some((slide) => {
+            // Check if slide needs content generation
+            const needsGeneration = 
+                (slide.slideType === 'doc' || 
+                 slide.slideType === 'quiz' || 
+                 slide.slideType === 'assessment' || 
+                 slide.slideType === 'video' || 
+                 slide.slideType === 'ai-video') &&
+                (slide.status === 'pending' || slide.status === 'generating' || !slide.content);
+            return needsGeneration;
+        });
+    }, [slides]);
 
     // Check if all sessions are expanded
     const isAllExpanded = useMemo(() => {
@@ -751,9 +766,13 @@ function RouteComponent() {
                     slideType = 'doc';
                 } else if (todo.type === 'VIDEO') {
                     slideType = 'video';
+                } else if (todo.type === 'AI_VIDEO') {
+                    slideType = 'ai-video';
                 } else if (todo.type === 'QUIZ' || todo.type === 'ASSESSMENT') {
                     slideType = 'quiz';
                 }
+
+                console.log(`Creating slide for todo: ${todo.title}, type: ${todo.type}, slideType: ${slideType}`);
 
                 slides.push({
                     id: `${sessionId}-slide-${todoIndex + 1}`,
@@ -761,8 +780,8 @@ function RouteComponent() {
                     sessionTitle,
                     slideTitle: todo.title || todo.name,
                     slideType,
-                    status: 'completed',
-                    progress: 100,
+                    status: 'pending', // Set to pending initially for content generation
+                    progress: 0,
                     content: todo.prompt || `<h2>${todo.title || todo.name}</h2><p>No prompt available</p>`, // Show the prompt in content
                     topicIndex: todoIndex,
                     prompt: todo.prompt || `Content for ${todo.title || todo.name}`, // Keep prompt in prompt field too
@@ -1268,6 +1287,7 @@ function RouteComponent() {
                     </div>
                 );
             case 'quiz':
+            case 'assessment':
                 return <FileQuestion className="h-4 w-4 text-purple-600" />;
             case 'homework':
             case 'assignment':
@@ -1280,6 +1300,8 @@ function RouteComponent() {
                 return <File className="h-4 w-4 text-red-600" />;
             case 'video':
                 return <Video className="h-4 w-4 text-red-600" />;
+            case 'ai-video':
+                return <Video className="h-4 w-4 text-purple-600" />;
             case 'jupyter':
                 return <Notebook className="h-4 w-4 text-orange-600" />;
             case 'code-editor':
@@ -1392,7 +1414,7 @@ function RouteComponent() {
                                     onClick={() => {
                                         setGenerateCourseAssetsDialogOpen(true);
                                     }}
-                                    disabled={!allSessionsCompleted || isGeneratingContent}
+                                    disabled={isGeneratingContent || (!hasSlidesToGenerate && !allSessionsCompleted)}
                                 >
                                     {isGeneratingContent ? (
                                         <>

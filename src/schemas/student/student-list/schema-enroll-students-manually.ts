@@ -45,6 +45,7 @@ export const stepThreeSchema = z.object({
     }),
     enrollment_number: z.string().optional(),
     access_days: z.string().optional(),
+    start_date: z.string().optional(), // Enrollment start date, defaults to today
 });
 
 // Step Four Schema - Payment Details (Plan selection only)

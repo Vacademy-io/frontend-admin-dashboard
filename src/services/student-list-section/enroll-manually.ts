@@ -33,11 +33,11 @@ export const enrollStudent = async ({
         // Build custom_field_values array (ONLY custom fields, NOT system fields)
         const customFieldValues = formData.stepTwoData?.custom_fields
             ? Object.entries(formData.stepTwoData.custom_fields)
-                  .filter(([fieldId]) => customFieldIds.has(fieldId))
-                  .map(([custom_field_id, value]) => ({
-                      custom_field_id,
-                      value,
-                  }))
+                .filter(([fieldId]) => customFieldIds.has(fieldId))
+                .map(([custom_field_id, value]) => ({
+                    custom_field_id,
+                    value,
+                }))
             : [];
 
         // Build payment_initiation_request
@@ -82,8 +82,9 @@ export const enrollStudent = async ({
                 plan_id: formData.stepFourData?.plan_id || undefined,
                 payment_initiation_request: paymentInitiationRequest,
                 custom_field_values: customFieldValues,
-                learner_extra_details: learnerExtraDetails,
+                start_date: formData.stepThreeData?.start_date || new Date().toISOString(),
             },
+            learner_extra_details: learnerExtraDetails,
         };
 
         const response = await authenticatedAxiosInstance.post(

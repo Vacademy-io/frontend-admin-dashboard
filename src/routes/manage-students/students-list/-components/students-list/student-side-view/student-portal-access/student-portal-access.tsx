@@ -3,7 +3,7 @@ import { Key, Copy, Check, Shield, MonitorPlay, Envelope } from '@phosphor-icons
 import { toast } from 'sonner';
 import { MyButton } from '@/components/design-system/button';
 import { useStudentSidebar } from '../../../../-context/selected-student-sidebar-context';
-import { useStudentCredentialsStore } from '@/stores/students/students-list/useStudentCredentialsStore';
+import { useStudentCredentails } from '@/services/student-list-section/getStudentCredentails';
 import { useDialogStore } from '@/routes/manage-students/students-list/-hooks/useDialogStore';
 import {
     getDisplaySettingsWithFallback,
@@ -19,24 +19,15 @@ import { getLearnerPortalAccess, sendResetPasswordEmail } from '@/services/learn
 
 export const StudentPortalAccess = ({ isSubmissionTab }: { isSubmissionTab?: boolean }) => {
     const { selectedStudent } = useStudentSidebar();
-    const { getCredentials } = useStudentCredentialsStore();
     const { openIndividualShareCredentialsDialog } = useDialogStore();
     const [copiedField, setCopiedField] = useState<string>('');
     const [learnerSettings, setLearnerSettings] = useState<LearnerManagementSettings | null>(null);
 
-    const [password, setPassword] = useState(
-        getCredentials(isSubmissionTab ? selectedStudent?.id || '' : selectedStudent?.user_id || '')
-            ?.password || 'password not found'
-    );
-
-    useEffect(() => {
-        if (selectedStudent) {
-            const credentials = getCredentials(
-                isSubmissionTab ? selectedStudent.id : selectedStudent.user_id
-            );
-            setPassword(credentials?.password || 'password not found');
-        }
-    }, [selectedStudent, getCredentials, isSubmissionTab]);
+    const userId = isSubmissionTab ? selectedStudent?.id : selectedStudent?.user_id;
+    const { data: credentials, isLoading: isCredentialsLoading } = useStudentCredentails({
+        userId: userId || '',
+    });
+    const password = credentials?.password || (isCredentialsLoading ? 'Loading...' : 'password not found');
 
     useEffect(() => {
         const fetchLearnerSettings = async () => {

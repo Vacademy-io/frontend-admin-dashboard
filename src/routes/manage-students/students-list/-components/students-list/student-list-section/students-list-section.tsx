@@ -27,7 +27,6 @@ import { useInstituteDetailsStore } from '@/stores/students/students-list/useIns
 import { NoCourseDialog } from '@/components/common/students/no-course-dialog';
 import { useSearch } from '@tanstack/react-router';
 import { Route } from '@/routes/manage-students/students-list';
-import { useUsersCredentials } from '../../../-services/usersCredentials';
 import { DropdownItemType } from '@/components/common/students/enroll-manually/dropdownTypesForPackageItems';
 import { ShareCredentialsDialog } from './bulk-actions/share-credentials-dialog';
 import { IndividualShareCredentialsDialog } from './bulk-actions/individual-share-credentials-dialog';
@@ -114,26 +113,6 @@ export const StudentsListSection = () => {
         setAppliedFilters,
         search.package_session_id ? [search.package_session_id] : null
     );
-
-    const getUserCredentialsMutation = useUsersCredentials();
-
-    async function getCredentials() {
-        const ids = studentTableData?.content.map((student: StudentTable) => student.user_id);
-        if (!ids || ids.length === 0) {
-            return;
-        }
-        const credentials = await getUserCredentialsMutation.mutateAsync({ userIds: ids || [] });
-        return credentials;
-    }
-
-    useEffect(() => {
-        async function fetchCredentials() {
-            if (studentTableData?.content && studentTableData.content.length > 0) {
-                await getCredentials();
-            }
-        }
-        fetchCredentials();
-    }, [studentTableData]);
 
     const [allPagesData, setAllPagesData] = useState<Record<number, StudentTable[]>>({});
     useEffect(() => {

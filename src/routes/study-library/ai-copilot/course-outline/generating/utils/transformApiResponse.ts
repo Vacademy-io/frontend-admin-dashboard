@@ -84,9 +84,20 @@ export function transformApiResponseToSlides(
 
         // Create slides from todos
         chapterTodos.forEach((todo: any, todoIndex: number) => {
-            // Map todo type to slide type
+            // Map todo type to slide type - check for AI_VIDEO first
             let slideType: SlideType = 'doc';
-            if (todo.type === 'DOCUMENT') {
+            
+            // Check for AI_VIDEO type (case-sensitive check)
+            if (todo.type === 'AI_VIDEO') {
+                slideType = 'ai-video';
+                console.log('🎬 Found AI_VIDEO todo:', {
+                    title: todo.title || todo.name,
+                    path: todo.path,
+                    type: todo.type,
+                    hasPrompt: !!todo.prompt,
+                    promptPreview: todo.prompt ? todo.prompt.substring(0, 150) + '...' : 'No prompt'
+                });
+            } else if (todo.type === 'DOCUMENT') {
                 slideType = 'doc';
             } else if (todo.type === 'VIDEO') {
                 slideType = 'video';
@@ -94,17 +105,20 @@ export function transformApiResponseToSlides(
                 slideType = 'quiz';
             }
 
+            // For AI_VIDEO, ensure prompt is stored properly
+            const prompt = todo.prompt || (todo.type === 'AI_VIDEO' ? `Generate AI video for ${todo.title || todo.name}` : `Content for ${todo.title || todo.name}`);
+
             slides.push({
                 id: `${sessionId}-slide-${todoIndex + 1}`,
                 sessionId,
                 sessionTitle,
                 slideTitle: todo.title || todo.name,
                 slideType,
-                status: 'completed',
-                progress: 100,
-                content: todo.prompt || `<h2>${todo.title || todo.name}</h2><p>No prompt available</p>`,
+                status: 'pending', // Will be updated when content is generated
+                progress: 0,
+                content: prompt, // Store prompt in content for AI_VIDEO
                 topicIndex: todoIndex,
-                prompt: todo.prompt || `Content for ${todo.title || todo.name}`,
+                prompt: prompt, // Also store in prompt field
             });
         });
     });
