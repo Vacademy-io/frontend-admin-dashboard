@@ -355,6 +355,7 @@ function mergeDisplayWithDefaults(
         userTaggingTab: false,
         fileTab: false,
         portalAccessTab: false,
+        reportsTab: false,
     };
     merged.studentSideView = {
         overviewTab: incoming?.studentSideView?.overviewTab ?? defStudentSideView.overviewTab,
@@ -368,6 +369,7 @@ function mergeDisplayWithDefaults(
         fileTab: incoming?.studentSideView?.fileTab ?? defStudentSideView.fileTab,
         portalAccessTab:
             incoming?.studentSideView?.portalAccessTab ?? defStudentSideView.portalAccessTab,
+        reportsTab: incoming?.studentSideView?.reportsTab ?? defStudentSideView.reportsTab,
     };
 
     const defLearnerManagement = defaults.learnerManagement || {
