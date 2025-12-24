@@ -159,10 +159,10 @@ const CreateClickableCell = ({ row, columnId }: { row: Row<StudentTable>; column
                     .map((item) =>
                         typeof item === 'object'
                             ? item.name ||
-                              item.title ||
-                              item.label ||
-                              item.id ||
-                              JSON.stringify(item)
+                            item.title ||
+                            item.label ||
+                            item.id ||
+                            JSON.stringify(item)
                             : item
                     )
                     .join(', ');
@@ -214,11 +214,11 @@ const ExpiryDateCell = ({ row }: { row: Row<StudentTable> }) => {
         <div
             className={`${
                 daysLeft < 30
-                    ? 'text-danger-600'
-                    : daysLeft < 180
-                      ? 'text-warning-500'
-                      : 'text-success-500'
-            }`}
+                ? 'text-danger-600'
+                : daysLeft < 180
+                    ? 'text-warning-500'
+                    : 'text-success-500'
+                }`}
             onClick={() => handleClick('expiry_date', row)}
             onDoubleClick={(e) => handleDoubleClick(e, 'expiry_date', row)}
         >
@@ -346,12 +346,12 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         enableHiding: true,
     },
     {
-        accessorKey: 'institute_enrollment_id',
+        accessorKey: 'institute_enrollment_number',
         size: 160,
         minSize: 120,
         maxSize: 220,
         header: 'Enrollment Number',
-        cell: ({ row }) => <CreateClickableCell row={row} columnId="institute_enrollment_id" />,
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="institute_enrollment_number" />,
         enableHiding: true,
     },
     {
@@ -391,21 +391,21 @@ export const myColumns: ColumnDef<StudentTable>[] = [
         enableHiding: true,
     },
     {
-        accessorKey: 'father_name',
+        accessorKey: 'fathers_name',
         size: 150,
         minSize: 120,
         maxSize: 220,
         header: " Father/Male Guardian's Name",
-        cell: ({ row }) => <CreateClickableCell row={row} columnId="father_name" />,
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="fathers_name" />,
         enableHiding: true,
     },
     {
-        accessorKey: 'mother_name',
+        accessorKey: 'mothers_name',
         size: 150,
         minSize: 120,
         maxSize: 220,
         header: "Mother/Female Guardian's Name",
-        cell: ({ row }) => <CreateClickableCell row={row} columnId="mother_name" />,
+        cell: ({ row }) => <CreateClickableCell row={row} columnId="mothers_name" />,
         enableHiding: true,
     },
     // {

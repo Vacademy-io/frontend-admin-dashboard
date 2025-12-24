@@ -42,11 +42,11 @@ export const useEnrollStudent = () => {
             // Build custom_field_values array (ONLY custom fields, NOT system fields)
             const customFieldValues = stepTwoData?.custom_fields
                 ? Object.entries(stepTwoData.custom_fields)
-                      .filter(([fieldId]) => customFieldIds.has(fieldId))
-                      .map(([custom_field_id, value]) => ({
-                          custom_field_id,
-                          value,
-                      }))
+                    .filter(([fieldId]) => customFieldIds.has(fieldId))
+                    .map(([custom_field_id, value]) => ({
+                        custom_field_id,
+                        value,
+                    }))
                 : [];
 
             // Build payment_initiation_request
@@ -61,8 +61,8 @@ export const useEnrollStudent = () => {
 
             // Build learner_extra_details object with parent/guardian fields
             const learnerExtraDetails = {
-                fathers_name: stepTwoData?.father_name || undefined,
-                mothers_name: stepTwoData?.mother_name || undefined,
+                fathers_name: stepTwoData?.fathers_name || undefined,
+                mothers_name: stepTwoData?.mothers_name || undefined,
                 parents_mobile_number: stepTwoData?.parents_mobile_number || undefined,
                 parents_email: stepTwoData?.parents_email || undefined,
                 parents_to_mother_mobile_number:
