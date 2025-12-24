@@ -44,8 +44,8 @@ export const useReEnrollStudent = () => {
 
             // Build learner_extra_details object with parent/guardian fields
             const learnerExtraDetails = {
-                fathers_name: stepTwoData?.father_name || undefined,
-                mothers_name: stepTwoData?.mother_name || undefined,
+                fathers_name: stepTwoData?.fathers_name || undefined,
+                mothers_name: stepTwoData?.mothers_name || undefined,
                 parents_mobile_number: stepTwoData?.parents_mobile_number || undefined,
                 parents_email: stepTwoData?.parents_email || undefined,
                 parents_to_mother_mobile_number:

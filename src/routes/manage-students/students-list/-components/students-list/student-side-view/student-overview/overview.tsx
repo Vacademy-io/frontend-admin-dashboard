@@ -31,7 +31,7 @@ export const OverViewData = ({
         `${getTerminology(ContentTerms.Session, SystemTerms.Session)}: ${na(
             packageSessionDetails?.session.session_name
         )}`,
-        `Enrollment No: ${na(selectedStudent.institute_enrollment_id)}`,
+        `Enrollment No: ${na(selectedStudent.institute_enrollment_number)}`,
         `Gender: ${na(selectedStudent.gender)}`,
         `School: ${na(selectedStudent.linked_institute_name)}`,
     ];
@@ -75,10 +75,10 @@ export const OverViewData = ({
         {
             heading: "Parent/Guardian's Details",
             content: [
-                `Father/Male Guardian's Name: ${na(selectedStudent.father_name)}`,
+                `Father/Male Guardian's Name: ${na(selectedStudent.fathers_name)}`,
                 `Father/Male Guardian's Mobile No.: ${na(selectedStudent.parents_mobile_number)}`,
                 `Father/Male Guardian's Email Id: ${na(selectedStudent.parents_email)}`,
-                `Mother/Female Guardian's Name: ${na(selectedStudent.mother_name)}`,
+                `Mother/Female Guardian's Name: ${na(selectedStudent.mothers_name)}`,
                 `Mother/Female Guardian's Mobile No: ${na(selectedStudent.parents_to_mother_mobile_number)}`,
                 `Mother/Female Guardian's Email Id: ${na(selectedStudent.parents_to_mother_email)}`,
             ],

@@ -135,8 +135,8 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
             mobile_number: report.mobileNumber,
             date_of_birth: '',
             gender: '',
-            father_name: '',
-            mother_name: '',
+            fathers_name: '',
+            mothers_name: '',
             father_mobile_number: '',
             father_email: '',
             mother_mobile_number: '',
@@ -448,10 +448,10 @@ export default function PreviousSessionCard({ session }: PreviousSessionCardProp
                                         <div className="text-xl font-bold text-primary-500">
                                             {attendanceSummary.total > 0
                                                 ? (
-                                                      (attendanceSummary.present /
-                                                          attendanceSummary.total) *
-                                                      100
-                                                  ).toFixed(2)
+                                                    (attendanceSummary.present /
+                                                        attendanceSummary.total) *
+                                                    100
+                                                ).toFixed(2)
                                                 : '0.00'}
                                             %
                                         </div>

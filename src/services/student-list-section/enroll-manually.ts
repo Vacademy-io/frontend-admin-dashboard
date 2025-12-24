@@ -52,8 +52,8 @@ export const enrollStudent = async ({
 
         // Build learner_extra_details object with parent/guardian fields
         const learnerExtraDetails = {
-            fathers_name: formData.stepTwoData?.father_name || undefined,
-            mothers_name: formData.stepTwoData?.mother_name || undefined,
+            fathers_name: formData.stepTwoData?.fathers_name || undefined,
+            mothers_name: formData.stepTwoData?.mothers_name || undefined,
             parents_mobile_number: formData.stepTwoData?.parents_mobile_number || undefined,
             parents_email: formData.stepTwoData?.parents_email || undefined,
             parents_to_mother_mobile_number:

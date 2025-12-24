@@ -14,8 +14,8 @@ export interface RawStudentDetailsResponse {
     mobile_number: string;
     date_of_birth: string;
     gender: string;
-    father_name?: string;
-    mother_name?: string;
+    fathers_name?: string;
+    mothers_name?: string;
     parents_mobile_number?: string;
     parents_email?: string;
     linked_institute_name?: string;
@@ -68,8 +68,8 @@ export const fetchStudentDetailsByIds = async (
                 mobile_number: response.data.mobile_number || '',
                 date_of_birth: response.data.date_of_birth || '',
                 gender: response.data.gender || '',
-                father_name: response.data.father_name || '',
-                mother_name: response.data.mother_name || '',
+                fathers_name: response.data.fathers_name || '',
+                mothers_name: response.data.mothers_name || '',
                 father_mobile_number: response.data.parents_mobile_number || '',
                 father_email: response.data.parents_email || '',
                 mother_mobile_number: response.data.parents_to_mother_mobile_number || '',
