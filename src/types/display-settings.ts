@@ -109,6 +109,7 @@ export interface StudentSideViewSettings {
     userTaggingTab: boolean;
     fileTab: boolean;
     portalAccessTab: boolean;
+    reportsTab: boolean;
 }
 
 export interface LearnerManagementSettings {

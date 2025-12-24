@@ -36,6 +36,7 @@ export const GenerateQuestionsFromAudio = ({
             difficulty: '',
             language: languageSupport[0],
             taskName: getRandomTaskName(),
+            preferredModel: undefined, // Will use default model
         },
     });
 
@@ -81,6 +82,7 @@ export const GenerateQuestionsFromAudio = ({
             language,
             taskName,
             taskId,
+            preferredModel,
         }: {
             audioId: string;
             numQuestions: string;
@@ -89,6 +91,7 @@ export const GenerateQuestionsFromAudio = ({
             language: string;
             taskName: string;
             taskId?: string;
+            preferredModel?: string;
         }) => {
             setLoader(true);
             setKey('audio');
@@ -99,7 +102,8 @@ export const GenerateQuestionsFromAudio = ({
                 difficulty,
                 language,
                 taskName,
-                taskId || ''
+                taskId || '',
+                preferredModel
             );
         },
         onSuccess: () => {
@@ -132,7 +136,8 @@ export const GenerateQuestionsFromAudio = ({
         numQuestions: string,
         prompt: string,
         difficulty: string,
-        language: string
+        language: string,
+        preferredModel?: string
     ) => {
         getQuestionsFromAudioMutation.mutate({
             audioId,
@@ -141,6 +146,7 @@ export const GenerateQuestionsFromAudio = ({
             difficulty,
             language,
             taskName: getRandomTaskName(),
+            preferredModel,
         });
     };
 

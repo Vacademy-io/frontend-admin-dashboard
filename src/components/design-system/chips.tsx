@@ -1,5 +1,6 @@
 import React, { ReactNode, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { useCompactMode } from '@/hooks/use-compact-mode';
 import {
     InputChipsProps,
     FilterChipsProps,
@@ -22,10 +23,12 @@ import { Separator } from '../ui/separator';
 import { ActivityStatus } from './utils/types/chips-types';
 
 export const ChipsWrapper = ({ children, className }: ChipsWrapperProps) => {
+    const { isCompact } = useCompactMode();
     return (
         <div
             className={cn(
-                'inline-flex h-8 flex-shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg border border-neutral-300 px-3 py-[6px] text-body font-regular text-neutral-600',
+                'inline-flex flex-shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg border border-neutral-300 font-regular text-neutral-600',
+                isCompact ? 'h-6 px-1.5 py-0.5 text-xs' : 'h-8 px-3 py-[6px] text-body',
                 className
             )}
         >
@@ -51,8 +54,8 @@ const Chips = ({
                 disabled
                     ? 'border-neutral-100'
                     : selected
-                      ? 'border-primary-500 bg-primary-100'
-                      : 'hover:border-primary-500 hover:bg-primary-50',
+                        ? 'border-primary-500 bg-primary-100'
+                        : 'hover:border-primary-500 hover:bg-primary-50',
                 className
             )}
         >
@@ -101,6 +104,8 @@ export const FilterChips = ({
     handleSelect,
     handleClearFilters,
 }: FilterChipsProps) => {
+    const { isCompact } = useCompactMode();
+
     useEffect(() => {
         if (clearFilters) handleClearFilters && handleClearFilters();
     }, [clearFilters]);
@@ -114,20 +119,21 @@ export const FilterChips = ({
                             disabled
                                 ? 'border-neutral-100'
                                 : selectedFilters.length > 0
-                                  ? 'border-primary-500 bg-primary-100'
-                                  : 'hover:border-primary-500 hover:bg-primary-50'
+                                    ? 'border-primary-500 bg-primary-100'
+                                    : 'hover:border-primary-500 hover:bg-primary-50'
                         )}
                     >
                         <div className="flex items-center gap-2">
                             {React.createElement(PlusCircle, {
                                 className: cn(
-                                    'size-[18px]',
+                                    isCompact ? 'size-3.5' : 'size-[18px]',
                                     disabled ? 'text-neutral-300' : 'text-neutral-600'
                                 ),
                             })}
                             <div
                                 className={cn(
-                                    'flex items-center text-[14px] leading-[22px]',
+                                    'flex items-center leading-[22px]',
+                                    isCompact ? 'text-xs' : 'text-[14px]',
                                     disabled ? 'text-neutral-300' : 'text-neutral-600'
                                 )}
                             >
@@ -135,18 +141,16 @@ export const FilterChips = ({
                             </div>
 
                             <div
-                                className={`${
-                                    selectedFilters.length > 0 ? 'visible' : 'hidden'
-                                } flex items-center gap-2`}
+                                className={`${selectedFilters.length > 0 ? 'visible' : 'hidden'
+                                    } flex items-center gap-2`}
                             >
                                 <Separator
                                     orientation="vertical"
                                     className="mx-2 h-4 bg-neutral-500"
                                 />
                                 <div
-                                    className={`inline-flex items-center rounded-md bg-primary-200 px-2.5 py-0.5 text-caption font-normal ${
-                                        selectedFilters.length > 0 ? 'visible' : 'hidden'
-                                    }`}
+                                    className={`inline-flex items-center rounded-md bg-primary-200 px-2.5 py-0.5 text-caption font-normal ${selectedFilters.length > 0 ? 'visible' : 'hidden'
+                                        }`}
                                 >
                                     {selectedFilters.length} selected
                                 </div>
@@ -204,13 +208,13 @@ export const StatusChips = ({
     showIcon = true,
 }: {
     status:
-        | ActivityStatus
-        | 'ACTIVE'
-        | 'TERMINATED'
-        | 'INACTIVE'
-        | 'EVALUATED'
-        | 'PAYMENT_PENDING'
-        | 'PAID';
+    | ActivityStatus
+    | 'ACTIVE'
+    | 'TERMINATED'
+    | 'INACTIVE'
+    | 'EVALUATED'
+    | 'PAYMENT_PENDING'
+    | 'PAID';
     children?: ReactNode;
     className?: string;
     showIcon?: boolean;
@@ -219,10 +223,11 @@ export const StatusChips = ({
         status === 'ACTIVE'
             ? 'active'
             : status === 'INACTIVE'
-              ? 'inactive'
-              : (status as ActivityStatus);
+                ? 'inactive'
+                : (status as ActivityStatus);
 
     const statusData = ActivityStatusData[normalizedStatus];
+    const { isCompact } = useCompactMode();
 
     if (!statusData) {
         return null;
@@ -235,11 +240,11 @@ export const StatusChips = ({
             <div className="flex items-center gap-1">
                 {showIcon && (
                     <StatusIcon
-                        className={cn(statusData.color.icon, 'size-[18px]')}
+                        className={cn(statusData.color.icon, isCompact ? 'size-3.5' : 'size-[18px]')}
                         weight="fill"
                     />
                 )}
-                <div className={cn('text-body capitalize text-neutral-600', className)}>
+                <div className={cn('capitalize text-neutral-600', isCompact ? 'text-xs' : 'text-body', className)}>
                     {children ? children : status}
                 </div>
             </div>
@@ -250,6 +255,8 @@ export const StatusChips = ({
 export const PaymentStatusChips = ({ status }: { status: string }) => {
     const statusData = ActivityStatusData[status as ActivityStatus];
     console.log('statusData', statusData);
+    const { isCompact } = useCompactMode();
+
     if (!statusData) {
         return null;
     }
@@ -259,8 +266,8 @@ export const PaymentStatusChips = ({ status }: { status: string }) => {
     return (
         <ChipsWrapper className={cn(statusData.color.bg, '')}>
             <div className="flex items-center gap-1">
-                <StatusIcon className={cn(statusData.color.icon, 'size-[18px]')} weight="fill" />
-                <div className={cn('text-body capitalize text-neutral-600')}>{status}</div>
+                <StatusIcon className={cn(statusData.color.icon, isCompact ? 'size-3.5' : 'size-[18px]')} weight="fill" />
+                <div className={cn('capitalize text-neutral-600', isCompact ? 'text-xs' : 'text-body')}>{status}</div>
             </div>
         </ChipsWrapper>
     );

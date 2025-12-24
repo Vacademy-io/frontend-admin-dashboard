@@ -15,6 +15,8 @@ import { toast } from 'sonner';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
+import { useCompactMode } from '@/hooks/use-compact-mode';
+import { cn } from '@/lib/utils';
 
 export const StudentFilters = ({
     currentSession,
@@ -43,6 +45,7 @@ export const StudentFilters = ({
     const addSessionMutation = useAddSession();
     const [disableAddButton, setDisableAddButton] = useState(true);
     const { instituteDetails } = useInstituteDetailsStore();
+    const { isCompact } = useCompactMode();
 
     const handleAddSession = (sessionData: AddSessionDataType) => {
         const processedData = structuredClone(sessionData);
@@ -75,17 +78,17 @@ export const StudentFilters = ({
                 onError: (error) => {
                     toast.error(
                         error.message ||
-                            `Failed to add ${getTerminology(
-                                ContentTerms.Session,
-                                SystemTerms.Session
-                            ).toLocaleLowerCase()}`
+                        `Failed to add ${getTerminology(
+                            ContentTerms.Session,
+                            SystemTerms.Session
+                        ).toLocaleLowerCase()}`
                     );
                 },
             }
         );
     };
 
-    const formSubmitRef = useRef(() => {});
+    const formSubmitRef = useRef(() => { });
 
     const submitButton = (
         <div className="flex items-center justify-end">
@@ -134,10 +137,13 @@ export const StudentFilters = ({
                                 <div className="group relative">
                                     <MyButton
                                         buttonType="text"
-                                        className="hover:scale-102 group flex items-center gap-2 text-primary-500 transition-all duration-200 disabled:text-primary-300"
+                                        className={cn(
+                                            "hover:scale-102 group flex items-center gap-2 text-primary-500 transition-all duration-200 disabled:text-primary-300",
+                                            isCompact ? "text-xs px-2 py-1" : ""
+                                        )}
                                         disable={!instituteDetails?.batches_for_sessions.length}
                                     >
-                                        <Plus className="size-4 transition-transform duration-200 group-hover:scale-110" />
+                                        <Plus className={cn("transition-transform duration-200 group-hover:scale-110", isCompact ? "size-3" : "size-4")} />
                                         <span className="hidden sm:inline">Add New Session</span>
                                         <span className="sm:hidden">Add Session</span>
                                     </MyButton>
@@ -171,9 +177,12 @@ export const StudentFilters = ({
                         buttonType="secondary"
                         layoutVariant="default"
                         onClick={handleExportAccountDetails}
-                        className="hover:scale-102 group flex items-center gap-2 bg-gradient-to-r from-neutral-50 to-neutral-100 transition-all duration-200 hover:from-neutral-100 hover:to-neutral-200"
+                        className={cn(
+                            "hover:scale-102 group flex items-center gap-2 bg-gradient-to-r from-neutral-50 to-neutral-100 transition-all duration-200 hover:from-neutral-100 hover:to-neutral-200",
+                            isCompact ? "px-2 py-1 text-xs" : "px-4 py-2 text-sm"
+                        )}
                     >
-                        <Export className="size-4 transition-transform duration-200 group-hover:scale-110" />
+                        <Export className={cn("transition-transform duration-200 group-hover:scale-110", isCompact ? "size-3" : "size-4")} />
                         <span className="hidden md:inline">Export account details</span>
                         <span className="md:hidden">Account Details</span>
                     </MyButton>
@@ -183,9 +192,12 @@ export const StudentFilters = ({
                         layoutVariant="default"
                         id="export-data"
                         onClick={handleExportClick}
-                        className="hover:scale-102 group flex items-center gap-2 border-emerald-200 bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 transition-all duration-200 hover:from-emerald-100 hover:to-emerald-200"
+                        className={cn(
+                            "hover:scale-102 group flex items-center gap-2 border-emerald-200 bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 transition-all duration-200 hover:from-emerald-100 hover:to-emerald-200",
+                            isCompact ? "px-2 py-1 text-xs" : "px-4 py-2 text-sm"
+                        )}
                     >
-                        <Export className="size-4 transition-transform duration-200 group-hover:scale-110" />
+                        <Export className={cn("transition-transform duration-200 group-hover:scale-110", isCompact ? "size-3" : "size-4")} />
                         <span className="hidden md:inline">Export Data</span>
                         <span className="md:hidden">Export</span>
                     </MyButton>
@@ -193,8 +205,11 @@ export const StudentFilters = ({
             </div>
 
             {/* Filters and search section */}
-            <div className="rounded-xl border border-neutral-200/50 bg-gradient-to-r from-white to-neutral-50/30 p-4 shadow-sm">
-                <div className="flex flex-col gap-4">
+            <div className={cn(
+                "rounded-xl border border-neutral-200/50 bg-gradient-to-r from-white to-neutral-50/30 shadow-sm",
+                isCompact ? "p-2" : "p-4"
+            )}>
+                <div className={cn("flex flex-col", isCompact ? "gap-2" : "gap-4")}>
                     {/* Search box */}
                     <div className="w-full lg:max-w-md">
                         <StudentSearchBox

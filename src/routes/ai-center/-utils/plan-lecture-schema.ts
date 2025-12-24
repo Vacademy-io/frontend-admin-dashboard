@@ -12,6 +12,8 @@ export const planLectureFormSchema = z.object({
     }),
     isQuestionGenerated: z.boolean(),
     isAssignmentHomeworkGenerated: z.boolean(),
+    preferredModel: z.string().optional(),
 });
 
 export type PlanLectureAIFormSchema = z.infer<typeof planLectureFormSchema>;
+

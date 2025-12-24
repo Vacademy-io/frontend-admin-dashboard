@@ -115,44 +115,52 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         const student: StudentTable | null = {
-            id: studentDetails?.id || '',
-            username: studentDetails?.username || '',
+            id: studentDetails?.id || selectedStudent?.id || '',
+            username: studentDetails?.username || selectedStudent?.username || '',
             user_id: selectedStudent?.id || '',
-            email: studentDetails?.email || '',
-            full_name: studentDetails?.full_name || '',
-            address_line: studentDetails?.address_line || '',
-            region: studentDetails?.region || '',
-            city: studentDetails?.city || '',
-            pin_code: studentDetails?.pin_code || '',
-            mobile_number: studentDetails?.mobile_number || '',
-            date_of_birth: studentDetails?.date_of_birth || '',
-            gender: studentDetails?.gender || '',
-            father_name: '',
-            mother_name: '',
+            email: studentDetails?.email || selectedStudent?.email || '',
+            full_name: studentDetails?.full_name || selectedStudent?.full_name || '',
+            address_line: studentDetails?.address_line || selectedStudent?.address_line || '',
+            region: studentDetails?.region || selectedStudent?.region || '',
+            city: studentDetails?.city || selectedStudent?.city || '',
+            pin_code: studentDetails?.pin_code || selectedStudent?.pin_code || '',
+            mobile_number: studentDetails?.mobile_number || selectedStudent?.mobile_number || '',
+            date_of_birth: studentDetails?.date_of_birth || selectedStudent?.date_of_birth || '',
+            gender: studentDetails?.gender || selectedStudent?.gender || '',
+            fathers_name: studentDetails?.fathers_name || selectedStudent?.fathers_name || '',
+            mothers_name: studentDetails?.mothers_name || selectedStudent?.mothers_name || '',
             father_mobile_number: '',
             father_email: '',
             mother_mobile_number: '',
             mother_email: '',
-            parents_mobile_number: '',
-            parents_email: '',
-            linked_institute_name: '',
-            created_at: '',
-            updated_at: '',
-            package_session_id: '',
-            institute_enrollment_id: '',
-            status: 'ACTIVE',
-            session_expiry_days: 0,
-            institute_id: '',
-            expiry_date: 0,
-            face_file_id: studentDetails?.face_file_id || '',
+            parents_mobile_number: studentDetails?.parents_mobile_number || selectedStudent?.parents_mobile_number || '',
+            parents_email: studentDetails?.parents_email || selectedStudent?.parents_email || '',
+            linked_institute_name: studentDetails?.linked_institute_name || selectedStudent?.linked_institute_name || '',
+            created_at: studentDetails?.created_at || selectedStudent?.created_at || '',
+            updated_at: studentDetails?.updated_at || selectedStudent?.updated_at || '',
+            package_session_id: selectedStudent?.package_session_id || '',
+            institute_enrollment_id: studentDetails?.institute_enrollment_id || selectedStudent?.institute_enrollment_id || '',
+            institute_enrollment_number: studentDetails?.institute_enrollment_number || selectedStudent?.institute_enrollment_number || '',
+            status: selectedStudent?.status || 'ACTIVE',
+            session_expiry_days: selectedStudent?.session_expiry_days || 0,
+            institute_id: selectedStudent?.institute_id || '',
+            expiry_date: selectedStudent?.expiry_date || 0,
+            face_file_id: studentDetails?.face_file_id || selectedStudent?.face_file_id || '',
             attempt_id: '',
-            parents_to_mother_mobile_number: '',
-            parents_to_mother_email: '',
+            parents_to_mother_mobile_number: studentDetails?.parents_to_mother_mobile_number || selectedStudent?.parents_to_mother_mobile_number || '',
+            parents_to_mother_email: studentDetails?.parents_to_mother_email || selectedStudent?.parents_to_mother_email || '',
             package_id: selectedStudent?.package_id || '',
-            country: studentDetails?.country || '',
+            country: studentDetails?.country || selectedStudent?.country || '',
+            attendance_percent: studentDetails?.attendance_percentage || studentDetails?.attendance_percent || selectedStudent?.attendance_percent || 0,
+            referral_count: studentDetails?.referral_count || selectedStudent?.referral_count || 0,
+            custom_fields: studentDetails?.custom_fields || selectedStudent?.custom_fields || {},
         };
 
-        const learner = isSubmissionTab ? student : selectedStudent;
+        const learner = isSubmissionTab
+            ? student
+            : student
+                ? { ...selectedStudent, ...student }
+                : selectedStudent;
         setOverviewData(
             OverViewData({
                 selectedStudent: learner,
@@ -209,11 +217,11 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                             <span
                                 className={`text-base font-bold ${
                                     daysUntilExpiry >= 180
-                                        ? 'text-success-600'
-                                        : daysUntilExpiry >= 30
-                                          ? 'text-warning-600'
-                                          : 'text-danger-600'
-                                }`}
+                                    ? 'text-success-600'
+                                    : daysUntilExpiry >= 30
+                                        ? 'text-warning-600'
+                                        : 'text-danger-600'
+                                    }`}
                             >
                                 {daysUntilExpiry}
                             </span>
@@ -223,11 +231,11 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                     <TrendUp
                         className={`size-3.5 ${
                             daysUntilExpiry >= 180
-                                ? 'text-success-500'
-                                : daysUntilExpiry >= 30
-                                  ? 'text-warning-500'
-                                  : 'text-danger-500'
-                        }`}
+                            ? 'text-success-500'
+                            : daysUntilExpiry >= 30
+                                ? 'text-warning-500'
+                                : 'text-danger-500'
+                            }`}
                     />
                 </div>
                 <div className="relative">
@@ -236,8 +244,8 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                         {daysUntilExpiry >= 180
                             ? 'Active session'
                             : daysUntilExpiry >= 30
-                              ? 'Renewal due soon'
-                              : 'Urgent renewal required'}
+                                ? 'Renewal due soon'
+                                : 'Urgent renewal required'}
                     </div>
                 </div>
             </div>
@@ -316,7 +324,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                                     {/* Compact content grid */}
                                     <div className="space-y-1">
                                         {studentDetail.content &&
-                                        studentDetail.content.length > 0 ? (
+                                            studentDetail.content.length > 0 ? (
                                             studentDetail.content.map((obj, key2) => {
                                                 if (!obj) {
                                                     return (
@@ -370,7 +378,7 @@ export const StudentOverview = ({ isSubmissionTab }: { isSubmissionTab?: boolean
                                                                         }}
                                                                     >
                                                                         {copiedField ===
-                                                                        fieldName ? (
+                                                                            fieldName ? (
                                                                             <Check className="size-3 text-green-600" />
                                                                         ) : (
                                                                             <Copy className="size-3 text-neutral-500 hover:text-neutral-700" />

@@ -23,8 +23,8 @@ export const stepTwoSchema = z.object({
     pin_code: z.string().optional(),
 
     // Parent/Guardian fields
-    father_name: z.string().optional(),
-    mother_name: z.string().optional(),
+    fathers_name: z.string().optional(),
+    mothers_name: z.string().optional(),
     parents_email: z.string().email('Invalid email format').optional().or(z.literal('')),
     parents_mobile_number: z.string().optional(),
     parents_to_mother_email: z.string().email('Invalid email format').optional().or(z.literal('')),
@@ -45,6 +45,7 @@ export const stepThreeSchema = z.object({
     }),
     enrollment_number: z.string().optional(),
     access_days: z.string().optional(),
+    start_date: z.string().optional(), // Enrollment start date, defaults to today
 });
 
 // Step Four Schema - Payment Details (Plan selection only)

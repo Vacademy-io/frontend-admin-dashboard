@@ -1,6 +1,18 @@
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { useEffect, useMemo, useState } from 'react';
-import { BellSimple, CaretDown, CaretUp, List } from '@phosphor-icons/react';
+import {
+    BellSimple,
+    CaretDown,
+    CaretUp,
+    List,
+    SquaresFour,
+    AndroidLogo,
+    AppleLogo,
+    WindowsLogo,
+    Desktop,
+    ChalkboardTeacher,
+    Student,
+} from '@phosphor-icons/react';
 import { useNavHeadingStore } from '@/stores/layout-container/useNavHeadingStore';
 import { useSidebarStore } from '@/routes/assessment/create-assessment/$assessmentId/$examtype/-utils/global-states';
 import {
@@ -54,6 +66,8 @@ import { MyButton } from '@/components/design-system/button';
 import AccountDetailsEdit from '@/routes/dashboard/-components/AccountDetailsEdit';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { useCompactMode } from '@/hooks/use-compact-mode';
+import { CompactModeToggle } from '@/components/compact-mode/CompactModeToggle';
 
 export function Navbar() {
     const roleColors: Record<string, string> = {
@@ -86,6 +100,7 @@ export function Navbar() {
     const [showEditAccountDetails, setShowEditAccountDetails] = useState(false);
     const isMobile = useIsMobile();
     const { setOpenMobile } = useSidebar();
+    const { isCompact } = useCompactMode();
 
     // Effective display settings (cached or defaults) for permission gating
     const isAdminRoleForDS = roles.includes('ADMIN');
@@ -168,12 +183,39 @@ export function Navbar() {
         return ds?.ui?.showSidebar !== false;
     })();
 
+    const {
+        playStoreAppLink,
+        appStoreAppLink,
+        windowsAppLink,
+        macAppLink,
+        learnerPortalUrl,
+        instructorPortalUrl,
+    } = instituteDetails || {};
+
+    const showAppsIcon = [
+        playStoreAppLink,
+        appStoreAppLink,
+        windowsAppLink,
+        macAppLink,
+        learnerPortalUrl,
+        instructorPortalUrl,
+    ].some((link) => !!link);
+
+    const ensureProtocol = (url: string | null | undefined) => {
+        if (!url) return undefined;
+        if (url.startsWith('http://') || url.startsWith('https://')) return url;
+        return `https://${url}`;
+    };
+
+    const finalInstructorPortalUrl = ensureProtocol(instructorPortalUrl);
+    const finalLearnerPortalUrl = ensureProtocol(learnerPortalUrl);
+
     return (
         <div className={cn(
             "sticky top-0 z-10 flex items-center justify-between border-b bg-neutral-50",
-            // Responsive padding and height
-            "h-14 px-4 py-2",
-            "md:h-[72px] md:px-8 md:py-4"
+            isCompact
+                ? "h-12 px-4 py-2"
+                : "h-14 px-4 py-2 md:h-[72px] md:px-8 md:py-4"
         )}>
             <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
                 {/* Mobile hamburger menu */}
@@ -210,19 +252,166 @@ export function Navbar() {
                 {/* Nav heading */}
                 <div className={cn(
                     "border-l border-neutral-500 font-semibold text-neutral-600 truncate",
-                    "px-2 text-sm",
-                    "md:px-4 md:text-h3"
+                    isCompact
+                        ? "px-2 text-sm"
+                        : "px-2 text-sm md:px-4 md:text-h3"
                 )}>
                     {navHeading}
                 </div>
             </div>
 
             <div className="flex items-center gap-2 md:gap-6 text-neutral-600 flex-shrink-0">
+                {/* Apps Menu */}
+                {showAppsIcon && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger className="relative flex items-center justify-center outline-none">
+                            <div className="relative rounded-full p-1.5 md:p-2 hover:bg-neutral-200 text-neutral-700">
+                                <SquaresFour
+                                    className={cn(isCompact ? 'size-4' : 'size-4 md:size-5')}
+                                    weight="bold"
+                                />
+                            </div>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                            align="end"
+                            className="w-64 p-2"
+                        >
+                            {finalInstructorPortalUrl && (
+                                <div className="mb-2">
+                                    <div className="mb-1 px-2 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                                        Instructor Section
+                                    </div>
+                                    <div className="grid grid-cols-4 gap-2 px-2 py-1">
+                                        <a
+                                            href={finalInstructorPortalUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
+                                            title="Instructor Portal"
+                                        >
+                                            <ChalkboardTeacher
+                                                className="size-6 text-primary-500"
+                                                weight="fill"
+                                            />
+                                            <span className="text-[10px] text-neutral-600 text-center leading-tight">
+                                                Portal
+                                            </span>
+                                        </a>
+                                    </div>
+                                </div>
+                            )}
+
+                            {(finalLearnerPortalUrl ||
+                                playStoreAppLink ||
+                                appStoreAppLink ||
+                                windowsAppLink ||
+                                macAppLink) && (
+                                    <div>
+                                        {finalInstructorPortalUrl && <Separator className="my-1" />}
+                                        <div className="mb-1 mt-1 px-2 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                                            Learner Section
+                                        </div>
+                                        <div className="grid grid-cols-4 gap-2 px-2 py-1">
+                                            {finalLearnerPortalUrl && (
+                                                <a
+                                                    href={finalLearnerPortalUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
+                                                    title="Learner Portal"
+                                                >
+                                                    <Student
+                                                        className="size-6 text-primary-500"
+                                                        weight="fill"
+                                                    />
+                                                    <span className="text-[10px] text-neutral-600 text-center leading-tight">
+                                                        Portal
+                                                    </span>
+                                                </a>
+                                            )}
+                                            {playStoreAppLink && (
+                                                <a
+                                                    href={playStoreAppLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
+                                                    title="Google Play Store"
+                                                >
+                                                    <AndroidLogo
+                                                        className="size-6 text-green-600"
+                                                        weight="fill"
+                                                    />
+                                                    <span className="text-[10px] text-neutral-600">
+                                                        Android
+                                                    </span>
+                                                </a>
+                                            )}
+                                            {appStoreAppLink && (
+                                                <a
+                                                    href={appStoreAppLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
+                                                    title="App Store"
+                                                >
+                                                    <AppleLogo
+                                                        className="size-6 text-black"
+                                                        weight="fill"
+                                                    />
+                                                    <span className="text-[10px] text-neutral-600">
+                                                        iOS
+                                                    </span>
+                                                </a>
+                                            )}
+                                            {windowsAppLink && (
+                                                <a
+                                                    href={windowsAppLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
+                                                    title="Windows App"
+                                                >
+                                                    <WindowsLogo
+                                                        className="size-6 text-blue-600"
+                                                        weight="fill"
+                                                    />
+                                                    <span className="text-[10px] text-neutral-600">
+                                                        Win
+                                                    </span>
+                                                </a>
+                                            )}
+                                            {macAppLink && (
+                                                <a
+                                                    href={macAppLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
+                                                    title="Mac App"
+                                                >
+                                                    <Desktop
+                                                        className="size-6 text-neutral-600"
+                                                        weight="fill"
+                                                    />
+                                                    <span className="text-[10px] text-neutral-600">
+                                                        Mac
+                                                    </span>
+                                                </a>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
+
                 {/* Notifications */}
                 <DropdownMenu>
                     <DropdownMenuTrigger className="relative flex items-center justify-center">
                         <div className="relative rounded-full p-1.5 md:p-2 hover:bg-neutral-200">
-                            <BellSimple className="size-4 md:size-5 text-neutral-700" />
+                            <BellSimple className={cn(
+                                "text-neutral-700",
+                                isCompact ? "size-4" : "size-4 md:size-5"
+                            )} />
                             {!!unreadCount && (
                                 <span className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-medium text-white">
                                     {unreadCount}
@@ -272,10 +461,10 @@ export function Navbar() {
                                                 {!!status && (
                                                     <span
                                                         className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${isDelivered
-                                                                ? 'bg-green-100 text-green-700'
-                                                                : isFailed
-                                                                    ? 'bg-red-100 text-red-700'
-                                                                    : 'bg-neutral-100 text-neutral-700'
+                                                            ? 'bg-green-100 text-green-700'
+                                                            : isFailed
+                                                                ? 'bg-red-100 text-red-700'
+                                                                : 'bg-neutral-100 text-neutral-700'
                                                             }`}
                                                     >
                                                         {status}
@@ -360,10 +549,10 @@ export function Navbar() {
                                                             {!!status && (
                                                                 <span
                                                                     className={`shrink-0 rounded px-2 py-0.5 text-[11px] font-medium ${isDelivered
-                                                                            ? 'bg-green-100 text-green-700'
-                                                                            : isFailed
-                                                                                ? 'bg-red-100 text-red-700'
-                                                                                : 'bg-neutral-100 text-neutral-700'
+                                                                        ? 'bg-green-100 text-green-700'
+                                                                        : isFailed
+                                                                            ? 'bg-red-100 text-red-700'
+                                                                            : 'bg-neutral-100 text-neutral-700'
                                                                         }`}
                                                                 >
                                                                     {status}
@@ -424,6 +613,9 @@ export function Navbar() {
 
                 {roles.includes('STUDENT') && <SSOSwitcher variant="button" className="" />}
 
+                {/* Compact Mode Toggle */}
+                <CompactModeToggle variant="icon" showPopover={true} />
+
                 {/* User profile dropdown */}
                 <div className="flex items-center gap-1">
                     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -432,7 +624,10 @@ export function Navbar() {
                                 <img
                                     src={adminLogo}
                                     alt="logo"
-                                    className="size-8 md:size-10 rounded-full object-cover"
+                                    className={cn(
+                                        "rounded-full object-cover",
+                                        isCompact ? "size-8" : "size-8 md:size-10"
+                                    )}
                                 />
                             )}
                             <span className="hidden md:inline">

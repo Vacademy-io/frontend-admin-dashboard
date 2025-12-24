@@ -7,6 +7,8 @@ import { SidebarItemProps } from '../../../../types/layout-container/layout-cont
 import { useSidebar } from '@/components/ui/sidebar';
 import { Link } from '@tanstack/react-router';
 import { useRouter } from '@tanstack/react-router';
+import { useCompactMode } from '@/hooks/use-compact-mode';
+import { cn } from '@/lib/utils';
 
 export const CollapsibleItem = ({ icon, title, to, subItems }: SidebarItemProps) => {
     const [hover, setHover] = useState<boolean>(false);
@@ -15,6 +17,7 @@ export const CollapsibleItem = ({ icon, title, to, subItems }: SidebarItemProps)
 
     const toggleHover = () => setHover(!hover);
     const router = useRouter();
+    const { isCompact } = useCompactMode();
 
     const currentRoute = router.state.location.pathname;
     const routeMatches =
@@ -50,23 +53,33 @@ export const CollapsibleItem = ({ icon, title, to, subItems }: SidebarItemProps)
                         <div className="flex items-center">
                             {icon &&
                                 React.createElement(icon, {
-                                    className: `${state === 'expanded' ? 'size-7' : 'size-6'} ${hover || routeMatches
+                                    className: cn(
+                                        state === 'expanded'
+                                            ? (isCompact ? 'size-6' : 'size-7')
+                                            : (isCompact ? 'size-5' : 'size-6'),
+                                        hover || routeMatches
                                             ? 'text-primary-500'
                                             : 'text-neutral-400'
-                                        }`,
+                                    ),
                                     weight: 'fill',
                                 })}
                             <SidebarGroup
-                                className={`${hover || routeMatches ? 'text-primary-500' : 'text-neutral-600'
-                                    } text-sm font-regular text-neutral-600 group-data-[collapsible=icon]:hidden`}
+                                className={cn(
+                                    hover || routeMatches ? 'text-primary-500' : 'text-neutral-600',
+                                    'font-regular group-data-[collapsible=icon]:hidden',
+                                    isCompact ? 'text-xs' : 'text-sm'
+                                )}
                             >
                                 {title}
                             </SidebarGroup>
                         </div>
                         <SidebarGroup className="ml-auto w-fit group-data-[collapsible=icon]:hidden">
                             <ChevronDown
-                                className={`ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180 ${hover || routeMatches ? 'text-primary-500' : 'text-neutral-600'
-                                    }`}
+                                className={cn(
+                                    "ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180",
+                                    hover || routeMatches ? 'text-primary-500' : 'text-neutral-600',
+                                    isCompact ? 'size-4' : 'size-6'
+                                )}
                             />
                         </SidebarGroup>
                     </div>
@@ -77,10 +90,13 @@ export const CollapsibleItem = ({ icon, title, to, subItems }: SidebarItemProps)
                     {subItems?.map((obj, key) => (
                         <Link to={obj.subItemLink} key={key}>
                             <div
-                                className={`cursor-pointer text-sm font-regular text-neutral-600 hover:text-primary-500 ${obj.subItemLink && currentRoute.includes(obj.subItemLink)
+                                className={cn(
+                                    "cursor-pointer font-regular hover:text-primary-500",
+                                    obj.subItemLink && currentRoute.includes(obj.subItemLink)
                                         ? 'text-primary-500'
-                                        : 'text-neutral-600'
-                                    }`}
+                                        : 'text-neutral-600',
+                                    isCompact ? 'text-xs' : 'text-sm'
+                                )}
                             >
                                 {obj.subItem}
                             </div>

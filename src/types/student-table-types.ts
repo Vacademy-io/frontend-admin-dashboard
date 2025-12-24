@@ -46,8 +46,8 @@ export interface StudentTable {
     mobile_number: string;
     date_of_birth: string;
     gender: string;
-    father_name: string;
-    mother_name: string;
+    fathers_name: string;
+    mothers_name: string;
     father_mobile_number: string;
     father_email: string;
     mother_mobile_number: string;
@@ -57,6 +57,7 @@ export interface StudentTable {
     updated_at: string;
     package_session_id: string;
     institute_enrollment_id: string;
+    institute_enrollment_number?: string;
     status: 'ACTIVE' | 'TERMINATED' | 'INACTIVE';
     session_expiry_days: number;
     institute_id: string;
