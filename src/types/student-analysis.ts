@@ -13,6 +13,7 @@ export interface InitiateAnalysisResponse {
 
 export interface StudentReportData {
     learning_frequency: string;
+    student_efforts: string;
     progress: string;
     topics_of_improvement: string;
     topics_of_degradation: string;

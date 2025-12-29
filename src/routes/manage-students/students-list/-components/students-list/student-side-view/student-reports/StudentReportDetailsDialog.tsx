@@ -1,6 +1,7 @@
 import { StudentReportData } from '@/types/student-analysis';
 import ReactMarkdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
+import remarkGfm from 'remark-gfm';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +14,30 @@ interface StudentReportDetailsDialogProps {
     report: StudentReportData | null;
     title?: string;
 }
+
+const markdownComponents = {
+    h3: ({ ...props }) => (
+        <h3 className="mb-5 mt-0 text-[1rem] font-bold text-slate-900" {...props} />
+    ),
+    table: ({ ...props }) => (
+        <div className="my-6 overflow-x-auto">
+            <table
+                className="w-full border-collapse border border-slate-200 text-[0.95rem]"
+                {...props}
+            />
+        </div>
+    ),
+    thead: ({ ...props }) => <thead className="bg-slate-50" {...props} />,
+    th: ({ ...props }) => (
+        <th
+            className="border border-slate-200 px-4 py-2.5 text-left font-bold text-slate-900"
+            {...props}
+        />
+    ),
+    td: ({ ...props }) => (
+        <td className="border border-slate-200 px-4 py-2.5 text-slate-800" {...props} />
+    ),
+};
 
 export const StudentReportDetailsDialog = ({
     open,
@@ -34,6 +59,7 @@ export const StudentReportDetailsDialog = ({
         WEAKNESSES: 'weaknesses' as keyof StudentReportData,
         PROGRESS: 'progress' as keyof StudentReportData,
         LEARNING_FREQUENCY: 'learning_frequency' as keyof StudentReportData,
+        STUDENT_EFFORTS: 'student_efforts' as keyof StudentReportData,
         TOPICS_IMPROVEMENT: 'topics_of_improvement' as keyof StudentReportData,
         TOPICS_DEGRADATION: 'topics_of_degradation' as keyof StudentReportData,
         REMEDIAL_POINTS: 'remedial_points' as keyof StudentReportData,
@@ -51,15 +77,53 @@ export const StudentReportDetailsDialog = ({
                         {/* Adjusted height to account for new description and gap */}
                         <div className="p-0">
                             {/* Removed p-6 as MyDialog content already has padding */}
-                            <Tabs defaultValue="overview" className="w-full">
+                            <Tabs defaultValue="efforts" className="w-full">
                                 <TabsList className="mb-4 grid w-full grid-cols-4">
+                                    <TabsTrigger value="efforts">Efforts</TabsTrigger>
                                     <TabsTrigger value="overview">Overview</TabsTrigger>
-                                    <TabsTrigger value="analysis">Deep Analysis</TabsTrigger>
                                     <TabsTrigger value="topics">Topics</TabsTrigger>
                                     <TabsTrigger value="remedial">Remedial</TabsTrigger>
                                 </TabsList>
 
+                                <TabsContent value="efforts" className="space-y-6">
+                                    <div className="space-y-2">
+                                        <Card>
+                                            <CardContent className="prose prose-sm dark:prose-invert max-w-none pt-4">
+                                                <ReactMarkdown
+                                                    remarkPlugins={[remarkBreaks, remarkGfm]}
+                                                    components={markdownComponents}
+                                                >
+                                                    {report[KEYS.STUDENT_EFFORTS] as string}
+                                                </ReactMarkdown>
+                                            </CardContent>
+                                        </Card>
+                                        <Card>
+                                            <CardContent className="prose prose-sm dark:prose-invert max-w-none pt-4">
+                                                <ReactMarkdown
+                                                    remarkPlugins={[remarkBreaks, remarkGfm]}
+                                                    components={markdownComponents}
+                                                >
+                                                    {report[KEYS.LEARNING_FREQUENCY] as string}
+                                                </ReactMarkdown>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                </TabsContent>
+
                                 <TabsContent value="overview" className="space-y-6">
+                                    <Card>
+                                        <CardContent className="prose prose-sm dark:prose-invert max-w-none pt-4">
+                                            <ReactMarkdown
+                                                remarkPlugins={[remarkBreaks, remarkGfm]}
+                                                components={markdownComponents}
+                                            >
+                                                {report[KEYS.PROGRESS] as string}
+                                            </ReactMarkdown>
+                                        </CardContent>
+                                    </Card>
+                                </TabsContent>
+
+                                <TabsContent value="topics" className="space-y-6">
                                     <div className="grid gap-6 md:grid-cols-2">
                                         <Card>
                                             <CardHeader>
@@ -85,7 +149,7 @@ export const StudentReportDetailsDialog = ({
                                                         </div>
                                                         <Progress
                                                             value={score}
-                                                            className="h-2 bg-green-100 [&>div]:bg-green-500"
+                                                            className="h-2 !bg-gray-200 [&>div]:bg-green-500"
                                                         />
                                                     </div>
                                                 ))}
@@ -115,7 +179,7 @@ export const StudentReportDetailsDialog = ({
                                                         </div>
                                                         <Progress
                                                             value={score}
-                                                            className="h-2 bg-red-100 [&>div]:bg-red-500"
+                                                            className="h-2 !bg-gray-200 [&>div]:bg-red-500"
                                                         />
                                                     </div>
                                                 ))}
@@ -123,55 +187,21 @@ export const StudentReportDetailsDialog = ({
                                         </Card>
                                     </div>
                                     <Card>
-                                        <CardHeader>
-                                            <CardTitle className="text-lg">
-                                                {formatTitle(KEYS.PROGRESS)}
-                                            </CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-                                            <ReactMarkdown remarkPlugins={[remarkBreaks]}>
-                                                {report[KEYS.PROGRESS] as string}
-                                            </ReactMarkdown>
-                                        </CardContent>
-                                    </Card>
-                                </TabsContent>
-
-                                <TabsContent value="analysis" className="space-y-6">
-                                    <Card>
-                                        <CardHeader>
-                                            <CardTitle className="text-lg">
-                                                {formatTitle(KEYS.LEARNING_FREQUENCY)}
-                                            </CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-                                            <ReactMarkdown remarkPlugins={[remarkBreaks]}>
-                                                {report[KEYS.LEARNING_FREQUENCY] as string}
-                                            </ReactMarkdown>
-                                        </CardContent>
-                                    </Card>
-                                </TabsContent>
-
-                                <TabsContent value="topics" className="space-y-6">
-                                    <Card>
-                                        <CardHeader>
-                                            <CardTitle className="text-lg text-green-700">
-                                                {formatTitle(KEYS.TOPICS_IMPROVEMENT)}
-                                            </CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-                                            <ReactMarkdown remarkPlugins={[remarkBreaks]}>
+                                        <CardContent className="prose prose-sm dark:prose-invert max-w-none pt-4">
+                                            <ReactMarkdown
+                                                remarkPlugins={[remarkBreaks, remarkGfm]}
+                                                components={markdownComponents}
+                                            >
                                                 {report[KEYS.TOPICS_IMPROVEMENT] as string}
                                             </ReactMarkdown>
                                         </CardContent>
                                     </Card>
                                     <Card>
-                                        <CardHeader>
-                                            <CardTitle className="text-lg text-red-700">
-                                                {formatTitle(KEYS.TOPICS_DEGRADATION)}
-                                            </CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-                                            <ReactMarkdown remarkPlugins={[remarkBreaks]}>
+                                        <CardContent className="prose prose-sm dark:prose-invert max-w-none pt-4">
+                                            <ReactMarkdown
+                                                remarkPlugins={[remarkBreaks, remarkGfm]}
+                                                components={markdownComponents}
+                                            >
                                                 {report[KEYS.TOPICS_DEGRADATION] as string}
                                             </ReactMarkdown>
                                         </CardContent>
@@ -180,13 +210,11 @@ export const StudentReportDetailsDialog = ({
 
                                 <TabsContent value="remedial" className="space-y-6">
                                     <Card>
-                                        <CardHeader>
-                                            <CardTitle className="text-lg">
-                                                {formatTitle(KEYS.REMEDIAL_POINTS)}
-                                            </CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="prose prose-sm dark:prose-invert max-w-none">
-                                            <ReactMarkdown remarkPlugins={[remarkBreaks]}>
+                                        <CardContent className="prose prose-sm dark:prose-invert max-w-none pt-4">
+                                            <ReactMarkdown
+                                                remarkPlugins={[remarkBreaks, remarkGfm]}
+                                                components={markdownComponents}
+                                            >
                                                 {report[KEYS.REMEDIAL_POINTS] as string}
                                             </ReactMarkdown>
                                         </CardContent>
