@@ -431,7 +431,7 @@ export const UPDATE_INSTRUCTOR_COPILOT_LOG = (id: string) => `${INSTRUCTOR_COPIL
 export const DELETE_INSTRUCTOR_COPILOT_LOG = (id: string) => `${INSTRUCTOR_COPILOT_BASE}/${id}`;
 
 // Student Analysis
-export const STUDENT_ANALYSIS_BASE = `${'http://localhost:8072'}/admin-core-service/v1/student-analysis`;
+export const STUDENT_ANALYSIS_BASE = `${BASE_URL}/admin-core-service/v1/student-analysis`;
 
 export const RETRY_INSTRUCTOR_COPILOT_LOG = (id: string) =>
     `${INSTRUCTOR_COPILOT_BASE}/retry-generate/${id}`;
