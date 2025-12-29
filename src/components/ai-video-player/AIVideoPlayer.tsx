@@ -132,7 +132,7 @@ class ScaleCalculator {
      * Calculate scale to fit target dimensions into container
      * Uses a buffer to ensure content fits while matching resolution
      */
-    calculateScale(containerWidth: number, containerHeight: number, buffer: number = 0.85): number {
+    calculateScale(containerWidth: number, containerHeight: number, buffer: number = 0.7): number {
         const targetRatio = this.targetWidth / this.targetHeight;
         const containerRatio = containerWidth / containerHeight;
 
@@ -145,7 +145,9 @@ class ScaleCalculator {
             newScale = containerWidth / this.targetWidth;
         }
         
-        // Apply buffer to zoom out and ensure content fits comfortably
+        // Apply buffer to zoom out and ensure entire frame fits exactly within the player screen
+        // Using 0.7 for better frame visibility
+        // Removed minHeight/maxHeight constraints to allow container to use full available space
         return newScale * buffer;
     }
 }
@@ -166,7 +168,7 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
     const [currentTime, setCurrentTime] = useState(0);
     const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
     const [duration, setDuration] = useState(0);
-    const [scale, setScale] = useState(1);
+    const [scale, setScale] = useState(0.7); // Initialize with buffer value to prevent zoomed-in initial state
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -254,20 +256,31 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
         const updateScale = () => {
             if (containerRef.current) {
                 const { clientWidth, clientHeight } = containerRef.current;
-                const newScale = scaleCalculator.calculateScale(clientWidth, clientHeight);
-                setScale(newScale);
+                // Only calculate if container has valid dimensions
+                if (clientWidth > 0 && clientHeight > 0) {
+                    const newScale = scaleCalculator.calculateScale(clientWidth, clientHeight);
+                    setScale(newScale);
+                }
             }
         };
 
-        updateScale();
+        // Use requestAnimationFrame to ensure container is rendered and has dimensions
+        const rafId = requestAnimationFrame(() => {
+            updateScale();
+            // Also try after a small delay to ensure dimensions are stable
+            setTimeout(updateScale, 100);
+        });
 
         const observer = new ResizeObserver(updateScale);
         if (containerRef.current) {
             observer.observe(containerRef.current);
         }
 
-        return () => observer.disconnect();
-    }, [scaleCalculator]);
+        return () => {
+            cancelAnimationFrame(rafId);
+            observer.disconnect();
+        };
+    }, [scaleCalculator, frames.length]); // Also recalculate when frames are loaded
 
     // Audio event handlers
     const handleTimeUpdate = () => {
@@ -395,9 +408,9 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
     }
 
     return (
-        <div className={`flex flex-col gap-4 max-w-full ${className}`}>
+        <div className={`flex flex-col gap-4 w-full max-w-full overflow-hidden ${className}`}>
             {/* Controls */}
-            <div className="flex items-center justify-between bg-card p-4 rounded-lg border shadow-sm">
+            <div className="flex items-center justify-between bg-card p-4 rounded-lg border shadow-sm w-full min-w-0">
                 <div className="flex items-center gap-4">
                     <Button variant="outline" size="icon" onClick={handleReset}>
                         <RotateCcw className="h-4 w-4" />
@@ -417,8 +430,6 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
                 className="w-full bg-gray-900 rounded-lg relative overflow-hidden"
                 ref={containerRef}
                 style={{ 
-                    minHeight: '400px', 
-                    maxHeight: '600px',
                     aspectRatio: '16/9'
                 }}
             >
@@ -466,10 +477,10 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
             </div>
 
             {/* Timeline */}
-            <div className="h-32 bg-card border rounded-lg p-4 flex flex-col justify-center gap-4 shadow-sm relative overflow-hidden">
+            <div className="h-32 bg-card border rounded-lg p-4 flex flex-col justify-center gap-4 shadow-sm relative overflow-hidden w-full min-w-0">
                 {/* Timeline Visualization */}
                 <div
-                    className="flex w-full h-12 bg-muted rounded overflow-hidden relative cursor-pointer"
+                    className="flex w-full h-12 bg-muted rounded overflow-hidden relative cursor-pointer min-w-0"
                     onClick={handleTimelineClick}
                 >
                     {frames.map((frame, idx) => {
@@ -503,7 +514,7 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
                     max={duration || 100}
                     step={0.1}
                     onValueChange={handleSeek}
-                    className="w-full"
+                    className="w-full min-w-0"
                 />
             </div>
 

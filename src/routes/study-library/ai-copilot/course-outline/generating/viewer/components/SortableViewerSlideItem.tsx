@@ -35,6 +35,7 @@ import {
     cleanQuizContent,
     parseVideoContent,
 } from '../utils/contentParsers';
+import { DocumentWithMermaidSimple } from '../../../../shared/components/DocumentWithMermaid';
 import type { SlideGeneration, SlideType, QuizQuestion } from '../../../../shared/types';
 import { AIVideoPlayer } from '@/components/ai-video-player';
 
@@ -756,8 +757,6 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
         if (slideType === 'doc' || slideType === 'objectives') {
             // Use documentContent state if available, otherwise use content
             const rawContent = documentContent || content;
-            // Process content to convert mermaid diagrams to images
-            const processedContent = processDocumentContent(rawContent);
             
             return (
                 <div className="mt-3 ml-8 bg-neutral-50 rounded-md border border-neutral-200 p-4">
@@ -781,11 +780,13 @@ export const SortableViewerSlideItem = React.memo(({ slide, onEdit, onDelete, ge
                             )}
                         </div>
                     </div>
-                    <TipTapEditor
-                        value={processedContent}
-                        onChange={handleDocumentChange}
-                        className="min-h-[400px]"
-                    />
+                    {/* Render document with mermaid diagram support */}
+                    <div className="min-h-[400px] p-4 bg-white rounded border border-neutral-200">
+                        <DocumentWithMermaidSimple
+                            htmlContent={rawContent}
+                            className="prose max-w-none"
+                        />
+                    </div>
                 </div>
             );
         }

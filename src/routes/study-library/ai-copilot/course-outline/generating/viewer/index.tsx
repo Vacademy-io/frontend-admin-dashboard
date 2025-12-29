@@ -135,6 +135,8 @@ type SlideType =
     | 'pdf'
     | 'video'
     | 'ai-video'
+    | 'video-code'
+    | 'ai-video-code'
     | 'image'
     | 'jupyter'
     | 'code-editor'
@@ -493,7 +495,7 @@ function RouteComponent() {
         });
     }, [slides]);
 
-    const getSlideIcon = (slideType: SlideType) => {
+    const getSlideIcon = (slideType: SlideType): React.ReactNode => {
         switch (slideType) {
             case 'objectives':
                 return <FileText className="h-4 w-4 text-blue-600" />;
@@ -521,6 +523,14 @@ function RouteComponent() {
                 return <Video className="h-4 w-4 text-red-600" />;
             case 'ai-video':
                 return <Video className="h-4 w-4 text-purple-600" />;
+            case 'video-code':
+            case 'ai-video-code':
+                return (
+                    <div className="flex items-center gap-1">
+                        <Video className="h-4 w-4 text-red-600" />
+                        <Code className="h-4 w-4 text-green-600" />
+                    </div>
+                );
             case 'jupyter':
                 return <Notebook className="h-4 w-4 text-orange-600" />;
             case 'code-editor':

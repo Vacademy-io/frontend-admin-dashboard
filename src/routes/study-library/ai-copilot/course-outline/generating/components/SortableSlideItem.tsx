@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { flushSync } from 'react-dom';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
@@ -18,6 +19,7 @@ import {
     ChevronDown,
     ChevronUp,
     Eye,
+    Sparkles,
 } from 'lucide-react';
 import { Editor } from '@monaco-editor/react';
 import { Input } from '@/components/ui/input';
@@ -25,7 +27,11 @@ import { Label } from '@/components/ui/label';
 import { TipTapEditor } from '@/components/tiptap/TipTapEditor';
 import { CircularProgress } from './CircularProgress';
 import { AIVideoPlayer } from '@/components/ai-video-player/AIVideoPlayer';
+import { MermaidDiagram } from '../../../shared/components/MermaidDiagram';
+import { DocumentWithMermaidSimple } from '../../../shared/components/DocumentWithMermaid';
 import type { SlideGeneration, SlideType, QuizQuestion } from '../../../shared/types';
+import { executeCode } from '../../../../courses/course-details/subjects/modules/chapters/slides/-components/utils/code-editor-utils';
+import { Play, X as XIcon } from 'lucide-react';
 
 interface SortableSlideItemProps {
     slide: SlideGeneration;
@@ -34,9 +40,10 @@ interface SortableSlideItemProps {
     getSlideIcon: (type: SlideType) => React.ReactNode;
     onRegenerate?: (slideId: string, section?: 'video' | 'code') => void;
     onContentEdit?: (slideId: string, newContent: string) => void;
+    isOutlineMode?: boolean; // True when in outline mode (before content generation)
 }
 
-export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlideIcon, onRegenerate, onContentEdit }: SortableSlideItemProps) => {
+export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlideIcon, onRegenerate, onContentEdit, isOutlineMode = false }: SortableSlideItemProps) => {
     // All hooks must be called before any conditional returns
     const [isEditing, setIsEditing] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
@@ -48,139 +55,46 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
     const [editedSections, setEditedSections] = useState<Array<{ type: 'text' | 'video-script' | 'code' | 'mermaid'; content: string; label: string }>>([]);
     const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
     const questionRefs = useRef<(HTMLDivElement | null)[]>([]);
+    const [expandedMermaidEditors, setExpandedMermaidEditors] = useState<Set<number>>(new Set());
+    const [showPrompt, setShowPrompt] = useState(false);
+    // Code execution state for video-code and ai-video-code slides
+    const [codeOutput, setCodeOutput] = useState<{ [slideId: string]: { output: string; isRunning: boolean; isExpanded: boolean } }>({});
+    const editorRefs = useRef<{ [slideId: string]: any }>({});
+    // Local running state for immediate UI feedback (before async state update)
+    const [localRunning, setLocalRunning] = useState<{ [slideId: string]: boolean }>({});
+    // Track iframe embedding failures per slide
+    const [iframeFailures, setIframeFailures] = useState<{ [slideId: string]: boolean }>({});
+    const iframeRefs = useRef<{ [slideId: string]: HTMLIFrameElement | null }>({});
+    const iframeTimeouts = useRef<{ [slideId: string]: NodeJS.Timeout | null }>({});
 
     // Parse content to extract video scripts, code snippets, and mermaid diagrams
     const parseContent = useCallback((content: string) => {
-        const sections: Array<{ type: 'text' | 'video-script' | 'code' | 'mermaid'; content: string; label: string; originalMatch?: string }> = [];
-
-        if (!content) return sections;
-
-        // Create a temporary DOM element to parse HTML
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = content;
-
-        // Extract text content and check for code/pre blocks
-        const textContent = tempDiv.textContent || tempDiv.innerText || '';
-        const lowerText = textContent.toLowerCase();
-
-        // Check if content contains video script keywords
-        const hasVideoScript = lowerText.includes('video script') || lowerText.includes('video narration');
-
-        // Look for code blocks in HTML (pre > code or just pre)
-        const codeBlocks = tempDiv.querySelectorAll('pre code, pre');
-        const mermaidBlocks: Array<{ element: Element; content: string }> = [];
-        const regularCodeBlocks: Array<{ element: Element; content: string }> = [];
-
-        codeBlocks.forEach((block) => {
-            const codeText = block.textContent || '';
-            const parentText = block.parentElement?.textContent || '';
-
-            // Check if it's a mermaid diagram
-            if (codeText.includes('graph') || codeText.includes('flowchart') ||
-                codeText.includes('sequenceDiagram') || codeText.includes('classDiagram') ||
-                parentText.toLowerCase().includes('mermaid')) {
-                mermaidBlocks.push({ element: block, content: codeText.trim() });
-            } else if (codeText.trim()) {
-                regularCodeBlocks.push({ element: block, content: codeText.trim() });
-            }
+        console.log('🔵 [parseContent] Called with content:', {
+            hasContent: !!content,
+            contentLength: content?.length || 0,
+            contentPreview: content?.substring(0, 200) || 'NO CONTENT'
         });
 
-        // If we have code blocks, split content around them
-        if (mermaidBlocks.length > 0 || regularCodeBlocks.length > 0) {
-            const allBlocks = [
-                ...mermaidBlocks.map(b => ({ ...b, type: 'mermaid' as const })),
-                ...regularCodeBlocks.map(b => ({ ...b, type: 'code' as const }))
-            ];
+        const sections: Array<{ type: 'text' | 'video-script' | 'code' | 'mermaid'; content: string; label: string; originalMatch?: string }> = [];
 
-            // Sort by position in DOM
-            allBlocks.sort((a, b) => {
-                const posA = Array.from(tempDiv.querySelectorAll('*')).indexOf(a.element as Element);
-                const posB = Array.from(tempDiv.querySelectorAll('*')).indexOf(b.element as Element);
-                return posA - posB;
-            });
-
-            let processedHTML = content;
-            let offset = 0;
-
-            for (const block of allBlocks) {
-                const blockHTML = block.element.outerHTML;
-                const blockIndex = processedHTML.indexOf(blockHTML, offset);
-
-                if (blockIndex !== -1) {
-                    // Add text before this block
-                    const textBefore = processedHTML.substring(offset, blockIndex).trim();
-                    if (textBefore) {
-                        const textBeforeLower = textBefore.toLowerCase();
-                        if (hasVideoScript && (textBeforeLower.includes('video script') || textBeforeLower.includes('video narration'))) {
-                            sections.push({
-                                type: 'video-script',
-                                content: textBefore,
-                                label: 'Video Script',
-                                originalMatch: textBefore
-                            });
-                        } else {
-                            sections.push({
-                                type: 'text',
-                                content: textBefore,
-                                label: 'Content',
-                                originalMatch: textBefore
-                            });
-                        }
-                    }
-
-                    // Add the code/mermaid block
-                    sections.push({
-                        type: block.type as 'mermaid' | 'code',
-                        content: block.content,
-                        label: block.type === 'mermaid' ? 'Mermaid Diagram Code' : 'Code Snippet',
-                        originalMatch: blockHTML
-                    });
-
-                    offset = blockIndex + blockHTML.length;
-                }
-            }
-
-            // Add remaining content
-            if (offset < processedHTML.length) {
-                const remaining = processedHTML.substring(offset).trim();
-                if (remaining) {
-                    const remainingLower = remaining.toLowerCase();
-                    if (hasVideoScript && (remainingLower.includes('video script') || remainingLower.includes('video narration'))) {
-                        sections.push({
-                            type: 'video-script',
-                            content: remaining,
-                            label: 'Video Script',
-                            originalMatch: remaining
-                        });
-                    } else {
-                        sections.push({
-                            type: 'text',
-                            content: remaining,
-                            label: 'Content',
-                            originalMatch: remaining
-                        });
-                    }
-                }
-            }
-        } else {
-            // No code blocks found, treat entire content as text or video script
-            if (hasVideoScript) {
-                sections.push({
-                    type: 'video-script',
-                    content,
-                    label: 'Video Script',
-                    originalMatch: content
-                });
-            } else {
-                sections.push({
-                    type: 'text',
-                    content,
-                    label: 'Content',
-                    originalMatch: content
-                });
-            }
+        if (!content) {
+            console.warn('⚠️ [parseContent] Content is empty, returning empty sections');
+            return sections;
         }
 
+        // For document slides, always treat content as document content (text + possibly mermaid)
+        // DocumentWithMermaidSimple will extract and render mermaid diagrams inline with text
+        // No need to split into sections - just render everything together
+        const trimmedContent = content.trim();
+        
+        // Always create a single text section - DocumentWithMermaidSimple handles everything
+        sections.push({
+            type: 'text',
+            content: trimmedContent,
+            label: 'Content',
+            originalMatch: trimmedContent
+        });
+        console.log('✅ [parseContent] Created document content section, total sections:', sections.length);
         return sections;
     }, []);
 
@@ -215,6 +129,25 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
             } else if (slide.slideType === 'code-editor' || slide.slideType === 'jupyter' || slide.slideType === 'scratch') {
                 // Code only - use prompt if available, otherwise fall back to content
                 setCodeContent(slide.prompt || slide.content);
+            } else if (slide.slideType === 'video-code' || slide.slideType === 'ai-video-code') {
+                // VIDEO_CODE or AI_VIDEO_CODE - parse JSON content
+                try {
+                    const contentData = slide.content ? JSON.parse(slide.content) : null;
+                    if (contentData) {
+                        const codeContent = contentData.code?.content || '';
+                        // Extract code from markdown if wrapped
+                        let cleanCode = codeContent;
+                        if (codeContent.includes('```')) {
+                            const codeMatch = codeContent.match(/```(?:python|javascript|typescript|java|html|css|markdown)?\s*\n?([\s\S]*?)\n?```/);
+                            if (codeMatch && codeMatch[1]) {
+                                cleanCode = codeMatch[1].trim();
+                            }
+                        }
+                        setCodeContent(cleanCode);
+                    }
+                } catch (e) {
+                    console.error('Failed to parse video-code content:', e);
+                }
             } else if (slide.slideType === 'video-code-editor' || slide.slideType === 'video-jupyter' || slide.slideType === 'video-scratch') {
                 // Video + Code - use prompt for code if available
                 if (slide.prompt) {
@@ -873,8 +806,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
         const slideStatus: 'pending' | 'generating' | 'completed' = slide.status;
         
         // Only render content when expanded by user
-        // Allow AI_VIDEO slides to render even when not expanded (to show prompt)
-        if (!isExpanded && slide.slideType !== 'ai-video') return null;
+        if (!isExpanded) return null;
 
         // Show loader if slide is generating
         if (slideStatus === 'generating') {
@@ -892,8 +824,11 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
 
         // Only render if slide is completed and has content
         // Exception: AI_VIDEO slides should show prompt even when pending
+        // Exception: AI_VIDEO_CODE and VIDEO_CODE slides should show even when video is generating
         // Exception: Quiz/Assessment slides can show content even when not completed (if content exists)
         if (slide.slideType !== 'ai-video' && 
+            slide.slideType !== 'ai-video-code' &&
+            slide.slideType !== 'video-code' &&
             slide.slideType !== 'quiz' && 
             slide.slideType !== 'assessment' && 
             (slideStatus !== 'completed' || !slide.content)) {
@@ -923,37 +858,37 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
         try {
             // AI Video pages - show prompt in outline view (always visible, even when pending)
             if (slide.slideType === 'ai-video') {
-                const prompt = slide.prompt || slide.content || 'No prompt available';
+                // Show video player when video is ready - check both status and aiVideoData
+                const hasVideo = slide.aiVideoData?.timelineUrl && slide.aiVideoData?.audioUrl && slide.aiVideoData?.status === 'COMPLETED';
+                const isGenerating = (slideStatus as string) === 'generating';
+                
+                // Don't show anything if video is not ready and not generating (removed "No content available" message)
+                if (!hasVideo && !isGenerating) {
+                    return null;
+                }
                 
                 return (
-                    <div className="mt-3 ml-8 bg-neutral-50 rounded-md border border-neutral-200 p-4">
-                        <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                                <Video className="h-4 w-4 text-purple-600" />
-                                <Label className="text-sm font-semibold text-neutral-900">AI Video Prompt</Label>
-                            </div>
-                        </div>
-                        <div className="bg-white rounded-lg border border-neutral-200 p-4">
-                            <p className="text-sm text-neutral-700 whitespace-pre-wrap">{prompt}</p>
-                        </div>
-                        {/* Show video player when video is ready - check both status and aiVideoData */}
-                        {slide.aiVideoData?.timelineUrl && slide.aiVideoData?.audioUrl && slide.aiVideoData?.status === 'COMPLETED' && (
-                            <div className="mt-4 bg-white rounded-lg border border-neutral-200 p-4 overflow-hidden">
+                    <div className="mt-3 ml-8 bg-neutral-50 rounded-md border border-neutral-200 p-4 min-w-0">
+                        {/* Show video player when video is ready */}
+                        {hasVideo && (
+                            <div className="bg-white rounded-lg border border-neutral-200 p-4 overflow-hidden min-w-0">
                                 <div className="flex items-center gap-2 mb-3">
                                     <Video className="h-4 w-4 text-purple-600" />
                                     <Label className="text-sm font-semibold text-neutral-900">AI Generated Video</Label>
                                 </div>
-                                <div className="w-full max-w-full overflow-hidden">
-                                    <AIVideoPlayer
-                                        timelineUrl={slide.aiVideoData.timelineUrl}
-                                        audioUrl={slide.aiVideoData.audioUrl}
-                                        className="w-full max-w-full"
-                                    />
-                                </div>
+                                {slide.aiVideoData?.timelineUrl && slide.aiVideoData?.audioUrl && (
+                                    <div className="w-full max-w-full overflow-hidden min-w-0">
+                                        <AIVideoPlayer
+                                            timelineUrl={slide.aiVideoData.timelineUrl!}
+                                            audioUrl={slide.aiVideoData.audioUrl!}
+                                            className="w-full max-w-full min-w-0"
+                                        />
+                                    </div>
+                                )}
                             </div>
                         )}
                         {/* Only show loader when actively generating, not when pending */}
-                        {(slideStatus as string) === 'generating' && (
+                        {isGenerating && (
                             <div className="mt-4 flex items-center gap-2">
                                 <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
                                 <span className="text-sm text-neutral-600">Generating video... {slide.progress || 0}%</span>
@@ -1035,8 +970,48 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                 return (
                     <div className="mt-3 ml-8 bg-neutral-50 rounded-md border border-neutral-200 p-4">
                         <div className="space-y-4">
-                            {/* YouTube Thumbnail with Play Button */}
-                            {videoUrl && videoId ? (
+                            {/* Try iframe first, show thumbnail only if iframe fails */}
+                            {videoUrl && videoId && !iframeFailures[slide.id] ? (
+                                <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black">
+                                    <iframe
+                                        ref={(el) => {
+                                            if (el) {
+                                                iframeRefs.current[slide.id] = el;
+                                                // Clear any existing timeout
+                                                if (iframeTimeouts.current[slide.id]) {
+                                                    clearTimeout(iframeTimeouts.current[slide.id]!);
+                                                }
+                                                // Set timeout - if iframe doesn't load within 2 seconds, show fallback
+                                                // YouTube iframes can load but be blocked, so we check after a short delay
+                                                // Reduced timeout to 2 seconds for faster fallback
+                                                iframeTimeouts.current[slide.id] = setTimeout(() => {
+                                                    const iframe = iframeRefs.current[slide.id];
+                                                    if (iframe && !iframeFailures[slide.id]) {
+                                                        // For YouTube, if onLoad fired but iframe is still showing error/blocked content,
+                                                        // we need to show fallback. Since we can't access cross-origin content,
+                                                        // we'll show fallback after timeout as YouTube often blocks embedding
+                                                        console.log('Iframe timeout - YouTube may be blocking embedding, showing thumbnail fallback');
+                                                        setIframeFailures(prev => ({ ...prev, [slide.id]: true }));
+                                                    }
+                                                }, 2000);
+                                            }
+                                        }}
+                                        src={videoUrl}
+                                        className="absolute inset-0 w-full h-full"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                        onError={() => {
+                                            console.log('Iframe embedding failed, showing thumbnail fallback');
+                                            if (iframeTimeouts.current[slide.id]) {
+                                                clearTimeout(iframeTimeouts.current[slide.id]!);
+                                            }
+                                            setIframeFailures(prev => ({ ...prev, [slide.id]: true }));
+                                        }}
+                                        // Removed onLoad handler - YouTube iframes can fire onLoad even when blocked,
+                                        // which prevents the timeout-based fallback from working
+                                    />
+                                </div>
+                            ) : videoUrl && videoId && iframeFailures[slide.id] ? (
                                 <div className="relative w-full aspect-video rounded-lg overflow-hidden group bg-black">
                                     <img
                                         src={thumbnailUrl || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
@@ -1350,6 +1325,14 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                 } else {
                     // Topic without video script + code - parse and show all sections editable
                     const sections = editedSections.length > 0 ? editedSections : parseContent(slide.content || '');
+                    
+                    console.log('🔵 [SortableSlideItem] Sections parsed for slide:', {
+                        slideId: slide.id,
+                        slideType: slide.slideType,
+                        contentLength: slide.content?.length || 0,
+                        sectionsCount: sections.length,
+                        sections: sections.map(s => ({ type: s.type, label: s.label, contentLength: s.content?.length || 0 }))
+                    });
 
                     return (
                         <div className="mt-3 ml-8 space-y-4">
@@ -1376,12 +1359,47 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                     </div>
 
                                     {section.type === 'text' || section.type === 'video-script' ? (
-                                        <TipTapEditor
-                                            value={section.content}
-                                            onChange={(html) => handleDocumentSectionChange(idx, html)}
-                                            className="min-h-[300px]"
-                                        />
+                                        <div style={{ maxWidth: '100%', overflow: 'hidden' }}>
+                                            <DocumentWithMermaidSimple
+                                                htmlContent={section.content}
+                                                className="prose max-w-none"
+                                            />
+                                        </div>
                                     ) : section.type === 'mermaid' ? (
+                                        <div className="space-y-4">
+                                            {/* Mermaid Diagram Preview */}
+                                            {section.content ? (
+                                                <div className="border border-neutral-200 rounded p-4 bg-white">
+                                                    <Label className="text-xs text-neutral-600 mb-2 block">Diagram Preview</Label>
+                                                    <MermaidDiagram code={section.content} />
+                                                </div>
+                                            ) : (
+                                                <div className="text-red-500 text-sm">⚠️ Mermaid section has no content</div>
+                                            )}
+                                            {/* Collapsible Mermaid Code Editor */}
+                                            <div className="border border-neutral-200 rounded overflow-hidden">
+                                                <button
+                                                    onClick={() => {
+                                                        setExpandedMermaidEditors(prev => {
+                                                            const newSet = new Set(prev);
+                                                            if (newSet.has(idx)) {
+                                                                newSet.delete(idx);
+                                                            } else {
+                                                                newSet.add(idx);
+                                                            }
+                                                            return newSet;
+                                                        });
+                                                    }}
+                                                    className="w-full flex items-center justify-between p-2 bg-neutral-50 hover:bg-neutral-100 transition-colors"
+                                                >
+                                                    <Label className="text-xs text-neutral-600 font-semibold">Mermaid Code</Label>
+                                                    {expandedMermaidEditors.has(idx) ? (
+                                                        <ChevronUp className="h-4 w-4 text-neutral-600" />
+                                                    ) : (
+                                                        <ChevronDown className="h-4 w-4 text-neutral-600" />
+                                                    )}
+                                                </button>
+                                                {expandedMermaidEditors.has(idx) && (
                                         <Editor
                                             height="400px"
                                             defaultLanguage="mermaid"
@@ -1394,6 +1412,9 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                                 wordWrap: 'on',
                                             }}
                                         />
+                                                )}
+                                            </div>
+                                        </div>
                                     ) : (
                                         <Editor
                                             height="400px"
@@ -1415,46 +1436,504 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                 }
             }
 
-            // Document pages (doc, objectives) - parse and show all sections editable
-            if (slide.slideType === 'objectives' || slide.slideType === 'doc') {
-                const sections = editedSections.length > 0 ? editedSections : parseContent(slide.content || '');
+            // VIDEO_CODE - YouTube video + code editor (split layout)
+            if (slide.slideType === 'video-code') {
+                let videoData: any = null;
+                let codeData: any = null;
+                
+                try {
+                    const contentData = slide.content ? JSON.parse(slide.content) : null;
+                    if (contentData) {
+                        videoData = contentData.video;
+                        codeData = contentData.code;
+                    }
+                } catch (e) {
+                    console.error('Failed to parse VIDEO_CODE content:', e);
+                }
+
+                const videoUrl = videoData?.embedUrl || videoData?.url || '';
+                const codeContent = codeData?.content || '';
+                const codeLanguage = codeData?.language || 'python';
+                
+                // Extract video ID from URL for thumbnail fallback
+                const getVideoIdFromUrl = (url: string | undefined) => {
+                    if (!url) return null;
+                    const embedMatch = url.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]+)/);
+                    if (embedMatch) return embedMatch[1];
+                    const watchMatch = url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/);
+                    if (watchMatch) return watchMatch[1];
+                    const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+                    if (shortMatch) return shortMatch[1];
+                    const idMatch = url.match(/([a-zA-Z0-9_-]{11})/);
+                    if (idMatch) return idMatch[1];
+                    return null;
+                };
+
+                const videoId = videoUrl ? getVideoIdFromUrl(videoUrl) : null;
+                const watchUrl = videoId ? `https://www.youtube.com/watch?v=${videoId}` : (videoUrl || '#');
+                const thumbnailUrl = videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null;
+                
+                // Extract code from markdown/HTML - look for Python code blocks first
+                let cleanCode = codeContent;
+                if (codeContent.includes('```')) {
+                    // Try to extract Python code blocks
+                    const pythonCodeMatch = codeContent.match(/```python\s*\n?([\s\S]*?)\n?```/);
+                    if (pythonCodeMatch && pythonCodeMatch[1]) {
+                        cleanCode = pythonCodeMatch[1].trim();
+                    } else {
+                        // Try other language code blocks
+                        const codeMatch = codeContent.match(/```(?:javascript|typescript|java|html|css)?\s*\n?([\s\S]*?)\n?```/);
+                        if (codeMatch && codeMatch[1]) {
+                            cleanCode = codeMatch[1].trim();
+                        } else {
+                            // If wrapped in markdown code block, extract inner content
+                            const markdownMatch = codeContent.match(/```markdown\s*\n?([\s\S]*?)\n?```/);
+                            if (markdownMatch && markdownMatch[1]) {
+                                // Extract Python code from the HTML/markdown
+                                const innerContent = markdownMatch[1];
+                                const innerPythonMatch = innerContent.match(/```python\s*\n?([\s\S]*?)\n?```/);
+                                if (innerPythonMatch && innerPythonMatch[1]) {
+                                    cleanCode = innerPythonMatch[1].trim();
+                                } else {
+                                    cleanCode = innerContent.trim();
+                                }
+                            }
+                        }
+                    }
+                }
 
                 return (
-                    <div className="mt-3 ml-8 space-y-4">
-                        {sections.map((section, idx) => (
-                            <div key={idx} className="bg-neutral-50 rounded-md border border-neutral-200 p-4">
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="flex items-center gap-2">
-                                        {section.type === 'video-script' && <Video className='h-4 w-4 text-red-600' />}
-                                        {section.type === 'code' && <Code className='h-4 w-4 text-green-600' />}
-                                        {section.type === 'mermaid' && <Layers className='h-4 w-4 text-purple-600' />}
-                                        {section.type === 'text' && <FileText className='h-4 w-4 text-blue-600' />}
-                                        <Label className="text-sm font-semibold text-neutral-900">{section.label}</Label>
-                                    </div>
+                    <div className="mt-3 ml-8">
+                        <div className="bg-neutral-50 rounded-md border border-neutral-200 p-4">
                                     {onRegenerate && (
+                                <div className="flex justify-end mb-3">
                                         <button
                                             onClick={() => onRegenerate(slide.id)}
                                             className="flex items-center gap-1.5 rounded px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition-colors"
-                                            title={`Regenerate ${section.label}`}
+                                        title="Regenerate Content"
                                         >
                                             <RefreshCw className="h-3.5 w-3.5" />
                                             Regenerate
                                         </button>
+                                </div>
+                            )}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                {/* Video Section */}
+                                <div className="bg-white rounded-lg border border-neutral-200 p-4 overflow-hidden">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Video className="h-4 w-4 text-red-600" />
+                                        <Label className="text-sm font-semibold text-neutral-900">Video</Label>
+                                </div>
+                                    {/* Try iframe first, show thumbnail only if iframe fails */}
+                                    {videoUrl && videoId && !iframeFailures[slide.id] ? (
+                                        <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black">
+                                            <iframe
+                                                ref={(el) => {
+                                                    if (el) {
+                                                        iframeRefs.current[slide.id] = el;
+                                                        // Clear any existing timeout
+                                                        if (iframeTimeouts.current[slide.id]) {
+                                                            clearTimeout(iframeTimeouts.current[slide.id]!);
+                                                        }
+                                                        // Set timeout - if iframe doesn't load within 2 seconds, show fallback
+                                                        // YouTube iframes can load but be blocked, so we check after short delay
+                                                        // Reduced timeout to 2 seconds for faster fallback
+                                                        iframeTimeouts.current[slide.id] = setTimeout(() => {
+                                                            const iframe = iframeRefs.current[slide.id];
+                                                            if (iframe && !iframeFailures[slide.id]) {
+                                                                console.log('Iframe timeout for VIDEO_CODE - YouTube may be blocking embedding, showing thumbnail fallback');
+                                                                setIframeFailures(prev => ({ ...prev, [slide.id]: true }));
+                                                            }
+                                                        }, 2000);
+                                                    }
+                                                }}
+                                                src={videoUrl}
+                                                className="absolute inset-0 w-full h-full"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowFullScreen
+                                                onError={() => {
+                                                    console.log('Iframe embedding failed, showing thumbnail fallback');
+                                                    if (iframeTimeouts.current[slide.id]) {
+                                                        clearTimeout(iframeTimeouts.current[slide.id]!);
+                                                    }
+                                                    setIframeFailures(prev => ({ ...prev, [slide.id]: true }));
+                                                }}
+                                                // Removed onLoad handler - YouTube iframes can fire onLoad even when blocked,
+                                                // which prevents the timeout-based fallback from working
+                                            />
+                                        </div>
+                                    ) : videoUrl && videoId && iframeFailures[slide.id] ? (
+                                        <div className="relative w-full aspect-video rounded-lg overflow-hidden group bg-black">
+                                            <img
+                                                src={thumbnailUrl || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
+                                                alt="Video thumbnail"
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    const img = e.target as HTMLImageElement;
+                                                    if (img.src.includes('maxresdefault')) {
+                                                        img.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                                                    } else if (img.src.includes('hqdefault')) {
+                                                        img.src = 'https://via.placeholder.com/1280x720/1a1a1a/ffffff?text=YouTube+Video';
+                                                    }
+                                                }}
+                                            />
+                                            {/* Play button overlay */}
+                                            <a
+                                                href={watchUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/60 transition-colors cursor-pointer"
+                                            >
+                                                <div className="bg-red-600 rounded-full p-4 group-hover:scale-110 transition-transform">
+                                                    <svg
+                                                        className="w-8 h-8 text-white fill-current"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path d="M8 5v14l11-7z" />
+                                                    </svg>
+                                                </div>
+                                            </a>
+                                            {/* "Watch on YouTube" text */}
+                                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                                                <a
+                                                    href={watchUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-white text-sm font-semibold hover:text-yellow-300 transition-colors flex items-center gap-2"
+                                                >
+                                                    ▶ Watch on YouTube
+                                                </a>
+                                            </div>
+                                        </div>
+                                    ) : videoUrl ? (
+                                        // Fallback: if videoUrl exists but no videoId, try iframe with timeout
+                                        <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black">
+                                            <iframe
+                                                ref={(el) => {
+                                                    if (el) {
+                                                        iframeRefs.current[slide.id] = el;
+                                                        if (iframeTimeouts.current[slide.id]) {
+                                                            clearTimeout(iframeTimeouts.current[slide.id]!);
+                                                        }
+                                                        // For videos without videoId, use 2 second timeout
+                                                        iframeTimeouts.current[slide.id] = setTimeout(() => {
+                                                            if (!iframeFailures[slide.id]) {
+                                                                console.log('Iframe timeout for VIDEO_CODE (no videoId) - showing fallback');
+                                                                setIframeFailures(prev => ({ ...prev, [slide.id]: true }));
+                                                            }
+                                                        }, 2000);
+                                                    }
+                                                }}
+                                                src={videoUrl}
+                                                className="absolute inset-0 w-full h-full"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowFullScreen
+                                                onError={() => {
+                                                    console.log('Iframe embedding failed for VIDEO_CODE');
+                                                    if (iframeTimeouts.current[slide.id]) {
+                                                        clearTimeout(iframeTimeouts.current[slide.id]!);
+                                                    }
+                                                    setIframeFailures(prev => ({ ...prev, [slide.id]: true }));
+                                                }}
+                                                onLoad={() => {
+                                                    if (iframeTimeouts.current[slide.id]) {
+                                                        clearTimeout(iframeTimeouts.current[slide.id]!);
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center justify-center h-48 bg-neutral-100 rounded text-neutral-500 text-sm">
+                                            No video available
+                                        </div>
                                     )}
                                 </div>
+                                
+                                {/* Code Section */}
+                                <div className="bg-white rounded-lg border border-neutral-200 p-4 flex flex-col">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-2">
+                                            <Code className="h-4 w-4 text-green-600" />
+                                            <Label className="text-sm font-semibold text-neutral-900">Code</Label>
+                                        </div>
+                                        <button
+                                            onClick={async () => {
+                                                const currentCode = editorRefs.current[slide.id]?.getValue() || cleanCode;
+                                                const slideId = slide.id;
+                                                
+                                                // Use flushSync to ensure state updates immediately and UI reflects the change
+                                                flushSync(() => {
+                                                    // Set local running state immediately for instant UI feedback
+                                                    setLocalRunning(prev => ({ ...prev, [slideId]: true }));
+                                                    setCodeOutput(prev => {
+                                                        const newState = { ...prev };
+                                                        // Set isExpanded: true so output panel shows immediately
+                                                        newState[slideId] = { output: '', isRunning: true, isExpanded: true };
+                                                        return newState;
+                                                    });
+                                                });
+                                                
+                                                try {
+                                                    // Normalize language to 'python' if it's not supported
+                                                    const normalizedLanguage = codeLanguage.toLowerCase() === 'python' ? 'python' : 'python';
+                                                    const result = await executeCode(currentCode, normalizedLanguage as any);
+                                                    setLocalRunning(prev => ({ ...prev, [slideId]: false }));
+                                                    setCodeOutput(prev => ({
+                                                        ...prev,
+                                                        [slideId]: { output: result.output, isRunning: false, isExpanded: true }
+                                                    }));
+                                                } catch (error) {
+                                                    setLocalRunning(prev => ({ ...prev, [slideId]: false }));
+                                                    setCodeOutput(prev => ({
+                                                        ...prev,
+                                                        [slideId]: { 
+                                                            output: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`, 
+                                                            isRunning: false, 
+                                                            isExpanded: true 
+                                                        }
+                                                    }));
+                                                }
+                                            }}
+                                            disabled={(codeOutput[slide.id]?.isRunning || localRunning[slide.id]) === true}
+                                            className="flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            {(codeOutput[slide.id]?.isRunning || localRunning[slide.id]) ? (
+                                                <>
+                                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                                    Running...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Play className="h-3.5 w-3.5" />
+                                                    Run Code
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                    <div className="flex-1 flex flex-col min-h-0">
+                                        <div className="flex-1 min-h-0">
+                                    <Editor
+                                        height="400px"
+                                                defaultLanguage={codeLanguage}
+                                                value={cleanCode}
+                                                onChange={handleCodeChange}
+                                                onMount={(editor) => {
+                                                    editorRefs.current[slide.id] = editor;
+                                                }}
+                                        theme="vs-dark"
+                                        options={{
+                                            minimap: { enabled: false },
+                                            fontSize: 12,
+                                            wordWrap: 'on',
+                                        }}
+                                    />
+                                        </div>
+                                        {/* Output Panel - show immediately when running, or when there's output AND slide is expanded */}
+                                        {((codeOutput[slide.id]?.isRunning || localRunning[slide.id]) || (isExpanded && codeOutput[slide.id]?.output && codeOutput[slide.id]?.isExpanded)) && (
+                                            <div className="mt-3 border-t border-neutral-200">
+                                                <div className="flex items-center justify-between bg-neutral-50 px-3 py-2">
+                                                    <span className="text-xs font-medium text-neutral-700">Output</span>
+                                                    {!(codeOutput[slide.id]?.isRunning || localRunning[slide.id]) && (
+                                                        <button
+                                                            onClick={() => {
+                                                                setCodeOutput(prev => {
+                                                                    const current = prev[slide.id];
+                                                                    if (!current) return prev;
+                                                                    return {
+                                                                        ...prev,
+                                                                        [slide.id]: { ...current, isExpanded: false }
+                                                                    };
+                                                                });
+                                                            }}
+                                                            className="text-neutral-500 hover:text-neutral-700"
+                                                        >
+                                                            <XIcon className="h-3.5 w-3.5" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <div className="bg-neutral-900 p-3 max-h-48 overflow-y-auto">
+                                                    <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap">
+                                                        {(codeOutput[slide.id]?.isRunning || localRunning[slide.id])
+                                                            ? 'Loading Python environment (this may take a few seconds on first run)...'
+                                                            : codeOutput[slide.id]?.output || 'No output yet. Click "Run Code" to execute.'}
+                                                    </pre>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {!codeOutput[slide.id]?.isExpanded && codeOutput[slide.id]?.output && !codeOutput[slide.id]?.isRunning && !localRunning[slide.id] && (
+                                            <button
+                                                onClick={() => {
+                                                    setCodeOutput(prev => {
+                                                        const current = prev[slide.id];
+                                                        if (!current) return prev;
+                                                        return {
+                                                            ...prev,
+                                                            [slide.id]: { ...current, isExpanded: true }
+                                                        };
+                                                    });
+                                                }}
+                                                className="mt-3 text-xs text-indigo-600 hover:text-indigo-700"
+                                            >
+                                                Show Output
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
 
-                                {section.type === 'text' || section.type === 'video-script' ? (
-                                    <TipTapEditor
-                                        value={section.content}
-                                        onChange={(html) => handleDocumentSectionChange(idx, html)}
-                                        className="min-h-[300px]"
-                                    />
-                                ) : section.type === 'mermaid' ? (
+            // AI_VIDEO_CODE - AI video + code editor (split layout)
+            if (slide.slideType === 'ai-video-code') {
+                let videoData: any = null;
+                let codeData: any = null;
+                
+                try {
+                    const contentData = slide.content ? JSON.parse(slide.content) : null;
+                    if (contentData) {
+                        videoData = contentData.video;
+                        codeData = contentData.code;
+                    }
+                } catch (e) {
+                    console.error('Failed to parse AI_VIDEO_CODE content:', e);
+                }
+
+                const codeContent = codeData?.content || '';
+                const codeLanguage = codeData?.language || 'python';
+                
+                // Extract code from markdown - look for Python code blocks first
+                let cleanCode = codeContent;
+                if (codeContent.includes('```')) {
+                    // Try to extract Python code blocks
+                    const pythonCodeMatch = codeContent.match(/```python\s*\n?([\s\S]*?)\n?```/);
+                    if (pythonCodeMatch && pythonCodeMatch[1]) {
+                        cleanCode = pythonCodeMatch[1].trim();
+                    } else {
+                        // Try other language code blocks
+                        const codeMatch = codeContent.match(/```(?:javascript|typescript|java|html|css)?\s*\n?([\s\S]*?)\n?```/);
+                        if (codeMatch && codeMatch[1]) {
+                            cleanCode = codeMatch[1].trim();
+                        }
+                    }
+                }
+
+                // Check if AI video is ready
+                const isVideoReady = videoData?.status === 'COMPLETED' && videoData?.timelineUrl && videoData?.audioUrl;
+
+                return (
+                    <div className="mt-3 ml-8">
+                        <div className="bg-neutral-50 rounded-md border border-neutral-200 p-4">
+                            {onRegenerate && (
+                                <div className="flex justify-end mb-3">
+                                    <button
+                                        onClick={() => onRegenerate(slide.id)}
+                                        className="flex items-center gap-1.5 rounded px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition-colors"
+                                        title="Regenerate Content"
+                                    >
+                                        <RefreshCw className="h-3.5 w-3.5" />
+                                        Regenerate
+                                    </button>
+                                </div>
+                            )}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                {/* AI Video Section */}
+                                <div className="bg-white rounded-lg border border-neutral-200 p-4 overflow-hidden">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Video className="h-4 w-4 text-purple-600" />
+                                        <Label className="text-sm font-semibold text-neutral-900">AI Video</Label>
+                                    </div>
+                                    {isVideoReady && videoData?.timelineUrl && videoData?.audioUrl ? (
+                                        <div className="w-full aspect-video">
+                                            <AIVideoPlayer
+                                                timelineUrl={videoData.timelineUrl}
+                                                audioUrl={videoData.audioUrl}
+                                            />
+                                        </div>
+                                    ) : videoData?.status === 'GENERATING' ? (
+                                        <div className="flex flex-col items-center justify-center h-48 bg-neutral-100 rounded">
+                                            <Loader2 className="h-6 w-6 animate-spin text-indigo-600 mb-2" />
+                                            <span className="text-sm text-neutral-600">Generating video... {videoData.progress || 0}%</span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center justify-center h-48 bg-neutral-100 rounded text-neutral-500 text-sm">
+                                            Video not available yet
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                {/* Code Section */}
+                                <div className="bg-white rounded-lg border border-neutral-200 p-4 flex flex-col">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-2">
+                                            <Code className="h-4 w-4 text-green-600" />
+                                            <Label className="text-sm font-semibold text-neutral-900">Code</Label>
+                                        </div>
+                                        <button
+                                            onClick={async () => {
+                                                const currentCode = editorRefs.current[slide.id]?.getValue() || cleanCode;
+                                                const slideId = slide.id;
+                                                
+                                                // Use flushSync to ensure state updates immediately and UI reflects the change
+                                                flushSync(() => {
+                                                    // Set local running state immediately for instant UI feedback
+                                                    setLocalRunning(prev => ({ ...prev, [slideId]: true }));
+                                                    setCodeOutput(prev => {
+                                                        const newState = { ...prev };
+                                                        // Set isExpanded: true so output panel shows immediately
+                                                        newState[slideId] = { output: '', isRunning: true, isExpanded: true };
+                                                        return newState;
+                                                    });
+                                                });
+                                                
+                                                try {
+                                                    // Normalize language to 'python' if it's not supported
+                                                    const normalizedLanguage = codeLanguage.toLowerCase() === 'python' ? 'python' : 'python';
+                                                    const result = await executeCode(currentCode, normalizedLanguage as any);
+                                                    setLocalRunning(prev => ({ ...prev, [slideId]: false }));
+                                                    setCodeOutput(prev => ({
+                                                        ...prev,
+                                                        [slideId]: { output: result.output, isRunning: false, isExpanded: true }
+                                                    }));
+                                                } catch (error) {
+                                                    setLocalRunning(prev => ({ ...prev, [slideId]: false }));
+                                                    setCodeOutput(prev => ({
+                                                        ...prev,
+                                                        [slideId]: { 
+                                                            output: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`, 
+                                                            isRunning: false, 
+                                                            isExpanded: true 
+                                                        }
+                                                    }));
+                                                }
+                                            }}
+                                            disabled={(codeOutput[slide.id]?.isRunning || localRunning[slide.id]) === true}
+                                            className="flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            {(codeOutput[slide.id]?.isRunning || localRunning[slide.id]) ? (
+                                                <>
+                                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                                    Running...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Play className="h-3.5 w-3.5" />
+                                                    Run Code
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                    <div className="flex-1 flex flex-col min-h-0">
+                                        <div className="flex-1 min-h-0">
                                     <Editor
                                         height="400px"
-                                        defaultLanguage="mermaid"
-                                        value={section.content}
-                                        onChange={(value) => handleDocumentSectionChange(idx, value || '')}
+                                                defaultLanguage={codeLanguage}
+                                                value={cleanCode}
+                                                onChange={handleCodeChange}
+                                                onMount={(editor) => {
+                                                    editorRefs.current[slide.id] = editor;
+                                                }}
                                         theme="vs-dark"
                                         options={{
                                             minimap: { enabled: false },
@@ -1462,22 +1941,92 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                             wordWrap: 'on',
                                         }}
                                     />
-                                ) : (
-                                    <Editor
-                                        height="400px"
-                                        defaultLanguage="python"
-                                        value={section.content}
-                                        onChange={(value) => handleDocumentSectionChange(idx, value || '')}
-                                        theme="vs-dark"
-                                        options={{
-                                            minimap: { enabled: false },
-                                            fontSize: 12,
-                                            wordWrap: 'on',
-                                        }}
-                                    />
+                                        </div>
+                                        {/* Output Panel - show immediately when running, or when there's output AND slide is expanded */}
+                                        {((codeOutput[slide.id]?.isRunning || localRunning[slide.id]) || (isExpanded && codeOutput[slide.id]?.output && codeOutput[slide.id]?.isExpanded)) && (
+                                            <div className="mt-3 border-t border-neutral-200">
+                                                <div className="flex items-center justify-between bg-neutral-50 px-3 py-2">
+                                                    <span className="text-xs font-medium text-neutral-700">Output</span>
+                                                    {!(codeOutput[slide.id]?.isRunning || localRunning[slide.id]) && (
+                                                        <button
+                                                            onClick={() => {
+                                                                setCodeOutput(prev => {
+                                                                    const current = prev[slide.id];
+                                                                    if (!current) return prev;
+                                                                    return {
+                                                                        ...prev,
+                                                                        [slide.id]: { ...current, isExpanded: false }
+                                                                    };
+                                                                });
+                                                            }}
+                                                            className="text-neutral-500 hover:text-neutral-700"
+                                                        >
+                                                            <XIcon className="h-3.5 w-3.5" />
+                                                        </button>
                                 )}
                             </div>
-                        ))}
+                                                <div className="bg-neutral-900 p-3 max-h-48 overflow-y-auto">
+                                                    <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap">
+                                                        {(codeOutput[slide.id]?.isRunning || localRunning[slide.id])
+                                                            ? 'Loading Python environment (this may take a few seconds on first run)...'
+                                                            : codeOutput[slide.id]?.output || 'No output yet. Click "Run Code" to execute.'}
+                                                    </pre>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {!codeOutput[slide.id]?.isExpanded && codeOutput[slide.id]?.output && !codeOutput[slide.id]?.isRunning && !localRunning[slide.id] && (
+                                            <button
+                                                onClick={() => {
+                                                    setCodeOutput(prev => {
+                                                        const current = prev[slide.id];
+                                                        if (!current) return prev;
+                                                        return {
+                                                            ...prev,
+                                                            [slide.id]: { ...current, isExpanded: true }
+                                                        };
+                                                    });
+                                                }}
+                                                className="mt-3 text-xs text-indigo-600 hover:text-indigo-700"
+                                            >
+                                                Show Output
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Document pages (doc, objectives) - render content in TipTap editor with mermaid support
+            if (slide.slideType === 'objectives' || slide.slideType === 'doc') {
+                const content = slide.content || '';
+                
+                return (
+                    <div className="mt-3 ml-8">
+                        <div className="bg-neutral-50 rounded-md border border-neutral-200 p-4">
+                            {onRegenerate && (
+                                <div className="flex justify-end mb-3">
+                                    <button
+                                        onClick={() => onRegenerate(slide.id)}
+                                        className="flex items-center gap-1.5 rounded px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition-colors"
+                                        title="Regenerate Content"
+                                    >
+                                        <RefreshCw className="h-3.5 w-3.5" />
+                                        Regenerate
+                                    </button>
+                                </div>
+                            )}
+                            <div className="bg-white rounded-lg border border-neutral-200 p-4" style={{ maxWidth: '100%', overflow: 'hidden' }}>
+                                <TipTapEditor
+                                    value={content}
+                                    onChange={handleContentChange}
+                                    className="min-h-[400px]"
+                                    editable={true}
+                                />
+                            </div>
+                        </div>
                     </div>
                 );
             }
@@ -1584,13 +2133,39 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                 </div>
 
                 <div className="flex items-center gap-3">
-                    {/* View Content Button - show if slide has content OR if it's AI_VIDEO with prompt */}
+                    {/* AI Prompt Button - show if prompt exists (in outline mode or after generation) */}
+                    {!isEditing && slide.prompt && (
+                        <button
+                            onClick={() => setShowPrompt(!showPrompt)}
+                            className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-purple-600 hover:bg-purple-50 transition-colors"
+                            title={showPrompt ? "Hide AI prompt" : "View AI prompt"}
+                        >
+                            <Sparkles className="h-3.5 w-3.5" />
+                            {showPrompt ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                        </button>
+                    )}
+
+                    {/* View Content Button - show if slide has content OR if it's AI_VIDEO with completed video */}
                     {!isEditing && (
                         (slide.status === 'completed' && slide.content) || 
-                        (slide.slideType === 'ai-video' && slide.prompt)
+                        (slide.slideType === 'ai-video' && slide.aiVideoData?.status === 'COMPLETED')
                     ) && (
                         <button
-                            onClick={() => setIsExpanded(!isExpanded)}
+                            onClick={() => {
+                                const newExpandedState = !isExpanded;
+                                setIsExpanded(newExpandedState);
+                                // Reset code output expanded state when collapsing slide
+                                if (!newExpandedState) {
+                                    setCodeOutput(prev => {
+                                        const current = prev[slide.id];
+                                        if (!current) return prev;
+                                        return {
+                                            ...prev,
+                                            [slide.id]: { ...current, isExpanded: false }
+                                        };
+                                    });
+                                }
+                            }}
                             className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition-colors"
                             title={isExpanded ? "Hide content" : "View content"}
                         >
@@ -1650,8 +2225,28 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                 </div>
             </div>
             
-            {/* Content - show when expanded OR if it's an AI_VIDEO slide (prompt should be visible by default) */}
-            {(isExpanded || slide.slideType === 'ai-video') && renderContent}
+            {/* AI Prompt - show when toggled (in outline mode or after generation) */}
+            {showPrompt && slide.prompt && (
+                <div className="mt-3 ml-8">
+                    <div className="bg-purple-50 rounded-md border border-purple-200 p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Sparkles className="h-4 w-4 text-purple-600" />
+                            <Label className="text-sm font-semibold text-purple-900">AI Prompt</Label>
+                        </div>
+                        <div className="bg-white rounded-lg border border-purple-200 p-4">
+                            <TipTapEditor
+                                value={slide.prompt}
+                                onChange={() => {}} // Read-only in outline mode
+                                className="min-h-[200px]"
+                                editable={false}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Content - show when expanded */}
+            {isExpanded && renderContent}
         </div>
     );
 }, (prevProps, nextProps) => {

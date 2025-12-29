@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { getInstituteId } from '@/constants/helper';
 import type { SlideGeneration, SlideType } from '../../../shared/types';
+import { markdownToHtml } from '../../../shared/utils/markdownToHtml';
 
 /**
  * Custom hook for handling content generation from outline
@@ -43,9 +44,10 @@ export const useContentGeneration = (
             const { generateContent } = await import('../services/contentGenerationService');
             const { convertAssessmentToHTML, convertAssessmentToJSON } = await import('../utils/assessmentToHtml');
 
-            // Filter todos to only include DOCUMENT, ASSESSMENT, VIDEO, and AI_VIDEO types
+            // Filter todos to only include DOCUMENT, ASSESSMENT, VIDEO, AI_VIDEO, VIDEO_CODE, and AI_VIDEO_CODE types
             const contentTodos = outlineTodos.filter((todo: any) => 
-                todo.type === 'DOCUMENT' || todo.type === 'ASSESSMENT' || todo.type === 'VIDEO' || todo.type === 'AI_VIDEO'
+                todo.type === 'DOCUMENT' || todo.type === 'ASSESSMENT' || todo.type === 'VIDEO' || 
+                todo.type === 'AI_VIDEO' || todo.type === 'VIDEO_CODE' || todo.type === 'AI_VIDEO_CODE'
             );
 
             if (contentTodos.length === 0) {
@@ -93,7 +95,8 @@ export const useContentGeneration = (
                             (todo.type === 'ASSESSMENT' && slide.slideType === 'quiz') ||
                             (todo.type === 'VIDEO' && slide.slideType === 'video') ||
                             (todo.type === 'AI_VIDEO' && slide.slideType === 'ai-video') ||
-                        (todo.type === 'AI_VIDEO' && slide.slideType === 'ai-video');
+                            (todo.type === 'VIDEO_CODE' && slide.slideType === 'video-code') ||
+                            (todo.type === 'AI_VIDEO_CODE' && slide.slideType === 'ai-video-code');
                     
                     return sessionExact && titleExact && typeMatch;
                 });
@@ -118,7 +121,8 @@ export const useContentGeneration = (
                             (todo.type === 'ASSESSMENT' && slide.slideType === 'quiz') ||
                             (todo.type === 'VIDEO' && slide.slideType === 'video') ||
                             (todo.type === 'AI_VIDEO' && slide.slideType === 'ai-video') ||
-                        (todo.type === 'AI_VIDEO' && slide.slideType === 'ai-video');
+                            (todo.type === 'VIDEO_CODE' && slide.slideType === 'video-code') ||
+                            (todo.type === 'AI_VIDEO_CODE' && slide.slideType === 'ai-video-code');
                     
                     return sessionMatch && titleMatch && typeMatch;
                 });
@@ -148,7 +152,9 @@ export const useContentGeneration = (
                             (todo.type === 'DOCUMENT' && slide.slideType === 'doc') ||
                             (todo.type === 'ASSESSMENT' && slide.slideType === 'quiz') ||
                             (todo.type === 'VIDEO' && slide.slideType === 'video') ||
-                            (todo.type === 'AI_VIDEO' && slide.slideType === 'ai-video');
+                            (todo.type === 'AI_VIDEO' && slide.slideType === 'ai-video') ||
+                            (todo.type === 'VIDEO_CODE' && slide.slideType === 'video-code') ||
+                            (todo.type === 'AI_VIDEO_CODE' && slide.slideType === 'ai-video-code');
                     
                     return sessionMatch && titleMatch && typeMatch;
                 });
@@ -175,7 +181,9 @@ export const useContentGeneration = (
                             (todo.type === 'DOCUMENT' && slide.slideType === 'doc') ||
                             (todo.type === 'ASSESSMENT' && slide.slideType === 'quiz') ||
                             (todo.type === 'VIDEO' && slide.slideType === 'video') ||
-                            (todo.type === 'AI_VIDEO' && slide.slideType === 'ai-video')
+                            (todo.type === 'AI_VIDEO' && slide.slideType === 'ai-video') ||
+                            (todo.type === 'VIDEO_CODE' && slide.slideType === 'video-code') ||
+                            (todo.type === 'AI_VIDEO_CODE' && slide.slideType === 'ai-video-code')
                             )
                         );
                     });
@@ -247,7 +255,9 @@ export const useContentGeneration = (
                                             (update.slideType === 'DOCUMENT' && slide.slideType === 'doc') ||
                                             (update.slideType === 'ASSESSMENT' && slide.slideType === 'assessment') ||
                                             (update.slideType === 'VIDEO' && slide.slideType === 'video') ||
-                                            (update.slideType === 'AI_VIDEO' && slide.slideType === 'ai-video');
+                                            (update.slideType === 'AI_VIDEO' && slide.slideType === 'ai-video') ||
+                                            ((update.slideType as string) === 'VIDEO_CODE' && slide.slideType === 'video-code') ||
+                                            ((update.slideType as string) === 'AI_VIDEO_CODE' && slide.slideType === 'ai-video-code');
                                         return sessionMatch && titleMatch && typeMatch;
                                     });
                                     
@@ -273,7 +283,22 @@ export const useContentGeneration = (
                         // Prepare content based on type
                         let content = '';
                         if (update.slideType === 'DOCUMENT') {
-                            content = update.contentData || '';
+                            let rawContent = update.contentData || '';
+                            
+                            // Check if content is wrapped in markdown code blocks (```html...```)
+                            if (rawContent.includes('```html')) {
+                                // Extract HTML from markdown code blocks
+                                const htmlMatch = rawContent.match(/```html\s*\n?([\s\S]*?)\n?```/);
+                                if (htmlMatch && htmlMatch[1]) {
+                                    content = htmlMatch[1].trim();
+                                } else {
+                                    content = rawContent;
+                                }
+                            } else {
+                                // Content is markdown - convert to HTML
+                                // This handles markdown with mermaid code blocks
+                                content = markdownToHtml(rawContent);
+                            }
                         } else if (update.slideType === 'ASSESSMENT') {
                             try {
                                 console.log(`🔍 [${update.path}] Processing assessment data`);
@@ -330,6 +355,38 @@ export const useContentGeneration = (
                                 });
                                 console.log(`⚠️ [${update.path}] AI video event received but no contentData yet, status: ${update.status}`);
                             }
+                        } else if (update.slideType === 'VIDEO_CODE') {
+                            console.log(`🔵 [${update.path}] Processing VIDEO_CODE data`);
+                            // contentData has { video: {...}, code: {...}, layout: "split-left" }
+                            if (update.contentData && typeof update.contentData === 'object') {
+                                // Store the full contentData structure
+                                content = JSON.stringify(update.contentData);
+                                console.log(`✅ [${update.path}] VIDEO_CODE data stored:`, {
+                                    hasVideo: !!update.contentData.video,
+                                    hasCode: !!update.contentData.code,
+                                    layout: update.contentData.layout
+                                });
+                            } else {
+                                content = JSON.stringify({ video: null, code: null, layout: 'split-left' });
+                                console.log(`⚠️ [${update.path}] VIDEO_CODE event received but no contentData`);
+                            }
+                        } else if (update.slideType === 'AI_VIDEO_CODE') {
+                            console.log(`🔵 [${update.path}] Processing AI_VIDEO_CODE data, status: ${update.status}`);
+                            // contentData has { video: {...}, code: {...}, layout: "split-left" }
+                            // video contains AI video data similar to AI_VIDEO
+                            if (update.contentData && typeof update.contentData === 'object') {
+                                // Store the full contentData structure
+                                content = JSON.stringify(update.contentData);
+                                console.log(`✅ [${update.path}] AI_VIDEO_CODE data stored:`, {
+                                    hasVideo: !!update.contentData.video,
+                                    videoStatus: update.contentData.video?.status,
+                                    hasCode: !!update.contentData.code,
+                                    layout: update.contentData.layout
+                                });
+                            } else {
+                                content = JSON.stringify({ video: { status: 'GENERATING', progress: 0 }, code: null, layout: 'split-left' });
+                                console.log(`⚠️ [${update.path}] AI_VIDEO_CODE event received but no contentData yet`);
+                            }
                         }
                         
                         // Update localStorage first
@@ -361,6 +418,31 @@ export const useContentGeneration = (
                                         } else {
                                             newStatus = 'generating';
                                             newProgress = update.contentData.progress || 0;
+                                        }
+                                    } else if ((update.slideType as string) === 'VIDEO_CODE' && update.contentData) {
+                                        // For VIDEO_CODE, mark as completed when we have both video and code
+                                        if (update.contentData.video && update.contentData.code) {
+                                            newStatus = 'completed';
+                                            newProgress = 100;
+                                        } else {
+                                            newStatus = 'generating';
+                                            newProgress = 50;
+                                        }
+                                    } else if ((update.slideType as string) === 'AI_VIDEO_CODE' && update.contentData) {
+                                        // For AI_VIDEO_CODE, handle similar to AI_VIDEO - check video status
+                                        const videoData = update.contentData.video;
+                                        const videoStatus = videoData?.status || update.status;
+                                        
+                                        // If video is completed and we have code, mark as completed
+                                        if (videoStatus === 'COMPLETED' && update.contentData.code) {
+                                            newStatus = 'completed';
+                                            newProgress = 100;
+                                        } else if (videoStatus === 'GENERATING' || update.status === 'GENERATING') {
+                                            newStatus = 'generating';
+                                            newProgress = videoData?.progress || 0;
+                                        } else {
+                                            newStatus = 'generating';
+                                            newProgress = videoData?.progress || 0;
                                         }
                                     } else if (update.slideType === 'ASSESSMENT') {
                                         // For ASSESSMENT, validate that we have valid quiz questions
@@ -399,7 +481,9 @@ export const useContentGeneration = (
                                     // Check if all content slides are now completed
                                     const allCompleted = parsed.every((s: any) => 
                                         s.status === 'completed' || 
-                                        (s.slideType !== 'doc' && s.slideType !== 'quiz' && s.slideType !== 'assessment' && s.slideType !== 'video' && s.slideType !== 'ai-video')
+                                        (s.slideType !== 'doc' && s.slideType !== 'quiz' && s.slideType !== 'assessment' && 
+                                         s.slideType !== 'video' && s.slideType !== 'ai-video' && 
+                                         s.slideType !== 'video-code' && s.slideType !== 'ai-video-code')
                                     );
                                     
                                     if (allCompleted) {
@@ -411,7 +495,9 @@ export const useContentGeneration = (
                                     } else {
                                         const completedCount = parsed.filter((s: any) => s.status === 'completed').length;
                                         const totalContent = parsed.filter((s: any) => 
-                                            s.slideType === 'doc' || s.slideType === 'quiz' || s.slideType === 'assessment' || s.slideType === 'video' || s.slideType === 'ai-video'
+                                            s.slideType === 'doc' || s.slideType === 'quiz' || s.slideType === 'assessment' || 
+                                            s.slideType === 'video' || s.slideType === 'ai-video' || 
+                                            s.slideType === 'video-code' || s.slideType === 'ai-video-code'
                                         ).length;
                                         console.log(`📊 Progress: ${completedCount}/${totalContent} slides completed`);
                                     }
@@ -467,6 +553,38 @@ export const useContentGeneration = (
                                                 newStatus = 'generating';
                                             }
                                             console.log(`🔄 [${update.path}] AI video event without contentData, status: ${update.status}`);
+                                        }
+                                    } else if ((update.slideType as string) === 'VIDEO_CODE') {
+                                        // For VIDEO_CODE, mark as completed when we have both video and code
+                                        if (update.contentData && update.contentData.video && update.contentData.code) {
+                                            newStatus = 'completed';
+                                            newProgress = 100;
+                                        } else {
+                                            newStatus = 'generating';
+                                            newProgress = 50;
+                                        }
+                                    } else if ((update.slideType as string) === 'AI_VIDEO_CODE') {
+                                        // For AI_VIDEO_CODE, handle similar to AI_VIDEO - check video status
+                                        if (update.contentData) {
+                                            const videoData = update.contentData.video;
+                                            const videoStatus = videoData?.status || update.status;
+                                            
+                                            // If video is completed and we have code, mark as completed
+                                            if (videoStatus === 'COMPLETED' && update.contentData.code) {
+                                                newStatus = 'completed';
+                                                newProgress = 100;
+                                            } else if (videoStatus === 'GENERATING' || update.status === 'GENERATING') {
+                                                newStatus = 'generating';
+                                                newProgress = videoData?.progress || slide.progress || 0;
+                                            } else {
+                                                newStatus = 'generating';
+                                                newProgress = videoData?.progress || slide.progress || 0;
+                                            }
+                                        } else {
+                                            // No contentData yet, but update status if provided
+                                            if (update.status === 'GENERATING') {
+                                                newStatus = 'generating';
+                                            }
                                         }
                                     } else {
                                         // For other types, mark as completed
