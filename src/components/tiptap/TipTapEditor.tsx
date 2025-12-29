@@ -22,6 +22,8 @@ import './tiptap.css';
 
 import katex from 'katex';
 import 'katex/dist/katex.css';
+import mermaid from 'mermaid';
+import { sanitizeMermaidCode } from '@/routes/study-library/ai-copilot/shared/utils/mermaidSanitizer';
 
 import { UploadFileInS3, getPublicUrl } from '@/services/upload_file';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
@@ -540,12 +542,198 @@ export function TipTapEditor({
           });
         },
       })) as unknown as Node,
+      // Mermaid diagram node
+      (Node.create({
+        name: 'mermaid',
+        group: 'block',
+        atom: true,
+        selectable: false,
+        draggable: false,
+        addAttributes() {
+          return { code: { default: '' } };
+        },
+        parseHTML() {
+          return [
+            {
+              tag: 'div.mermaid',
+              getAttrs: (element: HTMLElement) => {
+                const code = element.textContent || element.getAttribute('data-code') || '';
+                return { code: code.trim() };
+              },
+            },
+            {
+              tag: 'div[class*="mermaid"]',
+              getAttrs: (element: HTMLElement) => {
+                const code = element.textContent || element.getAttribute('data-code') || '';
+                return { code: code.trim() };
+              },
+            },
+          ];
+        },
+        renderHTML({ HTMLAttributes }) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const code = (HTMLAttributes as any)?.code || '';
+          return [
+            'div',
+            mergeAttributes({ class: 'mermaid', 'data-code': code }, HTMLAttributes),
+            code,
+          ];
+        },
+        addNodeView() {
+          return ReactNodeViewRenderer((props) => {
+            const { node } = props;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const code = (node.attrs as any)?.code || '';
+            const containerRef = useRef<HTMLDivElement | null>(null);
+            const [svg, setSvg] = useState<string>('');
+            const [error, setError] = useState<string>('');
+
+            // Debug logging
+            useEffect(() => {
+              console.log('🔵 [TipTap Mermaid Node] Node created/updated:', {
+                hasCode: !!code,
+                codeLength: code?.length || 0,
+                codePreview: code?.substring(0, 100) || 'NO CODE',
+                nodeAttrs: node.attrs,
+              });
+            }, [code, node.attrs]);
+
+            // Update innerHTML when SVG changes
+            useEffect(() => {
+              if (containerRef.current && svg) {
+                try {
+                  containerRef.current.innerHTML = svg;
+                } catch (err) {
+                  console.error('❌ [TipTap Mermaid] Error setting innerHTML:', err);
+                  setError('Failed to render SVG');
+                }
+              }
+            }, [svg]);
+
+            useEffect(() => {
+              if (!code || code.trim() === '') {
+                setSvg('');
+                setError('');
+                return;
+              }
+
+              const renderMermaid = async () => {
+                try {
+                  // Check if mermaid is available
+                  if (!mermaid || typeof mermaid.initialize !== 'function' || typeof mermaid.render !== 'function') {
+                    console.error('❌ [TipTap Mermaid] Mermaid library not available');
+                    setError('Mermaid library not loaded');
+                    setSvg('');
+                    return;
+                  }
+
+                  // Initialize mermaid if not already done
+                  if (!(window as any).__mermaidInitialized) {
+                    try {
+                      mermaid.initialize({
+                        startOnLoad: false,
+                        theme: 'default',
+                        securityLevel: 'loose',
+                        flowchart: {
+                          useMaxWidth: true,
+                          htmlLabels: true,
+                          curve: 'basis',
+                        },
+                      });
+                      (window as any).__mermaidInitialized = true;
+                      console.log('✅ [TipTap Mermaid] Mermaid initialized');
+                    } catch (initError) {
+                      console.error('❌ [TipTap Mermaid] Failed to initialize mermaid:', initError);
+                      setError('Failed to initialize mermaid');
+                      setSvg('');
+                      return;
+                    }
+                  }
+
+                  const renderId = `mermaid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                  let cleanCode = code.trim();
+                  
+                  // Remove "mermaid " prefix if present
+                  if (cleanCode.toLowerCase().startsWith('mermaid ')) {
+                    cleanCode = cleanCode.substring(8).trim();
+                  }
+                  
+                  if (!cleanCode) {
+                    setError('Empty mermaid code');
+                    setSvg('');
+                    return;
+                  }
+
+                  // Sanitize mermaid code to fix common syntax issues
+                  cleanCode = sanitizeMermaidCode(cleanCode);
+
+                  console.log('🔵 [TipTap Mermaid] Rendering diagram, code length:', cleanCode.length, 'preview:', cleanCode.substring(0, 100));
+                  
+                  const result = await mermaid.render(renderId, cleanCode);
+                  
+                  if (result && result.svg) {
+                    console.log('✅ [TipTap Mermaid] Diagram rendered successfully, SVG length:', result.svg.length);
+                    setSvg(result.svg);
+                    setError('');
+                  } else {
+                    console.error('❌ [TipTap Mermaid] mermaid.render() did not return SVG, result:', result);
+                    setError('Failed to render diagram - no SVG returned');
+                    setSvg('');
+                  }
+                } catch (err) {
+                  console.error('❌ [TipTap Mermaid] Render error:', err);
+                  console.error('❌ [TipTap Mermaid] Failed code:', code);
+                  setError(err instanceof Error ? err.message : 'Failed to render diagram');
+                  setSvg('');
+                }
+              };
+
+              renderMermaid();
+            }, [code]);
+
+            return (
+              <NodeViewWrapper className="mermaid-node" style={{ margin: '20px 0', maxWidth: '100%', overflow: 'auto' }}>
+                {error ? (
+                  <div style={{ padding: '10px', border: '1px solid #ff9800', borderRadius: '4px', background: '#fff3e0', maxWidth: '100%' }}>
+                    <div style={{ fontSize: '12px', color: '#e65100', marginBottom: '8px' }}>
+                      <strong>⚠️ Diagram rendering failed:</strong> {error}
+                    </div>
+                    <pre style={{ margin: 0, fontSize: '11px', overflowX: 'auto', wordBreak: 'break-word', whiteSpace: 'pre-wrap', color: '#333' }}>
+                      {code}
+                    </pre>
+                  </div>
+                ) : svg ? (
+                  <>
+                    <style>{`
+                      .mermaid-node svg {
+                        max-width: 100% !important;
+                        width: 100% !important;
+                        height: auto !important;
+                      }
+                    `}</style>
+                    <div
+                      ref={containerRef}
+                      style={{ maxWidth: '100%', width: '100%', overflow: 'auto', display: 'flex', justifyContent: 'center' }}
+                    />
+                  </>
+                ) : (
+                  <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+                    <div style={{ fontSize: '14px', marginBottom: '8px' }}>Loading diagram...</div>
+                    <div style={{ fontSize: '12px', color: '#999' }}>Code: {code.substring(0, 50)}...</div>
+                  </div>
+                )}
+              </NodeViewWrapper>
+            );
+          });
+        },
+      })) as unknown as Node,
       AttachmentNode.current,
       AudioNode.current,
       VideoNode.current,
       StarterKit.configure({
         bulletList: { keepMarks: true },
         orderedList: { keepMarks: true },
+        horizontalRule: false, // Disable to avoid duplicate with separate HorizontalRule extension
         // use defaults for codeBlock/blockquote
       }),
       Underline,
