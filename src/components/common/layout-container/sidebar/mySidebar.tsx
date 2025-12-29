@@ -51,7 +51,12 @@ const voltSidebarData: SidebarItemsType[] = [
 
 export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.ReactNode }) => {
     const navigate = useNavigate();
-    const { state, openMobile, setOpenMobile }: SidebarStateType & { openMobile: boolean; setOpenMobile: (open: boolean) => void } = useSidebar();
+    const {
+        state,
+        openMobile,
+        setOpenMobile,
+    }: SidebarStateType & { openMobile: boolean; setOpenMobile: (open: boolean) => void } =
+        useSidebar();
     const { data, isLoading } = useSuspenseQuery(useInstituteQuery());
     const router = useRouter();
     const currentRoute = router.state.location.pathname;
@@ -87,11 +92,11 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
         const base = isVoltSubdomain
             ? voltSidebarData
             : filterMenuItems(
-                filterMenuListByModules(data?.sub_modules, SidebarItemsData),
-                data?.id,
-                isTabVisible,
-                isSubItemVisible
-            );
+                  filterMenuListByModules(data?.sub_modules, SidebarItemsData),
+                  data?.id,
+                  isTabVisible,
+                  isSubItemVisible
+              );
         if (!roleDisplay) return base;
         // Apply role-based visibility and ordering
         const tabVis = new Map(roleDisplay.sidebar.map((t) => [t.id, t]));
@@ -193,14 +198,14 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
                             src={instituteLogo}
                             alt="logo"
                             className={cn(
-                                "w-auto object-cover rounded-full",
-                                isCompact ? "h-8 max-w-[60px]" : "h-12 max-w-[100px]"
+                                'w-auto object-contain',
+                                isCompact ? 'h-10 max-w-[80px]' : 'h-20 max-w-[180px]'
                             )}
                         />
                     )}
                     <SidebarGroup
                         className={cn(
-                            "text-center font-semibold leading-tight text-primary-500",
+                            'text-center font-semibold leading-tight text-primary-500',
                             !isMobile ? 'group-data-[collapsible=icon]:hidden' : '',
                             isCompact ? 'text-sm' : 'text-lg'
                         )}
@@ -211,32 +216,32 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
             </SidebarHeader>
             <SidebarMenu
                 className={cn(
-                    "flex shrink-0 flex-col px-1 py-4",
+                    'flex shrink-0 flex-col px-1 py-4',
                     state == 'expanded' || isMobile ? 'items-stretch' : 'items-center',
-                    isCompact ? "gap-1" : "gap-2"
+                    isCompact ? 'gap-1' : 'gap-2'
                 )}
             >
                 {sidebarComponent
                     ? sidebarComponent
                     : finalSidebarItems
-                        .filter((item) => {
-                            const show = (item as SidebarItemsType).showForInstitute;
-                            return !show || show === data?.id;
-                        })
-                        .map((obj, key) => (
-                            <SidebarMenuItem
-                                key={key}
-                                id={obj.id}
-                                onClick={() => {
-                                    // Close mobile sidebar when an item is clicked
-                                    if (isMobile && !obj.subItems) {
-                                        setOpenMobile(false);
-                                    }
-                                }}
-                            >
-                                <SidebarItem {...obj} />
-                            </SidebarMenuItem>
-                        ))}
+                          .filter((item) => {
+                              const show = (item as SidebarItemsType).showForInstitute;
+                              return !show || show === data?.id;
+                          })
+                          .map((obj, key) => (
+                              <SidebarMenuItem
+                                  key={key}
+                                  id={obj.id}
+                                  onClick={() => {
+                                      // Close mobile sidebar when an item is clicked
+                                      if (isMobile && !obj.subItems) {
+                                          setOpenMobile(false);
+                                      }
+                                  }}
+                              >
+                                  <SidebarItem {...obj} />
+                              </SidebarMenuItem>
+                          ))}
             </SidebarMenu>
             {roleDisplay?.ui?.showSupportButton !== false && (
                 <div
@@ -255,14 +260,11 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
     if (isMobile) {
         return (
             <Sheet open={openMobile} onOpenChange={setOpenMobile}>
-                <SheetContent
-                    side="left"
-                    className="w-[280px] p-0 bg-primary-50 border-r"
-                >
+                <SheetContent side="left" className="w-[280px] border-r bg-primary-50 p-0">
                     <SheetHeader className="sr-only">
                         <SheetTitle>Navigation Menu</SheetTitle>
                     </SheetHeader>
-                    <div className="sidebar-content flex h-full flex-col gap-2 py-6 overflow-y-auto">
+                    <div className="sidebar-content flex h-full flex-col gap-2 overflow-y-auto py-6">
                         {sidebarContent}
                     </div>
                 </SheetContent>
@@ -275,10 +277,14 @@ export const MySidebar = ({ sidebarComponent }: { sidebarComponent?: React.React
         <Sidebar collapsible="icon" className="z-20 !border-0">
             <SidebarContent
                 className={cn(
-                    "sidebar-content flex flex-col gap-2 border-r bg-primary-50 py-6",
+                    'sidebar-content flex flex-col gap-2 border-r bg-primary-50 py-6',
                     state == 'expanded'
-                        ? (isCompact ? 'w-[220px]' : 'w-[307px]')
-                        : (isCompact ? 'w-14' : 'w-28')
+                        ? isCompact
+                            ? 'w-[220px]'
+                            : 'w-[307px]'
+                        : isCompact
+                          ? 'w-14'
+                          : 'w-28'
                 )}
             >
                 {sidebarContent}
@@ -306,8 +312,9 @@ function SupportOptions() {
                         weight="fill"
                     />
                     <div
-                        className={`${hover ? 'text-primary-500' : 'text-neutral-600'
-                            } text-body font-regular text-neutral-600 group-data-[collapsible=icon]:hidden`}
+                        className={`${
+                            hover ? 'text-primary-500' : 'text-neutral-600'
+                        } text-body font-regular text-neutral-600 group-data-[collapsible=icon]:hidden`}
                     >
                         {'Support'}
                     </div>

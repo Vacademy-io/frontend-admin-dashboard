@@ -1,17 +1,58 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, ListNumbers, Tag, CaretLeft, CaretRight, ArrowsLeftRight } from '@phosphor-icons/react';
+import {
+    CheckCircle,
+    ListNumbers,
+    Tag,
+    CaretLeft,
+    CaretRight,
+    ArrowsLeftRight,
+} from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 import type { QuizGenerationResponse } from '@/services/instructor-copilot';
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
 
 interface QuizViewProps {
     data: QuizGenerationResponse;
 }
 
-const stripHtmlTags = (html: string): string => {
-    return html.replace(/<!--.*?-->/g, '').replace(/<[^>]*>/g, '').trim();
+// Helper component to render HTML content safely and handle math
+const HtmlContent = ({ content, className }: { content: string; className?: string }) => {
+    const processedContent = useMemo(() => {
+        if (!content) return '';
+
+        // Simple pass to render math if sticking to standard HTML isn't enough
+        // Block math $$...$$
+        const newContent = content.replace(/\$\$([^$]+)\$\$/g, (match, tex) => {
+            try {
+                return katex.renderToString(tex, { throwOnError: false, displayMode: true });
+            } catch (e) {
+                return match;
+            }
+        });
+
+        // Inline math $...$
+        return newContent.replace(/\$([^$]+)\$/g, (match, tex) => {
+            try {
+                return katex.renderToString(tex, { throwOnError: false, displayMode: false });
+            } catch (e) {
+                return match;
+            }
+        });
+    }, [content]);
+
+    return (
+        <div
+            className={cn(
+                'prose prose-sm dark:prose-invert max-w-none [&_img]:my-2 [&_img]:rounded-lg [&_img]:border',
+                className
+            )}
+            dangerouslySetInnerHTML={{ __html: processedContent }}
+        />
+    );
 };
 
 export const QuizView = ({ data }: QuizViewProps) => {
@@ -58,7 +99,9 @@ export const QuizView = ({ data }: QuizViewProps) => {
         <div className="space-y-6">
             {/* Quiz Header */}
             <div className="rounded-lg border border-slate-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 dark:border-slate-700 dark:from-blue-900/20 dark:to-indigo-900/20">
-                <h2 className="mb-2 text-2xl font-bold text-slate-900 dark:text-slate-100">{data.title}</h2>
+                <h2 className="mb-2 text-2xl font-bold text-slate-900 dark:text-slate-100">
+                    {data.title}
+                </h2>
                 <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="secondary" className="gap-1">
                         <ListNumbers size={14} />
@@ -87,11 +130,19 @@ export const QuizView = ({ data }: QuizViewProps) => {
                                 Question {currentIndex + 1} of {data.questions.length}
                             </CardTitle>
                             <CardDescription className="mt-2 text-base text-slate-700 dark:text-slate-300">
-                                {stripHtmlTags(currentQuestion.text.content)}
+                                <HtmlContent content={currentQuestion.text.content} />
                             </CardDescription>
                         </div>
                         <div className="flex gap-2">
-                            <Badge variant={currentQuestion.level === 'easy' ? 'default' : currentQuestion.level === 'medium' ? 'secondary' : 'destructive'}>
+                            <Badge
+                                variant={
+                                    currentQuestion.level === 'easy'
+                                        ? 'default'
+                                        : currentQuestion.level === 'medium'
+                                          ? 'secondary'
+                                          : 'destructive'
+                                }
+                            >
                                 {currentQuestion.level}
                             </Badge>
                             <Badge variant="outline">{currentQuestion.question_type}</Badge>
@@ -102,7 +153,9 @@ export const QuizView = ({ data }: QuizViewProps) => {
                     {/* Options */}
                     {currentQuestion.options && currentQuestion.options.length > 0 && (
                         <div className="mb-6 space-y-3">
-                            <h4 className="mb-3 font-semibold text-slate-700 dark:text-slate-300">Options:</h4>
+                            <h4 className="mb-3 font-semibold text-slate-700 dark:text-slate-300">
+                                Options:
+                            </h4>
                             {currentQuestion.options.map((option) => {
                                 const isCorrect = correctIds.includes(option.preview_id);
                                 return (
@@ -127,12 +180,17 @@ export const QuizView = ({ data }: QuizViewProps) => {
                                                 {option.preview_id}
                                             </span>
                                             <div className="flex-1">
-                                                <p className="text-slate-800 dark:text-slate-200">
-                                                    {stripHtmlTags(option.text.content)}
-                                                </p>
+                                                <HtmlContent
+                                                    content={option.text.content}
+                                                    className="text-slate-800 dark:text-slate-200"
+                                                />
                                             </div>
                                             {isCorrect && (
-                                                <CheckCircle size={20} className="shrink-0 text-green-600" weight="fill" />
+                                                <CheckCircle
+                                                    size={20}
+                                                    className="shrink-0 text-green-600"
+                                                    weight="fill"
+                                                />
                                             )}
                                         </div>
                                     </div>
@@ -142,17 +200,20 @@ export const QuizView = ({ data }: QuizViewProps) => {
                     )}
 
                     {/* Explanation */}
-                    {currentQuestion.explanation_text && (
-                        <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
-                            <h4 className="mb-2 flex items-center gap-2 font-semibold text-blue-900 dark:text-blue-300">
-                                <ArrowsLeftRight size={18} />
-                                Explanation
-                            </h4>
-                            <p className="text-sm text-blue-800 dark:text-blue-200">
-                                {stripHtmlTags(currentQuestion.explanation_text.content)}
-                            </p>
-                        </div>
-                    )}
+                    {currentQuestion.explanation_text &&
+                        currentQuestion.explanation_text.content && (
+                            <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+                                <h4 className="mb-2 flex items-center gap-2 font-semibold text-blue-900 dark:text-blue-300">
+                                    <ArrowsLeftRight size={18} />
+                                    Explanation
+                                </h4>
+                                <div className="text-sm text-blue-800 dark:text-blue-200">
+                                    <HtmlContent
+                                        content={currentQuestion.explanation_text.content}
+                                    />
+                                </div>
+                            </div>
+                        )}
 
                     {/* Tags */}
                     {currentQuestion.tags && currentQuestion.tags.length > 0 && (

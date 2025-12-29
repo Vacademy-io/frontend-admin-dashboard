@@ -211,18 +211,18 @@ export function Navbar() {
     const finalLearnerPortalUrl = ensureProtocol(learnerPortalUrl);
 
     return (
-        <div className={cn(
-            "sticky top-0 z-10 flex items-center justify-between border-b bg-neutral-50",
-            isCompact
-                ? "h-12 px-4 py-2"
-                : "h-14 px-4 py-2 md:h-[72px] md:px-8 md:py-4"
-        )}>
-            <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
+        <div
+            className={cn(
+                'sticky top-0 z-10 flex items-center justify-between border-b bg-neutral-50',
+                isCompact ? 'h-12 px-4 py-2' : 'h-14 px-4 py-2 md:h-[72px] md:px-8 md:py-4'
+            )}
+        >
+            <div className="flex min-w-0 flex-1 items-center gap-2 md:gap-4">
                 {/* Mobile hamburger menu */}
                 {isMobile && showSidebar && (
                     <button
                         onClick={() => setOpenMobile(true)}
-                        className="flex items-center justify-center p-2 rounded-md hover:bg-neutral-100 transition-colors"
+                        className="flex items-center justify-center rounded-md p-2 transition-colors hover:bg-neutral-100"
                         aria-label="Open menu"
                     >
                         <List className="size-5 text-neutral-600" weight="bold" />
@@ -231,12 +231,12 @@ export function Navbar() {
 
                 {/* Institute logo when sidebar is hidden */}
                 {!showSidebar && (
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex shrink-0 items-center gap-2">
                         {instituteLogo ? (
                             <img
                                 src={instituteLogo}
                                 alt="logo"
-                                className="size-10 md:size-20 object-contain"
+                                className="size-10 object-contain md:size-20"
                             />
                         ) : null}
                     </div>
@@ -250,35 +250,32 @@ export function Navbar() {
                 )}
 
                 {/* Nav heading */}
-                <div className={cn(
-                    "border-l border-neutral-500 font-semibold text-neutral-600 truncate",
-                    isCompact
-                        ? "px-2 text-sm"
-                        : "px-2 text-sm md:px-4 md:text-h3"
-                )}>
+                <div
+                    className={cn(
+                        'truncate border-l border-neutral-500 font-semibold text-neutral-600',
+                        isCompact ? 'px-2 text-sm' : 'px-2 text-sm md:px-4 md:text-h3'
+                    )}
+                >
                     {navHeading}
                 </div>
             </div>
 
-            <div className="flex items-center gap-2 md:gap-6 text-neutral-600 flex-shrink-0">
+            <div className="flex shrink-0 items-center gap-2 text-neutral-600 md:gap-6">
                 {/* Apps Menu */}
                 {showAppsIcon && (
                     <DropdownMenu>
                         <DropdownMenuTrigger className="relative flex items-center justify-center outline-none">
-                            <div className="relative rounded-full p-1.5 md:p-2 hover:bg-neutral-200 text-neutral-700">
+                            <div className="relative rounded-full p-1.5 text-neutral-700 hover:bg-neutral-200 md:p-2">
                                 <SquaresFour
                                     className={cn(isCompact ? 'size-4' : 'size-4 md:size-5')}
                                     weight="bold"
                                 />
                             </div>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                            align="end"
-                            className="w-64 p-2"
-                        >
+                        <DropdownMenuContent align="end" className="w-64 p-2">
                             {finalInstructorPortalUrl && (
                                 <div className="mb-2">
-                                    <div className="mb-1 px-2 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                                    <div className="mb-1 px-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">
                                         Instructor Section
                                     </div>
                                     <div className="grid grid-cols-4 gap-2 px-2 py-1">
@@ -293,7 +290,7 @@ export function Navbar() {
                                                 className="size-6 text-primary-500"
                                                 weight="fill"
                                             />
-                                            <span className="text-[10px] text-neutral-600 text-center leading-tight">
+                                            <span className="text-center text-[10px] leading-tight text-neutral-600">
                                                 Portal
                                             </span>
                                         </a>
@@ -306,100 +303,100 @@ export function Navbar() {
                                 appStoreAppLink ||
                                 windowsAppLink ||
                                 macAppLink) && (
-                                    <div>
-                                        {finalInstructorPortalUrl && <Separator className="my-1" />}
-                                        <div className="mb-1 mt-1 px-2 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
-                                            Learner Section
-                                        </div>
-                                        <div className="grid grid-cols-4 gap-2 px-2 py-1">
-                                            {finalLearnerPortalUrl && (
-                                                <a
-                                                    href={finalLearnerPortalUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
-                                                    title="Learner Portal"
-                                                >
-                                                    <Student
-                                                        className="size-6 text-primary-500"
-                                                        weight="fill"
-                                                    />
-                                                    <span className="text-[10px] text-neutral-600 text-center leading-tight">
-                                                        Portal
-                                                    </span>
-                                                </a>
-                                            )}
-                                            {playStoreAppLink && (
-                                                <a
-                                                    href={playStoreAppLink}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
-                                                    title="Google Play Store"
-                                                >
-                                                    <AndroidLogo
-                                                        className="size-6 text-green-600"
-                                                        weight="fill"
-                                                    />
-                                                    <span className="text-[10px] text-neutral-600">
-                                                        Android
-                                                    </span>
-                                                </a>
-                                            )}
-                                            {appStoreAppLink && (
-                                                <a
-                                                    href={appStoreAppLink}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
-                                                    title="App Store"
-                                                >
-                                                    <AppleLogo
-                                                        className="size-6 text-black"
-                                                        weight="fill"
-                                                    />
-                                                    <span className="text-[10px] text-neutral-600">
-                                                        iOS
-                                                    </span>
-                                                </a>
-                                            )}
-                                            {windowsAppLink && (
-                                                <a
-                                                    href={windowsAppLink}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
-                                                    title="Windows App"
-                                                >
-                                                    <WindowsLogo
-                                                        className="size-6 text-blue-600"
-                                                        weight="fill"
-                                                    />
-                                                    <span className="text-[10px] text-neutral-600">
-                                                        Win
-                                                    </span>
-                                                </a>
-                                            )}
-                                            {macAppLink && (
-                                                <a
-                                                    href={macAppLink}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
-                                                    title="Mac App"
-                                                >
-                                                    <Desktop
-                                                        className="size-6 text-neutral-600"
-                                                        weight="fill"
-                                                    />
-                                                    <span className="text-[10px] text-neutral-600">
-                                                        Mac
-                                                    </span>
-                                                </a>
-                                            )}
-                                        </div>
+                                <div>
+                                    {finalInstructorPortalUrl && <Separator className="my-1" />}
+                                    <div className="my-1 px-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                                        Learner Section
                                     </div>
-                                )}
+                                    <div className="grid grid-cols-4 gap-2 px-2 py-1">
+                                        {finalLearnerPortalUrl && (
+                                            <a
+                                                href={finalLearnerPortalUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
+                                                title="Learner Portal"
+                                            >
+                                                <Student
+                                                    className="size-6 text-primary-500"
+                                                    weight="fill"
+                                                />
+                                                <span className="text-center text-[10px] leading-tight text-neutral-600">
+                                                    Portal
+                                                </span>
+                                            </a>
+                                        )}
+                                        {playStoreAppLink && (
+                                            <a
+                                                href={playStoreAppLink}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
+                                                title="Google Play Store"
+                                            >
+                                                <AndroidLogo
+                                                    className="size-6 text-green-600"
+                                                    weight="fill"
+                                                />
+                                                <span className="text-[10px] text-neutral-600">
+                                                    Android
+                                                </span>
+                                            </a>
+                                        )}
+                                        {appStoreAppLink && (
+                                            <a
+                                                href={appStoreAppLink}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
+                                                title="App Store"
+                                            >
+                                                <AppleLogo
+                                                    className="size-6 text-black"
+                                                    weight="fill"
+                                                />
+                                                <span className="text-[10px] text-neutral-600">
+                                                    iOS
+                                                </span>
+                                            </a>
+                                        )}
+                                        {windowsAppLink && (
+                                            <a
+                                                href={windowsAppLink}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
+                                                title="Windows App"
+                                            >
+                                                <WindowsLogo
+                                                    className="size-6 text-blue-600"
+                                                    weight="fill"
+                                                />
+                                                <span className="text-[10px] text-neutral-600">
+                                                    Win
+                                                </span>
+                                            </a>
+                                        )}
+                                        {macAppLink && (
+                                            <a
+                                                href={macAppLink}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex flex-col items-center justify-center gap-1 rounded-md p-1 hover:bg-neutral-100"
+                                                title="Mac App"
+                                            >
+                                                <Desktop
+                                                    className="size-6 text-neutral-600"
+                                                    weight="fill"
+                                                />
+                                                <span className="text-[10px] text-neutral-600">
+                                                    Mac
+                                                </span>
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )}
@@ -407,11 +404,13 @@ export function Navbar() {
                 {/* Notifications */}
                 <DropdownMenu>
                     <DropdownMenuTrigger className="relative flex items-center justify-center">
-                        <div className="relative rounded-full p-1.5 md:p-2 hover:bg-neutral-200">
-                            <BellSimple className={cn(
-                                "text-neutral-700",
-                                isCompact ? "size-4" : "size-4 md:size-5"
-                            )} />
+                        <div className="relative rounded-full p-1.5 hover:bg-neutral-200 md:p-2">
+                            <BellSimple
+                                className={cn(
+                                    'text-neutral-700',
+                                    isCompact ? 'size-4' : 'size-4 md:size-5'
+                                )}
+                            />
                             {!!unreadCount && (
                                 <span className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-medium text-white">
                                     {unreadCount}
@@ -419,10 +418,12 @@ export function Navbar() {
                             )}
                         </div>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className={cn(
-                        "p-0",
-                        isMobile ? "w-[calc(100vw-2rem)] max-w-[320px]" : "w-80"
-                    )}>
+                    <DropdownMenuContent
+                        className={cn(
+                            'p-0',
+                            isMobile ? 'w-[calc(100vw-2rem)] max-w-[320px]' : 'w-80'
+                        )}
+                    >
                         <div className="flex items-center justify-between px-3 py-2">
                             <span className="text-sm font-medium">System Alerts</span>
                             <button
@@ -460,12 +461,13 @@ export function Navbar() {
                                                 </div>
                                                 {!!status && (
                                                     <span
-                                                        className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${isDelivered
-                                                            ? 'bg-green-100 text-green-700'
-                                                            : isFailed
-                                                                ? 'bg-red-100 text-red-700'
-                                                                : 'bg-neutral-100 text-neutral-700'
-                                                            }`}
+                                                        className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                                                            isDelivered
+                                                                ? 'bg-green-100 text-green-700'
+                                                                : isFailed
+                                                                  ? 'bg-red-100 text-red-700'
+                                                                  : 'bg-neutral-100 text-neutral-700'
+                                                        }`}
                                                     >
                                                         {status}
                                                     </span>
@@ -506,10 +508,12 @@ export function Navbar() {
 
                 {/* See all dialog */}
                 <Dialog open={showAllDialog} onOpenChange={setShowAllDialog}>
-                    <DialogContent className={cn(
-                        "p-0",
-                        isMobile ? "w-[calc(100vw-2rem)] max-w-lg" : "max-w-2xl"
-                    )}>
+                    <DialogContent
+                        className={cn(
+                            'p-0',
+                            isMobile ? 'w-[calc(100vw-2rem)] max-w-lg' : 'max-w-2xl'
+                        )}
+                    >
                         <DialogTitle className="px-5 py-4 text-base">System Alerts</DialogTitle>
                         <Separator />
                         <ScrollArea className="max-h-[70vh]">
@@ -548,12 +552,13 @@ export function Navbar() {
                                                             </div>
                                                             {!!status && (
                                                                 <span
-                                                                    className={`shrink-0 rounded px-2 py-0.5 text-[11px] font-medium ${isDelivered
-                                                                        ? 'bg-green-100 text-green-700'
-                                                                        : isFailed
-                                                                            ? 'bg-red-100 text-red-700'
-                                                                            : 'bg-neutral-100 text-neutral-700'
-                                                                        }`}
+                                                                    className={`shrink-0 rounded px-2 py-0.5 text-[11px] font-medium ${
+                                                                        isDelivered
+                                                                            ? 'bg-green-100 text-green-700'
+                                                                            : isFailed
+                                                                              ? 'bg-red-100 text-red-700'
+                                                                              : 'bg-neutral-100 text-neutral-700'
+                                                                    }`}
                                                                 >
                                                                     {status}
                                                                 </span>
@@ -625,8 +630,8 @@ export function Navbar() {
                                     src={adminLogo}
                                     alt="logo"
                                     className={cn(
-                                        "rounded-full object-cover",
-                                        isCompact ? "size-8" : "size-8 md:size-10"
+                                        'rounded-full object-cover',
+                                        isCompact ? 'size-8' : 'size-8 md:size-10'
                                     )}
                                 />
                             )}
@@ -640,10 +645,12 @@ export function Navbar() {
                                     <SheetTrigger className="w-full p-2 text-left text-sm hover:rounded-sm hover:bg-accent hover:text-accent-foreground">
                                         View Profile Details
                                     </SheetTrigger>
-                                    <SheetContent className={cn(
-                                        "max-h-screen overflow-y-auto !border-l border-gray-200 bg-primary-50 p-4 md:p-8 shadow-none [&>button>svg]:size-6 [&>button>svg]:font-thin [&>button>svg]:text-neutral-600 [&>button]:mt-[19px]",
-                                        isMobile ? "!min-w-full !w-full" : "!min-w-[565px]"
-                                    )}>
+                                    <SheetContent
+                                        className={cn(
+                                            'max-h-screen overflow-y-auto !border-l border-gray-200 bg-primary-50 p-4 shadow-none md:p-8 [&>button>svg]:size-6 [&>button>svg]:font-thin [&>button>svg]:text-neutral-600 [&>button]:mt-[19px]',
+                                            isMobile ? '!w-full !min-w-full' : '!min-w-[565px]'
+                                        )}
+                                    >
                                         <SheetTitle className="text-primary-500">
                                             Profile Details
                                         </SheetTitle>
@@ -653,16 +660,18 @@ export function Navbar() {
                                                     <img
                                                         src={adminLogo}
                                                         alt="logo"
-                                                        className="size-32 md:size-48 object-cover rounded-full"
+                                                        className="size-32 rounded-full object-cover md:size-48"
                                                     />
                                                 )}
-                                                <h1 className="text-center">{adminDetails?.full_name}</h1>
+                                                <h1 className="text-center">
+                                                    {adminDetails?.full_name}
+                                                </h1>
                                                 <div className="flex flex-wrap items-center justify-center gap-2">
                                                     <h1 className="whitespace-nowrap">Role Type</h1>
                                                     {adminDetails.roles?.map((role, idx) => {
                                                         const bgColor =
                                                             roleColors[
-                                                            role.role_name.toUpperCase()
+                                                                role.role_name.toUpperCase()
                                                             ] || '#EDEDED';
                                                         return (
                                                             <Badge
@@ -681,7 +690,7 @@ export function Navbar() {
                                             </div>
                                             <Separator />
                                             <div className="flex flex-col gap-2">
-                                                <div className="flex items-center justify-between flex-wrap gap-2">
+                                                <div className="flex flex-wrap items-center justify-between gap-2">
                                                     <h1>Account Information</h1>
                                                     <MyButton
                                                         buttonType="secondary"
@@ -695,7 +704,9 @@ export function Navbar() {
                                                 </div>
                                                 <p className="text-sm text-neutral-600">
                                                     <span>Username:&nbsp;</span>
-                                                    <span className="break-all">{getUserName()}</span>
+                                                    <span className="break-all">
+                                                        {getUserName()}
+                                                    </span>
                                                 </p>
                                             </div>
                                             <Separator />
@@ -703,7 +714,9 @@ export function Navbar() {
                                                 <h1>Contact Information</h1>
                                                 <p className="text-sm text-neutral-600">
                                                     <span>Email:&nbsp;</span>
-                                                    <span className="break-all">{adminDetails?.email}</span>
+                                                    <span className="break-all">
+                                                        {adminDetails?.email}
+                                                    </span>
                                                 </p>
                                                 <p className="text-sm text-neutral-600">
                                                     <span>Mobile:&nbsp;</span>
@@ -719,10 +732,12 @@ export function Navbar() {
                                     <SheetTrigger className="w-full p-2 text-sm hover:rounded-sm hover:bg-accent hover:text-accent-foreground">
                                         View Institute Details
                                     </SheetTrigger>
-                                    <SheetContent className={cn(
-                                        "max-h-screen overflow-y-auto !border-l border-gray-200 bg-primary-50 p-4 md:p-8 shadow-none [&>button>svg]:size-6 [&>button>svg]:font-thin [&>button>svg]:text-neutral-600 [&>button]:mt-[19px]",
-                                        isMobile ? "!min-w-full !w-full" : "!min-w-[565px]"
-                                    )}>
+                                    <SheetContent
+                                        className={cn(
+                                            'max-h-screen overflow-y-auto !border-l border-gray-200 bg-primary-50 p-4 shadow-none md:p-8 [&>button>svg]:size-6 [&>button>svg]:font-thin [&>button>svg]:text-neutral-600 [&>button]:mt-[19px]',
+                                            isMobile ? '!w-full !min-w-full' : '!min-w-[565px]'
+                                        )}
+                                    >
                                         <SheetTitle className="text-primary-500">
                                             Institute Details
                                         </SheetTitle>
@@ -732,10 +747,12 @@ export function Navbar() {
                                                     <img
                                                         src={instituteLogo}
                                                         alt="logo"
-                                                        className="size-32 md:size-48 object-cover rounded-full"
+                                                        className="size-32 object-contain md:size-48"
                                                     />
                                                 )}
-                                                <h1 className="text-center">{instituteDetails?.institute_name}</h1>
+                                                <h1 className="text-center">
+                                                    {instituteDetails?.institute_name}
+                                                </h1>
                                                 <div className="flex items-center gap-2">
                                                     <h1>Institute Type</h1>
                                                     <p className="rounded-lg border px-2 py-1 text-sm text-neutral-600">
@@ -751,7 +768,9 @@ export function Navbar() {
                                                 <h1>Contact Information</h1>
                                                 <p className="text-sm text-neutral-600">
                                                     <span>Institute Email:&nbsp;</span>
-                                                    <span className="break-all">{instituteDetails?.email}</span>
+                                                    <span className="break-all">
+                                                        {instituteDetails?.email}
+                                                    </span>
                                                 </p>
                                                 <p className="text-sm text-neutral-600">
                                                     <span>Institute Mobile:&nbsp;</span>
@@ -759,7 +778,9 @@ export function Navbar() {
                                                 </p>
                                                 <p className="text-sm text-neutral-600">
                                                     <span>Institute Website:&nbsp;</span>
-                                                    <span className="break-all">{instituteDetails?.website_url}</span>
+                                                    <span className="break-all">
+                                                        {instituteDetails?.website_url}
+                                                    </span>
                                                 </p>
                                             </div>
                                             <Separator />
