@@ -220,7 +220,7 @@ const EditDashboardProfileComponent = ({ isEdit }: { isEdit: boolean }) => {
                                                         'instituteProfilePictureUrl'
                                                     )}
                                                     alt="logo"
-                                                    className="size-52 rounded-full"
+                                                    className="size-52 object-contain"
                                                 />
                                             ) : (
                                                 <div className="rounded-full object-cover">

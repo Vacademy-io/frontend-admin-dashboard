@@ -1,3 +1,6 @@
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
+
 export function parseHtmlToString(html: string) {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     return doc.body.textContent || doc.body.innerText || '';
@@ -26,7 +29,39 @@ export function processHtmlString(html: string | undefined) {
         if (node.nodeType === Node.TEXT_NODE) {
             const text = node.textContent?.trim();
             if (text) {
-                result.push({ type: 'text', content: text });
+                // Split by LaTeX delimiters: $$...$$ or $...$
+                const parts = text.split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g);
+                parts.forEach((part) => {
+                    if (part.startsWith('$$') && part.endsWith('$$')) {
+                        // Block math
+                        const tex = part.slice(2, -2);
+                        try {
+                            const html = katex.renderToString(tex, {
+                                throwOnError: false,
+                                displayMode: true,
+                            });
+                            result.push({ type: 'formula', content: html });
+                        } catch (e) {
+                            result.push({ type: 'text', content: part });
+                        }
+                    } else if (part.startsWith('$') && part.endsWith('$')) {
+                        // Inline math
+                        const tex = part.slice(1, -1);
+                        try {
+                            const html = katex.renderToString(tex, {
+                                throwOnError: false,
+                                displayMode: false,
+                            });
+                            result.push({ type: 'formula', content: html });
+                        } catch (e) {
+                            result.push({ type: 'text', content: part });
+                        }
+                    } else {
+                        if (part) {
+                            result.push({ type: 'text', content: part });
+                        }
+                    }
+                });
             }
         } else if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as Element;

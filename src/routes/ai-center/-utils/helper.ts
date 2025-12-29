@@ -124,6 +124,18 @@ export function convertSVGsToBase64(htmlString: string) {
         levels++;
     }
 
+    // 2.5 Convert raw LaTeX delimiters to TipTap HTML format
+    // Block math $$...$$
+    processedString = processedString.replace(
+        /\$\$([^$]+)\$\$/g,
+        (_, tex) => `<div class="math-block" data-latex="${tex.replace(/"/g, '&quot;')}"></div>`
+    );
+    // Inline math $...$
+    processedString = processedString.replace(
+        /\$([^$]+)\$/g,
+        (_, tex) => `<span class="math-inline" data-latex="${tex.replace(/"/g, '&quot;')}"></span>`
+    );
+
     const parser = new DOMParser();
     const doc = parser.parseFromString(processedString, 'text/html');
 
