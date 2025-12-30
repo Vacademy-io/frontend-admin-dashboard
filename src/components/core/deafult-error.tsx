@@ -6,7 +6,7 @@ import { MyButton } from '../design-system/button';
 import { removeCookiesAndLogout } from '@/lib/auth/sessionUtility';
 import { ErrorFeedbackDialog } from './error-feedback-dialog';
 
-function RootErrorComponent({ error }: { error: unknown }) {
+function RootErrorComponent({ error }: { error?: unknown }) {
     const router = useRouter();
     const navigate = useNavigate();
     const [eventId, setEventId] = useState<string | undefined>(undefined);
