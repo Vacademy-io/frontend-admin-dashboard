@@ -5,6 +5,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useSidebar } from '@/components/ui/sidebar';
 import { MyButton } from '@/components/design-system/button';
 import { BASE_URL } from '@/constants/urls';
+
 import { getInstituteId } from '@/constants/helper';
 import { CircularProgress, SortableSessionItem, SortableSlideItem, OutlineGeneratingLoader } from './components';
 import { useCourseGeneration } from './hooks/useCourseGeneration';
@@ -12,6 +13,7 @@ import { useSlideHandlers } from './hooks/useSlideHandlers';
 import { useSessionHandlers } from './hooks/useSessionHandlers';
 import { useMetadataHandlers } from './hooks/useMetadataHandlers';
 import { useContentGeneration } from './hooks/useContentGeneration';
+import { useCourseCreation } from './hooks/useCourseCreation';
 import { getSessionsWithProgress } from './utils/sessionUtils';
 import { generateSlideContent } from './utils/mockSlideContent';
 import { extractSlideTitlesFromSlides } from '../../shared/utils/slides';
@@ -250,6 +252,10 @@ export function RouteComponent() {
         handleSaveMetadataEdit,
     } = metadataHandlers;
     const { handleConfirmGenerateCourseAssets } = contentGenerationHandlers;
+    
+    // Course creation hook
+    const courseCreationHandlers = useCourseCreation(courseMetadata, sessionsWithProgress);
+    const { handleCreateCourse, isCreatingCourse, creationProgress } = courseCreationHandlers;
 
     // Keep all sessions always expanded - only run once when slides are first loaded
     useEffect(() => {
@@ -547,7 +553,7 @@ export function RouteComponent() {
                 }
 
                 console.log('=== API Request ===');
-                console.log('URL:', '${BASE_URL}/ai-service/course/ai/v1/generate?institute_id=${instituteId}');
+                console.log('URL:', `${BASE_URL}/ai-service/course/ai/v1/generate?institute_id=${instituteId}`);
                 console.log('Payload:', JSON.stringify(payload, null, 2));
                 
                 setGenerationProgress('Connecting to AI service...');
@@ -768,6 +774,10 @@ export function RouteComponent() {
                     slideType = 'video';
                 } else if (todo.type === 'AI_VIDEO') {
                     slideType = 'ai-video';
+                } else if (todo.type === 'VIDEO_CODE') {
+                    slideType = 'video-code';
+                } else if (todo.type === 'AI_VIDEO_CODE') {
+                    slideType = 'ai-video-code';
                 } else if (todo.type === 'QUIZ' || todo.type === 'ASSESSMENT') {
                     slideType = 'quiz';
                 }
@@ -1302,6 +1312,20 @@ export function RouteComponent() {
                 return <Video className="h-4 w-4 text-red-600" />;
             case 'ai-video':
                 return <Video className="h-4 w-4 text-purple-600" />;
+            case 'video-code':
+                return (
+                    <div className="flex items-center gap-1">
+                        <Video className="h-4 w-4 text-red-600" />
+                        <Code className="h-4 w-4 text-green-600" />
+                    </div>
+                );
+            case 'ai-video-code':
+                return (
+                    <div className="flex items-center gap-1">
+                        <Video className="h-4 w-4 text-purple-600" />
+                        <Code className="h-4 w-4 text-green-600" />
+                    </div>
+                );
             case 'jupyter':
                 return <Notebook className="h-4 w-4 text-orange-600" />;
             case 'code-editor':
@@ -1414,7 +1438,7 @@ export function RouteComponent() {
                                     onClick={() => {
                                         setGenerateCourseAssetsDialogOpen(true);
                                     }}
-                                    disabled={isGeneratingContent || (!hasSlidesToGenerate && !allSessionsCompleted)}
+                                    disabled={isGeneratingContent || isCreatingCourse || (!hasSlidesToGenerate && !allSessionsCompleted)}
                                 >
                                     {isGeneratingContent ? (
                                         <>
@@ -1453,12 +1477,12 @@ export function RouteComponent() {
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.5, delay: 0.1 }}
-                            className="rounded-xl bg-white p-6 shadow-md"
+                            className="rounded-xl bg-white p-6 shadow-md min-w-0 overflow-hidden"
                         >
                             <div className="mb-4 flex items-center justify-between">
                                 <h2 className="flex items-center gap-2 text-2xl font-semibold text-neutral-900">
                                     <Layers className="h-6 w-6 text-indigo-600" />
-                                    Course Outline
+                                    {isContentGenerated ? 'Course Content' : 'Course Outline'}
                                 </h2>
                                 <div className="flex gap-2">
                                     <MyButton
@@ -1539,6 +1563,7 @@ export function RouteComponent() {
                                                                                     getSlideIcon={getSlideIcon}
                                                                                     onRegenerate={handleRegenerate}
                                                                                     onContentEdit={handleSlideContentEdit}
+                                                                                    isOutlineMode={!isContentGenerated}
                                                                                 />
                                                                             ))}
                                                                         {/* Add Page Button */}
@@ -2753,7 +2778,7 @@ export function RouteComponent() {
                     <GenerateCourseAssetsDialog
                         open={generateCourseAssetsDialogOpen}
                         onOpenChange={setGenerateCourseAssetsDialogOpen}
-                        onConfirm={handleConfirmGenerateCourseAssets}
+                        onConfirm={isContentGenerated ? handleCreateCourse : handleConfirmGenerateCourseAssets}
                     />
 
                     <BackToLibraryDialog

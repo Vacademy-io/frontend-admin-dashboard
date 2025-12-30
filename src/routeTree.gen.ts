@@ -106,6 +106,7 @@ import { Route as StudyLibraryCoursesCourseDetailsSubjectsIndexRouteImport } fro
 import { Route as StudyLibraryAiCopilotCourseOutlineGeneratingIndexRouteImport } from "./routes/study-library/ai-copilot/course-outline/generating/index"
 import { Route as HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRouteImport } from "./routes/homework-creation/create-assessment/$assessmentId/$examtype/index"
 import { Route as AssessmentCreateAssessmentAssessmentIdExamtypeIndexRouteImport } from "./routes/assessment/create-assessment/$assessmentId/$examtype/index"
+import { Route as StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRouteImport } from "./routes/study-library/ai-copilot/shared/components/YouTubePlayerSimple"
 import { Route as StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRouteImport } from "./routes/study-library/courses/course-details/subjects/modules/index"
 import { Route as StudyLibraryAiCopilotCourseOutlineGeneratingViewerIndexRouteImport } from "./routes/study-library/ai-copilot/course-outline/generating/viewer/index"
 import { Route as StudyLibraryAiCopilotCourseOutlineGeneratingProcessingIndexRouteImport } from "./routes/study-library/ai-copilot/course-outline/generating/processing/index"
@@ -887,6 +888,12 @@ const AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute =
       "./routes/assessment/create-assessment/$assessmentId/$examtype/index.lazy"
     ).then((d) => d.Route),
   )
+const StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute =
+  StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRouteImport.update({
+    id: "/study-library/ai-copilot/shared/components/YouTubePlayerSimple",
+    path: "/study-library/ai-copilot/shared/components/YouTubePlayerSimple",
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRoute =
   StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRouteImport.update({
     id: "/study-library/courses/course-details/subjects/modules/",
@@ -1080,6 +1087,7 @@ export interface FileRoutesByFullPath {
   "/study-library/courses/course-details": typeof StudyLibraryCoursesCourseDetailsIndexRoute
   "/study-library/live-session/schedule": typeof StudyLibraryLiveSessionScheduleIndexRoute
   "/study-library/volt/add": typeof StudyLibraryVoltAddIndexRoute
+  "/study-library/ai-copilot/shared/components/YouTubePlayerSimple": typeof StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute
   "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/homework-creation/create-assessment/$assessmentId/$examtype": typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/study-library/ai-copilot/course-outline/generating": typeof StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute
@@ -1189,6 +1197,7 @@ export interface FileRoutesByTo {
   "/study-library/courses/course-details": typeof StudyLibraryCoursesCourseDetailsIndexRoute
   "/study-library/live-session/schedule": typeof StudyLibraryLiveSessionScheduleIndexRoute
   "/study-library/volt/add": typeof StudyLibraryVoltAddIndexRoute
+  "/study-library/ai-copilot/shared/components/YouTubePlayerSimple": typeof StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute
   "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/homework-creation/create-assessment/$assessmentId/$examtype": typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/study-library/ai-copilot/course-outline/generating": typeof StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute
@@ -1300,6 +1309,7 @@ export interface FileRoutesById {
   "/study-library/courses/course-details/": typeof StudyLibraryCoursesCourseDetailsIndexRoute
   "/study-library/live-session/schedule/": typeof StudyLibraryLiveSessionScheduleIndexRoute
   "/study-library/volt/add/": typeof StudyLibraryVoltAddIndexRoute
+  "/study-library/ai-copilot/shared/components/YouTubePlayerSimple": typeof StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute
   "/assessment/create-assessment/$assessmentId/$examtype/": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/homework-creation/create-assessment/$assessmentId/$examtype/": typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/study-library/ai-copilot/course-outline/generating/": typeof StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute
@@ -1412,6 +1422,7 @@ export interface FileRouteTypes {
     | "/study-library/courses/course-details"
     | "/study-library/live-session/schedule"
     | "/study-library/volt/add"
+    | "/study-library/ai-copilot/shared/components/YouTubePlayerSimple"
     | "/assessment/create-assessment/$assessmentId/$examtype"
     | "/homework-creation/create-assessment/$assessmentId/$examtype"
     | "/study-library/ai-copilot/course-outline/generating"
@@ -1521,6 +1532,7 @@ export interface FileRouteTypes {
     | "/study-library/courses/course-details"
     | "/study-library/live-session/schedule"
     | "/study-library/volt/add"
+    | "/study-library/ai-copilot/shared/components/YouTubePlayerSimple"
     | "/assessment/create-assessment/$assessmentId/$examtype"
     | "/homework-creation/create-assessment/$assessmentId/$examtype"
     | "/study-library/ai-copilot/course-outline/generating"
@@ -1631,6 +1643,7 @@ export interface FileRouteTypes {
     | "/study-library/courses/course-details/"
     | "/study-library/live-session/schedule/"
     | "/study-library/volt/add/"
+    | "/study-library/ai-copilot/shared/components/YouTubePlayerSimple"
     | "/assessment/create-assessment/$assessmentId/$examtype/"
     | "/homework-creation/create-assessment/$assessmentId/$examtype/"
     | "/study-library/ai-copilot/course-outline/generating/"
@@ -1741,6 +1754,7 @@ export interface RootRouteChildren {
   StudyLibraryCoursesCourseDetailsIndexRoute: typeof StudyLibraryCoursesCourseDetailsIndexRoute
   StudyLibraryLiveSessionScheduleIndexRoute: typeof StudyLibraryLiveSessionScheduleIndexRoute
   StudyLibraryVoltAddIndexRoute: typeof StudyLibraryVoltAddIndexRoute
+  StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute: typeof StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute
   AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute: typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
   HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute: typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
   StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute: typeof StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute
@@ -2453,6 +2467,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/study-library/ai-copilot/shared/components/YouTubePlayerSimple": {
+      id: "/study-library/ai-copilot/shared/components/YouTubePlayerSimple"
+      path: "/study-library/ai-copilot/shared/components/YouTubePlayerSimple"
+      fullPath: "/study-library/ai-copilot/shared/components/YouTubePlayerSimple"
+      preLoaderRoute: typeof StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/study-library/courses/course-details/subjects/modules/": {
       id: "/study-library/courses/course-details/subjects/modules/"
       path: "/study-library/courses/course-details/subjects/modules"
@@ -2640,6 +2661,8 @@ const rootRouteChildren: RootRouteChildren = {
   StudyLibraryLiveSessionScheduleIndexRoute:
     StudyLibraryLiveSessionScheduleIndexRoute,
   StudyLibraryVoltAddIndexRoute: StudyLibraryVoltAddIndexRoute,
+  StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute:
+    StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute,
   AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute:
     AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute,
   HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute:
