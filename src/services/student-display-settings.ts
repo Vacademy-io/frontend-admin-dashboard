@@ -135,6 +135,7 @@ function mergeWithDefaults(
             canDeleteProfile:
                 incoming?.permissions?.canDeleteProfile ?? d.permissions.canDeleteProfile,
             canViewFiles: incoming?.permissions?.canViewFiles ?? d.permissions.canViewFiles,
+            canViewReports: incoming?.permissions?.canViewReports ?? d.permissions.canViewReports,
         },
         courseDetails: {
             tabs: mergeArrayById(incoming?.courseDetails?.tabs, d.courseDetails.tabs).map((t) => ({

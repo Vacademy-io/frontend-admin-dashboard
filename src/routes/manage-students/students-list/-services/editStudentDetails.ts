@@ -20,13 +20,13 @@ export const useEditStudentDetails = () => {
             // Build custom_field_values array (ONLY custom fields, NOT system fields)
             const customFieldValues = data.custom_fields
                 ? Object.entries(data.custom_fields)
-                      .filter(([fieldId]) => customFieldIds.has(fieldId))
-                      .map(([custom_field_id, value]) => ({
-                        source:"USER",
-                        source_id:data.user_id,
-                          custom_field_id,
-                          value: value || '',
-                      }))
+                    .filter(([fieldId]) => customFieldIds.has(fieldId))
+                    .map(([custom_field_id, value]) => ({
+                        source_type: "USER",
+                        source_id: data.user_id,
+                        custom_field_id,
+                        value: value || '',
+                    }))
                 : [];
 
             // Build the API payload structure
@@ -47,8 +47,8 @@ export const useEditStudentDetails = () => {
                     roles: ['STUDENT'],
                 },
                 learner_extra_details: {
-                    fathers_name: data.father_name || '',
-                    mothers_name: data.mother_name || '',
+                    fathers_name: data.fathers_name || '',
+                    mothers_name: data.mothers_name || '',
                     parents_mobile_number: data.father_mobile_number || '',
                     parents_email: data.father_email || '',
                     parents_to_mother_mobile_number: data.mother_mobile_number || '',

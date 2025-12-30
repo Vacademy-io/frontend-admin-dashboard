@@ -61,8 +61,8 @@ export const StepTwoForm = ({
         PIN_CODE: 'pin_code',
 
         // Parent/Guardian Information
-        FATHER_NAME: 'father_name',
-        MOTHER_NAME: 'mother_name',
+        FATHER_NAME: 'fathers_name',
+        MOTHER_NAME: 'mothers_name',
         PARENTS_EMAIL: 'parents_email',
         PARENTS_MOBILE_NUMBER: 'parents_mobile_number',
         PARENTS_TO_MOTHER_EMAIL: 'parents_to_mother_email',
@@ -181,7 +181,7 @@ export const StepTwoForm = ({
                 },
                 // Parent/Guardian fields
                 {
-                    key: 'father_name',
+                    key: 'fathers_name',
                     label: "Father's Name",
                     type: 'text',
                     required: false,
@@ -189,7 +189,7 @@ export const StepTwoForm = ({
                     visible: true,
                 },
                 {
-                    key: 'mother_name',
+                    key: 'mothers_name',
                     label: "Mother's Name",
                     type: 'text',
                     required: false,
@@ -322,8 +322,8 @@ export const StepTwoForm = ({
                 city: initialValues.city || '',
                 region: initialValues.region || '',
                 pin_code: initialValues.pin_code || '',
-                father_name: initialValues.father_name || '',
-                mother_name: initialValues.mother_name || '',
+                fathers_name: initialValues.fathers_name || '',
+                mothers_name: initialValues.mothers_name || '',
                 parents_email: initialValues.parents_email || '',
                 parents_mobile_number: initialValues.parents_mobile_number || '',
                 parents_to_mother_email: initialValues.parents_to_mother_email || '',
@@ -453,8 +453,8 @@ export const StepTwoForm = ({
                                             render={({ field }) => {
                                                 const selectedGender = field.value
                                                     ? genderOptions.find(
-                                                          (option) => option.id === field.value
-                                                      )
+                                                        (option) => option.id === field.value
+                                                    )
                                                     : undefined;
 
                                                 return (
@@ -475,7 +475,7 @@ export const StepTwoForm = ({
                                                                     handleChange={(value) => {
                                                                         if (
                                                                             typeof value ===
-                                                                                'object' &&
+                                                                            'object' &&
                                                                             'id' in value
                                                                         ) {
                                                                             field.onChange(
@@ -558,9 +558,9 @@ export const StepTwoForm = ({
                                                             field.value?.[customField.id];
                                                         const selectedOption = currentValue
                                                             ? {
-                                                                  id: currentValue,
-                                                                  name: currentValue,
-                                                              }
+                                                                id: currentValue,
+                                                                name: currentValue,
+                                                            }
                                                             : undefined;
 
                                                         return (
@@ -587,16 +587,16 @@ export const StepTwoForm = ({
                                                                             ) => {
                                                                                 if (
                                                                                     typeof value ===
-                                                                                        'object' &&
+                                                                                    'object' &&
                                                                                     'id' in value
                                                                                 ) {
                                                                                     const newCustomFields =
-                                                                                        {
-                                                                                            ...(field.value ||
-                                                                                                {}),
-                                                                                            [customField.id]:
-                                                                                                value.id,
-                                                                                        };
+                                                                                    {
+                                                                                        ...(field.value ||
+                                                                                            {}),
+                                                                                        [customField.id]:
+                                                                                            value.id,
+                                                                                    };
                                                                                     field.onChange(
                                                                                         newCustomFields
                                                                                     );

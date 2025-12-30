@@ -36,6 +36,7 @@ const STUDENT_SIDE_VIEW_DEFAULTS: StudentSideViewSettings = {
     userTaggingTab: false,
     fileTab: false,
     portalAccessTab: false,
+    reportsTab: false,
 };
 
 const STUDENT_SIDE_VIEW_OPTIONS: Array<{
@@ -74,6 +75,11 @@ const STUDENT_SIDE_VIEW_OPTIONS: Array<{
         key: 'portalAccessTab',
         label: 'Portal Access Tab',
         defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.portalAccessTab,
+    },
+    {
+        key: 'reportsTab',
+        label: 'Reports Tab',
+        defaultValue: STUDENT_SIDE_VIEW_DEFAULTS.reportsTab,
     },
 ];
 

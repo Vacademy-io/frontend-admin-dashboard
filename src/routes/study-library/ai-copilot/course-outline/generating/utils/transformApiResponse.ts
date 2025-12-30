@@ -101,6 +101,10 @@ export function transformApiResponseToSlides(
                 slideType = 'doc';
             } else if (todo.type === 'VIDEO') {
                 slideType = 'video';
+            } else if (todo.type === 'VIDEO_CODE') {
+                slideType = 'video-code';
+            } else if (todo.type === 'AI_VIDEO_CODE') {
+                slideType = 'ai-video-code';
             } else if (todo.type === 'QUIZ' || todo.type === 'ASSESSMENT') {
                 slideType = 'quiz';
             }

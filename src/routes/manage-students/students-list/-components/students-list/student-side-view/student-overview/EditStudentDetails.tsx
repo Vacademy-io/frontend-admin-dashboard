@@ -42,8 +42,8 @@ const EditStudentDetailsFormSchema = z.object({
     city: z.string().optional(),
     pin_code: z.string().optional(),
     institute_name: z.string().optional(),
-    father_name: z.string().optional(),
-    mother_name: z.string().optional(),
+    fathers_name: z.string().optional(),
+    mothers_name: z.string().optional(),
     father_mobile_number: z.string().optional(),
     father_email: z.string().email('Invalid email').optional().or(z.literal('')),
     mother_mobile_number: z.string().optional(),
@@ -159,8 +159,8 @@ export const EditStudentDetails = () => {
                 state: selectedStudent?.region || '',
                 pin_code: selectedStudent?.pin_code || '',
                 institute_name: selectedStudent?.linked_institute_name || '',
-                father_name: selectedStudent?.father_name || '',
-                mother_name: selectedStudent?.mother_name || '',
+                fathers_name: selectedStudent?.fathers_name || '',
+                mothers_name: selectedStudent?.mothers_name || '',
                 father_mobile_number: selectedStudent?.father_mobile_number || '',
                 father_email: selectedStudent?.father_email || '',
                 mother_mobile_number: selectedStudent?.mother_mobile_number || '',
@@ -309,8 +309,8 @@ export const EditStudentDetails = () => {
                                                                         fileInputRef.current?.click()
                                                                     }
                                                                     className={`${active
-                                                                            ? 'bg-neutral-100'
-                                                                            : ''
+                                                                        ? 'bg-neutral-100'
+                                                                        : ''
                                                                         } group flex w-full items-center gap-2 rounded-md p-2 text-sm`}
                                                                 >
                                                                     <Upload className="size-4" />
@@ -324,8 +324,8 @@ export const EditStudentDetails = () => {
                                                                     type="button"
                                                                     onClick={handleRemoveImage}
                                                                     className={`${active
-                                                                            ? 'bg-neutral-100'
-                                                                            : ''
+                                                                        ? 'bg-neutral-100'
+                                                                        : ''
                                                                         } group flex w-full items-center gap-2 rounded-md p-2 text-sm text-red-600`}
                                                                 >
                                                                     <Trash2 className="size-4" />
@@ -575,7 +575,7 @@ export const EditStudentDetails = () => {
                     />
                     <FormField
                         control={form.control}
-                        name="father_name"
+                        name="fathers_name"
                         render={({ field }) => (
                             <FormItem className="w-full">
                                 <FormControl className="w-full">
@@ -586,7 +586,7 @@ export const EditStudentDetails = () => {
                                         inputPlaceholder="Father/Male Gardian Name"
                                         className="w-full"
                                         label="Father/Male Gardian Name"
-                                        error={form.formState.errors.father_name?.message}
+                                        error={form.formState.errors.fathers_name?.message}
                                     />
                                 </FormControl>
                             </FormItem>
@@ -594,7 +594,7 @@ export const EditStudentDetails = () => {
                     />
                     <FormField
                         control={form.control}
-                        name="mother_name"
+                        name="mothers_name"
                         render={({ field }) => (
                             <FormItem className="w-full">
                                 <FormControl className="w-full">
@@ -605,7 +605,7 @@ export const EditStudentDetails = () => {
                                         inputPlaceholder="Mother/Female Gardian Name"
                                         className="w-full"
                                         label="Mother/Female Gardian Name"
-                                        error={form.formState.errors.mother_name?.message}
+                                        error={form.formState.errors.mothers_name?.message}
                                     />
                                 </FormControl>
                             </FormItem>
