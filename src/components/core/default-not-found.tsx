@@ -1,6 +1,7 @@
 import { Link, useRouter } from '@tanstack/react-router';
 import { Helmet } from 'react-helmet';
 import { Button } from '../ui/button';
+import { ErrorFeedbackDialog } from './error-feedback-dialog';
 
 function RootNotFoundComponent() {
     const router = useRouter();
@@ -31,6 +32,13 @@ function RootNotFoundComponent() {
                         <Button asChild variant={'outline'} className="h-10 min-w-32">
                             <button onClick={() => router.history.back()}>Go Back</button>
                         </Button>
+                        <ErrorFeedbackDialog
+                            trigger={
+                                <Button variant="outline" className="h-10 min-w-32">
+                                    Report Issue
+                                </Button>
+                            }
+                        />
                     </div>
                 </div>
             </div>
