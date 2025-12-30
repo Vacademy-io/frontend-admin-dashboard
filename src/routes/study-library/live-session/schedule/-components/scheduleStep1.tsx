@@ -240,30 +240,6 @@ export default function ScheduleStep1() {
     // Watch default link
     const defaultLink = form.watch('defaultLink');
 
-    // Debounced effect to show dialog when default link changes (CREATE mode only)
-    useEffect(() => {
-        // Only in CREATE mode
-        if (isEditModeRef.current) return;
-        if (!isFormInitialized) return;
-        if (!defaultLink) return;
-
-        // Check if there are any selected days with sessions
-        const activeDays =
-            recurringSchedule?.filter((day) => day.isSelect && day.sessions?.length > 0) || [];
-        if (activeDays.length === 0) return;
-
-        // Debounce: wait for user to finish typing
-        const timer = setTimeout(() => {
-            // Pre-select all active days
-            const dayNames = activeDays.map((day) => day.day);
-            setSelectedDaysForLink(dayNames);
-            setPendingDefaultLink(defaultLink);
-            setIsDefaultLinkDialogOpen(true);
-        }, 800); // 800ms debounce
-
-        return () => clearTimeout(timer);
-    }, [defaultLink, isFormInitialized, recurringSchedule]);
-
     // Auto-detect platform from link
     useEffect(() => {
         const link = defaultLink?.toLowerCase() || '';
@@ -1412,6 +1388,32 @@ export default function ScheduleStep1() {
                                 required
                                 size="large"
                                 {...field}
+                                onBlur={(e) => {
+                                    field.onBlur();
+
+                                    // Only in CREATE mode
+                                    if (isEditModeRef.current) return;
+
+                                    const newLink = e.target.value;
+                                    if (!newLink) return;
+
+                                    const currentSchedule = form.getValues('recurringSchedule');
+                                    const activeDays =
+                                        currentSchedule?.filter((day) => day.isSelect && day.sessions?.length > 0) || [];
+
+                                    if (activeDays.length === 0) return;
+
+                                    const needsUpdate = activeDays.some(day =>
+                                        day.sessions.some(session => session.link !== newLink)
+                                    );
+
+                                    if (needsUpdate) {
+                                        const dayNames = activeDays.map((day) => day.day);
+                                        setSelectedDaysForLink(dayNames);
+                                        setPendingDefaultLink(newLink);
+                                        setIsDefaultLinkDialogOpen(true);
+                                    }
+                                }}
                             />
                         </FormControl>
                     </FormItem>
@@ -2165,15 +2167,16 @@ export default function ScheduleStep1() {
                 <FormProvider {...form}>
                     <form
                         onSubmit={form.handleSubmit(onSubmit, onError)}
-                        className="flex flex-col gap-8"
+                        className="flex flex-col gap-5"
                     >
-                        <div className="sticky top-[72px] z-[9] m-0 flex items-center justify-between border-b border-neutral-200 bg-white p-0 py-2">
+                        <div className="text-lg font-semibold z-[9] m-0 flex items-center justify-between border-b border-neutral-200 bg-white p-0 py-2">
                             <h1>Live Session Information</h1>
                             <MyButton
                                 type="submit"
                                 scale="large"
                                 buttonType="primary"
                                 disable={isSubmitting}
+                                className="w-32"
                             >
                                 {isSubmitting ? (
                                     <Loader2 className="animate-spin text-white" />
