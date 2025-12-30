@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import * as Sentry from '@sentry/react';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
@@ -50,6 +51,13 @@ declare module '@tanstack/react-router' {
     interface Register {
         router: typeof router;
     }
+}
+
+if (import.meta.env.VITE_ENABLE_SENTRY === 'true') {
+    Sentry.init({
+        dsn: import.meta.env.VITE_SENTRY_DSN,
+        sendDefaultPii: true,
+    });
 }
 
 // Render the app
