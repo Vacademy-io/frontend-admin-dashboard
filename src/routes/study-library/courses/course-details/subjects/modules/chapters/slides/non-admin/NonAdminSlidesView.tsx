@@ -1,5 +1,4 @@
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
-const SlideMaterial = React.lazy(() => import('@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/slide-material').then(module => ({ default: module.SlideMaterial })));
 import { ChapterSidebarAddButton } from '../-components/slides-sidebar/slides-sidebar-add-button';
 import { ChapterSidebarSlides } from '../-components/slides-sidebar/slides-sidebar-slides';
 import '../slides-sidebar-scrollbar.css';
@@ -32,6 +31,8 @@ import { useNonAdminSlides } from './hooks/useNonAdminSlides';
 import { SendForApprovalButton } from '@/components/study-library/approval-workflow/SendForApprovalButton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PreviewChangesButton } from '@/components/study-library/course-comparison/PreviewChangesButton';
+
+const SlideMaterial = React.lazy(() => import('@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/slide-material').then(module => ({ default: module.SlideMaterial })));
 
 interface NonAdminSlidesViewProps {
     courseId: string;

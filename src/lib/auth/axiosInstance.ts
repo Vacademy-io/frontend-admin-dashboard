@@ -80,6 +80,16 @@ authenticatedAxiosInstance.interceptors.response.use(
 
         // Handle 511 Network Authentication Required
         if (response?.status === 511) {
+            const responseData = response?.data;
+
+            // Check if it's actually a backend error message disguised as 511
+            // Sometimes backend returns 511 for business logic errors which should NOT log the user out
+            if (responseData && (responseData.ex || responseData.responseCode)) {
+                console.warn('[Axios Response] 511 Error with backend exception details - NOT logging out:', responseData);
+                // Return the error as is so the calling service can handle the specific error message
+                return Promise.reject(error);
+            }
+
             console.error(
                 '[Axios Response] 511 Network Authentication Required - Token may be invalid or expired'
             );

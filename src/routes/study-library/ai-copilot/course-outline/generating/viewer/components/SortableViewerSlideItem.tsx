@@ -27,7 +27,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import Editor from '@monaco-editor/react';
-import { TipTapEditor } from '@/components/tiptap/TipTapEditor';
+import { YooptaEditorWrapperSafe as YooptaEditorWrapper } from '../../../../shared/components';
 import { MyButton } from '@/components/design-system/button';
 import {
     processDocumentContent,

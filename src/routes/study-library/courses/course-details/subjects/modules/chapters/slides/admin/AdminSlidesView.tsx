@@ -1,5 +1,4 @@
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
-const SlideMaterial = React.lazy(() => import('@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/slide-material').then(module => ({ default: module.SlideMaterial })));
 import { ChapterSidebarAddButton } from '../-components/slides-sidebar/slides-sidebar-add-button';
 import { ChapterSidebarSlides } from '../-components/slides-sidebar/slides-sidebar-slides';
 import '../slides-sidebar-scrollbar.css';
@@ -29,6 +28,8 @@ import { getTerminology } from '@/components/common/layout-container/sidebar/uti
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { useLearnerViewStore } from '../-stores/learner-view-store';
 import { Eye, UserGear } from '@phosphor-icons/react';
+
+const SlideMaterial = React.lazy(() => import('@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/slide-material').then(module => ({ default: module.SlideMaterial })));
 
 interface AdminSlidesViewProps {
     courseId: string;

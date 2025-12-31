@@ -1,9 +1,9 @@
+/* Compact Mode Styles - must be imported before @tailwind */
+@import './styles/compact-mode.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Compact Mode Styles */
-@import './styles/compact-mode.css';
 
 html {
     scroll-behavior: smooth;
