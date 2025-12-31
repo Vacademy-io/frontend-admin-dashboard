@@ -4,15 +4,36 @@
  * Converts the rest of the markdown to HTML
  */
 
+/**
+ * Converts ONLY mermaid code blocks to <div class="mermaid">...</div>
+ * Useful when content is already HTML but contains mermaid code blocks
+ */
+export function convertMermaidCodeToDiv(text: string): string {
+    if (!text) return '';
+
+    // Check if there are any mermaid blocks
+    if (!/```mermaid[\s\S]*?```/m.test(text)) {
+        return text;
+    }
+
+    // Replace mermaid code blocks with div.mermaid
+    // We use a regex that captures the code inside the block
+    return text.replace(/```mermaid\s*\n?([\s\S]*?)\n?```/g, (match, code) => {
+        // Preserve the exact mermaid code, trimming only leading/trailing whitespace
+        const trimmedCode = code.trim();
+        return `<div class="mermaid">\n${trimmedCode}\n</div>`;
+    });
+}
+
 export function markdownToHtml(markdown: string): string {
     if (!markdown) return '';
 
     // Check if content is markdown (has markdown syntax)
     const hasMarkdownSyntax = /^#+\s|^\*\s|^-\s|^\d+\.\s|```|\[.*\]\(.*\)/m.test(markdown);
-    
+
+    // If it doesn't look like markdown, just check/convert mermaid blocks
     if (!hasMarkdownSyntax) {
-        // Not markdown, return as-is (might be HTML already)
-        return markdown;
+        return convertMermaidCodeToDiv(markdown);
     }
 
     // Extract mermaid code blocks first
@@ -34,6 +55,7 @@ export function markdownToHtml(markdown: string): string {
     // Also handle non-mermaid code blocks
     processedMarkdown = processedMarkdown.replace(/```(\w+)?\s*\n?([\s\S]*?)\n?```/g, (match, lang, code) => {
         if (lang === 'mermaid') return match; // Should have been replaced already
+        // Preserve code formatting
         return `<pre><code>${code.trim()}</code></pre>`;
     });
 
@@ -48,7 +70,13 @@ export function markdownToHtml(markdown: string): string {
         if (currentParagraph.length > 0) {
             const paraText = currentParagraph.join(' ').trim();
             if (paraText) {
-                htmlLines.push(`<p>${paraText}</p>`);
+                // Check if the paragraph is actually an HTML block (starts with <)
+                // If so, don't wrap in <p>
+                if (paraText.startsWith('<') && !paraText.startsWith('<a') && !paraText.startsWith('<span') && !paraText.startsWith('<strong') && !paraText.startsWith('<em') && !paraText.startsWith('<code')) {
+                    htmlLines.push(paraText);
+                } else {
+                    htmlLines.push(`<p>${paraText}</p>`);
+                }
             }
             currentParagraph = [];
         }
@@ -62,9 +90,15 @@ export function markdownToHtml(markdown: string): string {
         }
     };
 
+    // Helper to check if a line is an HTML block tag
+    const isHtmlBlock = (line: string): boolean => {
+        const trimmed = line.trim();
+        return /^\s*<(div|p|h[1-6]|ul|ol|li|blockquote|section|article|header|footer|nav|table|form|hr|br|pre|iframe)/i.test(trimmed);
+    };
+
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i]?.trim() || '';
-        
+
         // Check if this line is a mermaid placeholder
         if (line.startsWith('__MERMAID_PLACEHOLDER_') && line.endsWith('__')) {
             flushParagraph();
@@ -72,10 +106,18 @@ export function markdownToHtml(markdown: string): string {
             htmlLines.push(line); // Keep placeholder as-is, will replace later
             continue;
         }
-        
+
         if (!line) {
             flushParagraph();
             flushList();
+            continue;
+        }
+
+        // If line is already HTML block, preserve it
+        if (isHtmlBlock(line)) {
+            flushParagraph();
+            flushList();
+            htmlLines.push(line);
             continue;
         }
 
@@ -138,19 +180,28 @@ export function markdownToHtml(markdown: string): string {
     let html = htmlLines.join('\n');
 
     // Process inline markdown in the HTML
+    // Be careful not to replace things inside attributes or existing HTML tags
+    // This is a naive implementation, but should work for basic content
+
+    // We only apply inline formatting if there are no HTML tags in the text
+    // or if we are careful. For safety, let's keep it simple for now. 
+    // Ideally we should tokenize, but regex is what we have.
+
     html = html
         // Bold
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         // Italic (but not if it's part of bold)
         .replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, '<em>$1</em>')
-        // Inline code
-        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        // Inline code (avoid converting inside existing HTML)
+        .replace(/`([^`]+)`/g, (match, code) => {
+            return `<code>${code}</code>`;
+        })
         // Links
         .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
 
     // Replace mermaid placeholders with <div class="mermaid">...</div>
     mermaidBlocks.forEach(({ code, placeholder }) => {
-        html = html.replace(placeholder, `<div class="mermaid">${code}</div>`);
+        html = html.replace(placeholder, `<div class="mermaid">\n${code}\n</div>`);
     });
 
     return html;

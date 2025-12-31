@@ -40,16 +40,28 @@ export function convertAssessmentToHTML(assessmentData: AssessmentContentData): 
         const questionNum = q.question_number || `Question ${index + 1}`;
         html += `<h3>${questionNum}</h3>`;
         
-        // Add question content
+        // Add question content - ensure it's properly formatted HTML
         const questionContent = q.question?.content || '';
-        html += `<p>${questionContent}</p>`;
+        // Remove any existing paragraph tags and wrap in a single paragraph
+        const cleanQuestion = questionContent.replace(/<\/?p>/g, '').trim();
+        if (cleanQuestion) {
+            html += `<p>${cleanQuestion}</p>`;
+        }
         
         // Add options as ordered list
         if (q.options && q.options.length > 0) {
             html += '<ol>';
             q.options.forEach((option) => {
                 const optionContent = option.content || '';
-                html += `<li>${optionContent}</li>`;
+                // Clean option content - remove nested paragraphs and HTML tags, keep only text
+                const cleanOption = optionContent
+                    .replace(/<\/?p>/g, '') // Remove paragraph tags
+                    .replace(/<[^>]+>/g, '') // Remove all other HTML tags
+                    .trim();
+                if (cleanOption) {
+                    // Yoopta expects plain text in list items, not nested paragraphs
+                    html += `<li>${cleanOption}</li>`;
+                }
             });
             html += '</ol>';
         }
@@ -61,19 +73,24 @@ export function convertAssessmentToHTML(assessmentData: AssessmentContentData): 
                     const option = q.options?.find((opt) => opt.preview_id === optId);
                     return option?.content || optId;
                 })
-                .filter(Boolean);
+                .filter(Boolean)
+                .map(ans => ans.replace(/<\/?p>/g, '').trim()); // Clean answer text
             
             if (correctAnswers.length > 0) {
                 html += `<p><strong style="color: #10b981;">Correct Answer${correctAnswers.length > 1 ? 's' : ''}: ${correctAnswers.join(', ')}</strong></p>`;
             }
         } else if (q.ans) {
             // Fallback to ans field if correct_options is not available
-            html += `<p><strong style="color: #10b981;">Correct Answer: ${q.ans}</strong></p>`;
+            const cleanAns = String(q.ans).replace(/<\/?p>/g, '').trim();
+            html += `<p><strong style="color: #10b981;">Correct Answer: ${cleanAns}</strong></p>`;
         }
         
         // Add explanation if available
         if (q.exp) {
-            html += `<p><em>Explanation: ${q.exp}</em></p>`;
+            const cleanExp = String(q.exp).replace(/<\/?p>/g, '').trim();
+            if (cleanExp) {
+                html += `<p><em>Explanation: ${cleanExp}</em></p>`;
+            }
         }
         
         // Add separator between questions (except for last one)

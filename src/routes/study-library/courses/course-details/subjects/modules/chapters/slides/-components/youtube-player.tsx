@@ -489,9 +489,8 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                             key={idx}
                             className="absolute top-0 -ml-1.5 size-3 -translate-y-1/2 cursor-pointer rounded-full bg-red-500"
                             style={{
-                                left: `${
-                                    (timestampToSeconds(question.timestamp) / videoDuration) * 100
-                                }%`,
+                                left: `${(timestampToSeconds(question.timestamp) / videoDuration) * 100
+                                    }%`,
                                 top: '50%',
                             }}
                             onMouseEnter={() => setHoveredQuestion(question)}
@@ -652,80 +651,80 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                                 </div>
                                 {(question.questionType === 'LONG_ANSWER' ||
                                     question.questionType === 'ONE_WORD') && (
-                                    <span className="flex w-1/2 rounded-xl border bg-neutral-50 p-4 font-thin">
-                                        <span
-                                            dangerouslySetInnerHTML={{
-                                                __html: handleGetOptions(question) || '',
-                                            }}
-                                        />
-                                    </span>
-                                )}
+                                        <span className="flex w-1/2 rounded-xl border bg-neutral-50 p-4 font-thin">
+                                            <span
+                                                dangerouslySetInnerHTML={{
+                                                    __html: handleGetOptions(question) || '',
+                                                }}
+                                            />
+                                        </span>
+                                    )}
                                 {(question.questionType === 'NUMERIC' ||
                                     question.questionType === 'CNUMERIC') && (
-                                    <div className="mt-4 flex w-full flex-col gap-4">
-                                        {chunkArray(handleGetOptions(question) || [], 2).map(
-                                            (optionPair, rowIdx) => (
-                                                <div
-                                                    key={rowIdx}
-                                                    className="mb-2 flex w-full items-center gap-4"
-                                                >
-                                                    {optionPair.map((option, idx) => {
-                                                        const globalIndex = rowIdx * 2 + idx;
-                                                        return (
-                                                            <span
-                                                                key={`option-${globalIndex}-${idx}`}
-                                                                className="flex w-1/2 rounded-xl border bg-neutral-50 p-4 font-thin"
-                                                            >
+                                        <div className="mt-4 flex w-full flex-col gap-4">
+                                            {chunkArray(handleGetOptions(question) || [], 2).map(
+                                                (optionPair, rowIdx) => (
+                                                    <div
+                                                        key={rowIdx}
+                                                        className="mb-2 flex w-full items-center gap-4"
+                                                    >
+                                                        {optionPair.map((option, idx) => {
+                                                            const globalIndex = rowIdx * 2 + idx;
+                                                            return (
                                                                 <span
-                                                                    dangerouslySetInnerHTML={{
-                                                                        __html: option || '',
-                                                                    }}
-                                                                />
-                                                            </span>
-                                                        );
-                                                    })}
-                                                </div>
-                                            )
-                                        )}
-                                    </div>
-                                )}
+                                                                    key={`option-${globalIndex}-${idx}`}
+                                                                    className="flex w-1/2 rounded-xl border bg-neutral-50 p-4 font-thin"
+                                                                >
+                                                                    <span
+                                                                        dangerouslySetInnerHTML={{
+                                                                            __html: option || '',
+                                                                        }}
+                                                                    />
+                                                                </span>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )
+                                            )}
+                                        </div>
+                                    )}
                                 {!['LONG_ANSWER', 'ONE_WORD', 'NUMERIC', 'CNUMERIC'].includes(
                                     question.questionType
                                 ) && (
-                                    <div className="mt-4 flex w-full flex-col gap-4">
-                                        {chunkArray(handleGetOptions(question) || [], 2).map(
-                                            (optionPair, rowIdx) => (
-                                                <div
-                                                    key={rowIdx}
-                                                    className="mb-2 flex w-full items-center gap-4"
-                                                >
-                                                    {optionPair.map((option, idx) => {
-                                                        const globalIndex = rowIdx * 2 + idx;
-                                                        return (
-                                                            <span
-                                                                key={`option-${globalIndex}-${idx}`}
-                                                                className="flex w-1/2 rounded-xl border bg-neutral-50 p-4 font-thin"
-                                                            >
-                                                                <span className="mr-1">
-                                                                    (
-                                                                    {String.fromCharCode(
-                                                                        97 + globalIndex
-                                                                    )}
-                                                                    .)
-                                                                </span>
+                                        <div className="mt-4 flex w-full flex-col gap-4">
+                                            {chunkArray(handleGetOptions(question) || [], 2).map(
+                                                (optionPair, rowIdx) => (
+                                                    <div
+                                                        key={rowIdx}
+                                                        className="mb-2 flex w-full items-center gap-4"
+                                                    >
+                                                        {optionPair.map((option, idx) => {
+                                                            const globalIndex = rowIdx * 2 + idx;
+                                                            return (
                                                                 <span
-                                                                    dangerouslySetInnerHTML={{
-                                                                        __html: option.name || '',
-                                                                    }}
-                                                                />
-                                                            </span>
-                                                        );
-                                                    })}
-                                                </div>
-                                            )
-                                        )}
-                                    </div>
-                                )}
+                                                                    key={`option-${globalIndex}-${idx}`}
+                                                                    className="flex w-1/2 rounded-xl border bg-neutral-50 p-4 font-thin"
+                                                                >
+                                                                    <span className="mr-1">
+                                                                        (
+                                                                        {String.fromCharCode(
+                                                                            97 + globalIndex
+                                                                        )}
+                                                                        .)
+                                                                    </span>
+                                                                    <span
+                                                                        dangerouslySetInnerHTML={{
+                                                                            __html: option.name || '',
+                                                                        }}
+                                                                    />
+                                                                </span>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )
+                                            )}
+                                        </div>
+                                    )}
                             </li>
                         ))}
                     </ul>

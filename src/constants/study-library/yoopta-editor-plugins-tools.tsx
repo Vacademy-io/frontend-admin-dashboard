@@ -23,6 +23,7 @@ import { TokenKey } from '../auth/tokens';
 import { MultiLangCodePlugin } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/python-editor';
 import { JupyterNotebookPlugin } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/jupyter-notebook';
 import { ScratchPlugin } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/scratch-editor';
+import { MermaidPlugin } from '@/routes/study-library/courses/course-details/subjects/modules/chapters/slides/-components/yoopta-editor-customizations/mermaid-editor';
 
 export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>[] = [
     Paragraph,
@@ -40,6 +41,7 @@ export const plugins: YooptaPlugin<Record<string, SlateElement>, Record<string, 
     Code,
     Link,
     Embed,
+    MermaidPlugin as unknown as YooptaPlugin<Record<string, SlateElement>, Record<string, unknown>>,
     Image.extend({
         options: {
             async onUpload(file) {

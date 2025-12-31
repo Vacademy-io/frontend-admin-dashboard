@@ -86,7 +86,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { TipTapEditor } from '@/components/tiptap/TipTapEditor';
+import { YooptaEditorWrapperSafe as YooptaEditorWrapper } from '../../shared/components';
 import Editor from '@monaco-editor/react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -2318,7 +2318,7 @@ export function RouteComponent() {
                                         {/* Document Slide */}
                                         {(viewingSlide.slideType === 'objectives' || viewingSlide.slideType === 'doc') && (
                                             <div>
-                                                <TipTapEditor
+                                                <YooptaEditorWrapper
                                                     value={documentContent}
                                                     onChange={setDocumentContent}
                                                     placeholder="Enter document content..."
@@ -2591,7 +2591,7 @@ export function RouteComponent() {
                                                     </div>
                                                 </div>
                                                 {homeworkAnswerType === 'text' ? (
-                                                    <TipTapEditor
+                                                    <YooptaEditorWrapper
                                                         value={homeworkAnswer}
                                                         onChange={setHomeworkAnswer}
                                                         placeholder="Enter your answer..."

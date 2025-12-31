@@ -24,7 +24,7 @@ import {
 import { Editor } from '@monaco-editor/react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { TipTapEditor } from '@/components/tiptap/TipTapEditor';
+import { YooptaEditorWrapperSafe as YooptaEditorWrapper } from '../../../shared/components';
 import { CircularProgress } from './CircularProgress';
 import { AIVideoPlayer } from '@/components/ai-video-player/AIVideoPlayer';
 import { MermaidDiagram } from '../../../shared/components/MermaidDiagram';
@@ -32,6 +32,8 @@ import { DocumentWithMermaidSimple } from '../../../shared/components/DocumentWi
 import type { SlideGeneration, SlideType, QuizQuestion } from '../../../shared/types';
 import { executeCode } from '../../../../courses/course-details/subjects/modules/chapters/slides/-components/utils/code-editor-utils';
 import { Play, X as XIcon } from 'lucide-react';
+
+import { markdownToHtml } from '../../../shared/utils/markdownToHtml';
 
 interface SortableSlideItemProps {
     slide: SlideGeneration;
@@ -86,7 +88,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
         // DocumentWithMermaidSimple will extract and render mermaid diagrams inline with text
         // No need to split into sections - just render everything together
         const trimmedContent = content.trim();
-        
+
         // Always create a single text section - DocumentWithMermaidSimple handles everything
         sections.push({
             type: 'text',
@@ -130,21 +132,39 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                 // Code only - use prompt if available, otherwise fall back to content
                 setCodeContent(slide.prompt || slide.content);
             } else if (slide.slideType === 'video-code' || slide.slideType === 'ai-video-code') {
-                // VIDEO_CODE or AI_VIDEO_CODE - parse JSON content
+                // VIDEO_CODE or AI_VIDEO_CODE
+                // Content can be JSON (old draft) or HTML (generated for viewer)
+                // We need to handle both to initialize state correctly
                 try {
-                    const contentData = slide.content ? JSON.parse(slide.content) : null;
-                    if (contentData) {
-                        const codeContent = contentData.code?.content || '';
-                        // Extract code from markdown if wrapped
-                        let cleanCode = codeContent;
-                        if (codeContent.includes('```')) {
-                            const codeMatch = codeContent.match(/```(?:python|javascript|typescript|java|html|css|markdown)?\s*\n?([\s\S]*?)\n?```/);
+                    let extractedCode = '';
+                    // First try JSON (legacy or draft state)
+                    try {
+                        const contentData = slide.content ? JSON.parse(slide.content) : null;
+                        if (contentData && contentData.code) {
+                            extractedCode = contentData.code.content || '';
+                            // JSON format usually doesn't have iframe in it, video is in metadata
+                        }
+                    } catch (e) {
+                        // Not JSON, assume HTML (Viewer format)
+                    }
+
+                    if (!extractedCode && slide.content) {
+                        // Try extracting from HTML
+                        const content = slide.content;
+                        // Extract code from pre/code blocks
+                        const match = content.match(/<code[^>]*>([\s\S]*?)<\/code>/i);
+                        if (match && match[1]) {
+                            extractedCode = match[1];
+                        } else if (content.includes('```')) {
+                            // Fallback to markdown extraction
+                            const codeMatch = content.match(/```(?:python|javascript|typescript|java|html|css|markdown)?\s*\n?([\s\S]*?)\n?```/);
                             if (codeMatch && codeMatch[1]) {
-                                cleanCode = codeMatch[1].trim();
+                                extractedCode = codeMatch[1].trim();
                             }
                         }
-                        setCodeContent(cleanCode);
                     }
+
+                    setCodeContent(extractedCode);
                 } catch (e) {
                     console.error('Failed to parse video-code content:', e);
                 }
@@ -233,11 +253,11 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                         const parentText = block.parentElement?.textContent || '';
                         const blockHTML = block.outerHTML;
                         const isMermaid = codeText.includes('graph') ||
-                                        codeText.includes('flowchart') ||
-                                        codeText.includes('sequenceDiagram') ||
-                                        codeText.includes('classDiagram') ||
-                                        parentText.toLowerCase().includes('mermaid') ||
-                                        block.parentElement?.querySelector('code[class*="mermaid"]');
+                            codeText.includes('flowchart') ||
+                            codeText.includes('sequenceDiagram') ||
+                            codeText.includes('classDiagram') ||
+                            parentText.toLowerCase().includes('mermaid') ||
+                            block.parentElement?.querySelector('code[class*="mermaid"]');
 
                         if (isMermaid) {
                             mermaidBlocks.push({ element: block, html: blockHTML });
@@ -292,22 +312,21 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
             try {
                 // Try to parse as JSON first
                 const quizData = JSON.parse(slide.content);
-                
+
                 // Check if it's the new assessment format from API
                 if (quizData && quizData.questions && Array.isArray(quizData.questions) && quizData.questions.length > 0) {
                     const firstQuestion = quizData.questions[0];
-                    
+
                     // Check if it's the new assessment format (has question.content, options with preview_id)
                     if (firstQuestion.question && typeof firstQuestion.question === 'object' && firstQuestion.question.content) {
                         // New assessment format from API
-                        console.log('📝 Quiz: Processing new assessment format, total questions:', quizData.questions.length);
-                        const normalizedQuestions = quizData.questions.map((q: any, index: number) => {
+                        const normalizedQuestions = quizData.questions.map((q: any) => {
                             const questionText = q.question?.content || q.question?.text || '';
                             const options = (q.options || []).map((opt: any) => {
                                 // Handle both content and text fields
                                 return opt.content || opt.text || opt || '';
                             }).filter((opt: string) => opt !== ''); // Filter out empty options
-                            
+
                             let correctIndex = 0;
 
                             // Find correct answer index from correct_options array
@@ -319,89 +338,55 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                 });
                                 if (foundIndex !== -1 && foundIndex < options.length) {
                                     correctIndex = foundIndex;
-                                } else {
-                                    console.warn(`📝 Quiz: Question ${index + 1} - Could not find correct option index for ID: ${correctOptionId}`);
                                 }
                             }
 
-                            const normalized = {
+                            return {
                                 question: questionText,
                                 options: options,
                                 correctAnswerIndex: correctIndex,
                                 explanation: q.exp || q.explanation || ''
                             };
-                            
-                            console.log(`📝 Quiz: Question ${index + 1} normalized:`, {
-                                questionLength: normalized.question.length,
-                                optionsCount: normalized.options.length,
-                                correctIndex: normalized.correctAnswerIndex,
-                                hasExplanation: !!normalized.explanation
-                            });
-                            
-                            return normalized;
                         });
-                        
+
                         // Filter out questions with no question text or no options
                         const validQuestions = normalizedQuestions.filter((q: any) => q.question && q.options.length > 0);
-                        console.log(`📝 Quiz: Valid questions after filtering: ${validQuestions.length}/${normalizedQuestions.length}`);
-                        
+
                         if (validQuestions.length > 0) {
                             setQuizQuestions(validQuestions);
                         } else {
-                            console.error('📝 Quiz: No valid questions found after normalization');
                             setQuizQuestions([]);
                         }
                     } else if (firstQuestion.question && typeof firstQuestion.question === 'string') {
                         // Old quiz format
-                        console.log('📝 Quiz: Processing old quiz format, total questions:', quizData.questions.length);
-                        const normalizedQuestions = quizData.questions.map((q: any, index: number) => {
+                        const normalizedQuestions = quizData.questions.map((q: any) => {
                             const questionText = q.question || '';
                             const options = (q.options || []).filter((opt: any) => {
-                                // Filter out empty or null options
                                 return opt !== null && opt !== undefined && opt !== '';
                             });
-                            
-                            let correctIndex = 0;
 
-                            // Convert to number if it's a string
+                            let correctIndex = 0;
                             if (q.correctAnswerIndex !== undefined && q.correctAnswerIndex !== null) {
                                 const numIndex = typeof q.correctAnswerIndex === 'string'
                                     ? parseInt(q.correctAnswerIndex, 10)
                                     : q.correctAnswerIndex;
-
-                                // Ensure it's a valid number and within bounds
                                 if (typeof numIndex === 'number' && !isNaN(numIndex) && numIndex >= 0 && numIndex < options.length) {
                                     correctIndex = numIndex;
-                                } else {
-                                    console.warn(`📝 Quiz: Question ${index + 1} - Invalid correctAnswerIndex: ${numIndex}, options count: ${options.length}`);
                                 }
                             }
 
-                            const normalized = {
+                            return {
                                 question: questionText,
                                 options: options,
                                 correctAnswerIndex: Number(correctIndex),
                                 explanation: q.explanation || ''
                             };
-                            
-                            console.log(`📝 Quiz: Question ${index + 1} (old format) normalized:`, {
-                                questionLength: normalized.question.length,
-                                optionsCount: normalized.options.length,
-                                correctIndex: normalized.correctAnswerIndex,
-                                hasExplanation: !!normalized.explanation
-                            });
-                            
-                            return normalized;
                         });
-                        
-                        // Filter out invalid questions
+
                         const validQuestions = normalizedQuestions.filter((q: any) => q.question && q.options.length > 0);
-                        console.log(`📝 Quiz: Valid questions (old format) after filtering: ${validQuestions.length}/${normalizedQuestions.length}`);
-                        
                         if (validQuestions.length > 0) {
                             setQuizQuestions(validQuestions);
                         } else {
-                            console.error('📝 Quiz: No valid questions found in old format');
                             setQuizQuestions([]);
                         }
                     } else {
@@ -473,7 +458,6 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                 }
             }
         } else if (slide.slideType !== 'quiz' && slide.slideType !== 'assessment') {
-            // Clear quiz questions if not a quiz slide
             setQuizQuestions([]);
         }
     }, [slide.content, slide.id, slide.slideType]);
@@ -517,9 +501,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
         setVideoScriptContent(html);
         if (slide.slideType === 'video') {
             // For video pages, the content IS the video script (NO content section)
-            // Ensure no "Content" labels are added - ALL content is video script
             let cleanHtml = html;
-            // Remove any "Content" labels, sections, or headings from the HTML
             cleanHtml = cleanHtml.replace(/<[^>]*>Content[^<]*<\/[^>]*>/gi, '');
             cleanHtml = cleanHtml.replace(/Content[:\s]*/gi, '');
             cleanHtml = cleanHtml.replace(/<div[^>]*class[^>]*content[^>]*>[\s\S]*?<\/div>/gi, '');
@@ -527,11 +509,8 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
             cleanHtml = cleanHtml.replace(/<h[1-6][^>]*>Content[^<]*<\/h[1-6]>/gi, '');
             handleContentChange(cleanHtml.trim());
         } else if (slide.slideType === 'video-code-editor' || slide.slideType === 'video-jupyter' || slide.slideType === 'video-scratch' || slide.slideType === 'topic') {
-            // Combine video script and code (NO content section - just video script + code)
-            // Ensure no "Content" labels are in the video script - ALL non-code content is video script
-            // This applies to video-code-editor types AND topic slides with video script + code
+            // Combine video script and code
             let cleanHtml = html;
-            // Remove any "Content" labels, sections, or headings from the HTML
             cleanHtml = cleanHtml.replace(/<[^>]*>Content[^<]*<\/[^>]*>/gi, '');
             cleanHtml = cleanHtml.replace(/Content[:\s]*/gi, '');
             cleanHtml = cleanHtml.replace(/<div[^>]*class[^>]*content[^>]*>[\s\S]*?<\/div>/gi, '');
@@ -549,9 +528,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
         if (slide.slideType === 'code-editor' || slide.slideType === 'jupyter' || slide.slideType === 'scratch') {
             handleContentChange(code);
         } else if (slide.slideType === 'video-code-editor' || slide.slideType === 'video-jupyter' || slide.slideType === 'video-scratch' || slide.slideType === 'topic') {
-            // Combine video script and code (NO content section - just video script + code)
-            // Ensure video script doesn't have "Content" labels
-            // This applies to video-code-editor types AND topic slides with video script + code
+            // Combine video script and code
             let cleanVideoScript = videoScriptContent || '';
             cleanVideoScript = cleanVideoScript.replace(/<[^>]*>Content[^<]*<\/[^>]*>/gi, '');
             cleanVideoScript = cleanVideoScript.replace(/Content[:\s]*/gi, '');
@@ -560,8 +537,51 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
             cleanVideoScript = cleanVideoScript.replace(/<h[1-6][^>]*>Content[^<]*<\/h[1-6]>/gi, '');
             const combined = cleanVideoScript ? `${cleanVideoScript.trim()}\n\n<pre><code>${code}</code></pre>` : `<pre><code>${code}</code></pre>`;
             handleContentChange(combined);
+        } else if (slide.slideType === 'video-code' || slide.slideType === 'ai-video-code') {
+            // Updated to save as HTML structure for Viewer compatibility
+            // <div class="video-container"><iframe...></iframe></div><pre><code>...</code></pre>
+
+            let currentContent = slide.content || '';
+            let videoPart = '';
+
+            // Try to preserve existing video part from content
+            if (currentContent.includes('class="video-container"') || currentContent.includes('<iframe')) {
+                const videoMatch = currentContent.match(/(<div class="video-container"[\s\S]*?<\/div>)/i);
+                if (videoMatch) {
+                    videoPart = videoMatch[0];
+                } else {
+                    const iframeMatch = currentContent.match(/(<iframe[\s\S]*?<\/iframe>)/i);
+                    if (iframeMatch) {
+                        videoPart = `<div class="video-container" style="margin-bottom: 20px;">${iframeMatch[0]}</div>`;
+                    }
+                }
+            }
+
+            // If no video found in content, check if we have it in JSON (legacy/draft) or slide metadata
+            if (!videoPart) {
+                try {
+                    const jsonContent = JSON.parse(currentContent);
+                    const url = jsonContent.video?.embedUrl || jsonContent.video?.url;
+                    if (url) {
+                        videoPart = `<div class="video-container" style="margin-bottom: 20px;"><iframe src="${url}" width="100%" height="400" frameborder="0" allowfullscreen></iframe></div>`;
+                    }
+                } catch (e) {
+                    // Not JSON
+                }
+            }
+
+            // If still no video part, try fallback to AI Video ID marker if appropriate
+            if (!videoPart && slide.slideType === 'ai-video-code' && slide.aiVideoData?.videoId) {
+                videoPart = `\n\n[AI Video: ${slide.aiVideoData.videoId}]`;
+            }
+
+            // Construct new HTML content
+            const newCodePart = `<pre><code class="language-python">${code}</code></pre>`;
+            const finalContent = videoPart ? `${videoPart}\n\n${newCodePart}` : newCodePart;
+
+            handleContentChange(finalContent);
         }
-    }, [videoScriptContent, slide.slideType, handleContentChange]);
+    }, [videoScriptContent, slide.slideType, slide.content, handleContentChange]);
 
     // Handle mermaid change
     const handleMermaidChange = useCallback((value: string | undefined) => {
@@ -612,6 +632,17 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
         handleContentChange(newFullContent);
     }, [editedSections, slide.content, handleContentChange, parseContent]);
 
+    // Helper function to clean HTML content - remove nested paragraphs and normalize
+    const cleanHtmlContent = useCallback((content: string): string => {
+        if (!content) return '';
+        // Remove nested paragraph tags that can cause Yoopta parsing issues
+        let cleaned = content.replace(/<\/?p>/g, '').trim();
+        // Remove any other problematic nested structures
+        cleaned = cleaned.replace(/<p>\s*<p>/g, '<p>');
+        cleaned = cleaned.replace(/<\/p>\s*<\/p>/g, '</p>');
+        return cleaned;
+    }, []);
+
     // Convert quiz questions to HTML format for document editing
     const convertQuizToHTML = useCallback((questions: QuizQuestion[]): string => {
         if (questions.length === 0) {
@@ -621,36 +652,61 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
         let html = '';
         questions.forEach((q, index) => {
             html += `<h3>Question ${index + 1}</h3>`;
-            html += `<p>${q.question || ``}</p>`;
+            // Clean question text to avoid nested paragraphs
+            const cleanQuestion = cleanHtmlContent(q.question || '');
+            if (cleanQuestion) {
+                html += `<p>${cleanQuestion}</p>`;
+            }
             html += '<ol>';
             (q.options || []).forEach((option) => {
-                html += `<li>${option || ``}</li>`;
+                // Clean option text - Yoopta expects plain text in list items, not nested HTML
+                const cleanOption = cleanHtmlContent(String(option || ''));
+                if (cleanOption) {
+                    html += `<li>${cleanOption}</li>`;
+                }
             });
             html += '</ol>';
             // Show correct answer below the options
             const correctAnswerIndex = q.correctAnswerIndex ?? 0;
             const correctAnswer = (q.options || [])[correctAnswerIndex] || '';
             if (correctAnswer) {
-                html += `<p><strong style="color: #10b981;">Correct Answer: ${correctAnswer}</strong></p>`;
+                const cleanAnswer = cleanHtmlContent(String(correctAnswer));
+                html += `<p><strong style="color: #10b981;">Correct Answer: ${cleanAnswer}</strong></p>`;
             }
             if (index < questions.length - 1) {
                 html += '<hr style="margin: 20px 0;" />';
             }
         });
         return html;
-    }, []);
+    }, [cleanHtmlContent]);
 
     // Parse HTML back to quiz questions format
     const parseHTMLToQuiz = useCallback((html: string): QuizQuestion[] => {
+        console.log('[SortableSlideItem] parseHTMLToQuiz input length:', html.length);
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = html;
 
         const questions: QuizQuestion[] = [];
         const questionHeaders = tempDiv.querySelectorAll('h3');
+        console.log('[SortableSlideItem] Found question headers:', questionHeaders.length);
 
-        questionHeaders.forEach((header) => {
-            const questionText = header.nextElementSibling?.textContent?.trim() || '';
-            const listElement = header.nextElementSibling?.nextElementSibling;
+        questionHeaders.forEach((header, idx) => {
+            // Collect question text from all elements between h3 and ol
+            let questionText = '';
+            let currentElement = header.nextElementSibling;
+            let listElement: Element | null = null;
+
+            while (currentElement) {
+                if (currentElement.tagName === 'OL') {
+                    listElement = currentElement;
+                    break;
+                }
+                // Skip HR tags or empty text nodes if possible (though textContent handles text)
+                if (currentElement.tagName !== 'HR') {
+                    questionText += (questionText ? '\n' : '') + (currentElement.textContent?.trim() || '');
+                }
+                currentElement = currentElement.nextElementSibling;
+            }
 
             if (listElement && listElement.tagName === 'OL') {
                 const options: string[] = [];
@@ -668,6 +724,9 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                 let nextElement = listElement.nextElementSibling;
                 while (nextElement) {
                     const text = nextElement.textContent || '';
+                    // Check for HR to stop searching this question's answer
+                    if (nextElement.tagName === 'HR' || nextElement.tagName === 'H3') break;
+
                     if (text.includes('Correct Answer:') || text.includes('Correct Answer')) {
                         // Extract the correct answer text
                         const correctAnswerMatch = text.match(/Correct Answer:\s*(.+)/i);
@@ -690,10 +749,13 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                         options: options,
                         correctAnswerIndex: correctIndex
                     });
+                } else {
+                    console.warn(`[SortableSlideItem] Question ${idx + 1} skipped - missing text or options`, { questionText, optionsLength: options.length });
                 }
             }
         });
 
+        console.log('[SortableSlideItem] Final parsed questions:', questions);
         return questions;
     }, []);
 
@@ -701,7 +763,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
     const quizHTML = useMemo(() => {
         // Store status to avoid type narrowing issues
         const slideStatus: 'pending' | 'generating' | 'completed' = slide.status;
-        
+
         if (slide.slideType === 'quiz' || slide.slideType === 'assessment') {
             // If we have quiz questions, convert them to HTML
             if (quizQuestions.length > 0) {
@@ -730,7 +792,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                 const options = (q.options || []).map((opt: any) => {
                                     return opt.content || opt.text || opt || '';
                                 }).filter((opt: string) => opt !== '');
-                                
+
                                 let correctIndex = 0;
                                 if (q.correct_options && q.correct_options.length > 0) {
                                     const correctOptionId = q.correct_options[0];
@@ -743,7 +805,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                         console.warn(`📝 Quiz: Question ${index + 1} - Could not find correct option in tempQuestions`);
                                     }
                                 }
-                                
+
                                 return {
                                     question: questionText,
                                     options: options,
@@ -763,7 +825,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                 return null;
                             }
                         }).filter((q: any) => q !== null && q.question && q.options.length > 0);
-                        
+
                         if (tempQuestions.length > 0) {
                             return convertQuizToHTML(tempQuestions);
                         } else {
@@ -804,7 +866,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
     const renderContent = useMemo(() => {
         // Store status in variable to avoid type narrowing issues - must be done first
         const slideStatus: 'pending' | 'generating' | 'completed' = slide.status;
-        
+
         // Only render content when expanded by user
         if (!isExpanded) return null;
 
@@ -826,11 +888,11 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
         // Exception: AI_VIDEO slides should show prompt even when pending
         // Exception: AI_VIDEO_CODE and VIDEO_CODE slides should show even when video is generating
         // Exception: Quiz/Assessment slides can show content even when not completed (if content exists)
-        if (slide.slideType !== 'ai-video' && 
+        if (slide.slideType !== 'ai-video' &&
             slide.slideType !== 'ai-video-code' &&
             slide.slideType !== 'video-code' &&
-            slide.slideType !== 'quiz' && 
-            slide.slideType !== 'assessment' && 
+            slide.slideType !== 'quiz' &&
+            slide.slideType !== 'assessment' &&
             (slideStatus !== 'completed' || !slide.content)) {
             return (
                 <div className="mt-3 ml-8 bg-neutral-50 rounded-md border border-neutral-200 p-4">
@@ -840,10 +902,10 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                 </div>
             );
         }
-        
+
         // For quiz/assessment, don't show if status is generating and no valid questions
-        if ((slide.slideType === 'quiz' || slide.slideType === 'assessment') && 
-            (slideStatus as string) === 'generating' && 
+        if ((slide.slideType === 'quiz' || slide.slideType === 'assessment') &&
+            (slideStatus as string) === 'generating' &&
             (!slide.content || quizQuestions.length === 0)) {
             return (
                 <div className="mt-3 ml-8 bg-neutral-50 rounded-md border border-neutral-200 p-4">
@@ -861,12 +923,12 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                 // Show video player when video is ready - check both status and aiVideoData
                 const hasVideo = slide.aiVideoData?.timelineUrl && slide.aiVideoData?.audioUrl && slide.aiVideoData?.status === 'COMPLETED';
                 const isGenerating = (slideStatus as string) === 'generating';
-                
+
                 // Don't show anything if video is not ready and not generating (removed "No content available" message)
                 if (!hasVideo && !isGenerating) {
                     return null;
                 }
-                
+
                 return (
                     <div className="mt-3 ml-8 bg-neutral-50 rounded-md border border-neutral-200 p-4 min-w-0">
                         {/* Show video player when video is ready */}
@@ -904,16 +966,16 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                 const parseVideoContent = (content: string): { videoUrl?: string; script?: string } => {
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = content || '';
-                    
+
                     // Extract YouTube URL from content - try multiple patterns
                     let videoUrl: string | undefined;
-                    
+
                     // Pattern 1: embed URL
                     const embedMatch = content.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]+)/);
                     if (embedMatch) {
                         videoUrl = `https://www.youtube.com/embed/${embedMatch[1]}`;
                     }
-                    
+
                     // Pattern 2: watch URL
                     if (!videoUrl) {
                         const watchMatch = content.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/);
@@ -921,7 +983,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                             videoUrl = `https://www.youtube.com/embed/${watchMatch[1]}`;
                         }
                     }
-                    
+
                     // Pattern 3: short URL
                     if (!videoUrl) {
                         const shortMatch = content.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
@@ -929,7 +991,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                             videoUrl = `https://www.youtube.com/embed/${shortMatch[1]}`;
                         }
                     }
-                    
+
                     // Pattern 4: any 11-character ID
                     if (!videoUrl) {
                         const idMatch = content.match(/([a-zA-Z0-9_-]{11})/);
@@ -937,18 +999,18 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                             videoUrl = `https://www.youtube.com/embed/${idMatch[1]}`;
                         }
                     }
-                    
+
                     // Extract script (remove code blocks if any)
                     const codeBlocks = tempDiv.querySelectorAll('pre code, pre');
                     codeBlocks.forEach(block => block.remove());
                     const script = tempDiv.innerHTML.trim();
-                    
+
                     return { videoUrl, script: script || undefined };
                 };
 
                 const { videoUrl, script } = parseVideoContent(slide.content || '');
                 const displayScript = script || videoScriptContent || slide.content || '';
-                
+
                 // Extract video ID from URL
                 const getVideoIdFromUrl = (url: string | undefined) => {
                     if (!url) return null;
@@ -1007,8 +1069,8 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                             }
                                             setIframeFailures(prev => ({ ...prev, [slide.id]: true }));
                                         }}
-                                        // Removed onLoad handler - YouTube iframes can fire onLoad even when blocked,
-                                        // which prevents the timeout-based fallback from working
+                                    // Removed onLoad handler - YouTube iframes can fire onLoad even when blocked,
+                                    // which prevents the timeout-based fallback from working
                                     />
                                 </div>
                             ) : videoUrl && videoId && iframeFailures[slide.id] ? (
@@ -1078,28 +1140,28 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                     </div>
                                 </div>
                             )}
-                            
+
                             {/* Video Script */}
                             {displayScript && (
                                 <div className="mt-4 p-4 bg-white rounded-lg">
                                     <div className="flex items-center justify-between mb-2">
                                         <h4 className="font-semibold">Video Script</h4>
-                            {onRegenerate && (
-                                <button
-                                    onClick={() => onRegenerate(slide.id)}
+                                        {onRegenerate && (
+                                            <button
+                                                onClick={() => onRegenerate(slide.id)}
                                                 className="rounded p-1.5 text-xs text-indigo-600 hover:bg-indigo-50 transition-colors flex items-center gap-1"
-                                    title="Regenerate Video Script"
-                                >
-                                    <RefreshCw className="h-3.5 w-3.5" />
-                                    Regenerate
-                                </button>
-                            )}
-                        </div>
-                        <TipTapEditor
+                                                title="Regenerate Video Script"
+                                            >
+                                                <RefreshCw className="h-3.5 w-3.5" />
+                                                Regenerate
+                                            </button>
+                                        )}
+                                    </div>
+                                    <YooptaEditorWrapper
                                         value={displayScript}
-                            onChange={handleVideoScriptChange}
-                            className="min-h-[300px]"
-                        />
+                                        onChange={handleVideoScriptChange}
+                                        minHeight={300}
+                                    />
                                 </div>
                             )}
                         </div>
@@ -1200,10 +1262,10 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                     </button>
                                 )}
                             </div>
-                            <TipTapEditor
+                            <YooptaEditorWrapper
                                 value={videoScriptContent || ''}
                                 onChange={handleVideoScriptChange}
-                                className="min-h-[300px]"
+                                minHeight={300}
                             />
                         </div>
                         <div className="bg-neutral-50 rounded-md border border-neutral-200 p-4">
@@ -1282,10 +1344,10 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                         </button>
                                     )}
                                 </div>
-                                <TipTapEditor
+                                <YooptaEditorWrapper
                                     value={videoScriptContent || ''}
                                     onChange={handleVideoScriptChange}
-                                    className="min-h-[300px]"
+                                    minHeight={300}
                                 />
                             </div>
                             {hasRegularCode && (
@@ -1325,7 +1387,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                 } else {
                     // Topic without video script + code - parse and show all sections editable
                     const sections = editedSections.length > 0 ? editedSections : parseContent(slide.content || '');
-                    
+
                     console.log('🔵 [SortableSlideItem] Sections parsed for slide:', {
                         slideId: slide.id,
                         slideType: slide.slideType,
@@ -1400,18 +1462,18 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                                     )}
                                                 </button>
                                                 {expandedMermaidEditors.has(idx) && (
-                                        <Editor
-                                            height="400px"
-                                            defaultLanguage="mermaid"
-                                            value={section.content}
-                                            onChange={(value) => handleDocumentSectionChange(idx, value || '')}
-                                            theme="vs-dark"
-                                            options={{
-                                                minimap: { enabled: false },
-                                                fontSize: 12,
-                                                wordWrap: 'on',
-                                            }}
-                                        />
+                                                    <Editor
+                                                        height="400px"
+                                                        defaultLanguage="mermaid"
+                                                        value={section.content}
+                                                        onChange={(value) => handleDocumentSectionChange(idx, value || '')}
+                                                        theme="vs-dark"
+                                                        options={{
+                                                            minimap: { enabled: false },
+                                                            fontSize: 12,
+                                                            wordWrap: 'on',
+                                                        }}
+                                                    />
                                                 )}
                                             </div>
                                         </div>
@@ -1440,7 +1502,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
             if (slide.slideType === 'video-code') {
                 let videoData: any = null;
                 let codeData: any = null;
-                
+
                 try {
                     const contentData = slide.content ? JSON.parse(slide.content) : null;
                     if (contentData) {
@@ -1448,13 +1510,45 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                         codeData = contentData.code;
                     }
                 } catch (e) {
-                    console.error('Failed to parse VIDEO_CODE content:', e);
+                    // Not JSON, try HTML parsing
+                    const textContent = slide.content || '';
+                    // Extract Code
+                    const htmlCodeMatch = textContent.match(/<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/i);
+                    if (htmlCodeMatch && htmlCodeMatch[1]) {
+                        codeData = {
+                            content: htmlCodeMatch[1],
+                            language: 'python' // default
+                        };
+                        // Try to extract language class
+                        const langMatch = textContent.match(/<code class="language-([a-z]+)"/i);
+                        if (langMatch && langMatch[1]) {
+                            codeData.language = langMatch[1];
+                        }
+                    } else {
+                        // Try markdown
+                        const codeMatch = textContent.match(/```(?:python|javascript|typescript|java|html|css)?\s*\n?([\s\S]*?)\n?```/);
+                        if (codeMatch && codeMatch[1]) {
+                            codeData = { content: codeMatch[1], language: codeMatch[1] || 'python' };
+                        }
+                    }
+
+                    // Extract Video
+                    const iframeMatch = textContent.match(/<iframe[^>]*src="([^"]*)"[^>]*>/i);
+                    if (iframeMatch && iframeMatch[1]) {
+                        videoData = { url: iframeMatch[1] };
+                    } else {
+                        // Try YouTube regex
+                        const youtubeMatch = textContent.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/);
+                        if (youtubeMatch) {
+                            videoData = { url: `https://www.youtube.com/embed/${youtubeMatch[1]}` };
+                        }
+                    }
                 }
 
                 const videoUrl = videoData?.embedUrl || videoData?.url || '';
                 const codeContent = codeData?.content || '';
                 const codeLanguage = codeData?.language || 'python';
-                
+
                 // Extract video ID from URL for thumbnail fallback
                 const getVideoIdFromUrl = (url: string | undefined) => {
                     if (!url) return null;
@@ -1472,7 +1566,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                 const videoId = videoUrl ? getVideoIdFromUrl(videoUrl) : null;
                 const watchUrl = videoId ? `https://www.youtube.com/watch?v=${videoId}` : (videoUrl || '#');
                 const thumbnailUrl = videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null;
-                
+
                 // Extract code from markdown/HTML - look for Python code blocks first
                 let cleanCode = codeContent;
                 if (codeContent.includes('```')) {
@@ -1505,16 +1599,16 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                 return (
                     <div className="mt-3 ml-8">
                         <div className="bg-neutral-50 rounded-md border border-neutral-200 p-4">
-                                    {onRegenerate && (
+                            {onRegenerate && (
                                 <div className="flex justify-end mb-3">
-                                        <button
-                                            onClick={() => onRegenerate(slide.id)}
-                                            className="flex items-center gap-1.5 rounded px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition-colors"
+                                    <button
+                                        onClick={() => onRegenerate(slide.id)}
+                                        className="flex items-center gap-1.5 rounded px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition-colors"
                                         title="Regenerate Content"
-                                        >
-                                            <RefreshCw className="h-3.5 w-3.5" />
-                                            Regenerate
-                                        </button>
+                                    >
+                                        <RefreshCw className="h-3.5 w-3.5" />
+                                        Regenerate
+                                    </button>
                                 </div>
                             )}
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -1523,7 +1617,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                     <div className="flex items-center gap-2 mb-3">
                                         <Video className="h-4 w-4 text-red-600" />
                                         <Label className="text-sm font-semibold text-neutral-900">Video</Label>
-                                </div>
+                                    </div>
                                     {/* Try iframe first, show thumbnail only if iframe fails */}
                                     {videoUrl && videoId && !iframeFailures[slide.id] ? (
                                         <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black">
@@ -1558,8 +1652,8 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                                     }
                                                     setIframeFailures(prev => ({ ...prev, [slide.id]: true }));
                                                 }}
-                                                // Removed onLoad handler - YouTube iframes can fire onLoad even when blocked,
-                                                // which prevents the timeout-based fallback from working
+                                            // Removed onLoad handler - YouTube iframes can fire onLoad even when blocked,
+                                            // which prevents the timeout-based fallback from working
                                             />
                                         </div>
                                     ) : videoUrl && videoId && iframeFailures[slide.id] ? (
@@ -1648,7 +1742,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                         </div>
                                     )}
                                 </div>
-                                
+
                                 {/* Code Section */}
                                 <div className="bg-white rounded-lg border border-neutral-200 p-4 flex flex-col">
                                     <div className="flex items-center justify-between mb-3">
@@ -1660,7 +1754,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                             onClick={async () => {
                                                 const currentCode = editorRefs.current[slide.id]?.getValue() || cleanCode;
                                                 const slideId = slide.id;
-                                                
+
                                                 // Use flushSync to ensure state updates immediately and UI reflects the change
                                                 flushSync(() => {
                                                     // Set local running state immediately for instant UI feedback
@@ -1672,7 +1766,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                                         return newState;
                                                     });
                                                 });
-                                                
+
                                                 try {
                                                     // Normalize language to 'python' if it's not supported
                                                     const normalizedLanguage = codeLanguage.toLowerCase() === 'python' ? 'python' : 'python';
@@ -1686,10 +1780,10 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                                     setLocalRunning(prev => ({ ...prev, [slideId]: false }));
                                                     setCodeOutput(prev => ({
                                                         ...prev,
-                                                        [slideId]: { 
-                                                            output: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`, 
-                                                            isRunning: false, 
-                                                            isExpanded: true 
+                                                        [slideId]: {
+                                                            output: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                                                            isRunning: false,
+                                                            isExpanded: true
                                                         }
                                                     }));
                                                 }
@@ -1712,21 +1806,21 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                     </div>
                                     <div className="flex-1 flex flex-col min-h-0">
                                         <div className="flex-1 min-h-0">
-                                    <Editor
-                                        height="400px"
+                                            <Editor
+                                                height="400px"
                                                 defaultLanguage={codeLanguage}
                                                 value={cleanCode}
                                                 onChange={handleCodeChange}
                                                 onMount={(editor) => {
                                                     editorRefs.current[slide.id] = editor;
                                                 }}
-                                        theme="vs-dark"
-                                        options={{
-                                            minimap: { enabled: false },
-                                            fontSize: 12,
-                                            wordWrap: 'on',
-                                        }}
-                                    />
+                                                theme="vs-dark"
+                                                options={{
+                                                    minimap: { enabled: false },
+                                                    fontSize: 12,
+                                                    wordWrap: 'on',
+                                                }}
+                                            />
                                         </div>
                                         {/* Output Panel - show immediately when running, or when there's output AND slide is expanded */}
                                         {((codeOutput[slide.id]?.isRunning || localRunning[slide.id]) || (isExpanded && codeOutput[slide.id]?.output && codeOutput[slide.id]?.isExpanded)) && (
@@ -1789,7 +1883,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
             if (slide.slideType === 'ai-video-code') {
                 let videoData: any = null;
                 let codeData: any = null;
-                
+
                 try {
                     const contentData = slide.content ? JSON.parse(slide.content) : null;
                     if (contentData) {
@@ -1797,12 +1891,53 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                         codeData = contentData.code;
                     }
                 } catch (e) {
-                    console.error('Failed to parse AI_VIDEO_CODE content:', e);
+                    // Not JSON, try HTML parsing
+                    const textContent = slide.content || '';
+
+                    // Extract Code
+                    const htmlCodeMatch = textContent.match(/<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/i);
+                    if (htmlCodeMatch && htmlCodeMatch[1]) {
+                        codeData = {
+                            content: htmlCodeMatch[1],
+                            language: 'python'
+                        };
+                        const langMatch = textContent.match(/<code class="language-([a-z]+)"/i);
+                        if (langMatch && langMatch[1]) {
+                            codeData.language = langMatch[1];
+                        }
+                    } else {
+                        const codeMatch = textContent.match(/```(?:python|javascript|typescript|java|html|css)?\s*\n?([\s\S]*?)\n?```/);
+                        if (codeMatch && codeMatch[1]) {
+                            codeData = { content: codeMatch[1], language: 'python' };
+                        }
+                    }
+
+                    // Extract AI Video Data
+                    // Check for marker logic or data-video-id
+                    const aiVideoMatch = textContent.match(/\[AI Video: ([^\]]+)\]/);
+                    const dataVideoIdMatch = textContent.match(/data-video-id="([^"]+)"/);
+
+                    const aiVideoId = aiVideoMatch?.[1] || dataVideoIdMatch?.[1];
+
+                    if (aiVideoId) {
+                        // We reconstruct incomplete videoData, hoping checking for status will use slide.aiVideoData if missing
+                        videoData = { status: 'COMPLETED', videoId: aiVideoId };
+                        // If we are lucky, slide.aiVideoData is still preserved on the slide object itself if we need timelineUrl
+                    }
+                }
+
+                // Fallback to slide-level AI data if we found an ID but missing details in parsed content, 
+                // OR if we didn't find anything in content but slide has aiVideoData
+                if (slide.aiVideoData?.videoId) {
+                    if (!videoData) videoData = {};
+                    if (!videoData.timelineUrl) videoData.timelineUrl = slide.aiVideoData.timelineUrl;
+                    if (!videoData.audioUrl) videoData.audioUrl = slide.aiVideoData.audioUrl;
+                    if (!videoData.status) videoData.status = 'COMPLETED';
                 }
 
                 const codeContent = codeData?.content || '';
                 const codeLanguage = codeData?.language || 'python';
-                
+
                 // Extract code from markdown - look for Python code blocks first
                 let cleanCode = codeContent;
                 if (codeContent.includes('```')) {
@@ -1862,7 +1997,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                         </div>
                                     )}
                                 </div>
-                                
+
                                 {/* Code Section */}
                                 <div className="bg-white rounded-lg border border-neutral-200 p-4 flex flex-col">
                                     <div className="flex items-center justify-between mb-3">
@@ -1874,7 +2009,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                             onClick={async () => {
                                                 const currentCode = editorRefs.current[slide.id]?.getValue() || cleanCode;
                                                 const slideId = slide.id;
-                                                
+
                                                 // Use flushSync to ensure state updates immediately and UI reflects the change
                                                 flushSync(() => {
                                                     // Set local running state immediately for instant UI feedback
@@ -1886,7 +2021,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                                         return newState;
                                                     });
                                                 });
-                                                
+
                                                 try {
                                                     // Normalize language to 'python' if it's not supported
                                                     const normalizedLanguage = codeLanguage.toLowerCase() === 'python' ? 'python' : 'python';
@@ -1900,10 +2035,10 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                                     setLocalRunning(prev => ({ ...prev, [slideId]: false }));
                                                     setCodeOutput(prev => ({
                                                         ...prev,
-                                                        [slideId]: { 
-                                                            output: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`, 
-                                                            isRunning: false, 
-                                                            isExpanded: true 
+                                                        [slideId]: {
+                                                            output: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                                                            isRunning: false,
+                                                            isExpanded: true
                                                         }
                                                     }));
                                                 }
@@ -1926,21 +2061,21 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                     </div>
                                     <div className="flex-1 flex flex-col min-h-0">
                                         <div className="flex-1 min-h-0">
-                                    <Editor
-                                        height="400px"
+                                            <Editor
+                                                height="400px"
                                                 defaultLanguage={codeLanguage}
                                                 value={cleanCode}
                                                 onChange={handleCodeChange}
                                                 onMount={(editor) => {
                                                     editorRefs.current[slide.id] = editor;
                                                 }}
-                                        theme="vs-dark"
-                                        options={{
-                                            minimap: { enabled: false },
-                                            fontSize: 12,
-                                            wordWrap: 'on',
-                                        }}
-                                    />
+                                                theme="vs-dark"
+                                                options={{
+                                                    minimap: { enabled: false },
+                                                    fontSize: 12,
+                                                    wordWrap: 'on',
+                                                }}
+                                            />
                                         </div>
                                         {/* Output Panel - show immediately when running, or when there's output AND slide is expanded */}
                                         {((codeOutput[slide.id]?.isRunning || localRunning[slide.id]) || (isExpanded && codeOutput[slide.id]?.output && codeOutput[slide.id]?.isExpanded)) && (
@@ -1963,8 +2098,8 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                                         >
                                                             <XIcon className="h-3.5 w-3.5" />
                                                         </button>
-                                )}
-                            </div>
+                                                    )}
+                                                </div>
                                                 <div className="bg-neutral-900 p-3 max-h-48 overflow-y-auto">
                                                     <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap">
                                                         {(codeOutput[slide.id]?.isRunning || localRunning[slide.id])
@@ -1999,10 +2134,35 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                 );
             }
 
-            // Document pages (doc, objectives) - render content in TipTap editor with mermaid support
+            // Document pages (doc, objectives) - render content in Yoopta editor with mermaid support
             if (slide.slideType === 'objectives' || slide.slideType === 'doc') {
-                const content = slide.content || '';
-                
+                let content = slide.content || '';
+
+                // CRITICAL FIX: If content is Yoopta clipboard format with empty content, use prompt instead
+                // This prevents showing blank editor when content was overwritten with clipboard format
+                if (content && (content.includes('id="yoopta-clipboard"') || content.includes('data-editor-id'))) {
+                    // Extract actual content from clipboard format
+                    const bodyMatch = content.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+                    if (bodyMatch && bodyMatch[1]) {
+                        const extractedContent = bodyMatch[1].trim();
+                        // Check if content is effectively empty (only whitespace or empty tags)
+                        const textContent = extractedContent.replace(/<[^>]*>/g, '').trim();
+                        if (!textContent || textContent === '') {
+                            // Content is empty clipboard format - use prompt or empty string
+                            console.warn('⚠️ [SortableSlideItem] Content is empty clipboard format, using prompt or empty');
+                            content = slide.prompt ? markdownToHtml(slide.prompt) : '';
+                        } else {
+                            content = extractedContent;
+                        }
+                    } else {
+                        // No body tag match - content is likely empty, use prompt
+                        content = slide.prompt ? markdownToHtml(slide.prompt) : '';
+                    }
+                } else {
+                    // Normalize content (markdown -> html)
+                    content = markdownToHtml(content);
+                }
+
                 return (
                     <div className="mt-3 ml-8">
                         <div className="bg-neutral-50 rounded-md border border-neutral-200 p-4">
@@ -2019,10 +2179,10 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                 </div>
                             )}
                             <div className="bg-white rounded-lg border border-neutral-200 p-4" style={{ maxWidth: '100%', overflow: 'hidden' }}>
-                                <TipTapEditor
+                                <YooptaEditorWrapper
                                     value={content}
                                     onChange={handleContentChange}
-                                    className="min-h-[400px]"
+                                    minHeight={400}
                                     editable={true}
                                 />
                             </div>
@@ -2052,10 +2212,10 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                             )}
                         </div>
                         <div className="bg-white rounded-lg border border-neutral-200 p-4">
-                            <TipTapEditor
+                            <YooptaEditorWrapper
                                 value={quizHTML}
                                 onChange={handleQuizContentChange}
-                                className="min-h-[400px]"
+                                minHeight={400}
                             />
                             <p className="text-xs text-neutral-500 mt-2">
                                 <strong>Note:</strong> Format questions as "Question 1", "Question 2", etc. with ordered lists for options. Write the correct answer below the options list as "Correct Answer: [option text]".
@@ -2085,10 +2245,10 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                                 </button>
                             )}
                         </div>
-                        <TipTapEditor
+                        <YooptaEditorWrapper
                             value={slide.content || ''}
                             onChange={handleContentChange}
-                            className="min-h-[300px]"
+                            minHeight={300}
                         />
                     </div>
                 );
@@ -2147,32 +2307,32 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
 
                     {/* View Content Button - show if slide has content OR if it's AI_VIDEO with completed video */}
                     {!isEditing && (
-                        (slide.status === 'completed' && slide.content) || 
+                        (slide.status === 'completed' && slide.content) ||
                         (slide.slideType === 'ai-video' && slide.aiVideoData?.status === 'COMPLETED')
                     ) && (
-                        <button
-                            onClick={() => {
-                                const newExpandedState = !isExpanded;
-                                setIsExpanded(newExpandedState);
-                                // Reset code output expanded state when collapsing slide
-                                if (!newExpandedState) {
-                                    setCodeOutput(prev => {
-                                        const current = prev[slide.id];
-                                        if (!current) return prev;
-                                        return {
-                                            ...prev,
-                                            [slide.id]: { ...current, isExpanded: false }
-                                        };
-                                    });
-                                }
-                            }}
-                            className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition-colors"
-                            title={isExpanded ? "Hide content" : "View content"}
-                        >
-                            <Eye className="h-3.5 w-3.5" />
-                            {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                        </button>
-                    )}
+                            <button
+                                onClick={() => {
+                                    const newExpandedState = !isExpanded;
+                                    setIsExpanded(newExpandedState);
+                                    // Reset code output expanded state when collapsing slide
+                                    if (!newExpandedState) {
+                                        setCodeOutput(prev => {
+                                            const current = prev[slide.id];
+                                            if (!current) return prev;
+                                            return {
+                                                ...prev,
+                                                [slide.id]: { ...current, isExpanded: false }
+                                            };
+                                        });
+                                    }
+                                }}
+                                className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition-colors"
+                                title={isExpanded ? "Hide content" : "View content"}
+                            >
+                                <Eye className="h-3.5 w-3.5" />
+                                {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                            </button>
+                        )}
 
                     {/* Edit and Delete buttons */}
                     {isEditing ? (
@@ -2224,7 +2384,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                     {/* Loader will appear after clicking "Generate Content" button */}
                 </div>
             </div>
-            
+
             {/* AI Prompt - show when toggled (in outline mode or after generation) */}
             {showPrompt && slide.prompt && (
                 <div className="mt-3 ml-8">
@@ -2234,10 +2394,10 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                             <Label className="text-sm font-semibold text-purple-900">AI Prompt</Label>
                         </div>
                         <div className="bg-white rounded-lg border border-purple-200 p-4">
-                            <TipTapEditor
+                            <YooptaEditorWrapper
                                 value={slide.prompt}
-                                onChange={() => {}} // Read-only in outline mode
-                                className="min-h-[200px]"
+                                onChange={() => { }} // Read-only in outline mode
+                                minHeight={200}
                                 editable={false}
                             />
                         </div>
