@@ -1,6 +1,7 @@
 // functions/send-alert.js
 
 export async function onRequestPost(context) {
+    
   try {
     const SLACK_WEBHOOK_URL = context.env.SLACK_WEBHOOK_URL;
     if (!SLACK_WEBHOOK_URL) return new Response("Missing Slack URL", { status: 500 });
