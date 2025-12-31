@@ -31,7 +31,7 @@ function isPlainText(str: string): boolean {
 // Helper function to convert plain text to HTML
 function textToHtml(text: string): string {
     if (!text) return '<p></p>';
-    
+
     // Escape HTML entities
     const escaped = text
         .replace(/&/g, '&amp;')
@@ -39,18 +39,18 @@ function textToHtml(text: string): string {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
-    
+
     // Split by newlines and wrap each line in a paragraph
     const lines = escaped.split('\n').filter(line => line.trim() !== '');
     if (lines.length === 0) {
         return '<p></p>';
     }
-    
+
     // If single line, return as single paragraph
     if (lines.length === 1) {
         return `<p>${lines[0]}</p>`;
     }
-    
+
     // Multiple lines - wrap each in a paragraph
     return lines.map(line => `<p>${line}</p>`).join('');
 }
@@ -62,7 +62,7 @@ function prepareHtmlForYoopta(htmlString: string): string {
     }
 
     let cleaned = htmlString.trim();
-    
+
     // CRITICAL: Remove Yoopta clipboard format wrapper
     // Yoopta sometimes wraps content in <body id="yoopta-clipboard"> tags
     // We need to extract the actual content from inside
@@ -84,7 +84,7 @@ function prepareHtmlForYoopta(htmlString: string): string {
     // Also check for mermaid diagrams in markdown format
     const hasMarkdownSyntax = /^#+\s|^\*\s|^-\s|^\d+\.\s|```|\[.*\]\(.*\)/m.test(cleaned);
     const hasMermaidInMarkdown = /```mermaid[\s\S]*?```/m.test(cleaned);
-    
+
     if (hasMarkdownSyntax || hasMermaidInMarkdown) {
         // Convert markdown to HTML (handles mermaid code blocks)
         // This will convert ```mermaid blocks to <div class="mermaid">...</div>
@@ -122,16 +122,16 @@ function prepareHtmlForYoopta(htmlString: string): string {
     // This can cause Yoopta parsing issues
     cleaned = cleaned.replace(/<p>\s*<p>/g, '<p>');
     cleaned = cleaned.replace(/<\/p>\s*<\/p>/g, '</p>');
-    
+
     // Fix empty paragraph tags that might cause issues
     cleaned = cleaned.replace(/<p>\s*<\/p>/g, '');
     cleaned = cleaned.replace(/<p><\/p>/g, '');
-    
+
     // Remove Yoopta metadata attributes from paragraphs (data-meta-*, style attributes added by Yoopta)
     // These can cause issues and aren't needed for deserialization
     cleaned = cleaned.replace(/<p[^>]*data-meta-[^>]*>/gi, '<p>');
     cleaned = cleaned.replace(/style="[^"]*"/gi, ''); // Remove style attributes
-    
+
     // Check if content is effectively empty (only whitespace, empty tags, or just metadata)
     const textContent = cleaned.replace(/<[^>]*>/g, '').trim();
     if (!textContent || textContent === '') {
@@ -174,7 +174,7 @@ export function YooptaEditorWrapper({
             return null;
         }
     }, []);
-    
+
     // Debug: Log value prop changes
     useEffect(() => {
         console.log('📝 YooptaEditorWrapper: value prop changed', {
@@ -194,35 +194,35 @@ export function YooptaEditorWrapper({
     const [error, setError] = useState<string | null>(null);
     const [isEditorReady, setIsEditorReady] = useState(false);
     const [hasRenderedEditor, setHasRenderedEditor] = useState(false);
-    
+
     // Fallback: If onMount doesn't fire, assume editor is mounted after a delay
     useEffect(() => {
         if (hasRenderedEditor) return;
-        
+
         const fallbackTimer = setTimeout(() => {
             if (!hasRenderedEditor) {
                 console.log('⏰ [FALLBACK] onMount didn\'t fire within 1s, using timeout fallback to mark editor as mounted');
                 setHasRenderedEditor(true);
             }
         }, 1000);
-        
+
         return () => clearTimeout(fallbackTimer);
     }, [hasRenderedEditor]);
-    
+
     // Check if content has mermaid diagrams - MUST be called before any conditional returns
     // This is needed because YooptaEditor doesn't natively support mermaid diagrams
     const hasMermaid = useMemo(() => {
         if (!value || typeof value !== 'string') return false;
         const stringValue = String(value);
-        return stringValue.includes('class="mermaid"') || 
-               stringValue.includes('<div class="mermaid">') ||
-               stringValue.includes('```mermaid') ||
-               (stringValue.includes('graph') && (stringValue.includes('-->') || stringValue.includes('---'))) ||
-               (stringValue.includes('flowchart') && (stringValue.includes('-->') || stringValue.includes('---'))) ||
-               (stringValue.includes('sequenceDiagram') || stringValue.includes('classDiagram')) ||
-               (stringValue.toLowerCase().includes('mermaid ') && (stringValue.includes('graph') || stringValue.includes('flowchart')));
+        return stringValue.includes('class="mermaid"') ||
+            stringValue.includes('<div class="mermaid">') ||
+            stringValue.includes('```mermaid') ||
+            (stringValue.includes('graph') && (stringValue.includes('-->') || stringValue.includes('---'))) ||
+            (stringValue.includes('flowchart') && (stringValue.includes('-->') || stringValue.includes('---'))) ||
+            (stringValue.includes('sequenceDiagram') || stringValue.includes('classDiagram')) ||
+            (stringValue.toLowerCase().includes('mermaid ') && (stringValue.includes('graph') || stringValue.includes('flowchart')));
     }, [value]);
-    
+
     // CRITICAL FIX: Deserialize AFTER YooptaEditor has mounted
     // The editor needs to be rendered with plugins first before html.deserialize() works
     // This useEffect handles deserialization after the editor mounts
@@ -231,36 +231,36 @@ export function YooptaEditorWrapper({
             console.log('⏳ [MOUNT_DESERIALIZE] Waiting for editor to mount...', { hasRenderedEditor, hasEditor: !!editor });
             return;
         }
-        
+
         // Wait longer for YooptaEditor to fully initialize with plugins
         // The working implementation calls deserialize after editor is fully mounted and initialized
         // We need to wait for the YooptaEditor component to fully render with all plugins
         const timer = setTimeout(() => {
             // Normalize value to string
             const currentValue = typeof value === 'string' ? value : (value == null ? '' : String(value));
-            
+
             // Check if editor already has content
             const hasEditorContent = editor?.children && typeof editor.children === 'object' && !Array.isArray(editor.children) && Object.keys(editor.children).length > 0;
-            
+
             // Always deserialize if:
             // 1. Value has changed, OR
             // 2. Editor is empty (needs initial content), OR
             // 3. This is the first mount (previousValueRef is empty)
             const shouldDeserialize = currentValue && (
-                currentValue !== previousValueRef.current || 
-                !hasEditorContent || 
+                currentValue !== previousValueRef.current ||
+                !hasEditorContent ||
                 previousValueRef.current === ''
             );
-            
+
             if (shouldDeserialize) {
                 console.log('🔄 [MOUNT_DESERIALIZE] Editor mounted, attempting deserialization...');
                 console.log('🔄 [MOUNT_DESERIALIZE] Current value length:', currentValue.length);
                 console.log('🔄 [MOUNT_DESERIALIZE] Current value preview:', currentValue.substring(0, 200));
-                
+
                 const preparedHtml = prepareHtmlForYoopta(currentValue);
                 console.log('🔄 [MOUNT_DESERIALIZE] Prepared HTML length:', preparedHtml.length);
                 console.log('🔄 [MOUNT_DESERIALIZE] Prepared HTML preview:', preparedHtml.substring(0, 300));
-                
+
                 try {
                     console.log('🔄 [MOUNT_DESERIALIZE] Calling html.deserialize...');
                     console.log('🔄 [MOUNT_DESERIALIZE] Editor check:', {
@@ -269,7 +269,7 @@ export function YooptaEditorWrapper({
                         hasSetEditorValue: editor && typeof editor.setEditorValue === 'function',
                         hasChildren: !!editor?.children,
                     });
-                    
+
                     // Use the same simple approach as the working implementation
                     // The working implementation: html.deserialize(editor, sanitizedDocData || '')
                     // It does NOT wrap in div, just passes HTML directly
@@ -277,11 +277,11 @@ export function YooptaEditorWrapper({
                     const htmlToDeserialize = preparedHtml && preparedHtml.trim() ? preparedHtml : '<p></p>';
                     console.log('🔄 [MOUNT_DESERIALIZE] HTML to deserialize length:', htmlToDeserialize.length);
                     console.log('🔄 [MOUNT_DESERIALIZE] HTML to deserialize preview:', htmlToDeserialize.substring(0, 200));
-                    
+
                     const editorContent = html.deserialize(editor, htmlToDeserialize);
                     const keysCount = editorContent && typeof editorContent === 'object' && !Array.isArray(editorContent) ? Object.keys(editorContent).length : 0;
                     console.log('✅ [MOUNT_DESERIALIZE] After mount - Result keys:', keysCount);
-                    
+
                     if (keysCount > 0 && editor && typeof editor.setEditorValue === 'function') {
                         console.log('✅ [MOUNT_DESERIALIZE] Setting editor value with', keysCount, 'blocks');
                         isUpdatingFromPropsRef.current = true;
@@ -315,7 +315,7 @@ export function YooptaEditorWrapper({
                 console.log('⏭️ [MOUNT_DESERIALIZE] Value unchanged and editor has content, skipping');
             }
         }, 800); // Longer delay to ensure YooptaEditor is fully initialized with all plugins
-        
+
         return () => clearTimeout(timer);
     }, [hasRenderedEditor, editor, value]);
 
@@ -330,7 +330,7 @@ export function YooptaEditorWrapper({
         }
         if (editor && typeof editor.children === 'object') {
             const serializedHtml = html.serialize(editor, editor.children);
-            
+
             // CRITICAL: Don't save empty clipboard format back to content
             // If the serialized HTML is just Yoopta clipboard format with empty content, don't save it
             if (serializedHtml && serializedHtml.includes('id="yoopta-clipboard"')) {
@@ -350,7 +350,7 @@ export function YooptaEditorWrapper({
                     return;
                 }
             }
-            
+
             onChange(serializedHtml);
         }
     }, [editor, onChange]);
@@ -363,30 +363,32 @@ export function YooptaEditorWrapper({
     // This is now handled in the main useEffect when content is set
     // Keeping this as a fallback for cases where content might be empty
     useEffect(() => {
-        if (editor && !isEditorReady) {
-            // Small delay to ensure editor is fully initialized
-            const timer = setTimeout(() => {
-                // Ensure editor has at least empty content before marking as ready
-                try {
-                    if (editor && typeof editor.setEditorValue === 'function') {
-                        // Check if editor already has children
-                        if (!editor.children || !Array.isArray(editor.children) || editor.children.length === 0) {
-                            // Initialize with empty paragraph
-                            const emptyContent = html.deserialize(editor, '<p><br></p>');
-                            if (emptyContent) {
-                                editor.setEditorValue(emptyContent);
-                                console.log('✅ Editor initialized with empty content');
-                            }
+        if (!editor || isEditorReady) return;
+
+        // Small delay to ensure editor is fully initialized
+        const timer = setTimeout(() => {
+            // Ensure editor has at least empty content before marking as ready
+            try {
+                if (editor && typeof editor.setEditorValue === 'function') {
+                    // Check if editor already has children
+                    if (!editor.children || !Array.isArray(editor.children) || editor.children.length === 0) {
+                        // Initialize with empty paragraph
+                        // @ts-ignore - html.deserialize might have different signature depending on version
+                        const emptyContent = html.deserialize(editor, '<p><br></p>');
+                        if (emptyContent) {
+                            editor.setEditorValue(emptyContent);
+                            console.log('✅ Editor initialized with empty content');
                         }
                     }
-                } catch (e) {
-                    console.warn('Could not initialize editor in fallback useEffect:', e);
                 }
-                // Even if initialization fails, mark as ready so editor can render
-                setIsEditorReady(true);
-            }, 200);
-            return () => clearTimeout(timer);
-        }
+            } catch (e) {
+                console.warn('Could not initialize editor in fallback useEffect:', e);
+            }
+            // Even if initialization fails, mark as ready so editor can render
+            setIsEditorReady(true);
+        }, 200);
+
+        return () => clearTimeout(timer);
     }, [editor, isEditorReady]);
 
     // Conditionally render tools based on editable prop
@@ -395,10 +397,10 @@ export function YooptaEditorWrapper({
 
     if (error) {
         return (
-            <div 
+            <div
                 className={`rounded-md border bg-white shadow-sm ${className}`.trim()}
-                style={{ 
-                    width: '100%', 
+                style={{
+                    width: '100%',
                     minHeight: typeof minHeight === 'number' ? `${minHeight}px` : minHeight,
                     display: 'flex',
                     flexDirection: 'column',
@@ -412,7 +414,7 @@ export function YooptaEditorWrapper({
             >
                 <p className="text-lg font-semibold">Error loading content:</p>
                 <p className="text-sm">{error}</p>
-                <button 
+                <button
                     onClick={() => {
                         setError(null);
                         setIsEditorReady(false);
@@ -430,10 +432,10 @@ export function YooptaEditorWrapper({
     // Don't render if editor failed to initialize
     if (!editor) {
         return (
-            <div 
+            <div
                 className={`rounded-md border border-red-200 bg-red-50 p-4 ${className}`.trim()}
-                style={{ 
-                    width: '100%', 
+                style={{
+                    width: '100%',
                     minHeight: typeof minHeight === 'number' ? `${minHeight}px` : minHeight,
                 }}
             >
@@ -454,7 +456,7 @@ export function YooptaEditorWrapper({
     // NOTE: Do NOT call setEditorValue during render - it causes React warnings
     // The editorValue will be set by the mount useEffect after deserialization
     let editorValue = editor?.children || {};
-    
+
     // YooptaEditor expects an object with blocks, NOT an array!
     // editor.children is already in the correct format: { "uuid": block, ... }
 
@@ -464,11 +466,11 @@ export function YooptaEditorWrapper({
     // For editable mode, YooptaEditor with MermaidPlugin will handle mermaid rendering
 
     return (
-        <div 
+        <div
             ref={selectionRef}
             className={`rounded-md border bg-white shadow-sm ${className}`.trim()}
-            style={{ 
-                width: '100%', 
+            style={{
+                width: '100%',
                 minHeight: typeof minHeight === 'number' ? `${minHeight}px` : minHeight,
                 ...(editable ? {} : { pointerEvents: 'none', opacity: 0.8 }),
             }}
@@ -481,20 +483,12 @@ export function YooptaEditorWrapper({
                 value={editorValue}
                 selectionBoxRoot={selectionRef}
                 autoFocus={false}
-                onMount={(mountedEditor) => {
-                    // CRITICAL: Mark editor as rendered so deserialization can happen
-                    console.log('✅ [MOUNT] YooptaEditor onMount callback fired', { hasRenderedEditor, mountedEditor: !!mountedEditor });
-                    if (!hasRenderedEditor) {
-                        console.log('✅ [MOUNT] Setting hasRenderedEditor to true');
-                        setHasRenderedEditor(true);
-                    }
-                }}
                 onChange={handleChange}
                 className="size-full"
-                style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    minHeight: typeof minHeight === 'number' ? `${minHeight}px` : minHeight 
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    minHeight: typeof minHeight === 'number' ? `${minHeight}px` : minHeight
                 }}
             />
         </div>

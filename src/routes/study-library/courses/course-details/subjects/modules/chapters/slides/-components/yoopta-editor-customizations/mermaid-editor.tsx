@@ -99,12 +99,12 @@ export function MermaidBlock({
                 initializeMermaid();
 
                 let cleanCode = code.trim();
-                
+
                 // Remove "mermaid " prefix if present
                 if (cleanCode.toLowerCase().startsWith('mermaid ')) {
                     cleanCode = cleanCode.substring(8).trim();
                 }
-                
+
                 if (!cleanCode) {
                     setSvg('');
                     return;
@@ -115,10 +115,10 @@ export function MermaidBlock({
 
                 // Generate a unique render ID
                 const renderId = `mermaid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-                
+
                 // Render the diagram
                 const result = await mermaid.render(renderId, cleanCode);
-                
+
                 if (result && result.svg) {
                     setSvg(result.svg);
                     renderedCodeRef.current = cleanCode;
@@ -157,7 +157,7 @@ export function MermaidBlock({
                     Rendering diagram...
                 </div>
             )}
-            
+
             {error && (
                 <div style={{
                     padding: '15px',
@@ -178,7 +178,7 @@ export function MermaidBlock({
                     }}>{code}</pre>
                 </div>
             )}
-            
+
             {svg && !isRendering && (
                 <div
                     ref={containerRef}
@@ -193,13 +193,13 @@ export function MermaidBlock({
                     }}
                 />
             )}
-            
+
             {!svg && !isRendering && !error && code && (
                 <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
                     No diagram to display
                 </div>
             )}
-            
+
             <style>{`
                 .yoopta-mermaid-block svg {
                     max-width: 100% !important;
@@ -225,9 +225,9 @@ export const MermaidPlugin = new YooptaPlugin<{ mermaid: any }>({
             description: 'Add a mermaid diagram',
             icon: (
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
             ),
         },
@@ -250,7 +250,7 @@ export const MermaidPlugin = new YooptaPlugin<{ mermaid: any }>({
                             children: [{ text: '' }],
                         };
                     }
-                    return null;
+                    return undefined;
                 },
             },
             serialize: (element, children) => {
@@ -263,4 +263,5 @@ export const MermaidPlugin = new YooptaPlugin<{ mermaid: any }>({
         },
     },
 });
+
 

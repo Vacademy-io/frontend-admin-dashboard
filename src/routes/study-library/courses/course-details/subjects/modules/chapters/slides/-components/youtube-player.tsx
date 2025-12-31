@@ -374,7 +374,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl }) => {
                 rel: 0,
                 modestbranding: 1,
                 cc_load_policy: 0,
-                origin: window.location.origin, // Fixes postMessage origin mismatch on localhost
             },
             events: {
                 onReady: (event) => {

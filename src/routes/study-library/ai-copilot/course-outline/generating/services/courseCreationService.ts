@@ -580,20 +580,15 @@ async function createVideoSlide(params: CreateSlideParams): Promise<void> {
     const safeTitle = truncate(slide.slideTitle);
     const safeDescription = truncate(slide.content || '');
 
-    const slideId = crypto.randomUUID();
-    const videoId = crypto.randomUUID();
-
     // Build payload to match VideoSlidePayload interface
     const payload = {
-        id: slideId,
-        source_id: videoId,
-        source_type: 'VIDEO',
+        id: crypto.randomUUID(),
         title: safeTitle,
         description: safeDescription,
         image_file_id: '',
         slide_order: slideOrder,
         video_slide: {
-            id: videoId,
+            id: crypto.randomUUID(),
             title: safeTitle,
             description: safeDescription,
             url: videoUrl,
@@ -950,12 +945,8 @@ async function createVideoCodeSlide(params: CreateSlideParams): Promise<void> {
             splitType: 'CODE'
         };
 
-        const slideId = crypto.randomUUID();
-
         const videoPayload = {
-            id: slideId,
-            source_id: synchronisedVideoId,
-            source_type: 'VIDEO',
+            id: crypto.randomUUID(),
             title: safeTitle,
             description: '',
             image_file_id: '',
