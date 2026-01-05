@@ -3,6 +3,9 @@ import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { SessionProgress } from '../../../shared/types';
 import { createCourseWithContent, setProgressCallback } from '../services/courseCreationService';
+import { getUserRoles, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { submitForReview } from '@/routes/study-library/courses/-services/approval-services';
 
 /**
  * Custom hook for handling course creation
@@ -20,7 +23,7 @@ export const useCourseCreation = (
         setProgressCallback(setCreationProgress);
     }, []);
 
-    const handleCreateCourse = async () => {
+    const handleCreateCourse = async (status?: 'ACTIVE' | 'DRAFT') => {
         if (!courseMetadata) {
             toast.error('Course metadata not found. Please regenerate the course outline.');
             return;
@@ -52,17 +55,25 @@ export const useCourseCreation = (
                 tags: courseMetadata.tags || [],
                 levelStructure: courseMetadata.course_depth || courseMetadata.levelStructure || courseMetadata.depth || 2,
             };
-            
+
             console.log('[Course Creation] Full courseMetadata object:', courseMetadata);
             console.log('[Course Creation] Course metadata being sent:', metadata);
             console.log('[Course Creation] Course name:', courseName);
             console.log('[Course Creation] Number of sessions:', sessionsWithProgress.length);
             console.log('[Course Creation] Total slides:', sessionsWithProgress.reduce((sum, session) => sum + session.slides.length, 0));
-            
+
+            // If user is a teacher and status is ACTIVE, we create as DRAFT first then submit
+            const accessToken = getTokenFromCookie(TokenKey.accessToken);
+            const roles = getUserRoles(accessToken);
+            const isTeacher = roles.includes('TEACHER') && !roles.includes('ADMIN');
+
+            const creationStatus = isTeacher && status === 'ACTIVE' ? 'DRAFT' : status;
+
             const result = await createCourseWithContent({
                 courseName,
                 sessions: sessionsWithProgress,
                 courseMetadata: metadata,
+                status: creationStatus,
             });
 
             setCreationProgress('Course created successfully!');
@@ -70,6 +81,18 @@ export const useCourseCreation = (
 
             // Navigate to the course details page
             console.log('[Course Creation] Navigating to course:', result.courseId);
+
+            if (isTeacher && status === 'ACTIVE') {
+                setCreationProgress('Submitting for review...');
+                try {
+                    await submitForReview(result.courseId);
+                    toast.success('Course submitted for review!');
+                } catch (reviewError) {
+                    console.error('Error submitting for review:', reviewError);
+                    toast.error('Course created but failed to submit for review.');
+                }
+            }
+
             setTimeout(() => {
                 navigate({
                     to: '/study-library/courses/course-details',

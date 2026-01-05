@@ -327,7 +327,7 @@ export const CodeEditorSlide: React.FC<CodeEditorSlideProps> = ({
         const handleKeyDown = (event: KeyboardEvent) => {
             if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
                 event.preventDefault();
-                if (!isRunning && isEditable) {
+                if (!isRunning) {
                     runCode();
                 }
             }
@@ -382,7 +382,7 @@ export const CodeEditorSlide: React.FC<CodeEditorSlideProps> = ({
                     <div className="flex items-center gap-2">
                         <Button
                             onClick={runCode}
-                            disabled={isRunning || !isEditable}
+                            disabled={isRunning}
                             size="sm"
                             className="bg-green-600 text-white hover:bg-green-700"
                         >

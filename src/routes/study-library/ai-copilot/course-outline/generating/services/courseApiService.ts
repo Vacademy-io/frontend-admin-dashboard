@@ -1,4 +1,4 @@
-import { BASE_URL } from '@/constants/urls';
+import { BASE_URL, AI_SERVICE_BASE_URL } from '@/constants/urls';
 import { SlideGeneration, SlideType } from '../../../shared/types';
 
 export interface CourseOutlineRequest {
@@ -28,12 +28,12 @@ export async function generateCourseOutline(
     instituteId: string,
     onProgress: (message: string) => void
 ): Promise<CourseOutlineResponse> {
-    const apiUrl = `${BASE_URL}/ai-service/course/ai/v1/generate?institute_id=${instituteId}`;
-    
+    const apiUrl = `${AI_SERVICE_BASE_URL}/course/ai/v1/generate?institute_id=${instituteId}`;
+
     console.log('=== API Request ===');
     console.log('URL:', apiUrl);
     console.log('Payload:', JSON.stringify(payload, null, 2));
-    
+
     onProgress('Connecting to AI service...');
 
     const response = await fetch(apiUrl, {
@@ -75,7 +75,7 @@ export async function generateCourseOutline(
         const chunk = decoder.decode(value);
         buffer += chunk;
         const lines = buffer.split('\n');
-        
+
         // Keep the last incomplete line in the buffer
         buffer = lines.pop() || '';
 
@@ -96,13 +96,13 @@ export async function generateCourseOutline(
                         console.log('Full Response:', jsonData);
                         console.log('Course Metadata:', jsonData.courseMetadata);
                         console.log('Tree:', jsonData.tree);
-                        
+
                         // Validate response structure
                         if (!jsonData.tree || !Array.isArray(jsonData.tree)) {
                             console.error('Invalid API response structure:', jsonData);
                             throw new Error('Invalid response structure: missing or invalid tree');
                         }
-                        
+
                         finalResponse = jsonData as CourseOutlineResponse;
                     } catch (e) {
                         console.error('=== Error Processing Response ===');
