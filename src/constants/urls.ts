@@ -2,6 +2,8 @@ export const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'https://backend-sta
 export const BASE_URL_LEARNER_DASHBOARD =
     import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io';
 
+export const AI_SERVICE_BASE_URL = `${BASE_URL}/ai-service`;
+
 // Institute IDs from environment variables for multi-org deployment
 export const SSDC_INSTITUTE_ID =
     import.meta.env.VITE_SSDC_INSTITUTE_ID || '69ca11c6-54e1-4e99-9498-50c9a4272ce6';

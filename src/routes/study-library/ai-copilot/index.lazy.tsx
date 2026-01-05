@@ -12,10 +12,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useDropzone } from 'react-dropzone';
-import { X, FileText, Paperclip, Lightbulb, Target, Puzzle, Settings, Sparkles, Upload, Link, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { getCourseSettings } from '@/services/course-settings';
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import { AI_SERVICE_BASE_URL } from '@/constants/urls';
+import { getInstituteId } from '@/constants/helper';
+import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
+import { toast } from 'sonner';
+import { X, FileText, Paperclip, Lightbulb, Target, Puzzle, Settings, Sparkles, Upload, Link, AlertTriangle, Plus } from 'lucide-react';
 
 export const Route = createLazyFileRoute('/study-library/ai-copilot/')({
     component: RouteComponent,
@@ -143,7 +149,7 @@ function RouteComponent() {
     const { setNavHeading } = useNavHeadingStore();
     const { setOpen } = useSidebar();
     const [currentStep, setCurrentStep] = useState(1);
-    
+
     // Collapse sidebar on mount
     useEffect(() => {
         setOpen(false);
@@ -176,7 +182,54 @@ function RouteComponent() {
     const [referenceFiles, setReferenceFiles] = useState<PrerequisiteFile[]>([]);
     const [referenceUrls, setReferenceUrls] = useState<PrerequisiteUrl[]>([]);
     const [newReferenceUrl, setNewReferenceUrl] = useState('');
+    const [selectedModel, setSelectedModel] = useState('auto');
+    const [openaiKey, setOpenaiKey] = useState('');
+    const [geminiKey, setGeminiKey] = useState('');
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const [usageData, setUsageData] = useState<any>(null);
+
+    const instituteId = getInstituteId();
+    const accessToken = getTokenFromCookie(TokenKey.accessToken);
+    const tokenData = getTokenDecodedData(accessToken);
+    const userId = tokenData?.user;
+
+    const fetchUsage = useCallback(async () => {
+        if (!userId) return;
+        try {
+            const response = await authenticatedAxiosInstance.get(
+                `${AI_SERVICE_BASE_URL}/api-usage/v1/user/${userId}`,
+                { params: { institute_id: instituteId } }
+            );
+            setUsageData(response.data);
+        } catch (error) {
+            console.error('Error fetching usage:', error);
+        }
+    }, [userId, instituteId]);
+
+    useEffect(() => {
+        fetchUsage();
+    }, [fetchUsage]);
+
+    const handleSaveUserKey = async (type: 'openai' | 'gemini') => {
+        if (!userId) return;
+        const payload: any = {};
+        if (type === 'openai') payload.openai_key = openaiKey;
+        else payload.gemini_key = geminiKey;
+
+        try {
+            await authenticatedAxiosInstance.post(
+                `${AI_SERVICE_BASE_URL}/api-keys/v1/user/${userId}`,
+                payload,
+                { params: { institute_id: instituteId } }
+            );
+            toast.success(`${type === 'openai' ? 'OpenAI' : 'Gemini'} key saved!`);
+            if (type === 'openai') setOpenaiKey('');
+            else setGeminiKey('');
+            fetchUsage();
+        } catch (error) {
+            toast.error('Failed to save key');
+        }
+    };
 
     useEffect(() => {
         setNavHeading('Create with Ai');
@@ -429,6 +482,9 @@ function RouteComponent() {
                 numberOfModules: numberOfModules ? parseInt(numberOfModules) : undefined,
             },
             courseDepth: courseDepth,
+            model: selectedModel,
+            userId: userId,
+            instituteId: instituteId,
             references: {
                 files: referenceFiles.map((f) => ({
                     name: f.file.name,
@@ -444,7 +500,7 @@ function RouteComponent() {
         sessionStorage.setItem('courseConfig', JSON.stringify(courseConfig));
         // Close dialog and navigate to generating page
         setShowConfirmDialog(false);
-        navigate({ 
+        navigate({
             to: '/study-library/ai-copilot/course-outline/generating'
         });
     };
@@ -522,412 +578,498 @@ function RouteComponent() {
                         transition={{ duration: 0.5 }}
                         className="mb-4 rounded-2xl border border-indigo-100/50 bg-white/70 p-6 shadow-lg shadow-indigo-100/60 backdrop-blur-sm"
                     >
-                            {/* Step 1: Course Goal, Learning Outcome, Duration, Format, and Structure */}
-                            {currentStep === 1 && (
-                                <div className="space-y-6">
-                                    <div>
-                                        <h3 className="mb-4 text-xl font-semibold text-neutral-900">
-                                            Course Goal and Learning Outcome
-                                        </h3>
-                                        
-                        <div className="space-y-4">
-                            <div>
-                                                <Label htmlFor="courseGoal" className="mb-2 block">
-                                                    Course Goal / Prompt <span className="text-red-500">*</span>
-                                                </Label>
-                                                <Textarea
-                                                    id="courseGoal"
-                                                    value={courseGoal}
-                                                    onChange={(e) => setCourseGoal(e.target.value)}
-                                                    placeholder="Describe the main purpose of the course..."
-                                                    className="min-h-[120px] w-full"
-                                                />
-                                </div>
+                        {/* Step 1: Course Goal, Learning Outcome, Duration, Format, and Structure */}
+                        {currentStep === 1 && (
+                            <div className="space-y-6">
+                                <div>
+                                    <h3 className="mb-4 text-xl font-semibold text-neutral-900">
+                                        Course Goal and Learning Outcome
+                                    </h3>
 
-                                            <div>
-                                                <Label htmlFor="learningOutcome" className="mb-2 block">
-                                                    Learning Outcome
-                                                </Label>
-                                    <Textarea
-                                                    id="learningOutcome"
-                                                    value={learningOutcome}
-                                                    onChange={(e) => setLearningOutcome(e.target.value)}
-                                                    placeholder="What should learners achieve by the end of the course? (Optional)"
-                                                    className="min-h-[100px] w-full"
-                                                />
-                                            </div>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <Label htmlFor="courseGoal" className="mb-2 block">
+                                                Course Goal / Prompt <span className="text-red-500">*</span>
+                                            </Label>
+                                            <Textarea
+                                                id="courseGoal"
+                                                value={courseGoal}
+                                                onChange={(e) => setCourseGoal(e.target.value)}
+                                                placeholder="Describe the main purpose of the course..."
+                                                className="min-h-[120px] w-full"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <Label htmlFor="learningOutcome" className="mb-2 block">
+                                                Learning Outcome
+                                            </Label>
+                                            <Textarea
+                                                id="learningOutcome"
+                                                value={learningOutcome}
+                                                onChange={(e) => setLearningOutcome(e.target.value)}
+                                                placeholder="What should learners achieve by the end of the course? (Optional)"
+                                                className="min-h-[100px] w-full"
+                                            />
                                         </div>
                                     </div>
+                                </div>
 
-                                    {/* Duration, Format, and Structure Section */}
-                                    <div>
-                                        <h3 className="mb-4 text-xl font-semibold text-neutral-900">
-                                            Duration, Format, and Structure
-                                        </h3>
-                                        
-                                        <div className="space-y-4">
-                                            {/* First Row: Skill Level, Number of Chapters, Chapter Length */}
-                                            <div className="grid grid-cols-3 gap-4">
-                                                <div>
-                                                    <Label htmlFor="skillLevel" className="mb-2 block">
-                                                        Skill Level
-                                                    </Label>
-                                                    <Select value={skillLevel} onValueChange={setSkillLevel}>
-                                                        <SelectTrigger id="skillLevel" className="w-full">
-                                                            <SelectValue placeholder="Select skill level (Optional)" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="beginner">Beginner</SelectItem>
-                                                            <SelectItem value="intermediate">Intermediate</SelectItem>
-                                                            <SelectItem value="advanced">Advanced</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-                                                <div>
-                                                    <Label htmlFor="numberOfChapters" className="mb-2 block">
-                                                        Number of Chapters
-                                                    </Label>
-                                                    <Input
-                                                        id="numberOfChapters"
-                                                        type="text"
-                                                        value={numberOfChapters}
-                                                        onChange={(e) => {
-                                                            const value = e.target.value;
-                                                            // Only allow numbers
-                                                            if (value === '' || /^\d+$/.test(value)) {
-                                                                setNumberOfChapters(value);
-                                                            }
-                                                        }}
-                                                        placeholder="e.g., 8"
-                                                        className="w-full"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <Label htmlFor="chapterLength" className="mb-2 block">
-                                                        Chapter Length
-                                                    </Label>
-                                                    <div className="space-y-2">
-                                                        <Select value={chapterLength} onValueChange={handleChapterLengthChange}>
-                                                            <SelectTrigger id="chapterLength" className="w-full">
-                                                                <SelectValue placeholder="Select chapter length" />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="45">45 minutes</SelectItem>
-                                                                <SelectItem value="60">60 minutes</SelectItem>
-                                                                <SelectItem value="90">90 minutes</SelectItem>
-                                                                <SelectItem value="custom">Custom</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                        {chapterLength === 'custom' && (
-                                                            <Input
-                                                                type="text"
-                                                                value={customChapterLength}
-                                                                onChange={(e) => {
-                                                                    const value = e.target.value;
-                                                                    // Only allow numbers
-                                                                    if (value === '' || /^\d+$/.test(value)) {
-                                                                        setCustomChapterLength(value);
-                                                                    }
-                                                                }}
-                                                                placeholder="Enter custom length in minutes"
-                                                                className="w-full"
-                                                            />
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
+                                {/* Duration, Format, and Structure Section */}
+                                <div>
+                                    <h3 className="mb-4 text-xl font-semibold text-neutral-900">
+                                        Duration, Format, and Structure
+                                    </h3>
 
+                                    <div className="space-y-4">
+                                        {/* First Row: Skill Level, Number of Chapters, Chapter Length */}
+                                        <div className="grid grid-cols-3 gap-4">
                                             <div>
-                                                <Label className="mb-2 block">What to include</Label>
-                                                <div className="grid grid-cols-3 gap-4">
-                                                    <div className="flex items-center space-x-2">
-                                                        <Checkbox
-                                                            id="includeDiagrams"
-                                                            checked={includeDiagrams}
-                                                            onCheckedChange={(checked) => setIncludeDiagrams(checked === true)}
-                                                        />
-                                                        <Label htmlFor="includeDiagrams" className="cursor-pointer">
-                                                            Include diagrams
-                                                        </Label>
-                                                    </div>
-
-                                                    <div className="flex items-center space-x-2">
-                                                        <Checkbox
-                                                            id="includeCodeSnippets"
-                                                            checked={includeCodeSnippets}
-                                                            onCheckedChange={(checked) => setIncludeCodeSnippets(checked === true)}
-                                                        />
-                                                        <Label htmlFor="includeCodeSnippets" className="cursor-pointer">
-                                                            Include code snippets
-                                                        </Label>
-                                                    </div>
-
-                                                    <div className="flex items-center space-x-2">
-                                                        <Checkbox
-                                                            id="includePracticeProblems"
-                                                            checked={includePracticeProblems}
-                                                            onCheckedChange={(checked) => setIncludePracticeProblems(checked === true)}
-                                                        />
-                                                        <Label htmlFor="includePracticeProblems" className="cursor-pointer">
-                                                            Include practice problems
-                                                        </Label>
-                                                    </div>
-
-                                                    <div className="flex items-center space-x-2">
-                                                        <Checkbox
-                                                            id="includeQuizzes"
-                                                            checked={includeQuizzes}
-                                                            onCheckedChange={(checked) => setIncludeQuizzes(checked === true)}
-                                                        />
-                                                        <Label htmlFor="includeQuizzes" className="cursor-pointer">
-                                                            Include quizzes
-                                                        </Label>
-                                                    </div>
-
-                                                    <div className="flex items-center space-x-2">
-                                                        <Checkbox
-                                                            id="includeHomework"
-                                                            checked={includeHomework}
-                                                            onCheckedChange={(checked) => setIncludeHomework(checked === true)}
-                                                        />
-                                                        <Label htmlFor="includeHomework" className="cursor-pointer">
-                                                            Include assignments
-                                                        </Label>
-                                                    </div>
-
-                                                    <div className="flex items-center space-x-2">
-                                                        <Checkbox
-                                                            id="includeSolutions"
-                                                            checked={includeSolutions}
-                                                            onCheckedChange={(checked) => setIncludeSolutions(checked === true)}
-                                                        />
-                                                        <Label htmlFor="includeSolutions" className="cursor-pointer">
-                                                            Include solutions
-                                                        </Label>
-                                                    </div>
-
-                                                    <div className="flex items-center space-x-2">
-                                                        <Checkbox
-                                                            id="includeYouTubeVideo"
-                                                            checked={includeYouTubeVideo}
-                                                            onCheckedChange={(checked) => setIncludeYouTubeVideo(checked === true)}
-                                                        />
-                                                        <Label htmlFor="includeYouTubeVideo" className="cursor-pointer">
-                                                            Include YouTube video
-                                                        </Label>
-                                                    </div>
-
-                                                    <div className="flex items-center space-x-2">
-                                                        <Checkbox
-                                                            id="includeAIGeneratedVideo"
-                                                            checked={includeAIGeneratedVideo}
-                                                            onCheckedChange={(checked) => setIncludeAIGeneratedVideo(checked === true)}
-                                                        />
-                                                        <Label htmlFor="includeAIGeneratedVideo" className="cursor-pointer">
-                                                            Include AI generated video
-                                                        </Label>
-                                                    </div>
-                                                </div>
-                                                {includeCodeSnippets && (
-                                                    <div className="mt-4">
-                                                        <Label htmlFor="programmingLanguage" className="mb-2 block">
-                                                            Programming Language
-                                                        </Label>
-                                                        <Select value={programmingLanguage} onValueChange={setProgrammingLanguage}>
-                                                            <SelectTrigger id="programmingLanguage" className="w-full">
-                                                                <SelectValue placeholder="Select programming language" />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="python">Python</SelectItem>
-                                                                <SelectItem value="javascript">JavaScript</SelectItem>
-                                                                <SelectItem value="java">Java</SelectItem>
-                                                                <SelectItem value="cpp">C++</SelectItem>
-                                                                <SelectItem value="csharp">C#</SelectItem>
-                                                                <SelectItem value="go">Go</SelectItem>
-                                                                <SelectItem value="rust">Rust</SelectItem>
-                                                                <SelectItem value="typescript">TypeScript</SelectItem>
-                                                                <SelectItem value="php">PHP</SelectItem>
-                                                                <SelectItem value="ruby">Ruby</SelectItem>
-                                                                <SelectItem value="swift">Swift</SelectItem>
-                                                                <SelectItem value="kotlin">Kotlin</SelectItem>
-                                                                <SelectItem value="other">Other</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                )}
+                                                <Label htmlFor="skillLevel" className="mb-2 block">
+                                                    Skill Level
+                                                </Label>
+                                                <Select value={skillLevel} onValueChange={setSkillLevel}>
+                                                    <SelectTrigger id="skillLevel" className="w-full">
+                                                        <SelectValue placeholder="Select skill level (Optional)" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="beginner">Beginner</SelectItem>
+                                                        <SelectItem value="intermediate">Intermediate</SelectItem>
+                                                        <SelectItem value="advanced">Advanced</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
                                             </div>
-
-                                            {/* Number of Subjects - Show if depth > 4 */}
-                                            {courseDepth > 4 && (
                                             <div>
-                                                    <Label htmlFor="numberOfSubjects" className="mb-2 block">
-                                                        Number of Subjects
+                                                <Label htmlFor="selectedModel" className="mb-2 block">
+                                                    AI Model
+                                                </Label>
+                                                <Select value={selectedModel} onValueChange={setSelectedModel}>
+                                                    <SelectTrigger id="selectedModel" className="w-full">
+                                                        <SelectValue placeholder="Select AI model" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="auto">Auto (Smart Selection)</SelectItem>
+                                                        <SelectItem value="openai/gpt-4o">GPT-4o (Recommended)</SelectItem>
+                                                        <SelectItem value="openai/gpt-4o-mini">GPT-4o Mini</SelectItem>
+                                                        <SelectItem value="openai/o1">o1</SelectItem>
+                                                        <SelectItem value="openai/o1-mini">o1-mini</SelectItem>
+                                                        <SelectItem value="openai/gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                                                        <SelectItem value="openai/gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                                                        <SelectItem value="google/gemini-1.5-pro">Gemini 1.5 Pro</SelectItem>
+                                                        <SelectItem value="google/gemini-1.5-flash">Gemini 1.5 Flash</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="numberOfChapters" className="mb-2 block">
+                                                    Number of Chapters
                                                 </Label>
                                                 <Input
-                                                        id="numberOfSubjects"
-                                                        type="text"
-                                                        value={numberOfSubjects}
-                                                        onChange={(e) => {
-                                                            const value = e.target.value;
-                                                            // Only allow numbers
-                                                            if (value === '' || /^\d+$/.test(value)) {
-                                                                setNumberOfSubjects(value);
-                                                            }
-                                                        }}
-                                                        placeholder="e.g., 2, 3, 4, etc."
-                                                        className="w-full"
-                                                    />
-                                                </div>
-                                            )}
-
-                                            {/* Number of Modules - Show if depth > 3 */}
-                                            {courseDepth > 3 && (
-                                                <div>
-                                                    <Label htmlFor="numberOfModules" className="mb-2 block">
-                                                        Number of Modules
-                                                    </Label>
-                                                    <Input
-                                                        id="numberOfModules"
-                                                        type="text"
-                                                        value={numberOfModules}
-                                                        onChange={(e) => {
-                                                            const value = e.target.value;
-                                                            // Only allow numbers
-                                                            if (value === '' || /^\d+$/.test(value)) {
-                                                                setNumberOfModules(value);
-                                                            }
-                                                        }}
-                                                        placeholder="e.g., 2, 3, 4, etc."
-                                                        className="w-full"
-                                                    />
-                                                </div>
-                                            )}
-
-                                            {/* Slides per Chapter */}
-                                            <div>
-                                                <Label htmlFor="slidesPerChapter" className="mb-2 block">
-                                                    Slides per Chapter
-                                                </Label>
-                                                <Input
-                                                    id="slidesPerChapter"
+                                                    id="numberOfChapters"
                                                     type="text"
-                                                    value={slidesPerChapter}
+                                                    value={numberOfChapters}
                                                     onChange={(e) => {
                                                         const value = e.target.value;
                                                         // Only allow numbers
                                                         if (value === '' || /^\d+$/.test(value)) {
-                                                            setSlidesPerChapter(value);
+                                                            setNumberOfChapters(value);
+                                                        }
+                                                    }}
+                                                    placeholder="e.g., 8"
+                                                    className="w-full"
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="chapterLength" className="mb-2 block">
+                                                    Chapter Length
+                                                </Label>
+                                                <div className="space-y-2">
+                                                    <Select value={chapterLength} onValueChange={handleChapterLengthChange}>
+                                                        <SelectTrigger id="chapterLength" className="w-full">
+                                                            <SelectValue placeholder="Select chapter length" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="45">45 minutes</SelectItem>
+                                                            <SelectItem value="60">60 minutes</SelectItem>
+                                                            <SelectItem value="90">90 minutes</SelectItem>
+                                                            <SelectItem value="custom">Custom</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                    {chapterLength === 'custom' && (
+                                                        <Input
+                                                            type="text"
+                                                            value={customChapterLength}
+                                                            onChange={(e) => {
+                                                                const value = e.target.value;
+                                                                // Only allow numbers
+                                                                if (value === '' || /^\d+$/.test(value)) {
+                                                                    setCustomChapterLength(value);
+                                                                }
+                                                            }}
+                                                            placeholder="Enter custom length in minutes"
+                                                            className="w-full"
+                                                        />
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <Label htmlFor="openaiKey" className="mb-2 block">
+                                                    OpenAI API Key
+                                                </Label>
+                                                <div className="flex gap-2">
+                                                    <Input
+                                                        id="openaiKey"
+                                                        type="password"
+                                                        value={openaiKey}
+                                                        onChange={(e) => setOpenaiKey(e.target.value)}
+                                                        placeholder="sk-..."
+                                                        className="w-full"
+                                                    />
+                                                    <MyButton
+                                                        type="button"
+                                                        buttonType="secondary"
+                                                        scale="small"
+                                                        layoutVariant="icon"
+                                                        onClick={() => handleSaveUserKey('openai')}
+                                                        disabled={!openaiKey}
+                                                    >
+                                                        <Plus className="h-4 w-4" />
+                                                    </MyButton>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="geminiKey" className="mb-2 block">
+                                                    Gemini API Key
+                                                </Label>
+                                                <div className="flex gap-2">
+                                                    <Input
+                                                        id="geminiKey"
+                                                        type="password"
+                                                        value={geminiKey}
+                                                        onChange={(e) => setGeminiKey(e.target.value)}
+                                                        placeholder="AIza..."
+                                                        className="w-full"
+                                                    />
+                                                    <MyButton
+                                                        type="button"
+                                                        buttonType="secondary"
+                                                        scale="small"
+                                                        layoutVariant="icon"
+                                                        onClick={() => handleSaveUserKey('gemini')}
+                                                        disabled={!geminiKey}
+                                                    >
+                                                        <Plus className="h-4 w-4" />
+                                                    </MyButton>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <Label className="mb-2 block">What to include</Label>
+                                            <div className="grid grid-cols-3 gap-4">
+                                                <div className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id="includeDiagrams"
+                                                        checked={includeDiagrams}
+                                                        onCheckedChange={(checked) => setIncludeDiagrams(checked === true)}
+                                                    />
+                                                    <Label htmlFor="includeDiagrams" className="cursor-pointer">
+                                                        Include diagrams
+                                                    </Label>
+                                                </div>
+
+                                                <div className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id="includeCodeSnippets"
+                                                        checked={includeCodeSnippets}
+                                                        onCheckedChange={(checked) => setIncludeCodeSnippets(checked === true)}
+                                                    />
+                                                    <Label htmlFor="includeCodeSnippets" className="cursor-pointer">
+                                                        Include code snippets
+                                                    </Label>
+                                                </div>
+
+                                                <div className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id="includePracticeProblems"
+                                                        checked={includePracticeProblems}
+                                                        onCheckedChange={(checked) => setIncludePracticeProblems(checked === true)}
+                                                    />
+                                                    <Label htmlFor="includePracticeProblems" className="cursor-pointer">
+                                                        Include practice problems
+                                                    </Label>
+                                                </div>
+
+                                                <div className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id="includeQuizzes"
+                                                        checked={includeQuizzes}
+                                                        onCheckedChange={(checked) => setIncludeQuizzes(checked === true)}
+                                                    />
+                                                    <Label htmlFor="includeQuizzes" className="cursor-pointer">
+                                                        Include quizzes
+                                                    </Label>
+                                                </div>
+
+                                                <div className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id="includeHomework"
+                                                        checked={includeHomework}
+                                                        onCheckedChange={(checked) => setIncludeHomework(checked === true)}
+                                                    />
+                                                    <Label htmlFor="includeHomework" className="cursor-pointer">
+                                                        Include assignments
+                                                    </Label>
+                                                </div>
+
+                                                <div className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id="includeSolutions"
+                                                        checked={includeSolutions}
+                                                        onCheckedChange={(checked) => setIncludeSolutions(checked === true)}
+                                                    />
+                                                    <Label htmlFor="includeSolutions" className="cursor-pointer">
+                                                        Include solutions
+                                                    </Label>
+                                                </div>
+
+                                                <div className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id="includeYouTubeVideo"
+                                                        checked={includeYouTubeVideo}
+                                                        onCheckedChange={(checked) => setIncludeYouTubeVideo(checked === true)}
+                                                    />
+                                                    <Label htmlFor="includeYouTubeVideo" className="cursor-pointer">
+                                                        Include YouTube video
+                                                    </Label>
+                                                </div>
+
+                                                <div className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id="includeAIGeneratedVideo"
+                                                        checked={includeAIGeneratedVideo}
+                                                        onCheckedChange={(checked) => setIncludeAIGeneratedVideo(checked === true)}
+                                                    />
+                                                    <Label htmlFor="includeAIGeneratedVideo" className="cursor-pointer">
+                                                        Include AI generated video
+                                                    </Label>
+                                                </div>
+                                            </div>
+                                            {includeCodeSnippets && (
+                                                <div className="mt-4">
+                                                    <Label htmlFor="programmingLanguage" className="mb-2 block">
+                                                        Programming Language
+                                                    </Label>
+                                                    <Select value={programmingLanguage} onValueChange={setProgrammingLanguage}>
+                                                        <SelectTrigger id="programmingLanguage" className="w-full">
+                                                            <SelectValue placeholder="Select programming language" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="python">Python</SelectItem>
+                                                            <SelectItem value="javascript">JavaScript</SelectItem>
+                                                            <SelectItem value="java">Java</SelectItem>
+                                                            <SelectItem value="cpp">C++</SelectItem>
+                                                            <SelectItem value="csharp">C#</SelectItem>
+                                                            <SelectItem value="go">Go</SelectItem>
+                                                            <SelectItem value="rust">Rust</SelectItem>
+                                                            <SelectItem value="typescript">TypeScript</SelectItem>
+                                                            <SelectItem value="php">PHP</SelectItem>
+                                                            <SelectItem value="ruby">Ruby</SelectItem>
+                                                            <SelectItem value="swift">Swift</SelectItem>
+                                                            <SelectItem value="kotlin">Kotlin</SelectItem>
+                                                            <SelectItem value="other">Other</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Number of Subjects - Show if depth > 4 */}
+                                        {courseDepth > 4 && (
+                                            <div>
+                                                <Label htmlFor="numberOfSubjects" className="mb-2 block">
+                                                    Number of Subjects
+                                                </Label>
+                                                <Input
+                                                    id="numberOfSubjects"
+                                                    type="text"
+                                                    value={numberOfSubjects}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        // Only allow numbers
+                                                        if (value === '' || /^\d+$/.test(value)) {
+                                                            setNumberOfSubjects(value);
                                                         }
                                                     }}
                                                     placeholder="e.g., 2, 3, 4, etc."
                                                     className="w-full"
                                                 />
                                             </div>
+                                        )}
 
-                                            {/* References (Optional) - Full Width Below */}
+                                        {/* Number of Modules - Show if depth > 3 */}
+                                        {courseDepth > 3 && (
                                             <div>
-                                                <Label className="mb-2 block">References (Optional)</Label>
-                                                <p className="mb-3 text-xs text-neutral-500">You can add multiple URLs</p>
-                                                <div className="space-y-3">
-                                                    <div className="flex gap-2">
-                                                        <Input
-                                                            value={newReferenceUrl}
-                                                            onChange={(e) => setNewReferenceUrl(e.target.value)}
-                                                            onKeyDown={(e) => {
-                                                                if (e.key === 'Enter') {
-                                                                    e.preventDefault();
-                                                                    handleAddReferenceUrl();
-                                                                }
-                                                            }}
-                                                            placeholder="Enter URL (e.g., https://example.com/course)"
-                                                            className="flex-1"
-                                                        />
-                                                        <MyButton
-                                                            buttonType="secondary"
-                                                            onClick={handleAddReferenceUrl}
-                                                            disabled={!newReferenceUrl.trim()}
-                                                        >
-                                                            <Link className="h-4 w-4 mr-1" />
-                                                            Add URL
-                                                        </MyButton>
-                                                    </div>
+                                                <Label htmlFor="numberOfModules" className="mb-2 block">
+                                                    Number of Modules
+                                                </Label>
+                                                <Input
+                                                    id="numberOfModules"
+                                                    type="text"
+                                                    value={numberOfModules}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        // Only allow numbers
+                                                        if (value === '' || /^\d+$/.test(value)) {
+                                                            setNumberOfModules(value);
+                                                        }
+                                                    }}
+                                                    placeholder="e.g., 2, 3, 4, etc."
+                                                    className="w-full"
+                                                />
+                                            </div>
+                                        )}
 
-                                                    {referenceUrls.length > 0 && (
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {referenceUrls.map((url) => (
-                                                                <div
-                                                                    key={url.id}
-                                                                    className="flex items-center gap-1.5 rounded-md bg-indigo-50 px-2.5 py-1.5 text-xs text-indigo-700"
-                                                                >
-                                                                    <Link className="h-3.5 w-3.5" />
-                                                                    <span className="max-w-[200px] truncate">{url.url}</span>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => handleRemoveReferenceUrl(url.id)}
-                                                                        className="ml-0.5 rounded-full p-0.5 hover:bg-indigo-100"
-                                                                    >
-                                                                        <X className="h-3 w-3" />
-                                                                    </button>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
+                                        {/* Slides per Chapter */}
+                                        <div>
+                                            <Label htmlFor="slidesPerChapter" className="mb-2 block">
+                                                Slides per Chapter
+                                            </Label>
+                                            <Input
+                                                id="slidesPerChapter"
+                                                type="text"
+                                                value={slidesPerChapter}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    // Only allow numbers
+                                                    if (value === '' || /^\d+$/.test(value)) {
+                                                        setSlidesPerChapter(value);
+                                                    }
+                                                }}
+                                                placeholder="e.g., 2, 3, 4, etc."
+                                                className="w-full"
+                                            />
+                                        </div>
 
-                                                    <div
-                                                        {...getReferenceRootProps()}
-                                                        className={cn(
-                                                            'flex h-24 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed transition-all duration-200',
-                                                            isReferenceDragActive
-                                                                ? 'border-indigo-400 bg-indigo-50'
-                                                                : 'border-neutral-300 bg-neutral-50 hover:border-indigo-300 hover:bg-indigo-50'
-                                                        )}
+                                        {/* References (Optional) - Full Width Below */}
+                                        <div>
+                                            <Label className="mb-2 block">References (Optional)</Label>
+                                            <p className="mb-3 text-xs text-neutral-500">You can add multiple URLs</p>
+                                            <div className="space-y-3">
+                                                <div className="flex gap-2">
+                                                    <Input
+                                                        value={newReferenceUrl}
+                                                        onChange={(e) => setNewReferenceUrl(e.target.value)}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') {
+                                                                e.preventDefault();
+                                                                handleAddReferenceUrl();
+                                                            }
+                                                        }}
+                                                        placeholder="Enter URL (e.g., https://example.com/course)"
+                                                        className="flex-1"
+                                                    />
+                                                    <MyButton
+                                                        buttonType="secondary"
+                                                        onClick={handleAddReferenceUrl}
+                                                        disabled={!newReferenceUrl.trim()}
                                                     >
-                                                        <input {...getReferenceInputProps()} className="hidden" />
-                                                        <Upload className={cn('h-5 w-5', isReferenceDragActive ? 'text-indigo-600' : 'text-neutral-500')} />
-                                                        <span className="text-xs font-medium text-neutral-600">
-                                                            Attach PDF, DOC, DOCX, CSV, or XLSX files
-                                                        </span>
-                                                        <span className="text-xs text-neutral-500">
-                                                            Maximum 512 MB per file • Upload up to 5 files
-                                                        </span>
-                                                    </div>
-
-                                                    {referenceFiles.length > 0 && (
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {referenceFiles.map((file) => (
-                                                                <div
-                                                                    key={file.id}
-                                                                    className="flex items-center gap-1.5 rounded-md bg-indigo-50 px-2.5 py-1.5 text-xs text-indigo-700"
-                                                                >
-                                                                    <FileText className="h-3.5 w-3.5" />
-                                                                    <span className="max-w-[150px] truncate">{file.file.name}</span>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => handleRemoveReferenceFile(file.id)}
-                                                                        className="ml-0.5 rounded-full p-0.5 hover:bg-indigo-100"
-                                                                    >
-                                                                        <X className="h-3 w-3" />
-                                                                    </button>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
+                                                        <Link className="h-4 w-4 mr-1" />
+                                                        Add URL
+                                                    </MyButton>
                                                 </div>
+
+                                                {referenceUrls.length > 0 && (
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {referenceUrls.map((url) => (
+                                                            <div
+                                                                key={url.id}
+                                                                className="flex items-center gap-1.5 rounded-md bg-indigo-50 px-2.5 py-1.5 text-xs text-indigo-700"
+                                                            >
+                                                                <Link className="h-3.5 w-3.5" />
+                                                                <span className="max-w-[200px] truncate">{url.url}</span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleRemoveReferenceUrl(url.id)}
+                                                                    className="ml-0.5 rounded-full p-0.5 hover:bg-indigo-100"
+                                                                >
+                                                                    <X className="h-3 w-3" />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                <div
+                                                    {...getReferenceRootProps()}
+                                                    className={cn(
+                                                        'flex h-24 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed transition-all duration-200',
+                                                        isReferenceDragActive
+                                                            ? 'border-indigo-400 bg-indigo-50'
+                                                            : 'border-neutral-300 bg-neutral-50 hover:border-indigo-300 hover:bg-indigo-50'
+                                                    )}
+                                                >
+                                                    <input {...getReferenceInputProps()} className="hidden" />
+                                                    <Upload className={cn('h-5 w-5', isReferenceDragActive ? 'text-indigo-600' : 'text-neutral-500')} />
+                                                    <span className="text-xs font-medium text-neutral-600">
+                                                        Attach PDF, DOC, DOCX, CSV, or XLSX files
+                                                    </span>
+                                                    <span className="text-xs text-neutral-500">
+                                                        Maximum 512 MB per file • Upload up to 5 files
+                                                    </span>
+                                                </div>
+
+                                                {referenceFiles.length > 0 && (
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {referenceFiles.map((file) => (
+                                                            <div
+                                                                key={file.id}
+                                                                className="flex items-center gap-1.5 rounded-md bg-indigo-50 px-2.5 py-1.5 text-xs text-indigo-700"
+                                                            >
+                                                                <FileText className="h-3.5 w-3.5" />
+                                                                <span className="max-w-[150px] truncate">{file.file.name}</span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleRemoveReferenceFile(file.id)}
+                                                                    className="ml-0.5 rounded-full p-0.5 hover:bg-indigo-100"
+                                                                >
+                                                                    <X className="h-3 w-3" />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
-
-                                    <div className="flex justify-end gap-3">
-                                        <MyButton
-                                            buttonType="primary"
-                                            onClick={handleSubmitCourseConfig}
-                                            disabled={!courseGoal.trim()}
-                                        >
-                                            Generate Outline
-                                        </MyButton>
-                                    </div>
                                 </div>
-                            )}
+
+                                <div className="flex justify-between items-center bg-indigo-50/50 p-4 rounded-xl border border-indigo-100/50 mb-6">
+                                    <div className="flex gap-6">
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] uppercase tracking-wider text-indigo-500 font-bold">Tokens Used</span>
+                                            <span className="text-lg font-bold text-indigo-900">{usageData?.total_tokens?.toLocaleString() || 0}</span>
+                                        </div>
+                                        <div className="flex flex-col border-l border-indigo-100 pl-6">
+                                            <span className="text-[10px] uppercase tracking-wider text-indigo-500 font-bold">Estimated Cost</span>
+                                            <span className="text-lg font-bold text-indigo-900">${usageData?.total_cost?.toFixed(4) || '0.0000'}</span>
+                                        </div>
+                                    </div>
+                                    <MyButton
+                                        buttonType="primary"
+                                        onClick={handleSubmitCourseConfig}
+                                        disabled={!courseGoal.trim()}
+                                        className="shadow-lg shadow-indigo-200"
+                                    >
+                                        <Sparkles className="h-4 w-4 mr-2" />
+                                        Generate Outline
+                                    </MyButton>
+                                </div>
+                            </div>
+                        )}
                     </motion.div>
                 </div>
             </div>
@@ -949,124 +1091,124 @@ function RouteComponent() {
                             </p>
                         </DialogDescription>
                     </DialogHeader>
-                    
+
                     {/* Summary Section - Scrollable */}
                     <div className="flex-1 overflow-y-auto px-6">
                         <div className="space-y-4 py-4">
-                        {/* Course Goal */}
-                        <div>
-                            <h4 className="text-sm font-semibold text-neutral-900 mb-2">Course Goal</h4>
-                            <p className="text-sm text-neutral-600 bg-neutral-50 rounded-md p-3 border border-neutral-200">
-                                {courseGoal || 'Not provided'}
-                            </p>
-                        </div>
-
-                        {/* Learning Outcome */}
-                        {learningOutcome && (
+                            {/* Course Goal */}
                             <div>
-                                <h4 className="text-sm font-semibold text-neutral-900 mb-2">Learning Outcome</h4>
+                                <h4 className="text-sm font-semibold text-neutral-900 mb-2">Course Goal</h4>
                                 <p className="text-sm text-neutral-600 bg-neutral-50 rounded-md p-3 border border-neutral-200">
-                                    {learningOutcome}
+                                    {courseGoal || 'Not provided'}
                                 </p>
                             </div>
-                        )}
 
-                        {/* Course Details */}
-                        <div className="grid grid-cols-2 gap-4">
-                            {skillLevel && (
+                            {/* Learning Outcome */}
+                            {learningOutcome && (
                                 <div>
-                                    <h4 className="text-sm font-semibold text-neutral-900 mb-1">Skill Level</h4>
-                                    <p className="text-sm text-neutral-600 capitalize">{skillLevel}</p>
-                                </div>
-                            )}
-                            {numberOfSubjects && (
-                                <div>
-                                    <h4 className="text-sm font-semibold text-neutral-900 mb-1">Number of Subjects</h4>
-                                    <p className="text-sm text-neutral-600">{numberOfSubjects}</p>
-                                </div>
-                            )}
-                            {numberOfModules && (
-                                <div>
-                                    <h4 className="text-sm font-semibold text-neutral-900 mb-1">Number of Modules</h4>
-                                    <p className="text-sm text-neutral-600">{numberOfModules}</p>
-                                </div>
-                            )}
-                            {numberOfChapters && (
-                                <div>
-                                    <h4 className="text-sm font-semibold text-neutral-900 mb-1">Number of Chapters</h4>
-                                    <p className="text-sm text-neutral-600">{numberOfChapters}</p>
-                                </div>
-                            )}
-                            {(chapterLength || customChapterLength) && (
-                                <div>
-                                    <h4 className="text-sm font-semibold text-neutral-900 mb-1">Chapter Length</h4>
-                                    <p className="text-sm text-neutral-600">
-                                        {chapterLength === 'custom' ? `${customChapterLength} minutes` : chapterLength ? `${chapterLength} minutes` : ''}
+                                    <h4 className="text-sm font-semibold text-neutral-900 mb-2">Learning Outcome</h4>
+                                    <p className="text-sm text-neutral-600 bg-neutral-50 rounded-md p-3 border border-neutral-200">
+                                        {learningOutcome}
                                     </p>
                                 </div>
                             )}
-                            {slidesPerChapter && (
+
+                            {/* Course Details */}
+                            <div className="grid grid-cols-2 gap-4">
+                                {skillLevel && (
+                                    <div>
+                                        <h4 className="text-sm font-semibold text-neutral-900 mb-1">Skill Level</h4>
+                                        <p className="text-sm text-neutral-600 capitalize">{skillLevel}</p>
+                                    </div>
+                                )}
+                                {numberOfSubjects && (
+                                    <div>
+                                        <h4 className="text-sm font-semibold text-neutral-900 mb-1">Number of Subjects</h4>
+                                        <p className="text-sm text-neutral-600">{numberOfSubjects}</p>
+                                    </div>
+                                )}
+                                {numberOfModules && (
+                                    <div>
+                                        <h4 className="text-sm font-semibold text-neutral-900 mb-1">Number of Modules</h4>
+                                        <p className="text-sm text-neutral-600">{numberOfModules}</p>
+                                    </div>
+                                )}
+                                {numberOfChapters && (
+                                    <div>
+                                        <h4 className="text-sm font-semibold text-neutral-900 mb-1">Number of Chapters</h4>
+                                        <p className="text-sm text-neutral-600">{numberOfChapters}</p>
+                                    </div>
+                                )}
+                                {(chapterLength || customChapterLength) && (
+                                    <div>
+                                        <h4 className="text-sm font-semibold text-neutral-900 mb-1">Chapter Length</h4>
+                                        <p className="text-sm text-neutral-600">
+                                            {chapterLength === 'custom' ? `${customChapterLength} minutes` : chapterLength ? `${chapterLength} minutes` : ''}
+                                        </p>
+                                    </div>
+                                )}
+                                {slidesPerChapter && (
+                                    <div>
+                                        <h4 className="text-sm font-semibold text-neutral-900 mb-1">Slides per Chapter</h4>
+                                        <p className="text-sm text-neutral-600">{slidesPerChapter}</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* What to Include */}
+                            {(includeDiagrams || includeCodeSnippets || includePracticeProblems || includeQuizzes ||
+                                includeHomework || includeSolutions || includeYouTubeVideo || includeAIGeneratedVideo) && (
+                                    <div>
+                                        <h4 className="text-sm font-semibold text-neutral-900 mb-2">What to Include</h4>
+                                        <div className="flex flex-wrap gap-2">
+                                            {includeDiagrams && (
+                                                <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Diagrams</span>
+                                            )}
+                                            {includeCodeSnippets && (
+                                                <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">
+                                                    Code Snippets{programmingLanguage ? ` (${programmingLanguage})` : ''}
+                                                </span>
+                                            )}
+                                            {includePracticeProblems && (
+                                                <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Practice Problems</span>
+                                            )}
+                                            {includeQuizzes && (
+                                                <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Quizzes</span>
+                                            )}
+                                            {includeHomework && (
+                                                <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Assignments</span>
+                                            )}
+                                            {includeSolutions && (
+                                                <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Solutions</span>
+                                            )}
+                                            {includeYouTubeVideo && (
+                                                <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">YouTube Video</span>
+                                            )}
+                                            {includeAIGeneratedVideo && (
+                                                <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">AI Generated Video</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                            {/* References */}
+                            {(referenceUrls.length > 0 || referenceFiles.length > 0) && (
                                 <div>
-                                    <h4 className="text-sm font-semibold text-neutral-900 mb-1">Slides per Chapter</h4>
-                                    <p className="text-sm text-neutral-600">{slidesPerChapter}</p>
+                                    <h4 className="text-sm font-semibold text-neutral-900 mb-2">References</h4>
+                                    <div className="space-y-2">
+                                        {referenceUrls.length > 0 && (
+                                            <p className="text-sm text-neutral-600">
+                                                <span className="font-medium">{referenceUrls.length}</span> URL{referenceUrls.length !== 1 ? 's' : ''} added
+                                            </p>
+                                        )}
+                                        {referenceFiles.length > 0 && (
+                                            <p className="text-sm text-neutral-600">
+                                                <span className="font-medium">{referenceFiles.length}</span> file{referenceFiles.length !== 1 ? 's' : ''} uploaded
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             )}
-                        </div>
-
-                        {/* What to Include */}
-                        {(includeDiagrams || includeCodeSnippets || includePracticeProblems || includeQuizzes || 
-                          includeHomework || includeSolutions || includeYouTubeVideo || includeAIGeneratedVideo) && (
-                            <div>
-                                <h4 className="text-sm font-semibold text-neutral-900 mb-2">What to Include</h4>
-                                <div className="flex flex-wrap gap-2">
-                                    {includeDiagrams && (
-                                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Diagrams</span>
-                                    )}
-                                    {includeCodeSnippets && (
-                                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">
-                                            Code Snippets{programmingLanguage ? ` (${programmingLanguage})` : ''}
-                                        </span>
-                                    )}
-                                    {includePracticeProblems && (
-                                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Practice Problems</span>
-                                    )}
-                                    {includeQuizzes && (
-                                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Quizzes</span>
-                                    )}
-                                    {includeHomework && (
-                                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Assignments</span>
-                                    )}
-                                    {includeSolutions && (
-                                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">Solutions</span>
-                                    )}
-                                    {includeYouTubeVideo && (
-                                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">YouTube Video</span>
-                                    )}
-                                    {includeAIGeneratedVideo && (
-                                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md">AI Generated Video</span>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* References */}
-                        {(referenceUrls.length > 0 || referenceFiles.length > 0) && (
-                            <div>
-                                <h4 className="text-sm font-semibold text-neutral-900 mb-2">References</h4>
-                                <div className="space-y-2">
-                                    {referenceUrls.length > 0 && (
-                                        <p className="text-sm text-neutral-600">
-                                            <span className="font-medium">{referenceUrls.length}</span> URL{referenceUrls.length !== 1 ? 's' : ''} added
-                                        </p>
-                                    )}
-                                    {referenceFiles.length > 0 && (
-                                        <p className="text-sm text-neutral-600">
-                                            <span className="font-medium">{referenceFiles.length}</span> file{referenceFiles.length !== 1 ? 's' : ''} uploaded
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                        )}
                         </div>
                     </div>
 

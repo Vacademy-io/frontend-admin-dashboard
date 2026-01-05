@@ -11,6 +11,7 @@ import StudentDisplaySettings from '@/routes/settings/-components/RoleDisplay/St
 import CustomFieldsSettings from '@/components/settings/CustomFieldsSettings';
 import CertificatesSettings from '../-components/Certificates/CertificatesSettings';
 import { TemplateSettings } from '@/components/templates';
+import AiSettings from '../-components/AiSettings';
 
 export const getAvailableSettingsTabs = () => {
     return [
@@ -73,6 +74,11 @@ export const getAvailableSettingsTabs = () => {
             tab: SettingsTabs.Templates,
             value: 'Template Settings',
             component: TemplateSettings,
+        },
+        {
+            tab: SettingsTabs.AiSettings,
+            value: 'AI Settings',
+            component: AiSettings,
         },
     ];
 };

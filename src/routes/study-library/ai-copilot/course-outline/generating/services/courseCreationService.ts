@@ -22,6 +22,7 @@ interface CreateCourseParams {
     courseName: string;
     durationInDays?: number;
     sessions: SessionProgress[];
+    status?: 'ACTIVE' | 'DRAFT';
     courseMetadata?: {
         aboutCourse?: string;
         learningOutcome?: string;
@@ -133,7 +134,7 @@ export async function createCourseWithContent(params: CreateCourseParams): Promi
         tags: courseMetadata?.tags || [],
         course_depth: courseMetadata?.levelStructure || 2,
         // Required fields for course creation
-        status: isAdmin ? 'ACTIVE' : 'DRAFT',
+        status: params.status || (isAdmin ? 'ACTIVE' : 'DRAFT'),
         created_by_user_id: tokenData?.user || '',
         original_course_id: null,
         version_number: 1,

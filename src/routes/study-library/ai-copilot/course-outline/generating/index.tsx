@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet';
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSidebar } from '@/components/ui/sidebar';
 import { MyButton } from '@/components/design-system/button';
-import { BASE_URL } from '@/constants/urls';
+import { BASE_URL, AI_SERVICE_BASE_URL } from '@/constants/urls';
 
 import { getInstituteId } from '@/constants/helper';
 import { CircularProgress, SortableSessionItem, SortableSlideItem, OutlineGeneratingLoader } from './components';
@@ -14,6 +14,8 @@ import { useSessionHandlers } from './hooks/useSessionHandlers';
 import { useMetadataHandlers } from './hooks/useMetadataHandlers';
 import { useContentGeneration } from './hooks/useContentGeneration';
 import { useCourseCreation } from './hooks/useCourseCreation';
+import { getUserRoles, getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 import { getSessionsWithProgress } from './utils/sessionUtils';
 import { generateSlideContent } from './utils/mockSlideContent';
 import { extractSlideTitlesFromSlides } from '../../shared/utils/slides';
@@ -133,7 +135,7 @@ export function RouteComponent() {
     const navigate = useNavigate();
     const { setOpen } = useSidebar();
     const [slides, setSlides] = useState<SlideGeneration[]>([]);
-    
+
     // Collapse sidebar on mount
     useEffect(() => {
         setOpen(false);
@@ -193,6 +195,18 @@ export function RouteComponent() {
     const [isContentGenerated, setIsContentGenerated] = useState(false);
     const [contentGenerationProgress, setContentGenerationProgress] = useState<string>('');
     const [abortController, setAbortController] = useState<AbortController | null>(null);
+    const [roles, setRoles] = useState<string[]>([]);
+
+    // Detect roles on mount
+    useEffect(() => {
+        const token = getTokenFromCookie(TokenKey.accessToken);
+        if (token) {
+            setRoles(getUserRoles(token));
+        }
+    }, []);
+
+    const isTeacher = roles.includes('TEACHER') && !roles.includes('ADMIN');
+    const isAdmin = roles.includes('ADMIN');
 
     // Drag and drop sensors
     const sensors = useSensors(
@@ -252,7 +266,7 @@ export function RouteComponent() {
         handleSaveMetadataEdit,
     } = metadataHandlers;
     const { handleConfirmGenerateCourseAssets } = contentGenerationHandlers;
-    
+
     // Course creation hook
     const courseCreationHandlers = useCourseCreation(courseMetadata, sessionsWithProgress);
     const { handleCreateCourse, isCreatingCourse, creationProgress } = courseCreationHandlers;
@@ -321,12 +335,12 @@ export function RouteComponent() {
     const hasSlidesToGenerate = useMemo(() => {
         return slides.some((slide) => {
             // Check if slide needs content generation
-            const needsGeneration = 
-                (slide.slideType === 'doc' || 
-                 slide.slideType === 'quiz' || 
-                 slide.slideType === 'assessment' || 
-                 slide.slideType === 'video' || 
-                 slide.slideType === 'ai-video') &&
+            const needsGeneration =
+                (slide.slideType === 'doc' ||
+                    slide.slideType === 'quiz' ||
+                    slide.slideType === 'assessment' ||
+                    slide.slideType === 'video' ||
+                    slide.slideType === 'ai-video') &&
                 (slide.status === 'pending' || slide.status === 'generating' || !slide.content);
             return needsGeneration;
         });
@@ -440,7 +454,7 @@ export function RouteComponent() {
                     navigate({ to: '/study-library/ai-copilot' });
                     return;
                 }
-                
+
                 const courseConfig = JSON.parse(courseConfigStr);
                 // Clear from sessionStorage after reading
                 sessionStorage.removeItem('courseConfig');
@@ -460,7 +474,7 @@ export function RouteComponent() {
 
                 // Build user prompt from courseConfig - simple comma-separated format
                 let userPrompt = courseConfig.courseGoal || '';
-                
+
                 // Build array of additional requirements to append
                 const requirements: string[] = [];
 
@@ -479,7 +493,7 @@ export function RouteComponent() {
 
                 // Add course depth options (check both courseDepthOptions and courseDepth for compatibility)
                 const depthOptions = courseConfig.courseDepthOptions || courseConfig.courseDepth || {};
-                
+
                 if (depthOptions.includeDiagrams) {
                     requirements.push('include diagrams');
                 }
@@ -522,10 +536,10 @@ export function RouteComponent() {
                 const numChapters = courseConfig.durationFormatStructure?.numberOfSessions;
                 const topicsPerSession = courseConfig.durationFormatStructure?.topicsPerSession;
                 // Calculate total slides: slides per chapter * number of chapters
-                const totalSlides = numChapters && topicsPerSession 
+                const totalSlides = numChapters && topicsPerSession
                     ? parseInt(numChapters) * parseInt(topicsPerSession)
                     : null;
-                
+
                 // Calculate estimated time: number of chapters * number of slides * 10 seconds
                 const estimatedSeconds = numChapters && topicsPerSession
                     ? parseInt(numChapters) * parseInt(topicsPerSession) * 10
@@ -534,7 +548,7 @@ export function RouteComponent() {
                 if (estimatedSeconds > 0) {
                     setEstimatedTimeRemaining(estimatedSeconds);
                 }
-                
+
                 const payload: any = {
                     user_prompt: userPrompt,
                     course_tree: null,
@@ -553,13 +567,19 @@ export function RouteComponent() {
                 }
 
                 console.log('=== API Request ===');
-                console.log('URL:', `${BASE_URL}/ai-service/course/ai/v1/generate?institute_id=${instituteId}`);
+                const queryParams = new URLSearchParams({
+                    institute_id: instituteId!,
+                    user_id: courseConfig.userId ?? '',
+                    model: courseConfig.model || 'auto',
+                });
+                const apiUrl = `${AI_SERVICE_BASE_URL}/course/ai/v1/generate?${queryParams.toString()}`;
+
+                console.log('URL:', apiUrl);
                 console.log('Payload:', JSON.stringify(payload, null, 2));
-                
+
                 setGenerationProgress('Connecting to AI service...');
 
                 // Make SSE API call
-                const apiUrl = `${BASE_URL}/ai-service/course/ai/v1/generate?institute_id=${instituteId}`;
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: {
@@ -597,7 +617,7 @@ export function RouteComponent() {
                     const chunk = decoder.decode(value);
                     buffer += chunk;
                     const lines = buffer.split('\n');
-                    
+
                     // Keep the last incomplete line in the buffer
                     buffer = lines.pop() || '';
 
@@ -618,20 +638,20 @@ export function RouteComponent() {
                                     console.log('Full Response:', jsonData);
                                     console.log('Course Metadata:', jsonData.courseMetadata);
                                     console.log('Tree:', jsonData.tree);
-                                    
+
                                     // Validate response structure
                                     if (!jsonData.tree || !Array.isArray(jsonData.tree)) {
                                         console.error('Invalid API response structure:', jsonData);
                                         throw new Error('Invalid response structure: missing or invalid tree');
                                     }
-                                    
+
                                     // Store course metadata (with fallback for missing fields)
                                     const metadata = {
                                         ...jsonData.courseMetadata,
                                         // Fallback for mediaImageUrl if not provided by API
-                                        mediaImageUrl: jsonData.courseMetadata?.mediaImageUrl || 
-                                                      jsonData.courseMetadata?.bannerImageUrl || 
-                                                      jsonData.courseMetadata?.previewImageUrl
+                                        mediaImageUrl: jsonData.courseMetadata?.mediaImageUrl ||
+                                            jsonData.courseMetadata?.bannerImageUrl ||
+                                            jsonData.courseMetadata?.previewImageUrl
                                     };
                                     setCourseMetadata(metadata);
                                     console.log('Course Metadata Set:', metadata);
@@ -645,11 +665,11 @@ export function RouteComponent() {
                                     // Transform API response to slides format
                                     const generatedSlides = transformApiResponseToSlides(jsonData, courseConfig);
                                     console.log('Generated Slides Count:', generatedSlides.length);
-                                    
+
                                     if (generatedSlides.length === 0) {
                                         console.warn('No slides generated from API response');
                                     }
-                                    
+
                                     setSlides(generatedSlides);
 
                                     // Pre-expand all sessions
@@ -692,7 +712,7 @@ export function RouteComponent() {
         const slides: SlideGeneration[] = [];
         const tree = apiResponse.tree;
         const todos = apiResponse.todos;
-        
+
         if (!tree || tree.length === 0) {
             console.warn('No tree found in API response');
             return slides;
@@ -709,12 +729,12 @@ export function RouteComponent() {
 
         const courseNode = tree[0]; // Root course node
         const courseDepth = apiResponse.courseMetadata?.course_depth || 3;
-        
+
         console.log('Course depth:', courseDepth);
 
         // Extract chapters based on depth
         let chapters: any[] = [];
-        
+
         if (courseDepth === 5) {
             // Course → Subject → Module → Chapter → Slide
             const subjects = courseNode.children || [];
@@ -755,10 +775,10 @@ export function RouteComponent() {
         chapters.forEach((chapter: any, chapterIndex: number) => {
             const sessionId = `session-${chapterIndex + 1}`;
             const sessionTitle = chapter.title;
-            
+
             // Get todos for this chapter
             const chapterTodos = todosByChapter.get(sessionTitle) || [];
-            
+
             // Sort todos by order
             chapterTodos.sort((a, b) => (a.order || 0) - (b.order || 0));
 
@@ -808,11 +828,11 @@ export function RouteComponent() {
         if (!content) return false;
         // Check for img tags or mermaid diagrams (which are converted to images)
         return content.includes('<img') ||
-               content.includes('mermaid.ink') ||
-               content.includes('graph') ||
-               content.includes('flowchart') ||
-               content.includes('sequenceDiagram') ||
-               content.includes('classDiagram');
+            content.includes('mermaid.ink') ||
+            content.includes('graph') ||
+            content.includes('flowchart') ||
+            content.includes('sequenceDiagram') ||
+            content.includes('classDiagram');
     };
 
     const handleRegenerate = (slideId: string, section?: 'video' | 'code') => {
@@ -1089,10 +1109,10 @@ export function RouteComponent() {
 
         // Add the placeholder slide
         setSlides((prev) => [...prev, placeholderSlide]);
-        
+
         // Reset the form
         setAddSessionName('');
-        
+
         // Expand the new session so user can add pages
         setExpandedSessions(prev => new Set([...prev, newSessionId]));
     };
@@ -1433,30 +1453,55 @@ export function RouteComponent() {
 
                             {/* Action Buttons - Top Right */}
                             <div className="flex items-center gap-3">
-                                <MyButton
-                                    buttonType="primary"
-                                    onClick={() => {
-                                        setGenerateCourseAssetsDialogOpen(true);
-                                    }}
-                                    disabled={isGeneratingContent || isCreatingCourse || (!hasSlidesToGenerate && !allSessionsCompleted)}
-                                >
-                                    {isGeneratingContent ? (
-                                        <>
-                                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                                            Generating...
-                                        </>
-                                    ) : isContentGenerated ? (
-                                        <>
+                                {isGeneratingContent ? (
+                                    <MyButton
+                                        buttonType="primary"
+                                        disabled
+                                        className="min-w-[140px]"
+                                    >
+                                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                        Generating...
+                                    </MyButton>
+                                ) : isContentGenerated ? (
+                                    <>
+                                        <MyButton
+                                            buttonType="secondary"
+                                            onClick={() => handleCreateCourse('DRAFT')}
+                                            disabled={isCreatingCourse}
+                                            className="min-w-[130px] border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+                                        >
+                                            {isCreatingCourse ? (
+                                                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                            ) : (
+                                                <FileText className="h-4 w-4 mr-1" />
+                                            )}
+                                            Save as Draft
+                                        </MyButton>
+                                        <MyButton
+                                            buttonType="primary"
+                                            onClick={() => {
+                                                setGenerateCourseAssetsDialogOpen(true);
+                                            }}
+                                            disabled={isCreatingCourse}
+                                            className="min-w-[150px]"
+                                        >
                                             <CheckCircle className="h-4 w-4 mr-1" />
-                                            Create Course
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Sparkles className="h-4 w-4 mr-1" />
-                                            Generate Page Content
-                                        </>
-                                    )}
-                                </MyButton>
+                                            {isTeacher ? 'Submit for Approval' : 'Create Course'}
+                                        </MyButton>
+                                    </>
+                                ) : (
+                                    <MyButton
+                                        buttonType="primary"
+                                        onClick={() => {
+                                            setGenerateCourseAssetsDialogOpen(true);
+                                        }}
+                                        disabled={isGeneratingContent || isCreatingCourse || (!hasSlidesToGenerate && !allSessionsCompleted)}
+                                        className="min-w-[180px]"
+                                    >
+                                        <Sparkles className="h-4 w-4 mr-1" />
+                                        Generate Page Content
+                                    </MyButton>
+                                )}
                             </div>
                         </div>
 
@@ -1567,7 +1612,7 @@ export function RouteComponent() {
                                                                                 />
                                                                             ))}
                                                                         {/* Add Page Button */}
-                                                                        <button 
+                                                                        <button
                                                                             className="flex w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-sm font-medium text-neutral-600 transition-colors hover:border-indigo-400 hover:bg-indigo-50"
                                                                             onClick={() => {
                                                                                 setAddingSlideToSessionId(session.sessionId);
@@ -2183,7 +2228,7 @@ export function RouteComponent() {
                                             </div>
                                         </div>
                                     ) : (
-                                        <div 
+                                        <div
                                             className="text-sm text-neutral-700 prose prose-sm max-w-none"
                                             dangerouslySetInnerHTML={{ __html: courseMetadata.why_learn_html }}
                                         />
@@ -2233,7 +2278,7 @@ export function RouteComponent() {
                                             </div>
                                         </div>
                                     ) : (
-                                        <div 
+                                        <div
                                             className="text-sm text-neutral-700 prose prose-sm max-w-none"
                                             dangerouslySetInnerHTML={{ __html: courseMetadata.who_should_learn_html }}
                                         />
@@ -2283,9 +2328,9 @@ export function RouteComponent() {
                                             </div>
                                         </div>
                                     ) : (
-                                        <div 
+                                        <div
                                             className="text-sm text-neutral-700 prose prose-sm max-w-none"
-                                            dangerouslySetInnerHTML={{ 
+                                            dangerouslySetInnerHTML={{
                                                 __html: courseMetadata.about_the_course_html
                                             }}
                                         />
@@ -2327,325 +2372,322 @@ export function RouteComponent() {
                                             </div>
                                         )}
 
-                                    {/* Video + Code Slide */}
-                                    {(viewingSlide.slideType === 'topic' ||
-                                        viewingSlide.slideType === 'video-code-editor' ||
-                                        viewingSlide.slideType === 'video-jupyter' ||
-                                        viewingSlide.slideType === 'video-scratch') && (
-                                        <div
-                                            ref={resizeContainerRef}
-                                            className="flex gap-0 h-[600px] relative"
-                                        >
-                                            {/* Code Editor Section */}
-                                            <div
-                                                className="border rounded-l-lg overflow-hidden flex-shrink-0 flex flex-col"
-                                                style={{ width: `${codeEditorWidth}%` }}
-                                            >
-                                                {/* Code Editor Header */}
-                                                <div className="bg-white px-4 py-3 border-b flex items-center justify-between gap-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
-                                                            <Code className="h-4 w-4" />
-                                                            <span>Code Editor</span>
-                                                        </div>
-                                                        <span
-                                                            className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                                                                isEditMode
-                                                                    ? 'bg-emerald-100 text-emerald-700'
-                                                                    : 'bg-neutral-200 text-neutral-600'
-                                                            }`}
-                                                        >
-                                                            {isEditMode ? 'Edit Mode' : 'View Mode'}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <button
-                                                            onClick={handleRunCode}
-                                                            className="flex items-center gap-2 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded text-sm font-medium transition-colors"
-                                                        >
-                                                            <Play className="h-4 w-4" />
-                                                            Run
-                                                        </button>
-                                                        <DropdownMenu>
-                                                            <DropdownMenuTrigger asChild>
-                                                                <button className="flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-neutral-50 border border-neutral-300 rounded text-sm font-medium transition-colors">
-                                                                    <Settings className="h-4 w-4" />
-                                                                    Settings
-                                                                    <ChevronDown className="h-3 w-3" />
-                                                                </button>
-                                                            </DropdownMenuTrigger>
-                                                            <DropdownMenuContent className="w-56 bg-white" align="end">
-                                                                {/* View/Edit Mode */}
-                                                                <DropdownMenuCheckboxItem
-                                                                    checked={isEditMode}
-                                                                    onCheckedChange={(checked) => setIsEditMode(!!checked)}
-                                                                    className="flex items-center justify-between"
-                                                                >
-                                                                    <div className="flex items-center gap-2">
-                                                                        <Eye className="h-4 w-4" />
-                                                                        <span>View/Edit Mode</span>
-                                                                    </div>
-                                                                    {isEditMode && (
-                                                                        <div className="flex items-center gap-1">
-                                                                            <div className="flex h-5 w-9 items-center rounded-full bg-emerald-500 px-1">
-                                                                                <div className="h-3.5 w-3.5 rounded-full bg-white shadow-sm" />
-                                                                            </div>
-                                                                            <Pencil className="h-3 w-3 text-neutral-600" />
-                                                                        </div>
-                                                                    )}
-                                                                </DropdownMenuCheckboxItem>
-
-                                                                <DropdownMenuSeparator />
-
-                                                                {/* Switch Theme */}
-                                                                <DropdownMenuItem
-                                                                    onClick={() => setIsDarkTheme((prev) => !prev)}
-                                                                    className="flex items-center gap-2"
-                                                                >
-                                                                    <Sun className="h-4 w-4" />
-                                                                    <span>{isDarkTheme ? 'Switch to Light Theme' : 'Switch to Dark Theme'}</span>
-                                                                </DropdownMenuItem>
-
-                                                                <DropdownMenuSeparator />
-
-                                                                {/* Copy Code */}
-                                                                <DropdownMenuItem
-                                                                    onClick={handleCopyCode}
-                                                                    className="flex items-center gap-2"
-                                                                >
-                                                                    <Copy className="h-4 w-4" />
-                                                                    <span>Copy Code</span>
-                                                                </DropdownMenuItem>
-
-                                                                {/* Download Code */}
-                                                                <DropdownMenuItem
-                                                                    onClick={handleDownloadCode}
-                                                                    className="flex items-center gap-2"
-                                                                >
-                                                                    <Download className="h-4 w-4" />
-                                                                    <span>Download Code</span>
-                                                                </DropdownMenuItem>
-                                                            </DropdownMenuContent>
-                                                        </DropdownMenu>
-                                                    </div>
-                                                </div>
-                                                <Editor
-                                                    height="calc(100% - 60px)"
-                                                    language="javascript"
-                                                    value={codeContent}
-                                                    onChange={(value) => setCodeContent(value || '')}
-                                                    theme={isDarkTheme ? 'vs-dark' : 'light'}
-                                                    options={{
-                                                        minimap: { enabled: false },
-                                                        fontSize: 14,
-                                                        lineNumbers: 'on',
-                                                        scrollBeyondLastLine: false,
-                                                        automaticLayout: true,
-                                                        readOnly: !isEditMode,
-                                                    }}
-                                                />
-                                            </div>
-
-                                            {/* Resize Divider */}
-                                            <div
-                                                className="w-1 bg-neutral-300 hover:bg-indigo-500 cursor-col-resize flex-shrink-0 transition-colors relative group"
-                                                onMouseDown={handleResizeStart}
-                                                style={{ cursor: isResizing ? 'col-resize' : 'col-resize' }}
-                                            >
-                                                <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-8 flex items-center justify-center">
-                                                    <div className="w-1 h-12 bg-neutral-400 group-hover:bg-indigo-500 rounded-full transition-colors" />
-                                                </div>
-                                            </div>
-
-                                            {/* Video Section */}
-                                            <div
-                                                className="border rounded-r-lg overflow-hidden bg-black flex-shrink-0 flex items-center justify-center"
-                                                style={{ width: `${100 - codeEditorWidth}%` }}
-                                            >
-                                                <div className="w-full h-full flex items-center justify-center bg-black">
-                                                    <div className="text-white text-center px-6">
-                                                        <Video className="h-16 w-16 mx-auto mb-2 opacity-50" />
-                                                        <p className="text-sm opacity-75">Video Player</p>
-                                                        <p className="text-xs mt-2 opacity-50">Video will be displayed here</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Quiz Slide */}
-                                    {viewingSlide.slideType === 'quiz' && (
-                                        <div className="space-y-6">
-                                            <div className="flex items-start justify-between gap-4">
-                                                <div className="flex-1">
-                                                    <Label className="text-base font-semibold">Question:</Label>
-                                                    <p className="mt-2 text-neutral-700">
-                                                        {currentQuizQuestion?.question ?? 'No question available'}
-                                                    </p>
-                                                </div>
-                                                <div className="flex items-center gap-3">
-                                                    <button
-                                                        onClick={() => handleQuizNavigation('prev')}
-                                                        disabled={currentQuizQuestionIndex === 0}
-                                                        className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-600 transition-colors hover:border-emerald-400 hover:text-emerald-600 disabled:cursor-not-allowed disabled:opacity-40"
-                                                        aria-label="Previous question"
-                                                    >
-                                                        <ChevronLeft className="h-4 w-4" />
-                                                    </button>
-                                                    <span className="text-sm font-medium text-neutral-600">
-                                                        {currentQuizQuestionIndex + 1}/{quizQuestions.length}
-                                                    </span>
-                                                    <button
-                                                        onClick={() => handleQuizNavigation('next')}
-                                                        disabled={
-                                                            quizQuestions.length === 0 ||
-                                                            currentQuizQuestionIndex === quizQuestions.length - 1
-                                                        }
-                                                        className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-600 transition-colors hover:border-emerald-400 hover:text-emerald-600 disabled:cursor-not-allowed disabled:opacity-40"
-                                                        aria-label="Next question"
-                                                    >
-                                                        <ChevronRight className="h-4 w-4" />
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            {quizQuestions.length > 0 && currentQuizQuestion ? (
-                                                <RadioGroup
-                                                    value={selectedQuizAnswers[currentQuizQuestionIndex] ?? ''}
-                                                    onValueChange={handleQuizAnswerChange}
-                                                    className="space-y-3"
+                                        {/* Video + Code Slide */}
+                                        {(viewingSlide.slideType === 'topic' ||
+                                            viewingSlide.slideType === 'video-code-editor' ||
+                                            viewingSlide.slideType === 'video-jupyter' ||
+                                            viewingSlide.slideType === 'video-scratch') && (
+                                                <div
+                                                    ref={resizeContainerRef}
+                                                    className="flex gap-0 h-[600px] relative"
                                                 >
-                                                    {currentQuizQuestion.options.map((option, optionIndex) => {
-                                                        const value = optionIndex.toString();
-                                                        const selected = selectedQuizAnswers[currentQuizQuestionIndex] === value;
-                                                        const isCorrect =
-                                                            currentQuizQuestion.correctAnswerIndex?.toString() === value;
-                                                        const highlightClass = selected
-                                                            ? isCorrect
-                                                                ? 'border-emerald-300 bg-emerald-50'
-                                                                : 'border-indigo-300 bg-indigo-50'
-                                                            : 'border-neutral-200 hover:border-emerald-200 hover:bg-emerald-50/40';
-
-                                                        return (
-                                                            <div
-                                                                key={value}
-                                                                className={`flex items-center space-x-2 rounded-lg border p-3 transition-colors ${highlightClass}`}
-                                                            >
-                                                                <RadioGroupItem
-                                                                    value={value}
-                                                                    id={`quiz-${currentQuizQuestionIndex}-${optionIndex}`}
-                                                                />
-                                                                <Label
-                                                                    htmlFor={`quiz-${currentQuizQuestionIndex}-${optionIndex}`}
-                                                                    className="flex-1 cursor-pointer"
+                                                    {/* Code Editor Section */}
+                                                    <div
+                                                        className="border rounded-l-lg overflow-hidden flex-shrink-0 flex flex-col"
+                                                        style={{ width: `${codeEditorWidth}%` }}
+                                                    >
+                                                        {/* Code Editor Header */}
+                                                        <div className="bg-white px-4 py-3 border-b flex items-center justify-between gap-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
+                                                                    <Code className="h-4 w-4" />
+                                                                    <span>Code Editor</span>
+                                                                </div>
+                                                                <span
+                                                                    className={`rounded-full px-3 py-1 text-xs font-semibold ${isEditMode
+                                                                        ? 'bg-emerald-100 text-emerald-700'
+                                                                        : 'bg-neutral-200 text-neutral-600'
+                                                                        }`}
                                                                 >
-                                                                    {option}
-                                                                </Label>
-                                                                {selected && isCorrect && <CheckCircle className="h-5 w-5 text-emerald-500" />}
+                                                                    {isEditMode ? 'Edit Mode' : 'View Mode'}
+                                                                </span>
                                                             </div>
-                                                        );
-                                                    })}
-                                                </RadioGroup>
-                                            ) : (
-                                                <p className="text-sm text-neutral-500">No questions available for this quiz yet.</p>
-                                            )}
-                                        </div>
-                                    )}
+                                                            <div className="flex items-center gap-2">
+                                                                <button
+                                                                    onClick={handleRunCode}
+                                                                    className="flex items-center gap-2 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded text-sm font-medium transition-colors"
+                                                                >
+                                                                    <Play className="h-4 w-4" />
+                                                                    Run
+                                                                </button>
+                                                                <DropdownMenu>
+                                                                    <DropdownMenuTrigger asChild>
+                                                                        <button className="flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-neutral-50 border border-neutral-300 rounded text-sm font-medium transition-colors">
+                                                                            <Settings className="h-4 w-4" />
+                                                                            Settings
+                                                                            <ChevronDown className="h-3 w-3" />
+                                                                        </button>
+                                                                    </DropdownMenuTrigger>
+                                                                    <DropdownMenuContent className="w-56 bg-white" align="end">
+                                                                        {/* View/Edit Mode */}
+                                                                        <DropdownMenuCheckboxItem
+                                                                            checked={isEditMode}
+                                                                            onCheckedChange={(checked) => setIsEditMode(!!checked)}
+                                                                            className="flex items-center justify-between"
+                                                                        >
+                                                                            <div className="flex items-center gap-2">
+                                                                                <Eye className="h-4 w-4" />
+                                                                                <span>View/Edit Mode</span>
+                                                                            </div>
+                                                                            {isEditMode && (
+                                                                                <div className="flex items-center gap-1">
+                                                                                    <div className="flex h-5 w-9 items-center rounded-full bg-emerald-500 px-1">
+                                                                                        <div className="h-3.5 w-3.5 rounded-full bg-white shadow-sm" />
+                                                                                    </div>
+                                                                                    <Pencil className="h-3 w-3 text-neutral-600" />
+                                                                                </div>
+                                                                            )}
+                                                                        </DropdownMenuCheckboxItem>
 
-                                    {/* Homework/Assignment Slide */}
-                                    {(viewingSlide.slideType === 'homework' || viewingSlide.slideType === 'assignment') && (
-                                        <div className="space-y-4">
-                                            <div>
-                                                <Label className="text-base font-semibold">Question:</Label>
-                                                <Textarea
-                                                    value={homeworkQuestion}
-                                                    onChange={(e) => setHomeworkQuestion(e.target.value)}
-                                                    placeholder="Enter assignment question..."
-                                                    className="mt-2 min-h-[100px]"
-                                                />
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-4 mb-2">
-                                                    <Label className="text-base font-semibold">Answer:</Label>
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            onClick={() => setHomeworkAnswerType('text')}
-                                                            className={`px-3 py-1 text-sm rounded ${
-                                                                homeworkAnswerType === 'text'
-                                                                    ? 'bg-indigo-600 text-white'
-                                                                    : 'bg-neutral-100 text-neutral-700'
-                                                            }`}
-                                                        >
-                                                            Text
-                                                        </button>
-                                                        <button
-                                                            onClick={() => setHomeworkAnswerType('code')}
-                                                            className={`px-3 py-1 text-sm rounded ${
-                                                                homeworkAnswerType === 'code'
-                                                                    ? 'bg-indigo-600 text-white'
-                                                                    : 'bg-neutral-100 text-neutral-700'
-                                                            }`}
-                                                        >
-                                                            Code Editor
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                {homeworkAnswerType === 'text' ? (
-                                                    <YooptaEditorWrapper
-                                                        value={homeworkAnswer}
-                                                        onChange={setHomeworkAnswer}
-                                                        placeholder="Enter your answer..."
-                                                        minHeight={300}
-                                                    />
-                                                ) : (
-                                                    <div className="border rounded-lg overflow-hidden">
+                                                                        <DropdownMenuSeparator />
+
+                                                                        {/* Switch Theme */}
+                                                                        <DropdownMenuItem
+                                                                            onClick={() => setIsDarkTheme((prev) => !prev)}
+                                                                            className="flex items-center gap-2"
+                                                                        >
+                                                                            <Sun className="h-4 w-4" />
+                                                                            <span>{isDarkTheme ? 'Switch to Light Theme' : 'Switch to Dark Theme'}</span>
+                                                                        </DropdownMenuItem>
+
+                                                                        <DropdownMenuSeparator />
+
+                                                                        {/* Copy Code */}
+                                                                        <DropdownMenuItem
+                                                                            onClick={handleCopyCode}
+                                                                            className="flex items-center gap-2"
+                                                                        >
+                                                                            <Copy className="h-4 w-4" />
+                                                                            <span>Copy Code</span>
+                                                                        </DropdownMenuItem>
+
+                                                                        {/* Download Code */}
+                                                                        <DropdownMenuItem
+                                                                            onClick={handleDownloadCode}
+                                                                            className="flex items-center gap-2"
+                                                                        >
+                                                                            <Download className="h-4 w-4" />
+                                                                            <span>Download Code</span>
+                                                                        </DropdownMenuItem>
+                                                                    </DropdownMenuContent>
+                                                                </DropdownMenu>
+                                                            </div>
+                                                        </div>
                                                         <Editor
-                                                            height="300px"
+                                                            height="calc(100% - 60px)"
                                                             language="javascript"
-                                                            value={homeworkAnswer}
-                                                            onChange={(value) => setHomeworkAnswer(value || '')}
-                                                            theme="light"
+                                                            value={codeContent}
+                                                            onChange={(value) => setCodeContent(value || '')}
+                                                            theme={isDarkTheme ? 'vs-dark' : 'light'}
                                                             options={{
                                                                 minimap: { enabled: false },
                                                                 fontSize: 14,
                                                                 lineNumbers: 'on',
                                                                 scrollBeyondLastLine: false,
                                                                 automaticLayout: true,
+                                                                readOnly: !isEditMode,
                                                             }}
                                                         />
                                                     </div>
+
+                                                    {/* Resize Divider */}
+                                                    <div
+                                                        className="w-1 bg-neutral-300 hover:bg-indigo-500 cursor-col-resize flex-shrink-0 transition-colors relative group"
+                                                        onMouseDown={handleResizeStart}
+                                                        style={{ cursor: isResizing ? 'col-resize' : 'col-resize' }}
+                                                    >
+                                                        <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-8 flex items-center justify-center">
+                                                            <div className="w-1 h-12 bg-neutral-400 group-hover:bg-indigo-500 rounded-full transition-colors" />
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Video Section */}
+                                                    <div
+                                                        className="border rounded-r-lg overflow-hidden bg-black flex-shrink-0 flex items-center justify-center"
+                                                        style={{ width: `${100 - codeEditorWidth}%` }}
+                                                    >
+                                                        <div className="w-full h-full flex items-center justify-center bg-black">
+                                                            <div className="text-white text-center px-6">
+                                                                <Video className="h-16 w-16 mx-auto mb-2 opacity-50" />
+                                                                <p className="text-sm opacity-75">Video Player</p>
+                                                                <p className="text-xs mt-2 opacity-50">Video will be displayed here</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                        {/* Quiz Slide */}
+                                        {viewingSlide.slideType === 'quiz' && (
+                                            <div className="space-y-6">
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <div className="flex-1">
+                                                        <Label className="text-base font-semibold">Question:</Label>
+                                                        <p className="mt-2 text-neutral-700">
+                                                            {currentQuizQuestion?.question ?? 'No question available'}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <button
+                                                            onClick={() => handleQuizNavigation('prev')}
+                                                            disabled={currentQuizQuestionIndex === 0}
+                                                            className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-600 transition-colors hover:border-emerald-400 hover:text-emerald-600 disabled:cursor-not-allowed disabled:opacity-40"
+                                                            aria-label="Previous question"
+                                                        >
+                                                            <ChevronLeft className="h-4 w-4" />
+                                                        </button>
+                                                        <span className="text-sm font-medium text-neutral-600">
+                                                            {currentQuizQuestionIndex + 1}/{quizQuestions.length}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => handleQuizNavigation('next')}
+                                                            disabled={
+                                                                quizQuestions.length === 0 ||
+                                                                currentQuizQuestionIndex === quizQuestions.length - 1
+                                                            }
+                                                            className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-600 transition-colors hover:border-emerald-400 hover:text-emerald-600 disabled:cursor-not-allowed disabled:opacity-40"
+                                                            aria-label="Next question"
+                                                        >
+                                                            <ChevronRight className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {quizQuestions.length > 0 && currentQuizQuestion ? (
+                                                    <RadioGroup
+                                                        value={selectedQuizAnswers[currentQuizQuestionIndex] ?? ''}
+                                                        onValueChange={handleQuizAnswerChange}
+                                                        className="space-y-3"
+                                                    >
+                                                        {currentQuizQuestion.options.map((option, optionIndex) => {
+                                                            const value = optionIndex.toString();
+                                                            const selected = selectedQuizAnswers[currentQuizQuestionIndex] === value;
+                                                            const isCorrect =
+                                                                currentQuizQuestion.correctAnswerIndex?.toString() === value;
+                                                            const highlightClass = selected
+                                                                ? isCorrect
+                                                                    ? 'border-emerald-300 bg-emerald-50'
+                                                                    : 'border-indigo-300 bg-indigo-50'
+                                                                : 'border-neutral-200 hover:border-emerald-200 hover:bg-emerald-50/40';
+
+                                                            return (
+                                                                <div
+                                                                    key={value}
+                                                                    className={`flex items-center space-x-2 rounded-lg border p-3 transition-colors ${highlightClass}`}
+                                                                >
+                                                                    <RadioGroupItem
+                                                                        value={value}
+                                                                        id={`quiz-${currentQuizQuestionIndex}-${optionIndex}`}
+                                                                    />
+                                                                    <Label
+                                                                        htmlFor={`quiz-${currentQuizQuestionIndex}-${optionIndex}`}
+                                                                        className="flex-1 cursor-pointer"
+                                                                    >
+                                                                        {option}
+                                                                    </Label>
+                                                                    {selected && isCorrect && <CheckCircle className="h-5 w-5 text-emerald-500" />}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </RadioGroup>
+                                                ) : (
+                                                    <p className="text-sm text-neutral-500">No questions available for this quiz yet.</p>
                                                 )}
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
 
-                                    {/* Code Editor Slide */}
-                                    {(viewingSlide.slideType === 'code-editor' ||
-                                        viewingSlide.slideType === 'jupyter' ||
-                                        viewingSlide.slideType === 'scratch' ||
-                                        viewingSlide.slideType === 'solution') && (
-                                        <div className="border rounded-lg overflow-hidden">
-                                            <div className="bg-neutral-100 px-4 py-2 border-b">
-                                                <span className="text-sm font-medium">
-                                                    {viewingSlide.slideType === 'solution' ? 'Solution Code' : 'Code Editor'}
-                                                </span>
+                                        {/* Homework/Assignment Slide */}
+                                        {(viewingSlide.slideType === 'homework' || viewingSlide.slideType === 'assignment') && (
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <Label className="text-base font-semibold">Question:</Label>
+                                                    <Textarea
+                                                        value={homeworkQuestion}
+                                                        onChange={(e) => setHomeworkQuestion(e.target.value)}
+                                                        placeholder="Enter assignment question..."
+                                                        className="mt-2 min-h-[100px]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-4 mb-2">
+                                                        <Label className="text-base font-semibold">Answer:</Label>
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={() => setHomeworkAnswerType('text')}
+                                                                className={`px-3 py-1 text-sm rounded ${homeworkAnswerType === 'text'
+                                                                    ? 'bg-indigo-600 text-white'
+                                                                    : 'bg-neutral-100 text-neutral-700'
+                                                                    }`}
+                                                            >
+                                                                Text
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setHomeworkAnswerType('code')}
+                                                                className={`px-3 py-1 text-sm rounded ${homeworkAnswerType === 'code'
+                                                                    ? 'bg-indigo-600 text-white'
+                                                                    : 'bg-neutral-100 text-neutral-700'
+                                                                    }`}
+                                                            >
+                                                                Code Editor
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    {homeworkAnswerType === 'text' ? (
+                                                        <YooptaEditorWrapper
+                                                            value={homeworkAnswer}
+                                                            onChange={setHomeworkAnswer}
+                                                            placeholder="Enter your answer..."
+                                                            minHeight={300}
+                                                        />
+                                                    ) : (
+                                                        <div className="border rounded-lg overflow-hidden">
+                                                            <Editor
+                                                                height="300px"
+                                                                language="javascript"
+                                                                value={homeworkAnswer}
+                                                                onChange={(value) => setHomeworkAnswer(value || '')}
+                                                                theme="light"
+                                                                options={{
+                                                                    minimap: { enabled: false },
+                                                                    fontSize: 14,
+                                                                    lineNumbers: 'on',
+                                                                    scrollBeyondLastLine: false,
+                                                                    automaticLayout: true,
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <Editor
-                                                height="500px"
-                                                language="javascript"
-                                                value={codeContent}
-                                                onChange={(value) => setCodeContent(value || '')}
-                                                theme="light"
-                                                options={{
-                                                    minimap: { enabled: false },
-                                                    fontSize: 14,
-                                                    lineNumbers: 'on',
-                                                    scrollBeyondLastLine: false,
-                                                    automaticLayout: true,
-                                                }}
-                                            />
-                                        </div>
-                                    )}
+                                        )}
+
+                                        {/* Code Editor Slide */}
+                                        {(viewingSlide.slideType === 'code-editor' ||
+                                            viewingSlide.slideType === 'jupyter' ||
+                                            viewingSlide.slideType === 'scratch' ||
+                                            viewingSlide.slideType === 'solution') && (
+                                                <div className="border rounded-lg overflow-hidden">
+                                                    <div className="bg-neutral-100 px-4 py-2 border-b">
+                                                        <span className="text-sm font-medium">
+                                                            {viewingSlide.slideType === 'solution' ? 'Solution Code' : 'Code Editor'}
+                                                        </span>
+                                                    </div>
+                                                    <Editor
+                                                        height="500px"
+                                                        language="javascript"
+                                                        value={codeContent}
+                                                        onChange={(value) => setCodeContent(value || '')}
+                                                        theme="light"
+                                                        options={{
+                                                            minimap: { enabled: false },
+                                                            fontSize: 14,
+                                                            lineNumbers: 'on',
+                                                            scrollBeyondLastLine: false,
+                                                            automaticLayout: true,
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
                                     </div>
 
                                     {/* Fixed Footer */}
@@ -2669,12 +2711,12 @@ export function RouteComponent() {
                     <RegenerateSlideDialog
                         open={regenerateSlideDialogOpen}
                         onOpenChange={(open) => {
-                        setRegenerateSlideDialogOpen(open);
-                        if (!open) {
-                            setRegenerateSlidePrompt('');
-                            setRegeneratingSlideId(null);
-                            setRegeneratingSection(undefined);
-                        }
+                            setRegenerateSlideDialogOpen(open);
+                            if (!open) {
+                                setRegenerateSlidePrompt('');
+                                setRegeneratingSlideId(null);
+                                setRegeneratingSection(undefined);
+                            }
                         }}
                         prompt={regenerateSlidePrompt}
                         onPromptChange={setRegenerateSlidePrompt}
@@ -2685,32 +2727,32 @@ export function RouteComponent() {
                     <RegenerateSessionDialog
                         open={regenerateSessionDialogOpen}
                         onOpenChange={(open) => {
-                        setRegenerateSessionDialogOpen(open);
-                        if (!open) {
-                            setRegeneratingSessionId(null);
-                        } else if (regeneratingSessionId) {
-                            const session = sessionsWithProgress.find((s) => s.sessionId === regeneratingSessionId);
-                            if (session) {
-                                const slideTitles = extractSlideTitlesFromSlides(session.slides);
-                                const defaultPrompt = `Regenerate the chapter "${session.sessionTitle}"${slideTitles.length > 0 ? ` with the following slides: ${slideTitles.join(", ")}.` : `.`}`;
-                                setRegenerateSessionPrompt(defaultPrompt);
-                                setRegenerateSessionTopics(slideTitles);
-                                setRegenerateSessionNumberOfTopics(slideTitles.length.toString());
-                                const hasQuiz = session.slides.some(s => s.slideType === 'quiz');
-                                const hasHomework = session.slides.some(s => s.slideType === 'homework');
-                                const hasSolution = session.slides.some(s => s.slideType === 'solution');
-                                const hasCodeSlides = session.slides.some(s =>
-                                    s.slideType === 'code-editor' ||
-                                    s.slideType === 'video-code-editor' ||
-                                    s.slideType === 'jupyter' ||
-                                    s.slideType === 'video-jupyter'
-                                );
-                                setRegenerateIncludeCodeSnippets(hasCodeSlides);
-                                setRegenerateIncludeQuizzes(hasQuiz);
-                                setRegenerateIncludeHomework(hasHomework);
-                                setRegenerateIncludeSolutions(hasSolution || hasHomework);
+                            setRegenerateSessionDialogOpen(open);
+                            if (!open) {
+                                setRegeneratingSessionId(null);
+                            } else if (regeneratingSessionId) {
+                                const session = sessionsWithProgress.find((s) => s.sessionId === regeneratingSessionId);
+                                if (session) {
+                                    const slideTitles = extractSlideTitlesFromSlides(session.slides);
+                                    const defaultPrompt = `Regenerate the chapter "${session.sessionTitle}"${slideTitles.length > 0 ? ` with the following slides: ${slideTitles.join(", ")}.` : `.`}`;
+                                    setRegenerateSessionPrompt(defaultPrompt);
+                                    setRegenerateSessionTopics(slideTitles);
+                                    setRegenerateSessionNumberOfTopics(slideTitles.length.toString());
+                                    const hasQuiz = session.slides.some(s => s.slideType === 'quiz');
+                                    const hasHomework = session.slides.some(s => s.slideType === 'homework');
+                                    const hasSolution = session.slides.some(s => s.slideType === 'solution');
+                                    const hasCodeSlides = session.slides.some(s =>
+                                        s.slideType === 'code-editor' ||
+                                        s.slideType === 'video-code-editor' ||
+                                        s.slideType === 'jupyter' ||
+                                        s.slideType === 'video-jupyter'
+                                    );
+                                    setRegenerateIncludeCodeSnippets(hasCodeSlides);
+                                    setRegenerateIncludeQuizzes(hasQuiz);
+                                    setRegenerateIncludeHomework(hasHomework);
+                                    setRegenerateIncludeSolutions(hasSolution || hasHomework);
+                                }
                             }
-                        }
                         }}
                         sessionId={regeneratingSessionId}
                         sessions={sessionsWithProgress}
@@ -2743,12 +2785,12 @@ export function RouteComponent() {
                     <AddSlideDialog
                         open={addSlideDialogOpen}
                         onOpenChange={(open) => {
-                        setAddSlideDialogOpen(open);
-                        if (!open) {
-                            setAddSlidePrompt('');
-                            setAddingSlideToSessionId(null);
-                            setSelectedAddSlideType(null);
-                        }
+                            setAddSlideDialogOpen(open);
+                            if (!open) {
+                                setAddSlidePrompt('');
+                                setAddingSlideToSessionId(null);
+                                setSelectedAddSlideType(null);
+                            }
                         }}
                         selectedType={selectedAddSlideType}
                         onSelectType={handleSelectAddSlideType}
@@ -2756,18 +2798,18 @@ export function RouteComponent() {
                         onPromptChange={setAddSlidePrompt}
                         onConfirm={handleConfirmAddSlide}
                         onBack={() => {
-                                                setSelectedAddSlideType(null);
-                                                setAddSlidePrompt('');
-                                            }}
+                            setSelectedAddSlideType(null);
+                            setAddSlidePrompt('');
+                        }}
                         promptRef={addSlidePromptTextareaRef}
                     />
 
                     <AddSessionDialog
                         open={addSessionDialogOpen}
                         onOpenChange={(open) => {
-                        setAddSessionDialogOpen(open);
-                        if (!open) {
-                            setAddSessionName('');
+                            setAddSessionDialogOpen(open);
+                            if (!open) {
+                                setAddSessionName('');
                             }
                         }}
                         sessionName={addSessionName}
@@ -2778,7 +2820,7 @@ export function RouteComponent() {
                     <GenerateCourseAssetsDialog
                         open={generateCourseAssetsDialogOpen}
                         onOpenChange={setGenerateCourseAssetsDialogOpen}
-                        onConfirm={isContentGenerated ? handleCreateCourse : handleConfirmGenerateCourseAssets}
+                        onConfirm={isContentGenerated ? () => handleCreateCourse('ACTIVE') : handleConfirmGenerateCourseAssets}
                     />
 
                     <BackToLibraryDialog
