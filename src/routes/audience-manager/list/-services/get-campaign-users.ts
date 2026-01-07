@@ -1,5 +1,6 @@
 import { GET_CAMPAIGN_USERS } from '@/constants/urls';
-import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import { getTokenFromCookie } from '@/lib/auth/sessionUtility';
+import { TokenKey } from '@/constants/auth/tokens';
 
 export interface CampaignLeadUser {
     response_id?: string;
@@ -43,8 +44,8 @@ export interface CampaignLeadsRequest {
     audience_id: string;
     source_type?: string;
     source_id?: string;
-    submitted_from_local?: string;
-    submitted_to_local?: string;
+    submitted_from?: string;
+    submitted_to?: string;
     page: number;
     size: number;
     sort_by?: string;
@@ -53,16 +54,27 @@ export interface CampaignLeadsRequest {
 
 const fetchCampaignLeads = async (payload: CampaignLeadsRequest): Promise<CampaignLeadsResponse> => {
     try {
-        const response = await authenticatedAxiosInstance({
+        const accessToken = getTokenFromCookie(TokenKey.accessToken);
+        const response = await fetch(`${GET_CAMPAIGN_USERS}`, {
             method: 'POST',
-            url: GET_CAMPAIGN_USERS,
-            data: payload,
-            params: {
-                pageNo: payload.page,
-                pageSize: payload.size,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
             },
+            body: JSON.stringify({
+                audience_id: payload.audience_id,
+                submitted_from: payload.submitted_from,
+                submitted_to: payload.submitted_to,
+                page: payload.page,
+                size: payload.size
+            }),
         });
-        return response.data;
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
     } catch (error) {
         console.error('Error fetching campaign leads:', error);
         throw error;
@@ -80,8 +92,8 @@ export const handleFetchCampaignUsers = (payload: CampaignLeadsRequest) => {
             payload.sort_direction,
             payload.source_type,
             payload.source_id,
-            payload.submitted_from_local,
-            payload.submitted_to_local,
+            payload.submitted_from,
+            payload.submitted_to,
         ],
         queryFn: () => fetchCampaignLeads(payload),
         staleTime: 60 * 1000, // 1 minute

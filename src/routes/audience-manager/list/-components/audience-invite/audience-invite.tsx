@@ -121,7 +121,7 @@ export const AudienceInvite = () => {
         <div className="flex w-full flex-col gap-10">
             <div className="flex items-center justify-between">
                 <p className="text-h3 font-semibold">Campaign List </p>
-
+                
                 <MyButton
                     buttonType="primary"
                     scale="medium"
@@ -130,7 +130,7 @@ export const AudienceInvite = () => {
                         setIsDialogOpen(true);
                     }}
                 >
-                    +  Add
+                    +  Add Campaign
                 </MyButton>
             </div>
             <div className="flex items-center gap-4">
