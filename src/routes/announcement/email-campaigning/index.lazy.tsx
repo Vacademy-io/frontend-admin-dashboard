@@ -40,7 +40,7 @@ import { TIMEZONE_OPTIONS } from '@/routes/study-library/live-session/schedule/-
 import { getInstituteTags, getUserCountsByTags, type TagItem } from '@/services/tag-management';
 import { getInstituteId } from '@/constants/helper';
 import { getUserRoleForInstitute } from '@/lib/auth/instituteUtils';
-import { getMessageTemplates } from '@/services/message-template-service';
+import { getMessageTemplates, getMessageTemplate } from '@/services/message-template-service';
 import type { MessageTemplate } from '@/types/message-template-types';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import {
@@ -97,9 +97,7 @@ function EmailCampaigningPage() {
         TASKS: {},
     });
 
-    const [recipients, setRecipients] = useState<CreateAnnouncementRequest['recipients']>([
-        { recipientType: 'ROLE', recipientId: 'STUDENT' },
-    ]);
+    const [recipients, setRecipients] = useState<CreateAnnouncementRequest['recipients']>([]);
 
     // For TAG recipient rows
     const [tagSelections, setTagSelections] = useState<Record<number, string[]>>({});
@@ -432,15 +430,34 @@ function EmailCampaigningPage() {
         setSavedTz(timezone);
     }, [timezone, setSavedTz]);
 
-    const handleTemplateSelection = (templateId: string) => {
-        const template = emailTemplates.find((t) => t.id === templateId);
-        if (template) {
+    const handleTemplateSelection = async (templateId: string) => {
+        try {
+            // Fetch full template content from API
+            const fullTemplate = await getMessageTemplate(templateId);
             setSelectedTemplateId(templateId);
-            if (template.subject) {
-                setTitle(template.subject);
+            if (fullTemplate.subject) {
+                setTitle(fullTemplate.subject);
             }
-            if (template.content) {
-                setHtmlContent(template.content);
+            if (fullTemplate.content) {
+                setHtmlContent(fullTemplate.content);
+            }
+        } catch (error) {
+            console.error('Error loading template:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to load template content. Using cached version.',
+                variant: 'destructive',
+            });
+            // Fallback to cached template if API fails
+            const template = emailTemplates.find((t) => t.id === templateId);
+            if (template) {
+                setSelectedTemplateId(templateId);
+                if (template.subject) {
+                    setTitle(template.subject);
+                }
+                if (template.content) {
+                    setHtmlContent(template.content);
+                }
             }
         }
     };

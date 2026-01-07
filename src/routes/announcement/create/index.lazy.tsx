@@ -57,7 +57,7 @@ import { MultiSelect, type OptionType } from '@/components/design-system/multi-s
 import { TIMEZONE_OPTIONS } from '@/routes/study-library/live-session/schedule/-constants/options';
 import { getInstituteTags, getUserCountsByTags, type TagItem } from '@/services/tag-management';
 import { getInstituteId } from '@/constants/helper';
-import { getMessageTemplates } from '@/services/message-template-service';
+import { getMessageTemplates, getMessageTemplate } from '@/services/message-template-service';
 import type { MessageTemplate } from '@/types/message-template-types';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
@@ -652,16 +652,35 @@ function CreateAnnouncementPage() {
         setScheduleType('RECURRING');
     };
 
-    const handleTemplateSelection = (templateId: string) => {
-        const template = emailTemplates.find(t => t.id === templateId);
-        if (template) {
+    const handleTemplateSelection = async (templateId: string) => {
+        try {
+            // Fetch full template content from API
+            const fullTemplate = await getMessageTemplate(templateId);
             setSelectedTemplateId(templateId);
             // Apply template content to title and content
-            if (template.subject) {
-                setTitle(template.subject);
+            if (fullTemplate.subject) {
+                setTitle(fullTemplate.subject);
             }
-            if (template.content) {
-                setHtmlContent(template.content);
+            if (fullTemplate.content) {
+                setHtmlContent(fullTemplate.content);
+            }
+        } catch (error) {
+            console.error('Error loading template:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to load template content. Using cached version.',
+                variant: 'destructive',
+            });
+            // Fallback to cached template if API fails
+            const template = emailTemplates.find(t => t.id === templateId);
+            if (template) {
+                setSelectedTemplateId(templateId);
+                if (template.subject) {
+                    setTitle(template.subject);
+                }
+                if (template.content) {
+                    setHtmlContent(template.content);
+                }
             }
         }
     };
