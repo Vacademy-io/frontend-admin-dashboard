@@ -31,6 +31,10 @@ export const MODEL_DISPLAY_NAMES: Record<string, { name: string; description: st
         name: 'Gemini 2.0 Flash',
         description: 'Experimental, fast',
     },
+    'mistralai/devstral-2512:free': {
+        name: 'DevStral 2512',
+        description: 'Fast and balanced (Recommended)',
+    },
 };
 
 /**

@@ -30,6 +30,7 @@ import { Route as EvaluationIndexRouteImport } from "./routes/evaluation/index"
 import { Route as DashboardIndexRouteImport } from "./routes/dashboard/index"
 import { Route as CommunityIndexRouteImport } from "./routes/community/index"
 import { Route as AuthTransferIndexRouteImport } from "./routes/auth-transfer/index"
+import { Route as AssessmentIndexRouteImport } from "./routes/assessment/index"
 import { Route as AiVideoStudioIndexRouteImport } from "./routes/ai-video-studio/index"
 import { Route as AiCenterIndexRouteImport } from "./routes/ai-center/index"
 import { Route as WorkflowListIndexRouteImport } from "./routes/workflow/list/index"
@@ -66,6 +67,7 @@ import { Route as CommunityQuestionPaperIndexRouteImport } from "./routes/commun
 import { Route as CertificateGenerationStudentDataIndexRouteImport } from "./routes/certificate-generation/student-data/index"
 import { Route as AudienceManagerListIndexRouteImport } from "./routes/audience-manager/list/index"
 import { Route as AssessmentQuestionPapersIndexRouteImport } from "./routes/assessment/question-papers/index"
+import { Route as AssessmentEvaluationAiIndexRouteImport } from "./routes/assessment/evaluation-ai/index"
 import { Route as AssessmentAssessmentListIndexRouteImport } from "./routes/assessment/assessment-list/index"
 import { Route as AnnouncementScheduleIndexRouteImport } from "./routes/announcement/schedule/index"
 import { Route as AnnouncementHistoryIndexRouteImport } from "./routes/announcement/history/index"
@@ -105,6 +107,7 @@ import { Route as StudyLibraryLiveSessionScheduleStep1IndexRouteImport } from ".
 import { Route as StudyLibraryCoursesCourseDetailsSubjectsIndexRouteImport } from "./routes/study-library/courses/course-details/subjects/index"
 import { Route as StudyLibraryAiCopilotCourseOutlineGeneratingIndexRouteImport } from "./routes/study-library/ai-copilot/course-outline/generating/index"
 import { Route as HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRouteImport } from "./routes/homework-creation/create-assessment/$assessmentId/$examtype/index"
+import { Route as AssessmentEvaluationAiAttemptIdProcessIdIndexRouteImport } from "./routes/assessment/evaluation-ai/$attemptId/$processId/index"
 import { Route as AssessmentCreateAssessmentAssessmentIdExamtypeIndexRouteImport } from "./routes/assessment/create-assessment/$assessmentId/$examtype/index"
 import { Route as StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRouteImport } from "./routes/study-library/ai-copilot/shared/components/YouTubePlayerSimple"
 import { Route as StudyLibraryCoursesCourseDetailsSubjectsModulesIndexRouteImport } from "./routes/study-library/courses/course-details/subjects/modules/index"
@@ -120,7 +123,6 @@ import { Route as AssessmentAssessmentListAssessmentDetailsAssessmentIdExamTypeA
 const PricingLazyRouteImport = createFileRoute("/pricing")()
 const LearnerInsightsLazyRouteImport = createFileRoute("/learner-insights")()
 const LandingLazyRouteImport = createFileRoute("/landing")()
-const AssessmentIndexLazyRouteImport = createFileRoute("/assessment/")()
 
 const PricingLazyRoute = PricingLazyRouteImport.update({
   id: "/pricing",
@@ -144,13 +146,6 @@ const AgentChatRoute = AgentChatRouteImport.update({
   path: "/agent-chat",
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import("./routes/agent-chat.lazy").then((d) => d.Route))
-const AssessmentIndexLazyRoute = AssessmentIndexLazyRouteImport.update({
-  id: "/assessment/",
-  path: "/assessment/",
-  getParentRoute: () => rootRouteImport,
-} as any).lazy(() =>
-  import("./routes/assessment/index.lazy").then((d) => d.Route),
-)
 const StudyLibraryIndexRoute = StudyLibraryIndexRouteImport.update({
   id: "/study-library/",
   path: "/study-library/",
@@ -268,6 +263,13 @@ const AuthTransferIndexRoute = AuthTransferIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() =>
   import("./routes/auth-transfer/index.lazy").then((d) => d.Route),
+)
+const AssessmentIndexRoute = AssessmentIndexRouteImport.update({
+  id: "/assessment/",
+  path: "/assessment/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/assessment/index.lazy").then((d) => d.Route),
 )
 const AiVideoStudioIndexRoute = AiVideoStudioIndexRouteImport.update({
   id: "/ai-video-studio/",
@@ -562,6 +564,12 @@ const AssessmentQuestionPapersIndexRoute =
       (d) => d.Route,
     ),
   )
+const AssessmentEvaluationAiIndexRoute =
+  AssessmentEvaluationAiIndexRouteImport.update({
+    id: "/assessment/evaluation-ai/",
+    path: "/assessment/evaluation-ai/",
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AssessmentAssessmentListIndexRoute =
   AssessmentAssessmentListIndexRouteImport.update({
     id: "/assessment/assessment-list/",
@@ -878,6 +886,12 @@ const HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute =
       "./routes/homework-creation/create-assessment/$assessmentId/$examtype/index.lazy"
     ).then((d) => d.Route),
   )
+const AssessmentEvaluationAiAttemptIdProcessIdIndexRoute =
+  AssessmentEvaluationAiAttemptIdProcessIdIndexRouteImport.update({
+    id: "/assessment/evaluation-ai/$attemptId/$processId/",
+    path: "/assessment/evaluation-ai/$attemptId/$processId/",
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute =
   AssessmentCreateAssessmentAssessmentIdExamtypeIndexRouteImport.update({
     id: "/assessment/create-assessment/$assessmentId/$examtype/",
@@ -1000,6 +1014,7 @@ export interface FileRoutesByFullPath {
   "/pricing": typeof PricingLazyRoute
   "/ai-center": typeof AiCenterIndexRoute
   "/ai-video-studio": typeof AiVideoStudioIndexRoute
+  "/assessment": typeof AssessmentIndexRoute
   "/auth-transfer": typeof AuthTransferIndexRoute
   "/community": typeof CommunityIndexRoute
   "/dashboard": typeof DashboardIndexRoute
@@ -1018,7 +1033,6 @@ export interface FileRoutesByFullPath {
   "/settings": typeof SettingsIndexRoute
   "/signup": typeof SignupIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
-  "/assessment": typeof AssessmentIndexLazyRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
   "/planning/activity-logs/$logId": typeof PlanningActivityLogsLogIdRoute
   "/planning/planning/$logId": typeof PlanningPlanningLogIdRoute
@@ -1032,6 +1046,7 @@ export interface FileRoutesByFullPath {
   "/announcement/history": typeof AnnouncementHistoryIndexRoute
   "/announcement/schedule": typeof AnnouncementScheduleIndexRoute
   "/assessment/assessment-list": typeof AssessmentAssessmentListIndexRoute
+  "/assessment/evaluation-ai": typeof AssessmentEvaluationAiIndexRoute
   "/assessment/question-papers": typeof AssessmentQuestionPapersIndexRoute
   "/audience-manager/list": typeof AudienceManagerListIndexRoute
   "/certificate-generation/student-data": typeof CertificateGenerationStudentDataIndexRoute
@@ -1089,6 +1104,7 @@ export interface FileRoutesByFullPath {
   "/study-library/volt/add": typeof StudyLibraryVoltAddIndexRoute
   "/study-library/ai-copilot/shared/components/YouTubePlayerSimple": typeof StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute
   "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
+  "/assessment/evaluation-ai/$attemptId/$processId": typeof AssessmentEvaluationAiAttemptIdProcessIdIndexRoute
   "/homework-creation/create-assessment/$assessmentId/$examtype": typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/study-library/ai-copilot/course-outline/generating": typeof StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute
   "/study-library/courses/course-details/subjects": typeof StudyLibraryCoursesCourseDetailsSubjectsIndexRoute
@@ -1110,6 +1126,7 @@ export interface FileRoutesByTo {
   "/pricing": typeof PricingLazyRoute
   "/ai-center": typeof AiCenterIndexRoute
   "/ai-video-studio": typeof AiVideoStudioIndexRoute
+  "/assessment": typeof AssessmentIndexRoute
   "/auth-transfer": typeof AuthTransferIndexRoute
   "/community": typeof CommunityIndexRoute
   "/dashboard": typeof DashboardIndexRoute
@@ -1128,7 +1145,6 @@ export interface FileRoutesByTo {
   "/settings": typeof SettingsIndexRoute
   "/signup": typeof SignupIndexRoute
   "/study-library": typeof StudyLibraryIndexRoute
-  "/assessment": typeof AssessmentIndexLazyRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
   "/planning/activity-logs/$logId": typeof PlanningActivityLogsLogIdRoute
   "/planning/planning/$logId": typeof PlanningPlanningLogIdRoute
@@ -1142,6 +1158,7 @@ export interface FileRoutesByTo {
   "/announcement/history": typeof AnnouncementHistoryIndexRoute
   "/announcement/schedule": typeof AnnouncementScheduleIndexRoute
   "/assessment/assessment-list": typeof AssessmentAssessmentListIndexRoute
+  "/assessment/evaluation-ai": typeof AssessmentEvaluationAiIndexRoute
   "/assessment/question-papers": typeof AssessmentQuestionPapersIndexRoute
   "/audience-manager/list": typeof AudienceManagerListIndexRoute
   "/certificate-generation/student-data": typeof CertificateGenerationStudentDataIndexRoute
@@ -1199,6 +1216,7 @@ export interface FileRoutesByTo {
   "/study-library/volt/add": typeof StudyLibraryVoltAddIndexRoute
   "/study-library/ai-copilot/shared/components/YouTubePlayerSimple": typeof StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute
   "/assessment/create-assessment/$assessmentId/$examtype": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
+  "/assessment/evaluation-ai/$attemptId/$processId": typeof AssessmentEvaluationAiAttemptIdProcessIdIndexRoute
   "/homework-creation/create-assessment/$assessmentId/$examtype": typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/study-library/ai-copilot/course-outline/generating": typeof StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute
   "/study-library/courses/course-details/subjects": typeof StudyLibraryCoursesCourseDetailsSubjectsIndexRoute
@@ -1222,6 +1240,7 @@ export interface FileRoutesById {
   "/pricing": typeof PricingLazyRoute
   "/ai-center/": typeof AiCenterIndexRoute
   "/ai-video-studio/": typeof AiVideoStudioIndexRoute
+  "/assessment/": typeof AssessmentIndexRoute
   "/auth-transfer/": typeof AuthTransferIndexRoute
   "/community/": typeof CommunityIndexRoute
   "/dashboard/": typeof DashboardIndexRoute
@@ -1240,7 +1259,6 @@ export interface FileRoutesById {
   "/settings/": typeof SettingsIndexRoute
   "/signup/": typeof SignupIndexRoute
   "/study-library/": typeof StudyLibraryIndexRoute
-  "/assessment/": typeof AssessmentIndexLazyRoute
   "/login/oauth/redirect": typeof LoginOauthRedirectRoute
   "/planning/activity-logs/$logId": typeof PlanningActivityLogsLogIdRoute
   "/planning/planning/$logId": typeof PlanningPlanningLogIdRoute
@@ -1254,6 +1272,7 @@ export interface FileRoutesById {
   "/announcement/history/": typeof AnnouncementHistoryIndexRoute
   "/announcement/schedule/": typeof AnnouncementScheduleIndexRoute
   "/assessment/assessment-list/": typeof AssessmentAssessmentListIndexRoute
+  "/assessment/evaluation-ai/": typeof AssessmentEvaluationAiIndexRoute
   "/assessment/question-papers/": typeof AssessmentQuestionPapersIndexRoute
   "/audience-manager/list/": typeof AudienceManagerListIndexRoute
   "/certificate-generation/student-data/": typeof CertificateGenerationStudentDataIndexRoute
@@ -1311,6 +1330,7 @@ export interface FileRoutesById {
   "/study-library/volt/add/": typeof StudyLibraryVoltAddIndexRoute
   "/study-library/ai-copilot/shared/components/YouTubePlayerSimple": typeof StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute
   "/assessment/create-assessment/$assessmentId/$examtype/": typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
+  "/assessment/evaluation-ai/$attemptId/$processId/": typeof AssessmentEvaluationAiAttemptIdProcessIdIndexRoute
   "/homework-creation/create-assessment/$assessmentId/$examtype/": typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
   "/study-library/ai-copilot/course-outline/generating/": typeof StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute
   "/study-library/courses/course-details/subjects/": typeof StudyLibraryCoursesCourseDetailsSubjectsIndexRoute
@@ -1335,6 +1355,7 @@ export interface FileRouteTypes {
     | "/pricing"
     | "/ai-center"
     | "/ai-video-studio"
+    | "/assessment"
     | "/auth-transfer"
     | "/community"
     | "/dashboard"
@@ -1353,7 +1374,6 @@ export interface FileRouteTypes {
     | "/settings"
     | "/signup"
     | "/study-library"
-    | "/assessment"
     | "/login/oauth/redirect"
     | "/planning/activity-logs/$logId"
     | "/planning/planning/$logId"
@@ -1367,6 +1387,7 @@ export interface FileRouteTypes {
     | "/announcement/history"
     | "/announcement/schedule"
     | "/assessment/assessment-list"
+    | "/assessment/evaluation-ai"
     | "/assessment/question-papers"
     | "/audience-manager/list"
     | "/certificate-generation/student-data"
@@ -1424,6 +1445,7 @@ export interface FileRouteTypes {
     | "/study-library/volt/add"
     | "/study-library/ai-copilot/shared/components/YouTubePlayerSimple"
     | "/assessment/create-assessment/$assessmentId/$examtype"
+    | "/assessment/evaluation-ai/$attemptId/$processId"
     | "/homework-creation/create-assessment/$assessmentId/$examtype"
     | "/study-library/ai-copilot/course-outline/generating"
     | "/study-library/courses/course-details/subjects"
@@ -1445,6 +1467,7 @@ export interface FileRouteTypes {
     | "/pricing"
     | "/ai-center"
     | "/ai-video-studio"
+    | "/assessment"
     | "/auth-transfer"
     | "/community"
     | "/dashboard"
@@ -1463,7 +1486,6 @@ export interface FileRouteTypes {
     | "/settings"
     | "/signup"
     | "/study-library"
-    | "/assessment"
     | "/login/oauth/redirect"
     | "/planning/activity-logs/$logId"
     | "/planning/planning/$logId"
@@ -1477,6 +1499,7 @@ export interface FileRouteTypes {
     | "/announcement/history"
     | "/announcement/schedule"
     | "/assessment/assessment-list"
+    | "/assessment/evaluation-ai"
     | "/assessment/question-papers"
     | "/audience-manager/list"
     | "/certificate-generation/student-data"
@@ -1534,6 +1557,7 @@ export interface FileRouteTypes {
     | "/study-library/volt/add"
     | "/study-library/ai-copilot/shared/components/YouTubePlayerSimple"
     | "/assessment/create-assessment/$assessmentId/$examtype"
+    | "/assessment/evaluation-ai/$attemptId/$processId"
     | "/homework-creation/create-assessment/$assessmentId/$examtype"
     | "/study-library/ai-copilot/course-outline/generating"
     | "/study-library/courses/course-details/subjects"
@@ -1556,6 +1580,7 @@ export interface FileRouteTypes {
     | "/pricing"
     | "/ai-center/"
     | "/ai-video-studio/"
+    | "/assessment/"
     | "/auth-transfer/"
     | "/community/"
     | "/dashboard/"
@@ -1574,7 +1599,6 @@ export interface FileRouteTypes {
     | "/settings/"
     | "/signup/"
     | "/study-library/"
-    | "/assessment/"
     | "/login/oauth/redirect"
     | "/planning/activity-logs/$logId"
     | "/planning/planning/$logId"
@@ -1588,6 +1612,7 @@ export interface FileRouteTypes {
     | "/announcement/history/"
     | "/announcement/schedule/"
     | "/assessment/assessment-list/"
+    | "/assessment/evaluation-ai/"
     | "/assessment/question-papers/"
     | "/audience-manager/list/"
     | "/certificate-generation/student-data/"
@@ -1645,6 +1670,7 @@ export interface FileRouteTypes {
     | "/study-library/volt/add/"
     | "/study-library/ai-copilot/shared/components/YouTubePlayerSimple"
     | "/assessment/create-assessment/$assessmentId/$examtype/"
+    | "/assessment/evaluation-ai/$attemptId/$processId/"
     | "/homework-creation/create-assessment/$assessmentId/$examtype/"
     | "/study-library/ai-copilot/course-outline/generating/"
     | "/study-library/courses/course-details/subjects/"
@@ -1668,6 +1694,7 @@ export interface RootRouteChildren {
   PricingLazyRoute: typeof PricingLazyRoute
   AiCenterIndexRoute: typeof AiCenterIndexRoute
   AiVideoStudioIndexRoute: typeof AiVideoStudioIndexRoute
+  AssessmentIndexRoute: typeof AssessmentIndexRoute
   AuthTransferIndexRoute: typeof AuthTransferIndexRoute
   CommunityIndexRoute: typeof CommunityIndexRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
@@ -1685,7 +1712,6 @@ export interface RootRouteChildren {
   SettingsIndexRoute: typeof SettingsIndexRoute
   SignupIndexRoute: typeof SignupIndexRoute
   StudyLibraryIndexRoute: typeof StudyLibraryIndexRoute
-  AssessmentIndexLazyRoute: typeof AssessmentIndexLazyRoute
   LoginOauthRedirectRoute: typeof LoginOauthRedirectRoute
   PlanningActivityLogsLogIdRoute: typeof PlanningActivityLogsLogIdRoute
   PlanningPlanningLogIdRoute: typeof PlanningPlanningLogIdRoute
@@ -1699,6 +1725,7 @@ export interface RootRouteChildren {
   AnnouncementHistoryIndexRoute: typeof AnnouncementHistoryIndexRoute
   AnnouncementScheduleIndexRoute: typeof AnnouncementScheduleIndexRoute
   AssessmentAssessmentListIndexRoute: typeof AssessmentAssessmentListIndexRoute
+  AssessmentEvaluationAiIndexRoute: typeof AssessmentEvaluationAiIndexRoute
   AssessmentQuestionPapersIndexRoute: typeof AssessmentQuestionPapersIndexRoute
   AudienceManagerListIndexRoute: typeof AudienceManagerListIndexRoute
   CertificateGenerationStudentDataIndexRoute: typeof CertificateGenerationStudentDataIndexRoute
@@ -1756,6 +1783,7 @@ export interface RootRouteChildren {
   StudyLibraryVoltAddIndexRoute: typeof StudyLibraryVoltAddIndexRoute
   StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute: typeof StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute
   AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute: typeof AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute
+  AssessmentEvaluationAiAttemptIdProcessIdIndexRoute: typeof AssessmentEvaluationAiAttemptIdProcessIdIndexRoute
   HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute: typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute
   StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute: typeof StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute
   StudyLibraryCoursesCourseDetailsSubjectsIndexRoute: typeof StudyLibraryCoursesCourseDetailsSubjectsIndexRoute
@@ -1800,13 +1828,6 @@ declare module "@tanstack/react-router" {
       path: "/agent-chat"
       fullPath: "/agent-chat"
       preLoaderRoute: typeof AgentChatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    "/assessment/": {
-      id: "/assessment/"
-      path: "/assessment"
-      fullPath: "/assessment"
-      preLoaderRoute: typeof AssessmentIndexLazyRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/study-library/": {
@@ -1933,6 +1954,13 @@ declare module "@tanstack/react-router" {
       path: "/auth-transfer"
       fullPath: "/auth-transfer"
       preLoaderRoute: typeof AuthTransferIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/assessment/": {
+      id: "/assessment/"
+      path: "/assessment"
+      fullPath: "/assessment"
+      preLoaderRoute: typeof AssessmentIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/ai-video-studio/": {
@@ -2185,6 +2213,13 @@ declare module "@tanstack/react-router" {
       path: "/assessment/question-papers"
       fullPath: "/assessment/question-papers"
       preLoaderRoute: typeof AssessmentQuestionPapersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/assessment/evaluation-ai/": {
+      id: "/assessment/evaluation-ai/"
+      path: "/assessment/evaluation-ai"
+      fullPath: "/assessment/evaluation-ai"
+      preLoaderRoute: typeof AssessmentEvaluationAiIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/assessment/assessment-list/": {
@@ -2460,6 +2495,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/assessment/evaluation-ai/$attemptId/$processId/": {
+      id: "/assessment/evaluation-ai/$attemptId/$processId/"
+      path: "/assessment/evaluation-ai/$attemptId/$processId"
+      fullPath: "/assessment/evaluation-ai/$attemptId/$processId"
+      preLoaderRoute: typeof AssessmentEvaluationAiAttemptIdProcessIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/assessment/create-assessment/$assessmentId/$examtype/": {
       id: "/assessment/create-assessment/$assessmentId/$examtype/"
       path: "/assessment/create-assessment/$assessmentId/$examtype"
@@ -2558,6 +2600,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingLazyRoute: PricingLazyRoute,
   AiCenterIndexRoute: AiCenterIndexRoute,
   AiVideoStudioIndexRoute: AiVideoStudioIndexRoute,
+  AssessmentIndexRoute: AssessmentIndexRoute,
   AuthTransferIndexRoute: AuthTransferIndexRoute,
   CommunityIndexRoute: CommunityIndexRoute,
   DashboardIndexRoute: DashboardIndexRoute,
@@ -2575,7 +2618,6 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsIndexRoute: SettingsIndexRoute,
   SignupIndexRoute: SignupIndexRoute,
   StudyLibraryIndexRoute: StudyLibraryIndexRoute,
-  AssessmentIndexLazyRoute: AssessmentIndexLazyRoute,
   LoginOauthRedirectRoute: LoginOauthRedirectRoute,
   PlanningActivityLogsLogIdRoute: PlanningActivityLogsLogIdRoute,
   PlanningPlanningLogIdRoute: PlanningPlanningLogIdRoute,
@@ -2590,6 +2632,7 @@ const rootRouteChildren: RootRouteChildren = {
   AnnouncementHistoryIndexRoute: AnnouncementHistoryIndexRoute,
   AnnouncementScheduleIndexRoute: AnnouncementScheduleIndexRoute,
   AssessmentAssessmentListIndexRoute: AssessmentAssessmentListIndexRoute,
+  AssessmentEvaluationAiIndexRoute: AssessmentEvaluationAiIndexRoute,
   AssessmentQuestionPapersIndexRoute: AssessmentQuestionPapersIndexRoute,
   AudienceManagerListIndexRoute: AudienceManagerListIndexRoute,
   CertificateGenerationStudentDataIndexRoute:
@@ -2665,6 +2708,8 @@ const rootRouteChildren: RootRouteChildren = {
     StudyLibraryAiCopilotSharedComponentsYouTubePlayerSimpleRoute,
   AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute:
     AssessmentCreateAssessmentAssessmentIdExamtypeIndexRoute,
+  AssessmentEvaluationAiAttemptIdProcessIdIndexRoute:
+    AssessmentEvaluationAiAttemptIdProcessIdIndexRoute,
   HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute:
     HomeworkCreationCreateAssessmentAssessmentIdExamtypeIndexRoute,
   StudyLibraryAiCopilotCourseOutlineGeneratingIndexRoute:
