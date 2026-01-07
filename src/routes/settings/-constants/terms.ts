@@ -7,6 +7,7 @@ export const CONTENT_TERMS = [
     'Chapter',
     'Slide',
     'LiveSession',
+    'Batch',
 ] as const;
 
 export const ROLE_TERMS = [
@@ -54,6 +55,7 @@ export const defaultNamingSettings: NamingSettingsType[] = [
         systemValue: 'Live Session',
         customValue: 'Live Session',
     },
+    { key: 'Batch', systemValue: 'Batch', customValue: 'Batch' },
 ];
 
 export const systemValueDescription = {
@@ -78,6 +80,7 @@ export const systemValueDescription = {
     Learner:
         'Student is the user role that can has access to the courses of the platform. For eg: Student, Learner',
     LiveSession: 'Live Session of the course. For eg: Live Session 1, Live Session 2',
+    Batch: 'A Batch is a group of learners enrolled in a course session. For eg: Morning Batch, Weekend Batch',
 };
 
 export const enum SettingsTabs {
