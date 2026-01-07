@@ -2,14 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Slide } from '../-hooks/use-slides';
-import { useContentStore } from '../-stores/chapter-sidebar-store';
 import { useMediaNavigationStore } from '../-stores/media-navigation-store';
 import { getPublicUrl } from '@/services/upload_file';
 import YouTubePlayer from './youtube-player';
 import { toast } from 'sonner';
 
 const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedUrl?: string }) => {
-    const { items } = useContentStore();
     const { videoSeekTime, clearVideoSeekTime } = useMediaNavigationStore();
     const videoSourceType = activeItem.video_slide?.source_type;
     const videoStatus = activeItem.status;
@@ -25,6 +23,14 @@ const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedU
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isUrlExpired, setIsUrlExpired] = useState(false);
+
+    // Reset state when switching to a different video slide
+    useEffect(() => {
+        setVideoUrl('');
+        setIsLoading(true);
+        setError(null);
+        setIsUrlExpired(false);
+    }, [activeItem.id]);
 
     const refreshS3Url = async () => {
         try {
@@ -148,7 +154,7 @@ const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedU
                 <p className="mb-2 font-medium text-red-500">{error}</p>
                 <button
                     onClick={refreshS3Url}
-                    className="hover:bg-primary-600 rounded-md bg-primary-500 px-4 py-2 text-white transition-colors"
+                    className="rounded-md bg-primary-500 px-4 py-2 text-white transition-colors hover:bg-primary-600"
                 >
                     Retry
                 </button>
@@ -159,7 +165,7 @@ const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedU
     // FILE_ID video rendering
     if (videoSourceType === 'FILE_ID') {
         return (
-            <div key={`video-${items.length + 1}`} className="w-full overflow-hidden rounded-lg">
+            <div key={`video-${activeItem.id}`} className="w-full overflow-hidden rounded-lg">
                 {isUrlExpired ? (
                     <div className="flex h-64 flex-col items-center justify-center bg-yellow-50 p-4">
                         <p className="mb-4 text-yellow-700">Video URL has expired. Refreshing...</p>
@@ -187,7 +193,7 @@ const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedU
 
     // YouTube embed fallback for 'VIDEO'
     return (
-        <div key={`video-${items.length + 1}`} className="size-full">
+        <div key={`video-${activeItem.id}`} className="size-full">
             <YouTubePlayer
                 videoUrl={
                     activeItem.video_slide?.published_url ||

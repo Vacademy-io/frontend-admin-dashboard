@@ -36,6 +36,7 @@ export enum ContentTerms {
     Chapters = 'Chapters',
     Slides = 'Slides',
     LiveSession = 'LiveSession',
+    Batch = 'Batch',
 }
 
 export enum RoleTerms {
@@ -55,6 +56,7 @@ export enum SystemTerms {
     Chapters = 'Chapter',
     Slides = 'Slide',
     LiveSession = 'Live Session',
+    Batch = 'Batch',
     Admin = 'Admin',
     Teacher = 'Teacher',
     CourseCreator = 'Course Creator',

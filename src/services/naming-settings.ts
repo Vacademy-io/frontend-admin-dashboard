@@ -18,6 +18,7 @@ export interface NamingSettingsRequest {
     Evaluator: string;
     Student: string;
     LiveSession: string;
+    Batch: string;
 }
 
 export const createNamingSettings = async (nameRequest: NamingSettingsRequest): Promise<void> => {

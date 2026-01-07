@@ -30,7 +30,10 @@ import { Route } from '..';
 import { useNavigate } from '@tanstack/react-router';
 import { getCourseSubjects } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
-import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import {
+    getTerminology,
+    getTerminologyPlural,
+} from '@/components/common/layout-container/sidebar/utils';
 
 export interface SelectedQuestionPaperFilters {
     name: string | { id: string; name: string }[];
@@ -507,7 +510,10 @@ export const ScheduleTestMainComponent = ({
                             {/* Only show batch filter if not in course outline mode or explicitly enabled */}
                             {(!isCourseOutline || showBatchFilter) && (
                                 <ScheduleTestFilters
-                                    label="Batches"
+                                    label={getTerminologyPlural(
+                                        ContentTerms.Batch,
+                                        SystemTerms.Batch
+                                    )}
                                     data={BatchesFilterData}
                                     selectedItems={selectedQuestionPaperFilters['batch_ids'] || []}
                                     onSelectionChange={(items) =>

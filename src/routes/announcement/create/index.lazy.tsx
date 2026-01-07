@@ -30,7 +30,9 @@ import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
 import useLocalStorage from '@/hooks/use-local-storage';
 import { lazy, Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
-const TipTapEditor = lazy(() => import('@/components/tiptap/TipTapEditor').then(module => ({ default: module.TipTapEditor })));
+const TipTapEditor = lazy(() =>
+    import('@/components/tiptap/TipTapEditor').then((module) => ({ default: module.TipTapEditor }))
+);
 import {
     Dialog,
     DialogContent,
@@ -54,6 +56,7 @@ import {
     type LucideIcon,
 } from 'lucide-react';
 import { MultiSelect, type OptionType } from '@/components/design-system/multi-select';
+import { SearchableSelect } from '@/components/design-system/searchable-select';
 import { TIMEZONE_OPTIONS } from '@/routes/study-library/live-session/schedule/-constants/options';
 import { getInstituteTags, getUserCountsByTags, type TagItem } from '@/services/tag-management';
 import { getInstituteId } from '@/constants/helper';
@@ -61,10 +64,20 @@ import { getMessageTemplates, getMessageTemplate } from '@/services/message-temp
 import type { MessageTemplate } from '@/types/message-template-types';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useInstituteQuery } from '@/services/student-list-section/getInstituteDetails';
-import { getEmailConfigurations, type EmailConfiguration } from '@/services/email-configuration-service';
-import { getCustomFieldSettings, type CustomField, type FixedField, type GroupField } from '@/services/custom-field-settings';
+import {
+    getEmailConfigurations,
+    type EmailConfiguration,
+} from '@/services/email-configuration-service';
+import {
+    getCustomFieldSettings,
+    type CustomField,
+    type FixedField,
+    type GroupField,
+} from '@/services/custom-field-settings';
 import { useCampaignsList } from '@/routes/audience-manager/list/-hooks/useCampaignsList';
 import type { CampaignItem } from '@/routes/audience-manager/list/-services/get-campaigns-list';
+import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 
 export const Route = createLazyFileRoute('/announcement/create/')({
     component: () => (
@@ -81,7 +94,8 @@ function CreateAnnouncementPage() {
 
     // Institute details for package sessions
     const instituteQuery = useInstituteQuery();
-    const { instituteDetails, getPackageWiseLevels, getDetailsFromPackageSessionId } = useInstituteDetailsStore();
+    const { instituteDetails, getPackageWiseLevels, getDetailsFromPackageSessionId } =
+        useInstituteDetailsStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [loadingPermissions, setLoadingPermissions] = useState(true);
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -118,9 +132,7 @@ function CreateAnnouncementPage() {
         }
     );
     const [syncPushFromTitleContent, setSyncPushFromTitleContent] = useState<boolean>(true);
-    const [recipients, setRecipients] = useState<CreateAnnouncementRequest['recipients']>([
-        { recipientType: 'ROLE', recipientId: 'STUDENT' },
-    ]);
+    const [recipients, setRecipients] = useState<CreateAnnouncementRequest['recipients']>([]);
     // For TAG recipient rows, hold selected tagIds by row index
     const [tagSelections, setTagSelections] = useState<Record<number, string[]>>({});
     const [tagFilterByRow, setTagFilterByRow] = useState<
@@ -134,19 +146,26 @@ function CreateAnnouncementPage() {
     const [rowTagEstimates, setRowTagEstimates] = useState<Record<number, number | null>>({});
 
     // For CUSTOM_FIELD recipient rows
-    const [customFieldOptions, setCustomFieldOptions] = useState<Array<{
-        id: string;
-        name: string;
-        type: 'text' | 'dropdown' | 'number';
-        options?: string[];
-    }>>([]);
-    const [customFieldFilters, setCustomFieldFilters] = useState<Record<number, Array<{
-        fieldId: string;
-        fieldName: string;
-        fieldType: 'text' | 'dropdown' | 'number';
-        filterValue?: string | string[];
-        operator?: 'equals' | 'contains' | 'starts_with' | 'ends_with';
-    }>>>({});
+    const [customFieldOptions, setCustomFieldOptions] = useState<
+        Array<{
+            id: string;
+            name: string;
+            type: 'text' | 'dropdown' | 'number';
+            options?: string[];
+        }>
+    >([]);
+    const [customFieldFilters, setCustomFieldFilters] = useState<
+        Record<
+            number,
+            Array<{
+                fieldId: string;
+                fieldName: string;
+                fieldType: 'text' | 'dropdown' | 'number';
+                filterValue?: string | string[];
+                operator?: 'equals' | 'contains' | 'starts_with' | 'ends_with';
+            }>
+        >
+    >({});
     const [scheduleType, setScheduleType] = useState<'IMMEDIATE' | 'ONE_TIME' | 'RECURRING'>(
         'IMMEDIATE'
     );
@@ -178,17 +197,21 @@ function CreateAnnouncementPage() {
 
     // Package session selection state
     const [selectedPackageSessionId, setSelectedPackageSessionId] = useState<string>('');
-    const [packageSessionOptions, setPackageSessionOptions] = useState<Array<{
-        id: string;
-        label: string;
-        packageName: string;
-        levelName: string;
-        sessionName: string;
-        is_org_associated?: boolean;
-    }>>([]);
+    const [packageSessionOptions, setPackageSessionOptions] = useState<
+        Array<{
+            id: string;
+            label: string;
+            packageName: string;
+            levelName: string;
+            sessionName: string;
+            is_org_associated?: boolean;
+        }>
+    >([]);
 
     // Track selected role for sub-org batches (Admin or Learner)
-    const [batchRoleSelections, setBatchRoleSelections] = useState<Record<number, 'ADMIN' | 'LEARNER'>>({});
+    const [batchRoleSelections, setBatchRoleSelections] = useState<
+        Record<number, 'ADMIN' | 'LEARNER'>
+    >({});
 
     // Exclusion state - per recipient row
     const [recipientExclusions, setRecipientExclusions] = useState<
@@ -333,9 +356,15 @@ function CreateAnnouncementPage() {
                 // Always set a default email when configurations are loaded
                 if (configs.length > 0) {
                     // Check if the persisted email is still valid
-                    const persistedEmail = typeof window !== 'undefined' ? localStorage.getItem('selectedFromEmail') : null;
+                    const persistedEmail =
+                        typeof window !== 'undefined'
+                            ? localStorage.getItem('selectedFromEmail')
+                            : null;
 
-                    if (persistedEmail && configs.find(c => `${c.email}-${c.name}` === persistedEmail)) {
+                    if (
+                        persistedEmail &&
+                        configs.find((c) => `${c.email}-${c.name}` === persistedEmail)
+                    ) {
                         setSelectedFromEmail(persistedEmail);
                     } else {
                         const defaultValue = `${configs[0]?.email}-${configs[0]?.name}`;
@@ -408,10 +437,8 @@ function CreateAnnouncementPage() {
         [instituteId]
     );
 
-    const {
-        data: campaignsList,
-        isLoading: campaignsListLoading,
-    } = useCampaignsList(campaignsPayload);
+    const { data: campaignsList, isLoading: campaignsListLoading } =
+        useCampaignsList(campaignsPayload);
 
     useEffect(() => {
         if (campaignsList?.content) {
@@ -573,8 +600,11 @@ function CreateAnnouncementPage() {
             } else if (r.recipientType === 'CUSTOM_FIELD_FILTER') {
                 const filters = customFieldFilters[idx] || [];
                 const filterText = filters
-                    .filter(f => f.fieldId && f.filterValue)
-                    .map(f => `${f.fieldName}: ${Array.isArray(f.filterValue) ? f.filterValue.join(', ') : f.filterValue}`)
+                    .filter((f) => f.fieldId && f.filterValue)
+                    .map(
+                        (f) =>
+                            `${f.fieldName}: ${Array.isArray(f.filterValue) ? f.filterValue.join(', ') : f.filterValue}`
+                    )
                     .join('; ');
                 items.push({ type: 'CUSTOM_FIELD_FILTER', text: filterText || '—' });
             } else {
@@ -711,7 +741,7 @@ function CreateAnnouncementPage() {
                 {
                     recipientType: 'PACKAGE_SESSION',
                     recipientId: firstBatch.id,
-                    recipientName: firstBatch.label
+                    recipientName: firstBatch.label,
                 },
             ]);
         } else {
@@ -721,7 +751,7 @@ function CreateAnnouncementPage() {
                 {
                     recipientType: 'PACKAGE_SESSION',
                     recipientId: '',
-                    recipientName: ''
+                    recipientName: '',
                 },
             ]);
         }
@@ -985,11 +1015,17 @@ function CreateAnnouncementPage() {
                         <div
                             className={`rounded border bg-white ${errors.content ? 'border-red-500' : 'border-transparent'}`}
                         >
-                            <Suspense fallback={<div className="flex h-40 items-center justify-center border bg-white"><Loader2 className="animate-spin" /></div>}>
+                            <Suspense
+                                fallback={
+                                    <div className="flex h-40 items-center justify-center border bg-white">
+                                        <Loader2 className="animate-spin" />
+                                    </div>
+                                }
+                            >
                                 <TipTapEditor
                                     value={htmlContent}
                                     onChange={setHtmlContent}
-                                    onBlur={() => { }}
+                                    onBlur={() => {}}
                                     placeholder={'Write the announcement content'}
                                     minHeight={160}
                                 />
@@ -1086,7 +1122,7 @@ function CreateAnnouncementPage() {
                                 onClick={addBatchRecipient}
                                 disabled={packageSessionOptions.length === 0}
                             >
-                                + Add Batch
+                                + Add {getTerminology(ContentTerms.Batch, SystemTerms.Batch)}
                             </Button>
                             <Button
                                 variant="secondary"
@@ -1108,7 +1144,11 @@ function CreateAnnouncementPage() {
                                 onClick={() =>
                                     setRecipients((prev) => [
                                         ...prev,
-                                        { recipientType: 'AUDIENCE', recipientId: '', recipientName: '' },
+                                        {
+                                            recipientType: 'AUDIENCE',
+                                            recipientId: '',
+                                            recipientName: '',
+                                        },
                                     ])
                                 }
                             >
@@ -1124,10 +1164,20 @@ function CreateAnnouncementPage() {
                     <div className="grid gap-3">
                         {recipients.map((r, idx) => {
                             const hasRecipientId = r.recipientId && r.recipientId.trim() !== '';
-                            const hasTagSelection = r.recipientType === 'TAG' && (tagSelections[idx]?.length ?? 0) > 0;
-                            const hasCustomFieldFilters = r.recipientType === 'CUSTOM_FIELD_FILTER' && (customFieldFilters[idx]?.length ?? 0) > 0;
-                            const hasAudienceId = r.recipientType === 'AUDIENCE' && r.recipientId && r.recipientId.trim() !== '';
-                            const showOptions = hasRecipientId || hasTagSelection || hasCustomFieldFilters || hasAudienceId;
+                            const hasTagSelection =
+                                r.recipientType === 'TAG' && (tagSelections[idx]?.length ?? 0) > 0;
+                            const hasCustomFieldFilters =
+                                r.recipientType === 'CUSTOM_FIELD_FILTER' &&
+                                (customFieldFilters[idx]?.length ?? 0) > 0;
+                            const hasAudienceId =
+                                r.recipientType === 'AUDIENCE' &&
+                                r.recipientId &&
+                                r.recipientId.trim() !== '';
+                            const showOptions =
+                                hasRecipientId ||
+                                hasTagSelection ||
+                                hasCustomFieldFilters ||
+                                hasAudienceId;
 
                             return (
                                 <div key={idx} className="space-y-3">
@@ -1158,7 +1208,8 @@ function CreateAnnouncementPage() {
                                                 });
                                                 setTagFilterByRow((prev) => {
                                                     const next = { ...prev };
-                                                    if (val === 'TAG') next[idx] = next[idx] || 'ALL';
+                                                    if (val === 'TAG')
+                                                        next[idx] = next[idx] || 'ALL';
                                                     else delete next[idx];
                                                     return next;
                                                 });
@@ -1190,13 +1241,18 @@ function CreateAnnouncementPage() {
                                             <SelectContent>
                                                 <SelectItem value="ROLE">ROLE</SelectItem>
                                                 <SelectItem value="PACKAGE_SESSION">
-                                                    Batch
+                                                    {getTerminology(
+                                                        ContentTerms.Batch,
+                                                        SystemTerms.Batch
+                                                    )}
                                                 </SelectItem>
                                                 <SelectItem value="USER">USER</SelectItem>
                                                 <SelectItem value="TAG">TAG</SelectItem>
                                                 <SelectItem value="AUDIENCE">Campaign</SelectItem>
                                                 {customFieldOptions.length > 0 && (
-                                                    <SelectItem value="CUSTOM_FIELD_FILTER">Custom Field Filter</SelectItem>
+                                                    <SelectItem value="CUSTOM_FIELD_FILTER">
+                                                        Custom Field Filter
+                                                    </SelectItem>
                                                 )}
                                             </SelectContent>
                                         </Select>
@@ -1220,14 +1276,17 @@ function CreateAnnouncementPage() {
                                             </Select>
                                         ) : r.recipientType === 'PACKAGE_SESSION' ? (
                                             <div className="space-y-2">
-                                                <Select
-                                                    value={r.recipientId}
-                                                    onValueChange={(val) => {
+                                                <SearchableSelect
+                                                    value={r.recipientId || ''}
+                                                    onChange={(val) => {
                                                         const updated = [...recipients];
                                                         updated[idx] = { ...r, recipientId: val };
                                                         setRecipients(updated);
                                                         // Clear role selection if batch is not sub-org
-                                                        const batchOption = packageSessionOptions.find((opt) => opt.id === val);
+                                                        const batchOption =
+                                                            packageSessionOptions.find(
+                                                                (opt) => opt.id === val
+                                                            );
                                                         if (!batchOption?.is_org_associated) {
                                                             setBatchRoleSelections((prev) => {
                                                                 const next = { ...prev };
@@ -1236,37 +1295,44 @@ function CreateAnnouncementPage() {
                                                             });
                                                         }
                                                     }}
-                                                >
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Select Package Session" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {packageSessionOptions.map((option) => (
-                                                            <SelectItem key={option.id} value={option.id}>
-                                                                {option.label}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                {r.recipientId && packageSessionOptions.find(opt => opt.id === r.recipientId)?.is_org_associated && (
-                                                    <Select
-                                                        value={batchRoleSelections[idx] || ''}
-                                                        onValueChange={(v) => {
-                                                            setBatchRoleSelections((prev) => ({
-                                                                ...prev,
-                                                                [idx]: v as 'ADMIN' | 'LEARNER',
-                                                            }));
-                                                        }}
-                                                    >
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Select role" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="ADMIN">Admin</SelectItem>
-                                                            <SelectItem value="LEARNER">Learner</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                )}
+                                                    options={packageSessionOptions
+                                                        .filter(
+                                                            (opt) => opt.id && opt.id.trim() !== ''
+                                                        )
+                                                        .map((opt) => ({
+                                                            value: opt.id,
+                                                            label: opt.label,
+                                                        }))}
+                                                    placeholder="Select Package Session"
+                                                    searchPlaceholder="Search batches..."
+                                                    emptyText="No batches found."
+                                                />
+                                                {r.recipientId &&
+                                                    packageSessionOptions.find(
+                                                        (opt) => opt.id === r.recipientId
+                                                    )?.is_org_associated && (
+                                                        <Select
+                                                            value={batchRoleSelections[idx] || ''}
+                                                            onValueChange={(v) => {
+                                                                setBatchRoleSelections((prev) => ({
+                                                                    ...prev,
+                                                                    [idx]: v as 'ADMIN' | 'LEARNER',
+                                                                }));
+                                                            }}
+                                                        >
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Select role" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="ADMIN">
+                                                                    Admin
+                                                                </SelectItem>
+                                                                <SelectItem value="LEARNER">
+                                                                    Learner
+                                                                </SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    )}
                                             </div>
                                         ) : r.recipientType === 'USER' ? (
                                             <Input
@@ -1274,118 +1340,248 @@ function CreateAnnouncementPage() {
                                                 value={r.recipientId}
                                                 onChange={(e) => {
                                                     const updated = [...recipients];
-                                                    updated[idx] = { ...r, recipientId: e.target.value };
+                                                    updated[idx] = {
+                                                        ...r,
+                                                        recipientId: e.target.value,
+                                                    };
                                                     setRecipients(updated);
                                                 }}
                                             />
                                         ) : r.recipientType === 'CUSTOM_FIELD_FILTER' ? (
                                             <div className="col-span-2 flex-1 space-y-3">
-                                                <div className="text-xs text-muted-foreground mb-2">
-                                                    Filter users based on custom field values. Add multiple filters to narrow down the audience.
+                                                <div className="mb-2 text-xs text-muted-foreground">
+                                                    Filter users based on custom field values. Add
+                                                    multiple filters to narrow down the audience.
                                                 </div>
-                                                {(customFieldFilters[idx] || []).map((filter, filterIdx) => {
-                                                    const selectedField = customFieldOptions.find(f => f.id === filter.fieldId);
-                                                    return (
-                                                        <div key={filterIdx} className="border rounded-md p-3 space-y-2">
-                                                            <div className="flex items-start gap-2">
-                                                                <div className="flex-1 space-y-2">
-                                                                    <Select
-                                                                        value={filter.fieldId}
-                                                                        onValueChange={(fieldId) => {
-                                                                            const field = customFieldOptions.find(f => f.id === fieldId);
-                                                                            updateCustomFieldFilter(idx, filterIdx, {
-                                                                                fieldId,
-                                                                                fieldName: field?.name || '',
-                                                                                fieldType: field?.type || 'text',
-                                                                                filterValue: field?.type === 'dropdown' ? [] : '',
-                                                                                operator: field?.type === 'text' ? 'equals' : undefined,
-                                                                            });
-                                                                        }}
+                                                {(customFieldFilters[idx] || []).map(
+                                                    (filter, filterIdx) => {
+                                                        const selectedField =
+                                                            customFieldOptions.find(
+                                                                (f) => f.id === filter.fieldId
+                                                            );
+                                                        return (
+                                                            <div
+                                                                key={filterIdx}
+                                                                className="space-y-2 rounded-md border p-3"
+                                                            >
+                                                                <div className="flex items-start gap-2">
+                                                                    <div className="flex-1 space-y-2">
+                                                                        <Select
+                                                                            value={filter.fieldId}
+                                                                            onValueChange={(
+                                                                                fieldId
+                                                                            ) => {
+                                                                                const field =
+                                                                                    customFieldOptions.find(
+                                                                                        (f) =>
+                                                                                            f.id ===
+                                                                                            fieldId
+                                                                                    );
+                                                                                updateCustomFieldFilter(
+                                                                                    idx,
+                                                                                    filterIdx,
+                                                                                    {
+                                                                                        fieldId,
+                                                                                        fieldName:
+                                                                                            field?.name ||
+                                                                                            '',
+                                                                                        fieldType:
+                                                                                            field?.type ||
+                                                                                            'text',
+                                                                                        filterValue:
+                                                                                            field?.type ===
+                                                                                            'dropdown'
+                                                                                                ? []
+                                                                                                : '',
+                                                                                        operator:
+                                                                                            field?.type ===
+                                                                                            'text'
+                                                                                                ? 'equals'
+                                                                                                : undefined,
+                                                                                    }
+                                                                                );
+                                                                            }}
+                                                                        >
+                                                                            <SelectTrigger className="w-full">
+                                                                                <SelectValue placeholder="Select custom field" />
+                                                                            </SelectTrigger>
+                                                                            <SelectContent>
+                                                                                {customFieldOptions.map(
+                                                                                    (field) => (
+                                                                                        <SelectItem
+                                                                                            key={
+                                                                                                field.id
+                                                                                            }
+                                                                                            value={
+                                                                                                field.id
+                                                                                            }
+                                                                                        >
+                                                                                            {
+                                                                                                field.name
+                                                                                            }{' '}
+                                                                                            (
+                                                                                            {
+                                                                                                field.type
+                                                                                            }
+                                                                                            )
+                                                                                        </SelectItem>
+                                                                                    )
+                                                                                )}
+                                                                            </SelectContent>
+                                                                        </Select>
+
+                                                                        {selectedField &&
+                                                                            selectedField.type ===
+                                                                                'text' && (
+                                                                                <div className="space-y-2">
+                                                                                    <Select
+                                                                                        value={
+                                                                                            filter.operator ||
+                                                                                            'equals'
+                                                                                        }
+                                                                                        onValueChange={(
+                                                                                            op
+                                                                                        ) =>
+                                                                                            updateCustomFieldFilter(
+                                                                                                idx,
+                                                                                                filterIdx,
+                                                                                                {
+                                                                                                    operator:
+                                                                                                        op as
+                                                                                                            | 'equals'
+                                                                                                            | 'contains'
+                                                                                                            | 'starts_with'
+                                                                                                            | 'ends_with',
+                                                                                                }
+                                                                                            )
+                                                                                        }
+                                                                                    >
+                                                                                        <SelectTrigger className="w-full">
+                                                                                            <SelectValue />
+                                                                                        </SelectTrigger>
+                                                                                        <SelectContent>
+                                                                                            <SelectItem value="equals">
+                                                                                                Equals
+                                                                                            </SelectItem>
+                                                                                            <SelectItem value="contains">
+                                                                                                Contains
+                                                                                            </SelectItem>
+                                                                                            <SelectItem value="starts_with">
+                                                                                                Starts
+                                                                                                with
+                                                                                            </SelectItem>
+                                                                                            <SelectItem value="ends_with">
+                                                                                                Ends
+                                                                                                with
+                                                                                            </SelectItem>
+                                                                                        </SelectContent>
+                                                                                    </Select>
+                                                                                    <Input
+                                                                                        placeholder="Enter filter value"
+                                                                                        value={
+                                                                                            typeof filter.filterValue ===
+                                                                                            'string'
+                                                                                                ? filter.filterValue
+                                                                                                : ''
+                                                                                        }
+                                                                                        onChange={(
+                                                                                            e
+                                                                                        ) =>
+                                                                                            updateCustomFieldFilter(
+                                                                                                idx,
+                                                                                                filterIdx,
+                                                                                                {
+                                                                                                    filterValue:
+                                                                                                        e
+                                                                                                            .target
+                                                                                                            .value,
+                                                                                                }
+                                                                                            )
+                                                                                        }
+                                                                                    />
+                                                                                </div>
+                                                                            )}
+
+                                                                        {selectedField &&
+                                                                            selectedField.type ===
+                                                                                'dropdown' && (
+                                                                                <MultiSelect
+                                                                                    options={(
+                                                                                        selectedField.options ||
+                                                                                        []
+                                                                                    ).map(
+                                                                                        (opt) => ({
+                                                                                            label: opt,
+                                                                                            value: opt,
+                                                                                        })
+                                                                                    )}
+                                                                                    selected={
+                                                                                        Array.isArray(
+                                                                                            filter.filterValue
+                                                                                        )
+                                                                                            ? filter.filterValue
+                                                                                            : []
+                                                                                    }
+                                                                                    onChange={(
+                                                                                        vals
+                                                                                    ) =>
+                                                                                        updateCustomFieldFilter(
+                                                                                            idx,
+                                                                                            filterIdx,
+                                                                                            {
+                                                                                                filterValue:
+                                                                                                    vals,
+                                                                                            }
+                                                                                        )
+                                                                                    }
+                                                                                    placeholder="Select values"
+                                                                                />
+                                                                            )}
+
+                                                                        {selectedField &&
+                                                                            selectedField.type ===
+                                                                                'number' && (
+                                                                                <Input
+                                                                                    type="number"
+                                                                                    placeholder="Enter number"
+                                                                                    value={
+                                                                                        typeof filter.filterValue ===
+                                                                                        'string'
+                                                                                            ? filter.filterValue
+                                                                                            : ''
+                                                                                    }
+                                                                                    onChange={(e) =>
+                                                                                        updateCustomFieldFilter(
+                                                                                            idx,
+                                                                                            filterIdx,
+                                                                                            {
+                                                                                                filterValue:
+                                                                                                    e
+                                                                                                        .target
+                                                                                                        .value,
+                                                                                            }
+                                                                                        )
+                                                                                    }
+                                                                                />
+                                                                            )}
+                                                                    </div>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        onClick={() =>
+                                                                            removeCustomFieldFilter(
+                                                                                idx,
+                                                                                filterIdx
+                                                                            )
+                                                                        }
                                                                     >
-                                                                        <SelectTrigger className="w-full">
-                                                                            <SelectValue placeholder="Select custom field" />
-                                                                        </SelectTrigger>
-                                                                        <SelectContent>
-                                                                            {customFieldOptions.map((field) => (
-                                                                                <SelectItem key={field.id} value={field.id}>
-                                                                                    {field.name} ({field.type})
-                                                                                </SelectItem>
-                                                                            ))}
-                                                                        </SelectContent>
-                                                                    </Select>
-
-                                                                    {selectedField && selectedField.type === 'text' && (
-                                                                        <div className="space-y-2">
-                                                                            <Select
-                                                                                value={filter.operator || 'equals'}
-                                                                                onValueChange={(op) =>
-                                                                                    updateCustomFieldFilter(idx, filterIdx, {
-                                                                                        operator: op as 'equals' | 'contains' | 'starts_with' | 'ends_with',
-                                                                                    })
-                                                                                }
-                                                                            >
-                                                                                <SelectTrigger className="w-full">
-                                                                                    <SelectValue />
-                                                                                </SelectTrigger>
-                                                                                <SelectContent>
-                                                                                    <SelectItem value="equals">Equals</SelectItem>
-                                                                                    <SelectItem value="contains">Contains</SelectItem>
-                                                                                    <SelectItem value="starts_with">Starts with</SelectItem>
-                                                                                    <SelectItem value="ends_with">Ends with</SelectItem>
-                                                                                </SelectContent>
-                                                                            </Select>
-                                                                            <Input
-                                                                                placeholder="Enter filter value"
-                                                                                value={typeof filter.filterValue === 'string' ? filter.filterValue : ''}
-                                                                                onChange={(e) =>
-                                                                                    updateCustomFieldFilter(idx, filterIdx, {
-                                                                                        filterValue: e.target.value,
-                                                                                    })
-                                                                                }
-                                                                            />
-                                                                        </div>
-                                                                    )}
-
-                                                                    {selectedField && selectedField.type === 'dropdown' && (
-                                                                        <MultiSelect
-                                                                            options={(selectedField.options || []).map(opt => ({
-                                                                                label: opt,
-                                                                                value: opt,
-                                                                            }))}
-                                                                            selected={Array.isArray(filter.filterValue) ? filter.filterValue : []}
-                                                                            onChange={(vals) =>
-                                                                                updateCustomFieldFilter(idx, filterIdx, {
-                                                                                    filterValue: vals,
-                                                                                })
-                                                                            }
-                                                                            placeholder="Select values"
-                                                                        />
-                                                                    )}
-
-                                                                    {selectedField && selectedField.type === 'number' && (
-                                                                        <Input
-                                                                            type="number"
-                                                                            placeholder="Enter number"
-                                                                            value={typeof filter.filterValue === 'string' ? filter.filterValue : ''}
-                                                                            onChange={(e) =>
-                                                                                updateCustomFieldFilter(idx, filterIdx, {
-                                                                                    filterValue: e.target.value,
-                                                                                })
-                                                                            }
-                                                                        />
-                                                                    )}
+                                                                        ×
+                                                                    </Button>
                                                                 </div>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    onClick={() => removeCustomFieldFilter(idx, filterIdx)}
-                                                                >
-                                                                    ×
-                                                                </Button>
                                                             </div>
-                                                        </div>
-                                                    );
-                                                })}
+                                                        );
+                                                    }
+                                                )}
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
@@ -1416,7 +1612,9 @@ function CreateAnnouncementPage() {
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             <SelectItem value="ALL">All</SelectItem>
-                                                            <SelectItem value="DEFAULT">Default</SelectItem>
+                                                            <SelectItem value="DEFAULT">
+                                                                Default
+                                                            </SelectItem>
                                                             <SelectItem value="INSTITUTE">
                                                                 Institute
                                                             </SelectItem>
@@ -1427,13 +1625,15 @@ function CreateAnnouncementPage() {
                                                     options={(() => {
                                                         const filter = tagFilterByRow[idx] || 'ALL';
                                                         if (filter === 'ALL') return tagOptions;
-                                                        const filtered = tagOptions.filter((opt) => {
-                                                            const tag = tagMapById[opt.value];
-                                                            if (!tag) return true;
-                                                            if (filter === 'DEFAULT')
-                                                                return Boolean(tag.defaultTag);
-                                                            return !tag.defaultTag;
-                                                        });
+                                                        const filtered = tagOptions.filter(
+                                                            (opt) => {
+                                                                const tag = tagMapById[opt.value];
+                                                                if (!tag) return true;
+                                                                if (filter === 'DEFAULT')
+                                                                    return Boolean(tag.defaultTag);
+                                                                return !tag.defaultTag;
+                                                            }
+                                                        );
                                                         return filtered;
                                                     })()}
                                                     selected={tagSelections[idx] || []}
@@ -1451,9 +1651,9 @@ function CreateAnnouncementPage() {
                                                     disabled={tagsLoading}
                                                 />
                                                 <div className="mt-1 text-xs text-muted-foreground">
-                                                    Tags target users linked to the selected tags. If
-                                                    multiple tags are selected, users with any of those tags
-                                                    will receive the announcement.
+                                                    Tags target users linked to the selected tags.
+                                                    If multiple tags are selected, users with any of
+                                                    those tags will receive the announcement.
                                                 </div>
                                                 {Array.isArray(tagSelections[idx]) &&
                                                     (tagSelections[idx]?.length ?? 0) > 0 && (
@@ -1469,13 +1669,18 @@ function CreateAnnouncementPage() {
                                                 value={r.recipientId}
                                                 onValueChange={(v) => {
                                                     const campaign = campaignOptions.find(
-                                                        (opt) => opt.id === v || opt.campaign_id === v
+                                                        (opt) =>
+                                                            opt.id === v || opt.campaign_id === v
                                                     );
                                                     const updated = [...recipients];
                                                     updated[idx] = {
                                                         ...r,
-                                                        recipientId: campaign?.id || campaign?.campaign_id || v,
-                                                        recipientName: campaign?.campaign_name || '',
+                                                        recipientId:
+                                                            campaign?.id ||
+                                                            campaign?.campaign_id ||
+                                                            v,
+                                                        recipientName:
+                                                            campaign?.campaign_name || '',
                                                     };
                                                     setRecipients(updated);
                                                 }}
@@ -1494,14 +1699,26 @@ function CreateAnnouncementPage() {
                                                         campaignOptions
                                                             .filter(
                                                                 (campaign) =>
-                                                                    (campaign.id || campaign.campaign_id) &&
-                                                                    (campaign.id || campaign.campaign_id || '').trim() !== ''
+                                                                    (campaign.id ||
+                                                                        campaign.campaign_id) &&
+                                                                    (
+                                                                        campaign.id ||
+                                                                        campaign.campaign_id ||
+                                                                        ''
+                                                                    ).trim() !== ''
                                                             )
                                                             .map((campaign) => {
-                                                                const campaignId = campaign.id || campaign.campaign_id || '';
+                                                                const campaignId =
+                                                                    campaign.id ||
+                                                                    campaign.campaign_id ||
+                                                                    '';
                                                                 return (
-                                                                    <SelectItem key={campaignId} value={campaignId}>
-                                                                        {campaign.campaign_name || campaignId}
+                                                                    <SelectItem
+                                                                        key={campaignId}
+                                                                        value={campaignId}
+                                                                    >
+                                                                        {campaign.campaign_name ||
+                                                                            campaignId}
                                                                     </SelectItem>
                                                                 );
                                                             })
@@ -1515,7 +1732,10 @@ function CreateAnnouncementPage() {
                                                 </SelectContent>
                                             </Select>
                                         ) : null}
-                                        <Button variant="ghost" onClick={() => removeRecipientAtIndex(idx)}>
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() => removeRecipientAtIndex(idx)}
+                                        >
                                             Remove
                                         </Button>
                                     </div>
@@ -1526,7 +1746,9 @@ function CreateAnnouncementPage() {
                                             {/* Exclusions Section */}
                                             <div className="space-y-2">
                                                 <div className="flex items-center justify-between">
-                                                    <label className="text-sm font-medium">Exclusions</label>
+                                                    <label className="text-sm font-medium">
+                                                        Exclusions
+                                                    </label>
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
@@ -1541,200 +1763,262 @@ function CreateAnnouncementPage() {
                                                     </p>
                                                 ) : (
                                                     <div className="space-y-2">
-                                                        {(recipientExclusions[idx] || []).map((exclusion) => (
-                                                            <div
-                                                                key={exclusion.id}
-                                                                className="flex items-center gap-2 rounded-md border p-2"
-                                                            >
-                                                                <Select
-                                                                    value={exclusion.recipientType}
-                                                                    onValueChange={(value) =>
-                                                                        updateExclusion(
-                                                                            idx,
-                                                                            exclusion.id,
-                                                                            'recipientType',
-                                                                            value
-                                                                        )
-                                                                    }
+                                                        {(recipientExclusions[idx] || []).map(
+                                                            (exclusion) => (
+                                                                <div
+                                                                    key={exclusion.id}
+                                                                    className="flex items-center gap-2 rounded-md border p-2"
                                                                 >
-                                                                    <SelectTrigger className="w-32">
-                                                                        <SelectValue />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        <SelectItem value="ROLE">Role</SelectItem>
-                                                                        <SelectItem value="USER">User</SelectItem>
-                                                                        <SelectItem value="PACKAGE_SESSION">
-                                                                            Batch
-                                                                        </SelectItem>
-                                                                        <SelectItem value="TAG">Tag</SelectItem>
-                                                                    </SelectContent>
-                                                                </Select>
-
-                                                                {exclusion.recipientType === 'ROLE' ? (
                                                                     <Select
-                                                                        value={exclusion.recipientId}
-                                                                        onValueChange={(value) => {
+                                                                        value={
+                                                                            exclusion.recipientType
+                                                                        }
+                                                                        onValueChange={(value) =>
                                                                             updateExclusion(
                                                                                 idx,
                                                                                 exclusion.id,
-                                                                                'recipientId',
+                                                                                'recipientType',
                                                                                 value
-                                                                            );
-                                                                            updateExclusion(
-                                                                                idx,
-                                                                                exclusion.id,
-                                                                                'recipientName',
-                                                                                value
-                                                                            );
-                                                                        }}
-                                                                    >
-                                                                        <SelectTrigger className="w-32">
-                                                                            <SelectValue placeholder="Select role" />
-                                                                        </SelectTrigger>
-                                                                        <SelectContent>
-                                                                            <SelectItem value="STUDENT">Student</SelectItem>
-                                                                            <SelectItem value="TEACHER">Teacher</SelectItem>
-                                                                            <SelectItem value="ADMIN">Admin</SelectItem>
-                                                                        </SelectContent>
-                                                                    </Select>
-                                                                ) : exclusion.recipientType === 'PACKAGE_SESSION' ? (
-                                                                    <Select
-                                                                        value={exclusion.recipientId}
-                                                                        onValueChange={(value) => {
-                                                                            const option = packageSessionOptions.find(
-                                                                                (opt) => opt.id === value
-                                                                            );
-                                                                            updateExclusion(
-                                                                                idx,
-                                                                                exclusion.id,
-                                                                                'recipientId',
-                                                                                value
-                                                                            );
-                                                                            if (option) {
-                                                                                updateExclusion(
-                                                                                    idx,
-                                                                                    exclusion.id,
-                                                                                    'recipientName',
-                                                                                    option.label
-                                                                                );
-                                                                            }
-                                                                        }}
-                                                                    >
-                                                                        <SelectTrigger className="w-48">
-                                                                            <SelectValue placeholder="Select batch" />
-                                                                        </SelectTrigger>
-                                                                        <SelectContent>
-                                                                            {packageSessionOptions
-                                                                                .filter(
-                                                                                    (option) =>
-                                                                                        option.id && option.id.trim() !== ''
-                                                                                )
-                                                                                .map((option) => (
-                                                                                    <SelectItem
-                                                                                        key={option.id}
-                                                                                        value={option.id}
-                                                                                    >
-                                                                                        {option.label}
-                                                                                    </SelectItem>
-                                                                                ))}
-                                                                        </SelectContent>
-                                                                    </Select>
-                                                                ) : exclusion.recipientType === 'TAG' ? (
-                                                                    <Select
-                                                                        value={exclusion.recipientId}
-                                                                        onValueChange={(value) => {
-                                                                            const tag = tagMapById[value];
-                                                                            updateExclusion(
-                                                                                idx,
-                                                                                exclusion.id,
-                                                                                'recipientId',
-                                                                                value
-                                                                            );
-                                                                            if (tag) {
-                                                                                updateExclusion(
-                                                                                    idx,
-                                                                                    exclusion.id,
-                                                                                    'recipientName',
-                                                                                    tag.tagName
-                                                                                );
-                                                                            }
-                                                                        }}
-                                                                    >
-                                                                        <SelectTrigger className="w-48">
-                                                                            <SelectValue placeholder="Select tag" />
-                                                                        </SelectTrigger>
-                                                                        <SelectContent>
-                                                                            {tagOptions
-                                                                                .filter(
-                                                                                    (option) =>
-                                                                                        option.value &&
-                                                                                        option.value.trim() !== ''
-                                                                                )
-                                                                                .map((option) => (
-                                                                                    <SelectItem
-                                                                                        key={option.value}
-                                                                                        value={option.value}
-                                                                                    >
-                                                                                        {option.label}
-                                                                                    </SelectItem>
-                                                                                ))}
-                                                                        </SelectContent>
-                                                                    </Select>
-                                                                ) : (
-                                                                    <Input
-                                                                        placeholder="User ID or email"
-                                                                        value={exclusion.recipientId}
-                                                                        onChange={(e) =>
-                                                                            updateExclusion(
-                                                                                idx,
-                                                                                exclusion.id,
-                                                                                'recipientId',
-                                                                                e.target.value
                                                                             )
                                                                         }
-                                                                        className="w-48"
-                                                                    />
-                                                                )}
+                                                                    >
+                                                                        <SelectTrigger className="w-32">
+                                                                            <SelectValue />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            <SelectItem value="ROLE">
+                                                                                Role
+                                                                            </SelectItem>
+                                                                            <SelectItem value="USER">
+                                                                                User
+                                                                            </SelectItem>
+                                                                            <SelectItem value="PACKAGE_SESSION">
+                                                                                {getTerminology(
+                                                                                    ContentTerms.Batch,
+                                                                                    SystemTerms.Batch
+                                                                                )}
+                                                                            </SelectItem>
+                                                                            <SelectItem value="TAG">
+                                                                                Tag
+                                                                            </SelectItem>
+                                                                        </SelectContent>
+                                                                    </Select>
 
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    onClick={() => removeExclusion(idx, exclusion.id)}
-                                                                    className="text-red-600 hover:text-red-700"
-                                                                >
-                                                                    ×
-                                                                </Button>
-                                                            </div>
-                                                        ))}
+                                                                    {exclusion.recipientType ===
+                                                                    'ROLE' ? (
+                                                                        <Select
+                                                                            value={
+                                                                                exclusion.recipientId
+                                                                            }
+                                                                            onValueChange={(
+                                                                                value
+                                                                            ) => {
+                                                                                updateExclusion(
+                                                                                    idx,
+                                                                                    exclusion.id,
+                                                                                    'recipientId',
+                                                                                    value
+                                                                                );
+                                                                                updateExclusion(
+                                                                                    idx,
+                                                                                    exclusion.id,
+                                                                                    'recipientName',
+                                                                                    value
+                                                                                );
+                                                                            }}
+                                                                        >
+                                                                            <SelectTrigger className="w-32">
+                                                                                <SelectValue placeholder="Select role" />
+                                                                            </SelectTrigger>
+                                                                            <SelectContent>
+                                                                                <SelectItem value="STUDENT">
+                                                                                    Student
+                                                                                </SelectItem>
+                                                                                <SelectItem value="TEACHER">
+                                                                                    Teacher
+                                                                                </SelectItem>
+                                                                                <SelectItem value="ADMIN">
+                                                                                    Admin
+                                                                                </SelectItem>
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                    ) : exclusion.recipientType ===
+                                                                      'PACKAGE_SESSION' ? (
+                                                                        <SearchableSelect
+                                                                            value={
+                                                                                exclusion.recipientId
+                                                                            }
+                                                                            onChange={(value) => {
+                                                                                const option =
+                                                                                    packageSessionOptions.find(
+                                                                                        (opt) =>
+                                                                                            opt.id ===
+                                                                                            value
+                                                                                    );
+                                                                                updateExclusion(
+                                                                                    idx,
+                                                                                    exclusion.id,
+                                                                                    'recipientId',
+                                                                                    value
+                                                                                );
+                                                                                if (option) {
+                                                                                    updateExclusion(
+                                                                                        idx,
+                                                                                        exclusion.id,
+                                                                                        'recipientName',
+                                                                                        option.label
+                                                                                    );
+                                                                                }
+                                                                            }}
+                                                                            options={packageSessionOptions
+                                                                                .filter(
+                                                                                    (option) =>
+                                                                                        option.id &&
+                                                                                        option.id.trim() !==
+                                                                                            ''
+                                                                                )
+                                                                                .map((option) => ({
+                                                                                    value: option.id,
+                                                                                    label: option.label,
+                                                                                }))}
+                                                                            placeholder="Select batch"
+                                                                            searchPlaceholder="Search batches..."
+                                                                            emptyText="No batches found."
+                                                                            triggerClassName="w-48"
+                                                                        />
+                                                                    ) : exclusion.recipientType ===
+                                                                      'TAG' ? (
+                                                                        <Select
+                                                                            value={
+                                                                                exclusion.recipientId
+                                                                            }
+                                                                            onValueChange={(
+                                                                                value
+                                                                            ) => {
+                                                                                const tag =
+                                                                                    tagMapById[
+                                                                                        value
+                                                                                    ];
+                                                                                updateExclusion(
+                                                                                    idx,
+                                                                                    exclusion.id,
+                                                                                    'recipientId',
+                                                                                    value
+                                                                                );
+                                                                                if (tag) {
+                                                                                    updateExclusion(
+                                                                                        idx,
+                                                                                        exclusion.id,
+                                                                                        'recipientName',
+                                                                                        tag.tagName
+                                                                                    );
+                                                                                }
+                                                                            }}
+                                                                        >
+                                                                            <SelectTrigger className="w-48">
+                                                                                <SelectValue placeholder="Select tag" />
+                                                                            </SelectTrigger>
+                                                                            <SelectContent>
+                                                                                {tagOptions
+                                                                                    .filter(
+                                                                                        (option) =>
+                                                                                            option.value &&
+                                                                                            option.value.trim() !==
+                                                                                                ''
+                                                                                    )
+                                                                                    .map(
+                                                                                        (
+                                                                                            option
+                                                                                        ) => (
+                                                                                            <SelectItem
+                                                                                                key={
+                                                                                                    option.value
+                                                                                                }
+                                                                                                value={
+                                                                                                    option.value
+                                                                                                }
+                                                                                            >
+                                                                                                {
+                                                                                                    option.label
+                                                                                                }
+                                                                                            </SelectItem>
+                                                                                        )
+                                                                                    )}
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                    ) : (
+                                                                        <Input
+                                                                            placeholder="User ID or email"
+                                                                            value={
+                                                                                exclusion.recipientId
+                                                                            }
+                                                                            onChange={(e) =>
+                                                                                updateExclusion(
+                                                                                    idx,
+                                                                                    exclusion.id,
+                                                                                    'recipientId',
+                                                                                    e.target.value
+                                                                                )
+                                                                            }
+                                                                            className="w-48"
+                                                                        />
+                                                                    )}
+
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        onClick={() =>
+                                                                            removeExclusion(
+                                                                                idx,
+                                                                                exclusion.id
+                                                                            )
+                                                                        }
+                                                                        className="text-red-600 hover:text-red-700"
+                                                                    >
+                                                                        ×
+                                                                    </Button>
+                                                                </div>
+                                                            )
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
 
                                             {/* Custom Fields Section - only show for non-CUSTOM_FIELD_FILTER types */}
-                                            {customFieldOptions.length > 0 && r.recipientType !== 'CUSTOM_FIELD_FILTER' && (
-                                                <div className="space-y-2 border-t pt-3">
-                                                    <div className="flex items-center justify-between">
-                                                        <label className="text-sm font-medium">Custom Field Filters</label>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => addCustomFieldFilter(idx)}
-                                                        >
-                                                            + Add Custom Field
-                                                        </Button>
-                                                    </div>
-                                                    {(customFieldFilters[idx] || []).length === 0 ? (
-                                                        <p className="text-xs text-muted-foreground">
-                                                            No custom field filters added yet
-                                                        </p>
-                                                    ) : (
-                                                        <div className="space-y-2">
-                                                            {(customFieldFilters[idx] || []).map(
-                                                                (filter, filterIdx) => {
-                                                                    const selectedField = customFieldOptions.find(
-                                                                        (f) => f.id === filter.fieldId
-                                                                    );
+                                            {customFieldOptions.length > 0 &&
+                                                r.recipientType !== 'CUSTOM_FIELD_FILTER' && (
+                                                    <div className="space-y-2 border-t pt-3">
+                                                        <div className="flex items-center justify-between">
+                                                            <label className="text-sm font-medium">
+                                                                Custom Field Filters
+                                                            </label>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() =>
+                                                                    addCustomFieldFilter(idx)
+                                                                }
+                                                            >
+                                                                + Add Custom Field
+                                                            </Button>
+                                                        </div>
+                                                        {(customFieldFilters[idx] || []).length ===
+                                                        0 ? (
+                                                            <p className="text-xs text-muted-foreground">
+                                                                No custom field filters added yet
+                                                            </p>
+                                                        ) : (
+                                                            <div className="space-y-2">
+                                                                {(
+                                                                    customFieldFilters[idx] || []
+                                                                ).map((filter, filterIdx) => {
+                                                                    const selectedField =
+                                                                        customFieldOptions.find(
+                                                                            (f) =>
+                                                                                f.id ===
+                                                                                filter.fieldId
+                                                                        );
                                                                     return (
                                                                         <div
                                                                             key={filterIdx}
@@ -1743,12 +2027,19 @@ function CreateAnnouncementPage() {
                                                                             <div className="flex items-start gap-2">
                                                                                 <div className="flex-1 space-y-2">
                                                                                     <Select
-                                                                                        value={filter.fieldId}
-                                                                                        onValueChange={(fieldId) => {
+                                                                                        value={
+                                                                                            filter.fieldId
+                                                                                        }
+                                                                                        onValueChange={(
+                                                                                            fieldId
+                                                                                        ) => {
                                                                                             const field =
                                                                                                 customFieldOptions.find(
-                                                                                                    (f) =>
-                                                                                                        f.id === fieldId
+                                                                                                    (
+                                                                                                        f
+                                                                                                    ) =>
+                                                                                                        f.id ===
+                                                                                                        fieldId
                                                                                                 );
                                                                                             updateCustomFieldFilter(
                                                                                                 idx,
@@ -1763,12 +2054,12 @@ function CreateAnnouncementPage() {
                                                                                                         'text',
                                                                                                     filterValue:
                                                                                                         field?.type ===
-                                                                                                            'dropdown'
+                                                                                                        'dropdown'
                                                                                                             ? []
                                                                                                             : '',
                                                                                                     operator:
                                                                                                         field?.type ===
-                                                                                                            'text'
+                                                                                                        'text'
                                                                                                             ? 'equals'
                                                                                                             : undefined,
                                                                                                 }
@@ -1781,42 +2072,62 @@ function CreateAnnouncementPage() {
                                                                                         <SelectContent>
                                                                                             {customFieldOptions
                                                                                                 .filter(
-                                                                                                    (field) =>
+                                                                                                    (
+                                                                                                        field
+                                                                                                    ) =>
                                                                                                         field.id &&
                                                                                                         field.id.trim() !==
-                                                                                                        ''
+                                                                                                            ''
                                                                                                 )
-                                                                                                .map((field) => (
-                                                                                                    <SelectItem
-                                                                                                        key={field.id}
-                                                                                                        value={field.id}
-                                                                                                    >
-                                                                                                        {field.name} (
-                                                                                                        {field.type})
-                                                                                                    </SelectItem>
-                                                                                                ))}
+                                                                                                .map(
+                                                                                                    (
+                                                                                                        field
+                                                                                                    ) => (
+                                                                                                        <SelectItem
+                                                                                                            key={
+                                                                                                                field.id
+                                                                                                            }
+                                                                                                            value={
+                                                                                                                field.id
+                                                                                                            }
+                                                                                                        >
+                                                                                                            {
+                                                                                                                field.name
+                                                                                                            }{' '}
+                                                                                                            (
+                                                                                                            {
+                                                                                                                field.type
+                                                                                                            }
+
+                                                                                                            )
+                                                                                                        </SelectItem>
+                                                                                                    )
+                                                                                                )}
                                                                                         </SelectContent>
                                                                                     </Select>
 
                                                                                     {selectedField &&
-                                                                                        selectedField.type === 'text' && (
+                                                                                        selectedField.type ===
+                                                                                            'text' && (
                                                                                             <div className="space-y-2">
                                                                                                 <Select
                                                                                                     value={
                                                                                                         filter.operator ||
                                                                                                         'equals'
                                                                                                     }
-                                                                                                    onValueChange={(op) =>
+                                                                                                    onValueChange={(
+                                                                                                        op
+                                                                                                    ) =>
                                                                                                         updateCustomFieldFilter(
                                                                                                             idx,
                                                                                                             filterIdx,
                                                                                                             {
                                                                                                                 operator:
                                                                                                                     op as
-                                                                                                                    | 'equals'
-                                                                                                                    | 'contains'
-                                                                                                                    | 'starts_with'
-                                                                                                                    | 'ends_with',
+                                                                                                                        | 'equals'
+                                                                                                                        | 'contains'
+                                                                                                                        | 'starts_with'
+                                                                                                                        | 'ends_with',
                                                                                                             }
                                                                                                         )
                                                                                                     }
@@ -1832,10 +2143,12 @@ function CreateAnnouncementPage() {
                                                                                                             Contains
                                                                                                         </SelectItem>
                                                                                                         <SelectItem value="starts_with">
-                                                                                                            Starts with
+                                                                                                            Starts
+                                                                                                            with
                                                                                                         </SelectItem>
                                                                                                         <SelectItem value="ends_with">
-                                                                                                            Ends with
+                                                                                                            Ends
+                                                                                                            with
                                                                                                         </SelectItem>
                                                                                                     </SelectContent>
                                                                                                 </Select>
@@ -1843,11 +2156,13 @@ function CreateAnnouncementPage() {
                                                                                                     placeholder="Enter filter value"
                                                                                                     value={
                                                                                                         typeof filter.filterValue ===
-                                                                                                            'string'
+                                                                                                        'string'
                                                                                                             ? filter.filterValue
                                                                                                             : ''
                                                                                                     }
-                                                                                                    onChange={(e) =>
+                                                                                                    onChange={(
+                                                                                                        e
+                                                                                                    ) =>
                                                                                                         updateCustomFieldFilter(
                                                                                                             idx,
                                                                                                             filterIdx,
@@ -1864,15 +2179,20 @@ function CreateAnnouncementPage() {
                                                                                         )}
 
                                                                                     {selectedField &&
-                                                                                        selectedField.type === 'dropdown' && (
+                                                                                        selectedField.type ===
+                                                                                            'dropdown' && (
                                                                                             <MultiSelect
                                                                                                 options={(
                                                                                                     selectedField.options ||
                                                                                                     []
-                                                                                                ).map((opt) => ({
-                                                                                                    label: opt,
-                                                                                                    value: opt,
-                                                                                                }))}
+                                                                                                ).map(
+                                                                                                    (
+                                                                                                        opt
+                                                                                                    ) => ({
+                                                                                                        label: opt,
+                                                                                                        value: opt,
+                                                                                                    })
+                                                                                                )}
                                                                                                 selected={
                                                                                                     Array.isArray(
                                                                                                         filter.filterValue
@@ -1880,7 +2200,9 @@ function CreateAnnouncementPage() {
                                                                                                         ? filter.filterValue
                                                                                                         : []
                                                                                                 }
-                                                                                                onChange={(vals) =>
+                                                                                                onChange={(
+                                                                                                    vals
+                                                                                                ) =>
                                                                                                     updateCustomFieldFilter(
                                                                                                         idx,
                                                                                                         filterIdx,
@@ -1895,23 +2217,27 @@ function CreateAnnouncementPage() {
                                                                                         )}
 
                                                                                     {selectedField &&
-                                                                                        selectedField.type === 'number' && (
+                                                                                        selectedField.type ===
+                                                                                            'number' && (
                                                                                             <Input
                                                                                                 type="number"
                                                                                                 placeholder="Enter number"
                                                                                                 value={
                                                                                                     typeof filter.filterValue ===
-                                                                                                        'string'
+                                                                                                    'string'
                                                                                                         ? filter.filterValue
                                                                                                         : ''
                                                                                                 }
-                                                                                                onChange={(e) =>
+                                                                                                onChange={(
+                                                                                                    e
+                                                                                                ) =>
                                                                                                     updateCustomFieldFilter(
                                                                                                         idx,
                                                                                                         filterIdx,
                                                                                                         {
                                                                                                             filterValue:
-                                                                                                                e.target
+                                                                                                                e
+                                                                                                                    .target
                                                                                                                     .value,
                                                                                                         }
                                                                                                     )
@@ -1934,12 +2260,11 @@ function CreateAnnouncementPage() {
                                                                             </div>
                                                                         </div>
                                                                     );
-                                                                }
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
+                                                                })}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
                                         </div>
                                     )}
                                 </div>
@@ -1986,8 +2311,11 @@ function CreateAnnouncementPage() {
                                 if (r.recipientType === 'CUSTOM_FIELD_FILTER') {
                                     const filters = customFieldFilters[idx] || [];
                                     const filterText = filters
-                                        .filter(f => f.fieldId && f.filterValue)
-                                        .map(f => `${f.fieldName}: ${Array.isArray(f.filterValue) ? f.filterValue.join(', ') : f.filterValue}`)
+                                        .filter((f) => f.fieldId && f.filterValue)
+                                        .map(
+                                            (f) =>
+                                                `${f.fieldName}: ${Array.isArray(f.filterValue) ? f.filterValue.join(', ') : f.filterValue}`
+                                        )
                                         .join('; ');
                                     return (
                                         <span
@@ -2016,18 +2344,31 @@ function CreateAnnouncementPage() {
                                     >
                                         <span className="font-medium">
                                             {r.recipientType === 'PACKAGE_SESSION'
-                                                ? 'Batch'
+                                                ? getTerminology(
+                                                      ContentTerms.Batch,
+                                                      SystemTerms.Batch
+                                                  )
                                                 : r.recipientType === 'AUDIENCE'
-                                                    ? 'Campaign'
-                                                    : r.recipientType}
+                                                  ? 'Campaign'
+                                                  : r.recipientType}
                                         </span>
                                         <span className="text-neutral-600">
                                             {r.recipientType === 'PACKAGE_SESSION'
-                                                ? packageSessionOptions.find(opt => opt.id === r.recipientId)?.label || r.recipientId || '—'
+                                                ? packageSessionOptions.find(
+                                                      (opt) => opt.id === r.recipientId
+                                                  )?.label ||
+                                                  r.recipientId ||
+                                                  '—'
                                                 : r.recipientType === 'AUDIENCE'
-                                                    ? r.recipientName || campaignOptions.find(opt => opt.id === r.recipientId || opt.campaign_id === r.recipientId)?.campaign_name || r.recipientId || '—'
-                                                    : r.recipientId || r.recipientName || '—'
-                                            }
+                                                  ? r.recipientName ||
+                                                    campaignOptions.find(
+                                                        (opt) =>
+                                                            opt.id === r.recipientId ||
+                                                            opt.campaign_id === r.recipientId
+                                                    )?.campaign_name ||
+                                                    r.recipientId ||
+                                                    '—'
+                                                  : r.recipientId || r.recipientName || '—'}
                                         </span>
                                         <button
                                             type="button"
@@ -2266,7 +2607,10 @@ function CreateAnnouncementPage() {
                                             value={selectedTemplateId}
                                             onValueChange={(value) => {
                                                 if (value === 'add-new-template') {
-                                                    navigate({ to: '/settings', search: { selectedTab: 'templates' } });
+                                                    navigate({
+                                                        to: '/settings',
+                                                        search: { selectedTab: 'templates' },
+                                                    });
                                                 } else {
                                                     handleTemplateSelection(value);
                                                 }
@@ -2274,24 +2618,32 @@ function CreateAnnouncementPage() {
                                             disabled={templatesLoading}
                                         >
                                             <SelectTrigger className="w-full">
-                                                <SelectValue placeholder={
-                                                    templatesLoading
-                                                        ? "Loading templates..."
-                                                        : "Select a template"
-                                                } />
+                                                <SelectValue
+                                                    placeholder={
+                                                        templatesLoading
+                                                            ? 'Loading templates...'
+                                                            : 'Select a template'
+                                                    }
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {emailTemplates.length > 0 ? (
                                                     <>
                                                         {emailTemplates.map((template) => (
-                                                            <SelectItem key={template.id} value={template.id}>
+                                                            <SelectItem
+                                                                key={template.id}
+                                                                value={template.id}
+                                                            >
                                                                 {template.name}
                                                             </SelectItem>
                                                         ))}
                                                         <Separator className="my-1" />
-                                                        <SelectItem value="add-new-template" className="text-primary-600 font-medium">
+                                                        <SelectItem
+                                                            value="add-new-template"
+                                                            className="font-medium text-primary-600"
+                                                        >
                                                             <div className="flex items-center gap-2">
-                                                                <Plus className="h-4 w-4" />
+                                                                <Plus className="size-4" />
                                                                 <span>Add New Template</span>
                                                             </div>
                                                         </SelectItem>
@@ -2302,9 +2654,12 @@ function CreateAnnouncementPage() {
                                                             No templates available
                                                         </SelectItem>
                                                         <Separator className="my-1" />
-                                                        <SelectItem value="add-new-template" className="text-primary-600 font-medium">
+                                                        <SelectItem
+                                                            value="add-new-template"
+                                                            className="font-medium text-primary-600"
+                                                        >
                                                             <div className="flex items-center gap-2">
-                                                                <Plus className="h-4 w-4" />
+                                                                <Plus className="size-4" />
                                                                 <span>Add New Template</span>
                                                             </div>
                                                         </SelectItem>
@@ -2312,11 +2667,17 @@ function CreateAnnouncementPage() {
                                                 )}
                                             </SelectContent>
                                         </Select>
-                                        {selectedTemplateId && selectedTemplateId !== 'add-new-template' && (
-                                            <div className="mt-2 text-xs text-neutral-600">
-                                                Template selected: {emailTemplates.find(t => t.id === selectedTemplateId)?.name}
-                                            </div>
-                                        )}
+                                        {selectedTemplateId &&
+                                            selectedTemplateId !== 'add-new-template' && (
+                                                <div className="mt-2 text-xs text-neutral-600">
+                                                    Template selected:{' '}
+                                                    {
+                                                        emailTemplates.find(
+                                                            (t) => t.id === selectedTemplateId
+                                                        )?.name
+                                                    }
+                                                </div>
+                                            )}
                                         {templatesError && (
                                             <div className="mt-2 text-xs text-red-600">
                                                 {templatesError}
@@ -2340,18 +2701,23 @@ function CreateAnnouncementPage() {
                                         disabled={emailConfigsLoading}
                                     >
                                         <SelectTrigger className="w-full">
-                                            <SelectValue placeholder={
-                                                emailConfigsLoading
-                                                    ? "Loading email configurations..."
-                                                    : "Select from email"
-                                            } />
+                                            <SelectValue
+                                                placeholder={
+                                                    emailConfigsLoading
+                                                        ? 'Loading email configurations...'
+                                                        : 'Select from email'
+                                                }
+                                            />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {emailConfigurations.length > 0 ? (
                                                 emailConfigurations.map((config, index) => {
                                                     const uniqueValue = `${config.email}-${config.name}`;
                                                     return (
-                                                        <SelectItem key={`${config.email}-${index}`} value={uniqueValue}>
+                                                        <SelectItem
+                                                            key={`${config.email}-${index}`}
+                                                            value={uniqueValue}
+                                                        >
                                                             {config.name} ({config.email})
                                                         </SelectItem>
                                                     );
@@ -2365,16 +2731,21 @@ function CreateAnnouncementPage() {
                                     </Select>
                                     {selectedFromEmail && (
                                         <div className="mt-2 text-xs text-neutral-600">
-                                            From: {emailConfigurations.find(c => `${c.email}-${c.name}` === selectedFromEmail)?.email}
+                                            From:{' '}
+                                            {
+                                                emailConfigurations.find(
+                                                    (c) =>
+                                                        `${c.email}-${c.name}` === selectedFromEmail
+                                                )?.email
+                                            }
                                         </div>
                                     )}
                                 </div>
 
                                 <p className="text-sm text-neutral-600">
                                     {useTemplate
-                                        ? "Template content will be applied to Title and Content above."
-                                        : "Subject and body will use the Title and Content provided above."
-                                    }
+                                        ? 'Template content will be applied to Title and Content above.'
+                                        : 'Subject and body will use the Title and Content provided above.'}
                                 </p>
                             </div>
                         )}
@@ -2716,19 +3087,23 @@ function CreateAnnouncementPage() {
                                 }
 
                                 // Validate CUSTOM_FIELD_FILTER recipients
-                                const anyCustomFieldRow = recipients.some((r) => r.recipientType === 'CUSTOM_FIELD_FILTER');
+                                const anyCustomFieldRow = recipients.some(
+                                    (r) => r.recipientType === 'CUSTOM_FIELD_FILTER'
+                                );
                                 if (anyCustomFieldRow) {
-                                    const missingFilters = recipients.some(
-                                        (r, idx) => {
-                                            if (r.recipientType !== 'CUSTOM_FIELD_FILTER') return false;
-                                            const filters = customFieldFilters[idx];
-                                            return !filters || !filters.some(f => f.fieldId && f.filterValue);
-                                        }
-                                    );
+                                    const missingFilters = recipients.some((r, idx) => {
+                                        if (r.recipientType !== 'CUSTOM_FIELD_FILTER') return false;
+                                        const filters = customFieldFilters[idx];
+                                        return (
+                                            !filters ||
+                                            !filters.some((f) => f.fieldId && f.filterValue)
+                                        );
+                                    });
                                     if (missingFilters) {
                                         toast({
                                             title: 'Configure custom field filters',
-                                            description: 'You have a Custom Field Filter recipient without any configured filters.',
+                                            description:
+                                                'You have a Custom Field Filter recipient without any configured filters.',
                                             variant: 'destructive',
                                         });
                                         return;
@@ -2744,12 +3119,17 @@ function CreateAnnouncementPage() {
                                     const validRecipientExclusions = recipientExclusionsList
                                         .filter((e) => e.recipientId && e.recipientId.trim() !== '')
                                         .map((e) => ({
-                                            exclusionType: e.recipientType as 'USER' | 'ROLE' | 'PACKAGE_SESSION' | 'TAG',
+                                            exclusionType: e.recipientType as
+                                                | 'USER'
+                                                | 'ROLE'
+                                                | 'PACKAGE_SESSION'
+                                                | 'TAG',
                                             exclusionId: e.recipientId,
                                         }));
 
                                     // Get per-recipient custom field filters
-                                    const recipientCustomFieldFilters = customFieldFilters[idx] || [];
+                                    const recipientCustomFieldFilters =
+                                        customFieldFilters[idx] || [];
                                     const validCustomFieldFilters = recipientCustomFieldFilters
                                         .filter((f) => f.fieldId && f.filterValue)
                                         .map((f) => {
@@ -2773,8 +3153,14 @@ function CreateAnnouncementPage() {
                                                 recipientType: 'TAG',
                                                 recipientId: tagId,
                                                 recipientName: tag?.tagName,
-                                                customFieldFilters: validCustomFieldFilters.length > 0 ? validCustomFieldFilters : undefined,
-                                                exclusions: validRecipientExclusions.length > 0 ? validRecipientExclusions : undefined,
+                                                customFieldFilters:
+                                                    validCustomFieldFilters.length > 0
+                                                        ? validCustomFieldFilters
+                                                        : undefined,
+                                                exclusions:
+                                                    validRecipientExclusions.length > 0
+                                                        ? validRecipientExclusions
+                                                        : undefined,
                                             });
                                         });
                                     } else if (r.recipientType === 'CUSTOM_FIELD_FILTER') {
@@ -2782,34 +3168,57 @@ function CreateAnnouncementPage() {
                                             // Only add if at least one filter is configured
                                             expandedRecipients.push({
                                                 recipientType: 'CUSTOM_FIELD_FILTER',
-                                                recipientId: r.recipientId || `custom-filter-${idx}`,
+                                                recipientId:
+                                                    r.recipientId || `custom-filter-${idx}`,
                                                 recipientName: r.recipientName,
                                                 customFieldFilters: validCustomFieldFilters,
-                                                exclusions: validRecipientExclusions.length > 0 ? validRecipientExclusions : undefined,
+                                                exclusions:
+                                                    validRecipientExclusions.length > 0
+                                                        ? validRecipientExclusions
+                                                        : undefined,
                                             });
                                         }
-                                    } else if (r.recipientType === 'PACKAGE_SESSION' && r.recipientId) {
-                                        const batchOption = packageSessionOptions.find((opt) => opt.id === r.recipientId);
+                                    } else if (
+                                        r.recipientType === 'PACKAGE_SESSION' &&
+                                        r.recipientId
+                                    ) {
+                                        const batchOption = packageSessionOptions.find(
+                                            (opt) => opt.id === r.recipientId
+                                        );
                                         const selectedRole = batchRoleSelections[idx];
 
                                         // Check if it's a sub-org batch with role selection
                                         if (batchOption?.is_org_associated && selectedRole) {
                                             // Use PACKAGE_SESSION_COMMA_SEPARATED_ORG_ROLES format: packageSessionId:ROLE1,ROLE2
                                             expandedRecipients.push({
-                                                recipientType: 'PACKAGE_SESSION_COMMA_SEPARATED_ORG_ROLES',
+                                                recipientType:
+                                                    'PACKAGE_SESSION_COMMA_SEPARATED_ORG_ROLES',
                                                 recipientId: `${r.recipientId}:${selectedRole}`,
                                                 recipientName: `${batchOption.label} (${selectedRole})`,
-                                                customFieldFilters: validCustomFieldFilters.length > 0 ? validCustomFieldFilters : undefined,
-                                                exclusions: validRecipientExclusions.length > 0 ? validRecipientExclusions : undefined,
+                                                customFieldFilters:
+                                                    validCustomFieldFilters.length > 0
+                                                        ? validCustomFieldFilters
+                                                        : undefined,
+                                                exclusions:
+                                                    validRecipientExclusions.length > 0
+                                                        ? validRecipientExclusions
+                                                        : undefined,
                                             });
                                         } else {
                                             // Regular PACKAGE_SESSION
                                             expandedRecipients.push({
                                                 recipientType: 'PACKAGE_SESSION',
                                                 recipientId: r.recipientId,
-                                                recipientName: r.recipientName || batchOption?.label,
-                                                customFieldFilters: validCustomFieldFilters.length > 0 ? validCustomFieldFilters : undefined,
-                                                exclusions: validRecipientExclusions.length > 0 ? validRecipientExclusions : undefined,
+                                                recipientName:
+                                                    r.recipientName || batchOption?.label,
+                                                customFieldFilters:
+                                                    validCustomFieldFilters.length > 0
+                                                        ? validCustomFieldFilters
+                                                        : undefined,
+                                                exclusions:
+                                                    validRecipientExclusions.length > 0
+                                                        ? validRecipientExclusions
+                                                        : undefined,
                                             });
                                         }
                                     } else if (r.recipientType && r.recipientId) {
@@ -2817,8 +3226,14 @@ function CreateAnnouncementPage() {
                                             recipientType: r.recipientType,
                                             recipientId: r.recipientId,
                                             recipientName: r.recipientName,
-                                            customFieldFilters: validCustomFieldFilters.length > 0 ? validCustomFieldFilters : undefined,
-                                            exclusions: validRecipientExclusions.length > 0 ? validRecipientExclusions : undefined,
+                                            customFieldFilters:
+                                                validCustomFieldFilters.length > 0
+                                                    ? validCustomFieldFilters
+                                                    : undefined,
+                                            exclusions:
+                                                validRecipientExclusions.length > 0
+                                                    ? validRecipientExclusions
+                                                    : undefined,
                                         });
                                     }
                                 });
@@ -2839,15 +3254,18 @@ function CreateAnnouncementPage() {
                                     })),
                                     mediums: selectedMediums.map((med) => {
                                         if (med === 'EMAIL') {
-                                            const selectedConfig = emailConfigurations.find(c => `${c.email}-${c.name}` === selectedFromEmail);
-                                            const emailType = selectedConfig?.type || 'UTILITY_EMAIL';
+                                            const selectedConfig = emailConfigurations.find(
+                                                (c) => `${c.email}-${c.name}` === selectedFromEmail
+                                            );
+                                            const emailType =
+                                                selectedConfig?.type || 'UTILITY_EMAIL';
 
                                             return {
                                                 mediumType: med,
                                                 config: {
                                                     subject: title,
                                                     emailType: emailType,
-                                                }
+                                                },
                                             };
                                         }
                                         return {
@@ -2859,7 +3277,7 @@ function CreateAnnouncementPage() {
                                         scheduleType === 'IMMEDIATE'
                                             ? { scheduleType, timezone }
                                             : scheduleType === 'ONE_TIME'
-                                                ? {
+                                              ? {
                                                     scheduleType,
                                                     timezone,
                                                     startDate: oneTimeStart
@@ -2869,7 +3287,7 @@ function CreateAnnouncementPage() {
                                                         ? new Date(oneTimeEnd).toISOString()
                                                         : undefined,
                                                 }
-                                                : {
+                                              : {
                                                     scheduleType,
                                                     timezone,
                                                     cronExpression: cronExpression || undefined,
@@ -3007,7 +3425,9 @@ function BatchDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Add Specific Batch</DialogTitle>
+                    <DialogTitle>
+                        Add Specific {getTerminology(ContentTerms.Batch, SystemTerms.Batch)}
+                    </DialogTitle>
                     <DialogDescription>
                         Enter a Package Session ID to target a specific batch.
                     </DialogDescription>
@@ -3377,17 +3797,19 @@ function ModeCard({
             type="button"
             onClick={onToggle}
             disabled={disabled}
-            className={`group flex flex-col gap-3 rounded-md border p-3 text-left transition ${selected
-                ? 'border-blue-600 ring-2 ring-blue-600/20'
-                : 'border-neutral-200 hover:border-neutral-300'
-                } ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+            className={`group flex flex-col gap-3 rounded-md border p-3 text-left transition ${
+                selected
+                    ? 'border-blue-600 ring-2 ring-blue-600/20'
+                    : 'border-neutral-200 hover:border-neutral-300'
+            } ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
             aria-pressed={selected}
             aria-label={`${label} mode ${selected ? 'selected' : 'not selected'}`}
         >
             <div className="flex items-start gap-3">
                 <div
-                    className={`rounded-md p-2 ${selected ? 'bg-blue-600/10 text-blue-700' : 'bg-neutral-50 text-neutral-600'
-                        }`}
+                    className={`rounded-md p-2 ${
+                        selected ? 'bg-blue-600/10 text-blue-700' : 'bg-neutral-50 text-neutral-600'
+                    }`}
                 >
                     <Icon className="size-5" />
                 </div>
@@ -3395,10 +3817,11 @@ function ModeCard({
                     <div className="flex items-center justify-between">
                         <div className="font-medium">{label}</div>
                         <div
-                            className={`size-2 rounded-full ${selected
-                                ? 'bg-blue-600'
-                                : 'bg-neutral-300 group-hover:bg-neutral-400'
-                                }`}
+                            className={`size-2 rounded-full ${
+                                selected
+                                    ? 'bg-blue-600'
+                                    : 'bg-neutral-300 group-hover:bg-neutral-400'
+                            }`}
                         />
                     </div>
                     <div className="mt-1 text-xs text-neutral-600">{description}</div>
