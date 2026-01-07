@@ -34,8 +34,11 @@ import { motion } from 'framer-motion';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { UnresolvedDoubtsWidget } from './-components/UnresolvedDoubtsWidget';
 import LiveClassesWidget from './-components/LiveClassesWidget';
-import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
-import { RoleTerms, SystemTerms } from '../settings/-components/NamingSettings';
+import {
+    getTerminology,
+    getTerminologyPlural,
+} from '@/components/common/layout-container/sidebar/utils';
+import { ContentTerms, RoleTerms, SystemTerms } from '../settings/-components/NamingSettings';
 
 import { getTokenFromCookie, getUserRoles } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
@@ -650,7 +653,10 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                                                     {data?.batch_count || 0}
                                                 </div>
                                                 <div className="text-xs text-neutral-600">
-                                                    Batches
+                                                    {getTerminologyPlural(
+                                                        ContentTerms.Batch,
+                                                        SystemTerms.Batch
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="rounded-lg bg-white p-3 shadow-sm">
@@ -739,8 +745,8 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                         widgetCount === 1
                             ? 'grid-cols-1'
                             : widgetCount === 2
-                                ? 'grid-cols-1 lg:grid-cols-2'
-                                : 'grid-cols-1 lg:grid-cols-3';
+                              ? 'grid-cols-1 lg:grid-cols-2'
+                              : 'grid-cols-1 lg:grid-cols-3';
 
                     return (
                         <div className={`grid gap-6 ${gridClass} items-stretch`}>
@@ -813,8 +819,9 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                     className={`flex flex-col ${subModules.assess ? 'lg:flex-col' : 'lg:flex-row'} gap-4`} // Reduced gap
                 >
                     <div
-                        className={`flex flex-1 flex-col ${subModules.assess ? 'md:flex-row' : 'md:flex-col'
-                            } gap-4`} // Reduced gap
+                        className={`flex flex-1 flex-col ${
+                            subModules.assess ? 'md:flex-row' : 'md:flex-col'
+                        } gap-4`} // Reduced gap
                     >
                         {isWidgetVisible('roleTypeUsers') && (
                             <Card className="flex-1 bg-neutral-50 shadow-none">

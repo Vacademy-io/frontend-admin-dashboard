@@ -16,7 +16,13 @@ import {
     AddressBook,
 } from '@phosphor-icons/react';
 import { SidebarItemsType } from '../../../../types/layout-container/layout-container-types';
-import { ChalkboardTeacher, GearSix, Lightning, NotePencil, UsersFour } from '@phosphor-icons/react';
+import {
+    ChalkboardTeacher,
+    GearSix,
+    Lightning,
+    NotePencil,
+    UsersFour,
+} from '@phosphor-icons/react';
 import { StorageKey } from '@/constants/storage/storage';
 import { ContentTerms, RoleTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { NamingSettingsType, SettingsTabs } from '@/routes/settings/-constants/terms';
@@ -56,6 +62,28 @@ export const getTerminology = (key: string, defaultValue: string): string => {
     return setting?.customValue || defaultValue;
 };
 
+// Utility function to get pluralized terminology
+export const getTerminologyPlural = (key: string, defaultValue: string): string => {
+    const singular = getTerminology(key, defaultValue);
+    // Simple pluralization: add 's' or 'es' based on ending
+    if (
+        singular.endsWith('s') ||
+        singular.endsWith('x') ||
+        singular.endsWith('z') ||
+        singular.endsWith('ch') ||
+        singular.endsWith('sh')
+    ) {
+        return `${singular}es`;
+    }
+    if (
+        singular.endsWith('y') &&
+        !['a', 'e', 'i', 'o', 'u'].includes(singular.charAt(singular.length - 2).toLowerCase())
+    ) {
+        return `${singular.slice(0, -1)}ies`;
+    }
+    return `${singular}s`;
+};
+
 export const SidebarItemsData: SidebarItemsType[] = [
     {
         icon: House,
@@ -75,7 +103,7 @@ export const SidebarItemsData: SidebarItemsType[] = [
         id: 'manage-institute',
         subItems: [
             {
-                subItem: 'Batches',
+                subItem: getTerminologyPlural(ContentTerms.Batch, SystemTerms.Batch),
                 subItemLink: '/manage-institute/batches',
                 subItemId: 'batches',
             },

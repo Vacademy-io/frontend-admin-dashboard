@@ -17,11 +17,11 @@ export const GetFilterData = (instituteDetails: InstituteDetailsType, currentSes
                 label: packageName,
             };
         }
-        
+
         // Otherwise show level + package name without "default" prefix
         const levelName = removeDefaultPrefix(batch.level.level_name);
         const packageName = removeDefaultPrefix(batch.package_dto.package_name);
-        
+
         return {
             id: batch.id,
             label: `${levelName} ${packageName}`.trim(),
@@ -51,7 +51,7 @@ export const GetFilterData = (instituteDetails: InstituteDetailsType, currentSes
     const filterData: FilterConfig[] = [
         {
             id: 'batch',
-            title: 'Batch',
+            title: getTerminology(ContentTerms.Batch, SystemTerms.Batch),
             filterList: batchFilterList || [],
         },
         {
