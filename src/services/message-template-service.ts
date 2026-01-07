@@ -136,8 +136,8 @@ export const createMessageTemplate = async (
 
 export const getMessageTemplates = async (
     type?: 'EMAIL' | 'WHATSAPP',
-    page = 1,
-    limit = 50
+    page = 0,
+    size = 10
 ): Promise<TemplateListResponse> => {
     try {
         const accessToken = getAccessToken();
@@ -147,11 +147,16 @@ export const getMessageTemplates = async (
 
         const instituteId = getInstituteId();
 
-        // Always use the general endpoint to get all templates, then filter client-side
-        // This ensures we get all templates regardless of case sensitivity issues
-        const url = `${GET_MESSAGE_TEMPLATES}/${instituteId}`;
+        // Build URL with pagination parameters
+        const baseUrl = `${GET_MESSAGE_TEMPLATES}/${instituteId}`;
+        const url = new URL(baseUrl);
+        url.searchParams.append('page', page.toString());
+        url.searchParams.append('size', size.toString());
+        if (type) {
+            url.searchParams.append('type', type);
+        }
 
-        const response = await fetch(url, {
+        const response = await fetch(url.toString(), {
             headers: {
                 'Accept': '*/*',
                 'Authorization': `Bearer ${accessToken}`,
@@ -167,47 +172,76 @@ export const getMessageTemplates = async (
 
         const result = await response.json();
 
-        // Transform the API response to match our TemplateListResponse interface
-        // The API returns an array directly, not wrapped in an object
-        let templates = Array.isArray(result) ? result : result.templates || result.data || [];
+        // Handle new API response structure with content array and pagination
+        let templates: Record<string, unknown>[] = [];
+        let totalElements = 0;
+        let pageNumber = page;
+        let pageSize = size;
+        let totalPages = 1;
+        let isLast = true;
+        let isFirst = true;
 
-        // Filter by type if specified (normalize both to uppercase for comparison)
-        if (type) {
-            templates = templates.filter((template: Record<string, unknown>) => {
-                const templateType = (template.type as string)?.toUpperCase();
-                const filterType = type.toUpperCase();
-                return templateType === filterType;
-            });
+        if (result.content && Array.isArray(result.content)) {
+            // New paginated response structure
+            templates = result.content;
+            totalElements = result.total_elements || result.totalElements || 0;
+            pageNumber = result.page_number !== undefined ? result.page_number : (result.pageNumber !== undefined ? result.pageNumber : page);
+            pageSize = result.page_size || result.pageSize || size;
+            totalPages = result.total_pages || result.totalPages || 1;
+            isLast = result.last !== undefined ? result.last : (result.isLast !== undefined ? result.isLast : true);
+            isFirst = result.first !== undefined ? result.first : (result.isFirst !== undefined ? result.isFirst : true);
+        } else if (Array.isArray(result)) {
+            // Fallback: old response structure (array directly)
+            templates = result;
+            totalElements = result.length;
+        } else {
+            // Fallback: other response structures
+            templates = result.templates || result.data || [];
+            totalElements = templates.length;
         }
 
-        // Apply pagination
-        const startIndex = (page - 1) * limit;
-        const endIndex = startIndex + limit;
-        const paginatedTemplates = templates.slice(startIndex, endIndex);
+        // Type filtering is handled by the API via query parameter
+        // No need for client-side filtering when type is provided
 
         // Transform templates to match our MessageTemplate interface
-        const transformedTemplates = paginatedTemplates.map((template: Record<string, unknown>) => {
+        const transformedTemplates = templates.map((template: Record<string, unknown>) => {
             const { variables, isDefault, templateType } = parseSettingJson(template.settingJson as string);
 
+            // Map templateCategory to templateType if needed
+            let mappedTemplateType = templateType;
+            if (!mappedTemplateType && template.templateCategory) {
+                const category = (template.templateCategory as string).toLowerCase();
+                if (category === 'marketing' || category === 'utility' || category === 'transactional') {
+                    mappedTemplateType = category as 'marketing' | 'utility' | 'transactional';
+                }
+            }
+
+            const normalizedType = ((template.type as string)?.toUpperCase() || 'EMAIL') as 'EMAIL' | 'WHATSAPP';
+            
             return {
                 id: (template.id || template.templateId) as string,
                 name: template.name as string,
-                type: (template.type as string)?.toUpperCase() || 'EMAIL', // Normalize type to uppercase
+                type: normalizedType,
                 subject: (template.subject as string) || '',
-                content: template.content as string,
+                content: (template.content as string) || '', // Content might not be in list response
                 variables: variables,
                 isDefault: isDefault,
-                templateType: templateType,
+                templateType: mappedTemplateType,
                 createdAt: (template.createdAt as string) || new Date().toISOString(),
                 updatedAt: (template.updatedAt as string) || new Date().toISOString(),
+                createdBy: template.createdBy as string | undefined,
+                instituteId: template.instituteId as string | undefined,
             };
         });
 
         return {
             templates: transformedTemplates,
-            total: templates.length,
-            page: page,
-            limit: limit,
+            total: totalElements,
+            page: pageNumber,
+            limit: pageSize,
+            totalPages: totalPages,
+            isLast: isLast,
+            isFirst: isFirst,
         };
     } catch (error) {
         throw error;
@@ -225,85 +259,67 @@ export const getMessageTemplate = async (id: string): Promise<MessageTemplate> =
             throw new Error('Template ID is required');
         }
 
-        const instituteId = getInstituteId();
-        
-        // Try different endpoint formats
-        // Format 1: /get/{id} (current)
-        // Format 2: /{id} (like delete endpoint)
-        // Format 3: /get?id={id}&instituteId={instituteId} (with query parameters)
-        // Format 4: /{id}?instituteId={instituteId}
-        const urls = [
-            `${GET_MESSAGE_TEMPLATE}/${id}`,
-            `${MESSAGE_TEMPLATE_BASE}/${id}`,
-            `${GET_MESSAGE_TEMPLATE}?id=${id}&instituteId=${instituteId}`,
-            `${MESSAGE_TEMPLATE_BASE}/${id}?instituteId=${instituteId}`,
-        ];
+        // Use the correct endpoint: /admin-core-service/institute/template/v1/{template-id}
+        const url = `${MESSAGE_TEMPLATE_BASE}/${id}`;
 
-        let lastError: Error | null = null;
+        const response = await fetch(url, {
+            headers: {
+                'Accept': '*/*',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`,
+                'Origin': window.location.origin,
+                'Referer': window.location.origin + '/',
+            },
+        });
 
-        for (const url of urls) {
-            try {
-                console.log('Trying to fetch template from URL:', url);
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to fetch template: ${response.status} ${errorText || response.statusText}`);
+        }
 
-                const response = await fetch(url, {
-                    headers: {
-                        'Accept': '*/*',
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${accessToken}`,
-                        'Origin': window.location.origin,
-                        'Referer': window.location.origin + '/',
-                    },
-                });
+        const result = await response.json();
+        console.log('Template API response:', result);
 
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('Template API response:', result);
+        // Parse settingJson to extract variables, isDefault, templateType
+        const { variables, isDefault, templateType } = parseSettingJson(result.settingJson);
 
-                    // Transform the API response to match our MessageTemplate interface
-                    const transformed = {
-                        id: result.id || result.templateId,
-                        name: result.name,
-                        type: result.type?.toUpperCase() || 'EMAIL', // Normalize type to uppercase
-                        subject: result.subject || '',
-                        content: result.content || '',
-                        variables: parseSettingJson(result.settingJson).variables,
-                        isDefault: parseSettingJson(result.settingJson).isDefault,
-                        templateType: parseSettingJson(result.settingJson).templateType,
-                        createdAt: result.createdAt || new Date().toISOString(),
-                        updatedAt: result.updatedAt || new Date().toISOString(),
-                    };
-
-                    console.log('Transformed template:', {
-                        id: transformed.id,
-                        name: transformed.name,
-                        type: transformed.type,
-                        hasContent: !!transformed.content,
-                        contentLength: transformed.content?.length || 0,
-                    });
-
-                    return transformed;
-                } else {
-                    const errorText = await response.text();
-                    lastError = new Error(`Failed to fetch template: ${response.status} ${errorText || response.statusText}`);
-                    console.warn(`Attempt failed for ${url}:`, {
-                        status: response.status,
-                        statusText: response.statusText,
-                        errorText,
-                    });
-                }
-            } catch (err) {
-                lastError = err as Error;
-                console.warn(`Error trying ${url}:`, err);
+        // Map templateCategory to templateType if needed
+        let mappedTemplateType = templateType;
+        if (!mappedTemplateType && result.templateCategory) {
+            const category = (result.templateCategory as string).toLowerCase();
+            // Map API categories to our template types
+            if (category === 'marketing' || category === 'utility' || category === 'transactional') {
+                mappedTemplateType = category as 'marketing' | 'utility' | 'transactional';
+            } else if (category === 'notification' || category === 'workflow_admin') {
+                mappedTemplateType = 'utility'; // Default mapping
             }
         }
 
-        // If all attempts failed, throw the last error
-        if (lastError) {
-            console.error('All endpoint attempts failed:', urls);
-            throw lastError;
-        }
+        // Transform the API response to match our MessageTemplate interface
+        const transformed: MessageTemplate = {
+            id: result.id || result.templateId || id,
+            name: result.name || '',
+            type: ((result.type as string)?.toUpperCase() || 'EMAIL') as 'EMAIL' | 'WHATSAPP',
+            subject: result.subject || '',
+            content: result.content || '',
+            variables: variables,
+            isDefault: isDefault,
+            templateType: mappedTemplateType,
+            createdAt: result.createdAt || new Date().toISOString(),
+            updatedAt: result.updatedAt || new Date().toISOString(),
+            createdBy: result.createdBy,
+            instituteId: result.instituteId,
+        };
 
-        throw new Error('Failed to fetch template: All endpoint formats failed');
+        console.log('Transformed template:', {
+            id: transformed.id,
+            name: transformed.name,
+            type: transformed.type,
+            hasContent: !!transformed.content,
+            contentLength: transformed.content?.length || 0,
+        });
+
+        return transformed;
     } catch (error) {
         console.error('Error in getMessageTemplate:', error);
         throw error;

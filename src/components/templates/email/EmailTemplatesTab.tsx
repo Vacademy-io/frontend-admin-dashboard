@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Plus, Trash2, Search, Edit, Eye } from 'lucide-react';
+import { Loader2, Plus, Trash2, Search, Edit, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { MyButton } from '@/components/design-system/button';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MessageTemplate, CreateTemplateRequest } from '@/types/message-template-types';
 import {
     createMessageTemplate,
     getMessageTemplates,
+    getMessageTemplate,
     updateMessageTemplate,
     deleteMessageTemplate,
 } from '@/services/message-template-service';
@@ -31,14 +33,27 @@ export const EmailTemplatesTab: React.FC = () => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [deleteTemplateId, setDeleteTemplateId] = useState<string | null>(null);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalElements, setTotalElements] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
+    const [isLast, setIsLast] = useState(true);
+    const [isFirst, setIsFirst] = useState(true);
 
-    // Load templates
-    const loadTemplates = async () => {
+    // Load templates with pagination
+    const loadTemplates = async (page: number = currentPage, size: number = pageSize) => {
         setIsLoading(true);
         try {
-            const emailTemplates = await templateCacheService.getTemplates('EMAIL');
-            setTemplates(emailTemplates);
-            setFilteredTemplates(emailTemplates);
+            const response = await getMessageTemplates('EMAIL', page, size);
+            setTemplates(response.templates);
+            setFilteredTemplates(response.templates);
+            setTotalElements(response.total);
+            setTotalPages(response.totalPages || 1);
+            setIsLast(response.isLast ?? true);
+            setIsFirst(response.isFirst ?? true);
+            setCurrentPage(response.page);
         } catch (error) {
             console.error('Error loading templates:', error);
             toast.error('Failed to load templates. Please try again.');
@@ -47,7 +62,7 @@ export const EmailTemplatesTab: React.FC = () => {
         }
     };
 
-    // Filter templates based on search query
+    // Filter templates based on search query (client-side filtering on current page)
     useEffect(() => {
         if (!searchQuery.trim()) {
             setFilteredTemplates(templates);
@@ -55,15 +70,22 @@ export const EmailTemplatesTab: React.FC = () => {
             const filtered = templates.filter((template) =>
                 template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 template.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                template.content.toLowerCase().includes(searchQuery.toLowerCase())
+                (template.content && template.content.toLowerCase().includes(searchQuery.toLowerCase()))
             );
             setFilteredTemplates(filtered);
         }
     }, [searchQuery, templates]);
 
     useEffect(() => {
-        loadTemplates();
+        loadTemplates(0, pageSize);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Reload when page or page size changes
+    useEffect(() => {
+        loadTemplates(currentPage, pageSize);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentPage, pageSize]);
 
     const handleCreateTemplate = () => {
         navigate({ to: '/templates/create' });
@@ -73,9 +95,19 @@ export const EmailTemplatesTab: React.FC = () => {
         navigate({ to: '/templates/edit/$templateId', params: { templateId: template.id } });
     };
 
-    const handlePreviewTemplate = (template: MessageTemplate) => {
-        setPreviewTemplate(template);
-        setShowPreview(true);
+    const handlePreviewTemplate = async (template: MessageTemplate) => {
+        try {
+            // Fetch full template content from API
+            const fullTemplate = await getMessageTemplate(template.id);
+            setPreviewTemplate(fullTemplate);
+            setShowPreview(true);
+        } catch (error) {
+            console.error('Error loading template:', error);
+            toast.error('Failed to load template content. Showing cached version.');
+            // Fallback to cached template if API fails
+            setPreviewTemplate(template);
+            setShowPreview(true);
+        }
     };
 
 
@@ -84,7 +116,7 @@ export const EmailTemplatesTab: React.FC = () => {
         try {
             await deleteMessageTemplate(templateId);
             templateCacheService.clearCache('EMAIL');
-            await loadTemplates();
+            await loadTemplates(currentPage, pageSize);
             setShowDeleteDialog(false);
             setDeleteTemplateId(null);
             toast.success('Template deleted successfully!');
@@ -94,6 +126,17 @@ export const EmailTemplatesTab: React.FC = () => {
         } finally {
             setIsDeleting(false);
         }
+    };
+
+    const handlePageChange = (newPage: number) => {
+        if (newPage >= 0 && newPage < totalPages) {
+            setCurrentPage(newPage);
+        }
+    };
+
+    const handlePageSizeChange = (newSize: number) => {
+        setPageSize(newSize);
+        setCurrentPage(0); // Reset to first page when changing page size
     };
 
     const confirmDelete = (templateId: string) => {
@@ -271,6 +314,58 @@ export const EmailTemplatesTab: React.FC = () => {
                             })}
                         </TableBody>
                     </Table>
+                </div>
+            )}
+
+            {/* Pagination Controls */}
+            {!isLoading && templates.length > 0 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span>
+                            Showing {currentPage * pageSize + 1} to {Math.min((currentPage + 1) * pageSize, totalElements)} of {totalElements} templates
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground">Rows per page:</span>
+                            <Select value={pageSize.toString()} onValueChange={(value) => handlePageSizeChange(Number(value))}>
+                                <SelectTrigger className="w-[70px] h-8">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="10">10</SelectItem>
+                                    <SelectItem value="20">20</SelectItem>
+                                    <SelectItem value="50">50</SelectItem>
+                                    <SelectItem value="100">100</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={isFirst || currentPage === 0}
+                                className="h-8 w-8 p-0"
+                            >
+                                <ChevronLeft className="size-4" />
+                            </Button>
+                            <div className="flex items-center gap-1 px-2">
+                                <span className="text-sm">
+                                    Page {currentPage + 1} of {totalPages}
+                                </span>
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={isLast || currentPage >= totalPages - 1}
+                                className="h-8 w-8 p-0"
+                            >
+                                <ChevronRight className="size-4" />
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             )}
 

@@ -39,6 +39,9 @@ export interface TemplateListResponse {
     total: number;
     page: number;
     limit: number;
+    totalPages?: number;
+    isLast?: boolean;
+    isFirst?: boolean;
 }
 
 // Available template variables

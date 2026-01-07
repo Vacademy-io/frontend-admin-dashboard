@@ -1,0 +1,119 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from '@tanstack/react-router';
+import EmailBuilder from './EmailBuilder';
+import { MessageTemplate, CreateTemplateRequest, UpdateTemplateRequest } from '@/types/message-template-types';
+import { createMessageTemplate, updateMessageTemplate, getMessageTemplate } from '@/services/message-template-service';
+import { templateCacheService } from '@/services/template-cache-service';
+import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
+import './email-editor.css';
+
+interface TemplateEditorEmailProps {
+    templateId: string | null; // null for create, string for edit
+}
+
+export const TemplateEditorEmail: React.FC<TemplateEditorEmailProps> = ({ templateId }) => {
+    const navigate = useNavigate();
+    const [template, setTemplate] = useState<MessageTemplate | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+
+    // Load template if editing
+    useEffect(() => {
+        if (templateId) {
+            loadTemplate();
+        }
+    }, [templateId]);
+
+    const loadTemplate = async () => {
+        if (!templateId) return;
+
+        setIsLoading(true);
+        try {
+            const loadedTemplate = await getMessageTemplate(templateId);
+            setTemplate(loadedTemplate);
+        } catch (error) {
+            console.error('Error loading template:', error);
+            toast.error('Failed to load template. Please try again.');
+            navigate({ to: '/settings', search: { selectedTab: 'templates' } });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleSave = async (savedTemplate: MessageTemplate): Promise<void> => {
+        setIsSaving(true);
+        try {
+            if (templateId) {
+                // Update existing template
+                const updateRequest: UpdateTemplateRequest = {
+                    id: templateId,
+                    name: savedTemplate.name,
+                    type: savedTemplate.type,
+                    subject: savedTemplate.subject,
+                    content: savedTemplate.content,
+                    variables: savedTemplate.variables,
+                    isDefault: savedTemplate.isDefault,
+                    templateType: savedTemplate.templateType,
+                };
+
+                await updateMessageTemplate(updateRequest);
+                templateCacheService.clearCache('EMAIL');
+                toast.success('Template updated successfully!');
+            } else {
+                // Create new template
+                const createRequest: CreateTemplateRequest = {
+                    name: savedTemplate.name,
+                    type: savedTemplate.type,
+                    subject: savedTemplate.subject,
+                    content: savedTemplate.content,
+                    variables: savedTemplate.variables,
+                    isDefault: savedTemplate.isDefault,
+                    templateType: savedTemplate.templateType,
+                };
+
+                const createdTemplate = await createMessageTemplate(createRequest);
+                templateCacheService.clearCache('EMAIL');
+                toast.success('Template created successfully!');
+                
+                // Update the template state with the new ID so EmailBuilder can store MJML JSON
+                setTemplate(createdTemplate);
+                
+                // Navigate to edit mode with the new template ID
+                navigate({ to: '/templates/edit/$templateId', params: { templateId: createdTemplate.id } });
+            }
+        } catch (error) {
+            console.error('Error saving template:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to save template';
+            toast.error(errorMessage);
+            throw error; // Re-throw to let EmailBuilder handle it
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleBack = () => {
+        navigate({ to: '/settings', search: { selectedTab: 'templates' } });
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-screen w-screen bg-background">
+                <Loader2 className="size-6 animate-spin" />
+                <span className="ml-2">Loading template...</span>
+            </div>
+        );
+    }
+
+    return (
+        <div className="app-container" style={{ height: '100vh', width: '100vw', overflow: 'hidden' }}>
+            <EmailBuilder
+                template={template}
+                onBack={handleBack}
+                onSave={handleSave}
+                isSaving={isSaving}
+            />
+        </div>
+    );
+};
+
