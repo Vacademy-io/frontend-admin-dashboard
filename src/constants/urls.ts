@@ -2,7 +2,8 @@ export const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'https://backend-sta
 export const BASE_URL_LEARNER_DASHBOARD =
     import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io';
 
-export const AI_SERVICE_BASE_URL = `${BASE_URL}/ai-service`;
+// For testing, use localhost:8077
+export const AI_SERVICE_BASE_URL = import.meta.env.VITE_AI_SERVICE_BASE_URL || 'http://localhost:8077/ai-service';
 
 // Institute IDs from environment variables for multi-org deployment
 export const SSDC_INSTITUTE_ID =
