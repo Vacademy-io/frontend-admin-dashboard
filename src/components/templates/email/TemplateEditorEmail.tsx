@@ -1,12 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import EmailBuilder from './EmailBuilder';
-import { MessageTemplate, CreateTemplateRequest, UpdateTemplateRequest } from '@/types/message-template-types';
-import { createMessageTemplate, updateMessageTemplate, getMessageTemplate } from '@/services/message-template-service';
+// import EmailBuilder from './EmailBuilder'; // Lazy load this instead
+import {
+    MessageTemplate,
+    CreateTemplateRequest,
+    UpdateTemplateRequest,
+} from '@/types/message-template-types';
+import {
+    createMessageTemplate,
+    updateMessageTemplate,
+    getMessageTemplate,
+} from '@/services/message-template-service';
 import { templateCacheService } from '@/services/template-cache-service';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import './email-editor.css';
+
+const EmailBuilder = React.lazy(() => import('./EmailBuilder'));
 
 interface TemplateEditorEmailProps {
     templateId: string | null; // null for create, string for edit
@@ -75,12 +85,15 @@ export const TemplateEditorEmail: React.FC<TemplateEditorEmailProps> = ({ templa
                 const createdTemplate = await createMessageTemplate(createRequest);
                 templateCacheService.clearCache('EMAIL');
                 toast.success('Template created successfully!');
-                
+
                 // Update the template state with the new ID so EmailBuilder can store MJML JSON
                 setTemplate(createdTemplate);
-                
+
                 // Navigate to edit mode with the new template ID
-                navigate({ to: '/templates/edit/$templateId', params: { templateId: createdTemplate.id } });
+                navigate({
+                    to: '/templates/edit/$templateId',
+                    params: { templateId: createdTemplate.id },
+                });
             }
         } catch (error) {
             console.error('Error saving template:', error);
@@ -98,7 +111,7 @@ export const TemplateEditorEmail: React.FC<TemplateEditorEmailProps> = ({ templa
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-screen w-screen bg-background">
+            <div className="flex h-screen w-screen items-center justify-center bg-background">
                 <Loader2 className="size-6 animate-spin" />
                 <span className="ml-2">Loading template...</span>
             </div>
@@ -106,14 +119,25 @@ export const TemplateEditorEmail: React.FC<TemplateEditorEmailProps> = ({ templa
     }
 
     return (
-        <div className="app-container" style={{ height: '100vh', width: '100vw', overflow: 'hidden' }}>
-            <EmailBuilder
-                template={template}
-                onBack={handleBack}
-                onSave={handleSave}
-                isSaving={isSaving}
-            />
+        <div
+            className="app-container"
+            style={{ height: '100vh', width: '100vw', overflow: 'hidden' }}
+        >
+            <Suspense
+                fallback={
+                    <div className="flex h-screen w-screen items-center justify-center bg-background">
+                        <Loader2 className="size-6 animate-spin" />
+                        <span className="ml-2">Loading editor...</span>
+                    </div>
+                }
+            >
+                <EmailBuilder
+                    template={template}
+                    onBack={handleBack}
+                    onSave={handleSave}
+                    isSaving={isSaving}
+                />
+            </Suspense>
         </div>
     );
 };
-

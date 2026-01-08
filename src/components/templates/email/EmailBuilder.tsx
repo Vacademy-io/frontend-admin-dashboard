@@ -46,8 +46,8 @@ const mergeTags = {
     },
     Company: {
         'Company Name': '{{company_name}}',
-        'Address': '{{company_address}}',
-        'Website': '{{company_website}}',
+        Address: '{{company_address}}',
+        Website: '{{company_website}}',
     },
     Date: {
         'Current Date': '{{date}}',
@@ -64,13 +64,21 @@ const EditorToolbar: React.FC<{
     isSaving: boolean;
     templateType?: 'marketing' | 'utility' | 'transactional';
     onTemplateTypeChange?: (type: 'marketing' | 'utility' | 'transactional') => void;
-}> = ({ onBack, templateName, setTemplateName, onOpenAssets, isSaving, templateType = 'utility', onTemplateTypeChange }) => {
+}> = ({
+    onBack,
+    templateName,
+    setTemplateName,
+    onOpenAssets,
+    isSaving,
+    templateType = 'utility',
+    onTemplateTypeChange,
+}) => {
     const form = useForm();
-    const { dirty, values } = useFormState({ 
-        subscription: { 
-            dirty: true, 
-            values: true 
-        } 
+    const { dirty, values } = useFormState({
+        subscription: {
+            dirty: true,
+            values: true,
+        },
     });
     const [isNameEditing, setIsNameEditing] = useState(false);
     const [showMergeTags, setShowMergeTags] = useState(false);
@@ -129,9 +137,11 @@ const EditorToolbar: React.FC<{
 
     const handleMergeTagClick = (value: string) => {
         // Try to insert at cursor position
-        if (document.activeElement?.getAttribute('contenteditable') === 'true' ||
+        if (
+            document.activeElement?.getAttribute('contenteditable') === 'true' ||
             document.activeElement?.tagName === 'TEXTAREA' ||
-            document.activeElement?.tagName === 'INPUT') {
+            document.activeElement?.tagName === 'INPUT'
+        ) {
             const success = document.execCommand('insertText', false, value);
             if (success) {
                 setShowMergeTags(false);
@@ -163,7 +173,11 @@ const EditorToolbar: React.FC<{
                     ) : (
                         <h2 style={styles.templateTitle} onClick={() => setIsNameEditing(true)}>
                             {templateName}
-                            {dirty && <span style={styles.unsavedIndicator} title="Unsaved changes">•</span>}
+                            {dirty && (
+                                <span style={styles.unsavedIndicator} title="Unsaved changes">
+                                    •
+                                </span>
+                            )}
                             <span style={styles.editIcon}>✏️</span>
                         </h2>
                     )}
@@ -187,7 +201,10 @@ const EditorToolbar: React.FC<{
                     <select
                         value={templateType}
                         onChange={(e) => {
-                            const newType = e.target.value as 'marketing' | 'utility' | 'transactional';
+                            const newType = e.target.value as
+                                | 'marketing'
+                                | 'utility'
+                                | 'transactional';
                             if (onTemplateTypeChange) {
                                 onTemplateTypeChange(newType);
                             }
@@ -235,11 +252,7 @@ const EditorToolbar: React.FC<{
                 <button style={styles.assetButton} onClick={onOpenAssets}>
                     📁 Assets
                 </button>
-                <button
-                    style={styles.saveButton}
-                    onClick={handleSave}
-                    disabled={isSaving}
-                >
+                <button style={styles.saveButton} onClick={handleSave} disabled={isSaving}>
                     {isSaving ? 'Saving...' : '💾 Save Template'}
                 </button>
             </div>
@@ -247,7 +260,12 @@ const EditorToolbar: React.FC<{
     );
 };
 
-const EmailBuilder: React.FC<EmailBuilderProps> = ({ template, onBack, onSave, isSaving: externalIsSaving = false }) => {
+const EmailBuilder: React.FC<EmailBuilderProps> = ({
+    template,
+    onBack,
+    onSave,
+    isSaving: externalIsSaving = false,
+}) => {
     const [isAssetPickerOpen, setIsAssetPickerOpen] = useState(false);
     const [imageResolve, setImageResolve] = useState<((url: string) => void) | null>(null);
     const [templateName, setTemplateName] = useState(template?.name || 'Untitled Template');
@@ -366,7 +384,7 @@ const EmailBuilder: React.FC<EmailBuilderProps> = ({ template, onBack, onSave, i
             // Try to load MJML JSON from localStorage (stored when saving)
             const mjmlJsonKey = `email_template_mjml_${template.id}`;
             const storedMjml = localStorage.getItem(mjmlJsonKey);
-            
+
             if (storedMjml) {
                 try {
                     const contentData = JSON.parse(storedMjml);
@@ -379,27 +397,35 @@ const EmailBuilder: React.FC<EmailBuilderProps> = ({ template, onBack, onSave, i
                     console.warn('Failed to parse stored MJML JSON:', e);
                 }
             }
-            
+
             // If no stored MJML, check if content is JSON
             if (template.content) {
                 try {
                     // Try to parse content as JSON (MJML block data)
-                    const contentData = typeof template.content === 'string' 
-                        ? JSON.parse(template.content) 
-                        : template.content;
-                    
+                    const contentData =
+                        typeof template.content === 'string'
+                            ? JSON.parse(template.content)
+                            : template.content;
+
                     // Check if it's actually HTML (starts with <)
-                    if (typeof template.content === 'string' && template.content.trim().startsWith('<')) {
+                    if (
+                        typeof template.content === 'string' &&
+                        template.content.trim().startsWith('<')
+                    ) {
                         // It's HTML, can't load it - show blank template
-                        console.warn('Template content is HTML, cannot load into editor. Please recreate the template.');
-                        toast.warning('This template was created with a different editor. Please recreate it using the new editor.');
+                        console.warn(
+                            'Template content is HTML, cannot load into editor. Please recreate the template.'
+                        );
+                        toast.warning(
+                            'This template was created with a different editor. Please recreate it using the new editor.'
+                        );
                         return {
                             subject: template.subject || 'Welcome to Easy-email',
                             subTitle: 'Nice to meet you!',
                             content: BlockManager.getBlockByType(BasicType.PAGE)!.create({}),
                         };
                     }
-                    
+
                     return {
                         subject: template.subject || 'Welcome to Easy-email',
                         subTitle: 'Nice to meet you!',
@@ -425,10 +451,7 @@ const EmailBuilder: React.FC<EmailBuilderProps> = ({ template, onBack, onSave, i
 
     // Handle form submission (save template)
     const onSubmit = useCallback(
-        async (
-            values: IEmailTemplate,
-            _form: any
-        ) => {
+        async (values: IEmailTemplate, _form: any) => {
             setIsSaving(true);
             try {
                 // 1. Convert to MJML
@@ -471,13 +494,13 @@ const EmailBuilder: React.FC<EmailBuilderProps> = ({ template, onBack, onSave, i
 
                 // 6. Save via API
                 await onSave(savedTemplate);
-                
+
                 // 7. After saving, update localStorage with the new template ID if it was created
                 if (!template?.id && savedTemplate.id) {
                     const newMjmlJsonKey = `email_template_mjml_${savedTemplate.id}`;
                     localStorage.setItem(newMjmlJsonKey, JSON.stringify(values.content));
                 }
-                
+
                 toast.success('Template saved successfully!');
             } catch (error) {
                 console.error('Failed to save template:', error);
@@ -797,4 +820,3 @@ const styles: { [key: string]: React.CSSProperties } = {
 };
 
 export default EmailBuilder;
-
