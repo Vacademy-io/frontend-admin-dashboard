@@ -11,11 +11,11 @@ html {
 
 /* Hide scrollbar utility */
 .scrollbar-hide {
-    -ms-overflow-style: none;  /* Internet Explorer 10+ */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    scrollbar-width: none; /* Firefox */
 }
 .scrollbar-hide::-webkit-scrollbar {
-    display: none;  /* Safari and Chrome */
+    display: none; /* Safari and Chrome */
 }
 
 @layer base {
@@ -504,7 +504,7 @@ html {
         min-height: 44px;
         min-width: 44px;
     }
-    
+
     .touch-target-sm {
         min-height: 36px;
         min-width: 36px;
@@ -516,15 +516,15 @@ html {
     .safe-area-inset-top {
         padding-top: env(safe-area-inset-top);
     }
-    
+
     .safe-area-inset-bottom {
         padding-bottom: env(safe-area-inset-bottom);
     }
-    
+
     .safe-area-inset-left {
         padding-left: env(safe-area-inset-left);
     }
-    
+
     .safe-area-inset-right {
         padding-right: env(safe-area-inset-right);
     }
@@ -539,12 +539,12 @@ html {
         -ms-user-select: none;
         user-select: none;
     }
-    
+
     /* Prevent tap highlight on mobile */
     .no-tap-highlight {
         -webkit-tap-highlight-color: transparent;
     }
-    
+
     /* Momentum scrolling for iOS */
     .scroll-touch {
         -webkit-overflow-scrolling: touch;
@@ -563,7 +563,7 @@ html {
         min-height: 100vh;
         min-height: calc(var(--vh, 1vh) * 100);
     }
-    
+
     .h-screen-mobile {
         height: 100vh;
         height: calc(var(--vh, 1vh) * 100);
@@ -573,16 +573,16 @@ html {
 /* Mobile sidebar overlay backdrop */
 @layer components {
     .mobile-sidebar-backdrop {
-        @apply fixed inset-0 bg-black/50 z-40;
+        @apply fixed inset-0 z-40 bg-black/50;
     }
 }
 
 /* Responsive table wrapper for horizontal scrolling */
 @layer components {
     .table-responsive {
-        @apply overflow-x-auto -mx-4 px-4;
+        @apply -mx-4 overflow-x-auto px-4;
     }
-    
+
     @screen md {
         .table-responsive {
             @apply mx-0 px-0;
@@ -595,7 +595,7 @@ html {
     .card-mobile {
         @apply rounded-none border-x-0;
     }
-    
+
     @screen sm {
         .card-mobile {
             @apply rounded-lg border-x;
@@ -605,59 +605,96 @@ html {
 
 /* Custom animations for enhanced student sidebar */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 @keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.5s ease-out;
+    animation: fadeIn 0.5s ease-out;
 }
 
 .animate-slideInRight {
-  animation: slideInRight 0.4s ease-out;
+    animation: slideInRight 0.4s ease-out;
 }
 
 .animate-scaleIn {
-  animation: scaleIn 0.3s ease-out;
+    animation: scaleIn 0.3s ease-out;
 }
 
 /* Smooth hover scale animations */
 .hover\:scale-102:hover {
-  transform: scale(1.02);
+    transform: scale(1.02);
 }
 
 .hover\:scale-105:hover {
-  transform: scale(1.05);
+    transform: scale(1.05);
 }
 
 .hover\:scale-110:hover {
-  transform: scale(1.1);
+    transform: scale(1.1);
+}
+
+/* ==================================================================== */
+/* ARCO CSS CONFLICT FIXES                                              */
+/* Restore Tailwind Preflight for common elements overridden by Arco    */
+/* Usage of 'body' prefix ensures specificity > Arco (0,0,1) but < Util (0,1,0) */
+/* ==================================================================== */
+
+@layer base {
+    body h1,
+    body h2,
+    body h3,
+    body h4,
+    body h5,
+    body h6 {
+        font-size: inherit;
+        font-weight: inherit;
+        margin: 0;
+        line-height: inherit;
+    }
+
+    body ol,
+    body ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    body p {
+        margin: 0;
+    }
+
+    /* Fix potential button overrides */
+    body button {
+        text-transform: none;
+        margin: 0;
+    }
 }
