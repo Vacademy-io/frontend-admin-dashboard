@@ -29,6 +29,7 @@ import { Route as EvaluatorAiIndexRouteImport } from "./routes/evaluator-ai/inde
 import { Route as EvaluationIndexRouteImport } from "./routes/evaluation/index"
 import { Route as DashboardIndexRouteImport } from "./routes/dashboard/index"
 import { Route as CommunityIndexRouteImport } from "./routes/community/index"
+import { Route as ChallengeAnalyticsIndexRouteImport } from "./routes/challenge-analytics/index"
 import { Route as AuthTransferIndexRouteImport } from "./routes/auth-transfer/index"
 import { Route as AiVideoStudioIndexRouteImport } from "./routes/ai-video-studio/index"
 import { Route as AiCenterIndexRouteImport } from "./routes/ai-center/index"
@@ -261,6 +262,13 @@ const CommunityIndexRoute = CommunityIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() =>
   import("./routes/community/index.lazy").then((d) => d.Route),
+)
+const ChallengeAnalyticsIndexRoute = ChallengeAnalyticsIndexRouteImport.update({
+  id: "/challenge-analytics/",
+  path: "/challenge-analytics/",
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import("./routes/challenge-analytics/index.lazy").then((d) => d.Route),
 )
 const AuthTransferIndexRoute = AuthTransferIndexRouteImport.update({
   id: "/auth-transfer/",
@@ -1001,6 +1009,7 @@ export interface FileRoutesByFullPath {
   "/ai-center": typeof AiCenterIndexRoute
   "/ai-video-studio": typeof AiVideoStudioIndexRoute
   "/auth-transfer": typeof AuthTransferIndexRoute
+  "/challenge-analytics": typeof ChallengeAnalyticsIndexRoute
   "/community": typeof CommunityIndexRoute
   "/dashboard": typeof DashboardIndexRoute
   "/evaluation": typeof EvaluationIndexRoute
@@ -1111,6 +1120,7 @@ export interface FileRoutesByTo {
   "/ai-center": typeof AiCenterIndexRoute
   "/ai-video-studio": typeof AiVideoStudioIndexRoute
   "/auth-transfer": typeof AuthTransferIndexRoute
+  "/challenge-analytics": typeof ChallengeAnalyticsIndexRoute
   "/community": typeof CommunityIndexRoute
   "/dashboard": typeof DashboardIndexRoute
   "/evaluation": typeof EvaluationIndexRoute
@@ -1223,6 +1233,7 @@ export interface FileRoutesById {
   "/ai-center/": typeof AiCenterIndexRoute
   "/ai-video-studio/": typeof AiVideoStudioIndexRoute
   "/auth-transfer/": typeof AuthTransferIndexRoute
+  "/challenge-analytics/": typeof ChallengeAnalyticsIndexRoute
   "/community/": typeof CommunityIndexRoute
   "/dashboard/": typeof DashboardIndexRoute
   "/evaluation/": typeof EvaluationIndexRoute
@@ -1336,6 +1347,7 @@ export interface FileRouteTypes {
     | "/ai-center"
     | "/ai-video-studio"
     | "/auth-transfer"
+    | "/challenge-analytics"
     | "/community"
     | "/dashboard"
     | "/evaluation"
@@ -1446,6 +1458,7 @@ export interface FileRouteTypes {
     | "/ai-center"
     | "/ai-video-studio"
     | "/auth-transfer"
+    | "/challenge-analytics"
     | "/community"
     | "/dashboard"
     | "/evaluation"
@@ -1557,6 +1570,7 @@ export interface FileRouteTypes {
     | "/ai-center/"
     | "/ai-video-studio/"
     | "/auth-transfer/"
+    | "/challenge-analytics/"
     | "/community/"
     | "/dashboard/"
     | "/evaluation/"
@@ -1669,6 +1683,7 @@ export interface RootRouteChildren {
   AiCenterIndexRoute: typeof AiCenterIndexRoute
   AiVideoStudioIndexRoute: typeof AiVideoStudioIndexRoute
   AuthTransferIndexRoute: typeof AuthTransferIndexRoute
+  ChallengeAnalyticsIndexRoute: typeof ChallengeAnalyticsIndexRoute
   CommunityIndexRoute: typeof CommunityIndexRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   EvaluationIndexRoute: typeof EvaluationIndexRoute
@@ -1926,6 +1941,13 @@ declare module "@tanstack/react-router" {
       path: "/community"
       fullPath: "/community"
       preLoaderRoute: typeof CommunityIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/challenge-analytics/": {
+      id: "/challenge-analytics/"
+      path: "/challenge-analytics"
+      fullPath: "/challenge-analytics"
+      preLoaderRoute: typeof ChallengeAnalyticsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/auth-transfer/": {
@@ -2559,6 +2581,7 @@ const rootRouteChildren: RootRouteChildren = {
   AiCenterIndexRoute: AiCenterIndexRoute,
   AiVideoStudioIndexRoute: AiVideoStudioIndexRoute,
   AuthTransferIndexRoute: AuthTransferIndexRoute,
+  ChallengeAnalyticsIndexRoute: ChallengeAnalyticsIndexRoute,
   CommunityIndexRoute: CommunityIndexRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   EvaluationIndexRoute: EvaluationIndexRoute,

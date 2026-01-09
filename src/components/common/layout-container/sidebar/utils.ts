@@ -14,6 +14,7 @@ import {
     Timer,
     ChartBar,
     AddressBook,
+    Sparkle,
 } from '@phosphor-icons/react';
 import { SidebarItemsType } from '../../../../types/layout-container/layout-container-types';
 import {
@@ -405,6 +406,12 @@ export const SidebarItemsData: SidebarItemsType[] = [
         id: 'membership-stats',
         title: 'Enrollment Stats',
         to: '/membership-stats',
+    },
+    {
+        icon: Sparkle,
+        id: 'challenge-analytics',
+        title: 'Challenge Analytics',
+        to: '/challenge-analytics',
     },
     {
         icon: AddressBook,
