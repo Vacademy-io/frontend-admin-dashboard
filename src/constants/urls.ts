@@ -5,6 +5,9 @@ export const BASE_URL_LEARNER_DASHBOARD =
 // For testing, use localhost:8077
 export const AI_SERVICE_BASE_URL = import.meta.env.VITE_AI_SERVICE_BASE_URL || 'http://localhost:8077/ai-service';
 
+// AI Video URLs API
+export const GET_VIDEO_URLS = (videoId: string) => `${AI_SERVICE_BASE_URL}/video/urls/${videoId}`;
+
 // Institute IDs from environment variables for multi-org deployment
 export const SSDC_INSTITUTE_ID =
     import.meta.env.VITE_SSDC_INSTITUTE_ID || '69ca11c6-54e1-4e99-9498-50c9a4272ce6';
@@ -171,6 +174,7 @@ export const DELETE_SESSION = `${BASE_URL}/admin-core-service/sessions/v1/delete
 
 export const GET_SLIDES = `${BASE_URL}/admin-core-service/slide/v1/slides`;
 export const ADD_UPDATE_VIDEO_SLIDE = `${BASE_URL}/admin-core-service/slide/video-slide/add-or-update`;
+export const ADD_UPDATE_HTML_VIDEO_SLIDE = `${BASE_URL}/admin-core-service/slide/html-video-slide/add-or-update`;
 export const GET_CHAPTERS_WITH_SLIDES = `${BASE_URL}/admin-core-service/v1/study-library/chapters-with-slides`;
 export const ADD_UPDATE_SPLIT_SCREEN_SLIDE = `${BASE_URL}/admin-core-service/slide/v1/add-update-video-slide`;
 export const GET_ALL_SLIDES = `${BASE_URL}/admin-core-service/v1/study-library/chapters-with-slides`;

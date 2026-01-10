@@ -593,26 +593,24 @@ const AiSettings: React.FC<AiSettingsProps> = ({ isTab }) => {
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div>
-                            <h4 className="text-sm font-semibold mb-2">Institute-Level Keys</h4>
-                            <p className="text-sm text-gray-600">
-                                You can add API keys (OpenRouter or Gemini) at the institute level. 
-                                These keys will be used for all AI generation requests from your institute.
-                            </p>
+                            <h4 className="text-sm font-semibold mb-2">How to Get OpenRouter API Key</h4>
+                            <ol className="text-sm text-gray-600 space-y-2 list-decimal list-inside">
+                                <li>Visit <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">openrouter.ai</a></li>
+                                <li>Sign up or log in to your account</li>
+                                <li>Navigate to the "Keys" section in your dashboard</li>
+                                <li>Click "Create Key" to generate a new API key</li>
+                                <li>Copy the key (starts with "sk-") and paste it in the field above</li>
+                            </ol>
                         </div>
                         <div>
-                            <h4 className="text-sm font-semibold mb-2">User-Level Keys</h4>
-                            <p className="text-sm text-gray-600">
-                                Users can also add their own API keys, which will take priority over 
-                                institute-level keys for their individual requests.
-                            </p>
-                        </div>
-                        <div>
-                            <h4 className="text-sm font-semibold mb-2">Server Keys (Default)</h4>
-                            <p className="text-sm text-gray-600">
-                                If neither user nor institute keys are available, the system will automatically 
-                                use server keys when "Auto" model is selected. This ensures you can always use 
-                                AI features even without your own keys.
-                            </p>
+                            <h4 className="text-sm font-semibold mb-2">How to Get Gemini API Key</h4>
+                            <ol className="text-sm text-gray-600 space-y-2 list-decimal list-inside">
+                                <li>Visit <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">Google AI Studio</a> or <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">Google Cloud Console</a></li>
+                                <li>Sign in with your Google account</li>
+                                <li>Click "Create API Key" or "Get API Key"</li>
+                                <li>Select or create a Google Cloud project (if prompted)</li>
+                                <li>Copy the generated API key and paste it in the field above</li>
+                            </ol>
                         </div>
                         <div className="rounded-lg bg-indigo-50 p-3 border border-indigo-100">
                             <p className="text-xs text-indigo-700">

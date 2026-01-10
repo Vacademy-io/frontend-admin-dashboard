@@ -1197,7 +1197,7 @@ function RouteComponent() {
                                             <span className="text-lg font-bold text-indigo-900">{usageData?.total_tokens?.toLocaleString() || 0}</span>
                                         </div>
                                         <div className="flex flex-col border-l border-indigo-100 pl-6">
-                                            <span className="text-[10px] uppercase tracking-wider text-indigo-500 font-bold">Estimated Cost</span>
+                                            <span className="text-[10px] uppercase tracking-wider text-indigo-500 font-bold">Cost Spent</span>
                                             <span className="text-lg font-bold text-indigo-900">${usageData?.total_cost?.toFixed(4) || '0.0000'}</span>
                                         </div>
                                     </div>
@@ -1386,26 +1386,24 @@ function RouteComponent() {
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div>
-                            <h4 className="text-sm font-semibold mb-2">User-Level Keys</h4>
-                            <p className="text-sm text-gray-600">
-                                You can add your own API keys (OpenRouter or Gemini) to use for AI generation. 
-                                These keys will be used instead of institute or server keys.
-                            </p>
+                            <h4 className="text-sm font-semibold mb-2">How to Get OpenRouter API Key</h4>
+                            <ol className="text-sm text-gray-600 space-y-2 list-decimal list-inside">
+                                <li>Visit <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">openrouter.ai</a></li>
+                                <li>Sign up or log in to your account</li>
+                                <li>Navigate to the "Keys" section in your dashboard</li>
+                                <li>Click "Create Key" to generate a new API key</li>
+                                <li>Copy the key (starts with "sk-") and paste it in the field above</li>
+                            </ol>
                         </div>
                         <div>
-                            <h4 className="text-sm font-semibold mb-2">Institute-Level Keys</h4>
-                            <p className="text-sm text-gray-600">
-                                If you don't have user-level keys, the system will use institute-level keys 
-                                (if configured by your administrator).
-                            </p>
-                        </div>
-                        <div>
-                            <h4 className="text-sm font-semibold mb-2">Server Keys (Default)</h4>
-                            <p className="text-sm text-gray-600">
-                                If neither user nor institute keys are available, the system will automatically 
-                                use server keys when "Auto" model is selected. This ensures you can always use 
-                                AI features even without your own keys.
-                            </p>
+                            <h4 className="text-sm font-semibold mb-2">How to Get Gemini API Key</h4>
+                            <ol className="text-sm text-gray-600 space-y-2 list-decimal list-inside">
+                                <li>Visit <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">Google AI Studio</a> or <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">Google Cloud Console</a></li>
+                                <li>Sign in with your Google account</li>
+                                <li>Click "Create API Key" or "Get API Key"</li>
+                                <li>Select or create a Google Cloud project (if prompted)</li>
+                                <li>Copy the generated API key and paste it in the field above</li>
+                            </ol>
                         </div>
                         <div className="rounded-lg bg-indigo-50 p-3 border border-indigo-100">
                             <p className="text-xs text-indigo-700">

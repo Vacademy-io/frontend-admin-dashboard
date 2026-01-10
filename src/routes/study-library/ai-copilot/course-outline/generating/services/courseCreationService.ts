@@ -8,6 +8,7 @@ import {
     ADD_CHAPTER,
     ADD_UPDATE_DOCUMENT_SLIDE,
     ADD_UPDATE_VIDEO_SLIDE,
+    ADD_UPDATE_HTML_VIDEO_SLIDE,
     ADD_UPDATE_QUIZ_SLIDE,
 } from '@/constants/urls';
 import { SlideGeneration, SessionProgress } from '../../../shared/types';
@@ -449,8 +450,16 @@ async function createSlide(params: CreateSlideParams): Promise<void> {
                 await createDocumentSlide(params);
                 break;
             case 'video':
-            case 'ai-video':
                 await createVideoSlide(params);
+                break;
+            case 'ai-video':
+                // For ai-video, create HTML_VIDEO slide type if videoId is available
+                if (slide.aiVideoData?.videoId) {
+                    await createHtmlVideoSlide(params);
+                } else {
+                    // Fallback to regular video slide if no videoId yet
+                    await createVideoSlide(params);
+                }
                 break;
             case 'quiz':
             case 'assessment':
@@ -612,6 +621,60 @@ async function createVideoSlide(params: CreateSlideParams): Promise<void> {
 
     const response = await authenticatedAxiosInstance.post(apiUrl, payload);
     console.log(`[Course Creation] Video slide API response:`, response.data);
+}
+
+/**
+ * Creates an HTML_VIDEO slide for AI-generated videos
+ */
+async function createHtmlVideoSlide(params: CreateSlideParams): Promise<void> {
+    const { slide, chapterId, moduleId, subjectId, packageSessionIds, instituteId, slideOrder } = params;
+
+    // Strict truncation to 250 to avoid backend 511 error (character varying(255))
+    const truncate = (str: string, max: number = 250) =>
+        str ? (str.length > max ? str.substring(0, max - 3) + "..." : str) : "";
+
+    if (!slide.aiVideoData?.videoId) {
+        console.warn(`[Course Creation] HTML_VIDEO slide requires videoId, falling back to regular video slide`);
+        await createVideoSlide(params);
+        return;
+    }
+
+    const safeTitle = truncate(slide.slideTitle);
+    const safeDescription = truncate(slide.content || '');
+    const videoId = slide.aiVideoData.videoId;
+    
+    // Get video length from aiVideoData if available, otherwise default to 0
+    // Note: videoLengthInMillis might not be in the type, so we use any access
+    const videoLengthInMillis = (slide.aiVideoData as any).videoLengthInMillis || 0;
+
+    // Build payload for HTML_VIDEO slide
+    // Note: The backend should accept this structure with source_type: 'HTML_VIDEO'
+    const payload = {
+        id: crypto.randomUUID(),
+        title: safeTitle,
+        name: safeTitle, // Also include name field for backend compatibility
+        description: safeDescription,
+        image_file_id: '',
+        slide_order: slideOrder,
+        source_type: 'HTML_VIDEO',
+        html_video_slide: {
+            id: crypto.randomUUID(),
+            url: videoId, // Using videoId as the URL identifier
+            video_length_in_millis: videoLengthInMillis,
+            ai_gen_video_id: videoId,
+        },
+        status: 'PUBLISHED',
+        new_slide: true,
+        notify: false,
+    };
+
+    // Use the HTML_VIDEO slide endpoint
+    const apiUrl = `${ADD_UPDATE_HTML_VIDEO_SLIDE}?chapterId=${chapterId}&instituteId=${instituteId}&packageSessionId=${packageSessionIds}&moduleId=${moduleId}&subjectId=${subjectId}`;
+    console.log(`[Course Creation] Creating HTML_VIDEO slide API URL:`, apiUrl);
+    console.log(`[Course Creation] HTML_VIDEO slide - chapterId: ${chapterId}, slideOrder: ${slideOrder}, videoId: ${videoId}`);
+
+    const response = await authenticatedAxiosInstance.post(apiUrl, payload);
+    console.log(`[Course Creation] HTML_VIDEO slide API response:`, response.data);
 }
 
 /**

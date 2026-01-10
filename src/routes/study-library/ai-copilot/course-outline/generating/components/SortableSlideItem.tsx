@@ -35,6 +35,102 @@ import { Play, X as XIcon } from 'lucide-react';
 
 import { markdownToHtml } from '../../../shared/utils/markdownToHtml';
 
+// Component to display script (can be text or HTML)
+const ScriptDisplay = ({ scriptUrl }: { scriptUrl: string }) => {
+    const [scriptContent, setScriptContent] = useState<string>('');
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [isHtml, setIsHtml] = useState(false);
+
+    useEffect(() => {
+        const fetchScript = async () => {
+            setIsLoading(true);
+            setError(null);
+            try {
+                const response = await fetch(scriptUrl);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch script: ${response.statusText}`);
+                }
+                
+                const contentType = response.headers.get('content-type') || '';
+                const text = await response.text();
+                
+                // Check if it's HTML
+                if (contentType.includes('text/html') || text.trim().startsWith('<')) {
+                    setIsHtml(true);
+                    setScriptContent(text);
+                } else {
+                    // It's plain text, convert to HTML with proper formatting
+                    setIsHtml(false);
+                    // Preserve line breaks and format as HTML
+                    const formattedText = text
+                        .split('\n')
+                        .map(line => `<p>${line || '<br>'}</p>`)
+                        .join('');
+                    setScriptContent(formattedText);
+                }
+            } catch (err) {
+                console.error('Error fetching script:', err);
+                setError(err instanceof Error ? err.message : 'Failed to load script');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        if (scriptUrl) {
+            fetchScript();
+        }
+    }, [scriptUrl]);
+
+    if (isLoading) {
+        return (
+            <div className="bg-white rounded-lg border border-neutral-200 p-4 overflow-hidden min-w-0">
+                <div className="flex items-center gap-2 mb-3">
+                    <FileText className="h-4 w-4 text-blue-600" />
+                    <Label className="text-sm font-semibold text-neutral-900">Video Script</Label>
+                </div>
+                <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-5 w-5 animate-spin text-indigo-600" />
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="bg-white rounded-lg border border-neutral-200 p-4 overflow-hidden min-w-0">
+                <div className="flex items-center gap-2 mb-3">
+                    <FileText className="h-4 w-4 text-blue-600" />
+                    <Label className="text-sm font-semibold text-neutral-900">Video Script</Label>
+                </div>
+                <div className="text-sm text-red-600 py-4">{error}</div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="bg-white rounded-lg border border-neutral-200 p-4 overflow-hidden min-w-0">
+            <div className="flex items-center gap-2 mb-3">
+                <FileText className="h-4 w-4 text-blue-600" />
+                <Label className="text-sm font-semibold text-neutral-900">Video Script</Label>
+            </div>
+            <div className="w-full max-w-full overflow-auto min-w-0 max-h-[600px] border border-neutral-200 rounded p-4 bg-neutral-50">
+                {isHtml ? (
+                    <div 
+                        dangerouslySetInnerHTML={{ __html: scriptContent }}
+                        className="prose prose-sm max-w-none"
+                    />
+                ) : (
+                    <div 
+                        dangerouslySetInnerHTML={{ __html: scriptContent }}
+                        className="whitespace-pre-wrap font-mono text-sm"
+                    />
+                )}
+            </div>
+        </div>
+    );
+};
+
 interface SortableSlideItemProps {
     slide: SlideGeneration;
     onEdit: (slideId: string, newTitle: string) => void;
@@ -923,14 +1019,21 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                 // Show video player when video is ready - check both status and aiVideoData
                 const hasVideo = slide.aiVideoData?.timelineUrl && slide.aiVideoData?.audioUrl && slide.aiVideoData?.status === 'COMPLETED';
                 const isGenerating = (slideStatus as string) === 'generating';
+                const hasScript = slide.aiVideoData?.scriptUrl;
+                // Show script if scriptUrl is available (could be during script stage or anytime script is available)
+                const shouldShowScript = hasScript && !hasVideo;
 
                 // Don't show anything if video is not ready and not generating (removed "No content available" message)
-                if (!hasVideo && !isGenerating) {
+                if (!hasVideo && !isGenerating && !hasScript) {
                     return null;
                 }
 
                 return (
                     <div className="mt-3 ml-8 bg-neutral-50 rounded-md border border-neutral-200 p-4 min-w-0">
+                        {/* Show script when available and video is not ready */}
+                        {shouldShowScript && slide.aiVideoData?.scriptUrl && (
+                            <ScriptDisplay scriptUrl={slide.aiVideoData.scriptUrl} />
+                        )}
                         {/* Show video player when video is ready */}
                         {hasVideo && (
                             <div className="bg-white rounded-lg border border-neutral-200 p-4 overflow-hidden min-w-0">
@@ -950,7 +1053,7 @@ export const SortableSlideItem = React.memo(({ slide, onEdit, onDelete, getSlide
                             </div>
                         )}
                         {/* Only show loader when actively generating, not when pending */}
-                        {isGenerating && (
+                        {isGenerating && !hasScript && (
                             <div className="mt-4 flex items-center gap-2">
                                 <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
                                 <span className="text-sm text-neutral-600">Generating video... {slide.progress || 0}%</span>
