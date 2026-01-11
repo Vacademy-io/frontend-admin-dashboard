@@ -1,4 +1,4 @@
-import { BASE_URL } from '@/constants/urls';
+import { AI_SERVICE_BASE_URL } from '@/constants/urls';
 
 export interface ContentGenerationRequest {
     course_tree: {
@@ -44,7 +44,7 @@ export async function generateContent(
     onProgress?: (message: string) => void,
     retryCount = 0
 ): Promise<void> {
-    const apiUrl = `${BASE_URL}/ai-service/course/content/v1/generate`;
+    const apiUrl = `${AI_SERVICE_BASE_URL}/course/content/v1/generate`;
     
     console.log('=== Content Generation API Request ===');
     console.log('URL:', apiUrl);

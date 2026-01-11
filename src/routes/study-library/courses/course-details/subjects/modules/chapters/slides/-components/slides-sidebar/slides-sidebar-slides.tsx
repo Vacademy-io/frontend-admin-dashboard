@@ -8,6 +8,7 @@ import {
     PlayCircle,
     ClipboardText,
 } from '@phosphor-icons/react';
+import { Video, Sparkles } from 'lucide-react';
 import { ReactNode, useEffect, useMemo } from 'react';
 import {
     Slide,
@@ -27,6 +28,11 @@ interface FormValues {
 
 // Function to get the display text for slide type
 const getSlideTypeDisplay = (slide: Slide): string => {
+    // For HTML_VIDEO slides, show "HTML Video"
+    if (slide.source_type === 'HTML_VIDEO') {
+        return 'HTML Video';
+    }
+
     // For DOCUMENT slides with specific sub-types (not DOC), show just the sub-type
     if (
         slide.source_type === 'DOCUMENT' &&
@@ -48,10 +54,14 @@ const getSlideTypeDisplay = (slide: Slide): string => {
 export const getIcon = (
     source_type: string,
     document_slide_type: string | undefined,
-    size?: string
+    size?: string,
+    slide?: any // Optional slide object to check for html_video_slide
 ): ReactNode => {
     const sizeClass = `size-${size ? size : '5'}`;
     const iconClass = `${sizeClass} transition-all duration-200 ease-in-out group-hover:scale-105`;
+
+    // Check if it's HTML_VIDEO by source_type or by html_video_slide property
+    const isHtmlVideo = source_type === 'HTML_VIDEO' || (slide && (slide as any).html_video_slide);
 
     if (source_type === 'ASSIGNMENT') {
         return <File className={`${iconClass} text-blue-500`} />;
@@ -59,6 +69,17 @@ export const getIcon = (
 
     if (source_type === 'QUIZ') {
         return <ClipboardText className={`${iconClass} text-orange-500`} />;
+    }
+
+    // HTML_VIDEO icon (blue video + sparkle)
+    if (isHtmlVideo) {
+        const sparkleSize = size === '4' ? 'h-3 w-3' : size === '6' ? 'h-4 w-4' : 'h-3.5 w-3.5';
+        return (
+            <div className="relative inline-block">
+                <Video className={`${iconClass} text-blue-500`} />
+                <Sparkles className={`absolute -top-0.5 -right-0.5 ${sparkleSize} text-blue-400`} />
+            </div>
+        );
     }
 
     const type =
@@ -198,7 +219,8 @@ const SlideItem = ({
                                         {getIcon(
                                             slide.source_type,
                                             slide.document_slide?.type,
-                                            '4'
+                                            '4',
+                                            slide
                                         )}
                                     </div>
 

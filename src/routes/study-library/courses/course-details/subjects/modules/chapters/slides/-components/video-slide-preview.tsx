@@ -6,10 +6,13 @@ import { useMediaNavigationStore } from '../-stores/media-navigation-store';
 import { getPublicUrl } from '@/services/upload_file';
 import YouTubePlayer from './youtube-player';
 import { toast } from 'sonner';
+import { GET_VIDEO_URLS } from '@/constants/urls';
+import authenticatedAxiosInstance from '@/lib/auth/axiosInstance';
+import { AIVideoPlayer } from '@/components/ai-video-player/AIVideoPlayer';
 
 const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedUrl?: string }) => {
     const { videoSeekTime, clearVideoSeekTime } = useMediaNavigationStore();
-    const videoSourceType = activeItem.video_slide?.source_type;
+    const videoSourceType = activeItem.video_slide?.source_type || (activeItem as any).source_type;
     const videoStatus = activeItem.status;
     // const videoTitle = activeItem.video_slide?.title || 'Video';
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -23,6 +26,13 @@ const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedU
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isUrlExpired, setIsUrlExpired] = useState(false);
+    
+    // HTML_VIDEO state
+    const [htmlVideoData, setHtmlVideoData] = useState<{
+        htmlUrl: string;
+        audioUrl: string;
+    } | null>(null);
+    const [isLoadingHtmlVideo, setIsLoadingHtmlVideo] = useState(false);
 
     // Reset state when switching to a different video slide
     useEffect(() => {
@@ -30,7 +40,49 @@ const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedU
         setIsLoading(true);
         setError(null);
         setIsUrlExpired(false);
+        setHtmlVideoData(null);
+        setIsLoadingHtmlVideo(false);
     }, [activeItem.id]);
+
+    // Fetch HTML_VIDEO URLs when source_type is HTML_VIDEO
+    useEffect(() => {
+        const fetchHtmlVideoUrls = async () => {
+            if (videoSourceType !== 'HTML_VIDEO') return;
+
+            const htmlVideoSlide = (activeItem as any).html_video_slide;
+            if (!htmlVideoSlide?.ai_gen_video_id) {
+                console.warn('HTML_VIDEO slide missing ai_gen_video_id');
+                setError('Video ID not found');
+                setIsLoadingHtmlVideo(false);
+                return;
+            }
+
+            setIsLoadingHtmlVideo(true);
+            setError(null);
+
+            try {
+                const response = await authenticatedAxiosInstance.get(
+                    GET_VIDEO_URLS(htmlVideoSlide.ai_gen_video_id)
+                );
+                
+                setHtmlVideoData({
+                    htmlUrl: response.data.html_url,
+                    audioUrl: response.data.audio_url,
+                });
+            } catch (err: any) {
+                console.error('Error fetching HTML video URLs:', err);
+                if (err.response?.status === 404) {
+                    setError(`Video ${htmlVideoSlide.ai_gen_video_id} not found`);
+                } else {
+                    setError('Failed to load video URLs');
+                }
+            } finally {
+                setIsLoadingHtmlVideo(false);
+            }
+        };
+
+        fetchHtmlVideoUrls();
+    }, [activeItem.id, videoSourceType]);
 
     const refreshS3Url = async () => {
         try {
@@ -137,6 +189,58 @@ const VideoSlidePreview = ({ activeItem, embedUrl }: { activeItem: Slide; embedU
             refreshS3Url();
         }
     }, [isUrlExpired]);
+
+    // HTML_VIDEO rendering
+    if (videoSourceType === 'HTML_VIDEO') {
+        if (isLoadingHtmlVideo) {
+            return (
+                <div className="flex h-64 items-center justify-center rounded-lg bg-gray-100">
+                    <div className="flex flex-col items-center gap-3">
+                        <div className="size-12 animate-spin rounded-full border-y-2 border-primary-500"></div>
+                        <p className="text-sm text-gray-600">Loading video...</p>
+                    </div>
+                </div>
+            );
+        }
+
+        if (error) {
+            return (
+                <div className="flex h-64 flex-col items-center justify-center rounded-lg bg-red-50 p-4">
+                    <p className="mb-2 font-medium text-red-500">{error}</p>
+                </div>
+            );
+        }
+
+        // Show processing loader when video data is not available yet
+        if (!htmlVideoData?.htmlUrl || !htmlVideoData?.audioUrl) {
+            return (
+                <div className="flex h-64 items-center justify-center rounded-lg bg-gray-100">
+                    <div className="flex flex-col items-center gap-3">
+                        <div className="size-12 animate-spin rounded-full border-y-2 border-primary-500"></div>
+                        <p className="text-sm text-gray-600">Processing video...</p>
+                    </div>
+                </div>
+            );
+        }
+
+        if (htmlVideoData.htmlUrl && htmlVideoData.audioUrl) {
+            return (
+                <div key={`html-video-${activeItem.id}`} className="w-full overflow-hidden rounded-lg flex flex-col" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+                    <AIVideoPlayer
+                        timelineUrl={htmlVideoData.htmlUrl}
+                        audioUrl={htmlVideoData.audioUrl}
+                        className="w-full"
+                    />
+                </div>
+            );
+        }
+
+        return (
+            <div className="flex h-64 items-center justify-center rounded-lg bg-gray-100">
+                <p className="text-gray-500">Video not available</p>
+            </div>
+        );
+    }
 
     // Loading UI
     if (videoSourceType === 'FILE_ID' && isLoading) {

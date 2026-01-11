@@ -1668,7 +1668,7 @@ export const CourseStructureDetails = ({
                                                                                                                     </span>
                                                                                                                 )}
                                                                                                                 {getIcon(
-                                                                                                                    slide.source_type,
+                                                                                                                    (slide as any).html_video_slide ? 'HTML_VIDEO' : slide.source_type,
                                                                                                                     slide
                                                                                                                         .document_slide
                                                                                                                         ?.type,
@@ -2146,7 +2146,7 @@ export const CourseStructureDetails = ({
                                                                                                                     </span>
                                                                                                                 )}
                                                                                                                 {getIcon(
-                                                                                                                    slide.source_type,
+                                                                                                                    (slide as any).html_video_slide ? 'HTML_VIDEO' : slide.source_type,
                                                                                                                     slide
                                                                                                                         .document_slide
                                                                                                                         ?.type,
@@ -2526,7 +2526,7 @@ export const CourseStructureDetails = ({
                                                                                                                     </span>
                                                                                                                 )}
                                                                                                                 {getIcon(
-                                                                                                                    slide.source_type,
+                                                                                                                    (slide as any).html_video_slide ? 'HTML_VIDEO' : slide.source_type,
                                                                                                                     slide
                                                                                                                         .document_slide
                                                                                                                         ?.type,
@@ -2620,9 +2620,10 @@ export const CourseStructureDetails = ({
                                                             </span>
                                                         )}
                                                         {getIcon(
-                                                            slide.source_type,
+                                                            (slide as any).html_video_slide ? 'HTML_VIDEO' : slide.source_type,
                                                             slide.document_slide?.type,
-                                                            '3'
+                                                            '3',
+                                                            slide
                                                         )}
                                                         <span
                                                             className="truncate"
@@ -3353,9 +3354,10 @@ export const CourseStructureDetails = ({
                                     {/* Slide Icon */}
                                     <div className="mb-3 flex aspect-square items-center justify-center rounded-lg bg-gradient-to-br from-blue-50 to-blue-100">
                                         {getIcon(
-                                            slide.source_type,
+                                            (slide as any).html_video_slide ? 'HTML_VIDEO' : slide.source_type,
                                             slide.document_slide?.type,
-                                            '8'
+                                            '8',
+                                            slide
                                         )}
                                     </div>
 

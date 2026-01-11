@@ -666,6 +666,12 @@ export const SlideMaterial = ({
             return;
         }
 
+        // Handle HTML_VIDEO slides (AI-generated videos)
+        if (activeItem.source_type === 'HTML_VIDEO') {
+            setContent(<VideoSlidePreview activeItem={activeItem} />);
+            return;
+        }
+
         if (activeItem.source_type === 'VIDEO') {
             // Check if this video slide is in split-screen mode
             if (activeItem.splitScreenMode && activeItem.splitScreenData) {
@@ -2149,7 +2155,8 @@ export const SlideMaterial = ({
                                             activeItem?.source_type === 'ASSIGNMENT' ||
                                             activeItem?.source_type === 'QUIZ' ||
                                             activeItem?.source_type === 'DOCUMENT' ||
-                                            activeItem?.source_type === 'VIDEO')) || // Include ALL video slides for non-admin
+                                            activeItem?.source_type === 'VIDEO' ||
+                                            activeItem?.source_type === 'HTML_VIDEO')) || // Include ALL video slides for non-admin
                                     (!hidePublishButtons &&
                                         activeItem?.source_type === 'VIDEO' &&
                                         activeItem?.splitScreenMode)) && ( // Keep split-screen condition for admin

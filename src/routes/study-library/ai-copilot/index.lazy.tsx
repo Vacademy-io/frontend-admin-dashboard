@@ -21,7 +21,8 @@ import { getInstituteId } from '@/constants/helper';
 import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
 import { TokenKey } from '@/constants/auth/tokens';
 import { toast } from 'sonner';
-import { X, FileText, Paperclip, Lightbulb, Target, Puzzle, Settings, Sparkles, Upload, Link, AlertTriangle, Plus } from 'lucide-react';
+import { X, FileText, Paperclip, Lightbulb, Target, Puzzle, Settings, Sparkles, Upload, Link, AlertTriangle, Plus, Trash2, Info } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export const Route = createLazyFileRoute('/study-library/ai-copilot/')({
     component: RouteComponent,
@@ -187,11 +188,58 @@ function RouteComponent() {
     const [geminiKey, setGeminiKey] = useState('');
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [usageData, setUsageData] = useState<any>(null);
+    const [userKeysStatus, setUserKeysStatus] = useState<{
+        hasKeys: boolean;
+        hasOpenAI: boolean;
+        hasGemini: boolean;
+    }>({
+        hasKeys: false,
+        hasOpenAI: false,
+        hasGemini: false,
+    });
+    const [showKeysInfo, setShowKeysInfo] = useState(false);
+    const [models, setModels] = useState<Array<{ id: string; name: string; provider: string }>>([]);
+    const [isLoadingModels, setIsLoadingModels] = useState(false);
 
     const instituteId = getInstituteId();
     const accessToken = getTokenFromCookie(TokenKey.accessToken);
     const tokenData = getTokenDecodedData(accessToken);
     const userId = tokenData?.user;
+
+    // Check if user has API keys
+    const checkUserKeys = useCallback(async () => {
+        if (!userId) return;
+        try {
+            const url = new URL(
+                `${AI_SERVICE_BASE_URL}/api-keys/v1/user/${userId}`
+            );
+            if (instituteId) {
+                url.searchParams.append('institute_id', instituteId);
+            }
+            const response = await authenticatedAxiosInstance.get(url.toString());
+            setUserKeysStatus({
+                hasKeys: true,
+                hasOpenAI: response.data.has_openai_key || false,
+                hasGemini: response.data.has_gemini_key || false,
+            });
+        } catch (error: any) {
+            if (error.response?.status === 404) {
+                setUserKeysStatus({
+                    hasKeys: false,
+                    hasOpenAI: false,
+                    hasGemini: false,
+                });
+            } else {
+                console.error('Error checking user keys:', error);
+            }
+        }
+    }, [userId, instituteId]);
+
+    useEffect(() => {
+        if (userId) {
+            checkUserKeys();
+        }
+    }, [userId, checkUserKeys]);
 
     const fetchUsage = useCallback(async () => {
         if (!userId) return;
@@ -210,6 +258,25 @@ function RouteComponent() {
         fetchUsage();
     }, [fetchUsage]);
 
+    // Fetch models list
+    const fetchModels = useCallback(async () => {
+        setIsLoadingModels(true);
+        try {
+            const response = await authenticatedAxiosInstance.get<{ models: Array<{ id: string; name: string; provider: string }> }>(
+                `${AI_SERVICE_BASE_URL}/models/v1/list`
+            );
+            setModels(response.data.models || []);
+        } catch (error) {
+            console.error('Error fetching models:', error);
+        } finally {
+            setIsLoadingModels(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchModels();
+    }, [fetchModels]);
+
     const handleSaveUserKey = async (type: 'openai' | 'gemini') => {
         if (!userId) return;
         const payload: any = {};
@@ -222,12 +289,33 @@ function RouteComponent() {
                 payload,
                 { params: { institute_id: instituteId } }
             );
-            toast.success(`${type === 'openai' ? 'OpenAI' : 'Gemini'} key saved!`);
+            toast.success(`${type === 'openai' ? 'OpenRouter' : 'Gemini'} key saved!`);
             if (type === 'openai') setOpenaiKey('');
             else setGeminiKey('');
+            await checkUserKeys();
             fetchUsage();
         } catch (error) {
             toast.error('Failed to save key');
+        }
+    };
+
+    const handleDeleteUserKey = async (type: 'openai' | 'gemini') => {
+        if (!userId) return;
+        if (!confirm(`Are you sure you want to delete the ${type === 'openai' ? 'OpenRouter' : 'Gemini'} key?`)) return;
+
+        try {
+            await authenticatedAxiosInstance.delete(
+                `${AI_SERVICE_BASE_URL}/api-keys/v1/user/${userId}/delete`
+            );
+            toast.success(`${type === 'openai' ? 'OpenRouter' : 'Gemini'} key deleted`);
+            await checkUserKeys();
+        } catch (error: any) {
+            console.error('Error deleting user key:', error);
+            if (error.response?.status === 404) {
+                toast.error('No keys found to delete');
+            } else {
+                toast.error('Failed to delete key');
+            }
         }
     };
 
@@ -649,14 +737,26 @@ function RouteComponent() {
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         <SelectItem value="auto">Auto (Smart Selection)</SelectItem>
-                                                        <SelectItem value="openai/gpt-4o">GPT-4o (Recommended)</SelectItem>
-                                                        <SelectItem value="openai/gpt-4o-mini">GPT-4o Mini</SelectItem>
-                                                        <SelectItem value="openai/o1">o1</SelectItem>
-                                                        <SelectItem value="openai/o1-mini">o1-mini</SelectItem>
-                                                        <SelectItem value="openai/gpt-4-turbo">GPT-4 Turbo</SelectItem>
-                                                        <SelectItem value="openai/gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
-                                                        <SelectItem value="google/gemini-1.5-pro">Gemini 1.5 Pro</SelectItem>
-                                                        <SelectItem value="google/gemini-1.5-flash">Gemini 1.5 Flash</SelectItem>
+                                                        {isLoadingModels ? (
+                                                            <div className="px-2 py-1.5 text-sm text-gray-500">Loading models...</div>
+                                                        ) : models.length > 0 ? (
+                                                            models.map((model) => (
+                                                                <SelectItem key={model.id} value={model.id}>
+                                                                    {model.name}
+                                                                </SelectItem>
+                                                            ))
+                                                        ) : (
+                                                            <>
+                                                                <SelectItem value="openai/gpt-4o">GPT-4o via OpenRouter (Recommended)</SelectItem>
+                                                                <SelectItem value="openai/gpt-4o-mini">GPT-4o Mini via OpenRouter</SelectItem>
+                                                                <SelectItem value="openai/o1">o1 via OpenRouter</SelectItem>
+                                                                <SelectItem value="openai/o1-mini">o1-mini via OpenRouter</SelectItem>
+                                                                <SelectItem value="openai/gpt-4-turbo">GPT-4 Turbo via OpenRouter</SelectItem>
+                                                                <SelectItem value="openai/gpt-3.5-turbo">GPT-3.5 Turbo via OpenRouter</SelectItem>
+                                                                <SelectItem value="google/gemini-1.5-pro">Gemini 1.5 Pro</SelectItem>
+                                                                <SelectItem value="google/gemini-1.5-flash">Gemini 1.5 Flash</SelectItem>
+                                                            </>
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -716,8 +816,15 @@ function RouteComponent() {
 
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <Label htmlFor="openaiKey" className="mb-2 block">
-                                                    OpenAI API Key
+                                                <Label htmlFor="openaiKey" className="mb-2 block flex items-center gap-2">
+                                                    OpenRouter API Key
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowKeysInfo(true)}
+                                                        className="text-indigo-500 hover:text-indigo-700"
+                                                    >
+                                                        <Info className="h-4 w-4" />
+                                                    </button>
                                                 </Label>
                                                 <div className="flex gap-2">
                                                     <Input
@@ -727,18 +834,36 @@ function RouteComponent() {
                                                         onChange={(e) => setOpenaiKey(e.target.value)}
                                                         placeholder="sk-..."
                                                         className="w-full"
+                                                        disabled={userKeysStatus.hasOpenAI}
                                                     />
-                                                    <MyButton
+                                                    <Button
                                                         type="button"
-                                                        buttonType="secondary"
-                                                        scale="small"
-                                                        layoutVariant="icon"
+                                                        variant="outline"
+                                                        size="default"
                                                         onClick={() => handleSaveUserKey('openai')}
-                                                        disabled={!openaiKey}
+                                                        disabled={!openaiKey || userKeysStatus.hasOpenAI}
+                                                        className="border-indigo-100 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
                                                     >
-                                                        <Plus className="h-4 w-4" />
-                                                    </MyButton>
+                                                        <Plus className="h-4 w-4 mr-1" />
+                                                        Add
+                                                    </Button>
+                                                    {userKeysStatus.hasOpenAI && (
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="default"
+                                                            onClick={() => handleDeleteUserKey('openai')}
+                                                            className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
                                                 </div>
+                                                <p className="text-[10px] text-gray-500 mt-1">
+                                                    {userKeysStatus.hasOpenAI
+                                                        ? "You've added your key. We'll use your keys for AI requests."
+                                                        : "Enter your key so that your requests will use these keys."}
+                                                </p>
                                             </div>
                                             <div>
                                                 <Label htmlFor="geminiKey" className="mb-2 block">
@@ -752,18 +877,36 @@ function RouteComponent() {
                                                         onChange={(e) => setGeminiKey(e.target.value)}
                                                         placeholder="AIza..."
                                                         className="w-full"
+                                                        disabled={userKeysStatus.hasGemini}
                                                     />
-                                                    <MyButton
+                                                    <Button
                                                         type="button"
-                                                        buttonType="secondary"
-                                                        scale="small"
-                                                        layoutVariant="icon"
+                                                        variant="outline"
+                                                        size="default"
                                                         onClick={() => handleSaveUserKey('gemini')}
-                                                        disabled={!geminiKey}
+                                                        disabled={!geminiKey || userKeysStatus.hasGemini}
+                                                        className="border-indigo-100 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
                                                     >
-                                                        <Plus className="h-4 w-4" />
-                                                    </MyButton>
+                                                        <Plus className="h-4 w-4 mr-1" />
+                                                        Add
+                                                    </Button>
+                                                    {userKeysStatus.hasGemini && (
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="default"
+                                                            onClick={() => handleDeleteUserKey('gemini')}
+                                                            className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
                                                 </div>
+                                                <p className="text-[10px] text-gray-500 mt-1">
+                                                    {userKeysStatus.hasGemini
+                                                        ? "You've added your key. We'll use your keys for AI requests."
+                                                        : "Enter your key so that your requests will use these keys."}
+                                                </p>
                                             </div>
                                         </div>
 
@@ -1054,7 +1197,7 @@ function RouteComponent() {
                                             <span className="text-lg font-bold text-indigo-900">{usageData?.total_tokens?.toLocaleString() || 0}</span>
                                         </div>
                                         <div className="flex flex-col border-l border-indigo-100 pl-6">
-                                            <span className="text-[10px] uppercase tracking-wider text-indigo-500 font-bold">Estimated Cost</span>
+                                            <span className="text-[10px] uppercase tracking-wider text-indigo-500 font-bold">Cost Spent</span>
                                             <span className="text-lg font-bold text-indigo-900">${usageData?.total_cost?.toFixed(4) || '0.0000'}</span>
                                         </div>
                                     </div>
@@ -1224,6 +1367,57 @@ function RouteComponent() {
                             onClick={handleConfirmGenerate}
                         >
                             Continue
+                        </MyButton>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* API Keys Info Dialog */}
+            <Dialog open={showKeysInfo} onOpenChange={setShowKeysInfo}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Info className="h-5 w-5 text-indigo-600" />
+                            API Keys Information
+                        </DialogTitle>
+                        <DialogDescription>
+                            How to add and use API keys
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div>
+                            <h4 className="text-sm font-semibold mb-2">How to Get OpenRouter API Key</h4>
+                            <ol className="text-sm text-gray-600 space-y-2 list-decimal list-inside">
+                                <li>Visit <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">openrouter.ai</a></li>
+                                <li>Sign up or log in to your account</li>
+                                <li>Navigate to the "Keys" section in your dashboard</li>
+                                <li>Click "Create Key" to generate a new API key</li>
+                                <li>Copy the key (starts with "sk-") and paste it in the field above</li>
+                            </ol>
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-semibold mb-2">How to Get Gemini API Key</h4>
+                            <ol className="text-sm text-gray-600 space-y-2 list-decimal list-inside">
+                                <li>Visit <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">Google AI Studio</a> or <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">Google Cloud Console</a></li>
+                                <li>Sign in with your Google account</li>
+                                <li>Click "Create API Key" or "Get API Key"</li>
+                                <li>Select or create a Google Cloud project (if prompted)</li>
+                                <li>Copy the generated API key and paste it in the field above</li>
+                            </ol>
+                        </div>
+                        <div className="rounded-lg bg-indigo-50 p-3 border border-indigo-100">
+                            <p className="text-xs text-indigo-700">
+                                <strong>Note:</strong> Your API keys are stored securely and only used for AI-powered 
+                                course generation. Never share your keys with anyone.
+                            </p>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <MyButton
+                            buttonType="secondary"
+                            onClick={() => setShowKeysInfo(false)}
+                        >
+                            Got it
                         </MyButton>
                     </DialogFooter>
                 </DialogContent>

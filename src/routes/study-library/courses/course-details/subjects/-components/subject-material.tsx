@@ -754,7 +754,8 @@ export const SubjectMaterial = () => {
                                                                                                             slide
                                                                                                                 .document_slide
                                                                                                                 ?.type,
-                                                                                                            '3'
+                                                                                                            '3',
+                                                                                                            slide
                                                                                                         )}
                                                                                                         <span
                                                                                                             className="truncate"

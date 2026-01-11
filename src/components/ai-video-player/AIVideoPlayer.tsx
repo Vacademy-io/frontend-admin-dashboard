@@ -408,9 +408,9 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
     }
 
     return (
-        <div className={`flex flex-col gap-4 w-full max-w-full overflow-hidden ${className}`}>
+        <div className={`flex flex-col gap-2.5 w-full max-w-full overflow-hidden ${className}`} style={{ maxHeight: 'calc(100vh - 150px)', height: 'calc(100vh - 150px)' }}>
             {/* Controls */}
-            <div className="flex items-center justify-between bg-card p-4 rounded-lg border shadow-sm w-full min-w-0">
+            <div className="flex items-center justify-between bg-card p-2 rounded-lg border shadow-sm w-full min-w-0 flex-shrink-0">
                 <div className="flex items-center gap-4">
                     <Button variant="outline" size="icon" onClick={handleReset}>
                         <RotateCcw className="h-4 w-4" />
@@ -427,10 +427,12 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
 
             {/* Video Preview */}
             <div
-                className="w-full bg-gray-900 rounded-lg relative overflow-hidden"
+                className="w-full bg-gray-900 rounded-lg relative overflow-hidden flex-1"
                 ref={containerRef}
                 style={{ 
-                    aspectRatio: '16/9'
+                    aspectRatio: '16/9',
+                    minHeight: '500px',
+                    maxHeight: '600px'
                 }}
             >
                 {currentHtml ? (
@@ -477,7 +479,7 @@ export const AIVideoPlayer: React.FC<AIVideoPlayerProps> = ({
             </div>
 
             {/* Timeline */}
-            <div className="h-32 bg-card border rounded-lg p-4 flex flex-col justify-center gap-4 shadow-sm relative overflow-hidden w-full min-w-0">
+            <div className="h-24 bg-card border rounded-lg p-2.5 flex flex-col justify-center gap-2.5 shadow-sm relative overflow-hidden w-full min-w-0 flex-shrink-0">
                 {/* Timeline Visualization */}
                 <div
                     className="flex w-full h-12 bg-muted rounded overflow-hidden relative cursor-pointer min-w-0"
