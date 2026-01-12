@@ -52,21 +52,23 @@ export interface CampaignLeadsRequest {
     sort_direction?: string;
 }
 
-const fetchCampaignLeads = async (payload: CampaignLeadsRequest): Promise<CampaignLeadsResponse> => {
+export const fetchCampaignLeads = async (
+    payload: CampaignLeadsRequest
+): Promise<CampaignLeadsResponse> => {
     try {
         const accessToken = getTokenFromCookie(TokenKey.accessToken);
         const response = await fetch(`${GET_CAMPAIGN_USERS}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`
+                Authorization: `Bearer ${accessToken}`,
             },
             body: JSON.stringify({
                 audience_id: payload.audience_id,
                 submitted_from: payload.submitted_from,
                 submitted_to: payload.submitted_to,
                 page: payload.page,
-                size: payload.size
+                size: payload.size,
             }),
         });
 
@@ -99,4 +101,3 @@ export const handleFetchCampaignUsers = (payload: CampaignLeadsRequest) => {
         staleTime: 60 * 1000, // 1 minute
     };
 };
-

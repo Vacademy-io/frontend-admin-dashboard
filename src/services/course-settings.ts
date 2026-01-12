@@ -146,7 +146,10 @@ const fetchCourseSettingsFromAPI = async (): Promise<CourseSettingsData> => {
         const instituteId = getInstituteId();
 
         if (!instituteId) {
-            throw new Error('Institute ID not found. Please log in again.');
+            // Institute ID not yet available (common during login flow)
+            // Return defaults without throwing - settings will be refreshed later
+            console.warn('Course settings: Institute ID not available yet, using defaults');
+            return DEFAULT_COURSE_SETTINGS;
         }
 
         const response = await authenticatedAxiosInstance.get<CourseSettingsResponse>(
