@@ -61,6 +61,10 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
         setAuthorizationCookie(TokenKey.accessToken, accessToken);
         setAuthorizationCookie(TokenKey.refreshToken, refreshToken);
 
+        // Small delay to allow token propagation to backend
+        // This helps avoid 403 errors on the first authenticated API call
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
         // Clear queries if queryClient is provided
         if (queryClient) {
             queryClient.clear();
@@ -175,49 +179,58 @@ export const handleLoginFlow = async (options: LoginFlowOptions): Promise<LoginF
                 ? ADMIN_DISPLAY_SETTINGS_KEY
                 : TEACHER_DISPLAY_SETTINGS_KEY;
 
-            // Ensure display settings are loaded before getting redirect URL with retry logic
-            let ds: DisplaySettingsData | null = null;
-            const maxRetries = 3;
-            let retryCount = 0;
+            // Use cache-first approach for display settings to avoid blocking login
+            // First try to use cached settings for immediate redirect
+            let ds: DisplaySettingsData | null = getDisplaySettingsFromCache(roleKey);
 
-            while (retryCount < maxRetries && !ds) {
-                try {
-                    console.log(
-                        `🔍 LOGIN DEBUG: Fetching display settings for role: ${roleKey} (attempt ${retryCount + 1}/${maxRetries})`
-                    );
-                    ds = await getDisplaySettings(roleKey, true);
-                    console.log('🔍 LOGIN DEBUG: Display settings fetched successfully:', {
+            if (ds) {
+                console.log(
+                    '🔍 LOGIN DEBUG: Using cached display settings for immediate redirect:',
+                    {
                         roleKey,
                         postLoginRedirectRoute: ds?.postLoginRedirectRoute,
-                        attempt: retryCount + 1,
-                        fullSettings: ds,
-                    });
-                    break; // Success, exit retry loop
-                } catch (error) {
-                    retryCount++;
-                    const errorStatus = (error as any)?.response?.status;
-                    console.warn(
-                        `🔍 LOGIN DEBUG: Failed to fetch display settings (attempt ${retryCount}/${maxRetries}) [Status: ${errorStatus}]:`,
-                        error
-                    );
+                    }
+                );
+                // Trigger background refresh (non-blocking)
+                void getDisplaySettings(roleKey, true).catch(() => {});
+            } else {
+                // No cache available, need to fetch with reduced retry delay
+                const maxRetries = 3;
+                let retryCount = 0;
 
-                    if (retryCount >= maxRetries) {
-                        // Final attempt failed, use cache
-                        ds = getDisplaySettingsFromCache(roleKey);
+                while (retryCount < maxRetries && !ds) {
+                    try {
                         console.log(
-                            '🔍 LOGIN DEBUG: Using cached display settings after all retries failed:',
-                            {
-                                roleKey,
-                                postLoginRedirectRoute: ds?.postLoginRedirectRoute,
-                                cacheAvailable: !!ds,
-                            }
+                            `🔍 LOGIN DEBUG: Fetching display settings for role: ${roleKey} (attempt ${retryCount + 1}/${maxRetries})`
                         );
-                        break;
-                    } else {
-                        // Wait before retry (exponential backoff)
-                        const delay = Math.pow(2, retryCount - 1) * 500; // 500ms, 1s, 2s
-                        console.log(`🔍 LOGIN DEBUG: Retrying in ${delay}ms...`);
-                        await new Promise((resolve) => setTimeout(resolve, delay));
+                        ds = await getDisplaySettings(roleKey, true);
+                        console.log('🔍 LOGIN DEBUG: Display settings fetched successfully:', {
+                            roleKey,
+                            postLoginRedirectRoute: ds?.postLoginRedirectRoute,
+                            attempt: retryCount + 1,
+                        });
+                        break; // Success, exit retry loop
+                    } catch (error) {
+                        retryCount++;
+                        const errorStatus = (error as { response?: { status?: number } })?.response
+                            ?.status;
+                        console.warn(
+                            `🔍 LOGIN DEBUG: Failed to fetch display settings (attempt ${retryCount}/${maxRetries}) [Status: ${errorStatus}]:`,
+                            error
+                        );
+
+                        if (retryCount >= maxRetries) {
+                            // Final attempt failed, use defaults
+                            console.log(
+                                '🔍 LOGIN DEBUG: All retries failed, using default redirect'
+                            );
+                            break;
+                        } else {
+                            // Wait before retry (reduced exponential backoff: 200ms, 400ms, 800ms)
+                            const delay = Math.pow(2, retryCount - 1) * 200;
+                            console.log(`🔍 LOGIN DEBUG: Retrying in ${delay}ms...`);
+                            await new Promise((resolve) => setTimeout(resolve, delay));
+                        }
                     }
                 }
             }
@@ -335,47 +348,55 @@ export const handleInstituteSelection = async (instituteId: string): Promise<Log
         // Determine redirect URL from Display Settings - fetch the correct role settings first
         const roleKey = hasAdminRole ? ADMIN_DISPLAY_SETTINGS_KEY : TEACHER_DISPLAY_SETTINGS_KEY;
 
-        // Ensure display settings are loaded before getting redirect URL with retry logic
-        let ds: DisplaySettingsData | null = null;
-        const maxRetries = 3;
-        let retryCount = 0;
+        // Use cache-first approach for display settings to avoid blocking
+        let ds: DisplaySettingsData | null = getDisplaySettingsFromCache(roleKey);
 
-        while (retryCount < maxRetries && !ds) {
-            try {
-                console.log(
-                    `🔍 INSTITUTE DEBUG: Fetching display settings for role: ${roleKey} (attempt ${retryCount + 1}/${maxRetries})`
-                );
-                ds = await getDisplaySettings(roleKey, true);
-                console.log('🔍 INSTITUTE DEBUG: Display settings fetched successfully:', {
+        if (ds) {
+            console.log(
+                '🔍 INSTITUTE DEBUG: Using cached display settings for immediate redirect:',
+                {
                     roleKey,
                     postLoginRedirectRoute: ds?.postLoginRedirectRoute,
-                    attempt: retryCount + 1,
-                });
-                break; // Success, exit retry loop
-            } catch (error) {
-                retryCount++;
-                console.warn(
-                    `🔍 INSTITUTE DEBUG: Failed to fetch display settings (attempt ${retryCount}/${maxRetries}):`,
-                    error
-                );
+                }
+            );
+            // Trigger background refresh (non-blocking)
+            void getDisplaySettings(roleKey, true).catch(() => {});
+        } else {
+            // No cache available, need to fetch with reduced retry delay
+            const maxRetries = 3;
+            let retryCount = 0;
 
-                if (retryCount >= maxRetries) {
-                    // Final attempt failed, use cache
-                    ds = getDisplaySettingsFromCache(roleKey);
+            while (retryCount < maxRetries && !ds) {
+                try {
                     console.log(
-                        '🔍 INSTITUTE DEBUG: Using cached display settings after all retries failed:',
-                        {
-                            roleKey,
-                            postLoginRedirectRoute: ds?.postLoginRedirectRoute,
-                            cacheAvailable: !!ds,
-                        }
+                        `🔍 INSTITUTE DEBUG: Fetching display settings for role: ${roleKey} (attempt ${retryCount + 1}/${maxRetries})`
                     );
-                    break;
-                } else {
-                    // Wait before retry (exponential backoff)
-                    const delay = Math.pow(2, retryCount - 1) * 500; // 500ms, 1s, 2s
-                    console.log(`🔍 INSTITUTE DEBUG: Retrying in ${delay}ms...`);
-                    await new Promise((resolve) => setTimeout(resolve, delay));
+                    ds = await getDisplaySettings(roleKey, true);
+                    console.log('🔍 INSTITUTE DEBUG: Display settings fetched successfully:', {
+                        roleKey,
+                        postLoginRedirectRoute: ds?.postLoginRedirectRoute,
+                        attempt: retryCount + 1,
+                    });
+                    break; // Success, exit retry loop
+                } catch (error) {
+                    retryCount++;
+                    console.warn(
+                        `🔍 INSTITUTE DEBUG: Failed to fetch display settings (attempt ${retryCount}/${maxRetries}):`,
+                        error
+                    );
+
+                    if (retryCount >= maxRetries) {
+                        // Final attempt failed, use defaults
+                        console.log(
+                            '🔍 INSTITUTE DEBUG: All retries failed, using default redirect'
+                        );
+                        break;
+                    } else {
+                        // Wait before retry (reduced exponential backoff: 200ms, 400ms, 800ms)
+                        const delay = Math.pow(2, retryCount - 1) * 200;
+                        console.log(`🔍 INSTITUTE DEBUG: Retrying in ${delay}ms...`);
+                        await new Promise((resolve) => setTimeout(resolve, delay));
+                    }
                 }
             }
         }

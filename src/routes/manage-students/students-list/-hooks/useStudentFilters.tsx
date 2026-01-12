@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { StudentFilterRequest } from '@/types/student-table-types';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
-import { TokenKey } from '@/constants/auth/tokens';
+import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
 import { useSelectedSessionStore } from '@/stores/study-library/selected-session-store';
 import {
     DropdownItemType,
@@ -13,9 +12,7 @@ import { useNavigate, useSearch } from '@tanstack/react-router';
 export const useStudentFilters = () => {
     const navigate = useNavigate();
     const searchParams = useSearch({ strict: false }) as Record<string, any>;
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const data = getTokenDecodedData(accessToken);
-    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
+    const INSTITUTE_ID = getCurrentInstituteId();
     const { getAllSessions, instituteDetails } = useInstituteDetailsStore();
     const { selectedSession, setSelectedSession } = useSelectedSessionStore();
     const [columnFilters, setColumnFilters] = useState<
@@ -111,7 +108,7 @@ export const useStudentFilters = () => {
     // Initialize filters from URL params
     useEffect(() => {
         if (!instituteDetails) return;
-        
+
         // Prevent running this logic multiple times
         if (hasInitializedFilters.current) return;
         hasInitializedFilters.current = true;
@@ -190,8 +187,8 @@ export const useStudentFilters = () => {
 
         // Session expiry filter from URL (using camelCase)
         if (searchParams.sessionExpiry) {
-            const expiries = Array.isArray(searchParams.sessionExpiry) 
-                ? searchParams.sessionExpiry 
+            const expiries = Array.isArray(searchParams.sessionExpiry)
+                ? searchParams.sessionExpiry
                 : [searchParams.sessionExpiry];
             const expiryOptions = expiries.map((days) => ({
                 id: String(days),
@@ -207,7 +204,7 @@ export const useStudentFilters = () => {
             setSearchInput(searchParams.name);
             setSearchFilter(searchParams.name);
         }
-        
+
         // Custom field filters from URL
         if (instituteDetails?.dropdown_custom_fields) {
             instituteDetails.dropdown_custom_fields.forEach((customField) => {
@@ -222,7 +219,7 @@ export const useStudentFilters = () => {
                                 return option ? { id: option.value, label: option.label } : null;
                             })
                             .filter(Boolean) as { id: string; label: string }[];
-                        
+
                         if (matchedOptions.length > 0) {
                             initialFilters.push({ id: customField.fieldKey, value: matchedOptions });
                         }
@@ -238,7 +235,7 @@ export const useStudentFilters = () => {
             // Mark that filters have been loaded from URL so they appear as "applied"
             // This ensures the UI shows them as active filters
             setClearFilters(false);
-            
+
             // Apply the URL filters immediately on initial load
             // Calculate filters from initialFilters to apply them
             const statusFilter = initialFilters.find((filter) => filter.id === 'statuses');
@@ -252,7 +249,7 @@ export const useStudentFilters = () => {
             const rolesToApply = roleFilter?.value.map((option) => option.id) || [];
 
             const batchFilter = initialFilters.find((filter) => filter.id === 'batch');
-            const pksids = batchFilter?.value.map((option) => option.id) || 
+            const pksids = batchFilter?.value.map((option) => option.id) ||
                 (instituteDetails?.batches_for_sessions || [])
                     .filter((batch) => batch.session.id === currentSession.id)
                     .map((batch) => batch.id);
@@ -361,7 +358,7 @@ export const useStudentFilters = () => {
 
         // Build URL search params - preserve existing params and update only filter-related ones
         const currentParams = new URLSearchParams(window.location.search);
-        
+
         // Remove old filter params to avoid duplicates
         currentParams.delete('name');
         currentParams.delete('role');
@@ -369,55 +366,55 @@ export const useStudentFilters = () => {
         currentParams.delete('status');
         currentParams.delete('batch');
         currentParams.delete('sessionExpiry');
-        
+
         // Remove old custom field params
         if (instituteDetails?.dropdown_custom_fields) {
             instituteDetails.dropdown_custom_fields.forEach((customField) => {
                 currentParams.delete(customField.fieldKey);
             });
         }
-        
+
         // Always include/update current session
         if (currentSession?.id) {
             currentParams.set('session', currentSession.id);
         }
-        
+
         // Add new filter values
         if (searchFilter) {
             currentParams.set('name', searchFilter);
         }
-        
+
         // Handle multiple roles - use unique values only
         if (rolesToApply.length > 0) {
             const uniqueRoles = [...new Set(rolesToApply)];
             uniqueRoles.forEach(role => currentParams.append('role', role));
         }
-        
+
         // Handle multiple genders - use unique values only
         if (gendersToApply.length > 0) {
             const uniqueGenders = [...new Set(gendersToApply)];
             uniqueGenders.forEach(gender => currentParams.append('gender', gender));
         }
-        
+
         // Handle multiple statuses - only add to URL if user has explicitly selected specific statuses
         // Don't add if no filter was selected (which means all statuses are applied by default)
         if (statusesToApply.length > 0) {
             const uniqueStatuses = [...new Set(statusesToApply)];
             uniqueStatuses.forEach(status => currentParams.append('status', status));
         }
-        
+
         // Handle multiple batches - use unique values only
         if (pksids.length > 0 && pksids.length !== allPackageSessionIds.length) {
             const uniqueBatches = [...new Set(pksids)];
             uniqueBatches.forEach(batch => currentParams.append('batch', batch));
         }
-        
+
         // Handle multiple session expiry values - use unique values only
         if (sessionExpiryDays && sessionExpiryDays.length > 0) {
             const uniqueDays = [...new Set(sessionExpiryDays)];
             uniqueDays.forEach(days => currentParams.append('sessionExpiry', String(days)));
         }
-        
+
         // Handle custom field filters in URL - use unique values only
         if (instituteDetails?.dropdown_custom_fields) {
             instituteDetails.dropdown_custom_fields.forEach((customField) => {
@@ -459,7 +456,7 @@ export const useStudentFilters = () => {
 
         // Clear filter params but preserve other URL params (like courseId)
         const currentParams = new URLSearchParams(window.location.search);
-        
+
         // Remove only filter-related params
         currentParams.delete('name');
         currentParams.delete('role');
@@ -467,19 +464,19 @@ export const useStudentFilters = () => {
         currentParams.delete('status');
         currentParams.delete('batch');
         currentParams.delete('sessionExpiry');
-        
+
         // Remove custom field params
         if (instituteDetails?.dropdown_custom_fields) {
             instituteDetails.dropdown_custom_fields.forEach((customField) => {
                 currentParams.delete(customField.fieldKey);
             });
         }
-        
+
         // Keep session
         if (currentSession?.id) {
             currentParams.set('session', currentSession.id);
         }
-        
+
         const newUrl = `${window.location.pathname}?${currentParams.toString()}`;
         window.history.replaceState({}, '', newUrl);
 
@@ -505,7 +502,7 @@ export const useStudentFilters = () => {
 
     const handleSearchEnter = async () => {
         setSearchFilter(searchInput);
-        
+
         // Update URL with search name
         const currentParams = new URLSearchParams(window.location.search);
         if (searchInput) {
@@ -525,7 +522,7 @@ export const useStudentFilters = () => {
     const handleClearSearch = async () => {
         setSearchInput('');
         setSearchFilter('');
-        
+
         // Remove name from URL but keep session
         const currentParams = new URLSearchParams(window.location.search);
         currentParams.delete('name');

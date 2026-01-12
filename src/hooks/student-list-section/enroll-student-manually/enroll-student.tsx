@@ -9,8 +9,8 @@ import {
     StepFourData,
     StepFiveData,
 } from '@/schemas/student/student-list/schema-enroll-students-manually';
-import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtility';
-import { TokenKey } from '@/constants/auth/tokens';
+import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
+
 import { getCustomFieldSettingsFromCache } from '@/services/custom-field-settings';
 
 interface EnrollStudentParams {
@@ -25,9 +25,7 @@ interface EnrollStudentParams {
 }
 
 export const useEnrollStudent = () => {
-    const accessToken = getTokenFromCookie(TokenKey.accessToken);
-    const data = getTokenDecodedData(accessToken);
-    const INSTITUTE_ID = data && Object.keys(data.authorities)[0];
+    const INSTITUTE_ID = getCurrentInstituteId();
 
     return useMutation({
         mutationFn: async ({ formData }: EnrollStudentParams) => {
@@ -42,11 +40,11 @@ export const useEnrollStudent = () => {
             // Build custom_field_values array (ONLY custom fields, NOT system fields)
             const customFieldValues = stepTwoData?.custom_fields
                 ? Object.entries(stepTwoData.custom_fields)
-                    .filter(([fieldId]) => customFieldIds.has(fieldId))
-                    .map(([custom_field_id, value]) => ({
-                        custom_field_id,
-                        value,
-                    }))
+                      .filter(([fieldId]) => customFieldIds.has(fieldId))
+                      .map(([custom_field_id, value]) => ({
+                          custom_field_id,
+                          value,
+                      }))
                 : [];
 
             // Build payment_initiation_request

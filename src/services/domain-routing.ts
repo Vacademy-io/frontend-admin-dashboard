@@ -52,11 +52,15 @@ export async function resolveInstituteForCurrentHost(): Promise<DomainResolveRes
             subdomain = getSubdomain() || '*';
         }
 
+        // Add timeout to prevent indefinite hanging on slow/failing requests
         const { data } = await axios.get<DomainResolveResponse>(DOMAIN_ROUTING_RESOLVE, {
             params: { domain, subdomain },
+            timeout: 5000, // 5 second timeout
         });
         return data;
     } catch (_error) {
+        // Return null on any error (404, timeout, network failure, etc.)
+        // The app will use default branding in this case
         return null;
     }
 }
@@ -66,6 +70,7 @@ export async function getPublicUrl(fileId?: string | null): Promise<string | nul
     try {
         const response = await axios.get<string>(GET_PUBLIC_URL_PUBLIC, {
             params: { fileId, expiryDays: 1 },
+            timeout: 5000, // 5 second timeout
         });
         return response.data || null;
     } catch (_error) {
