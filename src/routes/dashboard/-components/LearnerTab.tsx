@@ -1,18 +1,16 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MyButton } from '@/components/design-system/button';
-import { BookOpen, GraduationCap, Users, Award } from 'lucide-react';
-import { useNavigate } from '@tanstack/react-router';
+import { BookOpen, GraduationCap, Users } from 'lucide-react';
+import { BASE_URL_LEARNER_DASHBOARD } from '@/constants/urls';
 
 interface LearnerTabProps {
     onClose: () => void;
 }
 
 export function LearnerTab({ onClose }: LearnerTabProps) {
-    const navigate = useNavigate();
-
     const handleSwitchToLearner = () => {
         // Navigate to learner platform
-        window.location.href = import.meta.env.VITE_LEARNER_DASHBOARD_URL;
+        window.location.href = BASE_URL_LEARNER_DASHBOARD;
     };
 
     const handleContinueAsAdmin = () => {
@@ -32,8 +30,8 @@ export function LearnerTab({ onClose }: LearnerTabProps) {
                     </div>
                     <CardTitle className="text-xl">Welcome Back!</CardTitle>
                     <CardDescription>
-                        You have access to both admin and learner features. Choose how you'd like to
-                        proceed:
+                        You have access to both admin and learner features. Choose how you&apos;d
+                        like to proceed:
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -95,7 +93,7 @@ export function LearnerTab({ onClose }: LearnerTabProps) {
                             onClick={handleContinueAsAdmin}
                             className="text-sm text-gray-500 hover:text-gray-700"
                         >
-                            Don't show this again
+                            Don&apos;t show this again
                         </button>
                     </div>
                 </CardContent>

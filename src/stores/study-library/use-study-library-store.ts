@@ -37,9 +37,35 @@ export interface SessionWithLevelsType {
     level_with_details: LevelWithDetailsType[];
 }
 
+// Package session mapping from course-init API
+export interface PackageSessionType {
+    id: string;
+    level: {
+        id: string;
+        level_name: string;
+    };
+    session: {
+        id: string;
+        session_name: string;
+    };
+    start_time: string;
+    status: string;
+    package_dto?: {
+        id: string;
+        package_name: string;
+    };
+    group?: {
+        id: string;
+        group_name: string;
+    };
+    read_time_in_minutes?: number;
+    is_org_associated?: boolean;
+}
+
 export interface CourseWithSessionsType {
     course: CourseType;
     sessions: SessionWithLevelsType[];
+    package_sessions?: PackageSessionType[];
 }
 
 interface StudyLibraryStore {
@@ -53,6 +79,11 @@ interface StudyLibraryStore {
         levelId: string;
         subjectId: string;
     }) => Array<{ id: string; name: string }>;
+    getPackageSessionId: (params: {
+        courseId: string;
+        sessionId: string;
+        levelId: string;
+    }) => string | null;
 }
 
 export const useStudyLibraryStore = create<StudyLibraryStore>((set, get) => ({
@@ -84,5 +115,21 @@ export const useStudyLibraryStore = create<StudyLibraryStore>((set, get) => ({
             id: session.session_dto.id,
             name: session.session_dto.session_name,
         }));
+    },
+    // Get packageSessionId from package_sessions in course-init response
+    getPackageSessionId: (params) => {
+        const { studyLibraryData } = get();
+        if (!studyLibraryData) return null;
+
+        // Find the course
+        const course = studyLibraryData.find((c) => c.course.id === params.courseId);
+        if (!course || !course.package_sessions) return null;
+
+        // Find matching package session by level and session
+        const matchingPackageSession = course.package_sessions.find(
+            (ps) => ps.level.id === params.levelId && ps.session.id === params.sessionId
+        );
+
+        return matchingPackageSession?.id || null;
     },
 }));

@@ -1,0 +1,260 @@
+import { create } from 'zustand';
+import { CatalogueConfig, Page, Component } from '../-types/editor-types';
+
+const MAX_HISTORY_LENGTH = 50;
+
+interface EditorState {
+    config: CatalogueConfig | null;
+    originalConfig: CatalogueConfig | null;
+
+    // History for undo/redo
+    history: CatalogueConfig[];
+    historyIndex: number;
+
+    selectedPageId: string | null;
+    selectedComponentId: string | null;
+    selectedGlobalSettings: boolean;
+    activeTab: 'visual' | 'json';
+    previewViewport: 'desktop' | 'tablet' | 'mobile';
+
+    // Actions
+    setConfig: (config: CatalogueConfig) => void;
+    selectPage: (pageId: string) => void;
+    selectComponent: (componentId: string | null) => void;
+    selectGlobalSettings: () => void;
+    setViewport: (viewport: 'desktop' | 'tablet' | 'mobile') => void;
+    setActiveTab: (tab: 'visual' | 'json') => void;
+
+    updateConfig: (newConfig: CatalogueConfig) => void;
+    updateComponent: (pageId: string, componentId: string, updates: Partial<Component>) => void;
+    updateGlobalSettings: (updates: any) => void;
+    reorderComponents: (pageId: string, newComponents: Component[]) => void;
+    addComponent: (pageId: string, component: Component) => void;
+    deleteComponent: (pageId: string, componentId: string) => void;
+    duplicateComponent: (pageId: string, componentId: string) => void;
+    addPage: (page: Page) => void;
+    deletePage: (pageId: string) => void;
+    duplicatePage: (pageId: string) => void;
+
+    // Undo/Redo
+    undo: () => void;
+    redo: () => void;
+    canUndo: () => boolean;
+    canRedo: () => boolean;
+}
+
+// Helper to push config to history
+const pushToHistory = (state: EditorState, newConfig: CatalogueConfig): Partial<EditorState> => {
+    // Slice history to current index (discard redo stack on new change)
+    const newHistory = [
+        ...state.history.slice(0, state.historyIndex + 1),
+        JSON.parse(JSON.stringify(newConfig)),
+    ];
+    // Limit history length
+    const trimmedHistory =
+        newHistory.length > MAX_HISTORY_LENGTH
+            ? newHistory.slice(newHistory.length - MAX_HISTORY_LENGTH)
+            : newHistory;
+    return {
+        config: newConfig,
+        history: trimmedHistory,
+        historyIndex: trimmedHistory.length - 1,
+    };
+};
+
+export const useEditorStore = create<EditorState>((set, get) => ({
+    config: null,
+    originalConfig: null,
+    history: [],
+    historyIndex: -1,
+    selectedPageId: null,
+    selectedComponentId: null,
+    selectedGlobalSettings: false,
+    activeTab: 'visual',
+    previewViewport: 'desktop',
+
+    setConfig: (config) =>
+        set({
+            config,
+            originalConfig: JSON.parse(JSON.stringify(config)),
+            history: [JSON.parse(JSON.stringify(config))],
+            historyIndex: 0,
+            selectedPageId: config.pages[0]?.id || null,
+            selectedGlobalSettings: false,
+        }),
+
+    selectPage: (id) =>
+        set({ selectedPageId: id, selectedComponentId: null, selectedGlobalSettings: false }),
+    selectComponent: (id) => set({ selectedComponentId: id }),
+    selectGlobalSettings: () =>
+        set({ selectedGlobalSettings: true, selectedPageId: null, selectedComponentId: null }),
+    setViewport: (v) => set({ previewViewport: v }),
+    setActiveTab: (t) => set({ activeTab: t }),
+
+    updateConfig: (newConfig) => set((state) => pushToHistory(state, newConfig)),
+
+    updateComponent: (pageId, componentId, updates) =>
+        set((state) => {
+            if (!state.config) return {};
+            const newPages = state.config.pages.map((page) => {
+                if (page.id !== pageId) return page;
+                return {
+                    ...page,
+                    components: page.components.map((comp) =>
+                        comp.id === componentId ? { ...comp, ...updates } : comp
+                    ),
+                };
+            });
+            const newConfig = { ...state.config, pages: newPages };
+            return pushToHistory(state, newConfig);
+        }),
+
+    updateGlobalSettings: (updates) =>
+        set((state) => {
+            if (!state.config) return {};
+            const newConfig = {
+                ...state.config,
+                globalSettings: {
+                    ...state.config.globalSettings,
+                    ...updates,
+                },
+            };
+            return pushToHistory(state, newConfig);
+        }),
+
+    reorderComponents: (pageId, newComponents) =>
+        set((state) => {
+            if (!state.config) return {};
+            const newPages = state.config.pages.map((page) => {
+                if (page.id !== pageId) return page;
+                return { ...page, components: newComponents };
+            });
+            const newConfig = { ...state.config, pages: newPages };
+            return pushToHistory(state, newConfig);
+        }),
+
+    addComponent: (pageId, component) =>
+        set((state) => {
+            if (!state.config) return {};
+            const newPages = state.config.pages.map((page) => {
+                if (page.id !== pageId) return page;
+                return { ...page, components: [...page.components, component] };
+            });
+            const newConfig = { ...state.config, pages: newPages };
+            return pushToHistory(state, newConfig);
+        }),
+
+    deleteComponent: (pageId, componentId) =>
+        set((state) => {
+            if (!state.config) return {};
+            const newPages = state.config.pages.map((page) => {
+                if (page.id !== pageId) return page;
+                return {
+                    ...page,
+                    components: page.components.filter((c) => c.id !== componentId),
+                };
+            });
+            const newConfig = { ...state.config, pages: newPages };
+            return { ...pushToHistory(state, newConfig), selectedComponentId: null };
+        }),
+
+    duplicateComponent: (pageId, componentId) =>
+        set((state) => {
+            if (!state.config) return {};
+            const newPages = state.config.pages.map((page) => {
+                if (page.id !== pageId) return page;
+                const componentIndex = page.components.findIndex((c) => c.id === componentId);
+                if (componentIndex === -1) return page;
+                const original = page.components[componentIndex];
+                if (!original) return page;
+                const duplicate = {
+                    ...JSON.parse(JSON.stringify(original)),
+                    id: `${original.id}-copy-${Date.now()}`,
+                };
+                const newComponents = [...page.components];
+                newComponents.splice(componentIndex + 1, 0, duplicate);
+                return { ...page, components: newComponents };
+            });
+            const newConfig = { ...state.config, pages: newPages };
+            return pushToHistory(state, newConfig);
+        }),
+
+    addPage: (page) =>
+        set((state) => {
+            if (!state.config) return {};
+            const newConfig = { ...state.config, pages: [...state.config.pages, page] };
+            return {
+                ...pushToHistory(state, newConfig),
+                selectedPageId: page.id,
+            };
+        }),
+
+    deletePage: (pageId) =>
+        set((state) => {
+            if (!state.config) return {};
+            const newPages = state.config.pages.filter((p) => p.id !== pageId);
+            const newSelectedPageId =
+                state.selectedPageId === pageId ? newPages[0]?.id || null : state.selectedPageId;
+            const newConfig = { ...state.config, pages: newPages };
+            return {
+                ...pushToHistory(state, newConfig),
+                selectedPageId: newSelectedPageId,
+                selectedComponentId: null,
+            };
+        }),
+
+    duplicatePage: (pageId) =>
+        set((state) => {
+            if (!state.config) return {};
+            const pageIndex = state.config.pages.findIndex((p) => p.id === pageId);
+            if (pageIndex === -1) return {};
+            const original = state.config.pages[pageIndex];
+            if (!original) return {};
+            const duplicate: Page = {
+                ...JSON.parse(JSON.stringify(original)),
+                id: `${original.id}-copy-${Date.now()}`,
+                route: `${original.route}-copy`,
+                title: original.title ? `${original.title} (Copy)` : undefined,
+            };
+            const newPages = [...state.config.pages];
+            newPages.splice(pageIndex + 1, 0, duplicate);
+            const newConfig = { ...state.config, pages: newPages };
+            return {
+                ...pushToHistory(state, newConfig),
+                selectedPageId: duplicate.id,
+            };
+        }),
+
+    // Undo/Redo implementations
+    undo: () =>
+        set((state) => {
+            if (state.historyIndex <= 0) return {};
+            const newIndex = state.historyIndex - 1;
+            const previousConfig = state.history[newIndex];
+            return {
+                historyIndex: newIndex,
+                config: previousConfig ? JSON.parse(JSON.stringify(previousConfig)) : state.config,
+            };
+        }),
+
+    redo: () =>
+        set((state) => {
+            if (state.historyIndex >= state.history.length - 1) return {};
+            const newIndex = state.historyIndex + 1;
+            const nextConfig = state.history[newIndex];
+            return {
+                historyIndex: newIndex,
+                config: nextConfig ? JSON.parse(JSON.stringify(nextConfig)) : state.config,
+            };
+        }),
+
+    canUndo: () => {
+        const state = get();
+        return state.historyIndex > 0;
+    },
+
+    canRedo: () => {
+        const state = get();
+        return state.historyIndex < state.history.length - 1;
+    },
+}));

@@ -20,19 +20,29 @@ export const useStudyLibraryContext = () => {
     return context;
 };
 
-export const InitStudyLibraryProvider = ({ children }: { children: React.ReactNode }) => {
+interface InitStudyLibraryProviderProps {
+    children: React.ReactNode;
+    /** When provided, uses course-init API to fetch study library data for a specific course */
+    courseId?: string;
+}
+
+export const InitStudyLibraryProvider = ({ children, courseId }: InitStudyLibraryProviderProps) => {
     const queryClient = useQueryClient();
 
     const { studyLibraryData, isInitLoading } = useStudyLibraryStore();
 
     // Trigger refetch manually on mount
     useEffect(() => {
-        if (studyLibraryData == null)
-            queryClient.invalidateQueries({ queryKey: ['GET_INIT_STUDY_LIBRARY'] });
-    }, [queryClient]);
+        if (studyLibraryData == null) {
+            const queryKey = courseId
+                ? ['GET_INIT_STUDY_LIBRARY', 'course', courseId]
+                : ['GET_INIT_STUDY_LIBRARY'];
+            queryClient.invalidateQueries({ queryKey });
+        }
+    }, [queryClient, courseId]);
 
     const { isLoading: queryLoading } = useQuery({
-        ...useStudyLibraryQuery(),
+        ...useStudyLibraryQuery(courseId),
     });
 
     // Only show full page loader on initial load, not on subsequent refreshes
