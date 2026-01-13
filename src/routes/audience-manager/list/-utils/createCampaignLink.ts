@@ -1,7 +1,8 @@
 import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
 
-const DEFAULT_LEARNER_PORTAL_URL =
-    import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io';
+import { BASE_URL_LEARNER_DASHBOARD } from '@/constants/urls';
+
+const DEFAULT_LEARNER_PORTAL_URL = BASE_URL_LEARNER_DASHBOARD;
 
 /**
  * Build a shareable campaign link that learners can open.
@@ -12,7 +13,7 @@ export const createCampaignLink = (campaignId: string, learnerPortalBaseUrl?: st
 
     const instituteId = getCurrentInstituteId();
 
-    const portalBase = DEFAULT_LEARNER_PORTAL_URL || 'https://learner.vacademy.io';
+    const portalBase = learnerPortalBaseUrl || DEFAULT_LEARNER_PORTAL_URL;
     const encodedInstitute = encodeURIComponent(instituteId || '');
     const encodedCampaign = encodeURIComponent(campaignId);
 

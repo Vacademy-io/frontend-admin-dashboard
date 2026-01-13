@@ -1,9 +1,10 @@
 import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
 
+import { BASE_URL_LEARNER_DASHBOARD } from '@/constants/urls';
+
 export default function createInviteLink(
     inviteCode: string,
-    learnerDashboardUrl = import.meta.env.VITE_LEARNER_DASHBOARD_URL ||
-        'https://learner.vacademy.io'
+    learnerDashboardUrl = BASE_URL_LEARNER_DASHBOARD
 ) {
     const INSTITUTE_ID = getCurrentInstituteId();
     const url = `${learnerDashboardUrl}/learner-invitation-response?instituteId=${INSTITUTE_ID}&inviteCode=${inviteCode}`;

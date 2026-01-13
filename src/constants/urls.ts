@@ -3,7 +3,8 @@ export const BASE_URL_LEARNER_DASHBOARD =
     import.meta.env.VITE_LEARNER_DASHBOARD_URL || 'https://learner.vacademy.io';
 
 // For testing, use localhost:8077
-export const AI_SERVICE_BASE_URL = import.meta.env.VITE_AI_SERVICE_BASE_URL || 'http://localhost:8077/ai-service';
+export const AI_SERVICE_BASE_URL =
+    import.meta.env.VITE_AI_SERVICE_BASE_URL || 'http://localhost:8077/ai-service';
 
 // AI Video URLs API
 export const GET_VIDEO_URLS = (videoId: string) => `${AI_SERVICE_BASE_URL}/video/urls/${videoId}`;
@@ -121,6 +122,7 @@ export const GET_DETAILS = `${BASE_URL}/media-service/get-details/ids`;
 export const ACKNOWLEDGE_FOR_PUBLIC_URL = `${BASE_URL}/media-service/acknowledge-get-details`;
 
 export const INIT_STUDY_LIBRARY = `${BASE_URL}/admin-core-service/v1/study-library/init`;
+export const INIT_COURSE_STUDY_LIBRARY = `${BASE_URL}/admin-core-service/v1/study-library/course-init`;
 export const GET_MODULES_WITH_CHAPTERS = `${BASE_URL}/admin-core-service/v1/study-library/modules-with-chapters`;
 export const ENROLL_INVITE_URL = `${BASE_URL}/admin-core-service/v1/enroll-invite`;
 export const GET_PAYMENTS_URL = `${BASE_URL}/admin-core-service/v1/payment-option/get-payment-options`;
@@ -451,3 +453,14 @@ export const AGENT_RESPOND = (sessionId: string) =>
     `${BASE_URL}/admin-core-service/v1/agent/respond/${sessionId}`;
 export const AGENT_SESSION_STATUS = (sessionId: string) =>
     `${BASE_URL}/admin-core-service/v1/agent/session/${sessionId}/status`;
+
+// Course Catalogue Editor
+export const CATALOGUE_BASE_URL = `${BASE_URL}/admin-core-service/v1/course-catalogue`;
+export const GET_CATALOGUE_TAGS = (instituteId: string) =>
+    `${CATALOGUE_BASE_URL}/institute/get-all?instituteId=${instituteId}`;
+export const CREATE_CATALOGUE = (instituteId: string) =>
+    `${CATALOGUE_BASE_URL}/create?instituteId=${instituteId}`;
+export const UPDATE_CATALOGUE = (catalogueId: string) =>
+    `${CATALOGUE_BASE_URL}/update?catalogueId=${catalogueId}`;
+export const GET_CATALOGUE_BY_TAG = (instituteId: string, tagName: string) =>
+    `${CATALOGUE_BASE_URL}/institute/get/by-tag?instituteId=${instituteId}&tagName=${encodeURIComponent(tagName)}`;
