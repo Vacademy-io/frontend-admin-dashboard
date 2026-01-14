@@ -7,11 +7,8 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchMembershipExpiry, getMembershipExpiryQueryKey } from '@/services/membership-expiry';
 import type { BatchForSession, PackageSessionFilter } from '@/types/payment-logs';
-// import { usePaymentLogsFilters } from '@/routes/manage-payments/-hooks/usePaymentLogsFilters'; // Reusing this hook if available for batch/session data, otherwise might need local logic or new hook.
-// Wait, I should double check if usePaymentLogsFilters exists or if I need to fetch batch/sessions locally.
-// MembershipExpiryFilters takes `batchesForSessions`.
-// I'll search for where `batchesForSessions` comes from.
-// Usually it's fetched from a service.
+import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useMemo } from 'react';
 
 import { keepPreviousData } from '@tanstack/react-query';
 
@@ -33,11 +30,14 @@ function MembershipExpiryPage() {
     packageSessionId: undefined,
   });
 
-  // We need batchesForSessions for the filter.
-  // I'll assume I need to fetch them. Or maybe the previous implementation had a hook.
-  // I'll check 'usePaymentLogsFilters' or similar.
+  // Get institute details from Zustand store
+  const instituteDetails = useInstituteDetailsStore((state) => state.instituteDetails);
 
-  // For now, I'll define empty array and add TODO if I can't find the hook right now.
+  // Extract batches for sessions from institute data
+  const batchesForSessions: BatchForSession[] = useMemo(() => {
+    const batches = instituteDetails?.batches_for_sessions;
+    return batches && Array.isArray(batches) ? (batches as unknown as BatchForSession[]) : [];
+  }, [instituteDetails]);
 
   const queryKey = getMembershipExpiryQueryKey(pageNo, pageSize, {
     start_date_in_utc: startDate || undefined,
@@ -113,7 +113,7 @@ function MembershipExpiryPage() {
             onEndDateChange={setEndDate}
             packageSessionFilter={packageSessionFilter}
             onPackageSessionFilterChange={handlePackageSessionFilterChange}
-            batchesForSessions={[]} // TODO: Fetch batches
+            batchesForSessions={batchesForSessions}
             onQuickFilterSelect={handleQuickFilter}
             onClearFilters={handleClearFilters}
           />

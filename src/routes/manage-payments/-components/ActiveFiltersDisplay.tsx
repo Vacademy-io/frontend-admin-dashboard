@@ -30,22 +30,27 @@ export function ActiveFiltersDisplay({
         endDate ||
         selectedPaymentStatuses.length > 0 ||
         selectedUserPlanStatuses.length > 0 ||
-        selectedPaymentSources.length > 0 || // Include in check
-        !!packageSessionFilter.packageId;
+        selectedPaymentSources.length > 0 ||
+        !!packageSessionFilter.packageId ||
+        !!packageSessionFilter.packageSessionId;
 
     if (!hasActiveFilters) {
         return null;
     }
 
     const getPackageSessionDisplay = () => {
-        if (!packageSessionFilter.packageId) return null;
+        if (!packageSessionFilter.packageId && !packageSessionFilter.packageSessionId) return null;
 
-        const batch = batchesForSessions.find(
-            (b) =>
+        const batch = batchesForSessions.find((b) => {
+            if (packageSessionFilter.packageSessionId) {
+                return b.id === packageSessionFilter.packageSessionId;
+            }
+            return (
                 b.package_dto.id === packageSessionFilter.packageId &&
                 (!packageSessionFilter.sessionId || b.session.id === packageSessionFilter.sessionId) &&
                 (!packageSessionFilter.levelId || b.level.id === packageSessionFilter.levelId)
-        );
+            );
+        });
 
         if (!batch) return null;
 
@@ -162,7 +167,7 @@ export function ActiveFiltersDisplay({
                 ))}
 
                 {/* Package Session Filter */}
-                {packageSessionFilter.packageId && (
+                {(packageSessionFilter.packageId || packageSessionFilter.packageSessionId) && (
                     <Badge
                         variant="default"
                         className="gap-2 bg-blue-600 text-white hover:bg-blue-700"

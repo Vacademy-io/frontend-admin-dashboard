@@ -1,8 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import SelectChips from '@/components/design-system/SelectChips';
+import PackageSelector from '@/components/design-system/PackageSelector';
+import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
 import type { SelectOption } from '@/components/design-system/SelectChips';
 import { Calendar, Funnel, X } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
@@ -42,126 +44,23 @@ export function MembershipStatsFilters({
 }: MembershipStatsFiltersProps) {
     const [showFilters, setShowFilters] = useState(false);
 
-    // Extract unique packages/courses
-    const packageOptions = useMemo(() => {
-        const uniquePackages = new Map<string, { id: string; name: string }>();
-        batchesForSessions.forEach((batch) => {
-            if (!uniquePackages.has(batch.package_dto.id)) {
-                uniquePackages.set(batch.package_dto.id, {
-                    id: batch.package_dto.id,
-                    name: batch.package_dto.package_name,
-                });
-            }
-        });
-        return Array.from(uniquePackages.values()).map((pkg) => ({
-            value: pkg.id,
-            label: pkg.name,
-        }));
-    }, [batchesForSessions]);
-
-    // Get sessions for selected package
-    const sessionOptions = useMemo(() => {
-        if (!packageSessionFilter.packageId) return [];
-        const sessions = new Map<string, { id: string; name: string }>();
-        batchesForSessions
-            .filter((batch) => batch.package_dto.id === packageSessionFilter.packageId)
-            .forEach((batch) => {
-                if (!sessions.has(batch.session.id)) {
-                    sessions.set(batch.session.id, {
-                        id: batch.session.id,
-                        name: batch.session.session_name,
-                    });
-                }
-            });
-        return Array.from(sessions.values()).map((session) => ({
-            value: session.id,
-            label: session.name,
-        }));
-    }, [batchesForSessions, packageSessionFilter.packageId]);
-
-    // Get levels for selected package and session
-    const levelOptions = useMemo(() => {
-        if (!packageSessionFilter.packageId) return [];
-        const levels = new Map<string, { id: string; name: string }>();
-        batchesForSessions
-            .filter(
-                (batch) =>
-                    batch.package_dto.id === packageSessionFilter.packageId &&
-                    (!packageSessionFilter.sessionId ||
-                        batch.session.id === packageSessionFilter.sessionId)
-            )
-            .forEach((batch) => {
-                if (!levels.has(batch.level.id)) {
-                    levels.set(batch.level.id, {
-                        id: batch.level.id,
-                        name: batch.level.level_name,
-                    });
-                }
-            });
-        return Array.from(levels.values()).map((level) => ({
-            value: level.id,
-            label: level.name,
-        }));
-    }, [batchesForSessions, packageSessionFilter.packageId, packageSessionFilter.sessionId]);
-
-
-
-    // Handle package selection
-    const handlePackageChange = (selected: SelectOption[]) => {
-        const packageId = selected.length > 0 ? selected[0]?.value : undefined;
-        onPackageSessionFilterChange({
-            packageId,
-            sessionId: undefined,
-            levelId: undefined,
-            packageSessionId: undefined,
-        });
-    };
-
-    // Handle session selection
-    const handleSessionChange = (selected: SelectOption[]) => {
-        const sessionId = selected.length > 0 ? selected[0]?.value : undefined;
+    // Simplified package session ID logic
+    const handlePackageSessionChange = (selection: {
+        packageSessionId: string | null;
+        levelId: string;
+        sessionId: string;
+        packageId: string;
+    }) => {
         onPackageSessionFilterChange({
             ...packageSessionFilter,
-            sessionId,
-            levelId: undefined,
-            packageSessionId: undefined,
+            packageSessionId: selection.packageSessionId || '',
+            levelId: selection.levelId,
+            sessionId: selection.sessionId,
+            packageId: selection.packageId,
         });
     };
 
-    // Handle level selection
-    const handleLevelChange = (selected: SelectOption[]) => {
-        const levelId = selected.length > 0 ? selected[0]?.value : undefined;
-
-        // Calculate new packageSessionId
-        let newPackageSessionId: string | undefined = undefined;
-
-        // Ensure we have a package and (session or single session) and (level or single level)
-        if (packageSessionFilter.packageId) {
-            const resolvedSessionId = packageSessionFilter.sessionId || (sessionOptions.length === 1 ? sessionOptions[0]?.value : undefined);
-
-            // If we just selected a level, use it. If not selected but there is only 1 option, use that (though usually user selects it).
-            // But here we are in handleLevelChange, so we use the selected `levelId`.
-            const resolvedLevelId = levelId;
-
-            if (resolvedSessionId && resolvedLevelId) {
-                const batch = batchesForSessions.find(
-                    (b) =>
-                        b.package_dto.id === packageSessionFilter.packageId &&
-                        b.session.id === resolvedSessionId &&
-                        b.level.id === resolvedLevelId
-                );
-                newPackageSessionId = batch?.id;
-            }
-        }
-
-        onPackageSessionFilterChange({
-            ...packageSessionFilter,
-            levelId,
-            packageSessionId: newPackageSessionId,
-        });
-    };
-
-    const getQuickDateRange = (type: string) => {
+    const handleQuickFilter = (type: string) => {
         const now = new Date();
         const start = new Date();
 
@@ -178,25 +77,15 @@ export function MembershipStatsFilters({
             case '30d':
                 start.setDate(now.getDate() - 30);
                 break;
-            case '90d':
-                start.setDate(now.getDate() - 90);
-                break;
             case 'all':
-                return {
-                    start: '',
-                    end: '',
-                };
+                onQuickFilterSelect({ start: '', end: '' });
+                return;
         }
 
-        return {
+        onQuickFilterSelect({
             start: start.toISOString(),
             end: now.toISOString(),
-        };
-    };
-
-    const handleQuickFilter = (type: string) => {
-        const range = getQuickDateRange(type);
-        onQuickFilterSelect(range);
+        });
     };
 
     const hasActiveFilters =
@@ -292,100 +181,14 @@ export function MembershipStatsFilters({
                         <Label className="mb-2 block text-sm font-semibold text-blue-900">
                             Filter by Course/Session
                         </Label>
-                        <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                            {/* Package/Course Selector */}
-                            <div className="space-y-2">
-                                <Label className="text-xs font-medium text-gray-700">
-                                    Course/Package
-                                </Label>
-                                <SelectChips
-                                    options={packageOptions}
-                                    selected={
-                                        packageSessionFilter.packageId
-                                            ? [
-                                                packageOptions.find(
-                                                    (opt) =>
-                                                        opt.value ===
-                                                        packageSessionFilter.packageId
-                                                )!,
-                                            ].filter(Boolean)
-                                            : []
-                                    }
-                                    onChange={handlePackageChange}
-                                    placeholder="Select course"
-                                    multiSelect={false}
-                                    clearable={true}
-                                />
-                            </div>
 
-                            {/* Session Selector - Only show if multiple sessions available */}
-                            {packageSessionFilter.packageId && sessionOptions.length > 1 && (
-                                <div className="space-y-2">
-                                    <Label className="text-xs font-medium text-gray-700">
-                                        Session
-                                    </Label>
-                                    <SelectChips
-                                        options={sessionOptions}
-                                        selected={
-                                            packageSessionFilter.sessionId
-                                                ? [
-                                                    sessionOptions.find(
-                                                        (opt) =>
-                                                            opt.value ===
-                                                            packageSessionFilter.sessionId
-                                                    )!,
-                                                ].filter(Boolean)
-                                                : []
-                                        }
-                                        onChange={handleSessionChange}
-                                        placeholder="Select session"
-                                        multiSelect={false}
-                                        clearable={true}
-                                    />
-                                </div>
-                            )}
-
-                            {/* Level Selector - Only show if multiple levels available */}
-                            {packageSessionFilter.packageId && levelOptions.length > 1 && (
-                                <div className="space-y-2">
-                                    <Label className="text-xs font-medium text-gray-700">
-                                        Level
-                                    </Label>
-                                    <SelectChips
-                                        options={levelOptions}
-                                        selected={
-                                            packageSessionFilter.levelId
-                                                ? [
-                                                    levelOptions.find(
-                                                        (opt) =>
-                                                            opt.value ===
-                                                            packageSessionFilter.levelId
-                                                    )!,
-                                                ].filter(Boolean)
-                                                : []
-                                        }
-                                        onChange={handleLevelChange}
-                                        placeholder="Select level"
-                                        multiSelect={false}
-                                        clearable={true}
-                                    />
-                                </div>
-                            )}
-
-                            {/* Auto-selected message */}
-                            {packageSessionFilter.packageId &&
-                                (sessionOptions.length === 1 || levelOptions.length === 1) && (
-                                    <div className="flex items-center text-xs text-blue-700">
-                                        {sessionOptions.length === 1 &&
-                                            `Session: ${sessionOptions[0]?.label || ''}`}
-                                        {sessionOptions.length === 1 &&
-                                            levelOptions.length === 1 &&
-                                            ' • '}
-                                        {levelOptions.length === 1 &&
-                                            `Level: ${levelOptions[0]?.label || ''}`}
-                                    </div>
-                                )}
-                        </div>
+                        <PackageSelector
+                            instituteId={getCurrentInstituteId() || ''}
+                            onChange={handlePackageSessionChange}
+                            initialLevelId={packageSessionFilter.levelId}
+                            initialSessionId={packageSessionFilter.sessionId}
+                            initialPackageId={packageSessionFilter.packageId}
+                        />
                     </div>
 
                     {/* Other Filters */}
