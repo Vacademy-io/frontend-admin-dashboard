@@ -1,7 +1,6 @@
 import { createLazyFileRoute, useSearch } from '@tanstack/react-router';
 import { LayoutContainer } from '@/components/common/layout-container/layout-container';
 import { CourseMaterial } from '@/routes/study-library/courses/-components/course-material';
-import { InitStudyLibraryProvider } from '@/providers/study-library/init-study-library-provider';
 import { Helmet } from 'react-helmet';
 
 interface CourseSearchParams {
@@ -24,9 +23,8 @@ function RouteComponent() {
                     content="This page shows the study library of the institute."
                 />
             </Helmet>
-            <InitStudyLibraryProvider>
-                <CourseMaterial initialSelectedTab={searchParams.selectedTab} />
-            </InitStudyLibraryProvider>
+            <CourseMaterial initialSelectedTab={searchParams.selectedTab} />
         </LayoutContainer>
     );
 }
+

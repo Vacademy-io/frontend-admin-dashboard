@@ -11,6 +11,7 @@ import { DoubtList } from './doubtList';
 import { get30DaysAgo, getTomorrow } from '@/utils/dateUtils';
 import { useRouter } from '@tanstack/react-router';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useGetPackageSessionIdFromCourseInit } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionIdFromCourseInit';
 
 const TabsTriggerClass =
     'flex-1 rounded-md px-3 py-1.5 text-sm font-medium text-neutral-600 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-primary-50 data-[state=active]:text-primary-600 data-[state=active]:shadow-sm';
@@ -25,11 +26,21 @@ const DoubtResolutionSidebar = () => {
     const searchParams = router.state.location.search;
     const { courseId, levelId, sessionId } = searchParams;
     const { getPackageSessionId } = useInstituteDetailsStore();
-    const packageSessionId = getPackageSessionId({
+
+    // Try to get packageSessionId from course-init API first (new approach)
+    const packageSessionIdFromCourseInit = useGetPackageSessionIdFromCourseInit(
+        courseId || '',
+        sessionId || '',
+        levelId || ''
+    );
+    // Fallback to institute details if course-init doesn't have it
+    const packageSessionIdFromInstitute = getPackageSessionId({
         courseId: courseId || '',
         levelId: levelId || '',
         sessionId: sessionId || '',
     });
+    // Prefer course-init data, fallback to institute details
+    const packageSessionId = packageSessionIdFromCourseInit || packageSessionIdFromInstitute;
 
     const [filter, setFilter] = useState<DoubtFilter>({
         name: '',

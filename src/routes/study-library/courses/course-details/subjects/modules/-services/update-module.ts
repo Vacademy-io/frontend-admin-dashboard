@@ -19,7 +19,6 @@ export const useUpdateModule = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['GET_MODULES_WITH_CHAPTERS'] });
-            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
             queryClient.invalidateQueries({ queryKey: ['GET_STUDENT_SUBJECTS_PROGRESS'] });
         },
     });

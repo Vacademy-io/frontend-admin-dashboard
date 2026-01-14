@@ -16,7 +16,6 @@ export const useAddCourse = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['GET_INIT_STUDY_LIBRARY'] });
-            queryClient.invalidateQueries({ queryKey: ['GET_INIT_INSTITUTE'] });
             queryClient.invalidateQueries({ queryKey: ['GET_SESSION_DATA'] });
             queryClient.invalidateQueries({ queryKey: ['GET_BATCHES'] });
         },

@@ -10,6 +10,7 @@ import { useDeleteSubject } from '@/routes/study-library/courses/course-details/
 import { DashboardLoader } from '@/components/core/dashboard-loader';
 import { getCourseSubjects } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getSubjects';
 import { useGetPackageSessionId } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId';
+import { useGetPackageSessionIdFromCourseInit } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionIdFromCourseInit';
 import { useUpdateSubjectOrder } from '@/routes/study-library/courses/course-details/subjects/-services/updateSubjectOrder';
 // import useIntroJsTour from '@/hooks/use-intro';
 // import { StudyLibraryIntroKey } from '@/constants/storage/introKey';
@@ -189,8 +190,17 @@ export const SubjectMaterial = () => {
         setSubjects(newSubjects);
     }, [currentSession, studyLibraryData, courseId, levelId]);
 
-    const packageSessionIds =
+    // Try to get packageSessionId from course-init API first (new approach)
+    const packageSessionIdFromCourseInit = useGetPackageSessionIdFromCourseInit(
+        courseId,
+        currentSession?.id ?? '',
+        levelId
+    );
+    // Fallback to institute details if course-init doesn't have it
+    const packageSessionIdFromInstitute =
         useGetPackageSessionId(courseId, currentSession?.id ?? '', levelId) || '';
+    // Prefer course-init data, fallback to institute details
+    const packageSessionIds = packageSessionIdFromCourseInit || packageSessionIdFromInstitute;
 
     const useSlidesByChapterMutation = () => {
         return useMutation({

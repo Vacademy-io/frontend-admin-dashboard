@@ -5,7 +5,12 @@ import {
     SubModuleType,
 } from '@/schemas/student/student-list/institute-schema';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
-import { HOLISTIC_INSTITUTE_ID, INIT_INSTITUTE, INIT_INSTITUTE_SETUP, DOMAIN_ROUTING_RESOLVE } from '@/constants/urls';
+import {
+    HOLISTIC_INSTITUTE_ID,
+    INIT_INSTITUTE,
+    INIT_INSTITUTE_SETUP,
+    DOMAIN_ROUTING_RESOLVE,
+} from '@/constants/urls';
 import { getCurrentInstituteId } from '@/lib/auth/instituteUtils';
 import { useTheme } from '@/providers/theme/theme-provider';
 import { StorageKey } from '@/constants/storage/storage';
@@ -40,8 +45,6 @@ export const fetchInstituteDetails = async (): Promise<InstituteDetailsType> => 
     return response.data;
 };
 
-
-
 export const fetchInstituteRoutingDetails = async (): Promise<any> => {
     try {
         const hostname = window.location.hostname;
@@ -65,8 +68,8 @@ export const fetchInstituteRoutingDetails = async (): Promise<any> => {
         const response = await axios.get(DOMAIN_ROUTING_RESOLVE, {
             params: {
                 domain,
-                subdomain: subdomain || undefined
-            }
+                subdomain: subdomain || undefined,
+            },
         });
         return response.data;
     } catch (error) {
@@ -80,7 +83,7 @@ export const fetchBothInstituteAPIs = async (): Promise<InstituteDetailsType> =>
     const [instituteData, setupData, routingData] = await Promise.all([
         fetchInstituteDetails(),
         fetchInstituteSetup(),
-        fetchInstituteRoutingDetails()
+        fetchInstituteRoutingDetails(),
     ]);
 
     // Merge: base institute data + setup data overlay (filters from setup take precedence) + routing data
@@ -90,8 +93,8 @@ export const fetchBothInstituteAPIs = async (): Promise<InstituteDetailsType> =>
         // Override/add filter-related fields from INIT_INSTITUTE_SETUP
         sub_org_roles: setupData?.sub_org_roles || [],
         dropdown_custom_fields: setupData?.dropdown_custom_fields || [],
-        // Keep batches_for_sessions from setup if it has is_org_associated data
-        batches_for_sessions: setupData?.batches_for_sessions || instituteData?.batches_for_sessions || [],
+        // Keep batches_for_sessions from INIT_INSTITUTE (setup-without-batches returns empty)
+        batches_for_sessions: instituteData?.batches_for_sessions || [],
         // Ensure required arrays are never undefined
         levels: instituteData?.levels || [],
         sessions: instituteData?.sessions || [],
@@ -103,7 +106,7 @@ export const fetchBothInstituteAPIs = async (): Promise<InstituteDetailsType> =>
     };
 
     return mergedData;
-}
+};
 
 export const useInstituteQuery = () => {
     const setInstituteDetails = useInstituteDetailsStore((state) => state.setInstituteDetails);
