@@ -65,8 +65,8 @@ import { getDisplaySettings, getDisplaySettingsFromCache } from '@/services/disp
 import { getCustomFieldSettings } from '@/services/custom-field-settings';
 
 // Analytics Widgets
-import RealTimeActiveUsersWidget from './-components/analytics-widgets/RealTimeActiveUsersWidget';
-import CurrentlyActiveUsersWidget from './-components/analytics-widgets/CurrentlyActiveUsersWidget';
+// import RealTimeActiveUsersWidget from './-components/analytics-widgets/RealTimeActiveUsersWidget';
+// import CurrentlyActiveUsersWidget from './-components/analytics-widgets/CurrentlyActiveUsersWidget';
 import UserActivitySummaryWidget from './-components/analytics-widgets/UserActivitySummaryWidget';
 
 // Dashboard Widgets
@@ -591,22 +591,22 @@ export function DashboardComponent({ onOpenAllAlerts }: { onOpenAllAlerts?: () =
                                             <RecentNotificationsWidget onSeeAll={onOpenAllAlerts} />
                                         ),
                                     },
-                                    {
-                                        id: 'realTimeActiveUsers' as const,
-                                        node: (
-                                            <RealTimeActiveUsersWidget
-                                                instituteId={instituteDetails?.id || ''}
-                                            />
-                                        ),
-                                    },
-                                    {
-                                        id: 'currentlyActiveUsers' as const,
-                                        node: (
-                                            <CurrentlyActiveUsersWidget
-                                                instituteId={instituteDetails?.id || ''}
-                                            />
-                                        ),
-                                    },
+                                    // {
+                                    //     id: 'realTimeActiveUsers' as const,
+                                    //     node: (
+                                    //         <RealTimeActiveUsersWidget
+                                    //             instituteId={instituteDetails?.id || ''}
+                                    //         />
+                                    //     ),
+                                    // },
+                                    // {
+                                    //     id: 'currentlyActiveUsers' as const,
+                                    //     node: (
+                                    //         <CurrentlyActiveUsersWidget
+                                    //             instituteId={instituteDetails?.id || ''}
+                                    //         />
+                                    //     ),
+                                    // },
                                     {
                                         id: 'userActivitySummary' as const,
                                         node: (

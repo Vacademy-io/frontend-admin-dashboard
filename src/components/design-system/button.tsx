@@ -1,7 +1,8 @@
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { MyButtonProps } from './utils/types/button-types';
-import React from 'react';
+import React, { useState } from 'react';
+import { Loader2 } from 'lucide-react';
 
 // Button Variants Configuration
 const myButtonVariants = {
@@ -52,10 +53,16 @@ export const MyButton = React.forwardRef<HTMLButtonElement, MyButtonProps>(
             layoutVariant = 'default',
             children,
             disable,
+            onClick,
+            onAsyncClick,
+            loadingText,
             ...props
         },
         ref
     ) => {
+        // Internal state for async operations
+        const [isSubmitting, setIsSubmitting] = useState(false);
+
         const getButtonClasses = () => {
             // Create an array of classes
             const classes: string[] = [
@@ -72,14 +79,55 @@ export const MyButton = React.forwardRef<HTMLButtonElement, MyButtonProps>(
             return classes.join(' ');
         };
 
+        // Handle click - supports both sync and async handlers
+        const handleClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
+            // If onAsyncClick is provided, use it with double-submit prevention
+            if (onAsyncClick) {
+                // Prevent double-clicking if already submitting
+                if (isSubmitting) return;
+
+                // Immediately disable the button
+                setIsSubmitting(true);
+
+                try {
+                    await onAsyncClick(event);
+                } catch (error) {
+                    console.error('MyButton: Error during async operation:', error);
+                } finally {
+                    // Re-enable the button when done
+                    setIsSubmitting(false);
+                }
+            } else if (onClick) {
+                // Use regular sync click handler
+                onClick(event);
+            }
+        };
+
+        // Render content with loading state if async
+        const renderContent = () => {
+            if (onAsyncClick && isSubmitting) {
+                return (
+                    <span className="flex items-center justify-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        {loadingText || children}
+                    </span>
+                );
+            }
+            return children;
+        };
+
+        // Determine if button should be disabled
+        const isDisabled = disable ?? (props as any)?.disabled ?? (onAsyncClick && isSubmitting);
+
         return (
             <Button
                 ref={ref}
                 className={cn(getButtonClasses(), className)}
-                disabled={disable ?? (props as any)?.disabled}
+                disabled={isDisabled}
+                onClick={handleClick}
                 {...props}
             >
-                {children}
+                {renderContent()}
             </Button>
         );
     }
@@ -89,7 +137,7 @@ MyButton.displayName = 'MyButton';
 
 // Usage Examples:
 /*
-// Primary button
+// Primary button (sync click)
 <MyButton
     buttonType="primary"
     scale="large"
@@ -97,6 +145,19 @@ MyButton.displayName = 'MyButton';
     onClick={() => console.log('clicked')}
 >
     Click Me
+</MyButton>
+
+// Async button with double-submit prevention
+<MyButton
+    buttonType="primary"
+    scale="large"
+    layoutVariant="default"
+    onAsyncClick={async () => {
+        await api.enrollStudent(formData);
+    }}
+    loadingText="Enrolling..."
+>
+    Enroll Student
 </MyButton>
 
 // Text variant
@@ -115,3 +176,4 @@ MyButton.displayName = 'MyButton';
     <IconComponent />
 </MyButton>
 */
+

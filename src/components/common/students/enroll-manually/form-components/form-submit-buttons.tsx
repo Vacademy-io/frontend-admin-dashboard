@@ -6,10 +6,17 @@ export const FormSubmitButtons = ({
     stepNumber,
     finishButtonDisable,
     onNext,
+    onAsyncNext,
+    loadingText,
 }: {
     stepNumber: number;
     finishButtonDisable?: boolean;
+    /** Sync click handler for Next buttons */
     onNext?: () => void;
+    /** Async click handler for Finish button - provides double-submit prevention */
+    onAsyncNext?: () => Promise<void>;
+    /** Loading text to show while async operation is in progress */
+    loadingText?: string;
 }) => {
     const { prevStep, skipStep } = useFormStore();
 
@@ -21,6 +28,9 @@ export const FormSubmitButtons = ({
             prevStep();
         }
     };
+
+    // Determine if we should use async mode (typically for the Finish button)
+    const useAsyncMode = stepNumber === 5 && onAsyncNext;
 
     return (
         <DialogFooter className="flex w-full">
@@ -39,7 +49,10 @@ export const FormSubmitButtons = ({
                     scale="large"
                     layoutVariant="default"
                     disable={finishButtonDisable}
-                    onClick={onNext}
+                    // Use onAsyncClick for Finish button if async handler is provided
+                    onAsyncClick={useAsyncMode ? onAsyncNext : undefined}
+                    onClick={!useAsyncMode ? onNext : undefined}
+                    loadingText={loadingText || 'Finishing...'}
                     type="submit"
                 >
                     {stepNumber === 5 ? <span>Finish</span> : <span>Next</span>}

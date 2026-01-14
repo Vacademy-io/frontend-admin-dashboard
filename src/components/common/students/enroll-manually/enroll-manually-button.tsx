@@ -37,13 +37,13 @@ export const EnrollManuallyButton = ({
     const step2FormSubmitRef = useRef(() => {});
     const step3FormSubmitRef = useRef(() => {});
     const step4FormSubmitRef = useRef(() => {});
-    const step5FormSubmitRef = useRef(() => {});
+    const step5FormSubmitRef = useRef<() => Promise<void>>(async () => { });
 
     const submitFn1 = (fn: () => void) => (step1FormSubmitRef.current = fn);
     const submitFn2 = (fn: () => void) => (step2FormSubmitRef.current = fn);
     const submitFn3 = (fn: () => void) => (step3FormSubmitRef.current = fn);
     const submitFn4 = (fn: () => void) => (step4FormSubmitRef.current = fn);
-    const submitFn5 = (fn: () => void) => (step5FormSubmitRef.current = fn);
+    const submitFn5 = (fn: () => Promise<void>) => (step5FormSubmitRef.current = fn);
 
     const handleOpenDialog = (open: boolean) => {
         setOpenDialog(open);
@@ -93,7 +93,8 @@ export const EnrollManuallyButton = ({
                     <FormSubmitButtons
                         stepNumber={5}
                         finishButtonDisable={nextButtonDisable}
-                        onNext={() => step5FormSubmitRef.current()}
+                        onAsyncNext={() => step5FormSubmitRef.current()}
+                        loadingText="Finishing..."
                     />
                 );
             default:
