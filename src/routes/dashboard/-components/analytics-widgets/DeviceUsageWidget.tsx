@@ -16,7 +16,8 @@ export default function DeviceUsageWidget({ instituteId }: DeviceUsageWidgetProp
     const { data, isLoading, error } = useQuery({
         queryKey: ['analytics-device-usage', instituteId],
         queryFn: () => fetchAnalyticsEngagementTrends(instituteId),
-        staleTime: 300000, // 5 minutes
+        staleTime: 300000, // 5 minutes - data considered fresh
+        gcTime: 600000, // 10 minutes - keep in cache after becoming unused
     });
 
     // Debug logging

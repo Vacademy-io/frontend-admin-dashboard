@@ -13,6 +13,7 @@ import { useUpdateChapter } from '@/routes/study-library/courses/course-details/
 import { fetchModulesWithChapters } from '@/routes/study-library/courses/-services/getModulesWithChapters';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { useGetPackageSessionId } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionId';
+import { useGetPackageSessionIdFromCourseInit } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionIdFromCourseInit';
 import { getTerminology } from '@/components/common/layout-container/sidebar/utils';
 import { ContentTerms, SystemTerms } from '@/routes/settings/-components/NamingSettings';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -63,7 +64,17 @@ export const AddChapterForm = ({
     const moduleId: string = router.state.location.search.moduleId || module_id || '';
     const addChapterMutation = useAddChapter();
     const updateChapterMutation = useUpdateChapter();
-    const package_session_id = useGetPackageSessionId(courseId, sessionId, levelId) || '';
+    // Try to get packageSessionId from course-init API first (new approach)
+    const packageSessionIdFromCourseInit = useGetPackageSessionIdFromCourseInit(
+        courseId,
+        sessionId,
+        levelId
+    );
+    // Fallback to institute details if course-init doesn't have it
+    const packageSessionIdFromInstitute =
+        useGetPackageSessionId(courseId, sessionId, levelId) || '';
+    // Prefer course-init data, fallback to institute details
+    const package_session_id = packageSessionIdFromCourseInit || packageSessionIdFromInstitute;
     const { getPackageWiseLevels, getPackageSessionId } = useInstituteDetailsStore();
 
     // Image upload states

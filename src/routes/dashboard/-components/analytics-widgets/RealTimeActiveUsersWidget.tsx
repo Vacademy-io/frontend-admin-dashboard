@@ -51,10 +51,9 @@ export default function RealTimeActiveUsersWidget({ instituteId }: RealTimeActiv
         queryKey: ['analytics-realtime-users', instituteId],
         queryFn: () => fetchAnalyticsActiveUsersRealtime(instituteId),
         refetchInterval: 10000, // Refetch every 10 seconds for real-time feel
-        staleTime: 5000,
+        staleTime: 5000, // Data considered fresh for 5 seconds
+        gcTime: 30000, // Keep in cache for 30 seconds after becoming unused
     });
-
-
 
     if (error) {
         return (

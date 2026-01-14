@@ -7,6 +7,7 @@ import { getTokenDecodedData, getTokenFromCookie } from '@/lib/auth/sessionUtili
 import { TokenKey } from '@/constants/auth/tokens';
 import { useSlidesMutations } from './-hooks/use-slides';
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
+import { useGetPackageSessionIdFromCourseInit } from '@/utils/helpers/study-library-helpers.ts/get-list-from-stores/getPackageSessionIdFromCourseInit';
 import { useContentStore } from './-stores/chapter-sidebar-store';
 import { UploadFileInS3, getPublicUrl } from '@/services/upload_file';
 import * as pdfjs from 'pdfjs-dist';
@@ -82,12 +83,22 @@ export interface ChapterSearchParamsForQuickAdd {
 export function QuickAddView({ search }: { search: ChapterSearchParamsForQuickAdd }) {
     const router = useRouter();
     const { getPackageSessionId } = useInstituteDetailsStore();
-    const packageSessionId =
+
+    // Try to get packageSessionId from course-init API first (new approach)
+    const packageSessionIdFromCourseInit = useGetPackageSessionIdFromCourseInit(
+        search.courseId || '',
+        search.sessionId || '',
+        search.levelId || ''
+    );
+    // Fallback to institute details if course-init doesn't have it
+    const packageSessionIdFromInstitute =
         getPackageSessionId({
             courseId: search.courseId || '',
             levelId: search.levelId || '',
             sessionId: search.sessionId || '',
         }) || '';
+    // Prefer course-init data, fallback to institute details
+    const packageSessionId = packageSessionIdFromCourseInit || packageSessionIdFromInstitute;
 
     const {
         addUpdateDocumentSlide,

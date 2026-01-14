@@ -1,7 +1,14 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { useEditorStore } from '../-stores/editor-store';
-import { Monitor, Tablet, Smartphone, ExternalLink, RefreshCw } from 'lucide-react';
+import { Monitor, Tablet, Smartphone, ExternalLink, RefreshCw, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 import { useInstituteDetailsStore } from '@/stores/students/students-list/useInstituteDetailsStore';
 import { CATALOGUE_EDITOR_CONFIG } from '@/constants/catalogue-editor';
@@ -14,11 +21,21 @@ interface PreviewPanelProps {
 export const PreviewPanel = ({ tagName }: PreviewPanelProps) => {
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const [isReady, setIsReady] = useState(false);
+    const [selectedPageRoute, setSelectedPageRoute] = useState<string>('');
 
     const config = useEditorStore((state) => state.config);
     const viewport = useEditorStore((state) => state.previewViewport);
     const setViewport = useEditorStore((state) => state.setViewport);
     const { instituteDetails, setInstituteDetails } = useInstituteDetailsStore();
+
+    // Set default page route when config loads
+    useEffect(() => {
+        if (config?.pages && config.pages.length > 0 && !selectedPageRoute) {
+            // Default to first page or '/' for home
+            const firstPage = config.pages[0];
+            setSelectedPageRoute(firstPage?.route || '');
+        }
+    }, [config, selectedPageRoute]);
 
     useEffect(() => {
         if (!instituteDetails) {
@@ -42,18 +59,14 @@ export const PreviewPanel = ({ tagName }: PreviewPanelProps) => {
         baseUrl = `https://${baseUrl}`;
     }
 
-    const previewUrl = `${baseUrl}/${tagName}?preview=true`;
+    // Build preview URL with selected page route
+    const pageRoute = selectedPageRoute || '';
+    const fullRoute = pageRoute === '/' || pageRoute === ''
+        ? tagName
+        : `${tagName}/${pageRoute}`;
+    const previewUrl = `${baseUrl}/${fullRoute}?preview=true`;
 
-    console.log('[PreviewPanel] instituteDetails:', instituteDetails);
-    console.log(
-        '[PreviewPanel] instituteDetails.learner_portal_base_url:',
-        instituteDetails?.learner_portal_base_url
-    );
-    console.log(
-        '[PreviewPanel] CATALOGUE_EDITOR_CONFIG.LEARNER_APP_URL:',
-        CATALOGUE_EDITOR_CONFIG.LEARNER_APP_URL
-    );
-    console.log('[PreviewPanel] Selected baseUrl:', baseUrl);
+    console.log('[PreviewPanel] Selected page route:', selectedPageRoute);
     console.log('[PreviewPanel] Final previewUrl:', previewUrl);
 
     const sendConfigToPreview = useCallback(() => {
@@ -68,9 +81,6 @@ export const PreviewPanel = ({ tagName }: PreviewPanelProps) => {
 
     useEffect(() => {
         const handleMessage = (event: MessageEvent) => {
-            // Security check
-            // if (event.origin !== new URL(CATALOGUE_EDITOR_CONFIG.LEARNER_APP_URL).origin) return;
-
             if (event.data?.type === 'PREVIEW_READY') {
                 setIsReady(true);
                 sendConfigToPreview();
@@ -94,38 +104,66 @@ export const PreviewPanel = ({ tagName }: PreviewPanelProps) => {
     const viewportSizes = CATALOGUE_EDITOR_CONFIG.VIEWPORTS;
     const currentSize = viewportSizes[viewport];
 
+    // Get pages for dropdown
+    const pages = config?.pages || [];
+
     return (
         <div className="flex h-full flex-col border-x bg-gray-100">
             {/* Toolbar */}
             <div className="flex shrink-0 items-center justify-between border-b bg-white p-2">
-                <div className="flex rounded-lg border bg-gray-100 p-1">
-                    <Button
-                        variant={viewport === 'desktop' ? 'default' : 'ghost'}
-                        size="sm"
-                        className="size-8 p-0"
-                        onClick={() => setViewport('desktop')}
-                    >
-                        <Monitor className="size-4" />
-                        <span className="sr-only">Desktop</span>
-                    </Button>
-                    <Button
-                        variant={viewport === 'tablet' ? 'default' : 'ghost'}
-                        size="sm"
-                        className="size-8 p-0"
-                        onClick={() => setViewport('tablet')}
-                    >
-                        <Tablet className="size-4" />
-                        <span className="sr-only">Tablet</span>
-                    </Button>
-                    <Button
-                        variant={viewport === 'mobile' ? 'default' : 'ghost'}
-                        size="sm"
-                        className="size-8 p-0"
-                        onClick={() => setViewport('mobile')}
-                    >
-                        <Smartphone className="size-4" />
-                        <span className="sr-only">Mobile</span>
-                    </Button>
+                <div className="flex items-center gap-3">
+                    {/* Viewport Selector */}
+                    <div className="flex rounded-lg border bg-gray-100 p-1">
+                        <Button
+                            variant={viewport === 'desktop' ? 'default' : 'ghost'}
+                            size="sm"
+                            className="size-8 p-0"
+                            onClick={() => setViewport('desktop')}
+                        >
+                            <Monitor className="size-4" />
+                            <span className="sr-only">Desktop</span>
+                        </Button>
+                        <Button
+                            variant={viewport === 'tablet' ? 'default' : 'ghost'}
+                            size="sm"
+                            className="size-8 p-0"
+                            onClick={() => setViewport('tablet')}
+                        >
+                            <Tablet className="size-4" />
+                            <span className="sr-only">Tablet</span>
+                        </Button>
+                        <Button
+                            variant={viewport === 'mobile' ? 'default' : 'ghost'}
+                            size="sm"
+                            className="size-8 p-0"
+                            onClick={() => setViewport('mobile')}
+                        >
+                            <Smartphone className="size-4" />
+                            <span className="sr-only">Mobile</span>
+                        </Button>
+                    </div>
+
+                    {/* Page Selector */}
+                    {pages.length > 0 && (
+                        <div className="flex items-center gap-2">
+                            <FileText className="size-4 text-gray-500" />
+                            <Select
+                                value={selectedPageRoute}
+                                onValueChange={(value) => setSelectedPageRoute(value)}
+                            >
+                                <SelectTrigger className="h-8 w-48">
+                                    <SelectValue placeholder="Select page" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {pages.map((page) => (
+                                        <SelectItem key={page.id} value={page.route}>
+                                            {page.title || page.route || 'Home'}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex gap-2">
