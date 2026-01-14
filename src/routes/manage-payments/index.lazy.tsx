@@ -85,7 +85,9 @@ function ManagePaymentsLayoutPage() {
             filters.sources = selectedPaymentSources.map((s) => s.value) as ('USER' | 'SUB_ORG')[];
         }
 
-        if (packageSessionFilter.packageSessionId) {
+        if (packageSessionFilter.packageSessionIds && packageSessionFilter.packageSessionIds.length > 0) {
+            filters.package_session_ids = packageSessionFilter.packageSessionIds;
+        } else if (packageSessionFilter.packageSessionId) {
             filters.package_session_ids = [packageSessionFilter.packageSessionId];
         }
 
@@ -179,7 +181,14 @@ function ManagePaymentsLayoutPage() {
                 setCurrentPage(0);
                 break;
             case 'packageSession':
-                setPackageSessionFilter({});
+                if (value) {
+                    setPackageSessionFilter(prev => ({
+                        ...prev,
+                        packageSessionIds: prev.packageSessionIds?.filter(id => id !== value)
+                    }));
+                } else {
+                    setPackageSessionFilter({});
+                }
                 setCurrentPage(0);
                 break;
         }

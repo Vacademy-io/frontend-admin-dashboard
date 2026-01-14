@@ -73,6 +73,7 @@ export function PaymentFilters({
         levelId: string;
         sessionId: string;
         packageId: string;
+        packageSessionIds?: string[];
     }) => {
         onPackageSessionFilterChange({
             ...packageSessionFilter,
@@ -80,6 +81,7 @@ export function PaymentFilters({
             levelId: selection.levelId,
             sessionId: selection.sessionId,
             packageId: selection.packageId,
+            packageSessionIds: selection.packageSessionIds,
         });
     };
 
@@ -119,13 +121,16 @@ export function PaymentFilters({
     const handleQuickFilter = (type: string) => {
         const range = getQuickDateRange(type);
         onQuickFilterSelect(range);
-    }; const hasActiveFilters =
+    };
+
+    const hasActiveFilters =
         startDate ||
         endDate ||
         selectedPaymentStatuses.length > 0 ||
         selectedUserPlanStatuses.length > 0 ||
         selectedPaymentSources.length > 0 ||
-        !!packageSessionFilter.packageId;
+        !!packageSessionFilter.packageId ||
+        (packageSessionFilter.packageSessionIds && packageSessionFilter.packageSessionIds.length > 0);
 
     return (
         <div className="space-y-4">
@@ -145,7 +150,7 @@ export function PaymentFilters({
                                 (selectedPaymentSources.length || 0) +
                                 (startDate ? 1 : 0) +
                                 (endDate ? 1 : 0) +
-                                (packageSessionFilter.packageId ? 1 : 0)}
+                                (packageSessionFilter.packageSessionIds?.length || (packageSessionFilter.packageId ? 1 : 0))}
                         </span>
                     )}
                 </Button>
@@ -221,6 +226,8 @@ export function PaymentFilters({
                             initialLevelId={packageSessionFilter.levelId}
                             initialSessionId={packageSessionFilter.sessionId}
                             initialPackageId={packageSessionFilter.packageId}
+                            multiSelect={true}
+                            initialPackageSessionIds={packageSessionFilter.packageSessionIds}
                         />
                     </div>
 

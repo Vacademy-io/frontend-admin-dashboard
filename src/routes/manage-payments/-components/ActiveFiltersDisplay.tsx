@@ -32,7 +32,8 @@ export function ActiveFiltersDisplay({
         selectedUserPlanStatuses.length > 0 ||
         selectedPaymentSources.length > 0 ||
         !!packageSessionFilter.packageId ||
-        !!packageSessionFilter.packageSessionId;
+        !!packageSessionFilter.packageSessionId ||
+        (packageSessionFilter.packageSessionIds && packageSessionFilter.packageSessionIds.length > 0);
 
     if (!hasActiveFilters) {
         return null;
@@ -166,22 +167,47 @@ export function ActiveFiltersDisplay({
                     </Badge>
                 ))}
 
-                {/* Package Session Filter */}
-                {(packageSessionFilter.packageId || packageSessionFilter.packageSessionId) && (
-                    <Badge
-                        variant="default"
-                        className="gap-2 bg-blue-600 text-white hover:bg-blue-700"
-                    >
-                        <span className="text-xs">
-                            Course: {getPackageSessionDisplay() || 'Selected'}
-                        </span>
-                        <button
-                            onClick={() => onClearFilter('packageSession')}
-                            className="hover:text-blue-100"
+                {/* Package Session Filters (Multi-select) */}
+                {packageSessionFilter.packageSessionIds && packageSessionFilter.packageSessionIds.length > 0 ? (
+                    packageSessionFilter.packageSessionIds.map(id => {
+                        const batch = batchesForSessions.find(b => b.id === id);
+                        const label = batch ? batch.package_dto.package_name : id;
+                        return (
+                            <Badge
+                                key={id}
+                                variant="default"
+                                className="gap-2 bg-blue-600 text-white hover:bg-blue-700"
+                            >
+                                <span className="text-xs">
+                                    Course: {label}
+                                </span>
+                                <button
+                                    onClick={() => onClearFilter('packageSession', id)}
+                                    className="hover:text-blue-100"
+                                >
+                                    <X size={12} weight="bold" />
+                                </button>
+                            </Badge>
+                        );
+                    })
+                ) : (
+                    /* Legacy single select fallback */
+                    (packageSessionFilter.packageId || packageSessionFilter.packageSessionId) && (
+                        <Badge
+                            variant="default"
+                            className="gap-2 bg-blue-600 text-white hover:bg-blue-700"
                         >
-                            <X size={12} weight="bold" />
-                        </button>
-                    </Badge>
+                            <span className="text-xs">
+                                Course: {getPackageSessionDisplay() || 'Selected'}
+                            </span>
+                            <button
+                                onClick={() => onClearFilter('packageSession')}
+                                className="hover:text-blue-100"
+                            >
+                                <X size={12} weight="bold" />
+                            </button>
+                        </Badge>
+                    )
                 )}
             </div>
         </div>

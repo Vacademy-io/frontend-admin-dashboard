@@ -15,7 +15,10 @@ interface PackageSelectorProps {
         levelId: string;
         sessionId: string;
         packageId: string;
+        packageSessionIds?: string[]; // Added for multi-select
     }) => void;
+    multiSelect?: boolean;
+    initialPackageSessionIds?: string[];
     className?: string;
     initialLevelId?: string;
     initialSessionId?: string;
@@ -32,6 +35,8 @@ interface AutocompletePackage {
 const PackageSelector: React.FC<PackageSelectorProps> = ({
     instituteId,
     onChange,
+    multiSelect = false,
+    initialPackageSessionIds = [],
     className,
     initialLevelId = '',
     initialSessionId = '',
@@ -55,6 +60,28 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
     const containerRef = useRef<HTMLDivElement>(null);
 
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>('');
+    const [selectedPackages, setSelectedPackages] = useState<AutocompletePackage[]>([]);
+
+    // Load initial packages from store if initialPackageSessionIds provided
+    useEffect(() => {
+        if (multiSelect && initialPackageSessionIds && initialPackageSessionIds.length > 0 && instituteDetails?.batches_for_sessions) {
+            const initialPkgs: AutocompletePackage[] = [];
+            initialPackageSessionIds.forEach(id => {
+                const batch = instituteDetails.batches_for_sessions.find(b => b.id === id);
+                if (batch) {
+                    initialPkgs.push({
+                        id: batch.package_dto.id,
+                        package_name: batch.package_dto.package_name,
+                        package_id: batch.package_dto.id,
+                        package_session_id: batch.id
+                    });
+                }
+            });
+            if (initialPkgs.length > 0) {
+                setSelectedPackages(initialPkgs);
+            }
+        }
+    }, [initialPackageSessionIds, instituteDetails, multiSelect]);
 
     // Unified state synchronization and search term initialization
     useEffect(() => {
@@ -64,17 +91,17 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
 
         if (initialPackageId) {
             // Find package name from store if packageId is set
-            if (instituteDetails) {
+            if (instituteDetails?.batches_for_sessions) {
                 const batch = instituteDetails.batches_for_sessions.find(b => b.package_dto.id === initialPackageId);
                 if (batch) {
                     setSearchTerm(batch.package_dto.package_name);
                 }
             }
-        } else {
+        } else if (!multiSelect) {
             setSearchTerm('');
             setSearchResults([]);
         }
-    }, [initialLevelId, initialSessionId, initialPackageId, instituteDetails]);
+    }, [initialLevelId, initialSessionId, initialPackageId, instituteDetails, multiSelect]);
 
     // Internal debouncing logic
     useEffect(() => {
@@ -126,7 +153,14 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
         setPackageId('');
         setSearchTerm('');
         setSearchResults([]);
-        onChange({ packageSessionId: null, levelId: value, sessionId: '', packageId: '' });
+        setSelectedPackages([]);
+        onChange({
+            packageSessionId: null,
+            levelId: value,
+            sessionId: '',
+            packageId: '',
+            packageSessionIds: []
+        });
     };
 
     // Handle Session Change
@@ -136,7 +170,14 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
         setPackageId(''); // Reset downstream
         setSearchTerm('');
         setSearchResults([]);
-        onChange({ packageSessionId: null, levelId, sessionId: value, packageId: '' });
+        setSelectedPackages([]);
+        onChange({
+            packageSessionId: null,
+            levelId,
+            sessionId: value,
+            packageId: '',
+            packageSessionIds: []
+        });
     };
 
     // Fetch autocomplete results
@@ -196,10 +237,6 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
 
     // Handle Package Selection
     const handlePackageSelect = (pkg: AutocompletePackage) => {
-        setPackageId(pkg.id);
-        setSearchTerm(pkg.package_name);
-        setShowResults(false);
-
         // Prioritize package_session_id from API if available
         let psId = pkg.package_session_id;
 
@@ -212,13 +249,38 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
             }) || undefined;
         }
 
-        onChange({
-            packageSessionId: psId || null,
-            levelId,
-            sessionId,
-            packageId: pkg.id
-        });
+        if (multiSelect) {
+            // Check if already selected
+            if (psId && !selectedPackages.find(p => p.package_session_id === psId)) {
+                const newSelection = [...selectedPackages, { ...pkg, package_session_id: psId }];
+                setSelectedPackages(newSelection);
+                setSearchTerm('');
+                setShowResults(false);
+                onChange({
+                    packageSessionId: psId || null,
+                    levelId,
+                    sessionId,
+                    packageId: pkg.id,
+                    packageSessionIds: newSelection.map(p => p.package_session_id!).filter(Boolean)
+                });
+            } else {
+                setShowResults(false);
+                setSearchTerm('');
+            }
+        } else {
+            setPackageId(pkg.id);
+            setSearchTerm(pkg.package_name);
+            setShowResults(false);
+
+            onChange({
+                packageSessionId: psId || null,
+                levelId,
+                sessionId,
+                packageId: pkg.id
+            });
+        }
     };
+
 
     // Handle keyboard navigation
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -243,9 +305,11 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
 
     const handleClearSearch = () => {
         setSearchTerm('');
-        setPackageId('');
         setSearchResults([]);
-        onChange({ packageSessionId: null, levelId, sessionId, packageId: '' });
+        if (!multiSelect) {
+            setPackageId('');
+            onChange({ packageSessionId: null, levelId, sessionId, packageId: '' });
+        }
     };
 
     return (
@@ -377,8 +441,9 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
                 </div>
             </div>
 
+
             {/* Hint message if not fully selected */}
-            {(!levelId || !sessionId) && (
+            {(!levelId || !sessionId) && selectedPackages.length === 0 && (
                 <div className="flex items-start gap-2.5 p-3 rounded-lg bg-blue-50/50 border border-blue-100/50">
                     <div className="mt-0.5 size-4 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                         <Info className="size-2.5 text-blue-600 fill-blue-600" />
