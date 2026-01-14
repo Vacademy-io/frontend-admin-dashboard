@@ -256,12 +256,14 @@ function MyCoursesWidget() {
         const fetchCourseData = async () => {
             try {
                 setCourseCounts((prev) => ({ ...prev, loading: true, error: false }));
-                const courses = await getMyCourses();
+                const response = await getMyCourses();
 
-                if (Array.isArray(courses)) {
-                    const totalAuthored = courses.length;
+                // Handle V2 paginated response - use totalElements for counts
+                if (response && response.content) {
+                    const courses = response.content;
+                    const totalAuthored = response.totalElements || courses.length;
                     const inReview = courses.filter(
-                        (course) => course.courseStatus === 'IN_REVIEW'
+                        (course: any) => course.courseStatus === 'IN_REVIEW'
                     ).length;
 
                     setCourseCounts({
@@ -271,7 +273,7 @@ function MyCoursesWidget() {
                         error: false,
                     });
                 } else {
-                    // Handle case where courses might be null or undefined
+                    // Handle case where response might be null or undefined
                     setCourseCounts({
                         authored: 0,
                         inReview: 0,
