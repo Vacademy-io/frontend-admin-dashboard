@@ -46,6 +46,9 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
         getAllLevels,
         getAllSessions,
         getPackageSessionId,
+        getLevelsFromPackage,
+        getSessionFromPackage,
+        getDetailsFromPackageSessionId,
         instituteDetails
     } = useInstituteDetailsStore();
 
@@ -137,29 +140,61 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
     const levels = getAllLevels();
     const sessions = getAllSessions();
 
+    const filteredLevels = useMemo(() => {
+        if (packageId) {
+            const packageLevels = getLevelsFromPackage({ courseId: packageId });
+            return levels.filter(l => packageLevels.some(pl => pl.id === l.id));
+        }
+        return levels;
+    }, [levels, packageId, getLevelsFromPackage]);
+
+    const filteredSessions = useMemo(() => {
+        if (packageId || levelId) {
+            const packageSessions = getSessionFromPackage({
+                courseId: packageId || undefined,
+                levelId: levelId || undefined
+            });
+            return sessions.filter(s => packageSessions.some(ps => ps.id === s.id));
+        }
+        return sessions;
+    }, [sessions, packageId, levelId, getSessionFromPackage]);
+
     const levelOptions: SelectOption[] = useMemo(() =>
-        levels.map(l => ({ label: l.level_name, value: l.id })),
-        [levels]);
+        filteredLevels.map(l => ({ label: l.level_name, value: l.id })),
+        [filteredLevels]);
 
     const sessionOptions: SelectOption[] = useMemo(() =>
-        sessions.map(s => ({ label: s.session_name, value: s.id })),
-        [sessions]);
+        filteredSessions.map(s => ({ label: s.session_name, value: s.id })),
+        [filteredSessions]);
 
     // Handle Level Change
     const handleLevelChange = (selected: SelectOption[]) => {
         const value = selected[0]?.value || '';
         setLevelId(value);
         setSessionId(''); // Reset downstream
-        setPackageId('');
-        setSearchTerm('');
-        setSearchResults([]);
-        setSelectedPackages([]);
+
+        const psId = packageId && value ? getPackageSessionId({
+            courseId: packageId,
+            levelId: value,
+            sessionId: ''
+        }) : null;
+
+        if (multiSelect && psId) {
+            handlePackageSelect({
+                id: packageId,
+                package_name: searchTerm,
+                package_id: packageId,
+                package_session_id: psId
+            });
+            return;
+        }
+
         onChange({
-            packageSessionId: null,
+            packageSessionId: psId,
             levelId: value,
             sessionId: '',
-            packageId: '',
-            packageSessionIds: []
+            packageId: packageId,
+            packageSessionIds: multiSelect ? selectedPackages.map(p => p.package_session_id!).filter(Boolean) : []
         });
     };
 
@@ -167,37 +202,45 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
     const handleSessionChange = (selected: SelectOption[]) => {
         const value = selected[0]?.value || '';
         setSessionId(value);
-        setPackageId(''); // Reset downstream
-        setSearchTerm('');
-        setSearchResults([]);
-        setSelectedPackages([]);
+
+        const psId = packageId && levelId && value ? getPackageSessionId({
+            courseId: packageId,
+            levelId: levelId,
+            sessionId: value
+        }) : null;
+
+        if (multiSelect && psId) {
+            handlePackageSelect({
+                id: packageId,
+                package_name: searchTerm,
+                package_id: packageId,
+                package_session_id: psId
+            });
+            return;
+        }
+
         onChange({
-            packageSessionId: null,
+            packageSessionId: psId,
             levelId,
             sessionId: value,
-            packageId: '',
-            packageSessionIds: []
+            packageId: packageId,
+            packageSessionIds: multiSelect ? selectedPackages.map(p => p.package_session_id!).filter(Boolean) : []
         });
     };
 
     // Fetch autocomplete results
     useEffect(() => {
         const fetchPackages = async () => {
-            // We still need level and session, but allow empty debouncedSearchTerm 
-            // to support "dropdown" behavior if the API allows it.
-            if (!levelId || !sessionId) {
-                setSearchResults([]);
-                return;
-            }
-
+            // Package search is now the entry point, so we don't strictly need level/session
+            // But we pass them if they are selected to narrow down results if needed by API
             setIsSearching(true);
             try {
                 const response = await authenticatedAxiosInstance.get(PACKAGE_AUTOCOMPLETE_URL, {
                     params: {
                         q: debouncedSearchTerm || '',
                         instituteId: instituteId,
-                        session_id: sessionId,
-                        level_id: levelId
+                        session_id: sessionId || undefined,
+                        level_id: levelId || undefined
                     }
                 });
 
@@ -243,32 +286,47 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
         if (!psId) {
             // Fallback to store if not in API response
             psId = getPackageSessionId({
-                courseId: pkg.id,
+                courseId: pkg.id || pkg.package_id || '',
                 levelId: levelId,
                 sessionId: sessionId
             }) || undefined;
         }
 
         if (multiSelect) {
-            // Check if already selected
-            if (psId && !selectedPackages.find(p => p.package_session_id === psId)) {
-                const newSelection = [...selectedPackages, { ...pkg, package_session_id: psId }];
-                setSelectedPackages(newSelection);
-                setSearchTerm('');
+            if (psId) {
+                // If we have a psId, add it to selected list
+                if (!selectedPackages.find(p => p.package_session_id === psId)) {
+                    const newSelection = [...selectedPackages, { ...pkg, package_session_id: psId }];
+                    setSelectedPackages(newSelection);
+
+                    setShowResults(false);
+
+                    onChange({
+                        packageSessionId: psId,
+                        levelId,
+                        sessionId,
+                        packageId: pkg.id || pkg.package_id || '',
+                        packageSessionIds: newSelection.map(p => p.package_session_id!).filter(Boolean)
+                    });
+                } else {
+                    setShowResults(false);
+                }
+            } else {
+                // No psId yet, set packageId so user can select level/session
+                setPackageId(pkg.id || pkg.package_id || '');
+                // Note: We don't set search term here because the user might be typing
                 setShowResults(false);
+
                 onChange({
-                    packageSessionId: psId || null,
+                    packageSessionId: null,
                     levelId,
                     sessionId,
-                    packageId: pkg.id,
-                    packageSessionIds: newSelection.map(p => p.package_session_id!).filter(Boolean)
+                    packageId: pkg.id || pkg.package_id || '',
+                    packageSessionIds: selectedPackages.map(p => p.package_session_id!).filter(Boolean)
                 });
-            } else {
-                setShowResults(false);
-                setSearchTerm('');
             }
         } else {
-            setPackageId(pkg.id);
+            setPackageId(pkg.id || pkg.package_id || '');
             setSearchTerm(pkg.package_name);
             setShowResults(false);
 
@@ -276,7 +334,7 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
                 packageSessionId: psId || null,
                 levelId,
                 sessionId,
-                packageId: pkg.id
+                packageId: pkg.id || pkg.package_id || ''
             });
         }
     };
@@ -303,11 +361,12 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
         }
     };
 
+
     const handleClearSearch = () => {
         setSearchTerm('');
         setSearchResults([]);
+        setPackageId('');
         if (!multiSelect) {
-            setPackageId('');
             onChange({ packageSessionId: null, levelId, sessionId, packageId: '' });
         }
     };
@@ -315,47 +374,10 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
     return (
         <div className={cn("space-y-4", className)} ref={containerRef}>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                {/* 1. Level Selector */}
-                <div className="space-y-2">
-                    <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">
-                        1. Select Level
-                    </Label>
-                    <SelectChips
-                        options={levelOptions}
-                        selected={levelOptions.filter(o => o.value === levelId)}
-                        onChange={handleLevelChange}
-                        placeholder="Choose Level"
-                        multiSelect={false}
-                        className="w-full"
-                    />
-                </div>
-
-                {/* 2. Session Selector (Enabled only if Level selected) */}
-                <div className="space-y-2">
-                    <Label className={cn(
-                        "text-xs font-medium uppercase tracking-wider",
-                        !levelId ? "text-gray-400" : "text-gray-700"
-                    )}>
-                        2. Select Session
-                    </Label>
-                    <SelectChips
-                        options={sessionOptions}
-                        selected={sessionOptions.filter(o => o.value === sessionId)}
-                        onChange={handleSessionChange}
-                        placeholder="Choose Session"
-                        multiSelect={false}
-                        disabled={!levelId}
-                        className="w-full"
-                    />
-                </div>
-
-                {/* 3. Package Autocomplete (Enabled only if Level & Session selected) */}
+                {/* 1. Package Autocomplete (First entry point) */}
                 <div className="relative space-y-2">
-                    <Label className={cn(
-                        "text-xs font-medium uppercase tracking-wider",
-                        (!levelId || !sessionId) ? "text-gray-400" : "text-gray-700"
-                    )}>
-                        3. Search Package
+                    <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+                        1. Search Package
                     </Label>
                     <div className="relative group">
                         <Input
@@ -367,16 +389,12 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
                             }}
                             onKeyDown={handleKeyDown}
                             onFocus={() => setShowResults(true)}
-                            disabled={!levelId || !sessionId}
                             className={cn(
                                 "pl-10 pr-10 text-sm transition-all duration-200 focus-visible:ring-1 focus-visible:ring-ring",
-                                showResults && searchResults.length > 0 && "rounded-b-none"
+                                (showResults && searchResults.length > 0) ? "rounded-b-none" : "rounded-md"
                             )}
                         />
-                        <MagnifyingGlass className={cn(
-                            "absolute left-3 top-1/2 size-4 -translate-y-1/2 transition-colors",
-                            (!levelId || !sessionId) ? "text-gray-300" : "text-gray-400"
-                        )} />
+                        <MagnifyingGlass className="absolute left-3 top-1/2 size-4 -translate-y-1/2 transition-colors text-gray-400" />
 
                         {searchTerm && (
                             <button
@@ -396,7 +414,7 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
                     </div>
 
                     {/* Autocomplete Results Dropdown */}
-                    {showResults && (isSearching || searchResults.length > 0) && (
+                    {showResults && (isSearching || (Array.isArray(searchResults) && searchResults.length > 0)) && (
                         <div className="absolute z-50 w-full rounded-b-md border border-t-0 border-gray-200 bg-white shadow-xl overflow-hidden max-h-[400px] overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-150">
                             {isSearching && searchResults.length === 0 ? (
                                 <div className="p-4 text-center text-sm text-gray-500 flex items-center justify-center gap-2">
@@ -407,7 +425,7 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
                                 Array.isArray(searchResults) &&
                                 searchResults.map((pkg, index) => (
                                     <button
-                                        key={pkg.id}
+                                        key={pkg.id || pkg.package_id}
                                         type="button"
                                         onClick={() => handlePackageSelect(pkg)}
                                         onMouseEnter={() => setSelectedIndex(index)}
@@ -439,17 +457,47 @@ const PackageSelector: React.FC<PackageSelectorProps> = ({
                         </div>
                     )}
                 </div>
+
+                {/* 2. Level Selector */}
+                <div className="space-y-2">
+                    <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+                        2. Select Level
+                    </Label>
+                    <SelectChips
+                        options={levelOptions}
+                        selected={levelOptions.filter(o => o.value === levelId)}
+                        onChange={handleLevelChange}
+                        placeholder="Choose Level"
+                        multiSelect={false}
+                        className="w-full"
+                    />
+                </div>
+
+                {/* 3. Session Selector */}
+                <div className="space-y-2">
+                    <Label className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+                        3. Select Session
+                    </Label>
+                    <SelectChips
+                        options={sessionOptions}
+                        selected={sessionOptions.filter(o => o.value === sessionId)}
+                        onChange={handleSessionChange}
+                        placeholder="Choose Session"
+                        multiSelect={false}
+                        className="w-full"
+                    />
+                </div>
             </div>
 
 
             {/* Hint message if not fully selected */}
-            {(!levelId || !sessionId) && selectedPackages.length === 0 && (
+            {(!packageId) && selectedPackages.length === 0 && (
                 <div className="flex items-start gap-2.5 p-3 rounded-lg bg-blue-50/50 border border-blue-100/50">
                     <div className="mt-0.5 size-4 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                         <Info className="size-2.5 text-blue-600 fill-blue-600" />
                     </div>
                     <p className="text-xs text-blue-700 leading-relaxed font-normal">
-                        Select a <span className="font-bold">Level</span> and <span className="font-bold">Session</span> above to browse and search for specific course packages.
+                        Start by searching for a <span className="font-bold">Package</span> to filter by level and session.
                     </p>
                 </div>
             )}

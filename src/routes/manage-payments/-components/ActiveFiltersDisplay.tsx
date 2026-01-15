@@ -171,7 +171,15 @@ export function ActiveFiltersDisplay({
                 {packageSessionFilter.packageSessionIds && packageSessionFilter.packageSessionIds.length > 0 ? (
                     packageSessionFilter.packageSessionIds.map(id => {
                         const batch = batchesForSessions.find(b => b.id === id);
-                        const label = batch ? batch.package_dto.package_name : id;
+                        let label = batch ? batch.package_dto.package_name : id;
+
+                        if (batch) {
+                            const parts = [batch.package_dto.package_name];
+                            if (batch.level.level_name) parts.push(batch.level.level_name);
+                            if (batch.session.session_name) parts.push(batch.session.session_name);
+                            label = parts.join(' → ');
+                        }
+
                         return (
                             <Badge
                                 key={id}
