@@ -40,30 +40,21 @@ export const useStudentTable = (
         refetch,
     } = useStudentList(localAppliedFilters, page, pageSize);
 
+    // Update selected student when data changes
     useEffect(() => {
-        if (selectedStudent) {
-            const student = studentTableData?.content.find(
+        if (selectedStudent && studentTableData?.content) {
+            const student = studentTableData.content.find(
                 (student) => student.user_id === selectedStudent.user_id
             );
             if (student) {
                 setSelectedStudent(student);
-            } else {
-                setSelectedStudent(student || null);
             }
         }
-    }, [studentTableData]);
+    }, [studentTableData?.content]);
 
-    useEffect(() => {
-        // Only refetch if there are actual filters applied
-        if (
-            appliedFilters.name ||
-            appliedFilters.gender?.length ||
-            appliedFilters.statuses?.length ||
-            appliedFilters.package_session_ids?.length
-        ) {
-            refetch();
-        }
-    }, [appliedFilters, refetch]);
+    // NOTE: We removed the useEffect that called refetch() on filter changes
+    // React Query's queryKey already handles this - when the key changes, 
+    // it automatically fetches new data. The extra refetch() was causing duplicate API calls.
 
     const handleSort = async (columnId: string, direction: string) => {
         const newSortColumns = {
@@ -78,7 +69,8 @@ export const useStudentTable = (
 
     const handlePageChange = async (newPage: number) => {
         setPage(newPage);
-        await refetch();
+        // No need to call refetch() - changing page will change the queryKey
+        // which automatically triggers a new fetch
     };
 
     return {

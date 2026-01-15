@@ -62,22 +62,40 @@ export const useStudentFilters = () => {
 
     const [allPackageSessionIds, setAllPackageSessionIds] = useState<string[]>([]);
 
-    const [appliedFilters, setAppliedFilters] = useState<StudentFilterRequest>({
-        name: '',
-        institute_ids: INSTITUTE_ID ? [INSTITUTE_ID] : [],
-        package_session_ids: allPackageSessionIds,
-        group_ids: [],
-        gender: [],
-        statuses: instituteDetails?.student_statuses || [],
-        session_expiry_days: [],
-        sort_columns: {},
-        sub_org_user_types: [],
-        payment_statuses: [],
-        sources: [],
-        types: [],
-        type_ids: [],
-        destination_package_session_ids: [],
-        level_ids: [],
+    // Ref to track if we've done the initial package session setup
+    const hasInitialSessionSetupRef = useRef(false);
+
+    // Compute initial package session IDs from current session
+    const getPackageSessionIdsForSession = useCallback((sessionId: string) => {
+        return (instituteDetails?.batches_for_sessions || [])
+            .filter((batch) => batch.session.id === sessionId)
+            .map((batch) => batch.id);
+    }, [instituteDetails]);
+
+    const [appliedFilters, setAppliedFilters] = useState<StudentFilterRequest>(() => {
+        // Compute initial package session IDs at initialization time
+        const initialSessionId = selectedSession?.id || getAllSessions()[0]?.id || '';
+        const initialPksIds = (instituteDetails?.batches_for_sessions || [])
+            .filter((batch) => batch.session.id === initialSessionId)
+            .map((batch) => batch.id);
+
+        return {
+            name: '',
+            institute_ids: INSTITUTE_ID ? [INSTITUTE_ID] : [],
+            package_session_ids: initialPksIds,
+            group_ids: [],
+            gender: [],
+            statuses: instituteDetails?.student_statuses || [],
+            session_expiry_days: [],
+            sort_columns: {},
+            sub_org_user_types: [],
+            payment_statuses: [],
+            sources: [],
+            types: [],
+            type_ids: [],
+            destination_package_session_ids: [],
+            level_ids: [],
+        };
     });
 
     useEffect(() => {
@@ -85,11 +103,20 @@ export const useStudentFilters = () => {
             columnFilters
                 .find((filter) => filter.id === 'batch')
                 ?.value.map((option) => option.id) ||
-            (instituteDetails?.batches_for_sessions || [])
-                .filter((batch) => batch.session.id === currentSession.id)
-                .map((batch) => batch.id);
+            getPackageSessionIdsForSession(currentSession.id);
 
         setAllPackageSessionIds(pksIds);
+
+        // Skip the first session change if we already have the correct IDs from initialization
+        if (!hasInitialSessionSetupRef.current) {
+            hasInitialSessionSetupRef.current = true;
+            // Only update if the IDs are actually different from initial state
+            const currentIds = appliedFilters.package_session_ids?.sort().join(',');
+            const newIds = pksIds.sort().join(',');
+            if (currentIds === newIds) {
+                return; // Skip update if IDs are the same
+            }
+        }
 
         if (currentSession) {
             setAppliedFilters((prev) => ({
@@ -97,7 +124,7 @@ export const useStudentFilters = () => {
                 package_session_ids: pksIds,
             }));
         }
-    }, [currentSession]);
+    }, [currentSession, getPackageSessionIdsForSession]);
 
     useEffect(() => {
         if (columnFilters.length === 0) {
